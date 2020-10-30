@@ -462,6 +462,26 @@
                     return response;
                 });
             },
+            createAwsRoleIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.createAwsRoleIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsIAMRoleIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.createAwsIAMRoleIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAWSPermissionForIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.addAWSPermissionForIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            detachAWSPermissionFromIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.detachAWSPermissionFromIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;
