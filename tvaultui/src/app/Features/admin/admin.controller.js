@@ -892,6 +892,7 @@
         var iampagesShown = 1;
         var iampageSize = AppConstant.PAGE_SIZE;
         var certpagesShown = 1;
+        var certpagesShownExt = 1;
         var certpageSize = 50;
 
         $scope.paginationLimit = function () {
@@ -963,6 +964,33 @@
         	certpagesShown = certpagesShown + 1;
         };
         
+        
+        //For External
+        $scope.certpaginationLimitExt = function (data) {
+            $scope.certcurrentshownExt = certpageSize * certpagesShownExt;            
+            if (($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) || $scope.certcurrentshownExt >= $scope.numOfCertificates) {
+                $scope.certcurrentshownExt = $scope.numOfCertificates;
+            }        
+           
+            return $scope.certcurrentshownExt;
+        };
+
+        $scope.hasMoreCertsToShowExt = function () {    
+        	 if ($scope.searchValue != '' && $scope.searchValue!= undefined) {
+                 if ($scope.searchValue.length<3) {
+                	 return certpagesShownExt < ($scope.numOfCertificates / certpageSize);
+                 }
+                 else {
+                     return false;
+                 }
+             }
+                return certpagesShownExt < ($scope.numOfCertificates / certpageSize);
+            
+        };
+        $scope.showMoreCertItemsExt = function () {
+        	certpagesShownExt = certpagesShownExt + 1;
+        };
+        //END For External
         
 
         $scope.createApprole = function () {

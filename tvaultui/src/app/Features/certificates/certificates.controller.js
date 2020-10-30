@@ -286,19 +286,21 @@
         };
 
         var pagesShown = 1;
+        var pagesShownExt = 1;
         var pageSize = 20;
         $scope.paginationLimit = function() {
             $scope.currentshown = pageSize * pagesShown;
+            $scope.currentshownExt = pageSize * pagesShownExt;
             if($scope.certificateType == "internal"){
                 if(($scope.searchValueCert != '' && $scope.searchValueCert!= undefined && $scope.searchValueCert.length>2) || $scope.currentshown >= $scope.numOfCertificates){
                     $scope.currentshown = $scope.numOfCertificates;
                 }
                 return $scope.currentshown;
             }else{
-                if(($scope.searchValueCert != '' && $scope.searchValueCert!= undefined && $scope.searchValueCert.length>2) || $scope.currentshown >= $scope.numOfCertificatesExternal){
-                    $scope.currentshown = $scope.numOfCertificatesExternal;
+                if(($scope.searchValueCert != '' && $scope.searchValueCert!= undefined && $scope.searchValueCert.length>2) || $scope.currentshownExt >= $scope.numOfCertificatesExternal){
+                    $scope.currentshownExt = $scope.numOfCertificatesExternal;
                 }
-                return $scope.currentshown;
+                return $scope.currentshownExt;
             }
            
             
@@ -310,7 +312,7 @@
                     if ($scope.certificateType == "internal") {
                         return pagesShown < ($scope.numOfCertificates / pageSize);
                     } else {
-                        return pagesShown < ($scope.numOfCertificatesExternal / pageSize);
+                        return pagesShownExt < ($scope.numOfCertificatesExternal / pageSize);
                     }
                 }
                 else {
@@ -320,12 +322,15 @@
             if ($scope.certificateType == "internal") {
                 return pagesShown < ($scope.numOfCertificates / pageSize);
             } else {
-                return pagesShown < ($scope.numOfCertificatesExternal / pageSize);
+                return pagesShownExt < ($scope.numOfCertificatesExternal / pageSize);
             }
         };
 
         $scope.showMoreItems = function() {
             pagesShown = pagesShown + 1;
+        };
+        $scope.showMoreItemsExt = function() {
+            pagesShownExt = pagesShownExt + 1;
         };
 
         $scope.goToCertificates = function() {
