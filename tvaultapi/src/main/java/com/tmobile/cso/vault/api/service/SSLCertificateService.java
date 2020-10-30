@@ -4755,16 +4755,23 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
             JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
             if (jsonObject != null) {
                 JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.CERTIFICATES);
+                JsonArray jsonArrayvalid = new JsonArray();
                 LocalDateTime  createdDate = null ;
                 LocalDateTime  certCreatedDate;
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JsonObject jsonElement = jsonArray.get(i).getAsJsonObject();
-                    if(i==0) {
-                    createdDate = LocalDateTime.parse(validateString(jsonElement.get("NotBefore")).substring(0, 19));
-                    }else if (i>0) {
-                    	createdDate = LocalDateTime.parse(validateString(jsonArray.get(i-1).getAsJsonObject().get("NotBefore")).substring(0, 19));
-                    }
                     if ((Objects.equals(getCertficateName(jsonElement.get("sortedSubjectName").getAsString()), certName))) {
+                    	 jsonArrayvalid.add(jsonElement);
+				    }
+				}
+				  for (int j = 0; j < jsonArrayvalid.size(); j++) {
+				    	JsonObject jsonElement = jsonArray.get(j).getAsJsonObject();
+                    	
+                    if(j==0) {
+                    createdDate = LocalDateTime.parse(validateString(jsonElement.get("NotBefore")).substring(0, 19));
+                    }else if (j>0) {
+                    	createdDate = LocalDateTime.parse(validateString(jsonArray.get(j-1).getAsJsonObject().get("NotBefore")).substring(0, 19));
+                    }                  
                     	certCreatedDate = LocalDateTime.parse(validateString(jsonElement.get("NotBefore")).substring(0, 19));
                     	if(!ObjectUtils.isEmpty(createdDate) && (createdDate.isBefore(certCreatedDate) || createdDate.isEqual(certCreatedDate))) {
                         certificateData= new CertificateData();
@@ -4776,7 +4783,6 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                         certificateData.setDeployStatus(getTargetSystemServiceIds(jsonElement.getAsJsonArray("targetSystemServiceIds")));                      
                     	}
                     }
-                }                
             }
         }
         return certificateData;
@@ -7467,35 +7473,19 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		    private ResponseEntity<String> createCertMetadataAndPolicy(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails, int containerId) {
 		    	
 		    	// Policy Creation
-				boolean isPoliciesCreated;
+				boolean isPoliciesCreated = false;
 				CertResponse enrollResponse = new CertResponse();
 				ResponseEntity<String> permissionResponse ;
 				
 				boolean isDeleted =false;
 				try {
 					String metadataJson = populateSSLCertificateMetadataForOnboard(sslCertificateRequest, userDetails,containerId);
-					isPoliciesCreated = createPolicies(sslCertificateRequest, tokenUtils.getSelfServiceToken());		
-		        if(isPoliciesCreated) {
-		            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-		                    put(LogMessage.ACTION, String.format(" [%s] - Policycreation - Completed",
-		                            sslCertificateRequest.getCertificateName())).
-		                    build()));
-		        }
-		        else {
-		        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
-							.put(LogMessage.USER,
-									ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-							.put(LogMessage.ACTION,
-									String.format(
-											" ERROR [%s] - Onboard failed. Policy creation failed . policyStatus[%s]",
-											sslCertificateRequest.getCertificateName(), isPoliciesCreated))	.build()));
-		            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");
-		        }
-		        
-
-				boolean sslMetaDataCreationStatus;
-				
+					if(metadataJson == null) {
+						return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Certificate not available in NCLM.\"]}");
+					}
+					
+					boolean sslMetaDataCreationStatus;
+					
 					sslMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson,tokenUtils.getSelfServiceToken());
 					
 					 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -7531,7 +7521,28 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		                    put(LogMessage.ACTION, String.format(" [%s] - Metadata Creation - Completed ",
 		                            sslCertificateRequest.getCertificateName())).
 		                    build()));
+		            isPoliciesCreated = createPolicies(sslCertificateRequest, tokenUtils.getSelfServiceToken());
+		        }					
+					
+							
+		        if(isPoliciesCreated) {
+		            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+		                    put(LogMessage.ACTION, String.format(" [%s] - Policycreation - Completed",
+		                            sslCertificateRequest.getCertificateName())).
+		                    build()));
 		        }
+		        else {
+		        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+							.put(LogMessage.USER,
+									ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+							.put(LogMessage.ACTION,
+									String.format(
+											" ERROR [%s] - Onboard failed. Policy creation failed . policyStatus[%s]",
+											sslCertificateRequest.getCertificateName(), isPoliciesCreated))	.build()));
+		            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\""+enrollResponse.getResponse()+"\"]}");
+		        } 
+			
 		        
 		        //Send failed certificate response in case of any issues in Policy/Meta data creation
 		        if ((!isPoliciesCreated) || (!sslMetaDataCreationStatus)) {
@@ -7696,6 +7707,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		                    put(LogMessage.MESSAGE, String.format("Certificate Details is not available in NCLM for given " +
 		                            "certificate = [%s]", sslCertificateRequest.getCertificateName())).
 		                    build()));
+		            return null;
 		        }
 		        
 		        ResponseEntity<DirectoryObjects> userResponse = directoryService.searchByUPN(projectLeadEmail);
@@ -7779,7 +7791,10 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					            && jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS).getAsString().
 					            equalsIgnoreCase(SSLCertificateConstants.ACTIVE)) {
 					    	jsonArrayvalid.add(jsonElement);
+					    }
+					}
 					    	for (int j = 0; j < jsonArrayvalid.size(); j++) {
+					    		JsonObject jsonElement = jsonArray.get(j).getAsJsonObject();
 					    	 if(j==0) {
 				                    createdDate = LocalDateTime.parse(validateString(jsonElement.get("NotBefore")).substring(0, 19));
 				                    }else if (j>0) {
@@ -7816,9 +7831,9 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					        break;
 					    }
 					    }
-					    }
+					    
 
-					}
+					
 					return certificateData;
 				}
 				
