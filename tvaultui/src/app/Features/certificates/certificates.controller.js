@@ -78,11 +78,15 @@
             if (searchValueCert != '' && searchValueCert != undefined && searchValueCert.length > 2) {
                 if($scope.certificateType == "internal"){
                     $scope.finalFilterCertResults = $scope.certificatesData.keys.filter(function (searchValueCert) {
+                    	if(searchValueCert.certname != undefined && searchValueCert.certname != ""){
                         return searchValueCert.certname.includes(filterSearch);
+                    	}
                     });
                 } else {
                     $scope.finalFilterExtCertResults = $scope.certificatesDataExternal.keys.filter(function (searchValueCert) {
+                    	if(searchValueCert.certname != undefined && searchValueCert.certname != ""){
                         return searchValueCert.certname.includes(filterSearch);
+                    	}
                     });
                 }
 
