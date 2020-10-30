@@ -13,6 +13,7 @@ const Container = styled('div')`
   .MuiPaper-root {
     ${(props) => props.collapseStyles}
   }
+  ${(props) => props.extraCss}
 `;
 
 const useStyles = makeStyles((theme) => ({
@@ -37,6 +38,7 @@ const ServiceAccountHelp = (props) => {
     isAutoExpand,
     setIsAutoExpand,
     collapseStyles,
+    extraCss,
   } = props;
   const [isCollapse, setIsCollapse] = useState(false);
 
@@ -48,7 +50,11 @@ const ServiceAccountHelp = (props) => {
     setIsAutoExpand(!isAutoExpand);
   };
   return (
-    <Container classes={customStyles} collapseStyles={collapseStyles}>
+    <Container
+      classes={customStyles}
+      collapseStyles={collapseStyles}
+      extraCss={extraCss}
+    >
       <TitleThree extraCss={titleCss} onClick={() => handleCollapse()}>
         {!isCollapse ? <ChevronRightIcon /> : <KeyboardArrowDownIcon />}
         <span>{title}</span>
@@ -67,6 +73,7 @@ ServiceAccountHelp.propTypes = {
   setIsAutoExpand: PropTypes.func,
   isAutoExpand: PropTypes.bool,
   collapseStyles: PropTypes.string,
+  extraCss: PropTypes.string,
 };
 ServiceAccountHelp.defaultProps = {
   children: <></>,
@@ -75,5 +82,6 @@ ServiceAccountHelp.defaultProps = {
   setIsAutoExpand: () => {},
   isAutoExpand: false,
   collapseStyles: '',
+  extraCss: '',
 };
 export default ServiceAccountHelp;

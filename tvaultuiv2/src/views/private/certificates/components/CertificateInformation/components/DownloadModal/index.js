@@ -12,6 +12,7 @@ import ButtonComponent from '../../../../../../../components/FormFields/ActionBu
 import SelectComponent from '../../../../../../../components/FormFields/SelectFields';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../../../../../breakpoints';
+import { RequiredCircle } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -199,7 +200,10 @@ const DownloadModal = (props) => {
                   Download certificate with private key.
                 </Description>
                 <InputFieldLabelWrapper>
-                  <InputLabel required>Password</InputLabel>
+                  <InputLabel>
+                    Password
+                    <RequiredCircle margin="0.5rem" />
+                  </InputLabel>
                   <TextFieldComponent
                     value={password}
                     type="password"
@@ -213,7 +217,7 @@ const DownloadModal = (props) => {
                   </FieldInstruction>
                 </InputFieldLabelWrapper>
                 <InputFieldLabelWrapper>
-                  <InputLabel required>Format</InputLabel>
+                  <InputLabel>Format</InputLabel>
                   <SelectComponent
                     menu={[...selectItem.map((item) => item.name)]}
                     value={formatType}

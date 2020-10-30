@@ -24,7 +24,7 @@ const Value = styled.p`
   text-transform: capitalize;
 `;
 const DnsName = styled.p`
-  border-bottom: 1px solid #5e627c;
+  text-decoration: underline;
   padding: 1rem 0;
   font-size: 1.8rem;
 `;
@@ -62,6 +62,8 @@ const PreviewCertificate = (props) => {
     isMobileScreen,
     responseType,
     isEditCertificate,
+    container,
+    owner,
   } = props;
   const [dnsNames, setDnsNames] = useState([]);
   useEffect(() => {
@@ -78,6 +80,14 @@ const PreviewCertificate = (props) => {
   return (
     <ComponentError>
       <DetailsWrap>
+        <EachDetail>
+          <Label>Container:</Label>
+          <Value>{container || 'N/A'}</Value>
+        </EachDetail>
+        <EachDetail>
+          <Label>Owner:</Label>
+          <Value>{owner || 'N/A'}</Value>
+        </EachDetail>
         <EachDetail>
           <Label>Certificate Type:</Label>
           <Value>{certificateType || 'N/A'}</Value>
@@ -164,9 +174,13 @@ PreviewCertificate.propTypes = {
   isMobileScreen: PropTypes.bool,
   responseType: PropTypes.number,
   isEditCertificate: PropTypes.bool,
+  container: PropTypes.string,
+  owner: PropTypes.string,
 };
 
 PreviewCertificate.defaultProps = {
+  container: 'N/A',
+  owner: 'N/A',
   certificateType: 'N/A',
   applicationName: 'N/A',
   certName: 'N/A',

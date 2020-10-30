@@ -22,6 +22,10 @@ const useStyles = makeStyles(() => ({
 const RadioButtonComponent = (props) => {
   const { value, menu, handleChange } = props;
   const classes = useStyles();
+
+  const capitalizeFirstWord = (str) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
   return (
     <ComponentError>
       <RadioGroup
@@ -33,6 +37,7 @@ const RadioButtonComponent = (props) => {
       >
         {menu.map((item) => (
           <FormControlLabel
+            key={item}
             value={item}
             control={
               <Radio
@@ -42,7 +47,7 @@ const RadioButtonComponent = (props) => {
                 }}
               />
             }
-            label={item}
+            label={capitalizeFirstWord(item)}
             classes={{
               label: classes.label,
             }}

@@ -122,7 +122,7 @@ const Users = (props) => {
    */
   const onSaveClicked = (data) => {
     setResponse({ status: 'loading' });
-    apiService
+    return apiService
       .addUserPermission(data)
       .then(async (res) => {
         if (res && res.data?.messages) {
@@ -205,7 +205,11 @@ const Users = (props) => {
    * @param {value} value permission given to the user.
    */
   const onEditClick = (key, value) => {
-    setEditAccess(value);
+    if (value === 'write') {
+      setEditAccess('reset');
+    } else {
+      setEditAccess(value);
+    }
     setEditUser(key);
     setResponse({ status: 'edit' });
   };

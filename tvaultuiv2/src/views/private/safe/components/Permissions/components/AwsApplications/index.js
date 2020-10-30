@@ -93,11 +93,11 @@ const AwsApplications = (props) => {
     };
     apiService
       .deleteAwsConfiguration(payload)
-      .then((res) => {
+      .then(async (res) => {
         if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          fetchPermission();
+          await fetchPermission();
         }
       })
       .catch((err) => {
@@ -114,13 +114,13 @@ const AwsApplications = (props) => {
       path: safeDetail.path,
       role,
     };
-    apiService
+    return apiService
       .addAwsRole(payload)
-      .then((res) => {
+      .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          fetchPermission();
+          await fetchPermission();
         }
       })
       .catch((err) => {
@@ -142,9 +142,9 @@ const AwsApplications = (props) => {
     }
     apiService
       .addAwsConfiguration(url, data)
-      .then((res) => {
+      .then(async (res) => {
         updateToastMessage(1, res.data?.messages[0]);
-        onSaveClicked(data.role, access);
+        await onSaveClicked(data.role, access);
       })
       .catch((err) => {
         if (err.response?.data?.errors && err.response.data.errors[0]) {
@@ -162,10 +162,10 @@ const AwsApplications = (props) => {
     };
     apiService
       .editAwsApplication(payload)
-      .then((res) => {
+      .then(async (res) => {
         if (res) {
           setResponse({ status: 'loading' });
-          onSaveClicked(awsName, access);
+          await onSaveClicked(awsName, access);
         }
       })
       .catch((err) => {

@@ -7,11 +7,11 @@ import PropTypes from 'prop-types';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../breakpoints';
 import ButtonComponent from '../FormFields/ActionButton';
-import SelectComponent from '../FormFields/SelectFields';
 import apiService from '../../views/private/safe/apiService';
 import LoaderSpinner from '../Loaders/LoaderSpinner';
-import RadioSafePermissionComponent from '../../views/private/safe/components/RadioPermissions';
-import RadioSvcPermissionComponent from '../../views/private/service-accounts/components/RadioPermissions';
+import RadioButtonComponent from '../FormFields/RadioButton';
+import { RequiredCircle, RequiredText } from '../../styles/GlobalStyles';
+import TextFieldSelect from '../FormFields/TextFieldSelect';
 
 const { small } = mediaBreakpoints;
 
@@ -92,6 +92,12 @@ const customStyle = css`
   transform: translate(-50%, -50%);
 `;
 
+const RequiredWrap = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+`;
+
 const useStyles = makeStyles(() => ({
   select: {
     '&.MuiFilledInput-root.Mui-focused': {
@@ -100,6 +106,7 @@ const useStyles = makeStyles(() => ({
   },
   dropdownStyle: {
     backgroundColor: '#fff',
+    height: '20rem',
   },
 }));
 
@@ -136,7 +143,6 @@ const AddAppRole = (props) => {
             setLoader(false);
             if (res.data.keys.length > 0) {
               setMenu([...res.data.keys]);
-              setSelectedValue(res.data.keys[0]);
             }
           }
         })
@@ -166,33 +172,38 @@ const AddAppRole = (props) => {
         {loader && <LoaderSpinner customStyle={customStyle} />}
         <HeaderWrapper>
           <Typography variant="h5">Add App Role</Typography>
+          <RequiredWrap>
+            <RequiredCircle />
+            <RequiredText>Required</RequiredText>
+          </RequiredWrap>
         </HeaderWrapper>
         <InputWrapper>
-          <InputLabel required>App Role</InputLabel>
-          <SelectComponent
+          <InputLabel>
+            App Role
+            <RequiredCircle margin="0.5rem" />
+          </InputLabel>
+          <TextFieldSelect
             menu={menu}
             value={selectedValue}
             classes={classes}
             readOnly={menu.length === 0 || editClicked}
-            onChange={(e) => setSelectedValue(e.target.value)}
+            handleChange={(e) => setSelectedValue(e.target.value)}
+            filledText="Select role name"
           />
         </InputWrapper>
         {menu.length === 0 && !editClicked && (
           <ErrorMessage>No app role is available</ErrorMessage>
         )}
         <RadioButtonWrapper>
-          {isSvcAccount ? (
-            <RadioSvcPermissionComponent
-              radioValue={radioValue}
-              isEdit={!!(access && role)}
-              handleRadioChange={(e) => setRadioValue(e.target.value)}
-            />
-          ) : (
-            <RadioSafePermissionComponent
-              radioValue={radioValue}
-              handleRadioChange={(e) => setRadioValue(e.target.value)}
-            />
-          )}
+          <RadioButtonComponent
+            menu={
+              isSvcAccount
+                ? ['read', 'reset', 'deny']
+                : ['read', 'write', 'deny']
+            }
+            handleChange={(e) => setRadioValue(e.target.value)}
+            value={radioValue}
+          />
           <CancelSaveWrapper>
             <CancelButton>
               <ButtonComponent

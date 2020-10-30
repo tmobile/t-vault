@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React, { useState, useEffect, useCallback } from 'react';
 import { debounce } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
@@ -11,8 +12,8 @@ import AutoCompleteComponent from '../FormFields/AutoComplete';
 import ButtonComponent from '../FormFields/ActionButton';
 import apiService from '../../views/private/safe/apiService';
 import LoaderSpinner from '../Loaders/LoaderSpinner';
-import RadioSafePermissionComponent from '../../views/private/safe/components/RadioPermissions';
-import RadioSvcPermissionComponent from '../../views/private/service-accounts/components/RadioPermissions';
+import RadioButtonComponent from '../FormFields/RadioButton';
+import { RequiredCircle, RequiredText } from '../../styles/GlobalStyles';
 
 const { small } = mediaBreakpoints;
 
@@ -40,22 +41,6 @@ const HeaderWrapper = styled.div`
       font-size: 1.6rem;
     }
   }
-`;
-const RequiredText = styled.span`
-  font-size: 1.6rem;
-  color: #5e627c;
-  margin-left: 0.5rem;
-  ${small} {
-    font-size: 1.4rem;
-  }
-`;
-
-const RequiredCircle = styled.span`
-  width: 0.6rem;
-  height: 0.6rem;
-  background-color: #e20074;
-  border-radius: 50%;
-  margin-left: ${(props) => props.margin || '0'};
 `;
 
 const InputWrapper = styled.div`
@@ -152,8 +137,10 @@ const AddGroup = (props) => {
   useEffect(() => {
     if (groupname) {
       if (
-        (groupname !== searchValue?.toLowerCase() && !isValidGroupName) ||
-        (groupname === searchValue?.toLowerCase() && access === radioValue)
+        (groupname.toLowerCase() !== searchValue?.toLowerCase() &&
+          !isValidGroupName) ||
+        (groupname.toLowerCase() === searchValue?.toLowerCase() &&
+          access === radioValue)
       ) {
         setDisabledSave(true);
       } else {
@@ -234,9 +221,9 @@ const AddGroup = (props) => {
             placeholder="Groupname - Enter min 3 characters"
             error={groupname !== searchValue && !isValidGroupName}
             helperText={
-              groupname !== searchValue &&
-              !isValidGroupName &&
-              `Group name ${searchValue} does not exist!`
+              groupname !== searchValue && !isValidGroupName
+                ? `Group name ${searchValue} does not exist!`
+                : ''
             }
           />
           <InstructionText>
@@ -245,19 +232,17 @@ const AddGroup = (props) => {
           {searchLoader && <LoaderSpinner customStyle={customStyle} />}
         </InputWrapper>
         <RadioButtonWrapper>
-          {isSvcAccount ? (
-            <RadioSvcPermissionComponent
-              radioValue={radioValue}
-              isEdit={!!(access && groupname)}
-              handleRadioChange={(e) => setRadioValue(e.target.value)}
-            />
-          ) : (
-            <RadioSafePermissionComponent
-              radioValue={radioValue}
-              handleRadioChange={(e) => setRadioValue(e.target.value)}
-              isCertificate={isCertificate}
-            />
-          )}
+          <RadioButtonComponent
+            menu={
+              isSvcAccount
+                ? ['read', 'reset', 'deny']
+                : isCertificate
+                ? ['read', 'deny']
+                : ['read', 'write', 'deny']
+            }
+            handleChange={(e) => setRadioValue(e.target.value)}
+            value={radioValue}
+          />
           <CancelSaveWrapper>
             <CancelButton>
               <ButtonComponent

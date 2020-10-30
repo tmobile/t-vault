@@ -136,7 +136,7 @@ const AccountSelectionTabs = (props) => {
   // Function to get the metadata of the given service account
   const fetchPermission = useCallback(() => {
     setResponse({ status: 'loading' });
-    apiService
+    return apiService
       .updateMetaPath(accountDetail.name)
       .then((res) => {
         if (res.data && res.data.data) {

@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React, { useState, useEffect, useReducer } from 'react';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -8,12 +9,11 @@ import Radio from '@material-ui/core/Radio';
 import PropTypes from 'prop-types';
 import { SubHeading } from '../../styles/GlobalStyles';
 import TextFieldComponent from '../FormFields/TextField';
-import RadioSafePermissionComponent from '../../views/private/safe/components/RadioPermissions';
-import RadioSvcPermissionComponent from '../../views/private/service-accounts/components/RadioPermissions';
 import ButtonComponent from '../FormFields/ActionButton';
 import mediaBreakpoints from '../../breakpoints';
 import { ColorBackArrow } from '../../assets/SvgIcons';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
+import RadioButtonComponent from '../FormFields/RadioButton';
 
 const { small } = mediaBreakpoints;
 const ContainerWrapper = styled.section``;
@@ -343,17 +343,15 @@ const AddAwsApplication = (props) => {
         </InputAwsWrapper>
         <RadioWrapper>
           <InputLabel required>Permission</InputLabel>
-          {isSvcAccount ? (
-            <RadioSvcPermissionComponent
-              radioValue={radioValue}
-              handleRadioChange={(e) => setRadioValue(e.target.value)}
-            />
-          ) : (
-            <RadioSafePermissionComponent
-              radioValue={radioValue}
-              handleRadioChange={(e) => setRadioValue(e.target.value)}
-            />
-          )}
+          <RadioButtonComponent
+            menu={
+              isSvcAccount
+                ? ['read', 'reset', 'deny']
+                : ['read', 'write', 'deny']
+            }
+            handleChange={(e) => setRadioValue(e.target.value)}
+            value={radioValue}
+          />
         </RadioWrapper>
         <CancelSaveWrapper>
           <CancelButton>

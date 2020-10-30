@@ -76,7 +76,7 @@ const Permissions = (props) => {
     setResponseType(0);
     setCount(0);
     setSafeData({});
-    apiService
+    return apiService
       .getSafeDetails(`${safeDetail.path}`)
       .then((res) => {
         let obj = {};
