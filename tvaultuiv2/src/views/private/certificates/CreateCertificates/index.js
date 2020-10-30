@@ -1,7 +1,5 @@
-/* eslint-disable jsx-a11y/click-events-have-key-events */
-/* eslint-disable jsx-a11y/no-static-element-interactions */
-/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-curly-newline */
+/* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
@@ -28,6 +26,7 @@ import PreviewCertificate from './preview';
 import SwitchComponent from '../../../../components/FormFields/SwitchComponent';
 import RadioButtonComponent from '../../../../components/FormFields/RadioButton';
 import CertificateHeader from '../components/CertificateHeader';
+import { RequiredCircle, RequiredText } from '../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -163,6 +162,11 @@ const InputEndWrap = styled.div`
   display: flex;
 `;
 
+const InputRequiredWrap = styled.div`
+  display: flex;
+  justify-content: space-between;
+`;
+
 const EndingBox = styled.div`
   background-color: ${(props) =>
     props.theme.customColor.primary.backgroundColor};
@@ -171,11 +175,12 @@ const EndingBox = styled.div`
   display: flex;
   align-items: center;
   height: 5rem;
-  span {
-    margin-left: 1rem;
-    margin-top: 0.5rem;
-    cursor: pointer;
-  }
+`;
+
+const ReturnIcon = styled.span`
+  margin-left: 1rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
 `;
 
 const loaderStyle = css`
@@ -500,7 +505,16 @@ const CreateCertificates = (props) => {
                 </PreviewWrap>
                 <CreateCertificateForm showPreview={showPreview}>
                   <RadioWrap>
-                    <InputLabel required>Certificate Type</InputLabel>
+                    <InputRequiredWrap>
+                      <InputLabel>
+                        Certificate Type
+                        <RequiredCircle margin="1.3rem" />
+                      </InputLabel>
+                      <div>
+                        <RequiredCircle />
+                        <RequiredText>Required</RequiredText>
+                      </div>
+                    </InputRequiredWrap>
                     <RadioButtonComponent
                       menu={['internal', 'external']}
                       handleChange={(e) => setCertificateType(e.target.value)}
@@ -508,7 +522,10 @@ const CreateCertificates = (props) => {
                     />
                   </RadioWrap>
                   <InputFieldLabelWrapper>
-                    <InputLabel required>Certificate Name</InputLabel>
+                    <InputLabel>
+                      Certificate Name
+                      <RequiredCircle margin="1.3rem" />
+                    </InputLabel>
                     <InputEndWrap>
                       <TextFieldComponent
                         value={certName}
@@ -525,7 +542,10 @@ const CreateCertificates = (props) => {
                     </InputEndWrap>
                   </InputFieldLabelWrapper>
                   <InputFieldLabelWrapper postion>
-                    <InputLabel required>Aplication Name</InputLabel>
+                    <InputLabel>
+                      Aplication Name
+                      <RequiredCircle margin="1.3rem" />
+                    </InputLabel>
                     <TextFieldSelect
                       menu={[...allApplication.map((item) => item.appName)]}
                       value={applicationName}
@@ -564,9 +584,9 @@ const CreateCertificates = (props) => {
                         />
                         <EndingBox width="17rem">
                           .t-mobile.com
-                          <span onClick={() => onAddDnsKeyClicked()}>
+                          <ReturnIcon onClick={() => onAddDnsKeyClicked()}>
                             <KeyboardReturnIcon />
-                          </span>
+                          </ReturnIcon>
                         </EndingBox>
                       </InputEndWrap>
                       <DNSArrayList>

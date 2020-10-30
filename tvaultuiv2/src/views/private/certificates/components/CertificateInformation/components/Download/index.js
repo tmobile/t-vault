@@ -22,9 +22,6 @@ const DownloadText = styled.div`
     margin-left: 1rem;
     color: ${customColor.magenta};
   }
-  :hover {
-    color: #bb0663;
-  }
 `;
 const PopperItem = styled.div`
   padding: 0.5rem;

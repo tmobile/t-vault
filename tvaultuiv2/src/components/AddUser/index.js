@@ -13,6 +13,7 @@ import ButtonComponent from '../FormFields/ActionButton';
 import apiService from '../../views/private/safe/apiService';
 import LoaderSpinner from '../Loaders/LoaderSpinner';
 import RadioButtonComponent from '../FormFields/RadioButton';
+import { RequiredCircle, RequiredText } from '../../styles/GlobalStyles';
 
 const { small } = mediaBreakpoints;
 
@@ -40,22 +41,6 @@ const HeaderWrapper = styled.div`
       font-size: 1.6rem;
     }
   }
-`;
-const RequiredText = styled.span`
-  font-size: 1.6rem;
-  color: #5e627c;
-  margin-left: 0.5rem;
-  ${small} {
-    font-size: 1.4rem;
-  }
-`;
-
-const RequiredCircle = styled.span`
-  width: 0.6rem;
-  height: 0.6rem;
-  background-color: #e20074;
-  border-radius: 50%;
-  margin-left: ${(props) => props.margin || '0'};
 `;
 
 const InputWrapper = styled.div`
