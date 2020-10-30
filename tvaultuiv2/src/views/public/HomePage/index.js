@@ -27,6 +27,7 @@ import { useStateValue } from '../../../contexts/globalState';
 import mediaBreakpoints from '../../../breakpoints';
 import apiService from './apiService';
 import Loader from '../../../components/Loaders/ScaledLoader';
+import config from '../../../config';
 
 const { smallAndMedium, small } = mediaBreakpoints;
 
@@ -372,7 +373,7 @@ const LoginPage = () => {
       setResponse({ status: 'loading' });
       axios
         .get(
-          `https://perf-vault.corporate.t-mobile.com/vault/v2/auth/oidc/callback?state=${urlParams.state}&code=${urlParams.code}`
+          `${config.url}/auth/oidc/callback?state=${urlParams.state}&code=${urlParams.code}`
         )
         .then(async (res) => {
           if (res?.data) {
@@ -396,10 +397,7 @@ const LoginPage = () => {
       redirect_uri: 'http://localhost:3000',
     };
     axios
-      .post(
-        'https://perf-vault.corporate.t-mobile.com/vault/v2/auth/oidc/auth_url',
-        payload
-      )
+      .post(`${config.url}/auth/oidc/auth_url`, payload)
       .then((res) => {
         window.location = res.data.data.auth_url;
       })
