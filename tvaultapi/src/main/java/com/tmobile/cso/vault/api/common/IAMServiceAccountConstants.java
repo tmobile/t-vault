@@ -44,6 +44,8 @@ public final class IAMServiceAccountConstants {
 	public static final String REMOVE_APPROLE_TO_IAMSVCACC_MSG = "Remove Approle from IAM Service Account";
 	public static final String IAM_SVCACC_OFFBOARD_CREATION_TITLE = "Offboard IAM Service Account";
 	public static final String ROTATE_IAM_SVCACC_TITLE = "Rotate IAM Service Account Secrets";
+	public static final String ADD_AWS_ROLE_MSG = "Add AWS Role to IAM Service Account";
+	public static final String REMOVE_AWS_ROLE_MSG = "Remove AWS Role from IAM Service Account";
 	
 	public static final String IAM_ROTATE_MSG_STRING = "rotate";
 	public static final String IAM_GROUP_MSG_STRING = "groups";

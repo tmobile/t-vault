@@ -476,7 +476,24 @@ readTextFile("../apiUrls.json");
             name: 'detachAWSPermissionFromCertificate',
             url: '/v2/sslcert/aws',
             method: 'DELETE'
+        },{
+            name: 'createAwsRoleIAMSvcacc',
+            url: '/v2/iamserviceaccounts/aws/role',
+            method: 'POST'
+        },{
+            name: 'createAwsIAMRoleIAMSvcacc',
+            url: '/v2/iamserviceaccounts/aws/iam/role',
+            method: 'POST'
+        },{
+            name: 'addAWSPermissionForIAMSvcacc',
+            url: '/v2/iamserviceaccounts/role',
+            method: 'POST'
+        },{
+            name: 'detachAWSPermissionFromIAMSvcacc',
+            url: '/v2/iamserviceaccounts/role',
+            method: 'DELETE'
         }
+        
     ]
     });
 })( angular.module( 'vault.constants.RestEndpoints', []));
