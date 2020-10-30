@@ -74,4 +74,11 @@ public class DirectoryServiceControllerV2 {
 	public ResponseEntity<DirectoryObjects> getAllUsersDetailByNtIds(@PathVariable("userNames") String userNames ){
 		return directoryService.getAllUsersDetailByNtIds(userNames);
 	}
+
+	@ApiOperation(value = "${DirectoryServiceControllerV2.searchByEmailInCorpAD.value}", notes = "${DirectoryServiceControllerV2.searchByEmailInCorpAD.notes}", hidden=true)
+	@GetMapping(value="/v2/corp/users",produces="application/json")
+	public ResponseEntity<DirectoryObjects> searchByEmailInCorpAD(@ApiParam(name="email", defaultValue="")
+														@RequestParam(name="email", defaultValue="") String email ){
+		return directoryService.searchByEmailInCorp(email);
+	}
 }
