@@ -164,4 +164,6 @@ public class TVaultConstants {
     public static final String IAM_SVC_PATH = "metadata/iamsvcacc/";
     public static final String IAM_SVC_ACC_PATH_PREFIX="iamsvcacc";
     public static final String[] MASTER_APPROLES = { "selfservicesupportrole", "iamportal_master_approle"};
+    public static final String SPRINT_EMIAL_DOMAIN = "sprint.com";
+    public static final String NULL_STRING = "null";
 }

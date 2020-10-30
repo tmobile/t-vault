@@ -25,6 +25,7 @@ import javax.naming.directory.Attributes;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,6 +62,10 @@ public class  DirectoryService {
 
 	@Autowired
 	private LdapTemplate ldapTemplate;
+
+	@Autowired
+	@Qualifier(value = "adUserLdapTemplate")
+	private LdapTemplate adUserLdapTemplate;
 
 	/**
 	 * Gets the list of users from Directory Server based on UPN
@@ -281,5 +286,70 @@ public class  DirectoryService {
 		users.setData(usersList);
 
 		return ResponseEntity.status(HttpStatus.OK).body(users);
+	}
+
+	/**
+	 * Gets the user from CORD AD Server based on email
+	 * @param email
+	 * @return
+	 */
+	public ResponseEntity<DirectoryObjects> searchByEmailInCorp(String email) {
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new EqualsFilter("mail", email));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+
+		List<DirectoryUser> allPersons = getAllPersonsFromCorp(andFilter);
+		DirectoryObjects users = new DirectoryObjects();
+		DirectoryObjectsList usersList = new DirectoryObjectsList();
+		usersList.setValues(allPersons.toArray(new DirectoryUser[allPersons.size()]));
+		users.setData(usersList);
+		return ResponseEntity.status(HttpStatus.OK).body(users);
+	}
+
+	/**
+	 * Gets the list of users from CORP AD
+	 * @param filter
+	 * @return
+	 */
+	private List<DirectoryUser> getAllPersonsFromCorp(Filter filter) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "GetAllUsers").
+				put(LogMessage.MESSAGE, String.format("Trying to get list of users from directory server")).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+		return adUserLdapTemplate.search("", filter.encode(), new AttributesMapper<DirectoryUser>() {
+			@Override
+			public DirectoryUser mapFromAttributes(Attributes attr) throws NamingException {
+				DirectoryUser person = new DirectoryUser();
+				if (attr != null) {
+					String mail = "";
+					if(attr.get("mail") != null) {
+						mail = ((String) attr.get("mail").get());
+					}
+					String userId = ((String) attr.get("name").get());
+					// Assign first part of the email id for use with UPN authentication
+					if (!StringUtils.isEmpty(mail)) {
+						userId = mail.substring(0, mail.indexOf("@"));
+					}
+					person.setUserId(userId);
+					if (attr.get("displayname") != null) {
+						person.setDisplayName(((String) attr.get("displayname").get()));
+					}
+					if (attr.get("givenname") != null) {
+						person.setGivenName(((String) attr.get("givenname").get()));
+					}
+
+					if (attr.get("mail") != null) {
+						person.setUserEmail(((String) attr.get("mail").get()));
+					}
+
+					if (attr.get("name") != null) {
+						person.setUserName(((String) attr.get("name").get()));
+					}
+				}
+				return person;
+			}
+		});
 	}
 }

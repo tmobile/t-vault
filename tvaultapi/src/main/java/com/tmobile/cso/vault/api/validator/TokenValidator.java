@@ -104,6 +104,18 @@ public class TokenValidator {
 								lookupDetails.setUsername(directoryUser.getUserName().toLowerCase());
 							}
 						}
+						// if user details not found in GSM1900 and the email is sprint email.
+						// Validating null string also in lookupDetails.getUsername as initially username is set as ("null") from lookup response
+						if ((StringUtils.isEmpty(lookupDetails.getUsername()) || TVaultConstants.NULL_STRING.equals(lookupDetails.getUsername()))&& email.contains(TVaultConstants.SPRINT_EMIAL_DOMAIN)) {
+							directoryObjectsResponseEntity = directoryService.searchByEmailInCorp(email);
+							if (directoryObjectsResponseEntity != null && HttpStatus.OK.equals(directoryObjectsResponseEntity.getStatusCode())) {
+								Object[] adUser = directoryObjectsResponseEntity.getBody().getData().getValues();
+								if (adUser.length > 0) {
+									DirectoryUser directoryUser = (DirectoryUser) adUser[0];
+									lookupDetails.setUsername(directoryUser.getUserName().toLowerCase());
+								}
+							}
+						}
 					}
 					else {
 						// For approle tokens, aws tokens etc
