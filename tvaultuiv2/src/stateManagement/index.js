@@ -1,7 +1,7 @@
 const initilaState = {
   message: 'Welcome',
-  username: '',
-  userEmail: '',
+  username: sessionStorage.getItem('username'),
+  isAdmin: sessionStorage.getItem('isAdmin'),
   appRoleList: [],
 };
 

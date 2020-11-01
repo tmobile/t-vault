@@ -1,7 +1,11 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-use-before-define */
+/* eslint-disable no-console */
 /* eslint-disable react/jsx-wrap-multilines */
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { Route, Switch, Redirect } from 'react-router-dom';
 import styled from 'styled-components';
+import { useIdleTimer } from 'react-idle-timer';
 
 import Safe from './private/safe';
 import ScaledLoader from '../components/Loaders/ScaledLoader';
@@ -25,6 +29,32 @@ const Wrapper = styled.section`
 `;
 
 const PrivateRoutes = () => {
+  const [, setIsTimedOut] = useState(false);
+  const [idleTimer] = useState(1000 * 60 * 30);
+
+  const handleOnIdle = (event) => {
+    console.log('last active time', getLastActiveTime());
+    window.location.href = '/';
+    sessionStorage.clear();
+  };
+
+  const handleOnActive = (event) => {
+    console.log('time remaining', getRemainingTime());
+    setIsTimedOut(false);
+  };
+
+  const handleOnAction = (e) => {
+    console.log('user did something', getLastActiveTime());
+    setIsTimedOut(false);
+  };
+  const { getRemainingTime, getLastActiveTime } = useIdleTimer({
+    timeout: idleTimer,
+    onIdle: handleOnIdle,
+    onActive: handleOnActive,
+    onAction: handleOnAction,
+    debounce: 250,
+  });
+
   return (
     <UserContextProvider>
       <Suspense
@@ -35,7 +65,7 @@ const PrivateRoutes = () => {
         }
       >
         <Switch>
-          <Redirect exact from="/" to="/safes" />
+          {/* <Redirect exact from="/" to="/home" /> */}
           <Route
             path="/vault-app-roles"
             render={(routeProps) => (
@@ -68,7 +98,7 @@ const PrivateRoutes = () => {
               </Wrapper>
             )}
           />
-          <Route path="/home" render={() => <Home />} />
+          <Route path="/" render={() => <Home />} />
           <Redirect exact to="/" />
         </Switch>
       </Suspense>
