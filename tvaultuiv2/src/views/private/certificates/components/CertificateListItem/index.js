@@ -68,7 +68,7 @@ const extraCss = css`
     width: 17rem;
   }
   ${mediaBreakpoints.small} {
-    width: 20rem;
+    width: 15rem;
   }
 `;
 

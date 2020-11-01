@@ -115,3 +115,23 @@ export const SectionPreview = styled.section`
     height: 100vh;
   }
 `;
+
+export const RequiredCircle = styled.span`
+  width: 0.6rem;
+  height: 0.6rem;
+  background-color: #e20074;
+  border-radius: 50%;
+  margin-left: ${(props) => props.margin || '0'};
+  display: inline-block;
+  margin-bottom: 0.1rem;
+  ${(props) => (props.extraCss ? props.extraCss : '')}
+`;
+
+export const RequiredText = styled.span`
+  font-size: 1.6rem;
+  color: #5e627c;
+  margin-left: 0.5rem;
+  ${mediaBreakpoints.small} {
+    font-size: 1.4rem;
+  }
+`;

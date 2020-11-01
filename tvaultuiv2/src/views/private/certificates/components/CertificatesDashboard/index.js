@@ -687,8 +687,7 @@ const CertificatesDashboard = () => {
                   <CertificateItemDetail
                     backToLists={backToCertificates}
                     ListDetailHeaderBg={sectionHeaderBg}
-                    owner={ListItemDetails.certOwnerEmailId}
-                    container={ListItemDetails.containerName}
+                    name={ListItemDetails.certificateName}
                     renderContent={
                       <CertificatesReviewDetails
                         certificateDetail={ListItemDetails}

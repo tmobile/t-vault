@@ -93,11 +93,11 @@ const AppRoles = (props) => {
     };
     apiService
       .deleteAppRole(payload)
-      .then((res) => {
+      .then(async (res) => {
         if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          fetchPermission();
+          await fetchPermission();
         }
       })
       .catch((err) => {
@@ -112,11 +112,11 @@ const AppRoles = (props) => {
     setResponse({ status: 'loading' });
     apiService
       .addAppRole(data)
-      .then((res) => {
+      .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          fetchPermission();
+          await fetchPermission();
         }
       })
       .catch((err) => {

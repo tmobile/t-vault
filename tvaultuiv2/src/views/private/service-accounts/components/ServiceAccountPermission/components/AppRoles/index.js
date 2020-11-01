@@ -131,7 +131,7 @@ const AppRoles = (props) => {
    */
   const onSaveClicked = (data) => {
     setResponse({ status: 'loading' });
-    apiService
+    return apiService
       .addAppRolePermission(data)
       .then(async (res) => {
         if (res?.data?.messages && res.data?.messages[0]) {
@@ -193,7 +193,11 @@ const AppRoles = (props) => {
    */
   const onEditClick = (key, value) => {
     setEditClicked(true);
-    setEditAccess(value);
+    if (value === 'write') {
+      setEditAccess('reset');
+    } else {
+      setEditAccess(value);
+    }
     setEditRole(key);
     setResponse({ status: 'edit' });
   };

@@ -92,11 +92,11 @@ const Groups = (props) => {
     };
     apiService
       .deleteGroup(payload)
-      .then((res) => {
+      .then(async (res) => {
         if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          fetchPermission();
+          await fetchPermission();
         }
       })
       .catch((err) => {
@@ -109,13 +109,13 @@ const Groups = (props) => {
 
   const onSaveClicked = (data) => {
     setResponse({ status: 'loading' });
-    apiService
+    return apiService
       .addGroup(data)
-      .then((res) => {
+      .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          fetchPermission();
+          await fetchPermission();
         }
       })
       .catch((err) => {
@@ -126,13 +126,13 @@ const Groups = (props) => {
       });
   };
 
-  const onSubmit = (group, access) => {
+  const onSubmit = async (group, access) => {
     const value = {
       access,
       path: `${safeDetail.path}`,
       groupname: group.toLowerCase(),
     };
-    onSaveClicked(value);
+    await onSaveClicked(value);
     onNewGroupChange();
   };
 

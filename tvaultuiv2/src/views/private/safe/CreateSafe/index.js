@@ -20,7 +20,11 @@ import AutoCompleteComponent from '../../../../components/FormFields/AutoComplet
 import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
 import { validateEmail } from '../../../../services/helper-function';
 import apiService from '../apiService';
-import { TitleThree } from '../../../../styles/GlobalStyles';
+import {
+  TitleThree,
+  RequiredCircle,
+  RequiredText,
+} from '../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -85,7 +89,13 @@ const extraCss = css`
 const CreateSafeForm = styled.form`
   display: flex;
   flex-direction: column;
-  margin-top: 2.8rem;
+  margin-top: 2.5rem;
+`;
+
+const RequiredWrap = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 `;
 
 const InputFieldLabelWrapper = styled.div`
@@ -428,8 +438,15 @@ const CreateModal = (props) => {
               </TitleThree>
             </IconDescriptionWrapper>
             <CreateSafeForm>
+              <RequiredWrap>
+                <RequiredCircle />
+                <RequiredText>Required</RequiredText>
+              </RequiredWrap>
               <InputFieldLabelWrapper>
-                <InputLabel required>Safe Name</InputLabel>
+                <InputLabel>
+                  Safe Name
+                  <RequiredCircle margin="0.5rem" />
+                </InputLabel>
                 <TextFieldComponent
                   value={name}
                   placeholder="Save Name"
@@ -448,7 +465,10 @@ const CreateModal = (props) => {
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper postion>
-                <InputLabel required>Owner</InputLabel>
+                <InputLabel>
+                  Owner
+                  <RequiredCircle margin="0.5rem" />
+                </InputLabel>
                 <AutoCompleteComponent
                   options={options}
                   classes={classes}
@@ -470,7 +490,10 @@ const CreateModal = (props) => {
                 {autoLoader && <LoaderSpinner customStyle={autoLoaderStyle} />}
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
-                <InputLabel required>Type of Safe</InputLabel>
+                <InputLabel>
+                  Type of Safe
+                  <RequiredCircle margin="0.5rem" />
+                </InputLabel>
                 <SelectComponent
                   menu={menu}
                   value={safeType}
@@ -481,7 +504,10 @@ const CreateModal = (props) => {
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper>
-                <InputLabel required>Description</InputLabel>
+                <InputLabel>
+                  Description
+                  <RequiredCircle margin="0.5rem" />
+                </InputLabel>
                 <TextFieldComponent
                   multiline
                   value={description}

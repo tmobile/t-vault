@@ -12,7 +12,7 @@ const AntSwitch = withStyles((theme) => ({
   },
   switchBase: {
     padding: 2,
-    color: theme.palette.grey[500],
+    color: theme.palette.common.white,
     '&$checked': {
       transform: 'translateX(12px)',
       color: theme.palette.common.white,
@@ -32,7 +32,7 @@ const AntSwitch = withStyles((theme) => ({
     color: theme.palette.common.white,
     borderRadius: 16 / 2,
     opacity: 1,
-    backgroundColor: theme.palette.action.disabledBackground,
+    backgroundColor: theme.palette.secondary.main,
   },
   checked: {},
 }))(Switch);

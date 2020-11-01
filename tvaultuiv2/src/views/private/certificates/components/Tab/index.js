@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable no-else-return */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useState, useEffect } from 'react';
@@ -14,6 +15,8 @@ import { useStateValue } from '../../../../../contexts/globalState';
 import apiService from '../../apiService';
 import CertificateInformation from '../CertificateInformation';
 import CertificatePermission from '../CertificatePermission';
+import Download from '../CertificateInformation/components/Download';
+import SnackbarComponent from '../../../../../components/Snackbar';
 // import { UserContext } from '../../../../../contexts';
 // styled components goes here
 
@@ -30,6 +33,8 @@ const TabPanelWrap = styled.div`
 const TabContentsWrap = styled('div')`
   height: calc(100% - 6rem);
 `;
+
+const DownLoadWrap = styled.div``;
 
 const TabPanel = (props) => {
   const { children, value, index } = props;
@@ -77,6 +82,7 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: 'row',
     justifyContent: 'space-between',
     height: '4.8rem',
+    alignItems: 'center',
     boxShadow: 'none',
     borderBottom: '0.3rem solid #222632',
     [theme.breakpoints.down('md')]: {
@@ -96,6 +102,7 @@ const CertificateSelectionTabs = (props) => {
   const [response, setResponse] = useState({ status: 'loading' });
   const [errorMessage, setErrorMessage] = useState('');
   const [hasPermission, setHasPermission] = useState(false);
+  const [toastResponse, setToastResponse] = useState(null);
 
   const [state] = useStateValue();
   // const contextObj = useContext(UserContext);
@@ -229,6 +236,17 @@ const CertificateSelectionTabs = (props) => {
     }
   }, [certificateMetaData, state]);
 
+  const onDownloadChange = (status, val) => {
+    setResponse({ status });
+    setToastResponse(val);
+  };
+
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setToastResponse(null);
+  };
   return (
     <ComponentError>
       <div className={classes.root}>
@@ -240,9 +258,23 @@ const CertificateSelectionTabs = (props) => {
             indicatorColor="secondary"
             textColor="primary"
           >
-            <Tab className={classes.tab} label="Info" {...a11yProps(0)} />
+            <Tab
+              className={classes.tab}
+              label="Certificate"
+              {...a11yProps(0)}
+            />
             {hasPermission && <Tab label="Permissions" {...a11yProps(1)} />}
           </Tabs>
+          {value === 0 && certificateMetaData.applicationName && (
+            <DownLoadWrap>
+              <Download
+                certificateMetaData={certificateMetaData}
+                onDownloadChange={(status, val) =>
+                  onDownloadChange(status, val)
+                }
+              />
+            </DownLoadWrap>
+          )}
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
@@ -261,6 +293,15 @@ const CertificateSelectionTabs = (props) => {
             />
           </TabPanel>
         </TabContentsWrap>
+        {toastResponse === -1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message="Unable to download certificate!"
+          />
+        )}
       </div>
     </ComponentError>
   );

@@ -113,11 +113,11 @@ const User = (props) => {
     setResponse({ status: 'loading' });
     apiService
       .addUserPermission(data)
-      .then((res) => {
+      .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          fetchPermission();
+          await fetchPermission();
         }
       })
       .catch((err) => {

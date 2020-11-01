@@ -5,10 +5,9 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import ButtonComponent from '../FormFields/ActionButton';
 import TextFieldComponent from '../FormFields/TextField';
-import RadioSafePermissionComponent from '../../views/private/safe/components/RadioPermissions';
-import RadioSvcPermissionComponent from '../../views/private/service-accounts/components/RadioPermissions';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../breakpoints';
+import RadioButtonComponent from '../FormFields/RadioButton';
 
 const { small } = mediaBreakpoints;
 
@@ -114,18 +113,15 @@ const EditAwsApplication = (props) => {
           />
         </InputWrapper>
         <RadioButtonWrapper>
-          {isSvcAccount ? (
-            <RadioSvcPermissionComponent
-              radioValue={radioValue}
-              isEdit={!!(access && awsName)}
-              handleRadioChange={(e) => setRadioValue(e.target.value)}
-            />
-          ) : (
-            <RadioSafePermissionComponent
-              radioValue={radioValue}
-              handleRadioChange={(e) => setRadioValue(e.target.value)}
-            />
-          )}
+          <RadioButtonComponent
+            menu={
+              isSvcAccount
+                ? ['read', 'reset', 'deny']
+                : ['read', 'write', 'deny']
+            }
+            handleChange={(e) => setRadioValue(e.target.value)}
+            value={radioValue}
+          />
           <CancelSaveWrapper>
             <CancelButton>
               <ButtonComponent
