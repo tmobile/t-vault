@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-param-reassign */
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
@@ -35,8 +35,6 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import apiService from '../../apiService';
 import Strings from '../../../../../resources';
-// import { TitleOne } from '../../../../../styles/GlobalStyles';
-import { UserContext } from '../../../../../contexts';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import CreateAppRole from '../../CreateAppRole';
@@ -213,8 +211,7 @@ const AppRolesDashboard = () => {
   const history = useHistory();
   const location = useLocation();
   const introduction = Strings.Resources.appRoles;
-
-  const contextObj = useContext(UserContext);
+  const admin = Boolean(state.isAdmin);
   /**
    * @function fetchData
    * @description function call all the manage and safe api.
@@ -231,7 +228,7 @@ const AppRolesDashboard = () => {
           res.data.keys.map((item) => {
             const appObj = {
               name: item,
-              admin: contextObj?.isAdmin,
+              admin,
             };
             return appRolesArr.push(appObj);
           });
@@ -244,7 +241,7 @@ const AppRolesDashboard = () => {
         setStatus({});
         setGetResponseType(-1);
       });
-  }, [contextObj, dispatch]);
+  }, [admin, dispatch]);
 
   /**
    * @description On component load call fetchData function.
@@ -341,7 +338,7 @@ const AppRolesDashboard = () => {
       state: {
         appRoleDetails: {
           name,
-          isAdmin: contextObj?.isAdmin,
+          isAdmin: admin,
           isEdit: true,
           allAppRoles: appRoleList,
         },

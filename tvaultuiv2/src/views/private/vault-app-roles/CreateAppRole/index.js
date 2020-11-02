@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useReducer, useContext } from 'react';
+/* eslint-disable react/jsx-curly-newline */
+import React, { useState, useEffect, useReducer } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
@@ -11,15 +12,13 @@ import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import TextFieldComponent from '../../../../components/FormFields/TextField';
 import ButtonComponent from '../../../../components/FormFields/ActionButton';
-// import SelectComponent from '../../../../components/FormFields/SelectFields';
 import infoIcon from '../../../../assets/info.svg';
 import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
 import ApproleIcon from '../../../../assets/icon-approle.svg';
 import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../breakpoints';
 import SnackbarComponent from '../../../../components/Snackbar';
-import { UserContext } from '../../../../contexts';
-// import AutoCompleteComponent from '../../../../components/FormFields/AutoComplete';
+import { useStateValue } from '../../../../contexts/globalState';
 import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
 import apiService from '../apiService';
 import { TitleThree } from '../../../../styles/GlobalStyles';
@@ -184,7 +183,9 @@ const CreateAppRole = (props) => {
   const [nameAvailable, setNameAvailable] = useState(true);
   const [status, setStatus] = useState({});
   const history = useHistory();
-  const contextObj = useContext(UserContext);
+  const [stateVal] = useStateValue();
+
+  const admin = Boolean(stateVal.isAdmin);
 
   const initialState = {
     roleName: '',
@@ -238,7 +239,7 @@ const CreateAppRole = (props) => {
           res.data.keys.map((item) => {
             const appObj = {
               name: item,
-              admin: contextObj?.isAdmin,
+              admin,
             };
             return appRolesArr.push(appObj);
           });
@@ -248,7 +249,7 @@ const CreateAppRole = (props) => {
       .catch(() => {
         setStatus({});
       });
-  }, [contextObj]);
+  }, [admin]);
 
   const handleClose = () => {
     setOpen(false);

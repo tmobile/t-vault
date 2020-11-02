@@ -1,13 +1,7 @@
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-param-reassign */
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useContext,
-  lazy,
-} from 'react';
+import React, { useState, useEffect, useCallback, lazy } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import InfiniteScroll from 'react-infinite-scroller';
@@ -42,7 +36,6 @@ import apiService from '../../apiService';
 import Strings from '../../../../../resources';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
 import AccountSelectionTabs from '../Tabs';
-import { UserContext } from '../../../../../contexts';
 import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import TransferConfirmationModal from './components/TransferConfirmationModal';
 
@@ -217,10 +210,10 @@ const ServiceAccountDashboard = () => {
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
   const location = useLocation();
+  const admin = Boolean(state.isAdmin);
 
   const introduction = Strings.Resources.serviceAccount;
 
-  const contextObj = useContext(UserContext);
   /**
    * @function fetchData
    * @description function call all the manage and safe api.
@@ -228,57 +221,55 @@ const ServiceAccountDashboard = () => {
   const fetchData = useCallback(async () => {
     setStatus({ status: 'loading', message: 'Loading...' });
     setInputSearchValue('');
-    if (contextObj && Object.keys(contextObj).length > 0) {
-      const serviceList = await apiService.getServiceAccountList();
-      const serviceAccounts = await apiService.getServiceAccounts();
-      const allApiResponse = Promise.all([serviceList, serviceAccounts]);
-      allApiResponse
-        .then((response) => {
-          const listArray = [];
-          if (response[0] && response[0].data && response[0].data.svcacct) {
-            response[0].data.svcacct.map((item) => {
+    const serviceList = await apiService.getServiceAccountList();
+    const serviceAccounts = await apiService.getServiceAccounts();
+    const allApiResponse = Promise.all([serviceList, serviceAccounts]);
+    allApiResponse
+      .then((response) => {
+        const listArray = [];
+        if (response[0] && response[0].data && response[0].data.svcacct) {
+          response[0].data.svcacct.map((item) => {
+            const data = {
+              name: Object.keys(item)[0],
+              access: Object.values(item)[0],
+              admin,
+              manage: true,
+            };
+            return listArray.push(data);
+          });
+        }
+        if (response[1] && response[1]?.data?.keys) {
+          listArray.map((item) => {
+            if (!response[1].data.keys.includes(item.name)) {
+              item.manage = false;
+            }
+            return null;
+          });
+          response[1].data.keys.map((item) => {
+            if (!listArray.some((list) => list.name === item)) {
               const data = {
-                name: Object.keys(item)[0],
-                access: Object.values(item)[0],
-                admin: contextObj.isAdmin,
+                name: item,
+                access: '',
+                admin,
                 manage: true,
               };
               return listArray.push(data);
-            });
-          }
-          if (response[1] && response[1]?.data?.keys) {
-            listArray.map((item) => {
-              if (!response[1].data.keys.includes(item.name)) {
-                item.manage = false;
-              }
-              return null;
-            });
-            response[1].data.keys.map((item) => {
-              if (!listArray.some((list) => list.name === item)) {
-                const data = {
-                  name: item,
-                  access: '',
-                  admin: contextObj.isAdmin,
-                  manage: true,
-                };
-                return listArray.push(data);
-              }
-              return null;
-            });
-            setServiceAccountList([...listArray]);
-            setAllServiceAccountList([...listArray]);
-            dispatch({
-              type: 'GET_ALL_SERVICE_ACCOUNT_LIST',
-              payload: [...listArray],
-            });
-          }
-          setStatus({ status: 'success', message: '' });
-        })
-        .catch(() => {
-          setStatus({ status: 'failed', message: 'failed' });
-        });
-    }
-  }, [contextObj, dispatch]);
+            }
+            return null;
+          });
+          setServiceAccountList([...listArray]);
+          setAllServiceAccountList([...listArray]);
+          dispatch({
+            type: 'GET_ALL_SERVICE_ACCOUNT_LIST',
+            payload: [...listArray],
+          });
+        }
+        setStatus({ status: 'success', message: '' });
+      })
+      .catch(() => {
+        setStatus({ status: 'failed', message: 'failed' });
+      });
+  }, [admin, dispatch]);
 
   /**
    * @description On component load call fetchData function.
@@ -374,7 +365,7 @@ const ServiceAccountDashboard = () => {
       state: {
         serviceAccountDetails: {
           name,
-          isAdmin: contextObj?.isAdmin,
+          isAdmin: admin,
           isEdit: true,
         },
       },
@@ -536,8 +527,8 @@ const ServiceAccountDashboard = () => {
             <EditAndDeletePopup
               onDeletListItemClicked={() => onDeleteClicked(account.name)}
               onEditListItemClicked={() => onServiceAccountEdit(account.name)}
-              admin={contextObj.isAdmin}
-              isTransferOwner={contextObj.isAdmin}
+              admin={admin}
+              isTransferOwner={admin}
               onTransferOwnerClicked={() =>
                 onTransferOwnerClicked(account.name)
               }
@@ -549,7 +540,7 @@ const ServiceAccountDashboard = () => {
             <EditDeletePopper
               onDeleteClicked={() => onDeleteClicked(account.name)}
               onEditClicked={() => onServiceAccountEdit(account.name)}
-              admin={contextObj.isAdmin}
+              admin={admin}
               onTransferOwnerClicked={() =>
                 onTransferOwnerClicked(account.name)
               }
@@ -646,7 +637,7 @@ const ServiceAccountDashboard = () => {
                               description="No service accounts are associated with you yet!, If you are a admin please onboard a service account to get started!"
                               actionButton={
                                 // eslint-disable-next-line react/jsx-wrap-multilines
-                                contextObj?.isAdmin ? (
+                                admin ? (
                                   <ButtonComponent
                                     color="secondary"
                                     icon="add"
@@ -669,7 +660,7 @@ const ServiceAccountDashboard = () => {
               </>
             )}
 
-            {serviceAccountList?.length && contextObj?.isAdmin ? (
+            {serviceAccountList?.length && admin ? (
               <FloatBtnWrapper>
                 <FloatingActionButtonComponent
                   href="/service-accounts/onboard-service-accounts"

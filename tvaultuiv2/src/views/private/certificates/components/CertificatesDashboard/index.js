@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import {
@@ -23,13 +23,13 @@ import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import SelectComponent from '../../../../../components/FormFields/SelectFields';
 import CertificatesReviewDetails from '../CertificatesReviewDetails';
 import CertificateItemDetail from '../CertificateItemDetail';
-import { UserContext } from '../../../../../contexts';
 import apiService from '../../apiService';
 import EditCertificate from '../EditCertificate';
 import TransferCertificate from '../TransferCertificateOwner';
 import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import CreateCertificates from '../../CreateCertificates';
 import LeftColumn from './components/LeftColumn';
+import { useStateValue } from '../../../../../contexts/globalState';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -182,8 +182,8 @@ const CertificatesDashboard = () => {
   const history = useHistory();
   const location = useLocation();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-
-  const contextObj = useContext(UserContext);
+  const [state] = useStateValue();
+  const admin = Boolean(state?.isAdmin);
 
   const compareCertificates = (array1, array2, type) => {
     if (array2.length > 0) {
@@ -327,24 +327,22 @@ const CertificatesDashboard = () => {
    */
   useEffect(() => {
     setResponse({ status: 'loading' });
-    if (contextObj && Object.keys(contextObj).length > 0) {
-      if (contextObj.isAdmin) {
-        fetchAdminData().catch((err) => {
-          if (err?.response?.data?.errors && err.response.data.errors[0]) {
-            setErrorMsg(err.response.data.errors[0]);
-          }
-          setResponse({ status: 'failed' });
-        });
-      } else {
-        fetchNonAdminData().catch((err) => {
-          if (err?.response?.data?.errors && err.response.data.errors[0]) {
-            setErrorMsg(err.response.data.errors[0]);
-          }
-          setResponse({ status: 'failed' });
-        });
-      }
+    if (admin) {
+      fetchAdminData().catch((err) => {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+          setErrorMsg(err.response.data.errors[0]);
+        }
+        setResponse({ status: 'failed' });
+      });
+    } else {
+      fetchNonAdminData().catch((err) => {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+          setErrorMsg(err.response.data.errors[0]);
+        }
+        setResponse({ status: 'failed' });
+      });
     }
-  }, [fetchAdminData, contextObj, fetchNonAdminData]);
+  }, [fetchAdminData, fetchNonAdminData, admin]);
 
   /**
    * @function onLinkClicked
@@ -460,7 +458,7 @@ const CertificatesDashboard = () => {
     setCertificateData({});
     if (actionPerform) {
       setResponse({ status: 'loading' });
-      if (contextObj.isAdmin) {
+      if (admin) {
         fetchAdminData();
       } else {
         fetchNonAdminData();
@@ -689,8 +687,7 @@ const CertificatesDashboard = () => {
                   <CertificateItemDetail
                     backToLists={backToCertificates}
                     ListDetailHeaderBg={sectionHeaderBg}
-                    owner={ListItemDetails.certOwnerEmailId}
-                    container={ListItemDetails.containerName}
+                    name={ListItemDetails.certificateName}
                     renderContent={
                       <CertificatesReviewDetails
                         certificateDetail={ListItemDetails}
@@ -723,7 +720,7 @@ const CertificatesDashboard = () => {
               render={() => (
                 <CreateCertificates
                   refresh={() =>
-                    contextObj?.isAdmin ? fetchAdminData() : fetchNonAdminData()
+                    admin ? fetchAdminData() : fetchNonAdminData()
                   }
                 />
               )}

@@ -133,7 +133,7 @@ const AwsApplications = (props) => {
    */
   const onSaveClicked = (role, access) => {
     const payload = constructPayload(role, access);
-    apiService
+    return apiService
       .addAwsRole(payload)
       .then(async (res) => {
         if (res && res.data?.messages) {
@@ -221,7 +221,11 @@ const AwsApplications = (props) => {
    * @param {value} value permission given to the aws configuration.
    */
   const onEditClick = (key, value) => {
-    setEditAccess(value);
+    if (value === 'write') {
+      setEditAccess('reset');
+    } else {
+      setEditAccess(value);
+    }
     setEditAws(key);
     setResponse({ status: 'edit' });
   };

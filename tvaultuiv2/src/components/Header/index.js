@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import { withRouter, Link as RRDLink } from 'react-router-dom';
@@ -9,8 +9,8 @@ import ComponentError from '../../errorBoundaries/ComponentError/component-error
 import mediaBreakpoints from '../../breakpoints';
 import vaultIcon from '../../assets/tvault.svg';
 import menu from '../../assets/menu.svg';
-import userIcon from '../../assets/icon-profile.svg';
 import Sidebar from '../Sidebar';
+import UserLogout from './userLogout';
 
 const { small, smallAndMedium, semiLarge } = mediaBreakpoints;
 
@@ -34,7 +34,8 @@ const Container = styled.div`
     margin: 0 3.5rem;
   }
   ${smallAndMedium} {
-    justify-content: center;
+    justify-content: ${(props) => (props.isLogin ? 'center' : 'space-between')};
+    padding: 0 2rem;
   }
 `;
 
@@ -71,6 +72,8 @@ const NavLink = styled(Link)`
     text-decoration: none;
   }
 `;
+
+const DocLinks = styled.div``;
 const ProfileIconWrap = styled('div')`
   display: flex;
   align-items: center;
@@ -82,11 +85,6 @@ const EachLink = styled.a`
   margin: 0 1rem;
   color: #fff;
   font-size: 1.4rem;
-`;
-const UserName = styled.span``;
-
-const UserIcon = styled.img`
-  margin: 0 0.5rem;
 `;
 
 const useStyles = makeStyles(() => ({
@@ -100,9 +98,9 @@ const useStyles = makeStyles(() => ({
 
 const Header = (props) => {
   const classes = useStyles();
-  const [isLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(false);
   const { location } = props;
-  const [userName] = useState('User');
+  const [userName, setUserName] = useState('User');
   const [state, setState] = useState({
     left: false,
   });
@@ -128,30 +126,47 @@ const Header = (props) => {
     setState({ ...state, [anchor]: open });
   };
 
+  const checkToken = () => {
+    const loggedIn = sessionStorage.getItem('token');
+    if (loggedIn) {
+      setIsLogin(true);
+      setUserName(sessionStorage.getItem('username'));
+    } else {
+      setIsLogin(false);
+    }
+  };
+
+  useEffect(() => {
+    checkToken();
+  }, []);
+
   return (
     <ComponentError>
       <HeaderWrap>
-        <Container>
-          <>
-            <MenuIcon
-              src={menu}
-              alt="menu"
-              onClick={toggleDrawer('left', true)}
-            />
-            <SwipeableDrawer
-              anchor="left"
-              open={state.left}
-              onClose={toggleDrawer('left', false)}
-              onOpen={toggleDrawer('left', true)}
-              className={classes.root}
-            >
-              <Sidebar
-                onClose={() => hideSideMenu('left', false)}
-                navItems={navItems}
-                userName={userName}
+        <Container isLogin={isLogin}>
+          {isLogin && (
+            <>
+              <MenuIcon
+                src={menu}
+                alt="menu"
+                onClick={toggleDrawer('left', true)}
               />
-            </SwipeableDrawer>
-          </>
+              <SwipeableDrawer
+                anchor="left"
+                open={state.left}
+                onClose={toggleDrawer('left', false)}
+                onOpen={toggleDrawer('left', true)}
+                className={classes.root}
+              >
+                <Sidebar
+                  onClose={() => hideSideMenu('left', false)}
+                  navItems={navItems}
+                  userName={userName}
+                  checkToken={checkToken}
+                />
+              </SwipeableDrawer>
+            </>
+          )}
 
           <TVaultIcon src={vaultIcon} alt="tvault-logo" />
           {isLogin && (
@@ -171,9 +186,9 @@ const Header = (props) => {
                 ))}
             </HeaderCenter>
           )}
-          <ProfileIconWrap>
+          <>
             {!isLogin ? (
-              <>
+              <DocLinks>
                 <EachLink
                   href="https://docs.corporate.t-mobile.com/t-vault/introduction/"
                   target="_blank"
@@ -186,14 +201,13 @@ const Header = (props) => {
                 >
                   Developer API
                 </EachLink>
-              </>
+              </DocLinks>
             ) : (
-              <>
-                <UserName>{userName}</UserName>
-                <UserIcon src={userIcon} alt="usericon" />
-              </>
+              <ProfileIconWrap>
+                <UserLogout userName={userName} checkToken={checkToken} />
+              </ProfileIconWrap>
             )}
-          </ProfileIconWrap>
+          </>
         </Container>
       </HeaderWrap>
     </ComponentError>

@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { withRouter } from 'react-router-dom';
 import Link from '@material-ui/core/Link';
-import userIcon from '../../assets/icon-profile.svg';
 import banner from '../../assets/mob-banner.svg';
 import close from '../../assets/close.svg';
+import UserLogout from '../Header/userLogout';
 
 const SideMenuWrapper = styled.div`
   width: 33rem;
@@ -46,14 +46,8 @@ const ProfileIconWrap = styled('div')`
   padding-top: 2rem;
 `;
 
-const UserName = styled.span``;
-
-const UserIcon = styled.img`
-  margin: 0 0.5rem;
-`;
-
 const Sidebar = (props) => {
-  const { onClose, navItems, location, userName } = props;
+  const { onClose, navItems, location, userName, checkToken } = props;
   return (
     <SideMenuWrapper>
       <BannerCloseWrap>
@@ -73,8 +67,7 @@ const Sidebar = (props) => {
           ))}
       </NavItems>
       <ProfileIconWrap>
-        <UserName>{userName}</UserName>
-        <UserIcon src={userIcon} alt="usericon" />
+        <UserLogout userName={userName} checkToken={checkToken} />
       </ProfileIconWrap>
     </SideMenuWrapper>
   );
@@ -85,5 +78,6 @@ Sidebar.propTypes = {
   navItems: PropTypes.arrayOf(PropTypes.any).isRequired,
   location: PropTypes.objectOf(PropTypes.any).isRequired,
   userName: PropTypes.string.isRequired,
+  checkToken: PropTypes.func.isRequired,
 };
 export default withRouter(Sidebar);

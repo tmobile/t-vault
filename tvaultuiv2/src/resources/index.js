@@ -29,6 +29,8 @@ const Resources = {
     'Once you add a <strong>Certificate</strong> you’ll see the  Corresponding <strong>Details</strong> here!',
   appRoles:
     'AppRoles operate a lot like safes, but they put the aplication as the logical unit for sharing. Additional Accersor ID and Secret ID pairs can easily be created through T-Vault, Secret IDs can only be accessed when downloaded',
+  certificateDesc:
+    'Create both internal and external certificates, External certificates do require approval from an admin before activating, this may take some time. Try to limit your use of external certificates unless completely nessary.',
   noTransferOwnerAvailable:
     'Certificate may not be approved or rejected.Please follow the instructions mentioned in email',
   certificateGuide1:
