@@ -175,6 +175,7 @@ const EmptyContentBox = styled('div')`
 
 const ListHeader = css`
   width: 22rem;
+  text-transform: capitalize;
   font-weight: 600;
 `;
 

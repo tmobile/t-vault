@@ -6,11 +6,10 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
 const SelectStyle = styled(Select)`
-  text-transform: uppercase;
+  text-transform: capitalize;
 `;
 
 const MenuItemList = styled(MenuItem)`
-  text-transform: uppercase;
   &.Mui-selected {
     color: #fff;
   }
