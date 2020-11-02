@@ -21,7 +21,7 @@ import SnackbarComponent from '../../../../components/Snackbar';
 import { useStateValue } from '../../../../contexts/globalState';
 import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
 import apiService from '../apiService';
-import { TitleThree } from '../../../../styles/GlobalStyles';
+import { RequiredCircle, TitleThree } from '../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -66,7 +66,7 @@ const LeftIcon = styled.img`
 const IconDescriptionWrapper = styled.div`
   display: flex;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
   position: relative;
   margin-top: 3.2rem;
 `;
@@ -134,7 +134,15 @@ const InputLabelWrap = styled.div`
 `;
 
 const InfoIcon = styled('img')``;
-
+const RequiredInfo = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+`;
+const Span = styled('span')`
+  font-size: 1.3rem;
+  color: #29bd51;
+`;
 const useStyles = makeStyles((theme) => ({
   select: {
     '&.MuiFilledInput-root.Mui-focused': {
@@ -325,6 +333,7 @@ const CreateAppRole = (props) => {
       history.location.state.appRoleDetails.isEdit
     ) {
       setEditApprole(true);
+      setResponseType(0);
       setAllAppRoles([...history.location.state.appRoleDetails.allAppRoles]);
       apiService
         .fetchAppRoleDetails(history.location.state.appRoleDetails.name)
@@ -352,15 +361,7 @@ const CreateAppRole = (props) => {
           setResponseType(-1);
         });
     }
-  }, [
-    history,
-    roleName,
-    maxTokenTtl,
-    tokenTtl,
-    sectetIdNumUses,
-    tokenNumUses,
-    secretIdTtl,
-  ]);
+  }, [history]);
 
   const constructPayload = () => {
     const data = {
@@ -428,6 +429,7 @@ const CreateAppRole = (props) => {
       return;
     }
     setResponseType(null);
+    setStatus({});
   };
 
   const onInputBlur = () => {};
@@ -467,7 +469,9 @@ const CreateAppRole = (props) => {
                 alt="go-back"
                 onClick={() => handleClose()}
               />
-              <Typography variant="h5">Create AppRole</Typography>
+              <Typography variant="h5">
+                {editApprole ? 'Edit Approle' : 'Create AppRole'}
+              </Typography>
             </HeaderWrapper>
             <IconDescriptionWrapper>
               <SafeIcon src={ApproleIcon} alt="app-role-icon" />
@@ -477,22 +481,18 @@ const CreateAppRole = (props) => {
               </TitleThree>
             </IconDescriptionWrapper>
             <CreateSafeForm>
+              <RequiredInfo>
+                <RequiredCircle /> required
+              </RequiredInfo>
               <InputFieldLabelWrapper>
                 <InputLabelWrap>
-                  <InputLabel required>Role Name</InputLabel>
-                  <Tooltip
-                    classes={classes}
-                    title="Duration in seconds after which
- the issued token can no longer
-be renewed "
-                    placement="top"
-                    arrow
-                  >
-                    <div>
-                      <InfoIcon src={infoIcon} alt="info-icon-role-name" />
-                    </div>
-                  </Tooltip>
+                  <InputLabel>
+                    Role Name <RequiredCircle />
+                  </InputLabel>
+
+                  <InfoIcon src={infoIcon} alt="info-icon-role-name" />
                 </InputLabelWrap>
+
                 <TextFieldComponent
                   value={roleName}
                   placeholder="Role_name"
@@ -511,179 +511,185 @@ be renewed "
                   }
                   onInputBlur={(e) => onInputBlur(e)}
                 />
-                {roleName && nameAvailable && (
-                  <span style={{ color: '#29bd51' }}>Role Name Available!</span>
+
+                {roleName && nameAvailable && !editApprole && (
+                  <Span>Role Name Available!</Span>
                 )}
               </InputFieldLabelWrapper>
-              <InputFieldLabelWrapper postion>
-                <InputLabelWrap>
-                  <InputLabel required>Token Max TTL</InputLabel>
-                  <Tooltip
-                    classes={classes}
-                    arrow
-                    title="Duration in seconds after which the issued token can no longer be renewed"
-                    placement="top"
-                  >
-                    <div>
-                      <InfoIcon src={infoIcon} alt="info-icon" />
-                    </div>
-                  </Tooltip>
-                </InputLabelWrap>
-                <TextFieldComponent
-                  value={maxTokenTtl}
-                  placeholder="Token Max TTL"
-                  fullWidth
-                  name="maxTokenTtl"
-                  onChange={(e) => onMaxTokenChange(e)}
-                  error={numberError}
-                  helperText={
-                    numberError
-                      ? 'Please enter a valid input(value must be number)'
-                      : ''
-                  }
-                  onInputBlur={(e) => onInputBlur(e)}
-                />
-              </InputFieldLabelWrapper>
-              <InputFieldLabelWrapper>
-                <InputLabelWrap>
-                  {' '}
-                  <InputLabel required>Token TTL</InputLabel>
-                  <Tooltip
-                    classes={classes}
-                    arrow
-                    title="Duration in seconds to set as a TTL for issued tokens and at renewal time"
-                    placement="top"
-                  >
-                    <div>
-                      <InfoIcon src={infoIcon} alt="info-icon-token" />
-                    </div>
-                  </Tooltip>
-                </InputLabelWrap>
-                <TextFieldComponent
-                  value={tokenTtl}
-                  placeholder="Token_TTL"
-                  fullWidth
-                  name="tokenTtl"
-                  onChange={(e) => onTokenTtlChange(e)}
-                  error={numberError}
-                  helperText={
-                    numberError
-                      ? 'Please enter a valid input(value must be number)'
-                      : ''
-                  }
-                  onInputBlur={(e) => onInputBlur(e)}
-                />
-              </InputFieldLabelWrapper>
-              <InputFieldLabelWrapper>
-                <InputLabelWrap>
-                  <InputLabel required>Sec ID Number Uses</InputLabel>
-                  <Tooltip
-                    classes={classes}
-                    arrow
-                    title="Number of times the secretID can be used to fetch a token from this approle"
-                    placement="top"
-                  >
-                    <div>
-                      <InfoIcon src={infoIcon} alt="info-icon-sec" />
-                    </div>
-                  </Tooltip>
-                </InputLabelWrap>
-                <TextFieldComponent
-                  value={sectetIdNumUses}
-                  placeholder="secret_Id_Num_Uses"
-                  fullWidth
-                  name="sectetIdNumUses"
-                  onChange={(e) => onSecretIdNumUseChange(e)}
-                  error={numberError}
-                  helperText={
-                    numberError
-                      ? 'Please enter a valid input(value must be number)'
-                      : ''
-                  }
-                  onInputBlur={(e) => onInputBlur(e)}
-                />
-              </InputFieldLabelWrapper>
-              <InputFieldLabelWrapper>
-                <InputLabelWrap>
-                  <InputLabel required>Token Number Uses</InputLabel>
-                  <Tooltip
-                    classes={classes}
-                    arrow
-                    title="Number of times the issued token can be used"
-                    placement="top"
-                  >
-                    <div>
-                      <InfoIcon src={infoIcon} alt="info-icon-token-uses" />
-                    </div>
-                  </Tooltip>
-                </InputLabelWrap>
-                <TextFieldComponent
-                  value={tokenNumUses}
-                  placeholder="token_num_uses"
-                  fullWidth
-                  name="tokenNumUses"
-                  onChange={(e) => onTokenNumUseChange(e)}
-                  error={numberError}
-                  helperText={
-                    numberError
-                      ? 'Please enter a valid input(value must be number)'
-                      : ''
-                  }
-                  onInputBlur={(e) => onInputBlur(e)}
-                />
-              </InputFieldLabelWrapper>
-              <InputFieldLabelWrapper>
-                <InputLabelWrap>
-                  <InputLabel required>Secret ID TTL</InputLabel>
-                  <Tooltip
-                    classes={classes}
-                    arrow
-                    title="Duration in seconds after which the issued secretID expires"
-                    placement="top"
-                  >
-                    <div>
-                      <InfoIcon src={infoIcon} alt="info-icon-secret-id" />
-                    </div>
-                  </Tooltip>
-                </InputLabelWrap>
-                <TextFieldComponent
-                  value={secretIdTtl}
-                  placeholder="secret_id_ttl"
-                  fullWidth
-                  name="secretIdTtl"
-                  onChange={(e) => onSecretIdTtl(e)}
-                  error={numberError}
-                  helperText={
-                    numberError
-                      ? 'Please enter a valid input(value must be number)'
-                      : ''
-                  }
-                  onInputBlur={(e) => onInputBlur(e)}
-                />
-              </InputFieldLabelWrapper>
-              {tokenPolicies && (
-                <InputFieldLabelWrapper>
+              <Tooltip
+                classes={classes}
+                arrow
+                title="Duration in seconds after which the issued token can no longer be renewed"
+                placement="top"
+              >
+                <InputFieldLabelWrapper postion>
                   <InputLabelWrap>
-                    <InputLabel>Permissions</InputLabel>
-                    <Tooltip
-                      classes={classes}
-                      arrow
-                      title="List of permission allowed for this approle to access secrets and passwords"
-                      placement="top"
-                    >
-                      <div>
-                        <InfoIcon src={infoIcon} alt="info-icon-secret-id" />
-                      </div>
-                    </Tooltip>
+                    <InputLabel>
+                      Token Max TTL <RequiredCircle />
+                    </InputLabel>
+                    <InfoIcon src={infoIcon} alt="info-icon" />
                   </InputLabelWrap>
+
                   <TextFieldComponent
-                    value={tokenPolicies}
-                    placeholder=""
+                    value={maxTokenTtl}
+                    placeholder="Token Max TTL"
                     fullWidth
-                    readOnly
-                    name="tokenPolicies"
+                    name="maxTokenTtl"
+                    onChange={(e) => onMaxTokenChange(e)}
+                    error={numberError}
+                    helperText={
+                      numberError
+                        ? 'Please enter a valid input(value must be number)'
+                        : ''
+                    }
+                    onInputBlur={(e) => onInputBlur(e)}
                   />
                 </InputFieldLabelWrapper>
+              </Tooltip>
+              <Tooltip
+                classes={classes}
+                arrow
+                title="Duration in seconds to set as a TTL for issued tokens and at renewal time"
+                placement="top"
+              >
+                <InputFieldLabelWrapper>
+                  <InputLabelWrap>
+                    {' '}
+                    <InputLabel>
+                      Token TTL <RequiredCircle />
+                    </InputLabel>
+                    <InfoIcon src={infoIcon} alt="info-icon-token" />
+                  </InputLabelWrap>
+
+                  <TextFieldComponent
+                    value={tokenTtl}
+                    placeholder="Token_TTL"
+                    fullWidth
+                    name="tokenTtl"
+                    onChange={(e) => onTokenTtlChange(e)}
+                    error={numberError}
+                    helperText={
+                      numberError
+                        ? 'Please enter a valid input(value must be number)'
+                        : ''
+                    }
+                    onInputBlur={(e) => onInputBlur(e)}
+                  />
+                </InputFieldLabelWrapper>
+              </Tooltip>
+              <Tooltip
+                classes={classes}
+                arrow
+                title="Number of times the secretID can be used to fetch a token from this approle"
+                placement="top"
+              >
+                <InputFieldLabelWrapper>
+                  <InputLabelWrap>
+                    <InputLabel>
+                      Sec ID Number Uses <RequiredCircle />
+                    </InputLabel>
+
+                    <InfoIcon src={infoIcon} alt="info-icon-sec" />
+                  </InputLabelWrap>
+
+                  <TextFieldComponent
+                    value={sectetIdNumUses}
+                    placeholder="secret_Id_Num_Uses"
+                    fullWidth
+                    name="sectetIdNumUses"
+                    onChange={(e) => onSecretIdNumUseChange(e)}
+                    error={numberError}
+                    helperText={
+                      numberError
+                        ? 'Please enter a valid input(value must be number)'
+                        : ''
+                    }
+                    onInputBlur={(e) => onInputBlur(e)}
+                  />
+                </InputFieldLabelWrapper>
+              </Tooltip>
+              <Tooltip
+                classes={classes}
+                arrow
+                title="Number of times the issued token can be used"
+                placement="top"
+              >
+                <InputFieldLabelWrapper>
+                  <InputLabelWrap>
+                    <InputLabel>
+                      Token Number Uses <RequiredCircle />
+                    </InputLabel>
+
+                    <InfoIcon src={infoIcon} alt="info-icon-token-uses" />
+                  </InputLabelWrap>
+                  <TextFieldComponent
+                    value={tokenNumUses}
+                    placeholder="token_num_uses"
+                    fullWidth
+                    name="tokenNumUses"
+                    onChange={(e) => onTokenNumUseChange(e)}
+                    error={numberError}
+                    helperText={
+                      numberError
+                        ? 'Please enter a valid input(value must be number)'
+                        : ''
+                    }
+                    onInputBlur={(e) => onInputBlur(e)}
+                  />
+                </InputFieldLabelWrapper>
+              </Tooltip>
+              <Tooltip
+                classes={classes}
+                arrow
+                title="Duration in seconds after which the issued secretID expires"
+                placement="top"
+              >
+                <InputFieldLabelWrapper>
+                  <InputLabelWrap>
+                    <InputLabel>
+                      Secret ID TTL <RequiredCircle />
+                    </InputLabel>
+
+                    <InfoIcon src={infoIcon} alt="info-icon-secret-id" />
+                  </InputLabelWrap>
+                  <TextFieldComponent
+                    value={secretIdTtl}
+                    placeholder="secret_id_ttl"
+                    fullWidth
+                    name="secretIdTtl"
+                    onChange={(e) => onSecretIdTtl(e)}
+                    error={numberError}
+                    helperText={
+                      numberError
+                        ? 'Please enter a valid input(value must be number)'
+                        : ''
+                    }
+                    onInputBlur={(e) => onInputBlur(e)}
+                  />
+                </InputFieldLabelWrapper>
+              </Tooltip>
+              {tokenPolicies && (
+                <Tooltip
+                  classes={classes}
+                  arrow
+                  title="List of permission allowed for this approle to access secrets and passwords"
+                  placement="top"
+                >
+                  <InputFieldLabelWrapper>
+                    <InputLabelWrap>
+                      <InputLabel>Permissions</InputLabel>
+
+                      <InfoIcon src={infoIcon} alt="info-icon-secret-id" />
+                    </InputLabelWrap>
+                    <TextFieldComponent
+                      value={tokenPolicies}
+                      placeholder=""
+                      fullWidth
+                      readOnly
+                      name="tokenPolicies"
+                    />
+                  </InputFieldLabelWrapper>
+                </Tooltip>
               )}
             </CreateSafeForm>
             <CancelSaveWrapper>

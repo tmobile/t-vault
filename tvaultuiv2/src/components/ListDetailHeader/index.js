@@ -4,7 +4,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import ReactHtmlParser from 'react-html-parser';
 import mediaBreakpoints from '../../breakpoints';
-import { TitleFour } from '../../styles/GlobalStyles';
+import { TitleThree } from '../../styles/GlobalStyles';
 
 const ColumnHeader = styled('div')`
   display: flex;
@@ -23,7 +23,7 @@ const ColumnHeader = styled('div')`
   }
 `;
 const ListTitle = styled('h5')`
-  font-size: ${(props) => props.theme.typography};
+  font-size: ${(props) => props.theme.typography.h5};
   margin: 1rem 0 1.2rem;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -51,10 +51,10 @@ const ListDetailHeader = (props) => {
       <HeaderBg bgImage={bgImage} />
       <div className="list-title-wrap">
         {!isMobileScreen && <ListTitle>{title || 'No Title'}</ListTitle>}
-        <TitleFour color="#c4c4c4">
+        <TitleThree color="#c4c4c4">
           {ReactHtmlParser(description) ||
             'Create a service to see your secrets, folders and permissions here'}
-        </TitleFour>
+        </TitleThree>
       </div>
     </ColumnHeader>
   );

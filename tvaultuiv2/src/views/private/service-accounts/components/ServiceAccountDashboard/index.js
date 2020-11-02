@@ -109,7 +109,7 @@ const ListFolderWrap = styled(Link)`
   display: flex;
   text-decoration: none;
   align-items: center;
-  padding: 1.2rem 1.8rem 1.2rem 2rem;
+  padding: 1.2rem 1.8rem 1.2rem 3.8rem;
   cursor: pointer;
   background-image: ${(props) =>
     props.active ? props.theme.gradients.list : 'none'};
@@ -168,6 +168,7 @@ const EmptyContentBox = styled('div')`
 
 const ListHeader = css`
   width: 22rem;
+  text-transform: capitalize;
   font-weight: 600;
 `;
 
@@ -569,9 +570,9 @@ const ServiceAccountDashboard = () => {
         <SectionPreview title="service-account-section">
           <LeftColumnSection isAccountDetailsOpen={serviceAccountClicked}>
             <ColumnHeader>
-              <div>
+              <div style={{ margin: '0 1rem' }}>
                 <TitleOne extraCss={ListHeader}>
-                  {`SERVICE ACCOUNTS(${serviceAccountList?.length})`}
+                  {`Service Accounts(${serviceAccountList?.length})`}
                 </TitleOne>
               </div>
               <SearchWrap>
