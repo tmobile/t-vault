@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import mediaBreakpoints from '../../../../../breakpoints';
-import { TitleFour } from '../../../../../styles/GlobalStyles';
+import { TitleThree } from '../../../../../styles/GlobalStyles';
 
 const ColumnHeader = styled('div')`
   display: flex;
@@ -46,10 +46,10 @@ const SafeDetailHeader = (props) => {
       <HeaderBg bgImage={bgImage} />
       <div className="safe-title-wrap">
         {!isMobileScreen && <SafeTitle>{title || 'No Safe'}</SafeTitle>}
-        <TitleFour color="#c4c4c4">
+        <TitleThree color="#c4c4c4">
           {description ||
             'Create a Safe to see your secrets, folders and permissions here'}
-        </TitleFour>
+        </TitleThree>
       </div>
     </ColumnHeader>
   );

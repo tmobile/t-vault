@@ -767,8 +767,8 @@ const OnBoardForm = (props) => {
                   </InfoLine>
                 </HeaderInfoWrapper>
                 <ServiceAcoountHelp
-                  titleMore="view more"
-                  titleLess="view less"
+                  titleMore="View More"
+                  titleLess="View Less"
                   collapseStyles="background:none"
                   titleCss={ViewMoreStyles}
                 >
