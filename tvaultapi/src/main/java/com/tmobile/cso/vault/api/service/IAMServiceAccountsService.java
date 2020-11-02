@@ -47,6 +47,7 @@ import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 
@@ -101,6 +102,12 @@ public class  IAMServiceAccountsService {
 
 	@Autowired
     private DirectoryService directoryService;
+	
+	@Autowired
+	private AWSAuthService awsAuthService;
+	
+	@Autowired
+	private AWSIAMAuthService awsiamAuthService;
 
 	/**
 	 * Onboard an IAM service account
@@ -3599,6 +3606,348 @@ public class  IAMServiceAccountsService {
 			}
 		}
 		return true;
+	}
+	
+	/**
+	 * To create aws ec2 role
+	 * @param userDetails
+	 * @param token
+	 * @param awsLoginRole
+	 * @return
+	 * @throws TVaultValidationException
+	 */
+	public ResponseEntity<String> createAWSRole(UserDetails userDetails, String token, AWSLoginRole awsLoginRole) throws TVaultValidationException {
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
+		return awsAuthService.createRole(token, awsLoginRole, userDetails);
+	}
+	
+	/**
+	 * Create aws iam role
+	 * @param userDetails
+	 * @param token
+	 * @param awsiamRole
+	 * @return
+	 * @throws TVaultValidationException
+	 */
+	public ResponseEntity<String> createIAMRole(UserDetails userDetails, String token, AWSIAMRole awsiamRole) throws TVaultValidationException {
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
+		return awsiamAuthService.createIAMRole(awsiamRole, token, userDetails);
+	}
+	
+	/**
+	 * Add AWS role to IAM Service Account
+	 * @param userDetails
+	 * @param token
+	 * @param serviceAccountAWSRole
+	 * @return
+	 */
+	public ResponseEntity<String> addAwsRoleToIAMSvcacc(UserDetails userDetails, String token, IAMServiceAccountAWSRole iamServiceAccountAWSRole) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_AWS_ROLE_MSG).
+				put(LogMessage.MESSAGE, "Trying to add AWS Role to IAM Service Account").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
+		if(!isIamSvcaccPermissionInputValid(iamServiceAccountAWSRole.getAccess())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
+		}
+		if (iamServiceAccountAWSRole.getAccess().equalsIgnoreCase("reset")) {
+			iamServiceAccountAWSRole.setAccess(TVaultConstants.WRITE_POLICY);
+		}
+		String roleName = iamServiceAccountAWSRole.getRolename();
+		String iamSvcName = iamServiceAccountAWSRole.getIamSvcAccName().toLowerCase();
+		String awsAcountId = iamServiceAccountAWSRole.getAwsAccountId();
+		String uniqueIAMSvcName = awsAcountId + "_" + iamSvcName;
+		String access = iamServiceAccountAWSRole.getAccess();
+
+		roleName = (roleName !=null) ? roleName.toLowerCase() : roleName;
+		access = (access != null) ? access.toLowerCase(): access;
+
+		boolean isAuthorized = hasAddOrRemovePermission(userDetails, uniqueIAMSvcName, token);
+		if(isAuthorized){
+			String policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcName).toString();
+
+
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_AWS_ROLE_MSG).
+					put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			
+			String readPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcName).toString();
+			String writePolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcName).toString();
+			String denyPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcName).toString();
+			String ownerPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcName).toString();
+			
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_AWS_ROLE_MSG).
+					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, ownerPolicy)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+
+			Response roleResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+roleName+"\"}",token);
+			String responseJson="";
+			String authType = TVaultConstants.EC2;
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+			String policiesString = "";
+			String currentpoliciesString = "";
+
+			if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
+				responseJson = roleResponse.getResponse();
+				ObjectMapper objMapper = new ObjectMapper();
+				try {
+					JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
+					for(JsonNode policyNode : policiesArry){
+						currentpolicies.add(policyNode.asText());
+					}
+					authType = objMapper.readTree(responseJson).get("auth_type").asText();
+				} catch (IOException e) {
+                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                            put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_AWS_ROLE_MSG).
+                            put(LogMessage.MESSAGE, e.getMessage()).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                            build()));
+				}
+				policies.addAll(currentpolicies);
+				policies.remove(readPolicy);
+				policies.remove(writePolicy);
+				policies.remove(denyPolicy);
+				policies.add(policy);
+				policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+				currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+			} else{
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"AWS role '"+roleName+"' does not exist. Please create the role and try again!\"]}");
+			}
+			Response awsRoleConfigresponse = null;
+			if (TVaultConstants.IAM.equals(authType)) {
+				awsRoleConfigresponse = awsiamAuthService.configureAWSIAMRole(roleName,policiesString,token);
+			}
+			else {
+				awsRoleConfigresponse = awsAuthService.configureAWSRole(roleName,policiesString,token);
+			}
+			if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
+				String path = new StringBuffer(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(uniqueIAMSvcName).toString();
+				Map<String,String> params = new HashMap<>();
+				params.put("type", "aws-roles");
+				params.put("name",roleName);
+				params.put("path",path);
+				params.put("access",access);
+				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_AWS_ROLE_MSG).
+							put(LogMessage.MESSAGE, "AWS Role configuration Success.").
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role successfully associated with IAM Service Account\"]}");
+				}
+				if (TVaultConstants.IAM.equals(authType)) {
+					awsRoleConfigresponse = awsiamAuthService.configureAWSIAMRole(roleName,currentpoliciesString,token);
+				}
+				else {
+					awsRoleConfigresponse = awsAuthService.configureAWSRole(roleName,currentpoliciesString,token);
+				}
+				if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_AWS_ROLE_MSG).
+							put(LogMessage.MESSAGE, "Reverting, AWS Role policy update success").
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Please try again\"]}");
+				} else{
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_AWS_ROLE_MSG).
+							put(LogMessage.MESSAGE, "Reverting AWS Role policy update failed").
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Contact Admin \"]}");
+				}
+			} else{
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed. Try Again\"]}");
+			}
+		} else{
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add AWS Role to this IAM service account\"]}");
+		}
+	}
+	
+	/**
+	 * Remove AWS Role from IAM service account
+	 * @param userDetails
+	 * @param token
+	 * @param iamServiceAccountAWSRole
+	 * @return
+	 */
+	public ResponseEntity<String> removeAWSRoleFromIAMSvcacc(UserDetails userDetails, String token, IAMServiceAccountAWSRole iamServiceAccountAWSRole) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_AWS_ROLE_MSG).
+				put(LogMessage.MESSAGE, String.format ("Trying to remove AWS Role from IAM Service Account [%s]", iamServiceAccountAWSRole.getRolename())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
+		if(!isIamSvcaccPermissionInputValid(iamServiceAccountAWSRole.getAccess())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
+		}
+		if (iamServiceAccountAWSRole.getAccess().equalsIgnoreCase("reset")) {
+			iamServiceAccountAWSRole.setAccess(TVaultConstants.WRITE_POLICY);
+		}
+		String roleName = iamServiceAccountAWSRole.getRolename();
+		String iamSvcName = iamServiceAccountAWSRole.getIamSvcAccName().toLowerCase();
+		String awsAcountId = iamServiceAccountAWSRole.getAwsAccountId();
+		String uniqueIAMSvcName = awsAcountId + "_" + iamSvcName;
+
+		roleName = (roleName !=null) ? roleName.toLowerCase() : roleName;
+		boolean isAuthorized = hasAddOrRemovePermission(userDetails, uniqueIAMSvcName,token);
+
+		if (isAuthorized) {
+			String readPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcName).toString();
+			String writePolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcName).toString();
+			String denyPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcName).toString();
+			String ownerPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+					.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(uniqueIAMSvcName).toString();
+			
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_AWS_ROLE_MSG).
+					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, ownerPolicy)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+
+			Response roleResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+roleName+"\"}",token);
+			String responseJson="";
+			String authType = TVaultConstants.EC2;
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+
+			if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
+				responseJson = roleResponse.getResponse();
+				ObjectMapper objMapper = new ObjectMapper();
+				try {
+					JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
+					for(JsonNode policyNode : policiesArry){
+						currentpolicies.add(policyNode.asText());
+					}
+					authType = objMapper.readTree(responseJson).get("auth_type").asText();
+				} catch (IOException e) {
+                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                            put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_AWS_ROLE_MSG).
+                            put(LogMessage.MESSAGE, e.getMessage()).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                            build()));
+				}
+				policies.addAll(currentpolicies);
+				policies.remove(readPolicy);
+				policies.remove(writePolicy);
+				policies.remove(denyPolicy);
+			} else{
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"AppRole doesn't exist\"]}");
+			}
+
+			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_AWS_ROLE_MSG).
+					put(LogMessage.MESSAGE, "Remove AWS Role from IAM Service account -  policy :" + policiesString + " is being configured" ).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			Response awsRoleConfigresponse = null;
+			if (TVaultConstants.IAM.equals(authType)) {
+				awsRoleConfigresponse = awsiamAuthService.configureAWSIAMRole(roleName,policiesString,token);
+			}
+			else {
+				awsRoleConfigresponse = awsAuthService.configureAWSRole(roleName,policiesString,token);
+			}
+			if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
+				String path = new StringBuffer(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(uniqueIAMSvcName).toString();
+				Map<String,String> params = new HashMap<>();
+				params.put("type", "aws-roles");
+				params.put("name",roleName);
+				params.put("path",path);
+				params.put("access","delete");
+				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_AWS_ROLE_MSG).
+							put(LogMessage.MESSAGE, "AWS Role configuration Success.").
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role is successfully removed from IAM Service Account\"]}");
+				}
+				if (TVaultConstants.IAM.equals(authType)) {
+					awsRoleConfigresponse = awsiamAuthService.configureAWSIAMRole(roleName,currentpoliciesString,token);
+				}
+				else {
+					awsRoleConfigresponse = awsAuthService.configureAWSRole(roleName,currentpoliciesString,token);
+				}
+				if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_AWS_ROLE_MSG).
+							put(LogMessage.MESSAGE, "Reverting, AWS Role policy update success").
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Please try again\"]}");
+				}else{
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_AWS_ROLE_MSG).
+							put(LogMessage.MESSAGE, "Reverting approle policy update failed").
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Contact Admin \"]}");
+				}
+			}
+			else {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove AWS Role from the IAM Service Account\"]}");
+			}
+		} else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove AWS Role from IAM Service Account\"]}");
+		}
 	}
 
 }

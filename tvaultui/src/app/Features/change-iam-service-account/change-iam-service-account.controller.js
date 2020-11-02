@@ -453,14 +453,23 @@
                                 "awsAccountId": awsAccountId
                             };
                             break;
-                            case 'AppRolePermission' :
-                                apiCallFunction = AdminSafesManagement.detachAppRolePermissionFromIAMSvcacc;
-                                reqObjtobeSent = {
-                                    "iamSvcAccName": svcaccname,
-                                    "approlename": key,
-                                    "access": permission,
-                                    "awsAccountId": awsAccountId
-                                };
+                        case 'AWSPermission':
+                            apiCallFunction = AdminSafesManagement.detachAWSPermissionFromIAMSvcacc;
+                            reqObjtobeSent = {
+                                "iamSvcAccName": svcaccname,
+                                "rolename": key,
+                                "access": permission,
+                                "awsAccountId": awsAccountId
+                            };
+                            break;
+                        case 'AppRolePermission':
+                            apiCallFunction = AdminSafesManagement.detachAppRolePermissionFromIAMSvcacc;
+                            reqObjtobeSent = {
+                                "iamSvcAccName": svcaccname,
+                                "approlename": key,
+                                "access": permission,
+                                "awsAccountId": awsAccountId
+                            };
                             break;
                     }
                     apiCallFunction(reqObjtobeSent).then(
@@ -641,6 +650,10 @@
                             }
                             $scope.permissionData.AppRolePermissionsData = {
                                 "data": object['app-roles']
+                            }
+
+                            $scope.permissionData.AwsPermissionsData = {
+                                "data": object['aws-roles']
                             }
 
                             if (object.isActivated){
@@ -1038,6 +1051,9 @@
                         duplicate = true;
                     }
                 }
+                if (type === "AWSPermission" && $scope.permissionData.AwsPermissionsData.data!= null && $scope.permissionData.AwsPermissionsData.data.hasOwnProperty(key.toLowerCase())) {
+                    duplicate = true;
+                }
                 if (type === "AppRolePermission" && $scope.permissionData.AppRolePermissionsData.data!= null && $scope.permissionData.AppRolePermissionsData.data.hasOwnProperty(key.toLowerCase())) {
                     duplicate = true;
                 }
@@ -1074,6 +1090,33 @@
                             apiCallFunction = AdminSafesManagement.addGroupPermissionForIAMSvcacc;
                             reqObjtobeSent = {"iamSvcAccName": iamSvcaccName, "groupname": key, "access": permission.toLowerCase(), "awsAccountId":$scope.svcacc.awsAccId};
                             break;
+                        case 'AWSPermission':
+                            apiCallFunction = AdminSafesManagement.addAWSPermissionForIAMSvcacc;
+                            reqObjtobeSent = { "iamSvcAccName": iamSvcaccName, "rolename": key, "access": permission.toLowerCase(), "awsAccountId":$scope.svcacc.awsAccId };
+                            break;
+                        case 'AwsRoleConfigure':
+                            $scope.awsConfPopupObj['policies'] = "";   // Todo: Because of unavailability of edit service, this has been put
+                            // Validate the input here if requried...
+                            if ($scope.awsConfPopupObj.auth_type === 'ec2') {
+                                $scope.awsConfPopupObj.bound_iam_principal_arn = "";
+                                apiCallFunction = AdminSafesManagement.createAwsRoleIAMSvcacc;
+                            }
+                            else {
+                                $scope.awsConfPopupObj['policies'] = [];
+                                $scope.awsConfPopupObj.bound_account_id = "";
+                                $scope.awsConfPopupObj.bound_region = "";
+                                $scope.awsConfPopupObj.bound_vpc_id = "";
+                                $scope.awsConfPopupObj.bound_subnet_id = "";
+                                $scope.awsConfPopupObj.bound_ami_id = "";
+                                $scope.awsConfPopupObj.bound_iam_instance_profile_arn = "";
+                                $scope.awsConfPopupObj.bound_iam_role_arn = "";
+                                var arn = [];
+                                arn.push($scope.awsConfPopupObj.bound_iam_principal_arn);
+                                $scope.awsConfPopupObj.bound_iam_principal_arn = arn;
+                                apiCallFunction = AdminSafesManagement.createAwsIAMRoleIAMSvcacc;
+                            }
+                            reqObjtobeSent = $scope.awsConfPopupObj
+                            break;    
                         case 'AppRolePermission':
                             apiCallFunction = AdminSafesManagement.addAppRolePermissionForIAMSvcacc;
                             reqObjtobeSent = { "iamSvcAccName": iamSvcaccName, "approlename": key, "access": permission.toLowerCase(), "awsAccountId":$scope.svcacc.awsAccId};
@@ -1085,6 +1128,10 @@
                                 try {
                                     $scope.isLoadingData = false;
                                     var uniqueIAMSvcName = $scope.svcacc.awsAccId + "_" +iamSvcaccName;
+                                    if (type === 'AwsRoleConfigure') {
+                                        $scope.addPermission('AWSPermission', $scope.awsConfPopupObj.role, permission, false);
+                                    }
+                                    else {
                                     getSvcaccInfo(uniqueIAMSvcName);
                                     var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
                                     $scope.permissionChangeInProgress = false;
@@ -1094,6 +1141,7 @@
                                         clearInputPermissionData();
                                         Notifications.toast(key + "'s permission" + notification);
                                     }
+                                }
                                 } catch (e) {
                                     console.log(e);
                                     $scope.isLoadingData = false;
