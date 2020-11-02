@@ -7058,7 +7058,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove user from this certificate\"]}");
 		}
-//<<<<<<< HEAD
+
 	}	
 
 	//###################################################  ONBOARD CERTIFICATES	#######################################################
