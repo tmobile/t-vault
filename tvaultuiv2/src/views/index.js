@@ -1,8 +1,5 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable no-use-before-define */
-/* eslint-disable no-console */
 /* eslint-disable react/jsx-wrap-multilines */
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, useState, useEffect, useCallback } from 'react';
 import { Route, Switch, Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import { useIdleTimer } from 'react-idle-timer';
@@ -10,6 +7,7 @@ import { useIdleTimer } from 'react-idle-timer';
 import Safe from './private/safe';
 import ScaledLoader from '../components/Loaders/ScaledLoader';
 import { UserContextProvider } from '../contexts';
+import apiService from './public/HomePage/apiService';
 
 const Home = lazy(() => import('./public/HomePage'));
 const VaultAppRoles = lazy(() => import('./private/vault-app-roles'));
@@ -30,27 +28,47 @@ const Wrapper = styled.section`
 
 const PrivateRoutes = () => {
   const [, setIsTimedOut] = useState(false);
-  const [idleTimer] = useState(1000 * 60 * 30);
+  const [idleTimer, setIdleTimer] = useState(1000 * 60 * 30);
+  const [date, setDate] = useState(null);
 
-  const handleOnIdle = (event) => {
-    console.log('last active time', getLastActiveTime());
+  const renewToken = useCallback(() => {
+    if (sessionStorage.getItem('token')) {
+      apiService
+        .getAuth()
+        .then(() => {
+          setDate(new Date().getTime());
+          setIdleTimer(1000 * 60 * 30);
+        })
+        // eslint-disable-next-line no-console
+        .catch((err) => console.log('err', err));
+    }
+  }, []);
+
+  useEffect(() => {
+    renewToken();
+  }, [renewToken]);
+
+  const handleOnIdle = () => {
     window.location.href = '/';
     sessionStorage.clear();
   };
 
-  const handleOnActive = (event) => {
-    console.log('time remaining', getRemainingTime());
+  const handleOnAction = () => {
+    // eslint-disable-next-line no-use-before-define
+    const difference = getLastActiveTime() - date; // Thiis will give difference in milliseconds
+    const resultInMinutes = Math.round(difference / 60000);
+    if (resultInMinutes > 1) {
+      renewToken();
+      setDate(null);
+    } else {
+      setDate(new Date().getTime());
+    }
     setIsTimedOut(false);
   };
 
-  const handleOnAction = (e) => {
-    console.log('user did something', getLastActiveTime());
-    setIsTimedOut(false);
-  };
-  const { getRemainingTime, getLastActiveTime } = useIdleTimer({
+  const { getLastActiveTime } = useIdleTimer({
     timeout: idleTimer,
     onIdle: handleOnIdle,
-    onActive: handleOnActive,
     onAction: handleOnAction,
     debounce: 250,
   });
