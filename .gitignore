@@ -1,3 +1,4 @@
 .idea/
 tvaultui/package-lock.json
 node_modules/
+tvaultuiv2/.env
