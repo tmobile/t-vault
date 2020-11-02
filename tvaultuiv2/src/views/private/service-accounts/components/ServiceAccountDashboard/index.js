@@ -572,7 +572,7 @@ const ServiceAccountDashboard = () => {
             <ColumnHeader>
               <div style={{ margin: '0 1rem' }}>
                 <TitleOne extraCss={ListHeader}>
-                  {`SERVICE ACCOUNTS(${serviceAccountList?.length})`}
+                  {`Service Accounts(${serviceAccountList?.length})`}
                 </TitleOne>
               </div>
               <SearchWrap>

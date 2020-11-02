@@ -21,7 +21,7 @@ import SnackbarComponent from '../../../../components/Snackbar';
 import { useStateValue } from '../../../../contexts/globalState';
 import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
 import apiService from '../apiService';
-import { TitleThree } from '../../../../styles/GlobalStyles';
+import { RequiredCircle, TitleThree } from '../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -66,7 +66,7 @@ const LeftIcon = styled.img`
 const IconDescriptionWrapper = styled.div`
   display: flex;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
   position: relative;
   margin-top: 3.2rem;
 `;
@@ -134,6 +134,11 @@ const InputLabelWrap = styled.div`
 `;
 
 const InfoIcon = styled('img')``;
+const RequiredInfo = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+`;
 const Span = styled('span')`
   font-size: 1.3rem;
   color: #29bd51;
@@ -476,9 +481,14 @@ const CreateAppRole = (props) => {
               </TitleThree>
             </IconDescriptionWrapper>
             <CreateSafeForm>
+              <RequiredInfo>
+                <RequiredCircle /> required
+              </RequiredInfo>
               <InputFieldLabelWrapper>
                 <InputLabelWrap>
-                  <InputLabel required>Role Name</InputLabel>
+                  <InputLabel>
+                    Role Name <RequiredCircle />
+                  </InputLabel>
 
                   <InfoIcon src={infoIcon} alt="info-icon-role-name" />
                 </InputLabelWrap>
@@ -514,7 +524,9 @@ const CreateAppRole = (props) => {
               >
                 <InputFieldLabelWrapper postion>
                   <InputLabelWrap>
-                    <InputLabel required>Token Max TTL</InputLabel>
+                    <InputLabel>
+                      Token Max TTL <RequiredCircle />
+                    </InputLabel>
                     <InfoIcon src={infoIcon} alt="info-icon" />
                   </InputLabelWrap>
 
@@ -543,7 +555,9 @@ const CreateAppRole = (props) => {
                 <InputFieldLabelWrapper>
                   <InputLabelWrap>
                     {' '}
-                    <InputLabel required>Token TTL</InputLabel>
+                    <InputLabel>
+                      Token TTL <RequiredCircle />
+                    </InputLabel>
                     <InfoIcon src={infoIcon} alt="info-icon-token" />
                   </InputLabelWrap>
 
@@ -571,7 +585,9 @@ const CreateAppRole = (props) => {
               >
                 <InputFieldLabelWrapper>
                   <InputLabelWrap>
-                    <InputLabel required>Sec ID Number Uses</InputLabel>
+                    <InputLabel>
+                      Sec ID Number Uses <RequiredCircle />
+                    </InputLabel>
 
                     <InfoIcon src={infoIcon} alt="info-icon-sec" />
                   </InputLabelWrap>
@@ -600,7 +616,9 @@ const CreateAppRole = (props) => {
               >
                 <InputFieldLabelWrapper>
                   <InputLabelWrap>
-                    <InputLabel required>Token Number Uses</InputLabel>
+                    <InputLabel>
+                      Token Number Uses <RequiredCircle />
+                    </InputLabel>
 
                     <InfoIcon src={infoIcon} alt="info-icon-token-uses" />
                   </InputLabelWrap>
@@ -628,7 +646,9 @@ const CreateAppRole = (props) => {
               >
                 <InputFieldLabelWrapper>
                   <InputLabelWrap>
-                    <InputLabel required>Secret ID TTL</InputLabel>
+                    <InputLabel>
+                      Secret ID TTL <RequiredCircle />
+                    </InputLabel>
 
                     <InfoIcon src={infoIcon} alt="info-icon-secret-id" />
                   </InputLabelWrap>

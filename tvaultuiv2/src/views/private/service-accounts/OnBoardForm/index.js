@@ -22,7 +22,11 @@ import ButtonComponent from '../../../../components/FormFields/ActionButton';
 import ServiceAcoountHelp from '../components/ServiceAccountHelp';
 import mediaBreakpoints from '../../../../breakpoints';
 import leftArrowIcon from '../../../../assets/left-arrow.svg';
-import { TitleTwo, TitleThree } from '../../../../styles/GlobalStyles';
+import {
+  TitleTwo,
+  TitleThree,
+  RequiredCircle,
+} from '../../../../styles/GlobalStyles';
 import { customColor } from '../../../../theme';
 import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
 import apiService from '../apiService';
@@ -119,7 +123,7 @@ const InfoLine = styled('p')`
   color: ${(props) => props.theme.customColor.collapse.color};
   fontsize: ${(props) => props.theme.typography.body2.fontSize};
 `;
-const Asteristick = styled.span``;
+
 const InfoContainer = styled.div`
   padding: 1rem 0;
 `;
@@ -807,11 +811,14 @@ const OnBoardForm = (props) => {
               </InfoContainer>
               <OnBoardFormContainer>
                 {' '}
-                <Span extraStyles="align-self:flex-end">* required</Span>
+                <Span extraStyles="align-self:flex-end">
+                  <RequiredCircle />
+                  <Span extraStyles="margin-left:0.4rem">required</Span>
+                </Span>
                 <InputFieldLabelWrapper>
                   <InputLabel>
                     Service Account Name
-                    <Asteristick>*</Asteristick>
+                    <RequiredCircle />
                   </InputLabel>
                   <AutoCompleteComponent
                     options={[
@@ -954,7 +961,7 @@ const OnBoardForm = (props) => {
                 <InputFieldLabelWrapper>
                   <InputLabel>
                     Application Name
-                    <Asteristick>*</Asteristick>
+                    <RequiredCircle />
                   </InputLabel>
                   <AutoCompleteComponent
                     options={[
