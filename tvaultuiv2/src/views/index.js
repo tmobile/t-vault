@@ -28,15 +28,20 @@ const Wrapper = styled.section`
 
 const PrivateRoutes = () => {
   const [, setIsTimedOut] = useState(false);
-  const [idleTimer] = useState(1000 * 60 * 30);
+  const [idleTimer, setIdleTimer] = useState(1000 * 60 * 30);
   const [date, setDate] = useState(null);
 
   const renewToken = useCallback(() => {
-    apiService
-      .getAuth()
-      .then(() => setDate(new Date().getTime()))
-      // eslint-disable-next-line no-console
-      .catch((err) => console.log('err', err));
+    if (sessionStorage.getItem('token')) {
+      apiService
+        .getAuth()
+        .then(() => {
+          setDate(new Date().getTime());
+          setIdleTimer(1000 * 60 * 30);
+        })
+        // eslint-disable-next-line no-console
+        .catch((err) => console.log('err', err));
+    }
   }, []);
 
   useEffect(() => {
