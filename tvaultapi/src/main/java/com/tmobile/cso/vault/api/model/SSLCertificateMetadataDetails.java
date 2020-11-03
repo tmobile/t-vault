@@ -26,7 +26,15 @@ public class SSLCertificateMetadataDetails implements Serializable {
     private String requestStatus;
     private List<String> dnsNames;
     private int actionId;
-    public int getActionId() {
+    private String notificationEmails;
+    
+    public String getNotificationEmails() {
+		return notificationEmails;
+	}
+	public void setNotificationEmails(String notificationEmails) {
+		this.notificationEmails = notificationEmails;
+	}
+	public int getActionId() {
         return actionId;
     }
     public void setActionId(int actionId) {
