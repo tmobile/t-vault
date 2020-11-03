@@ -5,9 +5,9 @@ import { Typography } from '@material-ui/core';
 import ButtonComponent from '../../../../../../../components/FormFields/ActionButton';
 import PreviewCertificate from '../../../../CreateCertificates/preview';
 import mediaBreakpoints from '../../../../../../../breakpoints';
-import certIcon from '../../../../../../../assets/cert-icon.svg';
 import leftArrowIcon from '../../../../../../../assets/left-arrow.svg';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
+import CertificateHeader from '../../../CertificateHeader';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -49,34 +49,8 @@ const LeftIcon = styled.img`
     margin-top: 0.3rem;
   }
 `;
-const IconDescriptionWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  position: relative;
-  margin-top: 3.2rem;
-`;
-
-const SafeIcon = styled.img`
-  height: 5.7rem;
-  width: 5rem;
-  margin-right: 2rem;
-`;
 
 const PreviewWrap = styled.div``;
-
-const ContainerOwnerWrap = styled.div`
-  font-size: 1.4rem;
-`;
-
-const Container = styled.div``;
-const Owner = styled.div``;
-const SideLabel = styled.span`
-  color: ${(props) => props.theme.customColor.label.color};
-  margin-right: 0.3rem;
-`;
-
-const SideValue = styled.span``;
 
 const CancelSaveWrapper = styled.div`
   display: ${(props) => (props.showPreview ? 'none' : 'flex')};
@@ -132,25 +106,15 @@ const ViewCertificate = (props) => {
           <LeftIcon src={leftArrowIcon} alt="go-back" onClick={onCloseModal} />
           <Typography variant="h5">Edit Certificate</Typography>
         </HeaderWrapper>
-        <IconDescriptionWrapper>
-          <SafeIcon src={certIcon} alt="cert-icon" />
-          <ContainerOwnerWrap>
-            <Container>
-              <SideLabel>Container:</SideLabel>
-              <SideValue>{certificateData.containerName}</SideValue>
-            </Container>
-            <Owner>
-              <SideLabel>Owner Email:</SideLabel>
-              <SideValue>{certificateData.certOwnerEmailId}</SideValue>
-            </Owner>
-          </ContainerOwnerWrap>
-        </IconDescriptionWrapper>
+        <CertificateHeader />
         <PreviewWrap>
           <PreviewCertificate
             dns={certificateData.dnsNames}
             certificateType={certificateData.certType}
             applicationName={certificateData.applicationName}
             certName={certificateData.certificateName}
+            container={certificateData.containerName}
+            owner={certificateData.certOwnerEmailId}
             isEditCertificate
           />
           <EachDetail>

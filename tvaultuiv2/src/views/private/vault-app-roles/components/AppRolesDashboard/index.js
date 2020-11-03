@@ -197,10 +197,10 @@ const AppRolesDashboard = () => {
   const [moreData] = useState(false);
   const [isLoading] = useState(false);
   const [appRoleList, setAppRoleList] = useState([]);
-  const [menu] = useState([`All Approles(${appRoleList?.length})`]);
-  const [appRoleType, setAppRoleType] = useState(
-    `All Approles(${appRoleList?.length})`
-  );
+  const [menu, setMenu] = useState([
+    `All Vault AppRoles(${appRoleList?.length})`,
+  ]);
+  const [appRoleType, setAppRoleType] = useState('');
   const [status, setStatus] = useState({});
   const [getResponseType, setGetResponseType] = useState(null);
   const [deleteAppRoleName, setDeleteAppRoleName] = useState('');
@@ -239,6 +239,8 @@ const AppRolesDashboard = () => {
         }
 
         setAppRoleList([...appRolesArr]);
+        setAppRoleType(`All Vault AppRoles (${appRolesArr?.length})`);
+        setMenu([`All Vault AppRoles (${appRolesArr?.length})`]);
         dispatch({ type: 'UPDATE_APP_ROLE_LIST', payload: [...appRolesArr] });
       })
       .catch(() => {

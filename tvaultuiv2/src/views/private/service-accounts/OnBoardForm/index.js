@@ -26,6 +26,7 @@ import {
   TitleTwo,
   TitleThree,
   RequiredCircle,
+  RequiredText,
 } from '../../../../styles/GlobalStyles';
 import { customColor } from '../../../../theme';
 import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
@@ -812,13 +813,15 @@ const OnBoardForm = (props) => {
               <OnBoardFormContainer>
                 {' '}
                 <Span extraStyles="align-self:flex-end">
-                  <RequiredCircle />
-                  <Span extraStyles="margin-left:0.4rem">required</Span>
+                  <RequiredCircle margin="0.5rem" />
+                  <RequiredText extraStyles="margin-left:0.4rem">
+                    Required
+                  </RequiredText>
                 </Span>
                 <InputFieldLabelWrapper>
                   <InputLabel>
                     Service Account Name
-                    <RequiredCircle />
+                    <RequiredCircle margin="0.5rem" />
                   </InputLabel>
                   <AutoCompleteComponent
                     options={[
@@ -961,7 +964,7 @@ const OnBoardForm = (props) => {
                 <InputFieldLabelWrapper>
                   <InputLabel>
                     Application Name
-                    <RequiredCircle />
+                    <RequiredCircle margin="0.5rem" />
                   </InputLabel>
                   <AutoCompleteComponent
                     options={[

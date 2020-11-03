@@ -52,7 +52,9 @@ const MenuIcon = styled.img`
   }
 `;
 
-const TVaultIcon = styled.img``;
+const TVaultIcon = styled.img`
+  margin-right: 5rem;
+`;
 
 const HeaderCenter = styled.div`
   display: flex;
@@ -65,6 +67,7 @@ const NavLink = styled(Link)`
   text-decoration: none;
   margin: 0 0.5rem;
   padding: 2.5rem 2rem;
+
   font-weight: bold;
   background: ${(props) =>
     props.active === 'true' ? props.theme.gradients.nav : 'none'};
@@ -77,6 +80,7 @@ const DocLinks = styled.div``;
 const ProfileIconWrap = styled('div')`
   display: flex;
   align-items: center;
+  margin-left: auto;
   ${smallAndMedium} {
     display: none;
   }
@@ -86,10 +90,6 @@ const EachLink = styled.a`
   color: #fff;
   font-size: 1.4rem;
   ${(props) => props.styles}
-`;
-const ProfileWrap = styled.div`
-  display: flex;
-  align-items: center;
 `;
 
 const useStyles = makeStyles(() => ({
@@ -208,18 +208,15 @@ const Header = (props) => {
                 </EachLink>
               </DocLinks>
             ) : (
-              <ProfileWrap>
+              <ProfileIconWrap>
                 <EachLink
-                  href="https://perf-vault.corporate.t-mobile.com/vault/swagger-ui.html"
+                  href="https://docs.corporate.t-mobile.com/t-vault/introduction/"
                   target="_blank"
-                  styles="text-decoration:none"
                 >
                   Documentation
                 </EachLink>
-                <ProfileIconWrap>
-                  <UserLogout userName={userName} checkToken={checkToken} />
-                </ProfileIconWrap>
-              </ProfileWrap>
+                <UserLogout userName={userName} checkToken={checkToken} />
+              </ProfileIconWrap>
             )}
           </>
         </Container>

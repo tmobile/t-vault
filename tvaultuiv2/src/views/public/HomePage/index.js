@@ -382,7 +382,7 @@ const LoginPage = () => {
             sessionStorage.setItem('isAdmin', res.data.admin);
             await getLoggedInUserName();
             dispatch({ type: 'CALLBACK_DATA', payload: { ...res.data } });
-            window.location = 'http://localhost:3000/safes';
+            window.location = '/safes';
           }
         })
         .catch((e) => console.log('e', e));
@@ -394,12 +394,12 @@ const LoginPage = () => {
     setResponse({ status: 'loading' });
     const payload = {
       role: 'default',
-      redirect_uri: 'http://localhost:3000',
+      redirect_uri: window.location.origin,
     };
     axios
       .post(`${config.url}/auth/oidc/auth_url`, payload)
       .then((res) => {
-        window.location = res.data.data.auth_url;
+        window.location = res.data?.data?.auth_url;
       })
       .catch((e) => console.log(e.response));
   };
