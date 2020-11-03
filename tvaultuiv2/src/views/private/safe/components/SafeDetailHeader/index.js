@@ -22,10 +22,16 @@ const ColumnHeader = styled('div')`
   }
 `;
 const SafeTitle = styled('h5')`
-  font-size: ${(props) => props.theme.typography};
+  font-size: ${(props) => props.theme.typography.h5};
   margin: 1rem 0 1.2rem;
   text-overflow: ellipsis;
   overflow: hidden;
+  text-transform: capitalize;
+  word-break: break-all;
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 `;
 const HeaderBg = styled('div')`
   position: absolute;
