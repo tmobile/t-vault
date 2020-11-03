@@ -368,7 +368,7 @@ const AppRoleDetails = (props) => {
             indicatorColor="secondary"
             textColor="primary"
           >
-            <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
+            <Tab className={classes.tab} label="Acessor IDs" {...a11yProps(0)} />
           </Tabs>
           <NamedButton
             label="+Create SecretId"

@@ -5,7 +5,9 @@ import Select from '@material-ui/core/Select';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
-const SelectStyle = styled(Select)``;
+const SelectStyle = styled(Select)`
+  text-transform: capitalize;
+`;
 
 const MenuItemList = styled(MenuItem)`
   &.Mui-selected {

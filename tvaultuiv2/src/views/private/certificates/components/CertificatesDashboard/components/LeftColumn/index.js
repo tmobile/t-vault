@@ -30,7 +30,7 @@ const ListFolderWrap = styled(Link)`
   display: flex;
   text-decoration: none;
   align-items: center;
-  padding: 1.2rem 1.8rem 1.2rem 3.4rem;
+  padding: 1.2rem 1.8rem 1.2rem 3.8rem;
   cursor: pointer;
   justify-content: space-between;
   background-image: ${(props) =>
