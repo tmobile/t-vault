@@ -12,7 +12,6 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
-import certIcon from '../../../../../assets/cert-icon.svg';
 import leftArrowIcon from '../../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
 import PreviewCertificate from '../../CreateCertificates/preview';
@@ -22,6 +21,8 @@ import apiService from '../../apiService';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import Strings from '../../../../../resources';
 import { validateEmail } from '../../../../../services/helper-function';
+import CertificateHeader from '../CertificateHeader';
+import { RequiredCircle } from '../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -62,19 +63,6 @@ const LeftIcon = styled.img`
     margin-top: 0.3rem;
   }
 `;
-const IconDescriptionWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  position: relative;
-  margin-top: 3.2rem;
-`;
-
-const SafeIcon = styled.img`
-  height: 5.7rem;
-  width: 5rem;
-  margin-right: 2rem;
-`;
 
 const InputFieldLabelWrapper = styled.div`
   margin-bottom: 3rem;
@@ -91,19 +79,6 @@ const autoLoaderStyle = css`
   right: 1rem;
   color: red;
 `;
-
-const ContainerOwnerWrap = styled.div`
-  font-size: 1.4rem;
-`;
-
-const Container = styled.div``;
-const Owner = styled.div``;
-const Label = styled.span`
-  color: ${(props) => props.theme.customColor.label.color};
-  margin-right: 0.3rem;
-`;
-
-const Value = styled.span``;
 
 const CancelSaveWrapper = styled.div`
   display: ${(props) => (props.showPreview ? 'none' : 'flex')};
@@ -364,28 +339,21 @@ const CreateCertificates = (props) => {
                   />
                   <Typography variant="h5">Transfer Ownership</Typography>
                 </HeaderWrapper>
-                <IconDescriptionWrapper>
-                  <SafeIcon src={certIcon} alt="cert-icon" />
-                  <ContainerOwnerWrap>
-                    <Container>
-                      <Label>Container:</Label>
-                      <Value>VenafiBin_12345</Value>
-                    </Container>
-                    <Owner>
-                      <Label>Owner Email:</Label>
-                      <Value>{certificateData.certOwnerEmailId}</Value>
-                    </Owner>
-                  </ContainerOwnerWrap>
-                </IconDescriptionWrapper>
+                <CertificateHeader />
                 <PreviewCertificate
                   dns={certificateData.dnsNames}
                   certificateType={certificateData.certType}
                   applicationName={certificateData.applicationName}
                   certName={certificateData.certificateName}
+                  owner={certificateData.certOwnerEmailId}
+                  container={certificateData.containerName}
                   isEditCertificate
                 />
                 <InputFieldLabelWrapper postion>
-                  <InputLabel required>New Owner Email ID</InputLabel>
+                  <InputLabel>
+                    New Owner Email ID
+                    <RequiredCircle margin="0.5rem" />
+                  </InputLabel>
                   <AutoCompleteComponent
                     options={options}
                     classes={classes}
