@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Popover from '@material-ui/core/Popover';
 import styled from 'styled-components';
 import PopupState, { bindTrigger, bindPopover } from 'material-ui-popup-state';
+import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import GetAppIcon from '@material-ui/icons/GetApp';
 import { customColor } from '../../../../../../../theme';
@@ -89,6 +90,16 @@ const Download = (props) => {
       });
   };
 
+  const useStyles = makeStyles((theme) => ({
+    paper: {
+      padding: theme.spacing(1),
+      color: theme.palette.common.white,
+      backgroundColor: theme.customColor.hoverColor.list || '#151820',
+    },
+  }));
+
+  const classes = useStyles();
+
   return (
     <div>
       <DownloadModal
@@ -117,13 +128,14 @@ const Download = (props) => {
                 vertical: 'top',
                 horizontal: 'center',
               }}
+              classes={classes}
             >
               <PoperItemWrap>
                 <PopperItem onClick={() => onPopperItemClicked(true)}>
-                  Download certificate with private key
+                  <span>Download certificate with private key</span>
                 </PopperItem>
                 <PopperItem onClick={() => onPopperItemClicked(false)}>
-                  Download certificate in PEM/DER format
+                  <span>Download certificate in PEM/DER format</span>
                 </PopperItem>
               </PoperItemWrap>
             </Popover>

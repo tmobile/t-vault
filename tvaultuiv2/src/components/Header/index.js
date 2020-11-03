@@ -24,7 +24,6 @@ const HeaderWrap = styled('header')`
 `;
 const Container = styled.div`
   display: flex;
-  justify-content: space-between;
   align-items: center;
   max-width: 130rem;
   margin: auto;
@@ -52,7 +51,9 @@ const MenuIcon = styled.img`
   }
 `;
 
-const TVaultIcon = styled.img``;
+const TVaultIcon = styled.img`
+  margin-right: 5rem;
+`;
 
 const HeaderCenter = styled.div`
   display: flex;
@@ -65,6 +66,7 @@ const NavLink = styled(Link)`
   text-decoration: none;
   margin: 0 0.5rem;
   padding: 2.5rem 2rem;
+
   font-weight: bold;
   background: ${(props) =>
     props.active === 'true' ? props.theme.gradients.nav : 'none'};
@@ -77,6 +79,7 @@ const DocLinks = styled.div``;
 const ProfileIconWrap = styled('div')`
   display: flex;
   align-items: center;
+  margin-left: auto;
   ${smallAndMedium} {
     display: none;
   }
@@ -204,6 +207,12 @@ const Header = (props) => {
               </DocLinks>
             ) : (
               <ProfileIconWrap>
+               <EachLink
+                  href="https://docs.corporate.t-mobile.com/t-vault/introduction/"
+                  target="_blank"
+                >
+                  Docs
+                </EachLink>
                 <UserLogout userName={userName} checkToken={checkToken} />
               </ProfileIconWrap>
             )}
