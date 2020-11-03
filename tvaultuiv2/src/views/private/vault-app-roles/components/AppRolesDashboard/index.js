@@ -107,7 +107,7 @@ const ListFolderWrap = styled(Link)`
   display: flex;
   text-decoration: none;
   align-items: center;
-  padding: 1.2rem 1.8rem 1.2rem 2rem;
+  padding: 1.2rem 1.8rem 1.2rem 3.8rem;
   cursor: pointer;
   background-image: ${(props) =>
     props.active ? props.theme.gradients.list : 'none'};
@@ -193,8 +193,10 @@ const AppRolesDashboard = () => {
   const [moreData] = useState(false);
   const [isLoading] = useState(false);
   const [appRoleList, setAppRoleList] = useState([]);
-  const [menu] = useState(['All Approles']);
-  const [appRoleType, setAppRoleType] = useState('All Approles');
+  const [menu] = useState([`All Approles(${appRoleList?.length})`]);
+  const [appRoleType, setAppRoleType] = useState(
+    `All Approles(${appRoleList?.length})`
+  );
   const [status, setStatus] = useState({});
   const [getResponseType, setGetResponseType] = useState(null);
   const [deleteAppRoleName, setDeleteAppRoleName] = useState('');
@@ -301,7 +303,6 @@ const AppRolesDashboard = () => {
 
   useEffect(() => {
     if (appRoleList?.length > 0) {
-      setAppRoleType(`All Approles(${appRoleList.length})`);
       appRoleList.map((item) => {
         if (history.location.pathname === `/vault-app-roles/${item.name}`) {
           return setListItemDetails(item);

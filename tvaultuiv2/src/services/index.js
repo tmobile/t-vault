@@ -2,6 +2,9 @@ import axios from 'axios';
 import config from '../config';
 
 function ApiCall(url, method, data, header) {
+  if (!sessionStorage.getItem('token')) {
+    window.location.href = '/';
+  }
   const token = sessionStorage.getItem('token');
   const headers = {
     ...header,

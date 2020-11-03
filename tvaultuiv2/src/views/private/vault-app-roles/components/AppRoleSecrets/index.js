@@ -24,7 +24,7 @@ import {
 import PopperElement from '../../../../../components/Popper';
 
 const SecretsList = styled.div`
-  margin-top: 2rem;
+  margin-top: 0.5rem;
   justify-content: space-between;
   align-items: center;
   background-color: ${BackgroundColor.listBg};

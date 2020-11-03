@@ -12,10 +12,12 @@ const IconWrap = styled('div')`
 
 const Icon = styled('div')`
   display: flex;
+  width: 3rem;
+  height: 3rem;
   align-items: center;
   justify-content: center;
   margin-left: 0.75rem;
-  padding: 0.5rem;
+  padding: 0.5rem 0.4rem 0.5rem 0.8rem;
   border-radius: 50%;
   :hover {
     background-color: #5a637a;
@@ -25,6 +27,8 @@ const Icon = styled('div')`
 const TransferOwnerWrap = styled.div`
   display: flex;
   align-items: center;
+  width: 3rem;
+  height: 3rem;
   justify-content: center;
   padding: 0.5rem;
   border-radius: 50%;
