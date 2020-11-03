@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import ReactHtmlParser from 'react-html-parser';
 import Strings from '../../../../../resources';
 import certIcon from '../../../../../assets/cert-icon.svg';
@@ -8,7 +8,6 @@ import ServiceAccountHelp from '../../../service-accounts/components/ServiceAcco
 
 const IconDescriptionWrapper = styled.div`
   display: flex;
-  margin-bottom: 1.5rem;
   position: relative;
   margin-top: 3.2rem;
 `;
@@ -43,58 +42,67 @@ const Span = styled.span`
   ${(props) => props.extraStyles}
 `;
 const CollapsibleContainer = styled.div``;
+const ViewMoreStyles = css`
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 4.5rem;
+`;
 
 const CertificateHeader = () => {
   return (
     <ComponentError>
-      <IconDescriptionWrapper>
-        <CertIcon src={certIcon} alt="cert-icon" />
-        <CertDesc>
-          <Description>{Strings.Resources.certificateDesc}</Description>
+      <>
+        <IconDescriptionWrapper>
+          <CertIcon src={certIcon} alt="cert-icon" />
+          <CertDesc>
+            <Description>{Strings.Resources.certificateDesc}</Description>
+          </CertDesc>
+        </IconDescriptionWrapper>
+        <ServiceAccountHelp
+          titleMore="View More"
+          titleLess="View Less"
+          collapseStyles="background:none"
+          titleCss={ViewMoreStyles}
+        >
+          <CollapsibleContainer>
+            <InfoLine>
+              <Span>
+                <strong>1:</strong>
+              </Span>
+              {ReactHtmlParser(Strings.Resources.certificateGuide1)}
+            </InfoLine>
 
-          <ServiceAccountHelp
-            title="How Certificates Work"
-            collapseStyles="background:none"
-            extraCss="margin-left: -0.9rem"
-          >
-            <CollapsibleContainer>
-              <InfoLine>
-                <Span>
-                  <strong>1:</strong>
-                </Span>
-                {ReactHtmlParser(Strings.Resources.certificateGuide1)}
-              </InfoLine>
+            <InfoLine>
+              <Span>
+                <strong>2:</strong>
+              </Span>
+              {ReactHtmlParser(Strings.Resources.certificateGuide2)}
+            </InfoLine>
 
-              <InfoLine>
-                <Span>
-                  <strong>2:</strong>
-                </Span>
-                {ReactHtmlParser(Strings.Resources.certificateGuide2)}
-              </InfoLine>
+            <InfoLine>
+              <Span>
+                <strong>3:</strong>
+              </Span>
+              {ReactHtmlParser(Strings.Resources.certificateGuide3)}
+            </InfoLine>
 
-              <InfoLine>
-                <Span>
-                  <strong>3:</strong>
-                </Span>
-                {ReactHtmlParser(Strings.Resources.certificateGuide3)}
-              </InfoLine>
-
-              <InfoLine>
-                <Span>
-                  <strong>4:</strong>
-                </Span>
-                {ReactHtmlParser(Strings.Resources.certificateGuide4)}
-              </InfoLine>
-              <InfoLine>
-                <Span>
-                  <strong>5:</strong>
-                </Span>
-                {ReactHtmlParser(Strings.Resources.certificateGuide5)}
-              </InfoLine>
-            </CollapsibleContainer>
-          </ServiceAccountHelp>
-        </CertDesc>
-      </IconDescriptionWrapper>
+            <InfoLine>
+              <Span>
+                <strong>4:</strong>
+              </Span>
+              {ReactHtmlParser(Strings.Resources.certificateGuide4)}
+            </InfoLine>
+            <InfoLine>
+              <Span>
+                <strong>5:</strong>
+              </Span>
+              {ReactHtmlParser(Strings.Resources.certificateGuide5)}
+            </InfoLine>
+          </CollapsibleContainer>
+        </ServiceAccountHelp>
+      </>
     </ComponentError>
   );
 };

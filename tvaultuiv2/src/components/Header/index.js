@@ -208,7 +208,7 @@ const Header = (props) => {
               </DocLinks>
             ) : (
               <ProfileIconWrap>
-               <EachLink
+                <EachLink
                   href="https://docs.corporate.t-mobile.com/t-vault/introduction/"
                   target="_blank"
                 >

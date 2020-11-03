@@ -28,11 +28,10 @@ const AntSwitch = withStyles((theme) => ({
     boxShadow: 'none',
   },
   track: {
-    // border: `1px solid ${theme.palette.action.disabledBackground}`,
     color: theme.palette.common.white,
     borderRadius: 16 / 2,
     opacity: 1,
-    backgroundColor: theme.palette.secondary.main,
+    backgroundColor: theme.palette.action.disabledBackground,
   },
   checked: {},
 }))(Switch);
