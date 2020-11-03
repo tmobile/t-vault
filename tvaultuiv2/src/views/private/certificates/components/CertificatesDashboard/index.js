@@ -20,7 +20,6 @@ import FloatingActionButtonComponent from '../../../../../components/FormFields/
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import Error from '../../../../../components/Error';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
-import SelectComponent from '../../../../../components/FormFields/SelectFields';
 import CertificatesReviewDetails from '../CertificatesReviewDetails';
 import CertificateItemDetail from '../CertificateItemDetail';
 import apiService from '../../apiService';
@@ -30,6 +29,7 @@ import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import CreateCertificates from '../../CreateCertificates';
 import LeftColumn from './components/LeftColumn';
 import { useStateValue } from '../../../../../contexts/globalState';
+import SelectWithCountComponent from '../../../../../components/FormFields/SelectWithCount';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -158,11 +158,7 @@ const CertificatesDashboard = () => {
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [certificateList, setCertificateList] = useState([]);
   const [certificateType, setCertificateType] = useState('All Certificates');
-  const [menu] = useState([
-    'All Certificates',
-    'Internal Certificates',
-    'External Certificates',
-  ]);
+  const [menu, setMenu] = useState([]);
   const [response, setResponse] = useState({ status: 'success' });
   const [errorMsg, setErrorMsg] = useState('');
   const [allCertList, setAllCertList] = useState([]);
@@ -343,6 +339,20 @@ const CertificatesDashboard = () => {
       });
     }
   }, [fetchAdminData, fetchNonAdminData, admin]);
+
+  useEffect(() => {
+    const internalArray = allCertList?.filter(
+      (item) => item?.certType === 'internal'
+    );
+    const externalArray = allCertList?.filter(
+      (item) => item?.certType === 'external'
+    );
+    setMenu([
+      { name: 'All Certificates', count: allCertList?.length || 0 },
+      { name: 'Internal Certificates', count: internalArray?.length || 0 },
+      { name: 'External Certificates', count: externalArray?.length || 0 },
+    ]);
+  }, [allCertList]);
 
   /**
    * @function onLinkClicked
@@ -580,7 +590,7 @@ const CertificatesDashboard = () => {
           )}
           <LeftColumnSection>
             <ColumnHeader>
-              <SelectComponent
+              <SelectWithCountComponent
                 menu={menu}
                 value={certificateType}
                 color="secondary"

@@ -399,6 +399,7 @@ const LoginPage = () => {
     axios
       .post(`${config.url}/auth/oidc/auth_url`, payload)
       .then((res) => {
+        console.log('res', res);
         window.location = res.data?.data?.auth_url;
       })
       .catch((e) => console.log(e.response));

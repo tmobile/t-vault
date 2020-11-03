@@ -17,7 +17,6 @@ import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import SafeDetails from '../SafeDetails';
 import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';
-import SelectComponent from '../../../../../components/FormFields/SelectFields';
 import Error from '../../../../../components/Error';
 import {
   makeSafesList,
@@ -31,6 +30,7 @@ import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import EditDeletePopper from '../EditDeletePopper';
+import SelectWithCountComponent from '../../../../../components/FormFields/SelectWithCount';
 
 const CreateSafe = lazy(() => import('../../CreateSafe'));
 
@@ -201,12 +201,7 @@ const SafeDashboard = () => {
   const [status, setStatus] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
-  const [menu] = useState([
-    'All Safes',
-    'User Safes',
-    'Shared Safes',
-    'Application Safes',
-  ]);
+  const [menu, setMenu] = useState([]);
   const [selectList] = useState([
     { selected: 'User Safes', path: 'users' },
     { selected: 'Shared Safes', path: 'shared' },
@@ -311,6 +306,15 @@ const SafeDashboard = () => {
       setStatus({ status: 'failed', message: 'failed' });
     });
   }, [fetchData]);
+
+  useEffect(() => {
+    setMenu([
+      { name: 'All Safes', count: allSafeList?.length || 0 },
+      { name: 'User Safes', count: safes?.users?.length || 0 },
+      { name: 'Shared Safes', count: safes?.shared?.length || 0 },
+      { name: 'Application Safes', count: safes?.apps?.length || 0 },
+    ]);
+  }, [allSafeList, safes]);
 
   /**
    * @function onSearchChange
@@ -523,7 +527,7 @@ const SafeDashboard = () => {
         <SectionPreview title="safe-section">
           <LeftColumnSection clicked={safeClicked}>
             <ColumnHeader>
-              <SelectComponent
+              <SelectWithCountComponent
                 menu={menu}
                 value={safeType}
                 color="secondary"
