@@ -142,7 +142,7 @@ const BorderLine = styled.div`
 `;
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 4.5rem;
+  bottom: 3rem;
   right: 2.5rem;
 `;
 

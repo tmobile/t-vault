@@ -153,7 +153,7 @@ const BorderLine = styled.div`
 `;
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 4.8rem;
+  bottom: 3rem;
   right: 2.5rem;
 `;
 
@@ -210,26 +210,17 @@ const SafeDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [menu] = useState([
-    {
-      label: `All Safes(${safeList?.length})`,
-      value: 'All Safes',
-    },
-    { label: `User Safes(${safes?.users?.length})`, value: 'User Safes' },
-    { label: `Shared Safes(${safes?.shared?.length})`, value: 'Shared Safes' },
-    {
-      label: `Application Safes(${safes?.apps?.length})`,
-      value: 'Application Safes',
-    },
+    'All Safes',
+    'User Safes',
+    'Shared Safes',
+    'Application Safes',
   ]);
   const [selectList] = useState([
     { selected: 'User Safes', path: 'users' },
     { selected: 'Shared Safes', path: 'shared' },
     { selected: 'Application Safes', path: 'apps' },
   ]);
-  const [safeType, setSafeType] = useState({
-    label: 'All Safes',
-    value: 'All Safes',
-  });
+  const [safeType, setSafeType] = useState('All Safes');
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const [deletionPath, setDeletionPath] = useState('');
   const [toast, setToast] = useState(null);
@@ -352,9 +343,10 @@ const SafeDashboard = () => {
    * @param {string} value selected filter value.
    */
   const onSelectChange = (value) => {
-    setSafeType({ label: value, value });
+    setSafeType(value);
     if (value !== 'All Safes') {
       const obj = selectList?.find((item) => item.selected === value);
+
       setSafeList([...safes[obj.path]]);
     } else {
       setSafeList([...allSafeList]);
@@ -363,18 +355,18 @@ const SafeDashboard = () => {
 
   // when both search and filter value is available.
   useEffect(() => {
-    if (safeType.value !== 'All Safes' && inputSearchValue) {
-      const obj = selectList.find((item) => item.selected === safeType.value);
+    if (safeType !== 'All Safes' && inputSearchValue) {
+      const obj = selectList.find((item) => item.selected === safeType);
       const array = allSafeList.filter(
         (item) =>
           item.path.split('/')[0] === obj.path &&
           String(item.name).startsWith(inputSearchValue)
       );
       setSafeList([...array]);
-    } else if (safeType.value === 'All Safes' && inputSearchValue) {
+    } else if (safeType === 'All Safes' && inputSearchValue) {
       onSearchChange(inputSearchValue);
     } else if (inputSearchValue === '') {
-      onSelectChange(safeType.value);
+      onSelectChange(safeType);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputSearchValue, safeType]);
@@ -484,7 +476,7 @@ const SafeDashboard = () => {
         >
           <ListItem
             title={safe.name}
-            subTitle={safe.safeType.value}
+            subTitle={safe.safeType}
             flag={safe.type}
             icon={safeIcon}
             manage={safe.manage}
@@ -542,7 +534,7 @@ const SafeDashboard = () => {
             <ColumnHeader>
               <SelectComponent
                 menu={menu}
-                value={safeType.value}
+                value={safeType}
                 color="secondary"
                 classes={classes}
                 fullWidth={false}
@@ -592,10 +584,10 @@ const SafeDashboard = () => {
                     <NoDataWrapper>
                       No safe found with name
                       <span>{inputSearchValue}</span>
-                      {safeType.value !== 'All Safes' && (
+                      {safeType !== 'All Safes' && (
                         <>
                           and filter by
-                          <span>{safeType.value}</span>
+                          <span>{safeType}</span>
                         </>
                       )}
                       {' . '}
