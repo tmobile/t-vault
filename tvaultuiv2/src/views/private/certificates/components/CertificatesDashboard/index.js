@@ -67,7 +67,7 @@ const ColumnHeader = styled('div')`
 `;
 const ListContent = styled.div`
   width: 100%;
-  max-height: 57vh;
+  max-height: 61vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
