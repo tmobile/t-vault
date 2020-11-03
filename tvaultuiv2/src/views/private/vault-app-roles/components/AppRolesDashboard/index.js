@@ -75,7 +75,7 @@ const ColumnHeader = styled('div')`
 `;
 const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
-  max-height: 69vh;
+  max-height: 61vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
@@ -87,6 +87,10 @@ const ListContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: none !important;
+    background-color: transparent;
+  }
 `;
 
 const NoDataWrapper = styled.div`
@@ -136,7 +140,7 @@ const BorderLine = styled.div`
 `;
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 5rem;
+  bottom: 3rem;
   right: 2.5rem;
 `;
 

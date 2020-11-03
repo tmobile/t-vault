@@ -8,7 +8,7 @@ import sectionHeaderBg from '../../../../../assets/Banner_img.png';
 import { BackArrow } from '../../../../../assets/SvgIcons';
 import mediaBreakpoints from '../../../../../breakpoints';
 import SelectionTabs from '../Tabs';
-import SafeDetailHeader from '../SafeDetailHeader';
+import ListDetailHeader from '../../../../../components/ListDetailHeader';
 
 // styled components goes here
 const Section = styled('section')`
@@ -69,9 +69,12 @@ const SafeDetails = (props) => {
           </BackButton>
         ) : null}
 
-        <SafeDetailHeader
+        <ListDetailHeader
           title={safe?.name}
-          description={safe?.description}
+          description={
+            safe?.description ||
+            'This provides information about safe. You can able to see the secrets associated with it, And also create  a safe to see your secrets, folders and manage permissions for safes'
+          }
           bgImage={sectionHeaderBg}
         />
 

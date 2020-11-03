@@ -67,7 +67,7 @@ const ColumnHeader = styled('div')`
 `;
 const ListContent = styled.div`
   width: 100%;
-  max-height: 57vh;
+  max-height: 61vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
@@ -79,6 +79,10 @@ const ListContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: none !important;
+    background-color: transparent;
+  }
 `;
 
 const NoDataWrapper = styled.div`
@@ -101,7 +105,7 @@ const NoListWrap = styled.div`
 
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 2.8rem;
+  bottom: 3rem;
   right: 2.5rem;
 `;
 
@@ -118,6 +122,10 @@ const MobileViewForListDetailPage = css`
   top: 7rem;
   z-index: 1;
   overflow-y: auto;
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: none !important;
+    background-color: transparent;
+  }
 `;
 const EmptyContentBox = styled('div')`
   width: 100%;

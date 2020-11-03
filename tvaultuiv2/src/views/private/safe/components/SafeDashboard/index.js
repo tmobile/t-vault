@@ -49,6 +49,10 @@ const RightColumnSection = styled(ColumnSection)`
     position: fixed;
     top: 0;
     overflow-y: scroll;
+    ::-webkit-scrollbar-track {
+      -webkit-box-shadow: none !important;
+      background-color: transparent;
+    }
     max-height: 100%;
   }
 `;
@@ -73,7 +77,7 @@ const ColumnHeader = styled('div')`
 `;
 const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
-  max-height: 68vh;
+  max-height: 61vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
@@ -85,6 +89,10 @@ const SafeListContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: none !important;
+    background-color: transparent;
+  }
 `;
 
 const NoDataWrapper = styled.div`
@@ -145,7 +153,7 @@ const BorderLine = styled.div`
 `;
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 4.8rem;
+  bottom: 3rem;
   right: 2.5rem;
 `;
 
@@ -341,7 +349,8 @@ const SafeDashboard = () => {
   const onSelectChange = (value) => {
     setSafeType(value);
     if (value !== 'All Safes') {
-      const obj = selectList.find((item) => item.selected === value);
+      const obj = selectList?.find((item) => item.selected === value);
+
       setSafeList([...safes[obj.path]]);
     } else {
       setSafeList([...allSafeList]);
