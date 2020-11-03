@@ -7306,9 +7306,10 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		 		        .toArray(String[]::new);
 		    	 sslCertificateRequest.setAppName(appNames[0]);   	 
 		    	 }
+		    	 String tagsOwner = certObject.get("tags.Owner")==null?"":certObject.get("tags.Owner").getAsString();
 		    	sslCertificateRequest.setCertificateName(certificateName);		    	
 		    	sslCertificateRequest.setCertType(ObjectUtils.isEmpty(certObject.get("certType"))?"":certObject.get("certType").getAsString().toLowerCase());		    	
-		    	response = onboardCertificate(sslCertificateRequest,userDetails,containerId);
+		    	response = onboardCertificate(sslCertificateRequest,userDetails,containerId,tagsOwner);
 		    	return response;
 		    }
 		    
@@ -7317,7 +7318,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		     * Method to Create policies and metadata for the given certificate
 		     * @param certObject
 		     */
-		    public ResponseEntity<String> onboardCertificate(SSLCertificateRequest sslCertificateRequest,UserDetails userDetails, int containerId) {
+		    public ResponseEntity<String> onboardCertificate(SSLCertificateRequest sslCertificateRequest,UserDetails userDetails, int containerId, String tagsOwner) {
 		    	
 		    	if(StringUtils.isEmpty(sslCertificateRequest.getAppName())) {
 		    		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -7331,7 +7332,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		    	}
 		    	
 		    	try {
-		    		ResponseEntity<String> metadataResponse = createCertMetadataAndPolicy(sslCertificateRequest,userDetails,containerId);
+		    		ResponseEntity<String> metadataResponse = createCertMetadataAndPolicy(sslCertificateRequest,userDetails,containerId, tagsOwner);
 		    		if(!HttpStatus.OK.equals(metadataResponse.getStatusCode())){
 		    			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -7399,7 +7400,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		     * @param containerId
 		     * @return
 		     */
-		    private ResponseEntity<String> createCertMetadataAndPolicy(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails, int containerId) {
+		    private ResponseEntity<String> createCertMetadataAndPolicy(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails, int containerId, String tagsOwner) {
 		    	
 		    	// Policy Creation
 				boolean isPoliciesCreated = false;
@@ -7408,7 +7409,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 				
 				boolean isDeleted =false;
 				try {
-					String metadataJson = populateSSLCertificateMetadataForOnboard(sslCertificateRequest, userDetails,containerId);
+					String metadataJson = populateSSLCertificateMetadataForOnboard(sslCertificateRequest, userDetails,containerId, tagsOwner);
 					if(metadataJson == null) {
 						return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Certificate not available in NCLM.\"]}");
 					}
@@ -7535,7 +7536,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			 * @return
 			 * @throws Exception
 			 */
-			private String populateSSLCertificateMetadataForOnboard(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails, int containerId) throws Exception {
+			private String populateSSLCertificateMetadataForOnboard(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails, int containerId, String tagsOwner) throws Exception {
 				
 				String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal"))?
 			            SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
@@ -7568,6 +7569,12 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		                String applicationTag = validateString(jsonElement.get("tag"));
 		                
 		                projectLeadEmail = validateString(jsonElement.get("projectLeadEmail"));		
+		                if(!StringUtils.isEmpty(projectLeadEmail)) {
+		   		    	 String[] projectLeadEmails = Arrays.stream(projectLeadEmail.split(","))
+		   		 		        .map(String::trim)
+		   		 		        .toArray(String[]::new);
+		   		    	sslCertificateMetadataDetails.setProjectLeadEmailId(projectLeadEmails[0]);
+		   		    	 }
 		                
 		                String appOwnerEmail = validateString(jsonElement.get("brtContactEmail"));
 		                String akmid = validateString(jsonElement.get("akmid"));
@@ -7579,11 +7586,11 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		                                        "projectLeadEmail =  [%s],appOwnerEmail =  [%s], akmid = [%s]", applicationName,
 		                                applicationTag, projectLeadEmail, appOwnerEmail, akmid)).build()));
 
-		                sslCertificateMetadataDetails.setAkmid(akmid);
-		                sslCertificateMetadataDetails.setProjectLeadEmailId(projectLeadEmail);
+		                sslCertificateMetadataDetails.setAkmid(akmid);		                
 		                sslCertificateMetadataDetails.setApplicationOwnerEmailId(appOwnerEmail);
 		                sslCertificateMetadataDetails.setApplicationTag(applicationTag);
 		                sslCertificateMetadataDetails.setApplicationName(applicationName);
+		                sslCertificateMetadataDetails.setNotificationEmails(tagsOwner);
 		            }
 		            }
 		        } else {
@@ -7829,7 +7836,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			    	}
 			    	if(containerList.size() >0) {
 			    		for(int i=0; i<containerList.size();i++) {
-			    	response = onboardCertificate(sslCertificateRequest,userDetails,containerList.get(i));
+			    	response = onboardCertificate(sslCertificateRequest,userDetails,containerList.get(i),"");
 			    	
 			    	if (response !=null && !HttpStatus.OK.equals(response.getStatusCode())) {
 			    		log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
