@@ -49,6 +49,10 @@ const RightColumnSection = styled(ColumnSection)`
     position: fixed;
     top: 0;
     overflow-y: scroll;
+    ::-webkit-scrollbar-track {
+      -webkit-box-shadow: none !important;
+      background-color: transparent;
+    }
     max-height: 100%;
   }
 `;
@@ -85,6 +89,10 @@ const SafeListContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: none !important;
+    background-color: transparent;
+  }
 `;
 
 const NoDataWrapper = styled.div`
@@ -202,17 +210,26 @@ const SafeDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [menu] = useState([
-    'All Safes',
-    'User Safes',
-    'Shared Safes',
-    'Application Safes',
+    {
+      label: `All Safes(${safeList?.length})`,
+      value: 'All Safes',
+    },
+    { label: `User Safes(${safes?.users?.length})`, value: 'User Safes' },
+    { label: `Shared Safes(${safes?.shared?.length})`, value: 'Shared Safes' },
+    {
+      label: `Application Safes(${safes?.apps?.length})`,
+      value: 'Application Safes',
+    },
   ]);
   const [selectList] = useState([
     { selected: 'User Safes', path: 'users' },
     { selected: 'Shared Safes', path: 'shared' },
     { selected: 'Application Safes', path: 'apps' },
   ]);
-  const [safeType, setSafeType] = useState('All Safes');
+  const [safeType, setSafeType] = useState({
+    label: 'All Safes',
+    value: 'All Safes',
+  });
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const [deletionPath, setDeletionPath] = useState('');
   const [toast, setToast] = useState(null);
@@ -335,9 +352,9 @@ const SafeDashboard = () => {
    * @param {string} value selected filter value.
    */
   const onSelectChange = (value) => {
-    setSafeType(value);
+    setSafeType({ label: value, value });
     if (value !== 'All Safes') {
-      const obj = selectList.find((item) => item.selected === value);
+      const obj = selectList?.find((item) => item.selected === value);
       setSafeList([...safes[obj.path]]);
     } else {
       setSafeList([...allSafeList]);
@@ -346,18 +363,18 @@ const SafeDashboard = () => {
 
   // when both search and filter value is available.
   useEffect(() => {
-    if (safeType !== 'All Safes' && inputSearchValue) {
-      const obj = selectList.find((item) => item.selected === safeType);
+    if (safeType.value !== 'All Safes' && inputSearchValue) {
+      const obj = selectList.find((item) => item.selected === safeType.value);
       const array = allSafeList.filter(
         (item) =>
           item.path.split('/')[0] === obj.path &&
           String(item.name).startsWith(inputSearchValue)
       );
       setSafeList([...array]);
-    } else if (safeType === 'All Safes' && inputSearchValue) {
+    } else if (safeType.value === 'All Safes' && inputSearchValue) {
       onSearchChange(inputSearchValue);
     } else if (inputSearchValue === '') {
-      onSelectChange(safeType);
+      onSelectChange(safeType.value);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputSearchValue, safeType]);
@@ -467,7 +484,7 @@ const SafeDashboard = () => {
         >
           <ListItem
             title={safe.name}
-            subTitle={safe.safeType}
+            subTitle={safe.safeType.value}
             flag={safe.type}
             icon={safeIcon}
             manage={safe.manage}
@@ -525,7 +542,7 @@ const SafeDashboard = () => {
             <ColumnHeader>
               <SelectComponent
                 menu={menu}
-                value={safeType}
+                value={safeType.value}
                 color="secondary"
                 classes={classes}
                 fullWidth={false}
@@ -575,10 +592,10 @@ const SafeDashboard = () => {
                     <NoDataWrapper>
                       No safe found with name
                       <span>{inputSearchValue}</span>
-                      {safeType !== 'All Safes' && (
+                      {safeType.value !== 'All Safes' && (
                         <>
                           and filter by
-                          <span>{safeType}</span>
+                          <span>{safeType.value}</span>
                         </>
                       )}
                       {' . '}

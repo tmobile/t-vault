@@ -8,7 +8,7 @@ import sectionHeaderBg from '../../../../../assets/Banner_img.png';
 import { BackArrow } from '../../../../../assets/SvgIcons';
 import mediaBreakpoints from '../../../../../breakpoints';
 import SelectionTabs from '../Tabs';
-import SafeDetailHeader from '../SafeDetailHeader';
+import ListDetailHeader from '../../../../../components/ListDetailHeader';
 
 // styled components goes here
 const Section = styled('section')`
@@ -69,7 +69,7 @@ const SafeDetails = (props) => {
           </BackButton>
         ) : null}
 
-        <SafeDetailHeader
+        <ListDetailHeader
           title={safe?.name}
           description={safe?.description}
           bgImage={sectionHeaderBg}

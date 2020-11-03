@@ -79,6 +79,10 @@ const ListContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: none !important;
+    background-color: transparent;
+  }
 `;
 
 const NoDataWrapper = styled.div`
@@ -118,6 +122,10 @@ const MobileViewForListDetailPage = css`
   top: 7rem;
   z-index: 1;
   overflow-y: auto;
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: none !important;
+    background-color: transparent;
+  }
 `;
 const EmptyContentBox = styled('div')`
   width: 100%;
