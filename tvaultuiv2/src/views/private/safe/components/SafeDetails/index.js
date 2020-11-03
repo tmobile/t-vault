@@ -71,7 +71,10 @@ const SafeDetails = (props) => {
 
         <ListDetailHeader
           title={safe?.name}
-          description={safe?.description}
+          description={
+            safe?.description ||
+            'This provides information about safe. You can able to see the secrets associated with it, And also create  a safe to see your secrets, folders and manage permissions for safes'
+          }
           bgImage={sectionHeaderBg}
         />
 

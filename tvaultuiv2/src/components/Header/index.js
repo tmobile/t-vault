@@ -85,6 +85,11 @@ const EachLink = styled.a`
   margin: 0 1rem;
   color: #fff;
   font-size: 1.4rem;
+  ${(props) => props.styles}
+`;
+const ProfileWrap = styled.div`
+  display: flex;
+  align-items: center;
 `;
 
 const useStyles = makeStyles(() => ({
@@ -203,9 +208,18 @@ const Header = (props) => {
                 </EachLink>
               </DocLinks>
             ) : (
-              <ProfileIconWrap>
-                <UserLogout userName={userName} checkToken={checkToken} />
-              </ProfileIconWrap>
+              <ProfileWrap>
+                <EachLink
+                  href="https://perf-vault.corporate.t-mobile.com/vault/swagger-ui.html"
+                  target="_blank"
+                  styles="text-decoration:none"
+                >
+                  Documentation
+                </EachLink>
+                <ProfileIconWrap>
+                  <UserLogout userName={userName} checkToken={checkToken} />
+                </ProfileIconWrap>
+              </ProfileWrap>
             )}
           </>
         </Container>
