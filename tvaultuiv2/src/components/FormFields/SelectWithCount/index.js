@@ -40,7 +40,7 @@ const SelectWithCountComponent = (props) => {
         getContentAnchorEl: null,
       }}
     >
-      {menu.map((item, index) => {
+      {menu?.map((item, index) => {
         return (
           <MenuItemList value={item.name} selected={value} key={index}>
             {item.name}
