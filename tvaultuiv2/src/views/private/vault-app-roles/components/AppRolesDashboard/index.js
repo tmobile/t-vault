@@ -193,9 +193,9 @@ const AppRolesDashboard = () => {
   const [moreData] = useState(false);
   const [isLoading] = useState(false);
   const [appRoleList, setAppRoleList] = useState([]);
-  const [menu] = useState([`All Approles(${appRoleList?.length})`]);
+  const [menu] = useState([`All Vault AppRoles(${appRoleList?.length})`]);
   const [appRoleType, setAppRoleType] = useState(
-    `All Approles(${appRoleList?.length})`
+    `All Vault AppRoles(${appRoleList?.length})`
   );
   const [status, setStatus] = useState({});
   const [getResponseType, setGetResponseType] = useState(null);

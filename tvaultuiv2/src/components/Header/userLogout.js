@@ -55,8 +55,8 @@ const UserLogout = (props) => {
   return (
     <>
       <UserWrap aria-describedby={id} onClick={handleClick}>
-        <UserName>{userName}</UserName>
         <UserIcon src={userIcon} alt="usericon" />
+        <UserName>{userName}</UserName>
       </UserWrap>
       <Popper
         id={id}
