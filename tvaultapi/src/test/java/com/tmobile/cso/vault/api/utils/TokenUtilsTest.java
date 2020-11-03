@@ -55,7 +55,7 @@ import com.tmobile.cso.vault.api.process.Response;
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@PrepareForTest({ JSONUtil.class})
+@PrepareForTest({ JSONUtil.class, ControllerUtil.class})
 @PowerMockIgnore({"javax.management.*"})
 public class TokenUtilsTest {
 
