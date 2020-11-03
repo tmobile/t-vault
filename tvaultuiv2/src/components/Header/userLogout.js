@@ -7,6 +7,7 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { useHistory } from 'react-router-dom';
 import userIcon from '../../assets/icon-profile.svg';
+import { revokeToken } from '../../views/public/HomePage/utils';
 
 const UserWrap = styled.div`
   display: flex;
@@ -43,7 +44,8 @@ const UserLogout = (props) => {
     setAnchorEl(anchorEl ? null : event.currentTarget);
   };
 
-  const onLogoutClicked = () => {
+  const onLogoutClicked = async () => {
+    await revokeToken();
     sessionStorage.clear();
     checkToken();
     history.push('/');

@@ -7,6 +7,7 @@ import { useIdleTimer } from 'react-idle-timer';
 import Safe from './private/safe';
 import ScaledLoader from '../components/Loaders/ScaledLoader';
 import { UserContextProvider } from '../contexts';
+import { revokeToken } from './public/HomePage/utils';
 import apiService from './public/HomePage/apiService';
 
 const Home = lazy(() => import('./public/HomePage'));
@@ -35,9 +36,9 @@ const PrivateRoutes = () => {
     if (sessionStorage.getItem('token')) {
       apiService
         .getAuth()
-        .then(() => {
+        .then((res) => {
           setDate(new Date().getTime());
-          setIdleTimer(1000 * 60 * 30);
+          setIdleTimer(res?.data?.lease_duration);
         })
         // eslint-disable-next-line no-console
         .catch((err) => console.log('err', err));
@@ -48,7 +49,8 @@ const PrivateRoutes = () => {
     renewToken();
   }, [renewToken]);
 
-  const handleOnIdle = () => {
+  const handleOnIdle = async () => {
+    await revokeToken();
     window.location.href = '/';
     sessionStorage.clear();
   };
@@ -57,7 +59,7 @@ const PrivateRoutes = () => {
     // eslint-disable-next-line no-use-before-define
     const difference = getLastActiveTime() - date; // Thiis will give difference in milliseconds
     const resultInMinutes = Math.round(difference / 60000);
-    if (resultInMinutes > 1) {
+    if (resultInMinutes > 3) {
       renewToken();
       setDate(null);
     } else {

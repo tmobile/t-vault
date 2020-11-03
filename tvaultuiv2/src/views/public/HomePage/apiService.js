@@ -5,8 +5,10 @@
 import api from '../../../services';
 
 const getAuth = () => api.get('/auth/tvault/renew');
+const callRevoke = (url) => api.get(url);
 const getUserName = () => api.get('/username');
 export default {
   getAuth,
   getUserName,
+  callRevoke,
 };
