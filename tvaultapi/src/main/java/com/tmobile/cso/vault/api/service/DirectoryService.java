@@ -307,6 +307,23 @@ public class  DirectoryService {
 	}
 
 	/**
+	 * Gets the user from CORD AD Server based on NTid
+	 * @param userName
+	 * @return
+	 */
+	public DirectoryUser getUserDetailsFromCorp(String userName) {
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new EqualsFilter("cn", userName));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+
+		List<DirectoryUser> allPersons = getAllPersonsFromCorp(andFilter);
+		if(CollectionUtils.isEmpty(allPersons)){
+			return new DirectoryUser();
+		}
+		return allPersons.get(0);
+	}
+
+	/**
 	 * Gets the list of users from CORP AD
 	 * @param filter
 	 * @return
