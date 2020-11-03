@@ -236,7 +236,24 @@ public class SSLCertificateControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseJson)));
     }
+    
+    @Test
+    public void testDeleteApproletoCertificate() throws Exception {
+    	CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read", "internal");
 
+        String inputJson =new ObjectMapper().writeValueAsString(certificateApprole);
+        String responseJson = "{\"messages\":[\"Approle successfully deleted from Certificate\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+
+        when(sslCertificateService.deleteApproleFromCertificate(Mockito.any(CertificateApprole.class), eq(userDetails))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/sslcert/approle").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
     UserDetails getMockUser(boolean isAdmin) {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = new UserDetails();

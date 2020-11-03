@@ -2436,8 +2436,8 @@ public class SSLCertificateService {
                 SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
        	Response response = new Response();
        	String certListStr = "";
+       	
        	String tokenValue= (userDetails.isAdmin())? token :userDetails.getSelfSupportToken();
-
         response = getMetadata(tokenValue, metaDataPath);
         if (HttpStatus.OK.equals(response.getHttpstatus())) {
             certListStr = getsslmetadatalist(response.getResponse(),tokenValue,userDetails,certName,limit,offset,metaDataPath);
@@ -4304,7 +4304,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         if(!ControllerUtil.areDownloadInputsValid(certificateName,sslCertType)) {
    			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 	   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-	   					put(LogMessage.ACTION, "downloadCertificateWithPrivateKey").
+	   					put(LogMessage.ACTION, "downloadCertificate").
 	   					put(LogMessage.MESSAGE, "Invalid input values").
 	   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 	   					build()));
@@ -4313,6 +4313,12 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         
         SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token, certificateName, sslCertType);
         if (hasDownloadPermission(certificateName, userDetails, sslCertType) && sslCertificateMetadataDetails != null) {
+        	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "downloadCertificate").
+                    put(LogMessage.MESSAGE, String.format ("Trying to download certificate [%s] on [%s] by  [%s]", certificateName,LocalDateTime.now(),userDetails.getUsername())).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
 
         	String nclmToken = nclmMockEnabled.equalsIgnoreCase(TVaultConstants.TRUE) ? TVaultConstants.NCLM_MOCK_VALUE :  getNclmToken();
             if (StringUtils.isEmpty(nclmToken)) {
@@ -7052,6 +7058,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove user from this certificate\"]}");
 		}
+
 	}	
 
 	//###################################################  ONBOARD CERTIFICATES	#######################################################
@@ -7874,4 +7881,197 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			        }
 			        return ts_gp_id;
 			    }
+
+	public ResponseEntity<String> deleteApproleFromCertificate(CertificateApprole certificateApprole,
+			UserDetails userDetails) {
+		String authToken = null;
+        boolean isAuthorized = true;
+        if(!areCertificateApproleInputsValid(certificateApprole)) {
+        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.DELETE_APPROLE_TO_CERT_MSG).
+   					put(LogMessage.MESSAGE, "Invalid input values").
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+        }
+        
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, SSLCertificateConstants.DELETE_APPROLE_TO_CERT_MSG).
+                put(LogMessage.MESSAGE, String.format("Trying to delete Approle to Certificate - Request [%s]", certificateApprole.toString())).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+		
+String approleName = certificateApprole.getApproleName().toLowerCase();
+        String certificateName = certificateApprole.getCertificateName().toLowerCase();
+        String access = certificateApprole.getAccess().toLowerCase();
+        String certType = certificateApprole.getCertType().toLowerCase();
+        if (approleName.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Certificate\"]}");
+        }
+if (!ObjectUtils.isEmpty(userDetails)) {
+
+	        if (userDetails.isAdmin()) {
+	        	authToken = userDetails.getClientToken();
+	        }else {
+	        	authToken = userDetails.getSelfSupportToken();
+	        }
+SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, certType);
+
+			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
+
+        }else {
+   			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+   					put(LogMessage.ACTION, SSLCertificateConstants.DELETE_APPROLE_TO_CERT_MSG).
+   					put(LogMessage.MESSAGE, "Access denied: No permission to delete approle from this certificate").
+   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+   					build()));
+
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to delete approle from this certificate\"]}");
+   		}
+
+		if(isAuthorized){
+        	return checkPolicyDetailsAndRemoveApproleFromCertificate(authToken, approleName, certificateName, access, certType);
+        } else{
+        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.DELETE_APPROLE_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, String.format("Access denied: No permission to delete Approle [%s] from the Certificate [%s]", approleName, certificateName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to delete Approle from this Certificate\"]}");
+        }
+	}
+
+	private ResponseEntity<String> checkPolicyDetailsAndRemoveApproleFromCertificate(String authToken,
+			String approleName, String certificateName, String access, String certType) {
+String policyPrefix = getCertificatePolicyPrefix(access, certType);
+		
+		String metaDataPath = (certType.equalsIgnoreCase("internal"))?
+	            SSLCertificateConstants.SSL_CERT_PATH_VALUE :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
+		
+		String certificatePath = metaDataPath + certificateName;
+
+		if(TVaultConstants.EMPTY.equals(policyPrefix)){
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, "Incorrect access requested. Valid values are read, write, deny").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,deny \"]}");
+		}
+
+		String policy = policyPrefix + certificateName;
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		
+		String certPrefix=(certType.equalsIgnoreCase("internal"))?
+                SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
+
+		String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
+		String writePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
+		String denyPolicy = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
+		String sudoPolicy = SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("Approle Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+
+		Response roleResponse = reqProcessor.process("/auth/approle/role/read","{\"role_name\":\""+approleName+"\"}",authToken);
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		        put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+		        put(LogMessage.MESSAGE, String.format("roleResponse status is [%s]", roleResponse.getHttpstatus())).
+		        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		        build()));
+
+		String responseJson="";
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+
+		if(HttpStatus.OK.equals(roleResponse.getHttpstatus())) {
+			responseJson = roleResponse.getResponse();
+			ObjectMapper objMapper = new ObjectMapper();
+			try {
+				JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+				if (null != policiesArry) {
+					for (JsonNode policyNode : policiesArry) {
+						currentpolicies.add(policyNode.asText());
+					}
+				}
+			} catch (IOException e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+						put(LogMessage.MESSAGE, "Exception while creating currentpolicies").
+						put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+			policies.addAll(currentpolicies);
+			policies.remove(readPolicy);
+			policies.remove(writePolicy);
+			policies.remove(denyPolicy);
+			
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+					put(LogMessage.MESSAGE, String.format("Non existing role name. Please configure approle as first step - Approle = [%s]", approleName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+
+		    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
+		}
+
+		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureApprole", policies)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+
+		return updateRemoveApproleMetadataForCertificate(authToken, approleName, certificatePath, access,
+				currentpoliciesString);
+	}
+
+	private ResponseEntity<String> updateRemoveApproleMetadataForCertificate(String authToken, String approleName,
+			String certificatePath, String delete, String currentpoliciesString) {
+			Map<String,String> params = new HashMap<>();
+			params.put("type", "app-roles");
+			params.put("name",approleName);
+			params.put("path",certificatePath);
+			params.put("access","delete");
+			Response metadataResponse = ControllerUtil.updateMetadata(params, authToken);
+			if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+						put(LogMessage.MESSAGE, String.format("Approle [%s] successfully deleted from Certificate [%s]", approleName, certificatePath)).
+						put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully deleted from Certificate\"]}");
+			} else {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle deletion failed\"]}");
+			}
+	}
+
 }
