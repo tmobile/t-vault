@@ -163,7 +163,7 @@ public class  IAMServiceAccountsService {
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
 					.put(LogMessage.MESSAGE,
-							String.format("Creating metadata for IAM Service Account [%s] failed."))
+							String.format("Creating metadata for IAM Service Account [%s] failed.", iamSvccAccMetaPath))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(
 					"{\"errors\":[\"Metadata creation failed for IAM Service Account.\"]}");

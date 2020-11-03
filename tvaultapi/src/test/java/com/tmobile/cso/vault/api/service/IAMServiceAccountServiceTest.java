@@ -2486,4 +2486,351 @@ public class IAMServiceAccountServiceTest {
 
 
 
+	@Test
+	public void testOnboardIAMServiceAccountNotAuthorized() {
+		userDetails = getMockUser(true);
+		token = userDetails.getClientToken();
+		IAMServiceAccount serviceAccount = generateIAMServiceAccount("testaccount", "1234567", "normaluser");
+
+		Map<String, Object> iamSvcAccPolicyMap = new HashMap<>();
+		iamSvcAccPolicyMap.put("isActivated", false);
+		// System under test
+		String expectedResponse = "{\"errors\":[\"Access denied. Not authorized to perform onboarding for IAM service accounts.\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+
+		// Mock approle permission check
+		Response lookupResponse = getMockResponse(HttpStatus.OK, true, "{\"policies\":[\"iamportal_master_policy \"]}");
+		when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(lookupResponse);
+		List<String> currentPolicies = new ArrayList<>();
+
+		try {
+			when(iamServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(currentPolicies);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		ResponseEntity<String> responseEntity = iamServiceAccountsService.onboardIAMServiceAccount(token,
+				serviceAccount, userDetails);
+		assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
+
+	@Test
+	public void testOnboardIAMServiceAccountAlreadyExists() {
+		userDetails = getMockUser(true);
+		token = userDetails.getClientToken();
+		IAMServiceAccount serviceAccount = generateIAMServiceAccount("svc_tvt_test13", "12234237890", "normaluser");
+		String iamSvcAccName = serviceAccount.getAwsAccountId() + "_" + serviceAccount.getUserName();
+		String iamSvccAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName;
+
+		String metaDataStr = "{ \"data\": {}, \"path\": \"iamsvcacc/1234567_testaccount\"}";
+		String metadatajson = "{\"path\":\"iamsvcacc/1234567_testaccount\",\"data\":{}}";
+
+		String iamMetaDataStr = "{ \"data\": {\"userName\": \"testaccount\", \"awsAccountId\": \"1234567\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 12345L, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345L}]}, \"path\": \"iamsvcacc/1234567_testaccount\"}";
+		String iamMetaDatajson = "{\"path\":\"iamsvcacc/1234567_testaccount\",\"data\": {\"userName\": \"testaccount\", \"awsAccountId\": \"1234567\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 12345L, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345L}]}}";
+
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+		Map<String, Object> iamSvcAccPolicyMap = new HashMap<>();
+		iamSvcAccPolicyMap.put("isActivated", false);
+
+		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = populateIAMSvcAccMetaData(serviceAccount);
+		IAMSvccAccMetadata iamSvccAccMetadata = new IAMSvccAccMetadata(iamSvccAccPath,
+				iamServiceAccountMetadataDetails);
+
+		when(reqProcessor.process(eq("/iam/onboardedlist"), Mockito.any(), eq(token))).thenReturn(getMockResponse(
+				HttpStatus.OK, true, "{\"keys\":[\"12234237890_svc_tvt_test13\",\"1223455345_svc_tvt_test9\"]}"));
+
+		when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
+		when(ControllerUtil.parseJson(metaDataStr)).thenReturn(iamSvcAccPolicyMap);
+		when(ControllerUtil.convetToJson(iamSvcAccPolicyMap)).thenReturn(metadatajson);
+		when(reqProcessor.process("/write", metadatajson, token)).thenReturn(responseNoContent);
+
+		// create metadata
+		when(JSONUtil.getJSON(iamSvccAccMetadata)).thenReturn(iamMetaDataStr);
+		Map<String, Object> rqstParams = new HashMap<>();
+		rqstParams.put("isActivated", false);
+		rqstParams.put("userName", "testaccount");
+		rqstParams.put("awsAccountId", "1234567");
+		rqstParams.put("awsAccountName", "testaccount1");
+		rqstParams.put("createdAtEpoch", 12345L);
+		rqstParams.put("owner_ntid", "normaluser");
+		rqstParams.put("owner_email", "normaluser@testmail.com");
+		rqstParams.put("application_id", "app1");
+		rqstParams.put("application_name", "App1");
+
+		when(ControllerUtil.parseJson(iamMetaDataStr)).thenReturn(rqstParams);
+		when(ControllerUtil.convetToJson(rqstParams)).thenReturn(iamMetaDatajson);
+		when(ControllerUtil.createMetadata(any(), eq(token))).thenReturn(true);
+
+		String expectedResponse = "{\"errors\":[\"Failed to onboard IAM Service Account. IAM Service account is already onboarded\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+
+		// Mock approle permission check
+		Response lookupResponse = getMockResponse(HttpStatus.OK, true, "{\"policies\":[\"iamportal_master_policy \"]}");
+		when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(lookupResponse);
+		List<String> currentPolicies = new ArrayList<>();
+		currentPolicies.add("iamportal_master_policy");
+		try {
+			when(iamServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(currentPolicies);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		ResponseEntity<String> responseEntity = iamServiceAccountsService.onboardIAMServiceAccount(token,
+				serviceAccount, userDetails);
+		assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
+
+	@Test
+	public void testOnboardIAMServiceAccountMetaDataCreationFailed() {
+		userDetails = getMockUser(true);
+		token = userDetails.getClientToken();
+		IAMServiceAccount serviceAccount = generateIAMServiceAccount("testaccount", "1234567", "normaluser");
+		String iamSvcAccName = serviceAccount.getAwsAccountId() + "_" + serviceAccount.getUserName();
+		String iamSvccAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName;
+
+		String metaDataStr = "{ \"data\": {}, \"path\": \"iamsvcacc/1234567_testaccount\"}";
+		String metadatajson = "{\"path\":\"iamsvcacc/1234567_testaccount\",\"data\":{}}";
+
+		String iamMetaDataStr = "{ \"data\": {\"userName\": \"testaccount\", \"awsAccountId\": \"1234567\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 12345L, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345L}]}, \"path\": \"iamsvcacc/1234567_testaccount\"}";
+		String iamMetaDatajson = "{\"path\":\"iamsvcacc/1234567_testaccount\",\"data\": {\"userName\": \"testaccount\", \"awsAccountId\": \"1234567\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 12345L, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345L}]}}";
+
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+		Map<String, Object> iamSvcAccPolicyMap = new HashMap<>();
+		iamSvcAccPolicyMap.put("isActivated", false);
+
+		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = populateIAMSvcAccMetaData(serviceAccount);
+		IAMSvccAccMetadata iamSvccAccMetadata = new IAMSvccAccMetadata(iamSvccAccPath,
+				iamServiceAccountMetadataDetails);
+
+		when(reqProcessor.process(eq("/iam/onboardedlist"), Mockito.any(), eq(token))).thenReturn(getMockResponse(
+				HttpStatus.OK, true, "{\"keys\":[\"12234237890_svc_tvt_test13\",\"1223455345_svc_tvt_test9\"]}"));
+
+		when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
+		when(ControllerUtil.parseJson(metaDataStr)).thenReturn(iamSvcAccPolicyMap);
+		when(ControllerUtil.convetToJson(iamSvcAccPolicyMap)).thenReturn(metadatajson);
+		when(reqProcessor.process("/write", metadatajson, token)).thenReturn(responseNoContent);
+
+		// create metadata
+		when(JSONUtil.getJSON(iamSvccAccMetadata)).thenReturn(iamMetaDataStr);
+		Map<String, Object> rqstParams = new HashMap<>();
+		rqstParams.put("isActivated", false);
+		rqstParams.put("userName", "testaccount");
+		rqstParams.put("awsAccountId", "1234567");
+		rqstParams.put("awsAccountName", "testaccount1");
+		rqstParams.put("createdAtEpoch", 12345L);
+		rqstParams.put("owner_ntid", "normaluser");
+		rqstParams.put("owner_email", "normaluser@testmail.com");
+		rqstParams.put("application_id", "app1");
+		rqstParams.put("application_name", "App1");
+
+		when(ControllerUtil.parseJson(iamMetaDataStr)).thenReturn(rqstParams);
+		when(ControllerUtil.convetToJson(rqstParams)).thenReturn(iamMetaDatajson);
+		when(ControllerUtil.createMetadata(any(), eq(token))).thenReturn(false);
+
+		// System under test
+		String expectedResponse = "{\"errors\":[\"Metadata creation failed for IAM Service Account.\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.MULTI_STATUS).body(expectedResponse);
+
+		// Mock approle permission check
+		Response lookupResponse = getMockResponse(HttpStatus.OK, true, "{\"policies\":[\"iamportal_master_policy \"]}");
+		when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(lookupResponse);
+		List<String> currentPolicies = new ArrayList<>();
+		currentPolicies.add("iamportal_master_policy");
+		try {
+			when(iamServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(currentPolicies);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		ResponseEntity<String> responseEntity = iamServiceAccountsService.onboardIAMServiceAccount(token,
+				serviceAccount, userDetails);
+		assertEquals(HttpStatus.MULTI_STATUS, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
+
+	@Test
+	public void testOnboardIAMServiceAccountPolicyCreationFailed() {
+		userDetails = getMockUser(true);
+		token = userDetails.getClientToken();
+		IAMServiceAccount serviceAccount = generateIAMServiceAccount("testaccount", "1234567", "normaluser");
+		String iamSvcAccName = serviceAccount.getAwsAccountId() + "_" + serviceAccount.getUserName();
+		String iamSvccAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName;
+
+		String metaDataStr = "{ \"data\": {}, \"path\": \"iamsvcacc/1234567_testaccount\"}";
+		String metadatajson = "{\"path\":\"iamsvcacc/1234567_testaccount\",\"data\":{}}";
+
+		String iamMetaDataStr = "{ \"data\": {\"userName\": \"testaccount\", \"awsAccountId\": \"1234567\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 12345L, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345L}]}, \"path\": \"iamsvcacc/1234567_testaccount\"}";
+		String iamMetaDatajson = "{\"path\":\"iamsvcacc/1234567_testaccount\",\"data\": {\"userName\": \"testaccount\", \"awsAccountId\": \"1234567\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 12345L, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345L}]}}";
+
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+		Map<String, Object> iamSvcAccPolicyMap = new HashMap<>();
+		iamSvcAccPolicyMap.put("isActivated", false);
+
+		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = populateIAMSvcAccMetaData(serviceAccount);
+		IAMSvccAccMetadata iamSvccAccMetadata = new IAMSvccAccMetadata(iamSvccAccPath,
+				iamServiceAccountMetadataDetails);
+
+		when(reqProcessor.process(eq("/iam/onboardedlist"), Mockito.any(), eq(token))).thenReturn(getMockResponse(
+				HttpStatus.OK, true, "{\"keys\":[\"12234237890_svc_tvt_test13\",\"1223455345_svc_tvt_test9\"]}"));
+
+		when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
+		when(ControllerUtil.parseJson(metaDataStr)).thenReturn(iamSvcAccPolicyMap);
+		when(ControllerUtil.convetToJson(iamSvcAccPolicyMap)).thenReturn(metadatajson);
+		when(reqProcessor.process("/write", metadatajson, token)).thenReturn(responseNoContent);
+
+		// create metadata
+		when(JSONUtil.getJSON(iamSvccAccMetadata)).thenReturn(iamMetaDataStr);
+		Map<String, Object> rqstParams = new HashMap<>();
+		rqstParams.put("isActivated", false);
+		rqstParams.put("userName", "testaccount");
+		rqstParams.put("awsAccountId", "1234567");
+		rqstParams.put("awsAccountName", "testaccount1");
+		rqstParams.put("createdAtEpoch", 12345L);
+		rqstParams.put("owner_ntid", "normaluser");
+		rqstParams.put("owner_email", "normaluser@testmail.com");
+		rqstParams.put("application_id", "app1");
+		rqstParams.put("application_name", "App1");
+
+		when(ControllerUtil.parseJson(iamMetaDataStr)).thenReturn(rqstParams);
+		when(ControllerUtil.convetToJson(rqstParams)).thenReturn(iamMetaDatajson);
+		when(ControllerUtil.createMetadata(any(), eq(token))).thenReturn(true);
+
+		// CreateIAMServiceAccountPolicies
+		ResponseEntity<String> createPolicyResponse = ResponseEntity.status(HttpStatus.MULTI_STATUS)
+				.body("{\"messages\":[\"Failed to create some of the policies for IAM service account\"]}");
+		when(accessService.createPolicy(Mockito.anyString(), Mockito.any())).thenReturn(createPolicyResponse);
+
+		// delete policy mock
+		ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.OK)
+				.body("{\"messages\":[\"Successfully created policies for IAM service account\"]}");
+		when(accessService.deletePolicyInfo(Mockito.anyString(), Mockito.any())).thenReturn(deletePolicyResponse);
+
+		when(reqProcessor.process(eq("/delete"), Mockito.any(), Mockito.anyString())).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true,""));		
+
+		// System under test
+		String expectedResponse = "{\"errors\":[\"Failed to onboard IAM service account. Policy creation failed.\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
+
+		// Mock approle permission check
+		Response lookupResponse = getMockResponse(HttpStatus.OK, true, "{\"policies\":[\"iamportal_master_policy \"]}");
+		when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(lookupResponse);
+		List<String> currentPolicies = new ArrayList<>();
+		currentPolicies.add("iamportal_master_policy");
+		try {
+			when(iamServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(currentPolicies);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		ResponseEntity<String> responseEntity = iamServiceAccountsService.onboardIAMServiceAccount(token,
+				serviceAccount, userDetails);
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
+
+	@Test
+	public void testOnboardIAMServiceAccountAddOwnerFailed() {
+		userDetails = getMockUser(true);
+		token = userDetails.getClientToken();
+		IAMServiceAccount serviceAccount = generateIAMServiceAccount("testaccount", "1234567", "normaluser");
+		String iamSvcAccName = serviceAccount.getAwsAccountId() + "_" + serviceAccount.getUserName();
+		String iamSvccAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName;
+
+		String metaDataStr = "{ \"data\": {}, \"path\": \"iamsvcacc/1234567_testaccount\"}";
+		String metadatajson = "{\"path\":\"iamsvcacc/1234567_testaccount\",\"data\":{}}";
+
+		String iamMetaDataStr = "{ \"data\": {\"userName\": \"testaccount\", \"awsAccountId\": \"1234567\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 12345L, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345L}]}, \"path\": \"iamsvcacc/1234567_testaccount\"}";
+		String iamMetaDatajson = "{\"path\":\"iamsvcacc/1234567_testaccount\",\"data\": {\"userName\": \"testaccount\", \"awsAccountId\": \"1234567\", \"awsAccountName\": \"testaccount1\", \"createdAtEpoch\": 12345L, \"owner_ntid\": \"normaluser\", \"owner_email\": \"normaluser@testmail.com\", \"application_id\": \"app1\", \"application_name\": \"App1\", \"application_tag\": \"App1\", \"isActivated\": false, \"secret\":[{\"accessKeyId\":\"testaccesskey\", \"expiryDuration\":12345L}]}}";
+
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+		Map<String, Object> iamSvcAccPolicyMap = new HashMap<>();
+		iamSvcAccPolicyMap.put("isActivated", false);
+
+		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = populateIAMSvcAccMetaData(serviceAccount);
+		IAMSvccAccMetadata iamSvccAccMetadata = new IAMSvccAccMetadata(iamSvccAccPath,
+				iamServiceAccountMetadataDetails);
+
+		when(reqProcessor.process(eq("/iam/onboardedlist"), Mockito.any(), eq(token))).thenReturn(getMockResponse(
+				HttpStatus.OK, true, "{\"keys\":[\"12234237890_svc_tvt_test13\",\"1223455345_svc_tvt_test9\"]}"));
+
+		when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
+		when(ControllerUtil.parseJson(metaDataStr)).thenReturn(iamSvcAccPolicyMap);
+		when(ControllerUtil.convetToJson(iamSvcAccPolicyMap)).thenReturn(metadatajson);
+		when(reqProcessor.process("/write", metadatajson, token)).thenReturn(responseNoContent);
+
+		// create metadata
+		when(JSONUtil.getJSON(iamSvccAccMetadata)).thenReturn(iamMetaDataStr);
+		Map<String, Object> rqstParams = new HashMap<>();
+		rqstParams.put("isActivated", false);
+		rqstParams.put("userName", "testaccount");
+		rqstParams.put("awsAccountId", "1234567");
+		rqstParams.put("awsAccountName", "testaccount1");
+		rqstParams.put("createdAtEpoch", 12345L);
+		rqstParams.put("owner_ntid", "normaluser");
+		rqstParams.put("owner_email", "normaluser@testmail.com");
+		rqstParams.put("application_id", "app1");
+		rqstParams.put("application_name", "App1");
+
+		when(ControllerUtil.parseJson(iamMetaDataStr)).thenReturn(rqstParams);
+		when(ControllerUtil.convetToJson(rqstParams)).thenReturn(iamMetaDatajson);
+		when(ControllerUtil.createMetadata(any(), eq(token))).thenReturn(true);
+
+		// CreateIAMServiceAccountPolicies
+		ResponseEntity<String> createPolicyResponse = ResponseEntity.status(HttpStatus.OK)
+				.body("{\"messages\":[\"Successfully created policies for IAM service account\"]}");
+		when(accessService.createPolicy(Mockito.anyString(), Mockito.any())).thenReturn(createPolicyResponse);
+
+		// Add User to Service Account
+		Response userResponse = getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
+		Response ldapConfigureResponse = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, "{\"errors\":[\"Failed to add user to the IAM Service Account\"]}");
+		when(reqProcessor.process("/auth/ldap/users", "{\"username\":\"normaluser\"}", token)).thenReturn(userResponse);
+
+		try {
+			List<String> resList = new ArrayList<>();
+			resList.add("default");
+			when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		when(ControllerUtil.configureLDAPUser(eq("normaluser"), any(), any(), eq(token)))
+				.thenReturn(ldapConfigureResponse);
+
+		// delete policy mock
+		ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.OK)
+				.body("{\"messages\":[\"Successfully created policies for IAM service account\"]}");
+		when(accessService.deletePolicyInfo(Mockito.anyString(), Mockito.any())).thenReturn(deletePolicyResponse);
+
+		when(reqProcessor.process(eq("/delete"), Mockito.any(), Mockito.anyString())).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true,""));		
+
+		// System under test
+		String expectedResponse = "{\"errors\":[\"Failed to onboard IAM service account. Association of owner permission failed\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+
+		// Mock approle permission check
+		Response lookupResponse = getMockResponse(HttpStatus.OK, true, "{\"policies\":[\"iamportal_master_policy \"]}");
+		when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(lookupResponse);
+		List<String> currentPolicies = new ArrayList<>();
+		currentPolicies.add("iamportal_master_policy");
+		try {
+			when(iamServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(currentPolicies);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		ResponseEntity<String> responseEntity = iamServiceAccountsService.onboardIAMServiceAccount(token,
+				serviceAccount, userDetails);
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
+
 }
