@@ -45,7 +45,7 @@ const UserLogout = (props) => {
   };
 
   const onLogoutClicked = async () => {
-    await revokeToken();
+    revokeToken();
     sessionStorage.clear();
     checkToken();
     history.push('/');
