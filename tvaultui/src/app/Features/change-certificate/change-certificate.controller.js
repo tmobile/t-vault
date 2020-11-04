@@ -562,7 +562,19 @@
                             // Try-Catch block to catch errors if there is any change in object structure in the response
                             try {
                                 $scope.isLoadingData = false;
-                                var object = response.data.keys[0];
+
+                                var object;
+                                if(response.data.keys.length > 1) {
+                                    for (var k=0;k<response.data.keys.length;k++) {
+                                        var certObject = response.data.keys[k];
+                                        if(certObject.certificateName === $scope.certificateName){
+                                            object = certObject;
+                                        }
+                                    }
+                                }else{
+                                    object = response.data.keys[0];
+                                } 
+                                
                                 if(object && object.users && UtilityService.getAppConstant('AUTH_TYPE').toLowerCase() === "ldap1900") {
                                     var data = object.users;
                                     // get all object keys and iterate over them
