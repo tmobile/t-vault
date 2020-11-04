@@ -89,6 +89,7 @@ const EachLink = styled.a`
   margin: 0 1rem;
   color: #fff;
   font-size: 1.4rem;
+  ${(props) => props.styles}
 `;
 
 const useStyles = makeStyles(() => ({
@@ -208,11 +209,11 @@ const Header = (props) => {
               </DocLinks>
             ) : (
               <ProfileIconWrap>
-               <EachLink
+                <EachLink
                   href="https://docs.corporate.t-mobile.com/t-vault/introduction/"
                   target="_blank"
                 >
-                  Docs
+                  Documentation
                 </EachLink>
                 <UserLogout userName={userName} checkToken={checkToken} />
               </ProfileIconWrap>

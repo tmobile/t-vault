@@ -77,7 +77,7 @@ const ColumnHeader = styled('div')`
 `;
 const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
-  max-height: 69vh;
+  max-height: 61vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
@@ -89,6 +89,10 @@ const ListContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: none !important;
+    background-color: transparent;
+  }
 `;
 
 const NoDataWrapper = styled.div`
@@ -138,7 +142,7 @@ const BorderLine = styled.div`
 `;
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 4.5rem;
+  bottom: 3rem;
   right: 2.5rem;
 `;
 
@@ -155,6 +159,10 @@ const MobileViewForListDetailPage = css`
   top: 7rem;
   z-index: 1;
   overflow-y: auto;
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: none !important;
+    background-color: transparent;
+  }
 `;
 const EmptyContentBox = styled('div')`
   width: 100%;
@@ -572,7 +580,7 @@ const ServiceAccountDashboard = () => {
             <ColumnHeader>
               <div style={{ margin: '0 1rem' }}>
                 <TitleOne extraCss={ListHeader}>
-                  {`Service Accounts(${serviceAccountList?.length})`}
+                  {`Service Accounts (${serviceAccountList?.length})`}
                 </TitleOne>
               </div>
               <SearchWrap>

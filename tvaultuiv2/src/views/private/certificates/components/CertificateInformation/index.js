@@ -12,6 +12,10 @@ const DetailsWrap = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: none !important;
+    background-color: transparent;
+  }
   ${mediaBreakPoint.small} {
     padding: 0;
   }

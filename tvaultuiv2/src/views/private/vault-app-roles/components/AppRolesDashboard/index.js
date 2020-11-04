@@ -75,7 +75,7 @@ const ColumnHeader = styled('div')`
 `;
 const StyledInfiniteScroll = styled(InfiniteScroll)`
   width: 100%;
-  max-height: 69vh;
+  max-height: 61vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
@@ -87,6 +87,10 @@ const ListContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: none !important;
+    background-color: transparent;
+  }
 `;
 
 const NoDataWrapper = styled.div`
@@ -136,7 +140,7 @@ const BorderLine = styled.div`
 `;
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 5rem;
+  bottom: 3rem;
   right: 2.5rem;
 `;
 
@@ -193,10 +197,10 @@ const AppRolesDashboard = () => {
   const [moreData] = useState(false);
   const [isLoading] = useState(false);
   const [appRoleList, setAppRoleList] = useState([]);
-  const [menu] = useState([`All Vault AppRoles(${appRoleList?.length})`]);
-  const [appRoleType, setAppRoleType] = useState(
-    `All Vault AppRoles(${appRoleList?.length})`
-  );
+  const [menu, setMenu] = useState([
+    `All Vault AppRoles(${appRoleList?.length})`,
+  ]);
+  const [appRoleType, setAppRoleType] = useState('');
   const [status, setStatus] = useState({});
   const [getResponseType, setGetResponseType] = useState(null);
   const [deleteAppRoleName, setDeleteAppRoleName] = useState('');
@@ -235,6 +239,8 @@ const AppRolesDashboard = () => {
         }
 
         setAppRoleList([...appRolesArr]);
+        setAppRoleType(`All Vault AppRoles (${appRolesArr?.length})`);
+        setMenu([`All Vault AppRoles (${appRolesArr?.length})`]);
         dispatch({ type: 'UPDATE_APP_ROLE_LIST', payload: [...appRolesArr] });
       })
       .catch(() => {

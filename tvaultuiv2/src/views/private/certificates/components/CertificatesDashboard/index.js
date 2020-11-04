@@ -20,7 +20,6 @@ import FloatingActionButtonComponent from '../../../../../components/FormFields/
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import Error from '../../../../../components/Error';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
-import SelectComponent from '../../../../../components/FormFields/SelectFields';
 import CertificatesReviewDetails from '../CertificatesReviewDetails';
 import CertificateItemDetail from '../CertificateItemDetail';
 import apiService from '../../apiService';
@@ -30,6 +29,7 @@ import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import CreateCertificates from '../../CreateCertificates';
 import LeftColumn from './components/LeftColumn';
 import { useStateValue } from '../../../../../contexts/globalState';
+import SelectWithCountComponent from '../../../../../components/FormFields/SelectWithCount';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -67,7 +67,7 @@ const ColumnHeader = styled('div')`
 `;
 const ListContent = styled.div`
   width: 100%;
-  max-height: 57vh;
+  max-height: 61vh;
   ${mediaBreakpoints.small} {
     max-height: 78vh;
   }
@@ -79,6 +79,10 @@ const ListContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: none !important;
+    background-color: transparent;
+  }
 `;
 
 const NoDataWrapper = styled.div`
@@ -101,7 +105,7 @@ const NoListWrap = styled.div`
 
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 2.8rem;
+  bottom: 3rem;
   right: 2.5rem;
 `;
 
@@ -118,6 +122,10 @@ const MobileViewForListDetailPage = css`
   top: 7rem;
   z-index: 1;
   overflow-y: auto;
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: none !important;
+    background-color: transparent;
+  }
 `;
 const EmptyContentBox = styled('div')`
   width: 100%;
@@ -158,11 +166,7 @@ const CertificatesDashboard = () => {
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [certificateList, setCertificateList] = useState([]);
   const [certificateType, setCertificateType] = useState('All Certificates');
-  const [menu] = useState([
-    'All Certificates',
-    'Internal Certificates',
-    'External Certificates',
-  ]);
+  const [menu, setMenu] = useState([]);
   const [response, setResponse] = useState({ status: 'success' });
   const [errorMsg, setErrorMsg] = useState('');
   const [allCertList, setAllCertList] = useState([]);
@@ -343,6 +347,20 @@ const CertificatesDashboard = () => {
       });
     }
   }, [fetchAdminData, fetchNonAdminData, admin]);
+
+  useEffect(() => {
+    const internalArray = allCertList?.filter(
+      (item) => item?.certType === 'internal'
+    );
+    const externalArray = allCertList?.filter(
+      (item) => item?.certType === 'external'
+    );
+    setMenu([
+      { name: 'All Certificates', count: allCertList?.length || 0 },
+      { name: 'Internal Certificates', count: internalArray?.length || 0 },
+      { name: 'External Certificates', count: externalArray?.length || 0 },
+    ]);
+  }, [allCertList]);
 
   /**
    * @function onLinkClicked
@@ -580,7 +598,7 @@ const CertificatesDashboard = () => {
           )}
           <LeftColumnSection>
             <ColumnHeader>
-              <SelectComponent
+              <SelectWithCountComponent
                 menu={menu}
                 value={certificateType}
                 color="secondary"
