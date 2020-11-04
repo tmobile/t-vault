@@ -7482,7 +7482,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 				try {
 					String metadataJson = populateSSLCertificateMetadataForOnboard(sslCertificateRequest, userDetails,containerId, tagsOwner);
 					if(metadataJson == null) {
-						return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Certificate not available in NCLM.\"]}");
+						return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Certificate onboard failed.\"]}");
 					}
 					
 					boolean sslMetaDataCreationStatus;
@@ -7640,11 +7640,20 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		                String applicationTag = validateString(jsonElement.get("tag"));
 		                
 		                projectLeadEmail = validateString(jsonElement.get("projectLeadEmail"));		
+		              
 		                if(!StringUtils.isEmpty(projectLeadEmail)) {
 		   		    	 String[] projectLeadEmails = Arrays.stream(projectLeadEmail.split(","))
 		   		 		        .map(String::trim)
 		   		 		        .toArray(String[]::new);
 		   		    	sslCertificateMetadataDetails.setProjectLeadEmailId(projectLeadEmails[0]);
+		   		    	 }else {
+		   		    		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				                    put(LogMessage.ACTION, "populateSSLCertificateMetadataForOnboard").
+				                    put(LogMessage.MESSAGE, String.format("Project lead email id is not available for given " +
+				                            "certificate = [%s]", sslCertificateRequest.getCertificateName())).
+				                    build()));
+				            return null;
 		   		    	 }
 		                
 		                String appOwnerEmail = validateString(jsonElement.get("brtContactEmail"));
@@ -7728,7 +7737,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		    		 displayName = dirUser.getDisplayName();
 		    		 }
 		    	}  
-			        sslCertificateMetadataDetails.setCertCreatedBy(displayName);
+			        sslCertificateMetadataDetails.setCertCreatedBy(certOwnerNtId);
 			        sslCertificateMetadataDetails.setCertOwnerEmailId(projectLeadEmail);			        
 			        sslCertificateMetadataDetails.setCertOwnerNtid(certOwnerNtId);
 			        sslCertificateMetadataDetails.setContainerId(containerId);
