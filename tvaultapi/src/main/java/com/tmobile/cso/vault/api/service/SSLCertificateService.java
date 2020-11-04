@@ -4697,13 +4697,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 LocalDateTime  createdDate = null ;
                 LocalDateTime  certCreatedDate;
                 for (int i = 0; i < jsonArray.size(); i++) {
-                    JsonObject jsonElement = jsonArray.get(i).getAsJsonObject();
-                    if ((Objects.equals(getCertficateName(jsonElement.get("sortedSubjectName").getAsString()), certName))) {
-                    	 jsonArrayvalid.add(jsonElement);
+                    JsonObject jsonElements = jsonArray.get(i).getAsJsonObject();
+                    if ((Objects.equals(getCertficateName(jsonElements.get("sortedSubjectName").getAsString()), certName))) {
+                    	 jsonArrayvalid.add(jsonElements);
 				    }
 				}
 				  for (int j = 0; j < jsonArrayvalid.size(); j++) {
-				    	JsonObject jsonElement = jsonArray.get(j).getAsJsonObject();
+				    	JsonObject jsonElement = jsonArrayvalid.get(j).getAsJsonObject();
                     	
                     if(j==0) {
                     createdDate = LocalDateTime.parse(validateString(jsonElement.get("NotBefore")).substring(0, 19));
@@ -7724,22 +7724,22 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		            LocalDateTime  certCreatedDate;
 		            JsonArray jsonArrayvalid = new JsonArray();
 					for (int i = 0; i < jsonArray.size(); i++) {
-					    JsonObject jsonElement = jsonArray.get(i).getAsJsonObject();					   
+					    JsonObject jsonElements = jsonArray.get(i).getAsJsonObject();					   
 					    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 			                    put(LogMessage.ACTION, "setLatestCertificateFromNCLM").
 			                    put(LogMessage.MESSAGE, String.format("Certificate name from NCLM - [%s] and " +
-			                            "certificate name from pacbot - [%s]", jsonElement.get("sortedSubjectName").getAsString(),certName)).
+			                            "certificate name from pacbot - [%s]", jsonElements.get("sortedSubjectName").getAsString(),certName)).
 			                    build()));
 					    
-					    if ((Objects.equals(getCertficateName(jsonElement.get("sortedSubjectName").getAsString()), certName))
-					            && jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS).getAsString().
+					    if ((Objects.equals(getCertficateName(jsonElements.get("sortedSubjectName").getAsString()), certName))
+					            && jsonElements.get(SSLCertificateConstants.CERTIFICATE_STATUS).getAsString().
 					            equalsIgnoreCase(SSLCertificateConstants.ACTIVE)) {
-					    	jsonArrayvalid.add(jsonElement);
+					    	jsonArrayvalid.add(jsonElements);
 					    }
 					}
 					    	for (int j = 0; j < jsonArrayvalid.size(); j++) {
-					    		JsonObject jsonElement = jsonArray.get(j).getAsJsonObject();
+					    		JsonObject jsonElement = jsonArrayvalid.get(j).getAsJsonObject();
 					    	 if(j==0) {
 				                    createdDate = LocalDateTime.parse(validateString(jsonElement.get("NotBefore")).substring(0, 19));
 				                    }else if (j>0) {
