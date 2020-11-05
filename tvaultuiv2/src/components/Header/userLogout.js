@@ -14,7 +14,9 @@ const UserWrap = styled.div`
   align-items: center;
   cursor: pointer;
 `;
-const UserName = styled.span``;
+const UserName = styled.span`
+  text-transform: capitalize;
+`;
 
 const UserIcon = styled.img`
   margin: 0 0.5rem;

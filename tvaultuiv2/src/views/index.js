@@ -38,7 +38,6 @@ const PrivateRoutes = () => {
   const callRenewToken = async () => {
     const renewValue = await renewToken();
     if (renewValue?.data) {
-      setDate(new Date().getTime());
       setIdleTimer(1000 * 60 * 3);
     }
   };
@@ -101,9 +100,10 @@ const PrivateRoutes = () => {
       let resultInMinutes = 0;
       resultInMinutes = Math.round(difference / 60000);
       setEndTime(new Date(new Date().getTime() + 30 * 60 * 1000));
+      console.log('resultInMinutes', resultInMinutes);
       if (resultInMinutes > 2) {
-        await callRenewToken();
         setDate(new Date().getTime());
+        await callRenewToken();
       } else {
         setDate(new Date().getTime());
       }
