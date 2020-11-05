@@ -135,7 +135,8 @@ const Header = (props) => {
     const loggedIn = sessionStorage.getItem('token');
     if (loggedIn) {
       setIsLogin(true);
-      setUserName(sessionStorage.getItem('username'));
+      const name = sessionStorage.getItem('displayName');
+      setUserName(name || 'user');
     } else {
       setIsLogin(false);
     }

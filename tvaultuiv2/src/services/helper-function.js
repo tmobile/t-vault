@@ -236,3 +236,11 @@ export const exportCSVFile = (headers, items, fileTitle) => {
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   FileDownload(blob, fileTitle);
 };
+
+export const addLeadingZeros = (value) => {
+  let val = value?.toString();
+  if (val?.length < 2) {
+    val = `0${value}`;
+  }
+  return val;
+};

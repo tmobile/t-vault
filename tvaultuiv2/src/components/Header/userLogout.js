@@ -44,7 +44,7 @@ const UserLogout = (props) => {
     setAnchorEl(anchorEl ? null : event.currentTarget);
   };
 
-  const onLogoutClicked = async () => {
+  const onLogoutClicked = () => {
     revokeToken();
     sessionStorage.clear();
     checkToken();
