@@ -1,6 +1,6 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable react/jsx-wrap-multilines */
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { Route, Switch, Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import { useIdleTimer } from 'react-idle-timer';
@@ -69,7 +69,7 @@ const PrivateRoutes = () => {
             dateVal.sec
           )} until your session timeout!`;
         }
-      });
+      }, 1000);
     };
     const cancelCountdown = () => {
       clearInterval(timeStamp);
@@ -78,6 +78,12 @@ const PrivateRoutes = () => {
   };
 
   const timer = countDownTimer();
+
+  useEffect(() => {
+    return () => {
+      timer.cancelCountdown();
+    };
+  }, [timer]);
 
   const loggedOut = async () => {
     document.title = 'Your session has expired.';
