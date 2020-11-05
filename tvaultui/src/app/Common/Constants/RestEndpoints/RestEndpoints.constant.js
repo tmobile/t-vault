@@ -496,8 +496,11 @@ readTextFile("../apiUrls.json");
             name: 'detachAWSPermissionFromIAMSvcacc',
             url: '/v2/iamserviceaccounts/role',
             method: 'DELETE'
+        },{
+            name: 'getApplicationDetails',
+            url: '/v2/serviceaccounts/cwm/appdetails/appname?',
+            method: 'GET'
         }
-        
     ]
     });
 })( angular.module( 'vault.constants.RestEndpoints', []));

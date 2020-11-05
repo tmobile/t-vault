@@ -355,6 +355,140 @@ script(type='text/ng-template', id='certificatePopup.html')
               button.common-btn.btn.btn-primary.btn-lg(id="cert_preview_btn" ng-click="createCertPreview()" ng-disabled="isCreateCertBtnDisabled()" ) Preview
             .clearfix
 
+
+script(type='text/ng-template', id='onboardCertificatePopup.html')
+          .modal-sep
+            .common-header-label.text-center Onboard Certificate
+
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws(ng-show='!isCertificateOnboardPreview')
+              .common-form-row
+                .details-input-group
+                    .certificate-form-label Container
+                    input.form-control.input-box-style(value="VenafiBin_12345" uib-tooltip="" tooltip-placement="top" tooltip-popup-delay="600" ng-disabled="true")  
+                .cert-conf.clearfix
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label(uib-tooltip="Type of Certificate Private(Internal) or Public(External)") Certificate Type
+                      label.certificate-form-label(ng-if="certificateToOnboard.certificateType=='internal'") Internal
+                        input(type='radio' id='cert_type' value="internal" ng-checked="certificateToOnboard.certificateType == 'internal'" )
+                      label.certificate-form-label(ng-if="certificateToOnboard.certificateType=='external'") External
+                        input(type='radio' id='cert_type' value="external" ng-checked="certificateToOnboard.certificateType == 'external'" ng-disabled="!isExternalCertificateEnable")
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Certificate Name
+                      .cert-input-group.cert-suffix
+                        input.certform-control.input-box-style(ng-model="certificateToOnboard.certificateName")
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label(uib-tooltip="Owner/Creator of the certificate") Owner Email ID*
+                      input.form-control.input-box-style(id="certReqOwnerEmail" ng-model="certificateToOnboard.ownerEmail" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchOwnerEmailForOnboard($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectOwnerforCertOnboard(certificateToOnboard.ownerEmail)")
+                      div.loader.svcaccid(ng-if='isUserSearchLoading && isOwnerEmailSearch && certificateToOnboard.ownerEmail.length > 2')
+                          div.ball-spin-fade-loader
+                              div
+                              div
+                              div
+                              div
+                              div
+                              div
+                              div
+                              div
+                      div.input-cross.svcaccid(ng-if='!isUserSearchLoading && !isNotificationEmailSearch && certificateToOnboard.ownerEmail.length > 2' ng-click="clearOnboardOwnerEmail()")
+                          div.delete-title
+                              img.delete-icon(src="../../assets/images/delete.png")
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label(uib-tooltip="Name of the Cloud application this certificate will be used for. Only applications you have self-service rights to will be shown.") Application Name*
+                      drop-down(drop-down-options="dropdownApplicationName" name="certApplicationNameForOnboard" id="applicationNameOnboard"  ng-click="appNameSelectForOnboard()")
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group(ng-if="!appnameSelectedForOnboard")
+                      .certificate-form-label {{ applicationNameSelectMsg==""?"Select appliation name and add/update notification emails": applicationNameSelectMsg}}
+                    .details-input-group(ng-show="appnameSelectedForOnboard")
+                      .certificate-form-label(uib-tooltip="Notification emails list") Notification emails
+                      div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="notificationEmails.length>0")
+                      div.dns-wrapper.addnotificationemail
+                        .col-lg-9.col-md-9.col-sm-9.col-xs-9
+                          .cert-input-group.cert-suffix
+                            input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmailForNotification($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
+                            div.loader.svcaccid.notification-email-loader(ng-if='isUserSearchLoading && isNotificationEmailSearch && notificationEmail.email.length > 2')
+                                div.ball-spin-fade-loader
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                            div.input-cross.svcaccid.notification-email-loader(ng-if='!isUserSearchLoading && !isOwnerEmailSearch && notificationEmail.email.length > 2' ng-click="clearNotificationEmail()")
+                                div.delete-title
+                                    img.delete-icon(src="../../assets/images/delete.png")
+                          div.key-acceptance-info() {{ notificationEmailErrorMessage }}
+                        .col-lg-3.col-md-3.col-sm-3.col-xs-3
+                          button.common-btn.dns-add-btn(ng-click="addNotificationEmail(notificationEmail)" ng-disabled="!isNotificationEmailSelected") Add Email
+
+            .common-form.modal-inner-wrapper.aws(ng-if='isCertificateOnboardPreview')
+              .common-form-row
+                .cert-conf.clearfix
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Container :
+                      .cert-preview-details VenafiBin_12345
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Certificate Type :
+                      .cert-preview-details {{ certificateToOnboard.certificateType }}
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Certificate Name :
+                      .cert-preview-details {{ certificateToOnboard.certificateName }}
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Application Name :
+                      .cert-preview-details {{ certificateToOnboard.applicationName }}
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Owner Email ID :
+                      .cert-preview-details {{ certificateToOnboard.ownerEmail }}
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Notification Emails :
+                      .cert-preview-details {{ certificateToOnboard.notificationEmails }}
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Signature Algorithm :
+                      .cert-preview-details SHA256-RSA
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Key Usage :
+                      .cert-preview-details digitalSignature, keyEncipherment
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Extended Key Usage :
+                      .cert-preview-details(ng-if="certificateToOnboard.certificateType.toLowerCase()=='internal'") serverAuth
+                      .cert-preview-details(ng-if="certificateToOnboard.certificateType.toLowerCase()=='external'") serverAuth, clientAuth
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Enroll Service :
+                      .cert-preview-details(ng-if="certificateToOnboard.certificateType.toLowerCase()=='internal'") T-Mobile Issuing CA 01 - SHA2
+                      .cert-preview-details(ng-if="certificateToOnboard.certificateType.toLowerCase()=='external'") Entrust CA
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Note : Select the Edit button  to modify the input details else Onboard button  to Onboard a certificate
+          .text-center.bottom-lg-sep.modal-sep.aws(ng-if='isCertificateOnboardPreview')
+            .col-lg-6.col-md-6.col-sm-6.col-xs-6
+              button.common-btn.btn.btn-primary.btn-lg(type='button' ng-click="toogleOnboardPreview()" ) Edit
+            .col-lg-6.col-md-6.col-sm-6.col-xs-6
+              button.common-btn.btn.btn-primary.btn-lg(id="cert_create_btn" ng-click="onboardCert()" ng-disabled="isOnboardCertBtnDisabled()" ) Onboard
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelCertOnboard()") Cancel
+          .text-center.bottom-lg-sep.modal-sep.aws(ng-if='!isCertificateOnboardPreview')
+            .col-lg-6.col-md-6.col-sm-6.col-xs-6
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelCertOnboard()") Cancel
+            .col-lg-6.col-md-6.col-sm-6.col-xs-6
+              button.common-btn.btn.btn-primary.btn-lg(id="cert_preview_btn" ng-click="toogleOnboardPreview()" ng-disabled="isOnboardCertBtnDisabled()" ) Preview
+            .clearfix
+
 script(type='text/ng-template', id='appRolePopup.html')
           .modal-sep
             .common-header-label.text-center {{editingApprole.status == true ? "Edit" : "Create"}} AppRole
@@ -685,7 +819,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                     text.weighted 5 :
                                     text Suggestions for improvements and features are welcome, please reach out to T-Vault@T-Mobile.com if you have any to share. For more information on how to manage certificates please go #[a(href='https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/') here.]
 
-                              div.create-certificate-link(ng-show="!isLoadingData && certificateData.certificates.length==0")
+                              div.create-certificate-link(ng-show="!isLoadingData && certificateData.certificates.length==0 && (isInternalCert || isExternalCert)")
                                   .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
                                       .action-icon-wrapper.static
                                           .rotate.glyphicon.glyphicon-remove-circle
@@ -781,7 +915,32 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                       button.show-more-btn VIEW MORE
                                                       span
                                                           img(src="assets/icons/front-arrow.svg")
-                                              
-
-
-                                    
+                                    md-tab( md-on-select="getCertificatesForOnboard()" ng-attr-label="Onboard Existing certificate" )
+                                        md-content(class="md-content-wrapper")
+                                          div.svcdescription
+                                            text.weighted Below are the list of available certificates in NCLM that can be onboarded to T-Vault.
+                                          div.svcdescription
+                                          div.data-management-content
+                                            .row.change-safe-table-container(ng-if='true')
+                                              loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')
+                                              .change-list-table-data.row
+                                                  .unavailable-text(ng-show="!isLoadingData && !isApplicationsLoading && certificatesToOnboard.length==0")
+                                                      .container.name No Certificates Available for onboard
+                                              .row.change-data.header.solid-header(ng-show="!isLoadingData && !isApplicationsLoading && certificatesToOnboard.length>0")
+                                                  .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3 CERTIFICATE
+                                                  .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 Type
+                                                  .container.name.action.col-lg-5.col-md-5.col-sm-5.col-xs-5 Validity
+                                                  .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 Action
+                                              .row.change-data.item(ng-show="!isLoadingData && !isApplicationsLoading" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="cert in certificatesToOnboard")
+                                                      .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3(title="{{ cert.certificateName }}") {{ cert.certificateName }}
+                                                      .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 {{ cert.certificateType }}
+                                                      .container.name.col-lg-5.col-md-5.col-sm-5.col-xs-5(title="{{ cert.validFrom }} - {{ cert.validTo }}") {{ cert.validFrom }} - {{ cert.validTo }}
+                                                      .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
+                                                          .down.view
+                                                              .list-icon(ng-click="showOnboardCertificatePopup(cert)")  Onboard
+                                              .pagination-wrapper(ng-show='hasMoreCertsToShow()')
+                                                  .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshown}} of {{numOfCertificates}}
+                                                  .pagination-button-wrapper(ng-click='showMoreCertItems()')
+                                                      button.show-more-btn VIEW MORE
+                                                      span
+                                                          img(src="assets/icons/front-arrow.svg")
