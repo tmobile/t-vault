@@ -49,8 +49,8 @@ const FolderIconWrap = styled('div')`
   display: flex;
   align-items: center;
   .MuiSvgIcon-root {
-    width: 2.2rem;
-    height: 2.2rem;
+    width: 2.4rem;
+    height: 2.4rem;
     :hover {
       background: ${(props) =>
         props.theme.customColor.hoverColor.list || '#151820'};
