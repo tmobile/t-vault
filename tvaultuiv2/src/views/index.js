@@ -100,12 +100,9 @@ const PrivateRoutes = () => {
       let resultInMinutes = 0;
       resultInMinutes = Math.round(difference / 60000);
       setEndTime(new Date(new Date().getTime() + 30 * 60 * 1000));
-      console.log('resultInMinutes', resultInMinutes);
+      setDate(new Date().getTime());
       if (resultInMinutes > 2) {
-        setDate(new Date().getTime());
         await callRenewToken();
-      } else {
-        setDate(new Date().getTime());
       }
       document.title = 'VAULT';
     }
