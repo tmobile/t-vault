@@ -163,7 +163,6 @@ const User = (props) => {
   };
 
   const onCancelClicked = () => {
-    console.log('onCancelClicked');
     setResponse({ status: 'success' });
     onNewPermissionChange();
   };
