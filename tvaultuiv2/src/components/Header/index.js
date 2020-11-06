@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
+import DescriptionIcon from '@material-ui/icons/Description';
 import { withRouter, Link as RRDLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Link from '@material-ui/core/Link';
@@ -90,7 +91,12 @@ const EachLink = styled.a`
   margin: 0 1rem;
   color: #fff;
   font-size: 1.4rem;
+  display: flex;
+  align-items: center;
   text-decoration: ${(props) => props.decoration};
+  svg {
+    margin-right: 0.5rem;
+  }
 `;
 
 const useStyles = makeStyles(() => ({
@@ -123,7 +129,7 @@ const Header = (props) => {
   };
   const navItems = [
     { label: 'Safes', path: 'safes' },
-    { label: 'Vault Approles', path: 'vault-app-roles' },
+    { label: 'Vault AppRoles', path: 'vault-app-roles' },
     { label: 'Service Accounts', path: 'service-accounts' },
     { label: 'Certificates', path: 'certificates' },
   ];
@@ -220,6 +226,9 @@ const Header = (props) => {
                   rel="noopener noreferrer"
                   decoration="none"
                 >
+                  <DescriptionIcon
+                    style={{ fill: '#c4c4c4', width: '2rem', height: '2rem' }}
+                  />
                   Documentation
                 </EachLink>
                 <UserLogout userName={userName} checkToken={checkToken} />

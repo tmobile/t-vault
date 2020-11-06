@@ -30,6 +30,10 @@ import CreateCertificates from '../../CreateCertificates';
 import LeftColumn from './components/LeftColumn';
 import { useStateValue } from '../../../../../contexts/globalState';
 import SelectWithCountComponent from '../../../../../components/FormFields/SelectWithCount';
+import {
+  ListContainer,
+  ListContent,
+} from '../../../../../styles/GlobalStyles/listingStyle';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -65,25 +69,6 @@ const ColumnHeader = styled('div')`
   justify-content: space-between;
   border-bottom: 0.1rem solid #1d212c;
 `;
-const ListContent = styled.div`
-  width: 100%;
-  max-height: 61vh;
-  ${mediaBreakpoints.small} {
-    max-height: 78vh;
-  }
-`;
-
-const ListContainer = styled.div`
-  overflow: auto;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  ::-webkit-scrollbar-track {
-    -webkit-box-shadow: none !important;
-    background-color: transparent;
-  }
-`;
 
 const NoDataWrapper = styled.div`
   height: 61vh;
@@ -107,6 +92,7 @@ const FloatBtnWrapper = styled('div')`
   position: absolute;
   bottom: 3rem;
   right: 2.5rem;
+  z-index: 1;
 `;
 
 const SearchWrap = styled.div`
@@ -122,10 +108,6 @@ const MobileViewForListDetailPage = css`
   top: 7rem;
   z-index: 1;
   overflow-y: auto;
-  ::-webkit-scrollbar-track {
-    -webkit-box-shadow: none !important;
-    background-color: transparent;
-  }
 `;
 const EmptyContentBox = styled('div')`
   width: 100%;
@@ -151,7 +133,7 @@ const useStyles = makeStyles((theme) => ({
     textTransform: 'uppercase',
     color: '#fff',
     fontWeight: 'bold',
-    maxWidth: '22rem',
+    maxWidth: '28rem',
     marginRight: '2.5rem',
     [theme.breakpoints.down('sm')]: {
       maxWidth: '16rem',

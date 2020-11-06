@@ -13,9 +13,13 @@ import ButtonComponent from '../FormFields/ActionButton';
 import apiService from '../../views/private/safe/apiService';
 import LoaderSpinner from '../Loaders/LoaderSpinner';
 import RadioButtonComponent from '../FormFields/RadioButton';
-import { RequiredCircle, RequiredText } from '../../styles/GlobalStyles';
 import configData from '../../config/config';
 import TextFieldComponent from '../FormFields/TextField';
+import {
+  InstructionText,
+  RequiredCircle,
+  RequiredText,
+} from '../../styles/GlobalStyles';
 
 const { small } = mediaBreakpoints;
 
@@ -54,16 +58,7 @@ const InputWrapper = styled.div`
     align-items: center;
   }
 `;
-const InstructionText = styled.p`
-  margin-top: 1.4rem;
-  color: #bbbbbb;
-  font-size: 1.2rem;
-  margin-bottom: 0rem;
-  ${small} {
-    font-size: 1.3rem;
-    opacity: 0.4;
-  }
-`;
+
 const RadioButtonWrapper = styled.div`
   display: flex;
   justify-content: space-between;

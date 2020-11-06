@@ -13,10 +13,6 @@ import Groups from './components/groups';
 const PermissionTabsWrapper = styled('div')`
   height: calc(100% - 3.7rem);
   overflow: auto;
-  ::-webkit-scrollbar-track {
-    -webkit-box-shadow: none !important;
-    background-color: transparent;
-  }
 `;
 
 const CertificatePermission = (props) => {

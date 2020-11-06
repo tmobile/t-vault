@@ -7,7 +7,6 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import sectionHeaderBg from '../../../../../assets/Banner_img.png';
 import { BackArrow } from '../../../../../assets/SvgIcons';
 import mediaBreakpoints from '../../../../../breakpoints';
-import SelectionTabs from '../Tabs';
 import ListDetailHeader from '../../../../../components/ListDetailHeader';
 
 // styled components goes here
@@ -30,7 +29,7 @@ const BackButton = styled.div`
 `;
 
 const SafeDetails = (props) => {
-  const { detailData, resetClicked, goodToRoute, refresh } = props;
+  const { detailData, resetClicked, goodToRoute, renderContent } = props;
   const [safe, setSafe] = useState({});
   // use history of page
   const history = useHistory();
@@ -43,7 +42,6 @@ const SafeDetails = (props) => {
   };
 
   useEffect(() => {
-    // if (goodToRoute && !location?.state?.safe) {
     if (goodToRoute) {
       if (detailData && detailData.length) {
         const activeSafeDetail = detailData.filter(
@@ -53,11 +51,8 @@ const SafeDetails = (props) => {
         );
         setSafe(activeSafeDetail[0]);
       }
-      // return;
     }
-    // if (goodToRoute) setSafe(location?.state?.safe);
   }, [location, goodToRoute, detailData, history.location.pathname]);
-  // }, [location.state, detailData, history.location.pathname]);
 
   return (
     <ComponentError>
@@ -77,8 +72,7 @@ const SafeDetails = (props) => {
           }
           bgImage={sectionHeaderBg}
         />
-
-        <SelectionTabs safeDetail={safe} refresh={refresh} />
+        {renderContent}
       </Section>
     </ComponentError>
   );
@@ -87,13 +81,13 @@ SafeDetails.propTypes = {
   detailData: PropTypes.arrayOf(PropTypes.any),
   resetClicked: PropTypes.func,
   goodToRoute: PropTypes.bool,
-  refresh: PropTypes.func,
+  renderContent: PropTypes.node,
 };
 SafeDetails.defaultProps = {
   detailData: [],
   resetClicked: () => {},
   goodToRoute: false,
-  refresh: () => {},
+  renderContent: <div />,
 };
 
 export default SafeDetails;

@@ -321,7 +321,7 @@ const CreateCertificates = (props) => {
     if (!InputValidation(e.target.value)) {
       setCertNameError(true);
       setErrorMessage(
-        'Certificate name can have alphabets, numbers, . and - characters only or should not ends with special character.'
+        'Certificate name can have alphabets, numbers, . and - characters only, And it should not start or end with special characters(-.)'
       );
     } else if (value.toLowerCase().includes('.t-mobile.com')) {
       setCertNameError(true);
@@ -362,7 +362,7 @@ const CreateCertificates = (props) => {
     if (value && !InputValidation(value)) {
       setDnsError(true);
       setErrorDnsMessage(
-        'DNS can have alphabets, numbers, . and - characters only or should not ends with special character.'
+        'DNS can have alphabets, numbers, . and - characters only, and it should not start or end with special characters(-.)'
       );
     } else if (value && value.toLowerCase().includes('.t-mobile.com')) {
       setDnsError(true);
