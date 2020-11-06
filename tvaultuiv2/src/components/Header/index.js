@@ -11,6 +11,7 @@ import vaultIcon from '../../assets/tvault.svg';
 import menu from '../../assets/menu.svg';
 import Sidebar from '../Sidebar';
 import UserLogout from './userLogout';
+import configData from '../../config/config';
 
 const { small, smallAndMedium, semiLarge } = mediaBreakpoints;
 
@@ -195,14 +196,16 @@ const Header = (props) => {
             {!isLogin ? (
               <DocLinks>
                 <EachLink
-                  href="https://docs.corporate.t-mobile.com/t-vault/introduction/"
+                  href={configData.DOCS_LINK}
                   target="_blank"
+                  rel="noopener noreferrer"
                 >
                   Docs
                 </EachLink>
                 <EachLink
                   href="https://perf-vault.corporate.t-mobile.com/vault/swagger-ui.html"
                   target="_blank"
+                  rel="noopener noreferrer"
                 >
                   Developer API
                 </EachLink>
@@ -210,8 +213,9 @@ const Header = (props) => {
             ) : (
               <ProfileIconWrap>
                 <EachLink
-                  href="https://docs.corporate.t-mobile.com/t-vault/introduction/"
+                  href={configData.DOCS_LINK}
                   target="_blank"
+                  rel="noopener noreferrer"
                 >
                   Documentation
                 </EachLink>

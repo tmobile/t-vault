@@ -14,6 +14,8 @@ import apiService from '../../views/private/safe/apiService';
 import LoaderSpinner from '../Loaders/LoaderSpinner';
 import RadioButtonComponent from '../FormFields/RadioButton';
 import { RequiredCircle, RequiredText } from '../../styles/GlobalStyles';
+import configData from '../../config/config';
+import TextFieldComponent from '../FormFields/TextField';
 
 const { small } = mediaBreakpoints;
 
@@ -135,18 +137,28 @@ const AddUser = (props) => {
   }, [searchValue, searchLoader, options]);
 
   useEffect(() => {
-    if (username) {
-      if (
-        (username.toLowerCase() !== searchValue?.toLowerCase() &&
-          !isValidUserName) ||
-        (username.toLowerCase() === searchValue?.toLowerCase() &&
-          access === radioValue)
-      ) {
+    if (configData.AD_USERS_AUTOCOMPLETE) {
+      if (username) {
+        if (
+          (username.toLowerCase() !== searchValue?.toLowerCase() &&
+            !isValidUserName) ||
+          (username.toLowerCase() === searchValue?.toLowerCase() &&
+            access === radioValue)
+        ) {
+          setDisabledSave(true);
+        } else {
+          setDisabledSave(false);
+        }
+      } else if (!isValidUserName || searchValue === '') {
         setDisabledSave(true);
       } else {
         setDisabledSave(false);
       }
-    } else if (!isValidUserName || searchValue === '') {
+    } else if (
+      (username.toLowerCase() === searchValue?.toLowerCase() &&
+        access === radioValue) ||
+      searchValue === ''
+    ) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
@@ -215,25 +227,37 @@ const AddUser = (props) => {
             User Name
             <RequiredCircle margin="0.5rem" />
           </InputLabel>
-          <AutoCompleteComponent
-            options={options}
-            icon="search"
-            classes={classes}
-            searchValue={searchValue}
-            onSelected={(e, val) => onSelected(e, val)}
-            onChange={(e) => onSearchChange(e)}
-            placeholder="Username - Enter min 3 characters"
-            error={username !== searchValue && !isValidUserName}
-            helperText={
-              username !== searchValue && !isValidUserName
-                ? `User name ${searchValue} does not exist!`
-                : ''
-            }
-          />
-          <InstructionText>
-            Search the T-Mobile system to add users
-          </InstructionText>
-          {searchLoader && <LoaderSpinner customStyle={customStyle} />}
+          {configData.AD_USERS_AUTOCOMPLETE ? (
+            <>
+              <AutoCompleteComponent
+                options={options}
+                icon="search"
+                classes={classes}
+                searchValue={searchValue}
+                onSelected={(e, val) => onSelected(e, val)}
+                onChange={(e) => onSearchChange(e)}
+                placeholder="Username - Enter min 3 characters"
+                error={username !== searchValue && !isValidUserName}
+                helperText={
+                  username !== searchValue && !isValidUserName
+                    ? `User name ${searchValue} does not exist!`
+                    : ''
+                }
+              />
+              <InstructionText>
+                Search the T-Mobile system to add users
+              </InstructionText>
+              {searchLoader && <LoaderSpinner customStyle={customStyle} />}
+            </>
+          ) : (
+            <TextFieldComponent
+              value={searchValue}
+              placeholder="Username"
+              fullWidth
+              name="searchValue"
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+          )}
         </InputWrapper>
         <RadioButtonWrapper>
           <RadioButtonComponent

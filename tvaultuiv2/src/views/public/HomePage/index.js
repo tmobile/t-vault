@@ -27,7 +27,8 @@ import { useStateValue } from '../../../contexts/globalState';
 import mediaBreakpoints from '../../../breakpoints';
 import apiService from './apiService';
 import Loader from '../../../components/Loaders/ScaledLoader';
-import config from '../../../config';
+import configUrl from '../../../config';
+import configData from '../../../config/config';
 
 const { smallAndMedium, small } = mediaBreakpoints;
 
@@ -371,9 +372,10 @@ const LoginPage = () => {
     sessionStorage.clear();
     if (urlParams?.code && urlParams?.state) {
       setResponse({ status: 'loading' });
+      console.log('object', configUrl.redirectUrl);
       axios
         .get(
-          `${config.url}/auth/oidc/callback?state=${urlParams.state}&code=${urlParams.code}`
+          `${configUrl.baseUrl}/auth/oidc/callback?state=${urlParams.state}&code=${urlParams.code}`
         )
         .then(async (res) => {
           if (res?.data) {
@@ -394,10 +396,10 @@ const LoginPage = () => {
     setResponse({ status: 'loading' });
     const payload = {
       role: 'default',
-      redirect_uri: window.location.origin,
+      redirect_uri: configUrl.redirectUrl,
     };
     axios
-      .post(`${config.url}/auth/oidc/auth_url`, payload)
+      .post(`${configUrl.baseUrl}/auth/oidc/auth_url`, payload)
       .then((res) => {
         window.location = res.data?.data?.auth_url;
       })
@@ -439,7 +441,7 @@ const LoginPage = () => {
                       width={isMobileScreen ? '100%' : ''}
                     />
                     <SignUp
-                      href="https://access.t-mobile.com/manage"
+                      href={configData.SIGN_UP_LINK}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -483,12 +485,11 @@ const LoginPage = () => {
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="https://t-mobile.enterprise.slack.com/?redir=%2Fr-t2678170234%3Fredir%3D%252Fmessages%252FCA5SB94HY"
+                  href={configData.SLACK_LINK}
                 >
                   Slack
                 </a>
-                or shoot us an{' '}
-                <a href="mailto: CloudSupport@t-mobile.com">email</a>
+                or shoot us an <a href={configData.EMAIL_LINK}>email</a>
               </ContactUs>
             </ThirdRow>
           </Container>
