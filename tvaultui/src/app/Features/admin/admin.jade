@@ -363,22 +363,12 @@ script(type='text/ng-template', id='onboardCertificatePopup.html')
           .left-lg-sep.right-lg-sep
             .common-form.modal-inner-wrapper.aws(ng-show='!isCertificateOnboardPreview')
               .common-form-row
-                .details-input-group
-                    .certificate-form-label Container
-                    input.form-control.input-box-style(value="VenafiBin_12345" uib-tooltip="" tooltip-placement="top" tooltip-popup-delay="600" ng-disabled="true")  
                 .cert-conf.clearfix
-                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
-                    .details-input-group
-                      .certificate-form-label(uib-tooltip="Type of Certificate Private(Internal) or Public(External)") Certificate Type
-                      label.certificate-form-label(ng-if="certificateToOnboard.certificateType=='internal'") Internal
-                        input(type='radio' id='cert_type' value="internal" ng-checked="certificateToOnboard.certificateType == 'internal'" )
-                      label.certificate-form-label(ng-if="certificateToOnboard.certificateType=='external'") External
-                        input(type='radio' id='cert_type' value="external" ng-checked="certificateToOnboard.certificateType == 'external'" ng-disabled="!isExternalCertificateEnable")
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Certificate Name
                       .cert-input-group.cert-suffix
-                        input.certform-control.input-box-style(ng-model="certificateToOnboard.certificateName")
+                        input.certform-control.input-box-style(ng-model="certificateToOnboard.certificateName" ng-disabled="true")
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label(uib-tooltip="Owner/Creator of the certificate") Owner Email ID*
@@ -453,7 +443,7 @@ script(type='text/ng-template', id='onboardCertificatePopup.html')
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Notification Emails :
-                      .cert-preview-details {{ certificateToOnboard.notificationEmails }}
+                      .cert-preview-details(ng-if="notificationEmails.length>0" ng-repeat="email in notificationEmails")* {{ email.email }}
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Signature Algorithm :
