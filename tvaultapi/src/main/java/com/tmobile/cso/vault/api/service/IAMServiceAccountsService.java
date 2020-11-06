@@ -3656,9 +3656,9 @@ public class  IAMServiceAccountsService {
             token = tokenUtils.getSelfServiceToken();
         }
 		if(!isIamSvcaccPermissionInputValid(iamServiceAccountAWSRole.getAccess())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
 		}
-		if (iamServiceAccountAWSRole.getAccess().equalsIgnoreCase("reset")) {
+		if (iamServiceAccountAWSRole.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountAWSRole.setAccess(TVaultConstants.WRITE_POLICY);
 		}
 		String roleName = iamServiceAccountAWSRole.getRolename();
@@ -3816,9 +3816,9 @@ public class  IAMServiceAccountsService {
             token = tokenUtils.getSelfServiceToken();
         }
 		if(!isIamSvcaccPermissionInputValid(iamServiceAccountAWSRole.getAccess())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, reset, deny\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
 		}
-		if (iamServiceAccountAWSRole.getAccess().equalsIgnoreCase("reset")) {
+		if (iamServiceAccountAWSRole.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountAWSRole.setAccess(TVaultConstants.WRITE_POLICY);
 		}
 		String roleName = iamServiceAccountAWSRole.getRolename();
