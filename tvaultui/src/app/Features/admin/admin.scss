@@ -543,6 +543,7 @@
     font-size: 12px;
     padding: 5px!important;
     width: 80px;
+    color: #888;
 }
 
 .dns-list {
@@ -641,3 +642,10 @@
     border: none !important;
 }
 
+.addnotificationemail {
+    margin-top: 5px!important;
+}
+
+.notification-email-loader {
+    top: 50%!important;
+}
