@@ -22,7 +22,10 @@ import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import Strings from '../../../../../resources';
 import { validateEmail } from '../../../../../services/helper-function';
 import CertificateHeader from '../CertificateHeader';
-import { RequiredCircle } from '../../../../../styles/GlobalStyles';
+import {
+  InstructionText,
+  RequiredCircle,
+} from '../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -131,6 +134,10 @@ const useStyles = makeStyles((theme) => ({
       padding: '0',
       height: '100%',
     },
+  },
+  icon: {
+    color: '#5e627c',
+    fontSize: '2rem',
   },
 }));
 
@@ -358,6 +365,7 @@ const CreateCertificates = (props) => {
                     options={options}
                     classes={classes}
                     searchValue={owner}
+                    icon="search"
                     name="owner"
                     onSelected={(e, val) => onSelected(e, val)}
                     onChange={(e) => onOwnerChange(e)}
@@ -369,6 +377,9 @@ const CreateCertificates = (props) => {
                         : ''
                     }
                   />
+                  <InstructionText>
+                    Search the T-Mobile system by email.
+                  </InstructionText>
                   {autoLoader && (
                     <LoaderSpinner customStyle={autoLoaderStyle} />
                   )}

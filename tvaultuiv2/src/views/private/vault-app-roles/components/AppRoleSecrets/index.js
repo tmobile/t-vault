@@ -32,10 +32,6 @@ const SecretsList = styled.div`
   height: calc(100% - 3.8rem);
   overflow: auto;
   border-bottom: 1px solid #323649;
-  ::-webkit-scrollbar-track {
-    -webkit-box-shadow: none !important;
-    background-color: transparent;
-  }
 `;
 
 const Secret = styled.div`

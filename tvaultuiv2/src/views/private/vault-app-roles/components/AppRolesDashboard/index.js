@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import InfiniteScroll from 'react-infinite-scroller';
+
 import {
   Link,
   Route,
@@ -38,6 +38,10 @@ import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import CreateAppRole from '../../CreateAppRole';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
+import {
+  ListContainer,
+  StyledInfiniteScroll,
+} from '../../../../../styles/GlobalStyles/listingStyle';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -70,27 +74,9 @@ const ColumnHeader = styled('div')`
   display: flex;
   align-items: center;
   padding: 0.5em;
+  height: 6.5rem;
   justify-content: space-between;
   border-bottom: 0.1rem solid #1d212c;
-`;
-const StyledInfiniteScroll = styled(InfiniteScroll)`
-  width: 100%;
-  max-height: 61vh;
-  ${mediaBreakpoints.small} {
-    max-height: 78vh;
-  }
-`;
-
-const ListContainer = styled.div`
-  overflow: auto;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  ::-webkit-scrollbar-track {
-    -webkit-box-shadow: none !important;
-    background-color: transparent;
-  }
 `;
 
 const NoDataWrapper = styled.div`

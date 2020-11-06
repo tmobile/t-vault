@@ -4,7 +4,6 @@
 import React, { useState, useEffect, useCallback, lazy } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import InfiniteScroll from 'react-infinite-scroller';
 import {
   Link,
   Route,
@@ -38,6 +37,10 @@ import { TitleOne } from '../../../../../styles/GlobalStyles';
 import AccountSelectionTabs from '../Tabs';
 import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import TransferConfirmationModal from './components/TransferConfirmationModal';
+import {
+  ListContainer,
+  StyledInfiniteScroll,
+} from '../../../../../styles/GlobalStyles/listingStyle';
 
 const OnBoardForm = lazy(() => import('../../OnBoardForm'));
 
@@ -74,25 +77,6 @@ const ColumnHeader = styled('div')`
   padding: 0.5em;
   justify-content: space-between;
   border-bottom: 0.1rem solid #1d212c;
-`;
-const StyledInfiniteScroll = styled(InfiniteScroll)`
-  width: 100%;
-  max-height: 61vh;
-  ${mediaBreakpoints.small} {
-    max-height: 78vh;
-  }
-`;
-
-const ListContainer = styled.div`
-  overflow: auto;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  ::-webkit-scrollbar-track {
-    -webkit-box-shadow: none !important;
-    background-color: transparent;
-  }
 `;
 
 const NoDataWrapper = styled.div`
@@ -160,10 +144,6 @@ const MobileViewForListDetailPage = css`
   top: 7rem;
   z-index: 1;
   overflow-y: auto;
-  ::-webkit-scrollbar-track {
-    -webkit-box-shadow: none !important;
-    background-color: transparent;
-  }
 `;
 const EmptyContentBox = styled('div')`
   width: 100%;

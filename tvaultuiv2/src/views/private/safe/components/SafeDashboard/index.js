@@ -3,7 +3,6 @@
 /* eslint-disable no-param-reassign */
 import React, { useState, useEffect, useCallback, lazy } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import InfiniteScroll from 'react-infinite-scroller';
 import { Link, Route, Switch, Redirect, useHistory } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -32,6 +31,10 @@ import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import EditDeletePopper from '../EditDeletePopper';
 import SelectWithCountComponent from '../../../../../components/FormFields/SelectWithCount';
+import {
+  ListContainer,
+  StyledInfiniteScroll,
+} from '../../../../../styles/GlobalStyles/listingStyle';
 
 const CreateSafe = lazy(() => import('../../CreateSafe'));
 
@@ -50,10 +53,6 @@ const RightColumnSection = styled(ColumnSection)`
     position: fixed;
     top: 0;
     overflow-y: scroll;
-    ::-webkit-scrollbar-track {
-      -webkit-box-shadow: none !important;
-      background-color: transparent;
-    }
     max-height: 100%;
   }
 `;
@@ -75,25 +74,6 @@ const ColumnHeader = styled('div')`
   padding: 0.5em;
   justify-content: space-between;
   border-bottom: 0.1rem solid #1d212c;
-`;
-const StyledInfiniteScroll = styled(InfiniteScroll)`
-  width: 100%;
-  max-height: 61vh;
-  ${mediaBreakpoints.small} {
-    max-height: 78vh;
-  }
-`;
-
-const SafeListContainer = styled.div`
-  overflow-y: auto;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  ::-webkit-scrollbar-track {
-    -webkit-box-shadow: none !important;
-    background-color: transparent;
-  }
 `;
 
 const NoDataWrapper = styled.div`
@@ -575,7 +555,7 @@ const SafeDashboard = () => {
               </EmptySecretBox>
             )}
             {safeList && safeList.length > 0 ? (
-              <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
+              <ListContainer ref={(ref) => (scrollParentRef = ref)}>
                 <StyledInfiniteScroll
                   pageStart={0}
                   loadMore={() => {
@@ -589,7 +569,7 @@ const SafeDashboard = () => {
                 >
                   {renderSafes()}
                 </StyledInfiniteScroll>
-              </SafeListContainer>
+              </ListContainer>
             ) : (
               safeList?.length === 0 &&
               status.status === 'success' && (
