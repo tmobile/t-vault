@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import InfiniteScroll from 'react-infinite-scroller';
+
 import {
   Link,
   Route,
@@ -27,7 +27,6 @@ import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ListItemDetail from '../../../../../components/ListItemDetail';
 import AppRoleDetails from '../ApproleDetails';
 import EditDeletePopper from '../EditDeletePopper';
-import SelectComponent from '../../../../../components/FormFields/SelectFields';
 import ListItem from '../../../../../components/ListItem';
 import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 import Error from '../../../../../components/Error';
@@ -38,6 +37,11 @@ import Strings from '../../../../../resources';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import CreateAppRole from '../../CreateAppRole';
+import { TitleOne } from '../../../../../styles/GlobalStyles';
+import {
+  ListContainer,
+  StyledInfiniteScroll,
+} from '../../../../../styles/GlobalStyles/listingStyle';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -70,27 +74,9 @@ const ColumnHeader = styled('div')`
   display: flex;
   align-items: center;
   padding: 0.5em;
+  height: 6.5rem;
   justify-content: space-between;
   border-bottom: 0.1rem solid #1d212c;
-`;
-const StyledInfiniteScroll = styled(InfiniteScroll)`
-  width: 100%;
-  max-height: 61vh;
-  ${mediaBreakpoints.small} {
-    max-height: 78vh;
-  }
-`;
-
-const ListContainer = styled.div`
-  overflow: auto;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  ::-webkit-scrollbar-track {
-    -webkit-box-shadow: none !important;
-    background-color: transparent;
-  }
 `;
 
 const NoDataWrapper = styled.div`
@@ -142,11 +128,17 @@ const FloatBtnWrapper = styled('div')`
   position: absolute;
   bottom: 3rem;
   right: 2.5rem;
-  z-index:1;
+  z-index: 1;
 `;
 
 const SearchWrap = styled.div`
   width: 100%;
+`;
+
+const ListHeader = css`
+  width: 22rem;
+  text-transform: capitalize;
+  font-weight: 600;
 `;
 
 const MobileViewForListDetailPage = css`
@@ -170,21 +162,6 @@ const EmptyContentBox = styled('div')`
 `;
 
 const EditDeletePopperWrap = styled.div``;
-const useStyles = makeStyles(() => ({
-  contained: { borderRadius: '0.4rem' },
-  select: {
-    backgroundColor: 'transparent',
-    fontSize: '1.6rem',
-    textTransform: 'uppercase',
-    color: '#fff',
-    fontWeight: 'bold',
-    width: '22rem',
-    marginRight: '2.5rem',
-    '& .Mui-selected': {
-      color: 'red',
-    },
-  },
-}));
 const iconStyles = makeStyles(() => ({
   root: {
     width: '100%',
@@ -198,10 +175,6 @@ const AppRolesDashboard = () => {
   const [moreData] = useState(false);
   const [isLoading] = useState(false);
   const [appRoleList, setAppRoleList] = useState([]);
-  const [menu, setMenu] = useState([
-    `All Vault AppRoles(${appRoleList?.length})`,
-  ]);
-  const [appRoleType, setAppRoleType] = useState('');
   const [status, setStatus] = useState({});
   const [getResponseType, setGetResponseType] = useState(null);
   const [deleteAppRoleName, setDeleteAppRoleName] = useState('');
@@ -210,7 +183,6 @@ const AppRolesDashboard = () => {
   );
   const [state, dispatch] = useStateValue();
   let scrollParentRef = null;
-  const classes = useStyles();
   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
@@ -240,8 +212,6 @@ const AppRolesDashboard = () => {
         }
 
         setAppRoleList([...appRolesArr]);
-        setAppRoleType(`All Vault AppRoles (${appRolesArr?.length})`);
-        setMenu([`All Vault AppRoles (${appRolesArr?.length})`]);
         dispatch({ type: 'UPDATE_APP_ROLE_LIST', payload: [...appRolesArr] });
       })
       .catch(() => {
@@ -402,15 +372,6 @@ const AppRolesDashboard = () => {
     setDeleteAppRoleConfirmation(false);
   };
 
-  /**
-   * @function onSelectChange
-   * @description function to filter approles.
-   * @param {string} value selected filter value.
-   */
-  const onSelectChange = (value) => {
-    setAppRoleType(value);
-  };
-
   const renderList = () => {
     return appRoleList.map((appRole) => (
       <ListFolderWrap
@@ -482,15 +443,11 @@ const AppRolesDashboard = () => {
         <SectionPreview title="vault-app-roles-section">
           <LeftColumnSection isAccountDetailsOpen={appRoleClicked}>
             <ColumnHeader>
-              <SelectComponent
-                menu={menu}
-                value={appRoleType}
-                color="secondary"
-                classes={classes}
-                fullWidth={false}
-                onChange={(e) => onSelectChange(e.target.value)}
-              />
-
+              <div style={{ margin: '0 1rem' }}>
+                <TitleOne extraCss={ListHeader}>
+                  {`All Vault AppRoles (${appRoleList?.length})`}
+                </TitleOne>
+              </div>
               <SearchWrap>
                 <TextFieldComponent
                   placeholder="Search"

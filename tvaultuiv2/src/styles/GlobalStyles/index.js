@@ -135,3 +135,14 @@ export const RequiredText = styled.span`
     font-size: 1.4rem;
   }
 `;
+
+export const InstructionText = styled.p`
+  margin-top: 1.4rem;
+  color: #bbbbbb;
+  font-size: 1.2rem;
+  margin-bottom: 0rem;
+  ${mediaBreakpoints.small} {
+    font-size: 1.3rem;
+    opacity: 0.4;
+  }
+`;

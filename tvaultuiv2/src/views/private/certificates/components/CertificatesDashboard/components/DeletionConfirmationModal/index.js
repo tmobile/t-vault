@@ -33,7 +33,6 @@ const DeletionConfirmationModal = (props) => {
               label="Cancel"
               color="primary"
               onClick={() => handleDeleteConfirmationModalClose()}
-              width={isMobileScreen ? '100%' : '38%'}
             />
           )
         }
@@ -46,7 +45,6 @@ const DeletionConfirmationModal = (props) => {
                 ? handleDeleteConfirmationModalClose()
                 : onCertificateDeleteConfirm()
             }
-            width={isMobileScreen ? '100%' : '38%'}
           />
         }
       />
