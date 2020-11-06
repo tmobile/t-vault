@@ -186,7 +186,7 @@ const useStyles = makeStyles(() => ({
     textTransform: 'uppercase',
     color: '#fff',
     fontWeight: 'bold',
-    width: '22rem',
+    maxWidth: '23rem',
     marginRight: '2.5rem',
     '& .Mui-selected': {
       color: 'red',
@@ -540,7 +540,6 @@ const SafeDashboard = () => {
               label="Confirm"
               color="secondary"
               onClick={() => onDeleteSafeConfirmClicked()}
-              width={isMobileScreen ? '100%' : '38%'}
             />
           }
         />
@@ -670,7 +669,10 @@ const SafeDashboard = () => {
                     goodToRoute={goodToRoute}
                     refresh={fetchData}
                     renderContent={
-                      <SelectionTabs safeDetail={selectedSafeDetails} refresh={fetchData} />
+                      <SelectionTabs
+                        safeDetail={selectedSafeDetails}
+                        refresh={fetchData}
+                      />
                     }
                   />
                 )}

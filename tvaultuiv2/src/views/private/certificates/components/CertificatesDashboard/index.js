@@ -107,7 +107,7 @@ const FloatBtnWrapper = styled('div')`
   position: absolute;
   bottom: 3rem;
   right: 2.5rem;
-  z-index:1;
+  z-index: 1;
 `;
 
 const SearchWrap = styled.div`
@@ -152,7 +152,7 @@ const useStyles = makeStyles((theme) => ({
     textTransform: 'uppercase',
     color: '#fff',
     fontWeight: 'bold',
-    maxWidth: '22rem',
+    maxWidth: '28rem',
     marginRight: '2.5rem',
     [theme.breakpoints.down('sm')]: {
       maxWidth: '16rem',

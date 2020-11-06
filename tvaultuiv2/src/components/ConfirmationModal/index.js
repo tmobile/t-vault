@@ -13,7 +13,7 @@ import mediaBreakpoints from '../../breakpoints';
 const ModalWrapper = styled.div`
   background-color: ${(props) =>
     props.theme.customColor.modal.backgroundColor || '#ddd'};
-  padding: 3rem 4rem;
+  padding: 5rem 6rem;
   outline: none;
   text-align: center;
   width: ${(props) => props.size};

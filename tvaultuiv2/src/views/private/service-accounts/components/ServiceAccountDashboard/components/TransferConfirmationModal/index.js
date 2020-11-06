@@ -37,7 +37,6 @@ const TransferConfirmationModal = (props) => {
               label="Cancel"
               color="primary"
               onClick={() => onTransferOwnerCancelClicked()}
-              width={isMobileScreen ? '100%' : '38%'}
             />
           )
         }
@@ -50,7 +49,6 @@ const TransferConfirmationModal = (props) => {
                 ? onTransferOwnerCancelClicked()
                 : onTranferConfirmationClicked()
             }
-            width={isMobileScreen ? '100%' : '38%'}
           />
         }
       />
