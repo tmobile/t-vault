@@ -15,6 +15,7 @@ import FloatingActionButtonComponent from '../../../../../components/FormFields/
 import mediaBreakpoints from '../../../../../breakpoints';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import SafeDetails from '../SafeDetails';
+import SelectionTabs from '../Tabs';
 import ListItem from '../ListItem';
 import PsudoPopper from '../PsudoPopper';
 import Error from '../../../../../components/Error';
@@ -155,6 +156,7 @@ const FloatBtnWrapper = styled('div')`
   position: absolute;
   bottom: 3rem;
   right: 2.5rem;
+  z-index: 1;
 `;
 
 const SearchWrap = styled.div`
@@ -222,6 +224,7 @@ const SafeDashboard = () => {
   const [safeClicked, setSafeClicked] = useState(false);
   const [allSafeList, setAllSafeList] = useState([]);
   const [goodToRoute, setGoodToRoute] = useState(false);
+  const [selectedSafeDetails, setSelectedSafeDetails] = useState({});
   const handleClose = () => {
     setOpenConfirmationModal(false);
   };
@@ -322,7 +325,15 @@ const SafeDashboard = () => {
       { name: 'Shared Safes', count: safes?.shared?.length || 0 },
       { name: 'Application Safes', count: safes?.apps?.length || 0 },
     ]);
-  }, [allSafeList, safes]);
+
+    if (safeList && safeList.length) {
+      const activeSafeDetail = safeList.filter(
+        (item) =>
+          item?.name?.toLowerCase() === history.location.pathname.split('/')[2]
+      );
+      setSelectedSafeDetails(activeSafeDetail[0]);
+    }
+  }, [allSafeList, safes, history.location.pathname, safeList]);
 
   /**
    * @function onSearchChange
@@ -658,6 +669,9 @@ const SafeDashboard = () => {
                     params={routerProps}
                     goodToRoute={goodToRoute}
                     refresh={fetchData}
+                    renderContent={
+                      <SelectionTabs safeDetail={selectedSafeDetails} refresh={fetchData} />
+                    }
                   />
                 )}
               />

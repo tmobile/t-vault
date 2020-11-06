@@ -20,8 +20,6 @@ const deleteCertificateGroup = (payload) =>
   api.delete('/sslcert/group', payload);
 
 const getApplicationName = () => api.get('/serviceaccounts/cwm/approles');
-const getOwnerDetails = (username) =>
-  api.get(`/ldap/corpusers?CorpId=${username}`);
 const getOwnerEmail = (corpId) => api.get(`/ldap/corpusers?CorpId=${corpId}`);
 const createCertificate = (payload) => api.post('/sslcert', payload);
 const checkCertificateStatus = (url) => api.get(url);
@@ -55,7 +53,6 @@ export default {
   addCertificateGroup,
   deleteCertificateGroup,
   getApplicationName,
-  getOwnerDetails,
   getOwnerEmail,
   createCertificate,
   checkCertificateStatus,

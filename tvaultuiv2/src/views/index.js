@@ -1,5 +1,6 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable react/jsx-wrap-multilines */
-import React, { Suspense, lazy, useState, useEffect, useCallback } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { Route, Switch, Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import { useIdleTimer } from 'react-idle-timer';
@@ -7,8 +8,8 @@ import { useIdleTimer } from 'react-idle-timer';
 import Safe from './private/safe';
 import ScaledLoader from '../components/Loaders/ScaledLoader';
 import { UserContextProvider } from '../contexts';
-import { revokeToken } from './public/HomePage/utils';
-import apiService from './public/HomePage/apiService';
+import { revokeToken, renewToken } from './public/HomePage/utils';
+import { addLeadingZeros } from '../services/helper-function';
 
 const Home = lazy(() => import('./public/HomePage'));
 const VaultAppRoles = lazy(() => import('./private/vault-app-roles'));
@@ -28,44 +29,89 @@ const Wrapper = styled.section`
 `;
 
 const PrivateRoutes = () => {
-  const [, setIsTimedOut] = useState(false);
-  const [idleTimer, setIdleTimer] = useState(1000 * 60 * 30);
-  const [date, setDate] = useState(null);
+  const [idleTimer, setIdleTimer] = useState(1000 * 60 * 3);
+  const [date, setDate] = useState(new Date().getTime());
+  const [endTime, setEndTime] = useState(
+    new Date(new Date().getTime() + 30 * 60 * 1000)
+  );
 
-  const renewToken = useCallback(() => {
-    if (sessionStorage.getItem('token')) {
-      apiService
-        .getAuth()
-        .then((res) => {
-          setDate(new Date().getTime());
-          setIdleTimer(res?.data?.lease_duration);
-        })
-        // eslint-disable-next-line no-console
-        .catch((err) => console.log('err', err));
+  const callRenewToken = async () => {
+    const renewValue = await renewToken();
+    if (renewValue?.data) {
+      setIdleTimer(1000 * 60 * 3);
     }
-  }, []);
+  };
+
+  const calculateCountdown = () => {
+    let diff = (Date.parse(endTime) - Date.parse(new Date())) / 1000;
+    if (diff <= 0) return false;
+    const timeLeft = {
+      min: 0,
+      sec: 0,
+    };
+    if (diff >= 60) {
+      timeLeft.min = Math.floor(diff / 60);
+      diff -= timeLeft.min * 60;
+    }
+    timeLeft.sec = diff;
+    return timeLeft;
+  };
+
+  const countDownTimer = () => {
+    let timeStamp;
+    const initCountdown = () => {
+      timeStamp = setInterval(() => {
+        const dateVal = calculateCountdown();
+        if (dateVal.min === 0 && dateVal.sec <= 1) {
+          loggedOut();
+        } else if (dateVal !== false) {
+          document.title = `${dateVal.min}:${addLeadingZeros(
+            dateVal.sec
+          )} until your session timeout!`;
+        }
+      }, 1000);
+    };
+    const cancelCountdown = () => {
+      clearInterval(timeStamp);
+    };
+    return { initCountdown, cancelCountdown };
+  };
+
+  const timer = countDownTimer();
 
   useEffect(() => {
-    renewToken();
-  }, [renewToken]);
+    return () => {
+      timer.cancelCountdown();
+    };
+  }, [timer]);
 
-  const handleOnIdle = async () => {
+  const loggedOut = async () => {
+    document.title = 'Your session has expired.';
+    timer.cancelCountdown();
     await revokeToken();
     window.location.href = '/';
     sessionStorage.clear();
   };
 
-  const handleOnAction = () => {
-    // eslint-disable-next-line no-use-before-define
-    const difference = getLastActiveTime() - date; // Thiis will give difference in milliseconds
-    const resultInMinutes = Math.round(difference / 60000);
-    if (resultInMinutes > 3) {
-      renewToken();
-      setDate(null);
-    } else {
-      setDate(new Date().getTime());
+  const handleOnIdle = () => {
+    if (window.location.pathname !== '/') {
+      timer.initCountdown();
     }
-    setIsTimedOut(false);
+  };
+
+  const handleOnAction = async () => {
+    if (window.location.pathname !== '/') {
+      timer.cancelCountdown();
+      const difference = getLastActiveTime() - date; // This will give difference in milliseconds
+      let resultInMinutes = 0;
+      resultInMinutes = Math.round(difference / 60000);
+      setEndTime(new Date(new Date().getTime() + 30 * 60 * 1000));
+      setDate(new Date().getTime());
+      if (resultInMinutes > 2) {
+        await callRenewToken();
+      }
+      document.title = 'VAULT';
+    }
   };
 
   const { getLastActiveTime } = useIdleTimer({
@@ -85,7 +131,6 @@ const PrivateRoutes = () => {
         }
       >
         <Switch>
-          {/* <Redirect exact from="/" to="/home" /> */}
           <Route
             path="/vault-app-roles"
             render={(routeProps) => (
