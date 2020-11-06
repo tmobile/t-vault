@@ -2341,25 +2341,25 @@
             $scope.certificatesToOnboard = [
                 {
                     certificateName: "certest-1.t-mobile.com",
-                    certificateType: "internal",
+                    certificateType: "Internal",
                     validFrom: "2021-07-27T04:30:49-07:00",
                     validTo: "2022-07-27T04:30:49-07:00"
                 },
                 {
                     certificateName: "certest-2.t-mobile.com",
-                    certificateType: "external",
+                    certificateType: "External",
                     validFrom: "2021-07-27T04:30:49-07:00",
                     validTo: "2022-07-27T04:30:49-07:00"
                 },
                 {
                     certificateName: "certest-3.t-mobile.com",
-                    certificateType: "internal",
+                    certificateType: "Internal",
                     validFrom: "2021-07-27T04:30:49-07:00",
                     validTo: "2022-07-27T04:30:49-07:00"
                 },
                 {
                     certificateName: "certest-4.t-mobile.com",
-                    certificateType: "internal",
+                    certificateType: "Internal",
                     validFrom: "2021-07-27T04:30:49-07:00",
                     validTo: "2022-07-27T04:30:49-07:00"
                 },
