@@ -29,6 +29,7 @@ import apiService from './apiService';
 import Loader from '../../../components/Loaders/ScaledLoader';
 import configUrl from '../../../config';
 import configData from '../../../config/config';
+import { renewToken } from './utils';
 
 const { smallAndMedium, small } = mediaBreakpoints;
 
@@ -354,15 +355,38 @@ const LoginPage = () => {
   const { search } = useLocation();
   const urlParams = queryString.parse(search);
 
+  const getOwnerAllDetails = (loggedInUser) => {
+    return apiService
+      .getOwnerDetails(loggedInUser)
+      .then((res) => {
+        if (res.data.data.values && res.data.data.values[0]) {
+          if (res.data.data.values[0].userEmail) {
+            sessionStorage.setItem(
+              'owner',
+              res.data.data.values[0].userEmail.toLowerCase()
+            );
+            sessionStorage.setItem(
+              'displayName',
+              res.data.data.values[0].displayName.toLowerCase()
+            );
+          }
+        }
+      })
+      .catch((e) => {
+        console.log('e', e);
+      });
+  };
+
   const getLoggedInUserName = () => {
     return apiService
       .getUserName()
-      .then((res) => {
+      .then(async (res) => {
         if (res.data && res.data.data?.username) {
           sessionStorage.setItem(
             'username',
             res.data.data.username.toLowerCase()
           );
+          await getOwnerAllDetails(res.data.data.username.toLowerCase());
         }
       })
       .catch((err) => console.log('err', err));
@@ -383,6 +407,7 @@ const LoginPage = () => {
             sessionStorage.setItem('token', res.data.client_token);
             sessionStorage.setItem('isAdmin', res.data.admin);
             await getLoggedInUserName();
+            await renewToken();
             dispatch({ type: 'CALLBACK_DATA', payload: { ...res.data } });
             window.location = '/safes';
           }

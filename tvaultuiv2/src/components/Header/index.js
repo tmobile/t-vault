@@ -90,7 +90,7 @@ const EachLink = styled.a`
   margin: 0 1rem;
   color: #fff;
   font-size: 1.4rem;
-  ${(props) => props.styles}
+  text-decoration: ${(props) => props.decoration};
 `;
 
 const useStyles = makeStyles(() => ({
@@ -136,7 +136,9 @@ const Header = (props) => {
     const loggedIn = sessionStorage.getItem('token');
     if (loggedIn) {
       setIsLogin(true);
-      setUserName(sessionStorage.getItem('username'));
+      const name = sessionStorage.getItem('displayName');
+      const str = name.split(',');
+      setUserName(`${str[1]} ${str[0]}` || 'User');
     } else {
       setIsLogin(false);
     }
@@ -216,6 +218,7 @@ const Header = (props) => {
                   href={configData.DOCS_LINK}
                   target="_blank"
                   rel="noopener noreferrer"
+                  decoration="none"
                 >
                   Documentation
                 </EachLink>
