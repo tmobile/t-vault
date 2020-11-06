@@ -6,9 +6,6 @@ const certificateReducer = (state, action) => {
     case 'APPLICATIONNAME_LIST':
       return { ...state, applicationNameList: action.payload };
       break;
-    case 'OWNER_EMAIL':
-      return { ...state, userEmail: action.payload };
-      break;
     default:
       break;
   }
