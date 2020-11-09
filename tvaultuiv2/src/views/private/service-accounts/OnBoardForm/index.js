@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-wrap-multilines */
+/* eslint-disable no-nested-ternary */
 /* eslint-disable no-console */
 import React, { useState, useCallback, useEffect, useReducer } from 'react';
 import PropTypes from 'prop-types';
@@ -27,6 +29,7 @@ import {
   TitleThree,
   RequiredCircle,
   RequiredText,
+  LabelRequired,
 } from '../../../../styles/GlobalStyles';
 import { customColor } from '../../../../theme';
 import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
@@ -108,6 +111,7 @@ const ToggleWrap = styled('div')`
   color: ${(props) => props.theme.customColor.collapse.color};
   ${mediaBreakpoints.small} {
     flex-direction: column;
+    align-items: unset;
   }
 `;
 const OnBoardFormContainer = styled('div')`
@@ -137,12 +141,19 @@ const CollapsibleContainer = styled('div')``;
 const AcionButtons = styled.div`
   display: flex;
   justify-content: flex-end;
+  margin-top: 3rem;
 `;
 const ActionButtonWrap = styled.div`
   display: flex;
+  ${mediaBreakpoints.small} {
+    width: 100%;
+  }
 `;
 const BtnWrap = styled.div`
   margin-right: 0.8rem;
+  ${mediaBreakpoints.small} {
+    width: 100%;
+  }
 `;
 const OwnerActionsWrap = styled.div`
   display: flex;
@@ -646,7 +657,6 @@ const OnBoardForm = (props) => {
                 } and will not be enabled for auto rotation by T-Vault. You need to makes sure the passwod for this service account is getting roated appropriately.`
           }
           cancelButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
               label="Cancel"
               color="primary"
@@ -655,10 +665,8 @@ const OnBoardForm = (props) => {
             />
           }
           confirmButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
               label={
-                // eslint-disable-next-line no-nested-ternary
                 isActivateSvc
                   ? 'Activate'
                   : history?.location?.pathname.includes(
@@ -669,7 +677,6 @@ const OnBoardForm = (props) => {
               }
               color="secondary"
               onClick={
-                // eslint-disable-next-line no-nested-ternary
                 isActivateSvc
                   ? () => onActivateServiceAccount(inputServiceName)
                   : history?.location?.pathname.includes(
@@ -704,7 +711,6 @@ const OnBoardForm = (props) => {
                 of service account has been completed successfully. To continue, the service account needs to be activated by ${userState?.userEmail}. If you are owner of the service account, you need to log out and login again to activate it.</p>`
           }
           cancelButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
               label="CLOSE"
               color="secondary"
@@ -713,7 +719,6 @@ const OnBoardForm = (props) => {
             />
           }
           confirmButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
             svcPasswordDetails ? (
               <CopyToClipboard text={svcPasswordDetails?.current_password}>
                 <ButtonComponent
@@ -776,7 +781,7 @@ const OnBoardForm = (props) => {
                   <CollapsibleContainer>
                     <InfoLine>
                       <Span>
-                        <strong>On-Boarding:</strong>
+                        <strong>On-Boarding: </strong>
                       </Span>
                       This step links a service account from active directory to
                       be self-service managed into T-Vault. This is a one-time
@@ -785,7 +790,7 @@ const OnBoardForm = (props) => {
 
                     <InfoLine>
                       <Span>
-                        <strong>Service Account Activation:</strong>
+                        <strong>Service Account Activation: </strong>
                       </Span>
                       In order for you to activate the account, the service
                       account owner needs to rotate the account password once
@@ -794,7 +799,7 @@ const OnBoardForm = (props) => {
 
                     <InfoLine>
                       <Span>
-                        <strong>Granting Permissions:</strong>
+                        <strong>Granting Permissions: </strong>
                       </Span>
                       When a service account is activated in T-Vault, the
                       account owner can grant specific permissions to other
@@ -811,18 +816,19 @@ const OnBoardForm = (props) => {
                 </ServiceAcoountHelp>
               </InfoContainer>
               <OnBoardFormContainer>
-                {' '}
-                <Span extraStyles="align-self:flex-end">
-                  <RequiredCircle margin="0.5rem" />
-                  <RequiredText extraStyles="margin-left:0.4rem">
-                    Required
-                  </RequiredText>
-                </Span>
                 <InputFieldLabelWrapper>
-                  <InputLabel>
-                    Service Account Name
-                    <RequiredCircle margin="0.5rem" />
-                  </InputLabel>
+                  <LabelRequired>
+                    <InputLabel>
+                      Service Account Name
+                      <RequiredCircle margin="0.5rem" />
+                    </InputLabel>
+                    <Span extraStyles="align-self:flex-end;margin-bottom: 0.8rem">
+                      <RequiredCircle margin="0.5rem" />
+                      <RequiredText extraStyles="margin-left:0.4rem">
+                        Required
+                      </RequiredText>
+                    </Span>
+                  </LabelRequired>
                   <AutoCompleteComponent
                     options={[
                       ...serviceAccountsList.map((item) => item.userId),

@@ -54,6 +54,7 @@ const RightColumnSection = styled(ColumnSection)`
     top: 0;
     overflow-y: scroll;
     max-height: 100%;
+    z-index: 20;
   }
 `;
 const LeftColumnSection = styled(ColumnSection)`

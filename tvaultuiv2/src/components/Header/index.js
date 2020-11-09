@@ -22,6 +22,9 @@ const HeaderWrap = styled('header')`
   top: 0;
   width: 100%;
   z-index: 10;
+  ${small} {
+    box-shadow: 0 5px 15px 0 rgba(226, 0, 116, 0.5);
+  }
 `;
 const Container = styled.div`
   display: flex;

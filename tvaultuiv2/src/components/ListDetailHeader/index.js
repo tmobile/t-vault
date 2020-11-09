@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import ReactHtmlParser from 'react-html-parser';
 import mediaBreakpoints from '../../breakpoints';
 import { TitleThree } from '../../styles/GlobalStyles';
+import { BackArrow } from '../../assets/SvgIcons';
 
 const ColumnHeader = styled('div')`
   display: flex;
@@ -16,10 +17,13 @@ const ColumnHeader = styled('div')`
   .list-title-wrap {
     width: 70%;
     z-index: 2;
+    margin-left: 9rem;
+    margin-bottom: 3rem;
   }
   ${mediaBreakpoints.small} {
     height: 18rem;
     padding: 1rem;
+    flex-direction: column;
   }
 `;
 const ListTitle = styled('h5')`
@@ -29,6 +33,19 @@ const ListTitle = styled('h5')`
   overflow: hidden;
   text-transform: capitalize;
 `;
+const BackButton = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 2rem 0 0 2rem;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  left: 0;
+  span {
+    margin-left: 1rem;
+    text-transform: capitalize;
+  }
+`;
 const HeaderBg = styled('div')`
   position: absolute;
   top: -0.8rem;
@@ -36,21 +53,28 @@ const HeaderBg = styled('div')`
   right: 0;
   bottom: 0;
   background: url(${(props) => props.bgImage || ''});
+  background-repeat: no-repeat;
   ${mediaBreakpoints.small} {
     z-index: -1;
   }
 `;
 
 const ListDetailHeader = (props) => {
-  const { title, description, bgImage } = props;
+  const { title, description, bgImage, goBackToSafeList } = props;
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
   return (
     <ColumnHeader>
       <HeaderBg bgImage={bgImage} />
+      {isMobileScreen ? (
+        <BackButton onClick={goBackToSafeList}>
+          <BackArrow />
+          <span>{title}</span>
+        </BackButton>
+      ) : null}
       <div className="list-title-wrap">
-        {!isMobileScreen && <ListTitle>{title || 'No Title'}</ListTitle>}
+        {!isMobileScreen && <ListTitle>{title}</ListTitle>}
         <TitleThree color="#c4c4c4">
           {ReactHtmlParser(description) ||
             'Create a service to see your secrets, folders and permissions here'}
@@ -64,10 +88,12 @@ ListDetailHeader.propTypes = {
   title: PropTypes.string,
   description: PropTypes.string,
   bgImage: PropTypes.string,
+  goBackToSafeList: PropTypes.func,
 };
 ListDetailHeader.defaultProps = {
   title: '',
   description: '',
   bgImage: '',
+  goBackToSafeList: () => {},
 };
 export default ListDetailHeader;

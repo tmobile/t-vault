@@ -159,6 +159,9 @@ const ListHeader = css`
   width: 22rem;
   text-transform: capitalize;
   font-weight: 600;
+  ${mediaBreakpoints.small} {
+    width: 18rem;
+  }
 `;
 
 const EditDeletePopperWrap = styled.div``;

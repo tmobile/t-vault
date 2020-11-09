@@ -5,7 +5,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import sectionHeaderBg from '../../../../../assets/Banner_img.png';
-import { BackArrow } from '../../../../../assets/SvgIcons';
+import sectionMobHeaderBg from '../../../../../assets/mob-safebg.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ListDetailHeader from '../../../../../components/ListDetailHeader';
 
@@ -18,23 +18,8 @@ const Section = styled('section')`
   height: 100%;
 `;
 
-const BackButton = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 2rem 0 0 2rem;
-  cursor: pointer;
-  span {
-    margin-left: 1rem;
-  }
-`;
-
 const SafeDetails = (props) => {
-  const {
-    detailData,
-    resetClicked,
-    goodToRoute,
-    renderContent,
-  } = props;
+  const { detailData, resetClicked, goodToRoute, renderContent } = props;
   const [safe, setSafe] = useState({});
   // use history of page
   const history = useHistory();
@@ -62,20 +47,14 @@ const SafeDetails = (props) => {
   return (
     <ComponentError>
       <Section>
-        {isMobileScreen ? (
-          <BackButton onClick={goBackToSafeList}>
-            <BackArrow />
-            <span>{(safe && safe.name) || 'No safe'}</span>
-          </BackButton>
-        ) : null}
-
         <ListDetailHeader
-          title={safe?.name}
+          title={safe?.name || 'No Safe'}
           description={
             safe?.description ||
             'This provides information about safe. You can able to see the secrets associated with it, And also create  a safe to see your secrets, folders and manage permissions for safes'
           }
-          bgImage={sectionHeaderBg}
+          bgImage={!isMobileScreen ? sectionHeaderBg : sectionMobHeaderBg}
+          goBackToSafeList={goBackToSafeList}
         />
         {renderContent}
       </Section>
