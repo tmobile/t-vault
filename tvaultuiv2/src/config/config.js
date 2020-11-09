@@ -4,7 +4,7 @@ const config = {
   EMAIL_LINK: 'mailto: CloudSupport@t-mobile.com',
   SIGN_UP_LINK: 'https://access.t-mobile.com/manage',
   DOMAIN_NAME: '@T-Mobile.com',
-  FORGOT_PASSWORD_LINK: '',
+  FORGOT_PASSWORD_LINK: 'https://access.t-mobile.com/manage',
   AUTH_TYPE: '',
   OIDC_ROLE: '',
   OIDC_REDIRECT_URL: '',
