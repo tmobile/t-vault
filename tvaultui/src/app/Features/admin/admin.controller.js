@@ -2506,15 +2506,15 @@
             clearNotificationEmails();
             $scope.applicationNameSelectMsg = "Fetching notification list..";
             if($scope.dropdownApplicationName !==undefined){
-                let tag = $scope.dropdownApplicationName.selectedGroupOption.tag;
-                let appId = $scope.dropdownApplicationName.selectedGroupOption.id;
+                var tag = $scope.dropdownApplicationName.selectedGroupOption.tag;
+                var appId = $scope.dropdownApplicationName.selectedGroupOption.id;
                 $scope.certificateToOnboard.applicationName = $scope.dropdownApplicationName.selectedGroupOption.name;
                 try{
                     var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getApplicationDetails', "appName="+appId);
                     AdminSafesManagement.getApplicationDetails(null, updatedUrlOfEndPoint).then(function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
-                            let brtContactEmail = response.data.spec.brtContactEmail;
-                            let opsContactEmail = response.data.spec.opsContactEmail;
+                            var brtContactEmail = response.data.spec.brtContactEmail;
+                            var opsContactEmail = response.data.spec.opsContactEmail;
                             $scope.addExistingNotificationEmail(brtContactEmail);
                             $scope.addExistingNotificationEmail(opsContactEmail);
                             $scope.appnameSelectedForOnboard = true;
@@ -2593,7 +2593,7 @@
         }
 
         $scope.onboardCert = function() {
-            let onboardRequest = {
+            var onboardRequest = {
                 certificateName: $scope.certificateToOnboard.certificateName,
                 certificateType:$scope.certificateToOnboard.certificateType,
                 applicationName: $scope.certificateToOnboard.tag,
