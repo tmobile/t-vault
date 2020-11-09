@@ -2513,8 +2513,8 @@
                     var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getApplicationDetails', "appName="+appId);
                     AdminSafesManagement.getApplicationDetails(null, updatedUrlOfEndPoint).then(function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
-                            let brtContactEmail = response?.data?.spec?.brtContactEmail;
-                            let opsContactEmail = response?.data?.spec?.opsContactEmail;
+                            let brtContactEmail = response.data.spec.brtContactEmail;
+                            let opsContactEmail = response.data.spec.opsContactEmail;
                             $scope.addExistingNotificationEmail(brtContactEmail);
                             $scope.addExistingNotificationEmail(opsContactEmail);
                             $scope.appnameSelectedForOnboard = true;
@@ -2546,7 +2546,10 @@
             if (emailListAsString != undefined && emailListAsString != null) {
                 emailListAsString.split(",").forEach(function (email) {
                     var id = $scope.notificationEmails.length;
-                    let duplicate = $scope.notificationEmails.find(element => element.email.toLowerCase() == email.toLowerCase());
+                    //var duplicate = $scope.notificationEmails.find(element => element.email.toLowerCase() == email.toLowerCase());
+                    var duplicate = $scope.notificationEmails.find(function (element) {
+                        return (element.email.toLowerCase() == email.toLowerCase());
+                    });
                     if (duplicate == undefined) {
                         $scope.notificationEmails.push({ "id": id, "email":email});
                     }

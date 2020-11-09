@@ -443,7 +443,7 @@ script(type='text/ng-template', id='onboardCertificatePopup.html')
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Notification Emails :
-                      .cert-preview-details(ng-if="notificationEmails.length>0" ng-repeat="email in notificationEmails")* {{ email.email }}
+                      .cert-preview-details(ng-if="notificationEmails.length>0" ng-repeat="email in notificationEmails") * {{ email.email }}
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Signature Algorithm :
