@@ -143,6 +143,13 @@ export const LabelRequired = styled.div`
   justify-content: space-between;
 `;
 
+export const RequiredWrap = styled.div`
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+`;
+
 export const InstructionText = styled.p`
   margin-top: 1.4rem;
   color: #bbbbbb;

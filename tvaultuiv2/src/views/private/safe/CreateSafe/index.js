@@ -26,6 +26,7 @@ import {
   RequiredText,
   LabelRequired,
   GlobalModalWrapper,
+  RequiredWrap,
 } from '../../../../styles/GlobalStyles';
 
 const { small } = mediaBreakpoints;
@@ -70,13 +71,6 @@ const CreateSafeForm = styled.form`
   display: flex;
   flex-direction: column;
   margin-top: 2.5rem;
-`;
-
-const RequiredWrap = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-bottom: 0.8rem;
 `;
 
 const InputFieldLabelWrapper = styled.div`

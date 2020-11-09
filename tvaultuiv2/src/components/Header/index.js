@@ -58,6 +58,9 @@ const MenuIcon = styled.img`
 
 const TVaultIcon = styled.img`
   margin-right: 5rem;
+  ${smallAndMedium} {
+    margin-right: 0;
+  }
 `;
 
 const HeaderCenter = styled.div`
@@ -179,6 +182,8 @@ const Header = (props) => {
                   navItems={navItems}
                   userName={userName}
                   checkToken={checkToken}
+                  EachLink={EachLink}
+                  DescriptionIcon={DescriptionIcon}
                 />
               </SwipeableDrawer>
             </>

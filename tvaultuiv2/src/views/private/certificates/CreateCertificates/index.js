@@ -426,7 +426,6 @@ const CreateCertificates = (props) => {
                   ? errorHandleClose()
                   : handleCloseConfirmationModal()
               }
-              width={isMobileScreen ? '100%' : '38%'}
             />
           }
         />

@@ -71,6 +71,9 @@ const RadioButtonWrapper = styled.div`
 `;
 const CancelSaveWrapper = styled.div`
   display: flex;
+  ${small} {
+    margin-top: 3rem;
+  }
 `;
 
 const CancelButton = styled.div`
