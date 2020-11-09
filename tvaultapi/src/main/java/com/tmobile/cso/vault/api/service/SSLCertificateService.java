@@ -6360,8 +6360,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                    
                    //remove AWS role permissions
                    if (object.get("aws-roles") != null) {
-	                   Map<String,String> awsroles = (Map<String, String>)object.get("aws-roles");
-	                   deleteAwsRoleOnCertificateDelete(certificateName, awsroles, authToken);
+	                   deleteAwsRoleOnCertificateDelete(certificateName, authToken, jsonParser, object);
                    }
 
                    //remove Sudo permissions
@@ -6568,43 +6567,53 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		}
 		return response;
 	}
-	
-    /**
-     * Aws role deletion as part of certificate delete
-     * @param svcAccName
-     * @param acessInfo
-     * @param token
-     */
-    private void deleteAwsRoleOnCertificateDelete(String certificateName, Map<String,String> acessInfo, String token) {
-        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                put(LogMessage.ACTION, "deleteAwsRoleOnCertificateDelete").
-                put(LogMessage.MESSAGE, String.format ("Trying to delete AwsRole On Certificate [%s] delete", certificateName)).
-                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-                build()));
-        if(acessInfo!=null){
-            Set<String> roles = acessInfo.keySet();
-            for(String role : roles){
-                Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);
-                if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                            put(LogMessage.ACTION, "deleteAwsRoleOn CertificateDelete").
-                            put(LogMessage.MESSAGE, String.format ("%s, AWS Role is deleted as part of deleting certificate.", role)).
-                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-                            build()));
-                }else{
-                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                            put(LogMessage.ACTION, "deleteAwsRoleOnCertificateDelete").
-                            put(LogMessage.MESSAGE, String.format ("%s, AWS Role deletion as part of deleting certificate failed.", role)).
-                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-                            build()));
-                }
-            }
-        }
-    }
 
+	/**
+	 * Aws role deletion as part of certificate delete
+	 *
+	 * @param svcAccName
+	 * @param acessInfo
+	 * @param token
+	 */
+	private void deleteAwsRoleOnCertificateDelete(String certificateName, String token, JsonParser jsonParser,
+			JsonObject object) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "deleteAwsRoleOnCertificateDelete")
+				.put(LogMessage.MESSAGE,
+						String.format("Trying to delete AwsRole On Certificate [%s] delete", certificateName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		Map<String, String> awsParams = new HashMap<>();
+		if (object.get("aws-roles") != null) {
+			JsonObject awsObj = ((JsonObject) jsonParser.parse(object.get("aws-roles").toString()));
+			awsParams = new Gson().fromJson(awsObj.toString(), Map.class);
+			if (!awsParams.isEmpty()) {
+				for (Map.Entry<String, String> entry : awsParams.entrySet()) {
+					Response response = reqProcessor.process("/auth/aws/roles/delete",
+							"{\"role\":\"" + entry.getKey() + "\"}", token);
+					if (response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, "deleteAwsRoleOn CertificateDelete")
+								.put(LogMessage.MESSAGE,
+										String.format("%s, AWS Role is deleted as part of deleting certificate.",
+												entry.getKey()))
+								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+					} else {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, "deleteAwsRoleOnCertificateDelete")
+								.put(LogMessage.MESSAGE,
+										String.format("%s, AWS Role deletion as part of deleting certificate failed.",
+												entry.getKey()))
+								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+					}
+				}
+			}
+		}
+	}
 
     /**
      * Check whether mocking as enabled or not
