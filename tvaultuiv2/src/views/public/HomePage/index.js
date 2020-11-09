@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable no-console */
 /* eslint-disable react/jsx-one-expression-per-line */
 import React, { useEffect, useState } from 'react';
@@ -29,6 +31,7 @@ import apiService from './apiService';
 import Loader from '../../../components/Loaders/ScaledLoader';
 import configUrl from '../../../config';
 import configData from '../../../config/config';
+import LoginModal from './LoginModal';
 import { renewToken } from './utils';
 
 const { smallAndMedium, small } = mediaBreakpoints;
@@ -356,6 +359,7 @@ const ContactUs = styled.p`
 
 const LoginPage = () => {
   const [response, setResponse] = useState({ status: 'home' });
+  const [openLoginModal, setOpenLoginModal] = useState(false);
   const [, dispatch] = useStateValue();
   const isMobileScreen = useMediaQuery(small);
 
@@ -425,22 +429,43 @@ const LoginPage = () => {
   }, []);
 
   const onDashboardClicked = () => {
+    if (configData.AUTH_TYPE === 'oidc') {
+      setResponse({ status: 'loading' });
+      const payload = {
+        role: 'default',
+        redirect_uri: configUrl.redirectUrl,
+      };
+      axios
+        .post(`${configUrl.baseUrl}/auth/oidc/auth_url`, payload)
+        .then((res) => {
+          window.location = res.data?.data?.auth_url;
+        })
+        .catch((e) => console.log(e.response));
+    } else {
+      setOpenLoginModal(true);
+    }
+  };
+  const closeLoginModal = () => {
+    setOpenLoginModal(false);
+  };
+
+  const onSignInClicked = (username, password) => {
     setResponse({ status: 'loading' });
-    const payload = {
-      role: 'default',
-      redirect_uri: configUrl.redirectUrl,
-    };
-    axios
-      .post(`${configUrl.baseUrl}/auth/oidc/auth_url`, payload)
-      .then((res) => {
-        window.location = res.data?.data?.auth_url;
-      })
-      .catch((e) => console.log(e.response));
+    // Make an api call if success
+    // After response
+    window.location = '/safes';
   };
 
   return (
     <ComponentError>
       <>
+        <LoginModal
+          handleClose={() => closeLoginModal()}
+          open={openLoginModal}
+          onSignInClicked={(username, password) =>
+            onSignInClicked(username, password)
+          }
+        />
         {response.status === 'loading' && (
           <LoaderWrap>
             <Loader />

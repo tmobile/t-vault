@@ -5,7 +5,7 @@ const config = {
   SIGN_UP_LINK: 'https://access.t-mobile.com/manage',
   DOMAIN_NAME: '@T-Mobile.com',
   FORGOT_PASSWORD_LINK: 'https://access.t-mobile.com/manage',
-  AUTH_TYPE: '',
+  AUTH_TYPE: 'oidc',
   OIDC_ROLE: '',
   OIDC_REDIRECT_URL: '',
   SSL_EXT_CERTIFICATE: true,
