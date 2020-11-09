@@ -33,12 +33,16 @@ const ButtonWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-self: flex-end;
-  width: 100%;
+  ${mediaBreakpoints.small} {
+    width: 100%;
+  }
 `;
 
 const CancelButtonWrap = styled.div`
   margin-right: 1rem;
-  width: 100%;
+  ${mediaBreakpoints.small} {
+    width: 100%;
+  }
 `;
 
 const titleOneCss = css`

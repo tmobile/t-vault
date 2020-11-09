@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -6,6 +7,7 @@ import styled from 'styled-components';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import sectionHeaderBg from '../../../../../assets/Banner_img.png';
 import sectionMobHeaderBg from '../../../../../assets/mob-safebg.svg';
+import sectionTabHeaderBg from '../../../../../assets/tab-safebg.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ListDetailHeader from '../../../../../components/ListDetailHeader';
 
@@ -26,6 +28,7 @@ const SafeDetails = (props) => {
   const location = useLocation();
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
   // route component data
   const goBackToSafeList = () => {
     resetClicked();
@@ -53,7 +56,13 @@ const SafeDetails = (props) => {
             safe?.description ||
             'This provides information about safe. You can able to see the secrets associated with it, And also create  a safe to see your secrets, folders and manage permissions for safes'
           }
-          bgImage={!isMobileScreen ? sectionHeaderBg : sectionMobHeaderBg}
+          bgImage={
+            isMobileScreen
+              ? sectionMobHeaderBg
+              : isTabScreen
+              ? sectionTabHeaderBg
+              : sectionHeaderBg
+          }
           goBackToSafeList={goBackToSafeList}
         />
         {renderContent}

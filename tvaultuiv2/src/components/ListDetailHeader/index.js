@@ -4,7 +4,6 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import ReactHtmlParser from 'react-html-parser';
 import mediaBreakpoints from '../../breakpoints';
-import { TitleThree } from '../../styles/GlobalStyles';
 import { BackArrow } from '../../assets/SvgIcons';
 
 const ColumnHeader = styled('div')`
@@ -32,7 +31,22 @@ const ListTitle = styled('h5')`
   text-overflow: ellipsis;
   overflow: hidden;
   text-transform: capitalize;
+  ${mediaBreakpoints.medium} {
+    font-size: 1.8rem;
+  }
 `;
+
+const Description = styled.div`
+  font-size: 1.4rem;
+  color: #c4c4c4;
+  ${mediaBreakpoints.medium} {
+    font-size: 1.2rem;
+  }
+  ${mediaBreakpoints.medium} {
+    font-size: 1.3rem;
+  }
+`;
+
 const BackButton = styled.div`
   display: flex;
   align-items: center;
@@ -54,6 +68,9 @@ const HeaderBg = styled('div')`
   bottom: 0;
   background: url(${(props) => props.bgImage || ''});
   background-repeat: no-repeat;
+  ${mediaBreakpoints.medium} {
+    top: 0;
+  }
   ${mediaBreakpoints.small} {
     z-index: -1;
   }
@@ -75,10 +92,10 @@ const ListDetailHeader = (props) => {
       ) : null}
       <div className="list-title-wrap">
         {!isMobileScreen && <ListTitle>{title}</ListTitle>}
-        <TitleThree color="#c4c4c4">
+        <Description>
           {ReactHtmlParser(description) ||
             'Create a service to see your secrets, folders and permissions here'}
-        </TitleThree>
+        </Description>
       </div>
     </ColumnHeader>
   );

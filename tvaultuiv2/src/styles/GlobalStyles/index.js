@@ -110,7 +110,7 @@ export const TabWrapper = styled.div`
 export const SectionPreview = styled.section`
   margin: 11.2rem auto 4.2rem auto;
   height: calc(100vh - 15.6rem);
-  ${mediaBreakpoints.small} {
+  ${mediaBreakpoints.smallAndMedium} {
     margin: 0;
     margin-top: 7rem;
     height: calc(100vh - 7rem);
