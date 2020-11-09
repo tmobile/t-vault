@@ -21,7 +21,17 @@ script(type='text/ng-template', id='renewCertPopup.html')
       .clearfix.bottom-sm-sep
         button.common-btn.btn.btn-primary.btn-lg(ng-click="renewCertificate(certDetails)") RENEW
       .clearfix
-        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL       
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+
+script(type='text/ng-template', id='renewExternalCertPopup.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text {{ renewExternalConfirmMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+       .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
         
 script(type='text/ng-template', id='error.html')
     .row
