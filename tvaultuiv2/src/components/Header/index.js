@@ -125,6 +125,7 @@ const Header = (props) => {
     { label: 'Vault Approles', path: 'vault-app-roles' },
     { label: 'Service Accounts', path: 'service-accounts' },
     { label: 'Certificates', path: 'certificates' },
+    {label:"IAM Service Accounts", path:"iam-service-accounts"}
   ];
 
   const hideSideMenu = (anchor, open) => {
