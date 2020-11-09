@@ -18,6 +18,7 @@
 package com.tmobile.cso.vault.api.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -4909,7 +4910,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
-				put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", userResponse.getHttpstatus())).
+				put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", userResponse)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 
@@ -6304,55 +6305,33 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		if (!isValidInputs(certificateName, certType)) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "deleteCertificate")
+					.put(LogMessage.ACTION, "deleteSSLCertificate")
 					.put(LogMessage.MESSAGE, "Invalid user inputs")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
-		Map<String, String> metaDataParams = new HashMap<String, String>();
+		Map<String, String> metaDataParams = new HashMap<>();
 		String endPoint =certificateName;	
 		String metaDataPath = (certType.equalsIgnoreCase("internal"))?
-                SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + endPoint;
+                new StringBuilder(SSLCertificateConstants.SSL_CERT_PATH).append("/").append(endPoint).toString() : new StringBuilder(SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH).append("/").append(endPoint).toString();
 		String permissionMetaDataPath = (certType.equalsIgnoreCase("internal"))?
-                SSLCertificateConstants.SSL_CERT_PATH_VALUE + "/" + endPoint :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT + "/" + endPoint;
+				new StringBuilder(SSLCertificateConstants.SSL_CERT_PATH_VALUE).append("/").append(endPoint).toString() : new StringBuilder(SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT).append("/").append(endPoint).toString();
 		
-		Response response = new Response();
+		Response response = null;
 		Response metadataResponse = new Response();
-		CertResponse unAssignResponse = new CertResponse();
-		token = userDetails.getSelfSupportToken();
+		CertResponse unAssignResponse = null;
+		String authToken = userDetails.getSelfSupportToken();
 		if (!userDetails.isAdmin()) {
-			Boolean isPermission = validateCertOwnerPermissionForNonAdmin(userDetails, certificateName,certType);
-
+			boolean isPermission = validateCertOwnerPermissionForNonAdmin(userDetails, certificateName,certType);
 			if (!isPermission) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-						.body("{\"errors\":[\""
-								+ "Access denied: No permission to delete certificate"
-								+ "\"]}");
+						.body("{\"errors\":[\"Access denied: No permission to delete certificate\"]}");
 			}
 		}
-		try {
-			if (userDetails.isAdmin()) {
-				response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}", token);
-			} else {
-				response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}",
-						userDetails.getSelfSupportToken());
-			}
-		} catch (Exception e) {
-			log.error(
-					JSONUtil.getJSON(
-							ImmutableMap.<String, String> builder()
-									.put(LogMessage.USER,
-											ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-									.put(LogMessage.ACTION,
-											String.format("Exception = [%s] =  Message [%s]",
-													Arrays.toString(e.getStackTrace()), response.getResponse()))
-									.build()));
-			return ResponseEntity.status(response.getHttpstatus())
-					.body("{\"messages\":[\"" + "Certificate unavailable" + "\"]}");
-		}
-		if (!HttpStatus.OK.equals(response.getHttpstatus())) {
-			return ResponseEntity.status(response.getHttpstatus())
-					.body("{\"errors\":[\"" + "Certificate unavailable" + "\"]}");
+		response = getCertificateDetailsByMatadataPath(metaDataPath, authToken);
+		
+		if (ObjectUtils.isEmpty(response) || !HttpStatus.OK.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Certificate unavailable\"]}");
 		}
 		
 		JsonParser jsonParser = new JsonParser();
@@ -6361,164 +6340,270 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		int certID = object.get("certificateId").getAsInt();	
 		int containerId = object.get("containerId").getAsInt();
 		try {
-		metaDataParams = new Gson().fromJson(object.toString(), Map.class);	
-		String certificateUserId = metaDataParams.get("certOwnerNtid");
-        //Adding mock flag
-	    	String nclmAccessToken = isMockingEnabled(certType) ?
-                    TVaultConstants.NCLM_MOCK_VALUE:  getNclmToken();
-           if(!StringUtils.isEmpty(nclmAccessToken)) {
+			metaDataParams = new Gson().fromJson(object.toString(), Map.class);	
+			String certificateUserId = metaDataParams.get("certOwnerNtid");
+			//Adding mock flag
+	    	String nclmAccessToken = isMockingEnabled(certType) ? TVaultConstants.NCLM_MOCK_VALUE:  getNclmToken();
+	    	if(!StringUtils.isEmpty(nclmAccessToken)) {
                //find certificates - adding mock flag
                CertificateData certData = (!isMockingEnabled(certType)) ?
                        getLatestCertificate(certificateName, nclmAccessToken, containerId) : nclmMockUtil.getDeleteCertMockResponse(metaDataParams);
                if ((!ObjectUtils.isEmpty(certData) && certData.getCertificateId() != 0)) {
-                   //Adding mocking flag
-                   if(!isMockingEnabled(certType) ) {
-                       //Unassign certificate from target system
-                       JsonObject jo = new JsonObject();
-                       jo.add("targetSystemServiceIds", new GsonBuilder().create().toJsonTree(certData.getDeployStatus()));
-                       String nclmApiAssignEndpoint = unassignCertificateEndpoint.replace("certID", String.valueOf(certID));
-                       unAssignResponse = reqProcessor.processCert("/certificates/services/assigned", jo,
-                               nclmAccessToken, getCertmanagerEndPoint(nclmApiAssignEndpoint));
-                       if (unAssignResponse != null && HttpStatus.OK.equals(unAssignResponse.getHttpstatus())) {
-                           //delete the certiicate
-                           String nclmApiDeleteEndpoint = deleteCertificateEndpoint.replace("certID", String.valueOf(certID));
-                           unAssignResponse = reqProcessor.processCert("/certificates", "",
-                                   nclmAccessToken, getCertmanagerEndPoint(nclmApiDeleteEndpoint));
-                       }
-                   } else  {
-                       unAssignResponse = nclmMockUtil.getDeleteMockResponse();
-                   }
-
+            	   //Delete certificate from nclm
+                   unAssignResponse = deleteCertificateFromNclm(certType, certID, nclmAccessToken, certData);
 
                    //remove user permissions
-                   CertificateUser certificateUser = new CertificateUser();
-                   Map<String, String> userParams = new HashMap<String, String>();
-                   if (object.get("users") != null) {
-                       JsonObject userObj = ((JsonObject) jsonParser.parse(object.get("users").toString()));
-                       userParams = new Gson().fromJson(userObj.toString(), Map.class);
-                       if (!userParams.isEmpty()) {
-                           for (Map.Entry<String, String> entry : userParams.entrySet()) {
-                               certificateUser.setCertificateName(certificateName);
-                               certificateUser.setCertType(certType);
-                               certificateUser.setUsername(entry.getKey());
-                               certificateUser.setAccess(entry.getValue());
-                               removeUserFromCertificateForDelete(certificateUser, userDetails);
-                           }
-                       }
-                   }
+                   deleteUserPermissionForCertificate(certType, certificateName, userDetails, jsonParser, object);
 
                    //remove group permissions
-                   CertificateGroup certificateGroup = new CertificateGroup();
-                   Map<String, String> groupParams = new HashMap<String, String>();
-                   if (object.get("groups") != null) {
-                       JsonObject groupObj = ((JsonObject) jsonParser.parse(object.get("groups").toString()));
-                       groupParams = new Gson().fromJson(groupObj.toString(), Map.class);
-                       if (!groupParams.isEmpty()) {
-                           for (Map.Entry<String, String> entry : groupParams.entrySet()) {
-                               certificateGroup.setCertificateName(certificateName);
-                               certificateGroup.setCertType(certType);
-                               certificateGroup.setGroupname(entry.getKey());
-                               certificateGroup.setAccess(entry.getValue());
-                               removeGroupFromCertificateForDelete(certificateGroup, userDetails);
-                           }
-                       }
+                   removeGroupPermissionsToCertificate(certType, certificateName, userDetails, jsonParser, object);
+                   
+                   //remove AWS role permissions
+                   if (object.get("aws-roles") != null) {
+	                   Map<String,String> awsroles = (Map<String, String>)object.get("aws-roles");
+	                   deleteAwsRoleOnCertificateDelete(certificateName, awsroles, authToken);
                    }
 
+                   //remove Sudo permissions
                    removeSudoPermissionForPreviousOwner(certificateUserId.toLowerCase(), certificateName, userDetails, certType);
-                   if (userDetails.isAdmin()) {
-                       deletePolicies(certType, certificateName, userDetails.getSelfSupportToken());
-                   } else {
-                       deletePolicies(certType, certificateName, userDetails.getSelfSupportToken());
-                   }
+                   
+                   //Remove certificate policies
+                   deletePolicies(certType, certificateName, authToken);
 
                    if (unAssignResponse != null && (HttpStatus.OK.equals(unAssignResponse.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(unAssignResponse.getHttpstatus())))) {
-                       try {
-                           if (userDetails.isAdmin()) {
-                               response = reqProcessor.process("/delete", "{\"path\":\"" + metaDataPath + "\"}", token);
-                               metadataResponse = reqProcessor.process("/delete", "{\"path\":\"" + permissionMetaDataPath + "\"}", token);
-                           } else {
-                               response = reqProcessor.process("/delete", "{\"path\":\"" + metaDataPath + "\"}",
-                                       userDetails.getSelfSupportToken());
-                               metadataResponse = reqProcessor.process("/delete", "{\"path\":\"" + permissionMetaDataPath + "\"}",
-                                       userDetails.getSelfSupportToken());
-                           }
-                       } catch (Exception e) {
-                           log.error(
-                                   JSONUtil.getJSON(
-                                           ImmutableMap.<String, String>builder()
-                                                   .put(LogMessage.USER,
-                                                           ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-                                                   .put(LogMessage.ACTION,
-                                                           String.format("Exception = [%s] =  Message [%s]",
-                                                                   Arrays.toString(e.getStackTrace()), response.getResponse()))
-                                                   .build()));
+                       response = deleteCertificateDetailsFromCertMetaPath(metaDataPath, authToken);
+                       if(!ObjectUtils.isEmpty(response)) {
+                    	   metadataResponse = deleteCertificateDetailsFromCertMetaPath(permissionMetaDataPath, authToken); 
+                       }                   
+                       if(ObjectUtils.isEmpty(metadataResponse)) {
+                    	   log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+       							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+       							.put(LogMessage.ACTION, "deleteCertificate")
+       							.put(LogMessage.MESSAGE, String.format("Certificate [%s] metadata deletion failed ", certificateName))
+       							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+       							.build()));
                            return ResponseEntity.status(response.getHttpstatus())
-                                   .body("{\"messages\":[\"" + "Certificate metadata deletion failed" + "\"]}");
+                                   .body("{\"messages\":[\"Certificate metadata deletion failed\"]}");
                        }
 
                        String certOwnerEmailId = metaDataParams.get("certOwnerEmailId");
                        String certOwnerNtId = metaDataParams.get("certOwnerNtid");
+                       
                        //Send an email for delete in case of internal and external
                        sendDeleteEmail(token, certType, certificateName, certOwnerEmailId, certOwnerNtId,
                                SSLCertificateConstants.CERT_DELETE_SUBJECT + " - " + certificateName,
                                "deleted", certData);
-
+                       
                        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-                               .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-                               .put(LogMessage.ACTION, String.format("CERTIFICATE [%s] - DELETED SUCCESSFULLY - BY [%s] - " +
-                                               "ON- [%s] AND TYPE [%s]",
-                                       certificateName, certOwnerEmailId, LocalDateTime.now(), certType)).build()));
-
+           					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+           					.put(LogMessage.ACTION, "deleteCertificate")
+           					.put(LogMessage.MESSAGE, String.format("CERTIFICATE [%s] - DELETED SUCCESSFULLY - BY [%s] - ON- [%s] AND TYPE [%s]", certificateName, certOwnerEmailId, LocalDateTime.now(), certType))
+           					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
                        return ResponseEntity.status(HttpStatus.OK)
                                .body("{\"messages\":[\"" + "Certificate deleted successfully" + "\"]}");
                    } else {
-                       log.error(
-                               JSONUtil.getJSON(
-                                       ImmutableMap.<String, String>builder()
-                                               .put(LogMessage.USER,
-                                                       ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-                                               .put(LogMessage.ACTION, "Delete certificate Failed")
-                                               .put(LogMessage.MESSAGE, "Delete Request failed for CertificateID")
-                                               .put(LogMessage.STATUS, unAssignResponse.getHttpstatus().toString())
-                                               .put(LogMessage.APIURL,
-                                                       ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-                                               .build()));
-                       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                               .body("{\"errors\":[\"" + "Certificate deletion failed" + "\"]}");
-                   }
-               } else {
-                   log.error(
-                           JSONUtil.getJSON(
-                                   ImmutableMap.<String, String>builder()
-                                           .put(LogMessage.USER,
-                                                   ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-                                           .put(LogMessage.ACTION, "Delete certificate Failed")
-                                           .put(LogMessage.MESSAGE, "Delete Request failed for CertificateID")
-                                           .build()));
-                   return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"" + "Certificate " +
-                           "unavailable in system." + "\"]}");
-               }
-           }else {
-        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().	
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).	
-                    put(LogMessage.ACTION, "deletecertificate").	
-                    put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time.").                        	
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).	
-                    build()));	
-        	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)	
-					.body("{\"errors\":[\"" + nclmErrorMessage + "\"]}");
-        }
-			
-	} catch (Exception e) {
-		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-				.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
-						Arrays.toString(e.getStackTrace()), e.getMessage()))
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, "Delete certificate Failed")
+							.put(LogMessage.MESSAGE, "Delete Request failed for CertificateID")
+							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+							.build()));
+					  	return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					          .body("{\"errors\":[\"Certificate deletion failed\"]}");
+					}
+				} else {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, "deletecertificate")
+							.put(LogMessage.MESSAGE, "Delete Request failed for CertificateID")
+							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+							.build()));
+					return ResponseEntity.status(HttpStatus.FORBIDDEN)
+							.body("{\"errors\":[\"Certificate unavailable in system.\"]}");
+				}
+			}else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().	
+					   put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).	
+					   put(LogMessage.ACTION, "deletecertificate").	
+					   put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time.").                        	
+					   put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).	
+					   build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"" + nclmErrorMessage + "\"]}");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]", Arrays.toString(e.getStackTrace()), e.getMessage()))
 				.build()));
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body("{\"errors\":[\"" + e.getMessage() + "\"]}");
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("{\"errors\":[\"" + e.getMessage() + "\"]}");
+		}
 	}
+
+	/**
+	 * Method to delete certificate from nclm
+	 * @param certType
+	 * @param certID
+	 * @param nclmAccessToken
+	 * @param certData
+	 * @return
+	 * @throws Exception
+	 */
+	private CertResponse deleteCertificateFromNclm(String certType, int certID, String nclmAccessToken,
+			CertificateData certData) throws Exception {
+		CertResponse unAssignResponse;
+		//Adding mocking flag
+		   if(!isMockingEnabled(certType) ) {
+		       //Unassign certificate from target system
+		       JsonObject jo = new JsonObject();
+		       jo.add("targetSystemServiceIds", new GsonBuilder().create().toJsonTree(certData.getDeployStatus()));
+		       String nclmApiAssignEndpoint = unassignCertificateEndpoint.replace("certID", String.valueOf(certID));
+		       unAssignResponse = reqProcessor.processCert("/certificates/services/assigned", jo,
+		               nclmAccessToken, getCertmanagerEndPoint(nclmApiAssignEndpoint));
+		       if (unAssignResponse != null && HttpStatus.OK.equals(unAssignResponse.getHttpstatus())) {
+		           //delete the certiicate
+		           String nclmApiDeleteEndpoint = deleteCertificateEndpoint.replace("certID", String.valueOf(certID));
+		           unAssignResponse = reqProcessor.processCert("/certificates", "",
+		                   nclmAccessToken, getCertmanagerEndPoint(nclmApiDeleteEndpoint));
+		       }
+		   } else  {
+		       unAssignResponse = nclmMockUtil.getDeleteMockResponse();
+		   }
+		return unAssignResponse;
 	}
+
+	/**
+	 * Method to get the certificate metadata details
+	 * @param metaDataPath
+	 * @param authToken
+	 * @return
+	 */
+	private Response getCertificateDetailsByMatadataPath(String metaDataPath, String authToken) {
+		Response response = new Response();
+		try {
+			response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}", authToken);
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "Delete certificate Failed")
+					.put(LogMessage.MESSAGE, String.format("Exception = [%s] =  Message [%s]", Arrays.toString(e.getStackTrace()), response.getResponse()))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+					.build()));			
+		}		
+		return response;
+	}
+
+	/**
+	 * Method to delete group permission added to the certificate
+	 * @param certType
+	 * @param certificateName
+	 * @param userDetails
+	 * @param jsonParser
+	 * @param object
+	 */
+	private void removeGroupPermissionsToCertificate(String certType, String certificateName, UserDetails userDetails,
+			JsonParser jsonParser, JsonObject object) {
+		CertificateGroup certificateGroup = new CertificateGroup();
+		   Map<String, String> groupParams = new HashMap<>();
+		   if (object.get("groups") != null) {
+		       JsonObject groupObj = ((JsonObject) jsonParser.parse(object.get("groups").toString()));
+		       groupParams = new Gson().fromJson(groupObj.toString(), Map.class);
+		       if (!groupParams.isEmpty()) {
+		           for (Map.Entry<String, String> entry : groupParams.entrySet()) {
+		               certificateGroup.setCertificateName(certificateName);
+		               certificateGroup.setCertType(certType);
+		               certificateGroup.setGroupname(entry.getKey());
+		               certificateGroup.setAccess(entry.getValue());
+		               removeGroupFromCertificateForDelete(certificateGroup, userDetails);
+		           }
+		       }
+		   }
+	}
+
+	/**
+	 * Method to delete user permissions added to the certificate
+	 * @param certType
+	 * @param certificateName
+	 * @param userDetails
+	 * @param jsonParser
+	 * @param object
+	 */
+	private void deleteUserPermissionForCertificate(String certType, String certificateName, UserDetails userDetails,
+			JsonParser jsonParser, JsonObject object) {
+		CertificateUser certificateUser = new CertificateUser();
+		   Map<String, String> userParams = new HashMap<>();
+		   if (object.get("users") != null) {
+		       JsonObject userObj = ((JsonObject) jsonParser.parse(object.get("users").toString()));
+		       userParams = new Gson().fromJson(userObj.toString(), Map.class);
+		       if (!userParams.isEmpty()) {
+		           for (Map.Entry<String, String> entry : userParams.entrySet()) {
+		               certificateUser.setCertificateName(certificateName);
+		               certificateUser.setCertType(certType);
+		               certificateUser.setUsername(entry.getKey());
+		               certificateUser.setAccess(entry.getValue());
+		               removeUserFromCertificateForDelete(certificateUser, userDetails);
+		           }
+		       }
+		   }
+	}
+
+	/**
+	 * Delete certificate metadata details
+	 * @param metaDataPath
+	 * @param authToken
+	 * @return
+	 */
+	private Response deleteCertificateDetailsFromCertMetaPath(String metaDataPath, String authToken) {
+		Response response = new Response();
+		try {
+			response = reqProcessor.process("/delete", "{\"path\":\"" + metaDataPath + "\"}", authToken);
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "Delete certificate Failed")
+				.put(LogMessage.MESSAGE, String.format("Exception = [%s] =  Message [%s]", Arrays.toString(e.getStackTrace()), response.getResponse()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
+		}
+		return response;
+	}
+	
+    /**
+     * Aws role deletion as part of certificate delete
+     * @param svcAccName
+     * @param acessInfo
+     * @param token
+     */
+    private void deleteAwsRoleOnCertificateDelete(String certificateName, Map<String,String> acessInfo, String token) {
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                put(LogMessage.ACTION, "deleteAwsRoleOnCertificateDelete").
+                put(LogMessage.MESSAGE, String.format ("Trying to delete AwsRole On Certificate [%s] delete", certificateName)).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                build()));
+        if(acessInfo!=null){
+            Set<String> roles = acessInfo.keySet();
+            for(String role : roles){
+                Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);
+                if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                            put(LogMessage.ACTION, "deleteAwsRoleOn CertificateDelete").
+                            put(LogMessage.MESSAGE, String.format ("%s, AWS Role is deleted as part of deleting certificate.", role)).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                            build()));
+                }else{
+                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                            put(LogMessage.ACTION, "deleteAwsRoleOnCertificateDelete").
+                            put(LogMessage.MESSAGE, String.format ("%s, AWS Role deletion as part of deleting certificate failed.", role)).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                            build()));
+                }
+            }
+        }
+    }
 
 
     /**
@@ -6558,10 +6643,10 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	 * @param certificateName
 	 * @return
 	 */
-	public Boolean validateCertOwnerPermissionForNonAdmin(UserDetails userDetails, String certificateName, String certType) {
+	public boolean validateCertOwnerPermissionForNonAdmin(UserDetails userDetails, String certificateName, String certType) {
 		String ownerPermissionCertName = (certType.equalsIgnoreCase("internal"))?
 				SSLCertificateConstants.OWNER_PERMISSION_CERTIFICATE + certificateName :SSLCertificateConstants.OWNER_PERMISSION_EXT_CERTIFICATE + certificateName;
-		Boolean isPermission = false;
+		boolean isPermission = false;
 		if (ArrayUtils.isNotEmpty(userDetails.getPolicies())) {
 			isPermission = Arrays.stream(userDetails.getPolicies()).anyMatch(ownerPermissionCertName::equals);
 			if (isPermission) {
