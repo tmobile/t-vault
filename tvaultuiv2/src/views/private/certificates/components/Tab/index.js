@@ -10,7 +10,6 @@ import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
-import mediaBreakpoints from '../../../../../breakpoints';
 import { useStateValue } from '../../../../../contexts/globalState';
 import apiService from '../../apiService';
 import CertificateInformation from '../CertificateInformation';
@@ -25,9 +24,6 @@ const TabPanelWrap = styled.div`
   height: 100%;
   margin: 0;
   padding-top: 1.3rem;
-  ${mediaBreakpoints.small} {
-    height: 77vh;
-  }
 `;
 
 const TabContentsWrap = styled('div')`

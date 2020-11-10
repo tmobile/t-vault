@@ -23,9 +23,12 @@ export const revokeToken = () => {
 };
 
 export const renewToken = () => {
-  return axios.get(`${config.url}/auth/tvault/renew`, {
-    headers: { 'vault-token': sessionStorage.getItem('token') },
-  });
+  if (sessionStorage.getItem('token')) {
+    return axios.get(`${config.url}/auth/tvault/renew`, {
+      headers: { 'vault-token': sessionStorage.getItem('token') },
+    });
+  }
+  return null;
 };
 
 export default {

@@ -10,10 +10,14 @@ import ButtonComponent from '../FormFields/ActionButton';
 import apiService from '../../views/private/safe/apiService';
 import LoaderSpinner from '../Loaders/LoaderSpinner';
 import RadioButtonComponent from '../FormFields/RadioButton';
-import { RequiredCircle, RequiredText } from '../../styles/GlobalStyles';
+import {
+  RequiredCircle,
+  RequiredText,
+  RequiredWrap,
+} from '../../styles/GlobalStyles';
 import TextFieldSelect from '../FormFields/TextFieldSelect';
 
-const { small } = mediaBreakpoints;
+const { small, smallAndMedium } = mediaBreakpoints;
 
 const PermissionWrapper = styled.div`
   padding: 1rem 4rem 4rem 4rem;
@@ -59,7 +63,7 @@ const InputWrapper = styled.div`
 const RadioButtonWrapper = styled.div`
   display: flex;
   justify-content: space-between;
-  ${small} {
+  ${smallAndMedium} {
     flex-direction: column;
   }
   fieldset {
@@ -70,6 +74,10 @@ const RadioButtonWrapper = styled.div`
 `;
 const CancelSaveWrapper = styled.div`
   display: flex;
+  ${smallAndMedium} {
+    align-self: flex-end;
+    margin-top: 3rem;
+  }
 `;
 
 const CancelButton = styled.div`
@@ -90,12 +98,6 @@ const customStyle = css`
   left: 50%;
   z-index: 2;
   transform: translate(-50%, -50%);
-`;
-
-const RequiredWrap = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
 `;
 
 const useStyles = makeStyles(() => ({

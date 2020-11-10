@@ -8,7 +8,7 @@ import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../../../breakpoints';
-import { SubHeading } from '../../../../../styles/GlobalStyles';
+import { RequiredCircle, SubHeading } from '../../../../../styles/GlobalStyles';
 import { ColorBackArrow } from '../../../../../assets/SvgIcons';
 
 const AddFolderNameWrapper = styled.div`
@@ -109,7 +109,10 @@ const AddFolder = (props) => {
           Add Folder
         </SubHeading>
         <FormWrapper>
-          <InputLabel required>Folder Name</InputLabel>
+          <InputLabel>
+            Folder Name
+            <RequiredCircle margin="0.5rem" />
+          </InputLabel>
           <TextFieldComponent
             placeholder="Add folder"
             onChange={(e) => handleChange(e)}

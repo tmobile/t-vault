@@ -4,7 +4,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import ReactHtmlParser from 'react-html-parser';
 import mediaBreakpoints from '../../breakpoints';
-import { TitleThree } from '../../styles/GlobalStyles';
+import { BackArrow } from '../../assets/SvgIcons';
 
 const ColumnHeader = styled('div')`
   display: flex;
@@ -14,12 +14,18 @@ const ColumnHeader = styled('div')`
   height: 17.1rem;
   padding: 2rem;
   .list-title-wrap {
-    width: 70%;
+    width: 62%;
     z-index: 2;
+    ${mediaBreakpoints.small} {
+      width: 70%;
+      margin-left: 11rem;
+      margin-bottom: 2rem;
+    }
   }
   ${mediaBreakpoints.small} {
     height: 18rem;
     padding: 1rem;
+    flex-direction: column;
   }
 `;
 const ListTitle = styled('h5')`
@@ -28,7 +34,46 @@ const ListTitle = styled('h5')`
   text-overflow: ellipsis;
   overflow: hidden;
   text-transform: capitalize;
+  ${mediaBreakpoints.medium} {
+    font-size: 1.8rem;
+  }
 `;
+
+const Description = styled.div`
+  font-size: 1.4rem;
+  color: #c4c4c4;
+  ${mediaBreakpoints.medium} {
+    font-size: 1.2rem;
+  }
+  ${mediaBreakpoints.small} {
+    font-size: 1.3rem;
+    p {
+      margin: 0;
+    }
+  }
+`;
+
+const BackButton = styled.div`
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: absolute;
+  top: 1.5rem;
+  left: 2rem;
+  span {
+    margin-left: 1rem;
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-transform: capitalize;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    ${mediaBreakpoints.small} {
+      width: 25rem;
+    }
+  }
+`;
+
 const HeaderBg = styled('div')`
   position: absolute;
   top: -0.8rem;
@@ -36,25 +81,36 @@ const HeaderBg = styled('div')`
   right: 0;
   bottom: 0;
   background: url(${(props) => props.bgImage || ''});
+  background-repeat: no-repeat;
+  background-size: cover;
+  ${mediaBreakpoints.medium} {
+    top: 0;
+  }
   ${mediaBreakpoints.small} {
     z-index: -1;
   }
 `;
 
 const ListDetailHeader = (props) => {
-  const { title, description, bgImage } = props;
+  const { title, description, bgImage, goBackToList } = props;
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
   return (
     <ColumnHeader>
       <HeaderBg bgImage={bgImage} />
+      {isMobileScreen ? (
+        <BackButton onClick={goBackToList}>
+          <BackArrow />
+          <span>{title}</span>
+        </BackButton>
+      ) : null}
       <div className="list-title-wrap">
-        {!isMobileScreen && <ListTitle>{title || 'No Title'}</ListTitle>}
-        <TitleThree color="#c4c4c4">
+        {!isMobileScreen && <ListTitle>{title}</ListTitle>}
+        <Description>
           {ReactHtmlParser(description) ||
             'Create a service to see your secrets, folders and permissions here'}
-        </TitleThree>
+        </Description>
       </div>
     </ColumnHeader>
   );
@@ -64,10 +120,12 @@ ListDetailHeader.propTypes = {
   title: PropTypes.string,
   description: PropTypes.string,
   bgImage: PropTypes.string,
+  goBackToList: PropTypes.func,
 };
 ListDetailHeader.defaultProps = {
   title: '',
   description: '',
   bgImage: '',
+  goBackToList: () => {},
 };
 export default ListDetailHeader;

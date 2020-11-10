@@ -22,6 +22,9 @@ const HeaderWrap = styled('header')`
   top: 0;
   width: 100%;
   z-index: 10;
+  ${smallAndMedium} {
+    box-shadow: 0 5px 15px 0 rgba(226, 0, 116, 0.5);
+  }
 `;
 const Container = styled.div`
   display: flex;
@@ -55,6 +58,9 @@ const MenuIcon = styled.img`
 
 const TVaultIcon = styled.img`
   margin-right: 5rem;
+  ${smallAndMedium} {
+    margin-right: 0;
+  }
 `;
 
 const HeaderCenter = styled.div`
@@ -77,7 +83,9 @@ const NavLink = styled(Link)`
   }
 `;
 
-const DocLinks = styled.div``;
+const DocLinks = styled.div`
+  display: flex;
+`;
 const ProfileIconWrap = styled('div')`
   display: flex;
   align-items: center;
@@ -176,6 +184,8 @@ const Header = (props) => {
                   navItems={navItems}
                   userName={userName}
                   checkToken={checkToken}
+                  EachLink={EachLink}
+                  DescriptionIcon={DescriptionIcon}
                 />
               </SwipeableDrawer>
             </>

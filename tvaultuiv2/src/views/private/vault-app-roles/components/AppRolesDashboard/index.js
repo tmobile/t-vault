@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-param-reassign */
@@ -17,6 +18,8 @@ import {
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { useStateValue } from '../../../../../contexts/globalState';
 import sectionHeaderBg from '../../../../../assets/approle_banner_img.png';
+import sectionTabHeaderBg from '../../../../../assets/tab-vaultbg.png';
+import sectionMobHeaderBg from '../../../../../assets/mob-vaultbg.png';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
@@ -48,9 +51,10 @@ const ColumnSection = styled('section')`
   background: ${(props) => props.backgroundColor || '#151820'};
 `;
 
-const RightColumnSection = styled(ColumnSection)`
+const RightColumnSection = styled.div`
   width: 59.23%;
   padding: 0;
+  background: none;
   background: linear-gradient(to top, #151820, #2c3040);
   ${mediaBreakpoints.small} {
     width: 100%;
@@ -139,6 +143,9 @@ const ListHeader = css`
   width: 22rem;
   text-transform: capitalize;
   font-weight: 600;
+  ${mediaBreakpoints.small} {
+    width: 19rem;
+  }
 `;
 
 const MobileViewForListDetailPage = css`
@@ -147,9 +154,10 @@ const MobileViewForListDetailPage = css`
   right: 0;
   left: 0;
   bottom: 0;
-  top: 7rem;
-  z-index: 1;
+  top: 0;
   overflow-y: auto;
+  max-height: 100%;
+  z-index: 20;
 `;
 const EmptyContentBox = styled('div')`
   width: 100%;
@@ -185,6 +193,7 @@ const AppRolesDashboard = () => {
   let scrollParentRef = null;
   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
   const history = useHistory();
   const location = useLocation();
   const introduction = Strings.Resources.appRoles;
@@ -564,7 +573,13 @@ const AppRolesDashboard = () => {
                     listItemDetails={listItemDetails}
                     params={routerProps}
                     backToLists={backToAppRoles}
-                    ListDetailHeaderBg={sectionHeaderBg}
+                    ListDetailHeaderBg={
+                      isTabScreen
+                        ? sectionTabHeaderBg
+                        : isMobileScreen
+                        ? sectionMobHeaderBg
+                        : sectionHeaderBg
+                    }
                     description={introduction}
                     renderContent={
                       <AppRoleDetails appRoleDetail={listItemDetails} />
@@ -579,7 +594,13 @@ const AppRolesDashboard = () => {
                     listItemDetails={appRoleList}
                     params={routerProps}
                     backToLists={backToAppRoles}
-                    ListDetailHeaderBg={sectionHeaderBg}
+                    ListDetailHeaderBg={
+                      isTabScreen
+                        ? sectionTabHeaderBg
+                        : isMobileScreen
+                        ? sectionMobHeaderBg
+                        : sectionHeaderBg
+                    }
                     description={introduction}
                   />
                 )}

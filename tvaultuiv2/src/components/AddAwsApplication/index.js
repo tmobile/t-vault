@@ -7,7 +7,13 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio from '@material-ui/core/Radio';
 import PropTypes from 'prop-types';
-import { SubHeading } from '../../styles/GlobalStyles';
+import {
+  LabelRequired,
+  RequiredCircle,
+  RequiredText,
+  RequiredWrap,
+  SubHeading,
+} from '../../styles/GlobalStyles';
 import TextFieldComponent from '../FormFields/TextField';
 import ButtonComponent from '../FormFields/ActionButton';
 import mediaBreakpoints from '../../breakpoints';
@@ -213,7 +219,17 @@ const AddAwsApplication = (props) => {
           Create AWS Configuration
         </SubHeading>
         <AuthWrapper>
-          <InputLabel required>AWS Authentication Type</InputLabel>
+          <LabelRequired>
+            <InputLabel>
+              AWS Authentication Type
+              <RequiredCircle margin="0.5rem" />
+            </InputLabel>
+            <RequiredWrap>
+              <RequiredCircle />
+              <RequiredText>Required</RequiredText>
+            </RequiredWrap>
+          </LabelRequired>
+
           <RadioGroup
             row
             aria-label="awsauthentication"
@@ -233,7 +249,10 @@ const AddAwsApplication = (props) => {
             />
           </RadioGroup>
         </AuthWrapper>
-        <InputLabel required>Role Name</InputLabel>
+        <InputLabel>
+          Role Name
+          <RequiredCircle margin="0.5rem" />
+        </InputLabel>
         <TextFieldComponent
           value={roleName}
           placeholder="Role name- Enter min 3 charactes"
@@ -328,7 +347,10 @@ const AddAwsApplication = (props) => {
             />
           </EachInputField>
           <EachInputField>
-            <InputLabel required>IAM Principal ARN</InputLabel>
+            <InputLabel>
+              IAM Principal ARN
+              <RequiredCircle margin="0.5rem" />
+            </InputLabel>
             <TextFieldComponent
               value={iamPrincipalArn}
               placeholder="IAM Principal ARN"
@@ -342,7 +364,10 @@ const AddAwsApplication = (props) => {
           </EachInputField>
         </InputAwsWrapper>
         <RadioWrapper>
-          <InputLabel required>Permission</InputLabel>
+          <InputLabel>
+            Permission
+            <RequiredCircle margin="0.5rem" />
+          </InputLabel>
           <RadioButtonComponent
             menu={
               isSvcAccount
@@ -359,7 +384,6 @@ const AddAwsApplication = (props) => {
               label="Cancel"
               color="primary"
               onClick={() => handleCancelClick()}
-              width={isMobileScreen ? '100%' : ''}
             />
           </CancelButton>
           <ButtonComponent
@@ -368,7 +392,6 @@ const AddAwsApplication = (props) => {
             icon="add"
             disabled={disabledSave}
             onClick={() => onCreateClicked()}
-            width={isMobileScreen ? '100%' : ''}
           />
         </CancelSaveWrapper>
       </ContainerWrapper>
