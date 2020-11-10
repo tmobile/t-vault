@@ -503,8 +503,6 @@ const SafeDashboard = () => {
   };
   return (
     <ComponentError>
-      {console.log('INSIDE SAFES')}
-      {/* {alert('Safe')} */}
       <>
         <ConfirmationModal
           open={openConfirmationModal}
