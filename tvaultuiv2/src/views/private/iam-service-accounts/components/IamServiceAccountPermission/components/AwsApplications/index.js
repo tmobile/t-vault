@@ -92,8 +92,9 @@ const AwsApplications = (props) => {
   const constructPayload = (role, access) => {
     const data = {
       access: checkAccess(access),
+      awsAccountId: accountDetail.iamAccountId,
       rolename: role,
-      svcAccName: accountDetail.name,
+      iamSvcAccName: accountDetail.name,
     };
     return data;
   };

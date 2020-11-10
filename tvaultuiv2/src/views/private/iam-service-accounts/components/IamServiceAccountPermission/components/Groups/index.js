@@ -171,8 +171,9 @@ const Groups = (props) => {
     setResponse({ status: 'loading' });
     const payload = {
       access: checkAccess(access),
+      awsAccountId: accountDetail.iamAccountId,
       groupname,
-      svcAccName: accountDetail.name,
+      iamSvcAccName: accountDetail.name,
     };
     apiService
       .deleteGroupPermission(payload)

@@ -145,7 +145,7 @@ const IamServiceAccountPermission = (props) => {
                   />
                   <PermissionTabsWrapper>
                     <TabPanel value={value} index={0}>
-                      {/* <Users
+                      <Users
                         accountDetail={accountDetail}
                         newPermission={newPermission}
                         onNewPermissionChange={() => setNewUser(false)}
@@ -154,7 +154,7 @@ const IamServiceAccountPermission = (props) => {
                         updateToastMessage={(res, message) =>
                           updateToastMessage(res, message)
                         }
-                      /> */}
+                      />
                     </TabPanel>
                     <TabPanel value={value} index={1}>
                       <Groups
@@ -212,7 +212,7 @@ const IamServiceAccountPermission = (props) => {
                 </TabWrapper>
               </>
             ) : (
-              <NoPermission>Please activate the service account</NoPermission>
+              <NoPermission>Please activate the iam service account</NoPermission>
             )}
           </>
         )}

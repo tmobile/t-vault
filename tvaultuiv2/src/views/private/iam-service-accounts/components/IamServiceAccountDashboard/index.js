@@ -190,23 +190,23 @@ const IamServiceAccountDashboard = () => {
   const [isLoading] = useState(false);
   const [iamServiceAccountList, setIamServiceAccountList] = useState([]);
   const [status, setStatus] = useState({});
-  const [getResponse, setGetResponse] = useState({});
-  const [allIamServiceAccountList, setAllIamServiceAccountList] = useState([]);
+  const [getResponse, setGetResponse] = useState(null);
+  //   const [allIamServiceAccountList, setAllIamServiceAccountList] = useState([]);
   const [
     selectedIamServiceAccountDetails,
     setSelectedIamServiceAccountDetails,
   ] = useState(null);
   const [viewDetails, setViewDetails] = useState(false);
 
-  const [state, dispatch] = useStateValue();
+  const [state] = useStateValue();
   let scrollParentRef = null;
   // const classes = useStyles();
   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
-  const location = useLocation();
+  //   const location = useLocation();
 
-  const introduction = Strings.Resources.iamServiceAccount;
+  const introduction = Strings.Resources.iamServiceAccountDesc;
 
   /**
    * @function fetchData
@@ -221,11 +221,15 @@ const IamServiceAccountDashboard = () => {
     allApiResponse
       .then((response) => {
         const listArray = [];
+        console.log('ddd', response[0]?.data);
         if (response[0] && response[0].data && response[0].data.iamsvcacc) {
           response[0].data.iamsvcacc.map((item) => {
+            // const svcName = Object.keys(item)[0].split('_').shift().join('');
+
             const data = {
-              name: item,
-              iamAccountId: item.split('_')[0],
+              name: Object.keys(item)[0],
+              iamAccountId: Object.keys(item)[0].split('_')[0],
+              //   access: Object.values(item)[0],
             };
             return listArray.push(data);
           });
@@ -236,6 +240,7 @@ const IamServiceAccountDashboard = () => {
               name: svcitem.userName,
               iamAccountId: svcitem.accountID,
             };
+            // if(listArray.filter((svc)=>svc.userName===))
             return listArray.push(data);
           });
         }
@@ -243,9 +248,10 @@ const IamServiceAccountDashboard = () => {
         setStatus({});
         setGetResponse(1);
       })
-      .catch(() => {
+      .catch((err) => {
         setStatus({ status: 'failed', message: 'failed' });
         setGetResponse(-1);
+        debugger;
       });
   }, []);
 
@@ -301,8 +307,7 @@ const IamServiceAccountDashboard = () => {
     apiService
       .fetchIamServiceAccountDetails(svcname)
       .then((res) => {
-        getResponse(1);
-        console.log('resss', res);
+        setGetResponse(1);
         setSelectedIamServiceAccountDetails(res?.data);
       })
       .catch((err) => {
@@ -322,8 +327,8 @@ const IamServiceAccountDashboard = () => {
   };
 
   useEffect(() => {
-    if (allIamServiceAccountList?.length > 0) {
-      allIamServiceAccountList.map((item) => {
+    if (iamServiceAccountList?.length > 0) {
+      iamServiceAccountList.map((item) => {
         if (
           history.location.pathname === `/iam-service-accounts/${item.name}`
         ) {
@@ -332,7 +337,7 @@ const IamServiceAccountDashboard = () => {
         return null;
       });
     }
-  }, [allIamServiceAccountList, listItemDetails, history]);
+  }, [iamServiceAccountList, listItemDetails, history]);
 
   // Infine scroll load more data
   const loadMoreData = () => {};
@@ -399,7 +404,7 @@ const IamServiceAccountDashboard = () => {
             <ColumnHeader>
               <div style={{ margin: '0 1rem' }}>
                 <TitleOne extraCss={ListHeader}>
-                  {`Service Accounts (${iamServiceAccountList?.length})`}
+                  {`IAM Service Accounts (${iamServiceAccountList?.length})`}
                 </TitleOne>
               </div>
               <SearchWrap>
@@ -511,7 +516,7 @@ const IamServiceAccountDashboard = () => {
                 path="/iam-service-accounts"
                 render={(routerProps) => (
                   <ListItemDetail
-                    listItemDetails={iamServiceAccountList}
+                    listItemDetails={listItemDetails}
                     params={routerProps}
                     backToLists={backToIamServiceAccounts}
                     ListDetailHeaderBg={sectionHeaderBg}

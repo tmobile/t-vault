@@ -82,7 +82,8 @@ const ViewIamServiceAccount = (props) => {
   const rotateSecret = () => {
     setOpenModal({
       status: 'open',
-      message: 'IAM Service Account Paaword Rotation!',
+      message: 'Confirmation!',
+      description: 'Are you sure, You want to rotate the passoword?',
     });
   };
   /**
@@ -130,7 +131,6 @@ const ViewIamServiceAccount = (props) => {
               timeout: 500,
             }}
           >
-            {/* {console.log('iamSvcAccountData', iamServiceAccountDetails)} */}
             <Fade in={open}>
               {!iamServiceAccountDetails ? (
                 <LoaderSpinner customStyle={loaderStyle} />

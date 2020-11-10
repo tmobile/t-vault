@@ -17,27 +17,28 @@ const resetIamServiceAccountPassword = (svcName, payload) =>
 
 // API call for users permission
 const addUserPermission = (payload) =>
-  api.post('/serviceaccounts/user', payload);
+  api.post('/iamserviceaccounts/user', payload);
 
 const deleteUserPermission = (payload) =>
-  api.delete('/serviceaccounts/user', payload);
+  api.delete('/iamserviceaccounts/user', payload);
 
 // Api call for groups permission
 const addGroupPermission = (payload) =>
-  api.post('/serviceaccounts/group', payload);
+  api.post('/iamserviceaccounts/group', payload);
 const deleteGroupPermission = (payload) =>
-  api.delete('/serviceaccounts/group', payload);
+  api.delete('/iamserviceaccounts/group', payload);
 
 // Api call for aws application permission
 const addAwsPermission = (url, payload) => api.post(url, payload);
-const addAwsRole = (payload) => api.post('/serviceaccounts/role', payload);
-const deleteAwsRole = (payload) => api.delete('/serviceaccounts/role', payload);
+const addAwsRole = (payload) => api.post('/iamserviceaccounts/role', payload);
+const deleteAwsRole = (payload) =>
+  api.delete('/iamserviceaccounts/role', payload);
 
 // Api call for app roles permission
 const addAppRolePermission = (payload) =>
-  api.post('/serviceaccounts/approle', payload);
+  api.post('/iamserviceaccounts/approle', payload);
 const deleteAppRolePermission = (payload) =>
-  api.delete('/serviceaccounts/approle', payload);
+  api.delete('/iamserviceaccounts/approle', payload);
 
 //get user details
 const getUserDetails = (user) =>

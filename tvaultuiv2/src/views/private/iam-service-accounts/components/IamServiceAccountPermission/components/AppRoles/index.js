@@ -93,7 +93,8 @@ const AppRoles = (props) => {
     const data = {
       access: checkAccess(access),
       approlename: role,
-      svcAccName: accountDetail.name,
+      awsAccountId: accountDetail.iamAccountId,
+      iamSvcAccName: accountDetail.name,
     };
     return data;
   };

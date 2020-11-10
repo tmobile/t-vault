@@ -137,24 +137,15 @@ const AccountSelectionTabs = (props) => {
   const fetchPermission = useCallback(() => {
     setResponse({ status: 'loading' });
     return apiService
-      .updateMetaPath(accountDetail.name)
+      .fetchIamServiceAccountDetails(accountDetail.name)
       .then((res) => {
         if (res.data && res.data.data) {
           setResponse({ status: 'success' });
           if (
-            res.data.data.managedBy.toLowerCase() ===
-            state.username.toLowerCase()
+            res.data.owner_ntid.toLowerCase() === state.username.toLowerCase()
           ) {
             setDisabledPermission(false);
-            if (res.data.data.initialPasswordReset) {
-              setHasSvcAccountAcitve(true);
-              setAccountMetaData({ response: { ...res.data.data }, error: '' });
-            } else {
-              setHasSvcAccountAcitve(false);
-            }
-          } else {
-            setValue(0);
-            setDisabledPermission(true);
+            setAccountMetaData({ response: { ...res.data }, error: '' });
           }
         }
       })
@@ -170,7 +161,7 @@ const AccountSelectionTabs = (props) => {
     setHasSvcAccountAcitve(false);
     if (accountDetail?.name) {
       fetchPermission();
-      getSecrets();
+    //   getSecrets();
     }
   }, [accountDetail, fetchPermission, getSecrets]);
 

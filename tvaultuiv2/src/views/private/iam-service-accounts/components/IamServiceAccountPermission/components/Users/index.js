@@ -148,8 +148,9 @@ const Users = (props) => {
   const onSubmit = async (username, access) => {
     const value = {
       access: checkAccess(access),
-      svcAccName: `${accountDetail.name}`,
+      awsAccountId: `${accountDetail.iamAccountId}`,
       username: username.toLowerCase(),
+      iamSvcAccName: `${accountDetail.name}`,
     };
     try {
       await onSaveClicked(value);
