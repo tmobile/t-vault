@@ -14,10 +14,13 @@ const ColumnHeader = styled('div')`
   height: 17.1rem;
   padding: 2rem;
   .list-title-wrap {
-    width: 70%;
+    width: 62%;
     z-index: 2;
-    margin-left: 9rem;
-    margin-bottom: 3rem;
+    ${mediaBreakpoints.small} {
+      width: 70%;
+      margin-left: 11rem;
+      margin-bottom: 2rem;
+    }
   }
   ${mediaBreakpoints.small} {
     height: 18rem;
@@ -42,24 +45,35 @@ const Description = styled.div`
   ${mediaBreakpoints.medium} {
     font-size: 1.2rem;
   }
-  ${mediaBreakpoints.medium} {
+  ${mediaBreakpoints.small} {
     font-size: 1.3rem;
+    p {
+      margin: 0;
+    }
   }
 `;
 
 const BackButton = styled.div`
   display: flex;
   align-items: center;
-  padding: 2rem 0 0 2rem;
   cursor: pointer;
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 1.5rem;
+  left: 2rem;
   span {
     margin-left: 1rem;
+    font-size: 1.8rem;
+    font-weight: bold;
     text-transform: capitalize;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    ${mediaBreakpoints.small} {
+      width: 25rem;
+    }
   }
 `;
+
 const HeaderBg = styled('div')`
   position: absolute;
   top: -0.8rem;
@@ -68,6 +82,7 @@ const HeaderBg = styled('div')`
   bottom: 0;
   background: url(${(props) => props.bgImage || ''});
   background-repeat: no-repeat;
+  background-size: cover;
   ${mediaBreakpoints.medium} {
     top: 0;
   }
@@ -77,7 +92,7 @@ const HeaderBg = styled('div')`
 `;
 
 const ListDetailHeader = (props) => {
-  const { title, description, bgImage, goBackToSafeList } = props;
+  const { title, description, bgImage, goBackToList } = props;
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
@@ -85,7 +100,7 @@ const ListDetailHeader = (props) => {
     <ColumnHeader>
       <HeaderBg bgImage={bgImage} />
       {isMobileScreen ? (
-        <BackButton onClick={goBackToSafeList}>
+        <BackButton onClick={goBackToList}>
           <BackArrow />
           <span>{title}</span>
         </BackButton>
@@ -105,12 +120,12 @@ ListDetailHeader.propTypes = {
   title: PropTypes.string,
   description: PropTypes.string,
   bgImage: PropTypes.string,
-  goBackToSafeList: PropTypes.func,
+  goBackToList: PropTypes.func,
 };
 ListDetailHeader.defaultProps = {
   title: '',
   description: '',
   bgImage: '',
-  goBackToSafeList: () => {},
+  goBackToList: () => {},
 };
 export default ListDetailHeader;

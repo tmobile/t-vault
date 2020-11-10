@@ -63,7 +63,7 @@ const SafeDetails = (props) => {
               ? sectionTabHeaderBg
               : sectionHeaderBg
           }
-          goBackToSafeList={goBackToSafeList}
+          goBackToList={goBackToSafeList}
         />
         {renderContent}
       </Section>

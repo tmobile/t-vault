@@ -11,7 +11,10 @@ import mediaBreakPoint from '../../../../../breakpoints';
 
 const DetailsContainer = styled.section`
   background-image: linear-gradient(to bottom, #151820, #2c3040);
-  height: calc(100% - 15.2rem);
+  height: calc(100% - 17.1rem);
+  ${mediaBreakPoint.smallAndMedium} {
+    height: calc(100% - 17.1rem);
+  }
   ${mediaBreakPoint.small} {
     height: auto;
   }

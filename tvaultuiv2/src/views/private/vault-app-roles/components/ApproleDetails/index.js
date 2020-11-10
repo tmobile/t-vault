@@ -31,9 +31,6 @@ const TabPanelWrap = styled.div`
   height: 100%;
   margin: 0;
   padding-top: 1.3rem;
-  ${mediaBreakpoints.small} {
-    height: 77vh;
-  }
 `;
 
 const TabContentsWrap = styled('div')`
@@ -368,7 +365,11 @@ const AppRoleDetails = (props) => {
             indicatorColor="secondary"
             textColor="primary"
           >
-            <Tab className={classes.tab} label="Accessor IDs" {...a11yProps(0)} />
+            <Tab
+              className={classes.tab}
+              label="Accessor IDs"
+              {...a11yProps(0)}
+            />
           </Tabs>
           <NamedButton
             label="+Create SecretId"
