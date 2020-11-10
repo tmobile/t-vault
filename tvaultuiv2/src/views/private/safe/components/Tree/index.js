@@ -1,10 +1,8 @@
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-nested-ternary */
-/* eslint-disable consistent-return */
 /* eslint-disable react/jsx-curly-newline */
-/* eslint-disable array-callback-return */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
 
 import {
@@ -18,7 +16,6 @@ import TreeRecursive from './components/TreeRecursive';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
-import mediaBreakpoints from '../../../../../breakpoints';
 import apiService from '../../apiService';
 
 const StyledTree = styled.div`
@@ -40,7 +37,7 @@ const Tree = (props) => {
   const [status, setStatus] = useState({});
   const [secretprefilledData, setSecretprefilledData] = useState({});
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+
   const [deletePath, setDeleteItem] = useState({});
   // set inital tree data structure
   const setTreeData = (treeData) => {
@@ -351,24 +348,20 @@ const Tree = (props) => {
         )}
         <ConfirmationModal
           open={deleteModalOpen}
-          title="confirmation"
-          description={`Are you sure you want to delete this secret? `}
+          title="Confirmation"
+          description="Are you sure you want to delete this secret?"
           cancelButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
               label="Cancel"
               color="primary"
               onClick={() => handleDeleteModalClose()}
-              width={isMobileScreen ? '100%' : '38%'}
             />
           }
           confirmButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
               label="Confirm"
               color="secondary"
               onClick={() => deleteTreeItem(deletePath)}
-              width={isMobileScreen ? '100%' : '38%'}
             />
           }
         />

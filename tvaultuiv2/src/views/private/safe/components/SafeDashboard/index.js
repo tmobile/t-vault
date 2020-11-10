@@ -3,7 +3,6 @@
 /* eslint-disable no-param-reassign */
 import React, { useState, useEffect, useCallback, lazy } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import InfiniteScroll from 'react-infinite-scroller';
 import { Link, Route, Switch, Redirect, useHistory } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -32,6 +31,10 @@ import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import EditDeletePopper from '../EditDeletePopper';
 import SelectWithCountComponent from '../../../../../components/FormFields/SelectWithCount';
+import {
+  ListContainer,
+  StyledInfiniteScroll,
+} from '../../../../../styles/GlobalStyles/listingStyle';
 
 const CreateSafe = lazy(() => import('../../CreateSafe'));
 
@@ -49,12 +52,9 @@ const RightColumnSection = styled(ColumnSection)`
     display: ${(props) => (props.clicked ? 'block' : 'none')};
     position: fixed;
     top: 0;
-    overflow-y: scroll;
-    ::-webkit-scrollbar-track {
-      -webkit-box-shadow: none !important;
-      background-color: transparent;
-    }
+    overflow-y: auto;
     max-height: 100%;
+    z-index: 20;
   }
 `;
 const LeftColumnSection = styled(ColumnSection)`
@@ -75,25 +75,6 @@ const ColumnHeader = styled('div')`
   padding: 0.5em;
   justify-content: space-between;
   border-bottom: 0.1rem solid #1d212c;
-`;
-const StyledInfiniteScroll = styled(InfiniteScroll)`
-  width: 100%;
-  max-height: 61vh;
-  ${mediaBreakpoints.small} {
-    max-height: 78vh;
-  }
-`;
-
-const SafeListContainer = styled.div`
-  overflow-y: auto;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  ::-webkit-scrollbar-track {
-    -webkit-box-shadow: none !important;
-    background-color: transparent;
-  }
 `;
 
 const NoDataWrapper = styled.div`
@@ -186,7 +167,7 @@ const useStyles = makeStyles(() => ({
     textTransform: 'uppercase',
     color: '#fff',
     fontWeight: 'bold',
-    width: '22rem',
+    maxWidth: '23rem',
     marginRight: '2.5rem',
     '& .Mui-selected': {
       color: 'red',
@@ -230,6 +211,7 @@ const SafeDashboard = () => {
   };
   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const isTabAndMobScreen = useMediaQuery(mediaBreakpoints.smallAndMedium);
   const history = useHistory();
 
   /**
@@ -333,7 +315,7 @@ const SafeDashboard = () => {
       );
       setSelectedSafeDetails(activeSafeDetail[0]);
     }
-  }, [allSafeList, safes, history.location.pathname, safeList]);
+  }, [allSafeList, safes, history, safeList]);
 
   /**
    * @function onSearchChange
@@ -498,7 +480,7 @@ const SafeDashboard = () => {
             listIconStyles={listIconStyles}
           />
           <BorderLine />
-          {safe.name && safe.manage && !isMobileScreen ? (
+          {safe.name && safe.manage && !isTabAndMobScreen ? (
             <PopperWrap onClick={(e) => onActionClicked(e)}>
               <PsudoPopper
                 onDeleteSafeClicked={(e) => onDeleteSafeClicked(e, safe.path)}
@@ -507,7 +489,7 @@ const SafeDashboard = () => {
               />
             </PopperWrap>
           ) : null}
-          {isMobileScreen && safe.manage && (
+          {isTabAndMobScreen && safe.manage && (
             <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
               <EditDeletePopper
                 onDeleteClicked={(e) => onDeleteSafeClicked(e, safe.path)}
@@ -540,7 +522,6 @@ const SafeDashboard = () => {
               label="Confirm"
               color="secondary"
               onClick={() => onDeleteSafeConfirmClicked()}
-              width={isMobileScreen ? '100%' : '38%'}
             />
           }
         />
@@ -576,7 +557,7 @@ const SafeDashboard = () => {
               </EmptySecretBox>
             )}
             {safeList && safeList.length > 0 ? (
-              <SafeListContainer ref={(ref) => (scrollParentRef = ref)}>
+              <ListContainer ref={(ref) => (scrollParentRef = ref)}>
                 <StyledInfiniteScroll
                   pageStart={0}
                   loadMore={() => {
@@ -590,7 +571,7 @@ const SafeDashboard = () => {
                 >
                   {renderSafes()}
                 </StyledInfiniteScroll>
-              </SafeListContainer>
+              </ListContainer>
             ) : (
               safeList?.length === 0 &&
               status.status === 'success' && (
@@ -670,7 +651,10 @@ const SafeDashboard = () => {
                     goodToRoute={goodToRoute}
                     refresh={fetchData}
                     renderContent={
-                      <SelectionTabs safeDetail={selectedSafeDetails} refresh={fetchData} />
+                      <SelectionTabs
+                        safeDetail={selectedSafeDetails}
+                        refresh={fetchData}
+                      />
                     }
                   />
                 )}

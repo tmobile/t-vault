@@ -22,7 +22,17 @@ export const revokeToken = () => {
     .catch((e) => console.log('e', e));
 };
 
+export const renewToken = () => {
+  if (sessionStorage.getItem('token')) {
+    return axios.get(`${config.url}/auth/tvault/renew`, {
+      headers: { 'vault-token': sessionStorage.getItem('token') },
+    });
+  }
+  return null;
+};
+
 export default {
   getUniMessage,
   revokeToken,
+  renewToken,
 };

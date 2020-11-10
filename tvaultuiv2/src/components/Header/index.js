@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
+import DescriptionIcon from '@material-ui/icons/Description';
 import { withRouter, Link as RRDLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Link from '@material-ui/core/Link';
@@ -21,6 +22,9 @@ const HeaderWrap = styled('header')`
   top: 0;
   width: 100%;
   z-index: 10;
+  ${smallAndMedium} {
+    box-shadow: 0 5px 15px 0 rgba(226, 0, 116, 0.5);
+  }
 `;
 const Container = styled.div`
   display: flex;
@@ -54,6 +58,9 @@ const MenuIcon = styled.img`
 
 const TVaultIcon = styled.img`
   margin-right: 5rem;
+  ${smallAndMedium} {
+    margin-right: 0;
+  }
 `;
 
 const HeaderCenter = styled.div`
@@ -76,7 +83,9 @@ const NavLink = styled(Link)`
   }
 `;
 
-const DocLinks = styled.div``;
+const DocLinks = styled.div`
+  display: flex;
+`;
 const ProfileIconWrap = styled('div')`
   display: flex;
   align-items: center;
@@ -89,7 +98,12 @@ const EachLink = styled.a`
   margin: 0 1rem;
   color: #fff;
   font-size: 1.4rem;
-  ${(props) => props.styles}
+  display: flex;
+  align-items: center;
+  text-decoration: ${(props) => props.decoration};
+  svg {
+    margin-right: 0.5rem;
+  }
 `;
 
 const useStyles = makeStyles(() => ({
@@ -136,7 +150,9 @@ const Header = (props) => {
     const loggedIn = sessionStorage.getItem('token');
     if (loggedIn) {
       setIsLogin(true);
-      setUserName(sessionStorage.getItem('username'));
+      const name = sessionStorage.getItem('displayName');
+      const str = name.split(',');
+      setUserName(`${str[1]} ${str[0]}` || 'User');
     } else {
       setIsLogin(false);
     }
@@ -169,6 +185,8 @@ const Header = (props) => {
                   navItems={navItems}
                   userName={userName}
                   checkToken={checkToken}
+                  EachLink={EachLink}
+                  DescriptionIcon={DescriptionIcon}
                 />
               </SwipeableDrawer>
             </>
@@ -213,7 +231,11 @@ const Header = (props) => {
                 <EachLink
                   href="https://docs.corporate.t-mobile.com/t-vault/introduction/"
                   target="_blank"
+                  decoration="none"
                 >
+                  <DescriptionIcon
+                    style={{ fill: '#c4c4c4', width: '2rem', height: '2rem' }}
+                  />
                   Documentation
                 </EachLink>
                 <UserLogout userName={userName} checkToken={checkToken} />

@@ -15,10 +15,6 @@ import mediaBreakpoints from '../../../../../breakpoints';
 const SecretsContainer = styled('div')`
   height: 100%;
   overflow: auto;
-  ::-webkit-scrollbar-track {
-    -webkit-box-shadow: none !important;
-    background-color: transparent;
-  }
 `;
 const EmptySecretBox = styled('div')`
   width: 100%;

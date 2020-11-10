@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect, useCallback } from 'react';
@@ -12,6 +13,8 @@ import {
 } from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import sectionHeaderBg from '../../../../../assets/certificate-banner.svg';
+import sectionMobHeaderBg from '../../../../../assets/mob-certbg.png';
+import sectionTabHeaderBg from '../../../../../assets/tab-certbg.png';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
@@ -30,6 +33,10 @@ import CreateCertificates from '../../CreateCertificates';
 import LeftColumn from './components/LeftColumn';
 import { useStateValue } from '../../../../../contexts/globalState';
 import SelectWithCountComponent from '../../../../../components/FormFields/SelectWithCount';
+import {
+  ListContainer,
+  ListContent,
+} from '../../../../../styles/GlobalStyles/listingStyle';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -65,25 +72,6 @@ const ColumnHeader = styled('div')`
   justify-content: space-between;
   border-bottom: 0.1rem solid #1d212c;
 `;
-const ListContent = styled.div`
-  width: 100%;
-  max-height: 61vh;
-  ${mediaBreakpoints.small} {
-    max-height: 78vh;
-  }
-`;
-
-const ListContainer = styled.div`
-  overflow: auto;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  ::-webkit-scrollbar-track {
-    -webkit-box-shadow: none !important;
-    background-color: transparent;
-  }
-`;
 
 const NoDataWrapper = styled.div`
   height: 61vh;
@@ -107,7 +95,7 @@ const FloatBtnWrapper = styled('div')`
   position: absolute;
   bottom: 3rem;
   right: 2.5rem;
-  z-index:1;
+  z-index: 1;
 `;
 
 const SearchWrap = styled.div`
@@ -119,14 +107,12 @@ const MobileViewForListDetailPage = css`
   display: flex;
   right: 0;
   left: 0;
-  bottom: 0;
-  top: 7rem;
-  z-index: 1;
   overflow-y: auto;
-  ::-webkit-scrollbar-track {
-    -webkit-box-shadow: none !important;
-    background-color: transparent;
-  }
+  max-height: 100%;
+  z-index: 20;
+  bottom: 0;
+  top: 0;
+  overflow-y: auto;
 `;
 const EmptyContentBox = styled('div')`
   width: 100%;
@@ -152,7 +138,7 @@ const useStyles = makeStyles((theme) => ({
     textTransform: 'uppercase',
     color: '#fff',
     fontWeight: 'bold',
-    maxWidth: '22rem',
+    maxWidth: '28rem',
     marginRight: '2.5rem',
     [theme.breakpoints.down('sm')]: {
       maxWidth: '16rem',
@@ -187,6 +173,8 @@ const CertificatesDashboard = () => {
   const history = useHistory();
   const location = useLocation();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const isTabAndMobileScreen = useMediaQuery(mediaBreakpoints.smallAndMedium);
+  const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
   const [state] = useStateValue();
   const admin = Boolean(state?.isAdmin);
 
@@ -569,7 +557,7 @@ const CertificatesDashboard = () => {
         onEditListItemClicked={(cert) => onEditListItemClicked(cert)}
         onDeleteCertificateClicked={(cert) => onDeleteCertificateClicked(cert)}
         onTransferOwnerClicked={(cert) => onTransferOwnerClicked(cert)}
-        isMobileScreen={isMobileScreen}
+        isTabAndMobileScreen={isTabAndMobileScreen}
         history={history}
         certificateList={certificateList}
       />
@@ -705,7 +693,13 @@ const CertificatesDashboard = () => {
                 render={() => (
                   <CertificateItemDetail
                     backToLists={backToCertificates}
-                    ListDetailHeaderBg={sectionHeaderBg}
+                    ListDetailHeaderBg={
+                      isTabScreen
+                        ? sectionTabHeaderBg
+                        : isMobileScreen
+                        ? sectionMobHeaderBg
+                        : sectionHeaderBg
+                    }
                     name={ListItemDetails.certificateName}
                     renderContent={
                       <CertificatesReviewDetails
@@ -719,7 +713,13 @@ const CertificatesDashboard = () => {
                 path="/certificates"
                 render={() => (
                   <CertificateItemDetail
-                    ListDetailHeaderBg={sectionHeaderBg}
+                    ListDetailHeaderBg={
+                      isTabScreen
+                        ? sectionTabHeaderBg
+                        : isMobileScreen
+                        ? sectionMobHeaderBg
+                        : sectionHeaderBg
+                    }
                     owner={ListItemDetails.certOwnerEmailId}
                     container={ListItemDetails.containerName}
                     renderContent={

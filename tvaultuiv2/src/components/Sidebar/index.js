@@ -12,20 +12,21 @@ const SideMenuWrapper = styled.div`
 `;
 
 const BannerCloseWrap = styled.div`
-  display: flex;
-  align-item: center;
-  justify-content: space-between;
-  padding: 4rem 3rem 5.5rem 4rem;
+  padding: 4rem;
 `;
 
 const Logo = styled.img``;
 
-const Close = styled.img``;
+const Close = styled.img`
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  cursor: pointer;
+`;
 
 const NavItems = styled.div`
   display: flex;
   flex-direction: column;
-  margin: 2rem 0;
 `;
 
 const NavLink = styled(Link)`
@@ -40,19 +41,25 @@ const NavLink = styled(Link)`
 `;
 
 const ProfileIconWrap = styled('div')`
-  display: flex;
-  align-items: center;
-  padding-left: 4rem;
+  padding-left: 3rem;
   padding-top: 2rem;
 `;
 
 const Sidebar = (props) => {
-  const { onClose, navItems, location, userName, checkToken } = props;
+  const {
+    onClose,
+    navItems,
+    location,
+    userName,
+    checkToken,
+    DescriptionIcon,
+    EachLink,
+  } = props;
   return (
     <SideMenuWrapper>
+      <Close src={close} alt="close" onClick={onClose} />
       <BannerCloseWrap>
         <Logo src={banner} alt="banner" />
-        <Close src={close} alt="close" onClick={onClose} />
       </BannerCloseWrap>
       <NavItems>
         {navItems &&
@@ -67,6 +74,16 @@ const Sidebar = (props) => {
           ))}
       </NavItems>
       <ProfileIconWrap>
+        <EachLink
+          href="https://docs.corporate.t-mobile.com/t-vault/introduction/"
+          target="_blank"
+          decoration="none"
+        >
+          <DescriptionIcon
+            style={{ fill: '#c4c4c4', width: '2rem', height: '2rem' }}
+          />
+          Documentation
+        </EachLink>
         <UserLogout userName={userName} checkToken={checkToken} />
       </ProfileIconWrap>
     </SideMenuWrapper>
@@ -79,5 +96,7 @@ Sidebar.propTypes = {
   location: PropTypes.objectOf(PropTypes.any).isRequired,
   userName: PropTypes.string.isRequired,
   checkToken: PropTypes.func.isRequired,
+  DescriptionIcon: PropTypes.objectOf(PropTypes.any).isRequired,
+  EachLink: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 export default withRouter(Sidebar);

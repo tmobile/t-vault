@@ -13,9 +13,13 @@ import ButtonComponent from '../FormFields/ActionButton';
 import apiService from '../../views/private/safe/apiService';
 import LoaderSpinner from '../Loaders/LoaderSpinner';
 import RadioButtonComponent from '../FormFields/RadioButton';
-import { RequiredCircle, RequiredText } from '../../styles/GlobalStyles';
+import {
+  InstructionText,
+  RequiredCircle,
+  RequiredText,
+} from '../../styles/GlobalStyles';
 
-const { small } = mediaBreakpoints;
+const { small, smallAndMedium } = mediaBreakpoints;
 
 const PermissionWrapper = styled.div`
   padding: 1rem 4rem 4rem 4rem;
@@ -52,20 +56,10 @@ const InputWrapper = styled.div`
     align-items: center;
   }
 `;
-const InstructionText = styled.p`
-  margin-top: 1.4rem;
-  color: #bbbbbb;
-  font-size: 1.2rem;
-  margin-bottom: 0rem;
-  ${small} {
-    font-size: 1.3rem;
-    opacity: 0.4;
-  }
-`;
 const RadioButtonWrapper = styled.div`
   display: flex;
   justify-content: space-between;
-  ${small} {
+  ${smallAndMedium} {
     flex-direction: column;
   }
   fieldset {
@@ -76,6 +70,10 @@ const RadioButtonWrapper = styled.div`
 `;
 const CancelSaveWrapper = styled.div`
   display: flex;
+  ${smallAndMedium} {
+    align-self: flex-end;
+    margin-top: 3rem;
+  }
 `;
 
 const CancelButton = styled.div`

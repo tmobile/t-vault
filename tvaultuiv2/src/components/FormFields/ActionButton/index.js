@@ -19,6 +19,7 @@ const styles = (props) => ({
     width: props.width,
     [theme.breakpoints.down('xs')]: {
       height: '4.5rem',
+      width: '100%',
     },
   },
   startIcon: {

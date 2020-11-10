@@ -8,30 +8,9 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import leftArrowIcon from '../../../../../../../assets/left-arrow.svg';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import CertificateHeader from '../../../CertificateHeader';
+import { GlobalModalWrapper } from '../../../../../../../styles/GlobalStyles';
 
-const { small, belowLarge } = mediaBreakpoints;
-
-const ModalWrapper = styled.section`
-  background-color: ${(props) => props.theme.palette.background.modal};
-  padding: 5.5rem 6rem 6rem 6rem;
-  border: none;
-  outline: none;
-  width: 69.6rem;
-  margin: auto 0;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  ${belowLarge} {
-    padding: 2.7rem 5rem 3.2rem 5rem;
-    width: 57.2rem;
-  }
-  ${small} {
-    width: 100%;
-    padding: 2rem;
-    margin: 0;
-    height: fit-content;
-  }
-`;
+const { small } = mediaBreakpoints;
 
 const HeaderWrapper = styled.div`
   display: flex;
@@ -101,7 +80,7 @@ const ViewCertificate = (props) => {
   } = props;
   return (
     <ComponentError>
-      <ModalWrapper>
+      <GlobalModalWrapper>
         <HeaderWrapper>
           <LeftIcon src={leftArrowIcon} alt="go-back" onClick={onCloseModal} />
           <Typography variant="h5">Edit Certificate</Typography>
@@ -158,7 +137,7 @@ const ViewCertificate = (props) => {
             />
           )}
         </CancelSaveWrapper>
-      </ModalWrapper>
+      </GlobalModalWrapper>
     </ComponentError>
   );
 };

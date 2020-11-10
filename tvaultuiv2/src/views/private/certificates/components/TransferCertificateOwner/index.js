@@ -22,30 +22,13 @@ import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import Strings from '../../../../../resources';
 import { validateEmail } from '../../../../../services/helper-function';
 import CertificateHeader from '../CertificateHeader';
-import { RequiredCircle } from '../../../../../styles/GlobalStyles';
+import {
+  InstructionText,
+  GlobalModalWrapper,
+  RequiredCircle,
+} from '../../../../../styles/GlobalStyles';
 
-const { small, belowLarge } = mediaBreakpoints;
-
-const ModalWrapper = styled.section`
-  background-color: ${(props) => props.theme.palette.background.modal};
-  padding: 5.5rem 6rem 6rem 6rem;
-  border: none;
-  outline: none;
-  width: 69.6rem;
-  margin: auto 0;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  ${belowLarge} {
-    padding: 2.7rem 5rem 3.2rem 5rem;
-    width: 57.2rem;
-  }
-  ${small} {
-    width: 100%;
-    padding: 2rem;
-    margin: 0;
-  }
-`;
+const { small } = mediaBreakpoints;
 
 const HeaderWrapper = styled.div`
   display: flex;
@@ -131,6 +114,10 @@ const useStyles = makeStyles((theme) => ({
       padding: '0',
       height: '100%',
     },
+  },
+  icon: {
+    color: '#5e627c',
+    fontSize: '2rem',
   },
 }));
 
@@ -327,7 +314,7 @@ const CreateCertificates = (props) => {
             }}
           >
             <Fade in={open}>
-              <ModalWrapper>
+              <GlobalModalWrapper>
                 {responseType === 0 && (
                   <LoaderSpinner customStyle={loaderStyle} />
                 )}
@@ -358,6 +345,7 @@ const CreateCertificates = (props) => {
                     options={options}
                     classes={classes}
                     searchValue={owner}
+                    icon="search"
                     name="owner"
                     onSelected={(e, val) => onSelected(e, val)}
                     onChange={(e) => onOwnerChange(e)}
@@ -369,6 +357,9 @@ const CreateCertificates = (props) => {
                         : ''
                     }
                   />
+                  <InstructionText>
+                    Search the T-Mobile system by email.
+                  </InstructionText>
                   {autoLoader && (
                     <LoaderSpinner customStyle={autoLoaderStyle} />
                   )}
@@ -379,7 +370,6 @@ const CreateCertificates = (props) => {
                       label="Cancel"
                       color="primary"
                       onClick={() => onCloseModal()}
-                      width={isMobileScreen ? '100%' : ''}
                     />
                   </CancelButton>
                   <ButtonComponent
@@ -387,10 +377,9 @@ const CreateCertificates = (props) => {
                     color="secondary"
                     disabled={disabledTransfer}
                     onClick={() => onTransferOwnerClicked()}
-                    width={isMobileScreen ? '100%' : ''}
                   />
                 </CancelSaveWrapper>
-              </ModalWrapper>
+              </GlobalModalWrapper>
             </Fade>
           </Modal>
         )}
