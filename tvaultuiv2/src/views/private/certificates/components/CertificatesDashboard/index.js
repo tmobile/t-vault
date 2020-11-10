@@ -111,6 +111,7 @@ const MobileViewForListDetailPage = css`
   max-height: 100%;
   z-index: 20;
   bottom: 0;
+  top: 0;
   overflow-y: auto;
 `;
 const EmptyContentBox = styled('div')`

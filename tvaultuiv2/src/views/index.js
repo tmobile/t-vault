@@ -29,17 +29,10 @@ const Wrapper = styled.section`
 `;
 
 const PrivateRoutes = () => {
-  const [idleTimer, setIdleTimer] = useState(1000 * 60 * 3);
+  const [idleTimer] = useState(1000 * 60 * 3);
   const [endTime, setEndTime] = useState(
     new Date(new Date().getTime() + 30 * 60 * 1000)
   );
-
-  const callRenewToken = async () => {
-    const renewValue = await renewToken();
-    if (renewValue?.data) {
-      setIdleTimer(1000 * 60 * 3);
-    }
-  };
 
   const calculateCountdown = () => {
     let diff = (Date.parse(endTime) - Date.parse(new Date())) / 1000;
@@ -103,7 +96,11 @@ const PrivateRoutes = () => {
       if (getRemainingTime() === 0) {
         document.title = 'VAULT';
         timer.cancelCountdown();
-        await callRenewToken();
+        try {
+          await renewToken();
+        } catch (err) {
+          loggedOut();
+        }
         setEndTime(new Date(new Date().getTime() + 30 * 60 * 1000));
       }
     }

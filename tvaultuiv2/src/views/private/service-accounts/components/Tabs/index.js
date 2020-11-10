@@ -57,7 +57,7 @@ function a11yProps(index) {
   };
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   root: {
     flexGrow: 1,
     padding: '0 2.1rem',
@@ -73,9 +73,6 @@ const useStyles = makeStyles((theme) => ({
     height: '4.8rem',
     boxShadow: 'none',
     borderBottom: '0.3rem solid #222632',
-    [theme.breakpoints.down('md')]: {
-      height: 'auto',
-    },
   },
   tab: {
     minWidth: '9.5rem',

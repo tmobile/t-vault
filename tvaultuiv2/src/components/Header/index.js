@@ -83,7 +83,9 @@ const NavLink = styled(Link)`
   }
 `;
 
-const DocLinks = styled.div``;
+const DocLinks = styled.div`
+  display: flex;
+`;
 const ProfileIconWrap = styled('div')`
   display: flex;
   align-items: center;
