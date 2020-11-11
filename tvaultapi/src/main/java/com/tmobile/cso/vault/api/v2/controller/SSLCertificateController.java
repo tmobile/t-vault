@@ -499,4 +499,29 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateAWSRoleService.removeAWSRoleFromSSLCertificate(userDetails, token, certificateAWSRoleRequest);
 	}
+
+
+	/**
+	 * Delete/UnLink the certificate from application
+	 * @param request
+	 * @param token
+	 * @param certificateName
+	 * @param certificateType
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.unlinkCertificate.value}", notes = "${SSLCertificateController" +
+			".unlinkCertificate.notes}", hidden = true)
+	@PostMapping(value="/v2/sslcert/unlink/{certificate-name}/{certificate-type}",produces="application/json")
+	public ResponseEntity<String> unlinkCertificate(HttpServletRequest request,
+											@RequestHeader(value="vault-token") String token,
+													@PathVariable(value="certificate-name") String certificateName,
+													@PathVariable(value="certificate-type") String certificateType) throws Exception {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateService.unLinkCertificate(userDetails, token, certificateName,certificateType);
+	}
+
+
+
+
+
 }
