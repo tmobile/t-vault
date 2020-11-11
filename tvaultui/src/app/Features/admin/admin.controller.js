@@ -1448,6 +1448,10 @@
         $scope.transferCertSuccessPopup = function (svcaccname) {
             Modal.createModal('md', 'transferCertSuccessPopup.html', 'AdminCtrl', $scope);
         };
+
+        $scope.unclaimCertSuccessPopup = function (svcaccname) {
+            Modal.createModal('md', 'unclaimCertSuccessPopup.html', 'AdminCtrl', $scope);
+        };
         
         $scope.transferCertFailedPopup = function (svcaccname) {
             Modal.createModal('md', 'transferCertFailedPopup.html', 'AdminCtrl', $scope);
@@ -1975,6 +1979,29 @@
         $scope.validateCertificateDetailsPopUp = function (svcaccname) {
             Modal.createModal('md', 'validateCertificateDetailPopUp.html', 'AdminCtrl', $scope);
         };
+
+        $scope.unClaimCert = function (certificateDetails) {
+            $scope.isLoadingData = true;
+            $scope.isLoadingCerts = true;
+            var certName = certificateDetails.certificateName;
+            var certificateType = certificateDetails.certType;
+            var unClaimCertEndPoint = RestEndpoints.baseURL + "/v2/sslcert/unlink/" + certName+"/"+ certificateType;
+            console.log("unClaimCertEndPoint"+unClaimCertEndPoint);
+             AdminSafesManagement.unclaimCert(null, unClaimCertEndPoint).then(function (response) {
+                    $scope.isLoadingData = true;
+                    $scope.isLoadingCerts = true;
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        $scope.unclaimCertMessage=response.data.messages[0];
+                        $scope.unclaimCertSuccessPopup();
+                    }
+                },function (error) {
+                          console.log("Inside Error");
+                          console.log(error);
+                          $scope.isLoadingData = false;
+                          $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                          $scope.error('md');
+                      });
+        }
 
         $scope.goToAddPermissions = function (certificateDetails) {            
             var obj = "certificateObject";

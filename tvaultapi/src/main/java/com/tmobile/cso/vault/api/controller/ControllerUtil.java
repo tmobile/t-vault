@@ -2527,6 +2527,20 @@ public final class ControllerUtil {
         return response;
     }
 
+	public static boolean validateInputs(String certificateName,String sslCertType) {
+		boolean isValid = true;
+		if (certificateName.contains(" ")
+				|| (!certificateName.endsWith(".t-mobile.com"))
+				|| (certificateName.contains(".-"))
+				|| (certificateName.contains("-."))
+				|| (!sslCertType.matches("internal|external"))
+		) {
+			return false;
+		}
+
+		return isValid;
+	}
+
     /**
      * Update MetaData
      * @param params
