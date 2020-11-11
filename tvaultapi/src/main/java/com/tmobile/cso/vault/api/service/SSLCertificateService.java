@@ -1644,27 +1644,27 @@ public class SSLCertificateService {
         }
         return true;
     }
-	/**
-     * Validate the notificationEmails
-     * @param sslCertificateRequest
-     * @return
-     */
-	private boolean validateNotificationEmails(SSLCertificateRequest sslCertificateRequest) {
-        String[] notificationEmails = sslCertificateRequest.getNotificationEmail();
-        Set<String> set = new HashSet<>();
-
-        if(!ArrayUtils.isEmpty(notificationEmails)) {
-	        for (String notificationEmail : notificationEmails) {
-	            if (notificationEmail.contains(" ") || (!notificationEmail.matches("^[a-zA-Z0-9.-]+$")) || (notificationEmail.endsWith(certificateNameTailText)) ||
-	                    (notificationEmail.contains(".-")) || (notificationEmail.contains("-.")) || (notificationEmail.contains("..")) || (notificationEmail.endsWith(".")) ||
-	                    (!set.add(notificationEmail))) {
-	                return false;
-	            }
-	        }
-
-        }
-        return true;
-    }
+//	/**
+//     * Validate the notificationEmails
+//     * @param sslCertificateRequest
+//     * @return
+//     */
+//	private boolean validateNotificationEmails(SSLCertificateRequest sslCertificateRequest) {
+//        String[] notificationEmails = sslCertificateRequest.getNotificationEmail();
+//        Set<String> set = new HashSet<>();
+//
+//        if(!ArrayUtils.isEmpty(notificationEmails)) {
+//	        for (String notificationEmail : notificationEmails) {
+//	            if (notificationEmail.contains(" ") || (!notificationEmail.matches("^[a-zA-Z0-9.-]+$")) || (notificationEmail.endsWith(certificateNameTailText)) ||
+//	                    (notificationEmail.contains(".-")) || (notificationEmail.contains("-.")) || (notificationEmail.contains("..")) || (notificationEmail.endsWith(".")) ||
+//	                    (!set.add(notificationEmail))) {
+//	                return false;
+//	            }
+//	        }
+//
+//        }
+//        return true;
+//    }
     /**
      * Validate input data
      * @param sslCertificateRequest
@@ -1676,8 +1676,7 @@ public class SSLCertificateService {
 	            (!populateCertOwnerEmaild(sslCertificateRequest, userDetails)) ||
 	            sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
 	            (!sslCertificateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)) 
-	            || (!validateDNSNames(sslCertificateRequest))
-	            ||(!validateNotificationEmails(sslCertificateRequest))){
+	            || (!validateDNSNames(sslCertificateRequest))){
 	        isValid= false;
 	    }
 	    return isValid;
