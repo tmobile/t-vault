@@ -231,16 +231,17 @@ const IamServiceAccountSecrets = (props) => {
         {response.status === 'loading' && (
           <LoaderSpinner customStyle={customStyle} />
         )}
-        {!accountSecretData && !accountDetail.active && (
-          <UserList>
-            <Icon src={lock} alt="lock" />
-            <Secret type="password" viewSecret={showSecret}>
-              {secretsData.current_password}
-            </Secret>
+        {!accountMetaData.isActivated ||
+          (!accountDetail.active && (
+            <UserList>
+              <Icon src={lock} alt="lock" />
+              <Secret type="password" viewSecret={showSecret}>
+                ****
+              </Secret>
 
-            <FolderIconWrap>activate</FolderIconWrap>
-          </UserList>
-        )}
+              <FolderIconWrap>activate</FolderIconWrap>
+            </UserList>
+          ))}
         {response.status === 'success' && secretsData && (
           <UserList>
             <Icon src={lock} alt="lock" />

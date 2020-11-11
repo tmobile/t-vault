@@ -91,9 +91,23 @@ const ViewIamServiceAccount = (props) => {
       description: 'Are you sure, You want to rotate the passoword?',
     });
   };
+
+  /**
+   * @function isActivateIamSvcAcc
+   * @description function when user clicked on activate iam service account for the very first time.
+   */
+
+  const isActivateIamSvcAcc = () => {
+    setOpenModal({
+      status: 'open',
+      message: 'IAM Service Account Activation!',
+      description:
+        "During the activation. the password of the LAM service account will be rotated to ensure AWS and T-Vault are in sync If you want to continue with activation now please click the 'ACTIVATE IAM SERVICE ACCOUNT’ button below and make sure to update any services depending on the service account with its new password",
+    });
+  };
   /**
    * @function onRotateSecret
-   * @description function when user clicked on rotate secret to roate the secret.
+   * @description function when user clicked on rotate secret to rotate the secret.
    */
 
   const onRotateSecret = () => {
@@ -131,7 +145,9 @@ const ViewIamServiceAccount = (props) => {
           }
           confirmButton={
             <ButtonComponent
-              label="Rotate"
+              label={
+                iamServiceAccountDetails?.isActivated ? 'Rotate' : 'Activate'
+              }
               color="secondary"
               onClick={() => onRotateSecret()}
               width={isMobileScreen ? '100%' : '38%'}
@@ -159,6 +175,7 @@ const ViewIamServiceAccount = (props) => {
                   iamSvcAccountData={iamServiceAccountDetails}
                   isMobileScreen={isMobileScreen}
                   isRotateSecret={rotateSecret}
+                  isActivateIamSvcAcc={isActivateIamSvcAcc}
                   setViewDetails={setViewDetails}
                 />
               )}

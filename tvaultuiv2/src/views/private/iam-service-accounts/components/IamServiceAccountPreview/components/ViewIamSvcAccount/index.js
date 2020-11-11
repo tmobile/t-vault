@@ -129,11 +129,16 @@ const ViewIamSvcAccountDetails = (props) => {
     iamSvcAccountData,
     isMobileScreen,
     isRotateSecret,
+    isActivateIamSvcAcc,
     setViewDetails,
   } = props;
 
   const onRotateClicked = () => {
     isRotateSecret(true);
+  };
+
+  const onActivateClicked = () => {
+    isActivateIamSvcAcc(true);
   };
 
   const onCancelViewDetails = (val) => {
@@ -245,9 +250,13 @@ const ViewIamSvcAccountDetails = (props) => {
 
           <CancelButton>
             <ButtonComponent
-              label="Rotate"
+              label={iamSvcAccountData?.isActivated ? 'Rotate' : 'Activate'}
               color="secondary"
-              onClick={() => onRotateClicked()}
+              onClick={
+                iamSvcAccountData?.isActivated
+                  ? () => onRotateClicked()
+                  : () => onActivateClicked()
+              }
               width={isMobileScreen ? '100%' : ''}
             />
           </CancelButton>
@@ -261,12 +270,14 @@ ViewIamSvcAccountDetails.propTypes = {
   iamSvcAccountData: PropTypes.objectOf(PropTypes.any),
   isMobileScreen: PropTypes.bool,
   isRotateSecret: PropTypes.func,
+  isActivateIamSvcAcc: PropTypes.func,
 };
 
 ViewIamSvcAccountDetails.defaultProps = {
   iamSvcAccountData: {},
   isMobileScreen: false,
   isRotateSecret: () => {},
+  isActivateIamSvcAcc: () => {},
 };
 
 export default ViewIamSvcAccountDetails;
