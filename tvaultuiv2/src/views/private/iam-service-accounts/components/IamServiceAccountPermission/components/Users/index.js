@@ -94,8 +94,9 @@ const Users = (props) => {
   const onDeleteClick = async (username, access) => {
     setResponse({ status: 'loading' });
     const payload = {
-      access: checkAccess(access),
-      svcAccName: accountDetail.name,
+      access: checkAccess(access, 'iamsvcaccount'),
+      awsAccountId: `${accountDetail.iamAccountId}`,
+      iamSvcAccName: accountDetail.name,
       username,
     };
     apiService
@@ -147,7 +148,7 @@ const Users = (props) => {
    */
   const onSubmit = async (username, access) => {
     const value = {
-      access: checkAccess(access),
+      access: checkAccess(access, 'iamsvcaccount'),
       awsAccountId: `${accountDetail.iamAccountId}`,
       username: username.toLowerCase(),
       iamSvcAccName: `${accountDetail.name}`,
@@ -170,7 +171,7 @@ const Users = (props) => {
   const onEditSaveClicked = (username, access) => {
     setResponse({ status: 'loading' });
     const payload = {
-      access: checkAccess(access),
+      access: checkAccess(access, 'iamsvcaccount'),
       svcAccName: accountDetail.name,
       username,
     };
@@ -246,7 +247,7 @@ const Users = (props) => {
               {Object.keys(accountMetaData.response?.users).length > 0 && (
                 <PermissionsList
                   list={accountMetaData.response.users}
-                  isSvcAccount
+                  isIamSvcAccount
                   onEditClick={(key, value) => onEditClick(key, value)}
                   onDeleteClick={(key, value) => onDeleteClick(key, value)}
                 />

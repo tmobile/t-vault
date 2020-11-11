@@ -153,7 +153,7 @@ const IamServiceAccountSecrets = (props) => {
     setOpenConfirmationModal(false);
     setResponse({ status: 'loading' });
     apiService
-      .resetIamServiceAccountPassword(accountDetail?.name, payload)
+      .getIamServiceAccountPassword(accountDetail?.name, payload)
       .then((res) => {
         setResponse({ status: 'success' });
         if (res?.data) {
@@ -210,7 +210,7 @@ const IamServiceAccountSecrets = (props) => {
           open={openConfirmationModal}
           handleClose={handleClose}
           title="Confirmation"
-          description="Are you sure you want to reset the password for this Service Account?"
+          description="Are you sure you want to rotate the password for this IAM Service Account?"
           cancelButton={
             <ButtonComponent
               label="Cancel"
@@ -231,12 +231,21 @@ const IamServiceAccountSecrets = (props) => {
         {response.status === 'loading' && (
           <LoaderSpinner customStyle={customStyle} />
         )}
+        {!accountSecretData && !accountDetail.active && (
+          <UserList>
+            <Icon src={lock} alt="lock" />
+            <Secret type="password" viewSecret={showSecret}>
+              {secretsData.current_password}
+            </Secret>
+
+            <FolderIconWrap>activate</FolderIconWrap>
+          </UserList>
+        )}
         {response.status === 'success' && secretsData && (
           <UserList>
             <Icon src={lock} alt="lock" />
-
             <Secret type="password" viewSecret={showSecret}>
-              {secretsData.current_password}
+              {secretsData.accessKeySecret}
             </Secret>
 
             <FolderIconWrap>
@@ -261,7 +270,7 @@ const IamServiceAccountSecrets = (props) => {
                   </PopperItem>
                 )}
                 <CopyToClipboard
-                  text={secretsData.current_password}
+                  text={secretsData.accessKeySecret}
                   onCopy={() => onCopyClicked()}
                 >
                   <PopperItem>

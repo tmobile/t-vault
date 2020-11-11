@@ -11,7 +11,6 @@ import {
   Switch,
   useHistory,
   Redirect,
-  useLocation,
 } from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -221,37 +220,38 @@ const IamServiceAccountDashboard = () => {
     allApiResponse
       .then((response) => {
         const listArray = [];
-        console.log('ddd', response[0]?.data);
         if (response[0] && response[0].data && response[0].data.iamsvcacc) {
           response[0].data.iamsvcacc.map((item) => {
-            // const svcName = Object.keys(item)[0].split('_').shift().join('');
-
+            const svcName = Object.keys(item)[0].split('_');
+            svcName.splice(0, 1);
             const data = {
-              name: Object.keys(item)[0],
+              name: svcName.join('_'),
               iamAccountId: Object.keys(item)[0].split('_')[0],
-              //   access: Object.values(item)[0],
+              active: true,
             };
             return listArray.push(data);
           });
         }
         if (response[1] && response[1].data?.keys) {
           response[1].data.keys.map((svcitem) => {
-            const data = {
-              name: svcitem.userName,
-              iamAccountId: svcitem.accountID,
-            };
-            // if(listArray.filter((svc)=>svc.userName===))
-            return listArray.push(data);
+            if (!listArray.some((list) => list.name === svcitem.userName)) {
+              const data = {
+                name: svcitem.userName,
+                iamAccountId: svcitem.accountID,
+                active: false,
+              };
+              return listArray.push(data);
+            }
           });
         }
         setIamServiceAccountList([...listArray]);
+        console.log('listArray', listArray);
         setStatus({});
         setGetResponse(1);
       })
       .catch((err) => {
         setStatus({ status: 'failed', message: 'failed' });
         setGetResponse(-1);
-        debugger;
       });
   }, []);
 

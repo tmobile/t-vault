@@ -93,7 +93,6 @@ const AccountSelectionTabs = (props) => {
   const [response, setResponse] = useState({ status: 'loading' });
   const [accountSecretData, setAccountSecretData] = useState({});
   const [accountSecretError, setAccountSecretError] = useState('');
-  const [hasSvcAccountAcitve, setHasSvcAccountAcitve] = useState(false);
   const [disabledPermission, setDisabledPermission] = useState(false);
   const [secretResStatus, setSecretResStatus] = useState({ status: 'loading' });
   const [accountMetaData, setAccountMetaData] = useState({
@@ -105,13 +104,14 @@ const AccountSelectionTabs = (props) => {
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-
   // Function to get the secret of the given service account.
   const getSecrets = useCallback(() => {
     setSecretResStatus({ status: 'loading' });
     if (accountDetail.access !== '') {
       apiService
-        .getIamServiceAccountPassword(accountDetail?.name)
+        .getIamServiceAccountPassword(
+          `${accountDetail.name}_${accountDetail?.name}`
+        )
         .then((res) => {
           setSecretResStatus({ status: 'success' });
           if (res?.data) {
@@ -137,15 +137,17 @@ const AccountSelectionTabs = (props) => {
   const fetchPermission = useCallback(() => {
     setResponse({ status: 'loading' });
     return apiService
-      .fetchIamServiceAccountDetails(accountDetail.name)
+      .fetchIamServiceAccountDetails(
+        `${accountDetail.iamAccountId}_${accountDetail.name}`
+      )
       .then((res) => {
-        if (res.data && res.data.data) {
+        if (res?.data) {
           setResponse({ status: 'success' });
           if (
             res.data.owner_ntid.toLowerCase() === state.username.toLowerCase()
           ) {
             setDisabledPermission(false);
-            setAccountMetaData({ response: { ...res.data }, error: '' });
+            setAccountMetaData({ response: res.data, error: '' });
           }
         }
       })
@@ -158,10 +160,10 @@ const AccountSelectionTabs = (props) => {
   useEffect(() => {
     setResponse({ status: 'loading' });
     setSecretResStatus({ status: ' loading' });
-    setHasSvcAccountAcitve(false);
+
     if (accountDetail?.name) {
       fetchPermission();
-    //   getSecrets();
+      //   getSecrets();
     }
   }, [accountDetail, fetchPermission, getSecrets]);
 
@@ -200,7 +202,6 @@ const AccountSelectionTabs = (props) => {
             <IamServiceAccountPermission
               accountDetail={accountDetail}
               accountMetaData={accountMetaData}
-              hasSvcAccountAcitve={hasSvcAccountAcitve}
               parentStatus={response.status}
               refresh={refresh}
               fetchPermission={fetchPermission}
@@ -212,7 +213,7 @@ const AccountSelectionTabs = (props) => {
   );
 };
 AccountSelectionTabs.propTypes = {
-  accountDetail: PropTypes.objectOf(PropTypes.any),
+  accountDetail: PropTypes.objectOf(PropTypes.object),
   refresh: PropTypes.func.isRequired,
 };
 AccountSelectionTabs.defaultProps = {

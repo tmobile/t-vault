@@ -44,7 +44,6 @@ const IamServiceAccountPermission = (props) => {
     accountDetail,
     refresh,
     accountMetaData,
-    hasSvcAccountAcitve,
     parentStatus,
     fetchPermission,
   } = props;
@@ -134,7 +133,7 @@ const IamServiceAccountPermission = (props) => {
         )}
         {response.status === 'success' && (
           <>
-            {hasSvcAccountAcitve ? (
+            {accountDetail?.active ? (
               <>
                 <TabWrapper>
                   <PermissionsTabs
@@ -212,7 +211,9 @@ const IamServiceAccountPermission = (props) => {
                 </TabWrapper>
               </>
             ) : (
-              <NoPermission>Please activate the iam service account</NoPermission>
+              <NoPermission>
+                Please activate the iam service account
+              </NoPermission>
             )}
           </>
         )}
@@ -225,14 +226,12 @@ IamServiceAccountPermission.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any),
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   refresh: PropTypes.func.isRequired,
-  hasSvcAccountAcitve: PropTypes.bool,
   parentStatus: PropTypes.string.isRequired,
   fetchPermission: PropTypes.func,
 };
 
 IamServiceAccountPermission.defaultProps = {
   accountDetail: {},
-  hasSvcAccountAcitve: false,
   fetchPermission: () => {},
 };
 

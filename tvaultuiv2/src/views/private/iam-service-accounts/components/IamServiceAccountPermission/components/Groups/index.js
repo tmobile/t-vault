@@ -100,9 +100,10 @@ const Groups = (props) => {
   const onDeleteClick = (groupname, access) => {
     setResponse({ status: 'loading' });
     const payload = {
-      access: checkAccess(access),
+      access: checkAccess(access, 'iamsvcaccount'),
       groupname,
-      svcAccName: accountDetail.name,
+      iamSvcAccName: accountDetail.name,
+      awsAccountId: `${accountDetail.iamAccountId}`,
     };
     apiService
       .deleteGroupPermission(payload)
@@ -153,9 +154,10 @@ const Groups = (props) => {
    */
   const onSubmit = async (groupname, access) => {
     const value = {
-      access: checkAccess(access),
+      access: checkAccess(access, 'iamsvcaccount'),
       groupname: groupname.toLowerCase().replace(/ /g, '-'),
-      svcAccName: accountDetail.name,
+      awsAccountId: `${accountDetail.iamAccountId}`,
+      iamSvcAccName: accountDetail.name,
     };
     await onSaveClicked(value);
     onNewGroupChange();
@@ -170,7 +172,7 @@ const Groups = (props) => {
   const onEditSaveClicked = (groupname, access) => {
     setResponse({ status: 'loading' });
     const payload = {
-      access: checkAccess(access),
+      access: checkAccess(access, 'iamsvcaccount'),
       awsAccountId: accountDetail.iamAccountId,
       groupname,
       iamSvcAccName: accountDetail.name,
@@ -251,7 +253,7 @@ const Groups = (props) => {
                     list={accountMetaData.response.groups}
                     onEditClick={(key, value) => onEditClick(key, value)}
                     onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                    isSvcAccount
+                    isIamSvcAccount
                   />
                 )}
               {(!accountMetaData.response.groups ||

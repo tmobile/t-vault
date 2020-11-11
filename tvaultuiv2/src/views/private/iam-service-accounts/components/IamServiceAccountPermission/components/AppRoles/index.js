@@ -91,7 +91,7 @@ const AppRoles = (props) => {
 
   const constructPayload = (role, access) => {
     const data = {
-      access: checkAccess(access),
+      access: checkAccess(access,"iamsvcaccount"),
       approlename: role,
       awsAccountId: accountDetail.iamAccountId,
       iamSvcAccName: accountDetail.name,
@@ -247,7 +247,7 @@ const AppRoles = (props) => {
                     list={accountMetaData.response['app-roles']}
                     onEditClick={(key, value) => onEditClick(key, value)}
                     onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                    isSvcAccount
+                    isIamSvcAccount
                   />
                 )}
               {(!accountMetaData.response['app-roles'] ||

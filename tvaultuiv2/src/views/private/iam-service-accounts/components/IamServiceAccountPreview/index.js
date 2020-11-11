@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-curly-newline */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
 import { Backdrop } from '@material-ui/core';
@@ -10,11 +10,12 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
+import SnackbarComponent from '../../../../../components/Snackbar';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../../../breakpoints';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import ViewIamSvcAccountDetails from './components/ViewIamSvcAccount';
-import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
+import apiService from '../../../iam-service-accounts/apiService';
 
 const { small } = mediaBreakpoints;
 
@@ -55,16 +56,20 @@ const ViewIamServiceAccount = (props) => {
   const { refresh, iamServiceAccountDetails, setViewDetails } = props;
   const classes = useStyles();
   const [open] = useState(true);
+  const [status, setStatus] = useState(null);
+  const [passwordDetails, setPasswordDetails] = useState(null);
   const [openModal, setOpenModal] = useState({
     status: '',
     message: '',
     description: '',
   });
-  const [status, setStatus] = useState({});
 
   const isMobileScreen = useMediaQuery(small);
 
-  //   useEffect(() => {}, []);
+  // toast close handler
+  const onToastClose = () => {
+    setStatus({});
+  };
 
   /**
    * @function handleCloseConfirmationModal
@@ -91,7 +96,22 @@ const ViewIamServiceAccount = (props) => {
    * @description function when user clicked on rotate secret to roate the secret.
    */
 
-  const onRotateSecret = () => {};
+  const onRotateSecret = () => {
+    setStatus({ status: 'loading' });
+    apiService
+      .resetIamServiceAccountPassword()
+      .then((res) => {
+        if (res?.data) {
+          setStatus({ status: 'success', message: res.data.messages[0] });
+          setPasswordDetails(res.data);
+        }
+      })
+      .catch((err) => {
+        if (err?.response?.data?.errors[0]) {
+          setStatus({ status: 'failed' });
+        }
+      });
+  };
 
   return (
     <ComponentError>
@@ -145,6 +165,22 @@ const ViewIamServiceAccount = (props) => {
             </Fade>
           </Modal>
         </div>
+        {status.status === 'failed' && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message="Something went wrong!"
+          />
+        )}
+        {status.status === 'success' && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message="Request Successfull!"
+          />
+        )}
       </>
     </ComponentError>
   );
