@@ -1,12 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
-import { BackArrow } from '../../assets/SvgIcons';
-import mediaBreakpoints from '../../breakpoints';
 import ListDetailHeader from '../ListDetailHeader';
-import { TitleOne } from '../../styles/GlobalStyles';
 
 // styled components goes here
 const Section = styled('section')`
@@ -15,17 +11,6 @@ const Section = styled('section')`
   z-index: 2;
   width: 100%;
   height: 100%;
-`;
-
-const BackButton = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 2rem 0 0 2rem;
-
-  ${mediaBreakpoints.small} {
-    position: absolute;
-    z-index: 2;
-  }
 `;
 
 const ListItemDetail = (props) => {
@@ -39,7 +24,6 @@ const ListItemDetail = (props) => {
 
   const [data, setData] = useState({});
   // screen view handler
-  const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
   useEffect(() => {
     if (listItemDetails && Object.keys(listItemDetails).length > 0) {
@@ -55,19 +39,11 @@ const ListItemDetail = (props) => {
   return (
     <ComponentError>
       <Section>
-        {isMobileScreen ? (
-          <BackButton onClick={goBackToList}>
-            <BackArrow />
-            <TitleOne extraCss="font-weight:bold;margin-left:1rem;">
-              {data.name || ''}
-            </TitleOne>
-          </BackButton>
-        ) : null}
-
         <ListDetailHeader
-          title={data?.name}
+          title={data?.name || 'No Title'}
           description={description}
           bgImage={ListDetailHeaderBg}
+          goBackToList={goBackToList}
         />
         {renderContent}
       </Section>

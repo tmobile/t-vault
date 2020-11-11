@@ -21,31 +21,14 @@ import SnackbarComponent from '../../../../components/Snackbar';
 import { useStateValue } from '../../../../contexts/globalState';
 import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
 import apiService from '../apiService';
-import { RequiredCircle, TitleThree } from '../../../../styles/GlobalStyles';
+import {
+  GlobalModalWrapper,
+  RequiredCircle,
+  RequiredText,
+  TitleThree,
+} from '../../../../styles/GlobalStyles';
 
-const { small, belowLarge } = mediaBreakpoints;
-
-const ModalWrapper = styled.section`
-  background-color: ${(props) => props.theme.palette.background.modal};
-  padding: 5.5rem 6rem 6rem 6rem;
-  border: none;
-  outline: none;
-  width: 69.6rem;
-  margin: auto 0;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  ${belowLarge} {
-    padding: 2.7rem 5rem 3.2rem 5rem;
-    width: 57.2rem;
-  }
-  ${small} {
-    width: 100%;
-    padding: 2rem;
-    margin: 0;
-    height: fit-content;
-  }
-`;
+const { small } = mediaBreakpoints;
 
 const HeaderWrapper = styled.div`
   display: flex;
@@ -311,6 +294,7 @@ const CreateAppRole = (props) => {
     }
     onChange(e);
   };
+
   const onTokenNumUseChange = (e) => {
     setNumberError(false);
     if (!e?.target?.value.match(/^[0-9]*$/g)) {
@@ -461,7 +445,7 @@ const CreateAppRole = (props) => {
         }}
       >
         <Fade in={open}>
-          <ModalWrapper>
+          <GlobalModalWrapper>
             {responseType === 0 && <LoaderSpinner customStyle={loaderStyle} />}
             <HeaderWrapper>
               <LeftIcon
@@ -482,12 +466,14 @@ const CreateAppRole = (props) => {
             </IconDescriptionWrapper>
             <CreateSafeForm>
               <RequiredInfo>
-                <RequiredCircle /> required
+                <RequiredCircle />
+                <RequiredText>Required</RequiredText>
               </RequiredInfo>
               <InputFieldLabelWrapper>
                 <InputLabelWrap>
                   <InputLabel>
-                    Role Name <RequiredCircle />
+                    Role Name
+                    <RequiredCircle margin="0.5rem" />
                   </InputLabel>
 
                   <InfoIcon src={infoIcon} alt="info-icon-role-name" />
@@ -525,7 +511,8 @@ const CreateAppRole = (props) => {
                 <InputFieldLabelWrapper postion>
                   <InputLabelWrap>
                     <InputLabel>
-                      Token Max TTL <RequiredCircle />
+                      Token Max TTL
+                      <RequiredCircle margin="0.5rem" />
                     </InputLabel>
                     <InfoIcon src={infoIcon} alt="info-icon" />
                   </InputLabelWrap>
@@ -556,7 +543,8 @@ const CreateAppRole = (props) => {
                   <InputLabelWrap>
                     {' '}
                     <InputLabel>
-                      Token TTL <RequiredCircle />
+                      Token TTL
+                      <RequiredCircle margin="0.5rem" />
                     </InputLabel>
                     <InfoIcon src={infoIcon} alt="info-icon-token" />
                   </InputLabelWrap>
@@ -586,7 +574,8 @@ const CreateAppRole = (props) => {
                 <InputFieldLabelWrapper>
                   <InputLabelWrap>
                     <InputLabel>
-                      Sec ID Number Uses <RequiredCircle />
+                      Sec ID Number Uses
+                      <RequiredCircle margin="0.5rem" />
                     </InputLabel>
 
                     <InfoIcon src={infoIcon} alt="info-icon-sec" />
@@ -617,7 +606,8 @@ const CreateAppRole = (props) => {
                 <InputFieldLabelWrapper>
                   <InputLabelWrap>
                     <InputLabel>
-                      Token Number Uses <RequiredCircle />
+                      Token Number Uses
+                      <RequiredCircle margin="0.5rem" />
                     </InputLabel>
 
                     <InfoIcon src={infoIcon} alt="info-icon-token-uses" />
@@ -647,7 +637,8 @@ const CreateAppRole = (props) => {
                 <InputFieldLabelWrapper>
                   <InputLabelWrap>
                     <InputLabel>
-                      Secret ID TTL <RequiredCircle />
+                      Secret ID TTL
+                      <RequiredCircle margin="0.5rem" />
                     </InputLabel>
 
                     <InfoIcon src={infoIcon} alt="info-icon-secret-id" />
@@ -730,7 +721,7 @@ const CreateAppRole = (props) => {
                 }
               />
             )}
-          </ModalWrapper>
+          </GlobalModalWrapper>
         </Fade>
       </Modal>
     </ComponentError>

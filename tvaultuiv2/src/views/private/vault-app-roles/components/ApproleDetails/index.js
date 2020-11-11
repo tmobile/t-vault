@@ -31,9 +31,6 @@ const TabPanelWrap = styled.div`
   height: 100%;
   margin: 0;
   padding-top: 1.3rem;
-  ${mediaBreakpoints.small} {
-    height: 77vh;
-  }
 `;
 
 const TabContentsWrap = styled('div')`
@@ -115,7 +112,7 @@ function a11yProps(index) {
   };
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   root: {
     flexGrow: 1,
     padding: '0 2.1rem',
@@ -131,9 +128,6 @@ const useStyles = makeStyles((theme) => ({
     height: '4.8rem',
     boxShadow: 'none',
     borderBottom: '0.3rem solid #222632',
-    [theme.breakpoints.down('md')]: {
-      height: 'auto',
-    },
   },
   tab: {
     minWidth: '9.5rem',
@@ -368,7 +362,11 @@ const AppRoleDetails = (props) => {
             indicatorColor="secondary"
             textColor="primary"
           >
-            <Tab className={classes.tab} label="Accessor IDs" {...a11yProps(0)} />
+            <Tab
+              className={classes.tab}
+              label="Accessor IDs"
+              {...a11yProps(0)}
+            />
           </Tabs>
           <NamedButton
             label="+Create SecretId"

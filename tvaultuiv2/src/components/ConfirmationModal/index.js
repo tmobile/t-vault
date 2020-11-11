@@ -13,7 +13,7 @@ import mediaBreakpoints from '../../breakpoints';
 const ModalWrapper = styled.div`
   background-color: ${(props) =>
     props.theme.customColor.modal.backgroundColor || '#ddd'};
-  padding: 3rem 4rem;
+  padding: 5rem 6rem;
   outline: none;
   text-align: center;
   width: ${(props) => props.size};
@@ -25,6 +25,7 @@ const ModalWrapper = styled.div`
   }
   ${mediaBreakpoints.small} {
     width: 80%;
+    padding: 3rem;
   }
 `;
 
@@ -32,10 +33,16 @@ const ButtonWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-self: flex-end;
+  ${mediaBreakpoints.small} {
+    width: 100%;
+  }
 `;
 
 const CancelButtonWrap = styled.div`
   margin-right: 1rem;
+  ${mediaBreakpoints.small} {
+    width: 100%;
+  }
 `;
 
 const titleOneCss = css`
@@ -43,6 +50,9 @@ const titleOneCss = css`
   font-size: 2.4rem;
   color: ${(props) => props.theme.customColor.modal.title || '#fff'};
   text-align: left;
+  ${mediaBreakpoints.small} {
+    font-size: 2.4rem;
+  }
 `;
 const titleTwoCss = css`
   margin: 1.6rem 0 3rem 0;

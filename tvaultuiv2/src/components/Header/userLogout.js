@@ -7,19 +7,29 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { useHistory } from 'react-router-dom';
 import userIcon from '../../assets/icon-profile.svg';
+import vectorIcon from '../../assets/vector.svg';
 import { revokeToken } from '../../views/public/HomePage/utils';
+import mediaBreakpoints from '../../breakpoints';
 
 const UserWrap = styled.div`
   display: flex;
   align-items: center;
   cursor: pointer;
+  ${mediaBreakpoints.smallAndMedium} {
+    margin-top: 2rem;
+  }
 `;
+
 const UserName = styled.span`
   text-transform: capitalize;
 `;
 
 const UserIcon = styled.img`
   margin: 0 0.5rem;
+`;
+
+const VectorIcon = styled.img`
+  margin-left: 0.4rem;
 `;
 
 const Logout = styled.div`
@@ -61,6 +71,7 @@ const UserLogout = (props) => {
       <UserWrap aria-describedby={id} onClick={handleClick}>
         <UserIcon src={userIcon} alt="usericon" />
         <UserName>{userName}</UserName>
+        <VectorIcon src={vectorIcon} alt="vectoricon" />
       </UserWrap>
       <Popper
         id={id}

@@ -8,7 +8,13 @@ import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
-import { SubHeading } from '../../../../../styles/GlobalStyles';
+import {
+  LabelRequired,
+  RequiredCircle,
+  RequiredText,
+  RequiredWrap,
+  SubHeading,
+} from '../../../../../styles/GlobalStyles';
 import { ColorBackArrow } from '../../../../../assets/SvgIcons';
 
 const SecretWrapper = styled.section`
@@ -114,7 +120,17 @@ const CreateSecret = (props) => {
           Add Secrets
         </SubHeading>
         <FormWrapper>
-          <InputLabel>Key Id</InputLabel>
+          <LabelRequired>
+            <InputLabel>
+              Key Id
+              <RequiredCircle margin="0.5rem" />
+            </InputLabel>
+            <RequiredWrap>
+              <RequiredCircle />
+              <RequiredText>Required</RequiredText>
+            </RequiredWrap>
+          </LabelRequired>
+
           <TextFieldComponent
             placeholder="Key Id"
             value={keyId || ''}
@@ -131,7 +147,10 @@ const CreateSecret = (props) => {
             Please enter a minimum of 3 characters lowercase alphabets, number
             and underscores only
           </KeyIdInputRequirements>
-          <InputLabel>Secret</InputLabel>
+          <InputLabel>
+            Secret
+            <RequiredCircle margin="0.5rem" />
+          </InputLabel>
           <TextFieldComponent
             placeholder="Secret"
             value={secret || ''}

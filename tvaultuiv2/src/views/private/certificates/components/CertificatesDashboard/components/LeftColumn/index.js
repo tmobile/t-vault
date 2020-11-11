@@ -80,13 +80,19 @@ const StatusIcon = styled.span`
 
 const extraCss = css`
   color: ${(props) => props.theme.customColor.secondary.color};
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  ${mediaBreakpoints.smallAndMedium} {
+    max-width: 4rem;
+  }
 `;
 
 const LeftColumn = (props) => {
   const {
     certificateList,
     onLinkClicked,
-    isMobileScreen,
+    isTabAndMobileScreen,
     onDeleteCertificateClicked,
     onTransferOwnerClicked,
     onEditListItemClicked,
@@ -149,7 +155,7 @@ const LeftColumn = (props) => {
                   <StatusIcon status={certificate.requestStatus} />
                 </CertificateStatus>
               )}
-              {certificate.applicationName && !isMobileScreen ? (
+              {certificate.applicationName && !isTabAndMobileScreen ? (
                 <PopperWrap onClick={(e) => onActionClicked(e)}>
                   <EditAndDeletePopup
                     onDeletListItemClicked={() =>
@@ -166,7 +172,7 @@ const LeftColumn = (props) => {
                   />
                 </PopperWrap>
               ) : null}
-              {isMobileScreen && certificate.applicationName && (
+              {isTabAndMobileScreen && certificate.applicationName && (
                 <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
                   <EditDeletePopper
                     onDeleteClicked={() =>
@@ -194,7 +200,7 @@ LeftColumn.propTypes = {
   onDeleteCertificateClicked: PropTypes.func.isRequired,
   onEditListItemClicked: PropTypes.func.isRequired,
   onLinkClicked: PropTypes.func.isRequired,
-  isMobileScreen: PropTypes.bool.isRequired,
+  isTabAndMobileScreen: PropTypes.bool.isRequired,
   history: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 

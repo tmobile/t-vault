@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import { BackArrow } from '../../../../../assets/SvgIcons';
 import mediaBreakpoints from '../../../../../breakpoints';
-import { TitleOne, TitleThree } from '../../../../../styles/GlobalStyles';
+import { TitleThree } from '../../../../../styles/GlobalStyles';
 import Strings from '../../../../../resources';
 
 // styled components goes here
@@ -25,8 +25,12 @@ const ColumnHeader = styled('div')`
   height: 17.1rem;
   padding: 2rem;
   .list-title-wrap {
-    width: 70%;
+    width: 60%;
     z-index: 2;
+    ${mediaBreakpoints.small} {
+      width: 70%;
+      margin-top: 2rem;
+    }
   }
   ${mediaBreakpoints.small} {
     height: 18rem;
@@ -37,11 +41,18 @@ const ColumnHeader = styled('div')`
 const BackButton = styled.div`
   display: flex;
   align-items: center;
-  padding: 2rem 0 0 2rem;
-
-  ${mediaBreakpoints.small} {
-    position: absolute;
-    z-index: 2;
+  position: absolute;
+  z-index: 2;
+  top: 1.5rem;
+  left: 1rem;
+  span {
+    width: 28rem;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    text-transform: capitalize;
+    font-size: 1.8rem;
+    font-weight: bold;
   }
 `;
 
@@ -52,8 +63,11 @@ const HeaderBg = styled('div')`
   right: 0;
   bottom: 0;
   background: url(${(props) => props.bgImage || ''});
+  background-size: cover;
+  background-repeat: no-repeat;
   ${mediaBreakpoints.small} {
     z-index: -1;
+    top: 0;
   }
 `;
 
@@ -85,9 +99,7 @@ const CertificateItemDetail = (props) => {
         {isMobileScreen ? (
           <BackButton onClick={goBackToList}>
             <BackArrow />
-            <TitleOne extraCss="font-weight:bold;margin-left:1rem;">
-              {name !== 'N/A' ? name : 'No Certificates Added'}
-            </TitleOne>
+            <span>{name !== 'N/A' ? name : 'No Certificates Added'}</span>
           </BackButton>
         ) : null}
         <ColumnHeader>
