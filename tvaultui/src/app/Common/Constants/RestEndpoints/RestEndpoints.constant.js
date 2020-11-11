@@ -193,7 +193,7 @@ readTextFile("../apiUrls.json");
             url: '/v2/ss/sdb/approle',
             method: 'DELETE'
         },{ /* To remove the approle permission for certificate*/
-            name: 'deleteAppRole',
+            name: 'deleteAppRolePermission',
             url: '/v2/sslcert/approle',
             method: 'DELETE'
         },{

@@ -127,7 +127,7 @@
                     return response;
                 });
             },deleteAppRolePermissionFromCertificate: function(payload, url) {
-                return ServiceEndpoint.deleteAppRole.makeRequest(payload, url).then(function(response) {
+                return ServiceEndpoint.deleteAppRolePermission.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
