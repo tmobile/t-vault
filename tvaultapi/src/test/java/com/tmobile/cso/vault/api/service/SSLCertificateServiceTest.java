@@ -2997,7 +2997,7 @@ public class SSLCertificateServiceTest {
        // when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
         Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
-
+        when( appRoleService.configureApprole(any(),any(),any())).thenReturn(appRoleResponse);
         ResponseEntity<String> responseEntityActual =  sSLCertificateService.deleteApproleFromCertificate(certificateApprole, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
