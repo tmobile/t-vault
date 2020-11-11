@@ -19,7 +19,7 @@
 
 'use strict';
 (function (app) {
-    app.controller('ChangeCertificateCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant,RestEndpoints) {
+    app.controller('ChangeCertificateCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant,RestEndpoints,orderByFilter, $compile) {
         
         
         $scope.selectedGroupOption = '';            // Selected dropdown value to be used for filtering
@@ -115,6 +115,18 @@
             show: false
         }];
 
+        var init = function () {
+        	$scope.isUserSearchLoading = false;
+        	$scope.certificateToOnboard = null;
+        	 $scope.notificationEmails = [];
+             $scope.selectedNotificationEmails= [];
+             $scope.notificationEmail = { email:""};
+             $scope.isNotificationEmailSelected = false;
+             $scope.notificationEmailErrorMessage = "";             
+             $scope.isNotificationEmailSearch = false;
+        };
+        
+        
         var clearInputPermissionData = function () {
             $scope.inputValue = {
                 "userNameVal": '',                
@@ -609,9 +621,15 @@
                                     expiryDate: object.expiryDate || $stateParams.certificateObject.expiryDate || '',
                                     certificateStatus: object.certificateStatus || $stateParams.certificateObject.certificateStatus || '',
                                     certificateId: object.certificateId || $stateParams.certificateObject.certificateId || '',
-                                    dnsNames: object.dnsNames || $stateParams.certificateObject.dnsNames || ''
+                                    dnsNames: object.dnsNames || $stateParams.certificateObject.dnsNames || '',
+                                    leadEmail: object.projectLeadEmailId || $stateParams.certificateObject.projectLeadEmailId || '',
+                                    appOwnerEmail: object.applicationOwnerEmailId || $stateParams.certificateObject.applicationOwnerEmailId || '',
+                                    notificationEmails: object.notificationEmails || $stateParams.certificateObject.notificationEmails || ''
                                 }
-
+                                
+                                                           
+                                
+                                
                                 if($scope.certificate.certType.toLowerCase() === "internal"){
                                     $scope.certificateTypeVal = "Internal";
                                 }else if($scope.certificate.certType.toLowerCase() === "external"){
@@ -622,6 +640,20 @@
                                     $scope.dnsListExt  = dnsStr.split(',')
                                     $scope.certificate.dnsNames = $scope.dnsListExt;
                                 }
+                                
+                                if($scope.certificate.notificationEmails !== null && $scope.certificate.notificationEmails !== undefined  && $scope.certificate.notificationEmails !== ""){
+                                	$scope.notificationEmails = [];
+                                    var notificationStr = $scope.certificate.notificationEmails;
+                                    console.log("notificationStr === "+notificationStr);
+                                    $scope.notificationList  = notificationStr.split(',')
+                                    $scope.certificate.notificationEmails = $scope.notificationList;
+                                    var i = 0;
+                                    $scope.certificate.notificationEmails.forEach(function (email) {
+                                    var id = "dns"+ (i++);
+                                    angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+                                    });
+                                }
+                                
 
                                 if($scope.certificate.applicationTag !== null && $scope.certificate.applicationTag !== undefined  && $scope.certificate.applicationTag !== ""){
                                     $scope.appName = $scope.certificate.applicationTag;
@@ -641,7 +673,14 @@
                                 for (var i=0;i<$scope.certificate.dnsNames.length;i++) {
                                 	$scope.dnsList.push($scope.certificate.dnsNames[i]);
                                     }
-                                $scope.dnsStr = $scope.dnsList.join('\n');                              
+                                $scope.dnsStr = $scope.dnsList.join('\n'); 
+                                
+                                $scope.notificationList = [];
+                                $scope.notificationStr = "";
+                                for (var i=0;i<$scope.certificate.notificationEmails.length;i++) {
+                                	$scope.notificationList.push($scope.certificate.notificationEmails[i]);
+                                    }
+                                $scope.notificationStr = $scope.notificationList.join('\n'); 
                                                                                        
                                 if($rootScope.checkStatus=="Revoked"){
                                 	$scope.revokeButtonShow = false;	
@@ -1271,6 +1310,187 @@
                 $scope.searchValue = '';
             };
         };
+        
+        //editable fields
+        $scope.selectLeadforCert = function (ownerEmail) {
+            if (ownerEmail != null) {
+            	console.log("here3333333333333 == "+ownerEmail);
+                $scope.certificateToOnboard.projectLead = ownerEmail.userEmail;                
+                $scope.isLeadSelectedForOnboard = true;
+                $scope.isLeadEmailSearch = false;
+            }
+        }
+        
+        $scope.selectOwnerforCert = function (ownerEmail) {
+            if (ownerEmail != null) {
+            	console.log("here66666666666666 == "+ownerEmail);
+                $scope.certificateToOnboard.ownerEmail = ownerEmail.userEmail;                
+                $scope.isOwnerSelectedForOnboard = true;
+                $scope.isOwnerEmailSearch = false;
+            }
+        }
+
+        $scope.selectNotificationEmail = function (ownerEmail) {
+            if (ownerEmail != null) {
+                $scope.notificationEmail.email = ownerEmail.userEmail;
+                $scope.isNotificationEmailSelected = true;
+                $scope.isNotificationEmailSearch = false;
+            }
+        }
+
+        var isDuplicateNotificationEmail = function (email) {
+            $scope.certDnsErrorMessage = '';
+            for (var i=0;i<$scope.notificationEmails.length;i++) {
+                if (email.toLowerCase() == $scope.notificationEmails[i].email.toLowerCase()) {
+                    $scope.notificationEmailErrorMessage = 'Duplicate Email';
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        $scope.searchLeadEmailForCert = function (email) {
+            if (!email.endsWith("\\")) {
+            	console.log("hereeeeeeeeeeee LLLLLLLLL -- "+email);
+            	$scope.isOwnerEmailSearch = false;
+                $scope.isLeadEmailSearch = true;
+                return $scope.searchEmail(email);
+            }
+        }
+        
+        $scope.searchOwnerEmailForCert = function (email) {
+            if (!email.endsWith("\\")) {
+            	console.log("hereeeeeeeeeeee OOOOOOOOOOOO -- "+email);
+            	$scope.isLeadEmailSearch = false;
+                $scope.isOwnerEmailSearch = true;
+                return $scope.searchEmail(email);
+            }
+        }
+            
+            $scope.searchEmail = function (searchVal) {        	
+                if (searchVal.length > 2) {
+                	console.log("hereeeeeeeeeeee 2222222222 -- "+searchVal);
+                    $scope.isUserSearchLoading = true;
+                    searchVal = searchVal.toLowerCase();
+                    try {
+                        $scope.userSearchList = [];
+
+                        var queryParameters = searchVal;
+                        var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('usersGetData', queryParameters);
+                        return AdminSafesManagement.usersGetData(null, updatedUrlOfEndPoint).then(
+                            function(response) {
+                                $scope.isUserSearchLoading = false;
+                                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                    var filterdUserData = [];
+                                    $scope.userSearchList = response.data.data.values;
+                                    $scope.userSearchList.forEach(function (userData) {
+                                        if (userData.userEmail != null && userData.userEmail.substring(0, searchVal.length).toLowerCase() == searchVal) {
+                                            filterdUserData.push(userData);
+                                        }
+                                    });
+                                    console.log("filterdUserData -- "+filterdUserData[0].userEmail);
+                                    return orderByFilter(filterFilter(filterdUserData, searchVal), 'userEmail', true);
+                                } else {
+                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                    $scope.error('md');
+                                }
+                            },
+                            function(error) {
+                                // Error handling function
+                                console.log(error);
+                                $scope.isUserSearchLoading = false;
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                        });
+                    } catch (e) {
+                        console.log(e);
+                        $scope.isUserSearchLoading = false;
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                        $scope.error('md');
+                    }
+                }
+            }
+            
+            $scope.clearLeadEmail = function () {
+                $scope.certificate.leadEmail = "";                
+                $scope.isLeadSelectedForOnboard = false;
+            }
+            
+            $scope.clearOwnerEmail = function () {
+                $scope.certificate.appOwnerEmail = "";                
+                $scope.isOwnerSelectedForOnboard = false;
+            }
+            
+            $scope.addNotificationEmail = function () {
+                var length = $scope.notificationEmails.length;
+                if ($scope.notificationEmail && $scope.notificationEmail.email!="" && !isDuplicateNotificationEmail($scope.notificationEmail.email)) {
+                    var id="dns"+length;
+                    angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+$scope.notificationEmail.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+                    $scope.notificationEmails.push({ "id": length, "email":$scope.notificationEmail.email});
+                    addNotificationEmailString($scope.notificationEmail.email);
+                    $scope.notificationEmail.email = "";
+                    $scope.isNotificationEmailSelected = false;
+                }
+            }
+            
+            var addNotificationEmailString = function(email) {
+                if ($scope.certificate.notificationEmails != "") {
+                    $scope.certificate.notificationEmails = $scope.certificate.notificationEmails + ",";
+                }
+                $scope.certificate.notificationEmails = $scope.certificate.notificationEmails.add(email);
+            }
+
+            $scope.deleteNotificationEmail = function (id) {
+                var notificationEmailElement = angular.element( document.querySelector( '#'+id ) );
+                notificationEmailElement.remove();
+                var index = id.substring(3);
+                $scope.selectedNotificationEmails = [];
+                for (var i=0;i<$scope.notificationEmails.length;i++) {
+                    if (index != $scope.notificationEmails[i].id) {
+                        $scope.selectedNotificationEmails.push($scope.notificationEmails[i]);
+                    }
+                }
+                $scope.notificationEmails = $scope.selectedNotificationEmails;
+                $scope.isNotificationEmailSelected = false;
+            }
+            
+            $scope.selectNotificationEmail = function (ownerEmail) {
+                if (ownerEmail != null) {
+                    $scope.notificationEmail.email = ownerEmail.userEmail;
+                    $scope.isNotificationEmailSelected = true;
+                    $scope.isNotificationEmailSearch = false;
+                }
+            }
+
+            var isDuplicateNotificationEmail = function (email) {
+                $scope.certDnsErrorMessage = '';
+                for (var i=0;i<$scope.notificationEmails.length;i++) {
+                    if (email.toLowerCase() == $scope.notificationEmails[i].email.toLowerCase()) {
+                        $scope.notificationEmailErrorMessage = 'Duplicate Email';
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            $scope.searchEmailForNotification = function (email) {
+                if (!email.endsWith("\\")) {
+                    $scope.isNotificationEmailSearch = true;
+                    return $scope.searchEmail(email);
+                }
+            }
+            
+            $scope.onboardCert = function() {
+                var onboardRequest = {
+                    certificateName: $scope.certificateToOnboard.certificateName,
+                    certificateType:$scope.certificateToOnboard.certificateType,
+                    applicationName: $scope.certificateToOnboard.tag,
+                    notificationEmails: $scope.certificateToOnboard.notificationEmails,
+                    ownerEmail: $scope.certificateToOnboard.ownerEmail,
+                    ownerNtId: $scope.certificateToOnboard.ownerNtId
+                }
+                console.log(onboardRequest);
+            }
 
         // TO-BE-CHECKED : Function currently not in use
 

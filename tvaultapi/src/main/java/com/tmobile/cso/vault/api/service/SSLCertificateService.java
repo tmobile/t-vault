@@ -7958,4 +7958,126 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add users to this certificate\"]}");
 			   		}
 			   	}
+			    
+			    /**
+			     * To update the metadata for certificate
+			     * @param certificateUpdateRequest
+			     * @param userDetails
+			     * @param token
+			     * @return
+			     */
+			    public ResponseEntity<String> updateSSLCertificate(CertificateUpdateRequest certificateUpdateRequest, UserDetails userDetails,  String token) {  
+			    
+			    	boolean isValidData = validateRequestData(certificateUpdateRequest, userDetails);
+			    	Map<String, String> metaDataParams = new HashMap<String, String>();
+					if (!isValidData) {
+						return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+					} else {
+						String endPoint = certificateUpdateRequest.getCertificateName();
+						String metaDataPath = (certificateUpdateRequest.getCertType().equalsIgnoreCase("internal"))?
+				                SSLCertificateConstants.SSL_CERT_PATH + "/" + endPoint :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + endPoint;
+						Response response = new Response();
+						if (!userDetails.isAdmin()) {
+							Boolean isPermission = validateCertOwnerPermissionForNonAdmin(userDetails, certificateUpdateRequest.getCertificateName(),certificateUpdateRequest.getCertType());
+
+							if (!isPermission) {
+								return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+										.body("{\"errors\":[\""
+												+ "Access denied: No permission to renew certificate"
+												+ "\"]}");
+							}
+						}
+						try {
+							if (userDetails.isAdmin()) {
+								response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}", token);
+							} else {
+								response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}",
+										userDetails.getSelfSupportToken());
+							}
+						} catch (Exception e) {
+							log.error(
+									JSONUtil.getJSON(
+											ImmutableMap.<String, String> builder()
+													.put(LogMessage.USER,
+															ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+													.put(LogMessage.ACTION,
+															String.format("Exception = [%s] =  Message [%s]",
+																	Arrays.toString(e.getStackTrace()), response.getResponse()))
+													.build()));
+							return ResponseEntity.status(response.getHttpstatus())
+									.body("{\"messages\":[\"" + "Certificate unavailable" + "\"]}");
+						}
+						if (!HttpStatus.OK.equals(response.getHttpstatus())) {
+							return ResponseEntity.status(response.getHttpstatus())
+									.body("{\"errors\":[\"" + "Certificate unavailable" + "\"]}");
+						}
+						JsonParser jsonParser = new JsonParser();
+						JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+						metaDataParams = new Gson().fromJson(object.toString(), Map.class);	
+						boolean sslMetaDataUpdationStatus;			
+						metaDataParams.put("applicationOwnerEmailId", certificateUpdateRequest.getApplicationOwnerEmail());
+						metaDataParams.put("projectLeadEmailId", certificateUpdateRequest.getProjectLeadEmail());
+						metaDataParams.put("notificationEmails", certificateUpdateRequest.getNotificationEmail());
+					try {
+					if (userDetails.isAdmin()) {
+						sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
+						
+					} else {
+						sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams,
+								userDetails.getSelfSupportToken());	
+						
+					}
+					if (sslMetaDataUpdationStatus) {
+						
+			            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+			                    put(LogMessage.ACTION, "updateSSLCertificate").
+			                    put(LogMessage.MESSAGE, String.format("Successfully updated the metadata for   " +
+			                                    "[%s] ",
+			                             metaDataParams.get("certificateName"),java.time.LocalDateTime.now())).
+			                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			                    build()));
+
+						return ResponseEntity.status(HttpStatus.OK)
+								.body("{\"messages\":[\"" + "Certificate metadata updated successfully" + "\"]}");
+					} else {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+								.put(LogMessage.ACTION, "updateSSLCertificate")
+								.put(LogMessage.MESSAGE, "Certificate metadata updation failed")
+								.put(LogMessage.STATUS, HttpStatus.INTERNAL_SERVER_ERROR.toString())
+								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+								.build()));
+						return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+								.body("{\"errors\":[\"" + "Certificate metadata updation failed" + "\"]}");
+					}
+			    
+					}
+					 catch (Exception e) {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+								.put(LogMessage.ACTION, String.format("Inside  Exception = [%s] =  Message [%s]",
+										Arrays.toString(e.getStackTrace()), e.getMessage()))
+								.build()));
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+								.body("{\"errors\":[\"" + e.getMessage() + "\"]}");
+					}
+					}
+			    }
+			    
+			    /**
+			     * Validate input data
+			     * @param sslCertificateRequest
+			     * @return
+			     */
+				private boolean validateRequestData(CertificateUpdateRequest certificateUpdateRequest, UserDetails userDetails){
+				    boolean isValid=true;
+				    if((!validateCertficateName(certificateUpdateRequest.getCertificateName()))  ||				            
+				    		certificateUpdateRequest.getProjectLeadEmail().contains(" ") ||  certificateUpdateRequest.getCertType().contains(" ") ||
+				            (!certificateUpdateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)) 
+				            ){
+				        isValid= false;
+				    }
+				    return isValid;
+				}
 }
