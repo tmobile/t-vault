@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-param-reassign */
@@ -21,6 +22,8 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import NoData from '../../../../../components/NoData';
 import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
 import svcIcon from '../../../../../assets/icon-service-account.svg';
+import mobSvcIcon from '../../../../../assets/mob-svcbg.png';
+import tabSvcIcon from '../../../../../assets/tab-svcbg.png';
 import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
@@ -52,7 +55,7 @@ const ColumnSection = styled('section')`
 const RightColumnSection = styled(ColumnSection)`
   width: 59.23%;
   padding: 0;
-  background: linear-gradient(to top, #151820, #2c3040);
+  // background: linear-gradient(to top, #151820, #2c3040);
   ${mediaBreakpoints.small} {
     width: 100%;
     ${(props) => props.mobileViewStyles}
@@ -141,9 +144,10 @@ const MobileViewForListDetailPage = css`
   right: 0;
   left: 0;
   bottom: 0;
-  top: 7rem;
-  z-index: 1;
+  top: 0;
   overflow-y: auto;
+  max-height: 100%;
+  z-index: 20;
 `;
 const EmptyContentBox = styled('div')`
   width: 100%;
@@ -159,6 +163,9 @@ const ListHeader = css`
   width: 22rem;
   text-transform: capitalize;
   font-weight: 600;
+  ${mediaBreakpoints.smallAndMedium} {
+    width: 18rem;
+  }
 `;
 
 const EditDeletePopperWrap = styled.div``;
@@ -197,6 +204,7 @@ const ServiceAccountDashboard = () => {
   // const classes = useStyles();
   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
   const history = useHistory();
   const location = useLocation();
   const admin = Boolean(state.isAdmin);
@@ -685,7 +693,13 @@ const ServiceAccountDashboard = () => {
                     listItemDetails={listItemDetails}
                     params={routerProps}
                     backToLists={backToServiceAccounts}
-                    ListDetailHeaderBg={sectionHeaderBg}
+                    ListDetailHeaderBg={
+                      isTabScreen
+                        ? tabSvcIcon
+                        : isMobileScreen
+                        ? mobSvcIcon
+                        : sectionHeaderBg
+                    }
                     description={introduction}
                     renderContent={
                       <AccountSelectionTabs
@@ -703,7 +717,13 @@ const ServiceAccountDashboard = () => {
                     listItemDetails={serviceAccountList}
                     params={routerProps}
                     backToLists={backToServiceAccounts}
-                    ListDetailHeaderBg={sectionHeaderBg}
+                    ListDetailHeaderBg={
+                      isTabScreen
+                        ? tabSvcIcon
+                        : isMobileScreen
+                        ? mobSvcIcon
+                        : sectionHeaderBg
+                    }
                     description={introduction}
                   />
                 )}

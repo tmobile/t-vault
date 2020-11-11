@@ -52,8 +52,9 @@ const RightColumnSection = styled(ColumnSection)`
     display: ${(props) => (props.clicked ? 'block' : 'none')};
     position: fixed;
     top: 0;
-    overflow-y: scroll;
+    overflow-y: auto;
     max-height: 100%;
+    z-index: 20;
   }
 `;
 const LeftColumnSection = styled(ColumnSection)`
@@ -210,6 +211,7 @@ const SafeDashboard = () => {
   };
   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const isTabAndMobScreen = useMediaQuery(mediaBreakpoints.smallAndMedium);
   const history = useHistory();
 
   /**
@@ -313,7 +315,7 @@ const SafeDashboard = () => {
       );
       setSelectedSafeDetails(activeSafeDetail[0]);
     }
-  }, [allSafeList, safes, history.location.pathname, safeList]);
+  }, [allSafeList, safes, history, safeList]);
 
   /**
    * @function onSearchChange
@@ -478,7 +480,7 @@ const SafeDashboard = () => {
             listIconStyles={listIconStyles}
           />
           <BorderLine />
-          {safe.name && safe.manage && !isMobileScreen ? (
+          {safe.name && safe.manage && !isTabAndMobScreen ? (
             <PopperWrap onClick={(e) => onActionClicked(e)}>
               <PsudoPopper
                 onDeleteSafeClicked={(e) => onDeleteSafeClicked(e, safe.path)}
@@ -487,7 +489,7 @@ const SafeDashboard = () => {
               />
             </PopperWrap>
           ) : null}
-          {isMobileScreen && safe.manage && (
+          {isTabAndMobScreen && safe.manage && (
             <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
               <EditDeletePopper
                 onDeleteClicked={(e) => onDeleteSafeClicked(e, safe.path)}

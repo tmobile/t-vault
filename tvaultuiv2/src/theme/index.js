@@ -297,6 +297,11 @@ const customTheme = createMuiTheme({
         color: '#000',
       },
     },
+    MuiFormHelperText: {
+      root: {
+        color: customColor.label.color,
+      },
+    },
     MuiPopover: {
       text: {
         color: '#fff',

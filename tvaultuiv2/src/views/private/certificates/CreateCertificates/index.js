@@ -26,31 +26,14 @@ import PreviewCertificate from './preview';
 import SwitchComponent from '../../../../components/FormFields/SwitchComponent';
 import RadioButtonComponent from '../../../../components/FormFields/RadioButton';
 import CertificateHeader from '../components/CertificateHeader';
-import { RequiredCircle, RequiredText } from '../../../../styles/GlobalStyles';
 import configData from '../../../../config/config';
+import {
+  GlobalModalWrapper,
+  RequiredCircle,
+  RequiredText,
+} from '../../../../styles/GlobalStyles';
 
-const { small, belowLarge } = mediaBreakpoints;
-
-const ModalWrapper = styled.section`
-  background-color: ${(props) => props.theme.palette.background.modal};
-  padding: 5.5rem 6rem 6rem 6rem;
-  border: none;
-  outline: none;
-  width: 69.6rem;
-  margin: auto 0;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  ${belowLarge} {
-    padding: 2.7rem 5rem 3.2rem 5rem;
-    width: 57.2rem;
-  }
-  ${small} {
-    width: 100%;
-    padding: 2rem;
-    margin: 0;
-  }
-`;
+const { small } = mediaBreakpoints;
 
 const HeaderWrapper = styled.div`
   display: flex;
@@ -444,7 +427,6 @@ const CreateCertificates = (props) => {
                   ? errorHandleClose()
                   : handleCloseConfirmationModal()
               }
-              width={isMobileScreen ? '100%' : '38%'}
             />
           }
         />
@@ -462,7 +444,7 @@ const CreateCertificates = (props) => {
             }}
           >
             <Fade in={open}>
-              <ModalWrapper>
+              <GlobalModalWrapper>
                 {responseType === 0 && (
                   <LoaderSpinner customStyle={loaderStyle} />
                 )}
@@ -617,7 +599,6 @@ const CreateCertificates = (props) => {
                       label="Cancel"
                       color="primary"
                       onClick={() => handleClose()}
-                      width={isMobileScreen ? '100%' : ''}
                     />
                   </CancelButton>
                   <ButtonComponent
@@ -625,7 +606,6 @@ const CreateCertificates = (props) => {
                     color="secondary"
                     disabled={disabledSave}
                     onClick={() => onPreviewClicked()}
-                    width={isMobileScreen ? '100%' : ''}
                   />
                 </CancelSaveWrapper>
                 {responseType === -1 && (
@@ -637,7 +617,7 @@ const CreateCertificates = (props) => {
                     message={toastMessage || 'Something went wrong!'}
                   />
                 )}
-              </ModalWrapper>
+              </GlobalModalWrapper>
             </Fade>
           </Modal>
         )}

@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect, useCallback } from 'react';
@@ -12,6 +13,8 @@ import {
 } from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import sectionHeaderBg from '../../../../../assets/certificate-banner.svg';
+import sectionMobHeaderBg from '../../../../../assets/mob-certbg.png';
+import sectionTabHeaderBg from '../../../../../assets/tab-certbg.png';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
@@ -104,9 +107,11 @@ const MobileViewForListDetailPage = css`
   display: flex;
   right: 0;
   left: 0;
+  overflow-y: auto;
+  max-height: 100%;
+  z-index: 20;
   bottom: 0;
-  top: 7rem;
-  z-index: 1;
+  top: 0;
   overflow-y: auto;
 `;
 const EmptyContentBox = styled('div')`
@@ -168,6 +173,8 @@ const CertificatesDashboard = () => {
   const history = useHistory();
   const location = useLocation();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const isTabAndMobileScreen = useMediaQuery(mediaBreakpoints.smallAndMedium);
+  const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
   const [state] = useStateValue();
   const admin = Boolean(state?.isAdmin);
 
@@ -550,7 +557,7 @@ const CertificatesDashboard = () => {
         onEditListItemClicked={(cert) => onEditListItemClicked(cert)}
         onDeleteCertificateClicked={(cert) => onDeleteCertificateClicked(cert)}
         onTransferOwnerClicked={(cert) => onTransferOwnerClicked(cert)}
-        isMobileScreen={isMobileScreen}
+        isTabAndMobileScreen={isTabAndMobileScreen}
         history={history}
         certificateList={certificateList}
       />
@@ -686,7 +693,13 @@ const CertificatesDashboard = () => {
                 render={() => (
                   <CertificateItemDetail
                     backToLists={backToCertificates}
-                    ListDetailHeaderBg={sectionHeaderBg}
+                    ListDetailHeaderBg={
+                      isTabScreen
+                        ? sectionTabHeaderBg
+                        : isMobileScreen
+                        ? sectionMobHeaderBg
+                        : sectionHeaderBg
+                    }
                     name={ListItemDetails.certificateName}
                     renderContent={
                       <CertificatesReviewDetails
@@ -700,7 +713,13 @@ const CertificatesDashboard = () => {
                 path="/certificates"
                 render={() => (
                   <CertificateItemDetail
-                    ListDetailHeaderBg={sectionHeaderBg}
+                    ListDetailHeaderBg={
+                      isTabScreen
+                        ? sectionTabHeaderBg
+                        : isMobileScreen
+                        ? sectionMobHeaderBg
+                        : sectionHeaderBg
+                    }
                     owner={ListItemDetails.certOwnerEmailId}
                     container={ListItemDetails.containerName}
                     renderContent={

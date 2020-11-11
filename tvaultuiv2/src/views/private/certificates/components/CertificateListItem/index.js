@@ -67,6 +67,9 @@ const extraCss = css`
   ${mediaBreakpoints.belowLarge} {
     width: 17rem;
   }
+  ${mediaBreakpoints.medium} {
+    width: 12rem;
+  }
   ${mediaBreakpoints.small} {
     width: 15rem;
   }

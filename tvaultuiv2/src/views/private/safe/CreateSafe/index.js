@@ -24,31 +24,12 @@ import {
   TitleThree,
   RequiredCircle,
   RequiredText,
+  LabelRequired,
+  GlobalModalWrapper,
+  RequiredWrap,
 } from '../../../../styles/GlobalStyles';
 
-const { small, belowLarge } = mediaBreakpoints;
-
-const ModalWrapper = styled.section`
-  background-color: ${(props) => props.theme.palette.background.modal};
-  padding: 5.5rem 6rem 6rem 6rem;
-  border: none;
-  outline: none;
-  width: 69.6rem;
-  margin: auto 0;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  ${belowLarge} {
-    padding: 2.7rem 5rem 3.2rem 5rem;
-    width: 57.2rem;
-  }
-  ${small} {
-    width: 100%;
-    padding: 2rem;
-    margin: 0;
-    height: fit-content;
-  }
-`;
+const { small } = mediaBreakpoints;
 
 const HeaderWrapper = styled.div`
   display: flex;
@@ -90,12 +71,6 @@ const CreateSafeForm = styled.form`
   display: flex;
   flex-direction: column;
   margin-top: 2.5rem;
-`;
-
-const RequiredWrap = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
 `;
 
 const InputFieldLabelWrapper = styled.div`
@@ -418,7 +393,7 @@ const CreateModal = (props) => {
         }}
       >
         <Fade in={open}>
-          <ModalWrapper>
+          <GlobalModalWrapper>
             {responseType === 0 && <LoaderSpinner customStyle={loaderStyle} />}
             <HeaderWrapper>
               <LeftIcon
@@ -438,15 +413,17 @@ const CreateModal = (props) => {
               </TitleThree>
             </IconDescriptionWrapper>
             <CreateSafeForm>
-              <RequiredWrap>
-                <RequiredCircle />
-                <RequiredText>Required</RequiredText>
-              </RequiredWrap>
               <InputFieldLabelWrapper>
-                <InputLabel>
-                  Safe Name
-                  <RequiredCircle margin="0.5rem" />
-                </InputLabel>
+                <LabelRequired>
+                  <InputLabel>
+                    Safe Name
+                    <RequiredCircle margin="0.5rem" />
+                  </InputLabel>
+                  <RequiredWrap>
+                    <RequiredCircle />
+                    <RequiredText>Required</RequiredText>
+                  </RequiredWrap>
+                </LabelRequired>
                 <TextFieldComponent
                   value={name}
                   placeholder="Save Name"
@@ -556,7 +533,7 @@ const CreateModal = (props) => {
                 }
               />
             )}
-          </ModalWrapper>
+          </GlobalModalWrapper>
         </Fade>
       </Modal>
     </ComponentError>

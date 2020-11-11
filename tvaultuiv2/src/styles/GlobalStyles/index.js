@@ -110,9 +110,10 @@ export const TabWrapper = styled.div`
 export const SectionPreview = styled.section`
   margin: 11.2rem auto 4.2rem auto;
   height: calc(100vh - 15.6rem);
-  ${mediaBreakpoints.small} {
+  ${mediaBreakpoints.smallAndMedium} {
     margin: 0;
-    height: 100vh;
+    margin-top: 7rem;
+    height: calc(100vh - 7rem);
   }
 `;
 
@@ -136,6 +137,19 @@ export const RequiredText = styled.span`
   }
 `;
 
+export const LabelRequired = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const RequiredWrap = styled.div`
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+`;
+
 export const InstructionText = styled.p`
   margin-top: 1.4rem;
   color: #bbbbbb;
@@ -144,5 +158,27 @@ export const InstructionText = styled.p`
   ${mediaBreakpoints.small} {
     font-size: 1.3rem;
     opacity: 0.4;
+  }
+`;
+
+export const GlobalModalWrapper = styled.section`
+  background-color: ${(props) => props.theme.palette.background.modal};
+  padding: 5.5rem 6rem 6rem 6rem;
+  border: none;
+  outline: none;
+  width: 69.6rem;
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  ${mediaBreakpoints.belowLarge} {
+    padding: 2.7rem 5rem 3.2rem 5rem;
+    width: 57.2rem;
+  }
+  ${mediaBreakpoints.small} {
+    width: 100%;
+    padding: 2rem;
+    margin: 0;
+    height: fit-content;
   }
 `;

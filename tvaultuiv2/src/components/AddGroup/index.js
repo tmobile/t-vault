@@ -21,7 +21,7 @@ import {
   RequiredText,
 } from '../../styles/GlobalStyles';
 
-const { small } = mediaBreakpoints;
+const { small, smallAndMedium } = mediaBreakpoints;
 
 const PermissionWrapper = styled.div`
   padding: 1rem 4rem 4rem 4rem;
@@ -61,7 +61,7 @@ const InputWrapper = styled.div`
 const RadioButtonWrapper = styled.div`
   display: flex;
   justify-content: space-between;
-  ${small} {
+  ${smallAndMedium} {
     flex-direction: column;
   }
   fieldset {
@@ -72,6 +72,10 @@ const RadioButtonWrapper = styled.div`
 `;
 const CancelSaveWrapper = styled.div`
   display: flex;
+  ${smallAndMedium} {
+    align-self: flex-end;
+    margin-top: 3rem;
+  }
 `;
 
 const CancelButton = styled.div`

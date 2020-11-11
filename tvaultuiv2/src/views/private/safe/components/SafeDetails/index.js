@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -5,7 +6,8 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled from 'styled-components';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import sectionHeaderBg from '../../../../../assets/Banner_img.png';
-import { BackArrow } from '../../../../../assets/SvgIcons';
+import sectionMobHeaderBg from '../../../../../assets/mob-safebg.svg';
+import sectionTabHeaderBg from '../../../../../assets/tab-safebg.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ListDetailHeader from '../../../../../components/ListDetailHeader';
 
@@ -18,16 +20,6 @@ const Section = styled('section')`
   height: 100%;
 `;
 
-const BackButton = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 2rem 0 0 2rem;
-  cursor: pointer;
-  span {
-    margin-left: 1rem;
-  }
-`;
-
 const SafeDetails = (props) => {
   const { detailData, resetClicked, goodToRoute, renderContent } = props;
   const [safe, setSafe] = useState({});
@@ -36,6 +28,7 @@ const SafeDetails = (props) => {
   const location = useLocation();
   // screen view handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
   // route component data
   const goBackToSafeList = () => {
     resetClicked();
@@ -57,20 +50,20 @@ const SafeDetails = (props) => {
   return (
     <ComponentError>
       <Section>
-        {isMobileScreen ? (
-          <BackButton onClick={goBackToSafeList}>
-            <BackArrow />
-            <span>{(safe && safe.name) || 'No safe'}</span>
-          </BackButton>
-        ) : null}
-
         <ListDetailHeader
-          title={safe?.name}
+          title={safe?.name || 'No Safe'}
           description={
             safe?.description ||
             'This provides information about safe. You can able to see the secrets associated with it, And also create  a safe to see your secrets, folders and manage permissions for safes'
           }
-          bgImage={sectionHeaderBg}
+          bgImage={
+            isMobileScreen
+              ? sectionMobHeaderBg
+              : isTabScreen
+              ? sectionTabHeaderBg
+              : sectionHeaderBg
+          }
+          goBackToList={goBackToSafeList}
         />
         {renderContent}
       </Section>

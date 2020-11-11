@@ -9,12 +9,17 @@ import { useHistory } from 'react-router-dom';
 import userIcon from '../../assets/icon-profile.svg';
 import vectorIcon from '../../assets/vector.svg';
 import { revokeToken } from '../../views/public/HomePage/utils';
+import mediaBreakpoints from '../../breakpoints';
 
 const UserWrap = styled.div`
   display: flex;
   align-items: center;
   cursor: pointer;
+  ${mediaBreakpoints.smallAndMedium} {
+    margin-top: 2rem;
+  }
 `;
+
 const UserName = styled.span`
   text-transform: capitalize;
 `;

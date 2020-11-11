@@ -29,18 +29,10 @@ const Wrapper = styled.section`
 `;
 
 const PrivateRoutes = () => {
-  const [idleTimer, setIdleTimer] = useState(1000 * 60 * 3);
-  const [date, setDate] = useState(new Date().getTime());
+  const [idleTimer] = useState(1000 * 60 * 3);
   const [endTime, setEndTime] = useState(
     new Date(new Date().getTime() + 30 * 60 * 1000)
   );
-
-  const callRenewToken = async () => {
-    const renewValue = await renewToken();
-    if (renewValue?.data) {
-      setIdleTimer(1000 * 60 * 3);
-    }
-  };
 
   const calculateCountdown = () => {
     let diff = (Date.parse(endTime) - Date.parse(new Date())) / 1000;
@@ -99,25 +91,25 @@ const PrivateRoutes = () => {
     }
   };
 
-  const handleOnAction = async () => {
+  const handleOnActive = async () => {
     if (window.location.pathname !== '/') {
-      timer.cancelCountdown();
-      const difference = getLastActiveTime() - date; // This will give difference in milliseconds
-      let resultInMinutes = 0;
-      resultInMinutes = Math.round(difference / 60000);
-      setEndTime(new Date(new Date().getTime() + 30 * 60 * 1000));
-      setDate(new Date().getTime());
-      if (resultInMinutes > 2) {
-        await callRenewToken();
+      if (getRemainingTime() === 0) {
+        document.title = 'VAULT';
+        timer.cancelCountdown();
+        try {
+          await renewToken();
+        } catch (err) {
+          loggedOut();
+        }
+        setEndTime(new Date(new Date().getTime() + 30 * 60 * 1000));
       }
-      document.title = 'VAULT';
     }
   };
 
-  const { getLastActiveTime } = useIdleTimer({
+  const { getRemainingTime } = useIdleTimer({
     timeout: idleTimer,
     onIdle: handleOnIdle,
-    onAction: handleOnAction,
+    onActive: handleOnActive,
     debounce: 250,
   });
 
