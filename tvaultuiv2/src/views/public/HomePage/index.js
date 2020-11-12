@@ -33,6 +33,7 @@ import configUrl from '../../../config';
 import configData from '../../../config/config';
 import LoginModal from './LoginModal';
 import { renewToken } from './utils';
+import { ldapResponse, userpassResponse } from './__mock/loginResponse';
 
 const { smallAndMedium, small } = mediaBreakpoints;
 
@@ -453,11 +454,54 @@ const LoginPage = () => {
     setOpenLoginModal(false);
   };
 
+  const ldapApiCall = (payload) => {
+    axios
+      .post(`${configUrl.baseUrl}/auth/ldap/login`, payload)
+      .then((res) => {
+        // TODO: ONCE THE API IS ACTIVE REPLACE MOCK DATA ldapResponse WITH RESPONSE
+        sessionStorage.setItem('token', ldapResponse.client_token);
+        if (ldapResponse.admin === 'yes') {
+          sessionStorage.setItem('isAdmin', true);
+        } else {
+          sessionStorage.setItem('isAdmin', false);
+        }
+        sessionStorage.setItem('policies', ldapResponse.policies);
+        window.location = '/safes';
+        console.log('res', res);
+      })
+      .catch((err) => console.log('err', err));
+  };
+
+  const userpassApiCall = (payload) => {
+    axios
+      .post(`${configUrl.baseUrl}/auth/userpass/login`, payload)
+      .then((res) => {
+        // TODO: ONCE THE API IS ACTIVE REPLACE MOCK DATA userpassResponse WITH RESPONSE
+        sessionStorage.setItem('token', userpassResponse.response.client_token);
+        if (userpassResponse.response.admin === 'yes') {
+          sessionStorage.setItem('isAdmin', true);
+        } else {
+          sessionStorage.setItem('isAdmin', false);
+        }
+        sessionStorage.setItem('policies', userpassResponse.response.policies);
+        window.location = '/safes';
+        console.log('res', res);
+      })
+      .catch((err) => console.log('err', err));
+  };
+
   const onSignInClicked = (username, password) => {
     setResponse({ status: 'loading' });
-    // Make an api call if success
-    // After response
-    window.location = '/safes';
+    setOpenLoginModal(false);
+    const payload = {
+      username,
+      password,
+    };
+    if (configData.AUTH_TYPE === 'userpass') {
+      userpassApiCall(payload);
+    } else {
+      ldapApiCall(payload);
+    }
   };
 
   return (

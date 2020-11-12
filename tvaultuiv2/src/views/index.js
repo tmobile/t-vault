@@ -10,6 +10,7 @@ import ScaledLoader from '../components/Loaders/ScaledLoader';
 import { UserContextProvider } from '../contexts';
 import { revokeToken, renewToken } from './public/HomePage/utils';
 import { addLeadingZeros } from '../services/helper-function';
+import configData from '../config/config';
 
 const Home = lazy(() => import('./public/HomePage'));
 const VaultAppRoles = lazy(() => import('./private/vault-app-roles'));
@@ -86,13 +87,13 @@ const PrivateRoutes = () => {
   };
 
   const handleOnIdle = () => {
-    if (window.location.pathname !== '/') {
+    if (window.location.pathname !== '/' && configData.AUTH_TYPE === 'oidc') {
       timer.initCountdown();
     }
   };
 
   const handleOnActive = async () => {
-    if (window.location.pathname !== '/') {
+    if (window.location.pathname !== '/' && configData.AUTH_TYPE === 'oidc') {
       if (getRemainingTime() === 0) {
         document.title = 'VAULT';
         timer.cancelCountdown();
