@@ -99,6 +99,18 @@ script(type='text/ng-template', id='deleteCertPopup.html')
         button.common-btn.btn.btn-primary.btn-lg(ng-click="deleteCertificate(certDetails)") DELETE
       .clearfix
         button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL  
+        
+script(type='text/ng-template', id='updateCertPopup.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text Are you sure you want to update this certificate details?
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="updateCertificate(certDetails)") UPDATE
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL 
     
 script(type='text/ng-template', id='deleteCertificateSuccessPopUp.html')
   .top-lg-sep(ng-if="!isLoadingModalData")
@@ -117,6 +129,24 @@ script(type='text/ng-template', id='deleteCertificateFailedPopUp.html')
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE
+        
+script(type='text/ng-template', id='updateCertificateSuccessPopUp.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Details Updation Successful!
+      .top-lg-sep.notification-text  {{ updateMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancelUpdate()") CLOSE
+
+script(type='text/ng-template', id='updateCertificateFailedPopUp.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Details Updation Failed!
+      .top-lg-sep.notification-text  {{ updateMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE        
 
 script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
 .container-fluid.common-main-content.route-page.change-safe-wrapper
@@ -179,7 +209,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                              div
                                              div
                                              div
-                                     div.input-cross.svcaccid(ng-if='!isUserSearchLoading && !isNotificationEmailSearch && certificate.appOwnerEmail.length > 2' ng-click="clearOwnerEmail()")
+                                     div.input-cross.svcaccid(ng-if='!isUserSearchLoading && !isNotificationEmailSearch && !isLeadEmailSearch && certificate.appOwnerEmail.length > 2' ng-click="clearOwnerEmail()")
                                          div.delete-title
                                            img.delete-icon(src="../../assets/images/delete.png")
                         .row.middle
@@ -204,7 +234,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                             div
                                             div
                                             div
-                                    div.input-cross.svcaccid(ng-if='!isUserSearchLoading && !isNotificationEmailSearch && certificate.leadEmail.length > 2' ng-click="clearLeadEmail()")
+                                    div.input-cross.svcaccid(ng-if='!isUserSearchLoading && !isNotificationEmailSearch && !isOwnerEmailSearch && certificate.leadEmail.length > 2' ng-click="clearLeadEmail()")
                                         div.delete-title
                                           img.delete-icon(src="../../assets/images/delete.png")
                         .row.middle
@@ -278,10 +308,10 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                     div
                                     div
                                     div
-                            div.input-cross.svcaccid.notification-email-loader(ng-if='!isUserSearchLoading && !isOwnerEmailSearch && notificationEmail.email.length > 2' ng-click="clearNotificationEmail()")
+                            div.input-cross.svcaccid.notification-email-loader(ng-if='!isUserSearchLoading && !isOwnerEmailSearch && !isLeadEmailSearch && notificationEmail.email.length > 2' ng-click="clearNotificationEmail()")
                                 div.delete-title
                                     img.delete-icon(src="../../assets/images/delete.png")
-                          div.key-acceptance-info() {{ notificationEmailErrorMessage }}
+                          div.key-acceptance-info() 
                         .col-lg-3.col-md-3.col-sm-3.col-xs-3
                           button.common-btn.dns-add-btn(ng-click="addNotificationEmail(notificationEmail)" ng-disabled="!isNotificationEmailSelected") Add Email     
                         
@@ -305,7 +335,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                       .right.svc-action-button
                         button.common-btn.btn.btn-primary.btn-lg(type='submit' ng-if="isCertificateOwner" ng-disabled="!isCertificateOwner") Grant Permission
                       .right.svc-action-button
-                        button.common-btn.btn.btn-primary.btn-lg(type='button' ) Update  
+                        button.common-btn.btn.btn-primary.btn-lg(type='button' ng-click="updateCertPopup(certificate)" ) Update  
                       .right.right-sm-sepshowInputLoader
                         button.link-style.common-btn.btn.btn-default.btn-lg.col-lg-6.col-md-6.col-sm-6.col-xs-12(type='button' ng-click="goBack()") Cancel
 

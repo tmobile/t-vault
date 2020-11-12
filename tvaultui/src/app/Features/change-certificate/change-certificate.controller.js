@@ -643,8 +643,7 @@
                                 
                                 if($scope.certificate.notificationEmails !== null && $scope.certificate.notificationEmails !== undefined  && $scope.certificate.notificationEmails !== ""){
                                 	$scope.notificationEmails = [];
-                                    var notificationStr = $scope.certificate.notificationEmails;
-                                    console.log("notificationStr === "+notificationStr);
+                                    var notificationStr = $scope.certificate.notificationEmails;                                    
                                     $scope.notificationList  = notificationStr.split(',')
                                     $scope.certificate.notificationEmails = $scope.notificationList;
                                     var i = 0;
@@ -1107,10 +1106,25 @@
         $scope.deleteCertificatePopUp = function (certificate) {
             Modal.createModal('md', 'deleteCertificateSuccessPopUp.html', 'ChangeCertificateCtrl', $scope);
         };
+        
+        $scope.updateCertificatePopUp = function (certificate) {
+            Modal.createModal('md', 'updateCertificateSuccessPopUp.html', 'ChangeCertificateCtrl', $scope);
+        };
 
         $scope.deleteCertificateFailedPopUp = function (certificate) {
             Modal.createModal('md', 'deleteCertificateFailedPopUp.html', 'ChangeCertificateCtrl', $scope);
         };
+        
+        $scope.updateCertificateFailedPopUp = function (certificate) {
+            Modal.createModal('md', 'updateCertificateFailedPopUp.html', 'ChangeCertificateCtrl', $scope);
+        };
+        
+        $scope.updateCertPopup = function (certDetails) {
+            $scope.fetchDataError = false;
+            $rootScope.certDetails = certDetails;
+            Modal.createModal('md', 'updateCertPopup.html', 'ChangeCertificateCtrl', $scope);
+        };
+        
 
          //Revoke Certificate
         $scope.revokeCertificate = function (certificateDetails){
@@ -1311,6 +1325,58 @@
             };
         };
         
+        $rootScope.updateCertificate = function(certificateDetails){
+            if ($rootScope.certDetails !== null && $rootScope.certDetails !== undefined) {
+                certificateDetails = $rootScope.certDetails;
+            }
+            $rootScope.certDetails = null;
+            try{
+                $scope.isLoadingData = true;
+                Modal.close();
+                $scope.updateMessage = '';
+                var certificateName = $scope.getCertSubjectName(certificateDetails);
+                $scope.certificateNameForDelete = certificateName;
+                var certType = certificateDetails.certType;                
+                var url = RestEndpoints.baseURL + "/v2/sslcert/";
+                $scope.isLoadingData = true;
+                var reqObjtobeSent =  { 
+                        "certificateName":certificateName,
+                        "certType":certType,
+                        "projectLeadEmail":certificateDetails.projectLeadEmailId,
+                        "applicationOwnerEmail":certificateDetails.ownerEmail,
+                        "notificationEmail": certificateDetails.notificationEmail
+                    }
+                AdminSafesManagement.updateCertificate(reqObjtobeSent, url).then(function (response) {
+                    $scope.isLoadingData = false;
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        $scope.updateMessage = 'Certificate Updated Successfully!';
+                        $scope.updateMessage = response.data.messages[0];
+                        $scope.updateCertificatePopUp();
+                        $scope.searchValue = '';
+                    }
+                },
+                function (error) {
+                    var errors = error.data.errors;
+                    $scope.updateMessage = 'Delete Failed';                    
+                    if (errors[0] == "Access denied: No permission to update certificate") {
+                        $scope.updateMessage = "For security reasons, you need to log out and log in again for the permissions to take effect.";
+                    } else {
+                        $scope.updateMessage = errors[0];
+                    }
+                    
+                    $scope.updateCertificateFailedPopUp();
+                    $scope.isLoadingData = false;
+                    console.log(error);
+                    $scope.searchValue = '';
+                })
+            }catch (e) {
+                $scope.isLoadingData = false;
+                console.log(e);
+                $scope.searchValue = '';
+            };
+        };
+        
+        
         //editable fields
         $scope.selectLeadforCert = function (ownerEmail) {
             if (ownerEmail != null) {
@@ -1347,6 +1413,12 @@
                 }
             }
             return false;
+        }
+        
+        $scope.clearNotificationEmail = function() {
+            $scope.notificationEmail = { email:""};
+            $scope.notificationEmail.email = "";
+            $scope.isNotificationEmailSelected = false;
         }
         
         $scope.searchLeadEmailForCert = function (email) {
@@ -1453,14 +1525,7 @@
                 $scope.notificationEmails = $scope.selectedNotificationEmails;
                 $scope.isNotificationEmailSelected = false;
             }
-            
-            $scope.selectNotificationEmail = function (ownerEmail) {
-                if (ownerEmail != null) {
-                    $scope.notificationEmail.email = ownerEmail.userEmail;
-                    $scope.isNotificationEmailSelected = true;
-                    $scope.isNotificationEmailSearch = false;
-                }
-            }
+                       
 
             var isDuplicateNotificationEmail = function (email) {
                 $scope.certDnsErrorMessage = '';
