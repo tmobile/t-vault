@@ -1644,6 +1644,27 @@ public class SSLCertificateService {
         }
         return true;
     }
+//	/**
+//     * Validate the notificationEmails
+//     * @param sslCertificateRequest
+//     * @return
+//     */
+//	private boolean validateNotificationEmails(SSLCertificateRequest sslCertificateRequest) {
+//        String[] notificationEmails = sslCertificateRequest.getNotificationEmail();
+//        Set<String> set = new HashSet<>();
+//
+//        if(!ArrayUtils.isEmpty(notificationEmails)) {
+//	        for (String notificationEmail : notificationEmails) {
+//	            if (notificationEmail.contains(" ") || (!notificationEmail.matches("^[a-zA-Z0-9.-]+$")) || (notificationEmail.endsWith(certificateNameTailText)) ||
+//	                    (notificationEmail.contains(".-")) || (notificationEmail.contains("-.")) || (notificationEmail.contains("..")) || (notificationEmail.endsWith(".")) ||
+//	                    (!set.add(notificationEmail))) {
+//	                return false;
+//	            }
+//	        }
+//
+//        }
+//        return true;
+//    }
     /**
      * Validate input data
      * @param sslCertificateRequest
@@ -8335,16 +8356,57 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
-
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
 				put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureApprole", policies)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-
-		return updateRemoveApproleMetadataForCertificate(authToken, approleName, certificatePath, access,
-				currentpoliciesString);
+		Response approleControllerResp = appRoleService.configureApprole(approleName,policiesString,authToken);
+		if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT) || approleControllerResp.getHttpstatus().equals(HttpStatus.OK)){
+			Map<String,String> params = new HashMap<>();
+			params.put("type", "app-roles");
+			params.put("name",approleName);
+			params.put("path",certificatePath);
+			params.put("access","delete");
+			Response metadataResponse = ControllerUtil.updateMetadata(params, authToken);
+			if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+						put(LogMessage.MESSAGE, String.format("Approle [%s] successfully deleted from Certificate [%s]", approleName, certificatePath)).
+						put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully deleted from Certificate\"]}");
+			}
+		 approleControllerResp = appRoleService.configureApprole(approleName,policiesString,authToken);
+		 if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Remove AppRole from Certificate").
+						put(LogMessage.MESSAGE, "Reverting, approle policy update success").
+						put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+						put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Please try again\"]}");
+			}else{
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Remove AppRole from Certificate").
+						put(LogMessage.MESSAGE, "Reverting approle policy update failed").
+						put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+						put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Contact Admin \"]}");
+			}
+		}
+		else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove approle from SSL Certificate\"]}");
+		}
+		
 	}
 
 
@@ -8408,26 +8470,5 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			   		}
 			   	}
 
-	private ResponseEntity<String> updateRemoveApproleMetadataForCertificate(String authToken, String approleName,
-			String certificatePath, String delete, String currentpoliciesString) {
-			Map<String,String> params = new HashMap<>();
-			params.put("type", "app-roles");
-			params.put("name",approleName);
-			params.put("path",certificatePath);
-			params.put("access","delete");
-			Response metadataResponse = ControllerUtil.updateMetadata(params, authToken);
-			if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
-				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
-						put(LogMessage.MESSAGE, String.format("Approle [%s] successfully deleted from Certificate [%s]", approleName, certificatePath)).
-						put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-						build()));
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully deleted from Certificate\"]}");
-			} else {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle deletion failed\"]}");
-			}
-	}
 
 }

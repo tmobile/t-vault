@@ -191,7 +191,7 @@ public class SSLCertificateController {
      * @param certificateApproles
      * @return
      */
-    @ApiOperation(value = "${SSLCertificateController.deleteApproleFromCertificate.value}", notes = "${SSLCertificateController.deleteApproleFromCertificate.notes}", hidden = true)
+    @ApiOperation(value = "${SSLCertificateController.deleteApproleFromCertificate.value}", notes = "${SSLCertificateController.deleteApproleFromCertificate.notes}", hidden = false)
     @DeleteMapping(value="/v2/sslcert/approle",consumes="application/json",produces="application/json")
     public ResponseEntity<String> deleteApproleFromCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateApprole certificateApprole) {
         UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
