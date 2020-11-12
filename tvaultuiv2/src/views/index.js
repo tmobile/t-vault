@@ -30,6 +30,9 @@ const Wrapper = styled.section`
 
 const PrivateRoutes = () => {
   const [idleTimer] = useState(1000 * 60 * 3);
+  const [timeWhenLoggedIn, setTimeWhenLoggedIn] = useState(
+    new Date().getTime()
+  );
   const [endTime, setEndTime] = useState(
     new Date(new Date().getTime() + 30 * 60 * 1000)
   );
@@ -91,25 +94,41 @@ const PrivateRoutes = () => {
     }
   };
 
+  const callRenewApi = async () => {
+    try {
+      setEndTime(new Date(new Date().getTime() + 30 * 60 * 1000));
+      setTimeWhenLoggedIn(new Date().getTime());
+      return await renewToken();
+    } catch (err) {
+      return loggedOut();
+    }
+  };
+
   const handleOnActive = async () => {
     if (window.location.pathname !== '/') {
       if (getRemainingTime() === 0) {
         document.title = 'VAULT';
         timer.cancelCountdown();
-        try {
-          await renewToken();
-        } catch (err) {
-          loggedOut();
-        }
-        setEndTime(new Date(new Date().getTime() + 30 * 60 * 1000));
+        await callRenewApi();
       }
     }
   };
 
-  const { getRemainingTime } = useIdleTimer({
+  const handleOnAction = async () => {
+    if (window.location.pathname !== '/') {
+      const diff = Math.abs(timeWhenLoggedIn - getLastActiveTime());
+      const minutes = diff / 60000;
+      if (minutes > 27) {
+        await callRenewApi();
+      }
+    }
+  };
+
+  const { getRemainingTime, getLastActiveTime } = useIdleTimer({
     timeout: idleTimer,
     onIdle: handleOnIdle,
     onActive: handleOnActive,
+    onAction: handleOnAction,
     debounce: 250,
   });
 
