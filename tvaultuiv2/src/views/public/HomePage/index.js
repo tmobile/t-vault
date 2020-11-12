@@ -1,6 +1,4 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/jsx-curly-newline */
-/* eslint-disable no-console */
 /* eslint-disable react/jsx-one-expression-per-line */
 import React, { useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
@@ -32,6 +30,7 @@ import Loader from '../../../components/Loaders/ScaledLoader';
 import configUrl from '../../../config';
 import configData from '../../../config/config';
 import LoginModal from './LoginModal';
+import SnackbarComponent from '../../../components/Snackbar';
 import { renewToken } from './utils';
 import { ldapResponse, userpassResponse } from './__mock/loginResponse';
 
@@ -361,6 +360,8 @@ const ContactUs = styled.p`
 const LoginPage = () => {
   const [response, setResponse] = useState({ status: 'home' });
   const [openLoginModal, setOpenLoginModal] = useState(false);
+  const [responseType, setResponseType] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
   const [, dispatch] = useStateValue();
   const isMobileScreen = useMediaQuery(small);
 
@@ -384,8 +385,10 @@ const LoginPage = () => {
           }
         }
       })
-      .catch((e) => {
-        console.log('e', e);
+      .catch(() => {
+        setResponseType(-1);
+        setResponse({ status: 'home' });
+        setToastMessage('Something went wrong while fetching owner details!');
       });
   };
 
@@ -401,14 +404,17 @@ const LoginPage = () => {
           await getOwnerAllDetails(res.data.data.username.toLowerCase());
         }
       })
-      .catch((err) => console.log('err', err));
+      .catch(() => {
+        setResponseType(-1);
+        setResponse({ status: 'home' });
+        setToastMessage('Something went wrong while fetching username!');
+      });
   };
 
   useEffect(() => {
     sessionStorage.clear();
     if (urlParams?.code && urlParams?.state) {
       setResponse({ status: 'loading' });
-      console.log('object', configUrl.redirectUrl);
       axios
         .get(
           `${configUrl.baseUrl}/auth/oidc/callback?state=${urlParams.state}&code=${urlParams.code}`
@@ -428,7 +434,10 @@ const LoginPage = () => {
             window.location = '/safes';
           }
         })
-        .catch((e) => console.log('e', e));
+        .catch(() => {
+          setResponseType(-1);
+          setResponse({ status: 'home' });
+        });
     }
     // eslint-disable-next-line
   }, []);
@@ -445,7 +454,10 @@ const LoginPage = () => {
         .then((res) => {
           window.location = res.data?.data?.auth_url;
         })
-        .catch((e) => console.log(e.response));
+        .catch(() => {
+          setResponseType(null);
+          setResponse({ status: 'home' });
+        });
     } else {
       setOpenLoginModal(true);
     }
@@ -457,7 +469,7 @@ const LoginPage = () => {
   const ldapApiCall = (payload) => {
     axios
       .post(`${configUrl.baseUrl}/auth/ldap/login`, payload)
-      .then((res) => {
+      .then(() => {
         // TODO: ONCE THE API IS ACTIVE REPLACE MOCK DATA ldapResponse WITH RESPONSE
         sessionStorage.setItem('token', ldapResponse.client_token);
         if (ldapResponse.admin === 'yes') {
@@ -467,15 +479,20 @@ const LoginPage = () => {
         }
         sessionStorage.setItem('policies', ldapResponse.policies);
         window.location = '/safes';
-        console.log('res', res);
       })
-      .catch((err) => console.log('err', err));
+      .catch((err) => {
+        if (err.response.data.errors && err.response.data.errors[0]) {
+          setToastMessage(err.response.data.errors[0]);
+        }
+        setResponseType(-1);
+        setResponse({ status: 'home' });
+      });
   };
 
   const userpassApiCall = (payload) => {
     axios
       .post(`${configUrl.baseUrl}/auth/userpass/login`, payload)
-      .then((res) => {
+      .then(() => {
         // TODO: ONCE THE API IS ACTIVE REPLACE MOCK DATA userpassResponse WITH RESPONSE
         sessionStorage.setItem('token', userpassResponse.response.client_token);
         if (userpassResponse.response.admin === 'yes') {
@@ -485,9 +502,14 @@ const LoginPage = () => {
         }
         sessionStorage.setItem('policies', userpassResponse.response.policies);
         window.location = '/safes';
-        console.log('res', res);
       })
-      .catch((err) => console.log('err', err));
+      .catch((err) => {
+        if (err.response.data.errors && err.response.data.errors[0]) {
+          setToastMessage(err.response.data.errors[0]);
+        }
+        setResponseType(-1);
+        setResponse({ status: 'home' });
+      });
   };
 
   const onSignInClicked = (username, password) => {
@@ -502,6 +524,13 @@ const LoginPage = () => {
     } else {
       ldapApiCall(payload);
     }
+  };
+
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
   };
 
   return (
@@ -605,6 +634,15 @@ const LoginPage = () => {
               </ContactUs>
             </ThirdRow>
           </Container>
+        )}
+        {responseType === -1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message={toastMessage || 'Something went wrong!'}
+          />
         )}
       </>
     </ComponentError>

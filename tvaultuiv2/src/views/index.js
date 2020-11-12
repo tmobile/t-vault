@@ -31,6 +31,7 @@ const Wrapper = styled.section`
 
 const PrivateRoutes = () => {
   const [idleTimer] = useState(1000 * 60 * 3);
+  const [timeWhenLoggedIn] = useState(new Date().getTime());
   const [endTime, setEndTime] = useState(
     new Date(new Date().getTime() + 30 * 60 * 1000)
   );
@@ -107,10 +108,21 @@ const PrivateRoutes = () => {
     }
   };
 
-  const { getRemainingTime } = useIdleTimer({
+  const handleOnAction = () => {
+    if (window.location.pathname !== '/') {
+      const diff = Math.abs(timeWhenLoggedIn - getLastActiveTime());
+      const minutes = diff / 60000;
+      if (configData.AUTH_TYPE !== 'oidc' && minutes > 30) {
+        loggedOut();
+      }
+    }
+  };
+
+  const { getRemainingTime, getLastActiveTime } = useIdleTimer({
     timeout: idleTimer,
     onIdle: handleOnIdle,
     onActive: handleOnActive,
+    onAction: handleOnAction,
     debounce: 250,
   });
 

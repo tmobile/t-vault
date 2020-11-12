@@ -151,8 +151,10 @@ const Header = (props) => {
     if (loggedIn) {
       setIsLogin(true);
       const name = sessionStorage.getItem('displayName');
-      const str = name.split(',');
-      setUserName(`${str[1]} ${str[0]}` || 'User');
+      if (name) {
+        const str = name?.split(',');
+        setUserName(`${str[1]} ${str[0]}` || 'User');
+      }
     } else {
       setIsLogin(false);
     }
