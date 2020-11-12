@@ -21,7 +21,17 @@ script(type='text/ng-template', id='renewCertPopup.html')
       .clearfix.bottom-sm-sep
         button.common-btn.btn.btn-primary.btn-lg(ng-click="renewCertificate(certDetails)") RENEW
       .clearfix
-        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL       
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+
+script(type='text/ng-template', id='renewExternalCertPopup.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text {{ renewExternalConfirmMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+       .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
         
 script(type='text/ng-template', id='error.html')
     .row
@@ -63,6 +73,16 @@ script(type='text/ng-template', id='transferSvcaccPopUp.html')
         button.common-btn.btn.btn-primary.btn-lg(ng-click="transferSvcacc(svcaccToTransfer)") TRANSFER
       .clearfix
         button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+
+script(type='text/ng-template', id='unclaimCertSuccessPopup.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Status !
+      .top-lg-sep.notification-text  {{ unclaimCertMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="successCancel()") CLOSE
 
 script(type='text/ng-template', id='transferSuccessPopUp.html')
   loading-state(ng-if="isLoadingModalData")
@@ -853,7 +873,9 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           .down.view
                                                               .list-icon(ng-click="goToAddPermissions(value)")  View/Edit                                                       
                                                           .down.view
-                                                              .list-icon(ng-click="transferCertPopup(value)") Transfer Owner     
+                                                              .list-icon(ng-click="transferCertPopup(value)") Transfer Owner
+                                                          .down.view
+                                                              .list-icon(ng-click="unClaimCert(value)") Un Claim
                                               .pagination-wrapper(ng-show='hasMoreCertsToShow()')
                                                   .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshown}} of {{numOfCertificates}}
                                                   .pagination-button-wrapper(ng-click='showMoreCertItems()')
@@ -898,7 +920,9 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           .down.view
                                                               .list-icon(ng-click="goToAddPermissions(value)")  View/Edit
                                                           .down.view
-                                                              .list-icon(ng-click="transferCertPopup(value)") Transfer Owner                                                            
+                                                              .list-icon(ng-click="transferCertPopup(value)") Transfer Owner
+                                                          .down.view
+                                                              .list-icon(ng-click="unClaimCert(value)") Un Claim
                                               .pagination-wrapper(ng-show='hasMoreCertsToShowExt()')
                                                   .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshownExt}} of {{numOfCertificates}}
                                                   .pagination-button-wrapper(ng-click='showMoreCertItemsExt()')

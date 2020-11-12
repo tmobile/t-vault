@@ -500,7 +500,11 @@ readTextFile("../apiUrls.json");
             name: 'getApplicationDetails',
             url: '/v2/serviceaccounts/cwm/appdetails/appname?',
             method: 'GET'
-        }
+        },{
+            name: 'unclaimCert',
+            url: '/v2/sslcert/unlink/{certificate_name}/{certificate_type}',
+            method: 'POST'
+         }
     ]
     });
 })( angular.module( 'vault.constants.RestEndpoints', []));

@@ -6290,7 +6290,120 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                     "user from the certificate\"]}");
 		}
 	}
-	
+
+
+    /**
+     * This method will be used to unlick the certificate info from application no changes in nclm
+     *
+     * @param userDetails
+     * @param token
+     * @param certificateName
+     * @param certType
+     * @return
+     */
+    public ResponseEntity<String> unLinkCertificate(UserDetails userDetails, String token, String certificateName,
+                                                    String certType) throws Exception {
+        try {
+
+            boolean isValid = ControllerUtil.validateInputs(certificateName,certType);
+            if(!isValid){
+                log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "unLinkCertificate").
+                        put(LogMessage.MESSAGE, "Invalid input values").
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+            }
+
+            //Get the token
+            if (userDetails.isAdmin()) {
+                token = userDetails.getClientToken();
+            } else {
+                token = userDetails.getSelfSupportToken();
+            }
+
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "unLinkCertificate")
+                    .put(LogMessage.MESSAGE, String.format("unLinkCertificate-> certificateName = [%s] = certType = [%s] " +
+                                    "= unlink by = [%s] = on date = [%s]", certificateName, certType, userDetails.getUsername(),
+                            LocalDateTime.now()))
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+            //Metadata path
+            String metaDataPath = (certType.equalsIgnoreCase("internal")) ?
+                    SSLCertificateConstants.SSL_CERT_PATH + "/" + certificateName : SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH + "/" + certificateName;
+            //Permission path
+            String permissionMetaDataPath = (certType.equalsIgnoreCase("internal")) ?
+                    SSLCertificateConstants.SSL_CERT_PATH_VALUE + "/" + certificateName : SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT + "/" + certificateName;
+            Response response = getCertificateDetailsByMatadataPath(metaDataPath, token);
+
+            JsonParser jsonParser = new JsonParser();
+            JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+
+            //remove user permissions
+            deleteUserPermissionForCertificate(certType, certificateName, userDetails, jsonParser, object);
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "unLinkCertificate")
+                    .put(LogMessage.MESSAGE, String.format("deleteUserPermissionForCertificate Completed for certificate " +
+                            "= [%s]", certificateName))
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+            //remove group permissions
+            removeGroupPermissionsToCertificate(certType, certificateName, userDetails, jsonParser, object);
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "unLinkCertificate")
+                    .put(LogMessage.MESSAGE, String.format("removeGroupPermissionsToCertificate Completed for certificate " +
+                            "= [%s]", certificateName))
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+
+            //Remove certificate policies
+            boolean isDeleted = deletePolicies(certType, certificateName, token);
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "unLinkCertificate-")
+                    .put(LogMessage.MESSAGE, String.format("deletePolicies Completed for certificate " +
+                            "= [%s] = isDeleted = [%s]", certificateName, isDeleted))
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+            //deleteCertificateDetailsFromCertMetaPath - metaDataPath
+            response = deleteCertificateDetailsFromCertMetaPath(metaDataPath, token);
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "unLinkCertificate")
+                    .put(LogMessage.MESSAGE, String.format("deleteCertificateDetailsFromCertMetaPath->metaDataPath Completed for " +
+                            "certificate = [%s] = responseStatus = [%s]", certificateName, response.getHttpstatus()))
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+            //deleteCertificateDetailsFromCertMetaPath - permissionMetaDataPath
+            Response metadataResponse = deleteCertificateDetailsFromCertMetaPath(permissionMetaDataPath, token);
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "unLinkCertificate")
+                    .put(LogMessage.MESSAGE, String.format("deleteCertificateDetailsFromCertMetaPath->metadataResponse Completed for " +
+                            "certificate = [%s] = responseStatus = [%s]", certificateName, metadataResponse.getResponse()))
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+            return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Certificate [" + certificateName + "] details " +
+                    " removed from the application \"]}");
+        } catch (Exception ex) {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "unLinkCertificate -> metadataResponse")
+                    .put(LogMessage.MESSAGE, String.format("Exception while removing the certificate from application " +
+                            "certificatename = [%s] = message = [%s]", certificateName, ex.getMessage()))
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+            return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Certificate [" + certificateName + "] details " +
+                    " failed to remove from the application \"]}");
+        }
+    }
+
+
+
 	 /**
 	 * Delete SSL Certificate and update metadata
 	 * 
