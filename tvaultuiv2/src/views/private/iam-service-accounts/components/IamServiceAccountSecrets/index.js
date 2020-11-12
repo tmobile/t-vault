@@ -95,12 +95,12 @@ const IamServiceAccountSecrets = (props) => {
     accountSecretData,
     secretStatus,
   } = props;
-  const [response, setResponse] = useState({ status: 'loading' });
+  const [response, setResponse] = useState({ status: '' });
   const [secretsData, setSecretsData] = useState({});
   const [showSecret, setShowSecret] = useState(false);
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
-  const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
+  const [openConfirmationModal, setOpenConfirmationModal] = useState({});
   const [writePermission, setWritePermission] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const [state] = useStateValue();
@@ -110,7 +110,7 @@ const IamServiceAccountSecrets = (props) => {
    * @description function to handle opening and closing of confirmation modal.
    */
   const handleClose = () => {
-    setOpenConfirmationModal(false);
+    setOpenConfirmationModal({});
   };
 
   /**
@@ -145,15 +145,20 @@ const IamServiceAccountSecrets = (props) => {
   };
 
   /**
-   * @function onResetConfirmedClicked
+   * @function onRotateConfirmedClicked
    * @description function to reset secret when the confirm is clicked.
    */
-  const onResetConfirmedClicked = () => {
+  const onRotateConfirmedClicked = () => {
     const payload = {};
-    setOpenConfirmationModal(false);
+    setOpenConfirmationModal({
+      status: 'open',
+      type: 'rotate',
+      title: '',
+      description: '',
+    });
     setResponse({ status: 'loading' });
     apiService
-      .getIamServiceAccountPassword(accountDetail?.name, payload)
+      .rotateIamServiceAccountPassword(payload)
       .then((res) => {
         setResponse({ status: 'success' });
         if (res?.data) {
@@ -170,11 +175,51 @@ const IamServiceAccountSecrets = (props) => {
   };
 
   /**
+   * @function activateServiceAccount
+   * @description function to activate the service account for the first tie when it is onboarded.
+   */
+  const activateServiceAccount = () => {
+    setOpenConfirmationModal({
+      status: 'open',
+      type: 'activate',
+      title: 'IAM Service Account Activation!',
+      description:
+        "During the activation. the password of the LAM service account will be rotated to ensure AWS and T-Vault are in sync If you want to continue with activation now please click the 'ACTIVATE IAM SERVICE ACCOUNT’ button below and make sure to update any services depending on the service account with its new password.",
+    });
+  };
+
+  /**
+   *
+   */
+
+  const onActivateConfirm = () => {
+    setResponse({ status: 'loading' });
+    apiService
+      .activateIamServiceAccount()
+      .then((res) => {
+        if (res?.data) {
+          setResponse({ status: 'success', message: res.data.messages[0] });
+        }
+      })
+      .catch((err) => {
+        if (err?.response?.data?.errors[0]) {
+          setResponse({ status: 'failed' });
+        }
+      });
+  };
+
+  /**
    * @function onResetClicked
    * @description function to open the confirmation modal.
    */
   const onResetClicked = () => {
-    setOpenConfirmationModal(true);
+    setOpenConfirmationModal({
+      status: 'open',
+      type: 'rotate',
+      title: 'Confirmation',
+      description:
+        'Are you sure you want to rotate the password for this IAM Service Account?',
+    });
   };
 
   /**
@@ -207,10 +252,10 @@ const IamServiceAccountSecrets = (props) => {
     <ComponentError>
       <>
         <ConfirmationModal
-          open={openConfirmationModal}
+          open={openConfirmationModal?.status === 'open'}
           handleClose={handleClose}
-          title="Confirmation"
-          description="Are you sure you want to rotate the password for this IAM Service Account?"
+          title={openConfirmationModal?.title}
+          description={openConfirmationModal?.description}
           cancelButton={
             <ButtonComponent
               label="Cancel"
@@ -223,7 +268,11 @@ const IamServiceAccountSecrets = (props) => {
             <ButtonComponent
               label="Confirm"
               color="secondary"
-              onClick={() => onResetConfirmedClicked()}
+              onClick={
+                openConfirmationModal?.type === 'activate'
+                  ? () => onActivateConfirm()
+                  : () => onRotateConfirmedClicked()
+              }
               width={isMobileScreen ? '100%' : '38%'}
             />
           }
@@ -231,17 +280,18 @@ const IamServiceAccountSecrets = (props) => {
         {response.status === 'loading' && (
           <LoaderSpinner customStyle={customStyle} />
         )}
-        {!accountMetaData.isActivated ||
-          (!accountDetail.active && (
-            <UserList>
-              <Icon src={lock} alt="lock" />
-              <Secret type="password" viewSecret={showSecret}>
-                ****
-              </Secret>
+        {(!accountMetaData.isActivated || !accountDetail.active) && (
+          <UserList>
+            <Icon src={lock} alt="lock" />
+            <Secret type="password" viewSecret={showSecret}>
+              ****
+            </Secret>
 
-              <FolderIconWrap>activate</FolderIconWrap>
-            </UserList>
-          ))}
+            <FolderIconWrap onClick={() => activateServiceAccount()}>
+              activate
+            </FolderIconWrap>
+          </UserList>
+        )}
         {response.status === 'success' && secretsData && (
           <UserList>
             <Icon src={lock} alt="lock" />

@@ -12,10 +12,13 @@ const activateIamServiceAccount = (svcName, iamAccountId) =>
     `/iamserviceaccount/activate?serviceAccountName=${svcName}&awsAccountId=${iamAccountId}`
   );
 // Service account secret API call.
-const resetIamServiceAccountPassword = (payload) =>
+const rotateIamServiceAccountPassword = (payload) =>
   api.put(`/iamserviceaccount/rotate`, payload);
 
 //get password details
+
+const getIamSvcAccountSecrets = (svcName) =>
+  api.get(`/iamserviceaccounts/folders/secrets?path=iamsvcacc/${svcName}`);
 const getIamServiceAccountPassword = (svcName, secretName) =>
   api.get(`/iamserviceaccounts/secrets/${svcName}/${secretName}`);
 
@@ -52,7 +55,7 @@ const getUserDetails = (user) =>
 export default {
   getIamServiceAccounts,
   getIamServiceAccountList,
-  resetIamServiceAccountPassword,
+  rotateIamServiceAccountPassword,
   fetchIamServiceAccountDetails,
   addUserPermission,
   deleteUserPermission,
@@ -65,5 +68,6 @@ export default {
   deleteAppRolePermission,
   deleteAwsRole,
   getUserDetails,
-  getIamServiceAccountPassword
+  getIamServiceAccountPassword,
+  getIamSvcAccountSecrets,
 };

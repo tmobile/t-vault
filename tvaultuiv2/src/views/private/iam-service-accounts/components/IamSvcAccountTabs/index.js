@@ -109,9 +109,7 @@ const AccountSelectionTabs = (props) => {
     setSecretResStatus({ status: 'loading' });
     if (accountDetail.access !== '') {
       apiService
-        .getIamServiceAccountPassword(
-          `${accountDetail.name}_${accountDetail?.name}`
-        )
+        .getIamSvcAccountSecrets(`${accountDetail.name}_${accountDetail?.name}`)
         .then((res) => {
           setSecretResStatus({ status: 'success' });
           if (res?.data) {
