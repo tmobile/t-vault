@@ -463,7 +463,7 @@ readTextFile("../apiUrls.json");
         }, {
             name: 'updateCertificate',
             url: '/v2/sslcert',
-            method: 'PUT'
+            method: 'PUT' 
         }
     ]
     });

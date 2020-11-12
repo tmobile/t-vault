@@ -1422,6 +1422,9 @@
         };
         
         $scope.transferCertPopup = function (svcaccname) {
+        	alert("here");
+        	$scope.certObj.certDetails.ownerEmail = 'nithya.lokanathan1@t-mobile.com';
+        	alert("1 : "+certObj.certDetails.ownerEmail);
             Modal.createModal('md', 'transferCertPopup.html', 'AdminCtrl', $scope);
         };
         
@@ -2227,6 +2230,7 @@
                 $scope.certTransferInValid = true;
                 $scope.certOwnerEmailErrorMessage = '';
                 $scope.certOwnerTransferErrorMessage = '';
+                $scope.certObj.certDetails.ownerEmail = 'nithya.lokanathan1@t-mobile.com';
                 if(certDetails.requestStatus!=null && certDetails.requestStatus!=undefined && certDetails.requestStatus=="Pending Approval"){	
                 	$scope.isLoadingData = false;	
                 	$scope.viewEditErrorMessage = "Certificate may not be approved or rejected.Please follow the instructions mentioned in email ";

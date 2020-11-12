@@ -426,7 +426,7 @@ public class SSLCertificateController {
 			@RequestParam(name = "certificateType", required = false) String certType, @RequestParam(name = "certificateName", required = false) String commonname,
 			@RequestParam(name = "applicationName", required = false) String appTag	) throws Exception {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return sslCertificateService.onboardSingleCert(userDetails, token, certType, commonname, appTag);
+		return sslCertificateService.onboardSingleCert(userDetails, token, certType, commonname, appTag); 
 	}
 	
 	/**

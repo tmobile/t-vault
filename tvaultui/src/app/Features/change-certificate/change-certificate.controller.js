@@ -1349,7 +1349,7 @@
                 AdminSafesManagement.updateCertificate(reqObjtobeSent, url).then(function (response) {
                     $scope.isLoadingData = false;
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
-                        $scope.updateMessage = 'Certificate Updated Successfully!';
+                        $scope.updateMessage = 'Certificate Updated Successfully!'; 
                         $scope.updateMessage = response.data.messages[0];
                         $scope.updateCertificatePopUp();
                         $scope.searchValue = '';
