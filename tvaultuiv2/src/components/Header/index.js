@@ -118,6 +118,7 @@ const useStyles = makeStyles(() => ({
 const Header = (props) => {
   const classes = useStyles();
   const [isLogin, setIsLogin] = useState(false);
+  const [currentTab, setCurrentTab] = useState('Safes');
   const { location } = props;
   const [userName, setUserName] = useState('User');
   const [state, setState] = useState({
@@ -159,7 +160,9 @@ const Header = (props) => {
 
   useEffect(() => {
     checkToken();
-  }, []);
+    const path = location.pathname.split('/');
+    setCurrentTab(path[1]);
+  }, [location]);
 
   return (
     <ComponentError>
@@ -186,6 +189,7 @@ const Header = (props) => {
                   checkToken={checkToken}
                   EachLink={EachLink}
                   DescriptionIcon={DescriptionIcon}
+                  currentTab={currentTab}
                 />
               </SwipeableDrawer>
             </>
@@ -200,9 +204,7 @@ const Header = (props) => {
                     key={item.label}
                     to={`/${item.path}`}
                     component={RRDLink}
-                    active={`/${location.pathname}`
-                      .includes(item.path)
-                      .toString()}
+                    active={currentTab === item.path ? 'true' : 'false'}
                   >
                     {item.label}
                   </NavLink>
