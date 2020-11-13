@@ -57,7 +57,7 @@ const ViewIamServiceAccount = (props) => {
   const classes = useStyles();
   const [open] = useState(true);
   const [status, setStatus] = useState(null);
-  const [passwordDetails, setPasswordDetails] = useState(null);
+  // const [passwordDetails, setPasswordDetails] = useState(null);
   const [openModal, setOpenModal] = useState({
     status: '',
     message: '',
@@ -114,11 +114,12 @@ const ViewIamServiceAccount = (props) => {
     setStatus({ status: 'loading' });
     apiService
       .resetIamServiceAccountPassword()
-      .then((res) => {
+      .then(async (res) => {
         if (res?.data) {
           setStatus({ status: 'success', message: res.data.messages[0] });
-          setPasswordDetails(res.data);
+          // setPasswordDetails(res.data);
         }
+        await refresh();
       })
       .catch((err) => {
         if (err?.response?.data?.errors[0]) {

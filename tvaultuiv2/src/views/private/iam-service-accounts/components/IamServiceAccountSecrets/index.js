@@ -24,6 +24,7 @@ import {
 import PopperElement from '../../../../../components/Popper';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import Error from '../../../../../components/Error';
+import Folder from '../Folder';
 
 const UserList = styled.div`
   margin-top: 2rem;
@@ -93,7 +94,6 @@ const IamServiceAccountSecrets = (props) => {
     accountMetaData,
     accountSecretError,
     accountSecretData,
-    secretStatus,
   } = props;
   const [response, setResponse] = useState({ status: '' });
   const [secretsData, setSecretsData] = useState({});
@@ -114,20 +114,6 @@ const IamServiceAccountSecrets = (props) => {
   };
 
   /**
-   * @description function to get the secret once the component loads.
-   */
-
-  useEffect(() => {
-    setResponse({ status: secretStatus });
-  }, [secretStatus]);
-
-  useEffect(() => {
-    if (accountSecretData) {
-      setSecretsData({ ...accountSecretData });
-    }
-  }, [accountSecretData]);
-
-  /**
    * @function onViewSecretsCliked
    * @description function to hide and show secret.
    */
@@ -142,6 +128,30 @@ const IamServiceAccountSecrets = (props) => {
   const onCopyClicked = () => {
     setResponseType(1);
     setToastMessage('Secret copied to clipboard');
+  };
+
+  /**
+   * @function onViewSecretDetails
+   * @param {string} folderName
+   * @description function to call the secret details api , which fetch the
+   */
+  const onViewSecretDetails = (folderName) => {
+    setResponse({ status: 'loading' });
+    apiService
+      .getIamServiceAccountPassword(
+        `${accountDetail?.iamAccountId}_${accountDetail?.name}`,
+        folderName
+      )
+      .then((res) => {
+        setResponse({ status: 'success' });
+        setSecretsData(res?.data);
+      })
+      .catch((err) => {
+        setResponse({
+          status: 'error',
+          message: 'There was a  error while fetching secret details!',
+        });
+      });
   };
 
   /**
@@ -162,15 +172,16 @@ const IamServiceAccountSecrets = (props) => {
       .then((res) => {
         setResponse({ status: 'success' });
         if (res?.data) {
-          setSecretsData(res.data);
           setResponseType(1);
-          setToastMessage('Password reset successfully!');
+          setToastMessage(
+            res.data.messages[0] || 'Password rotated successfully!'
+          );
         }
       })
       .catch(() => {
-        setResponse({ status: 'success' });
+        setResponse({ status: 'error' });
         setResponseType(-1);
-        setToastMessage('Unable to reset password!');
+        setToastMessage('Unable to rotate password!');
       });
   };
 
@@ -189,7 +200,8 @@ const IamServiceAccountSecrets = (props) => {
   };
 
   /**
-   *
+   * @function onActivateConfirm
+   * To activate the servcie account once it is onBoarded
    */
 
   const onActivateConfirm = () => {
@@ -203,7 +215,7 @@ const IamServiceAccountSecrets = (props) => {
       })
       .catch((err) => {
         if (err?.response?.data?.errors[0]) {
-          setResponse({ status: 'failed' });
+          setResponse({ status: 'error' });
         }
       });
   };
@@ -280,7 +292,65 @@ const IamServiceAccountSecrets = (props) => {
         {response.status === 'loading' && (
           <LoaderSpinner customStyle={customStyle} />
         )}
-        {(!accountMetaData.isActivated || !accountDetail.active) && (
+        {accountSecretData?.folders?.length
+          ? accountSecretData?.folders.map((secret, index) => (
+              <Folder
+                key={secret}
+                labelValue={secret}
+                onClick={onViewSecretDetails}
+              >
+                {' '}
+                {response.status === 'success' && secretsData && (
+                  <UserList>
+                    <Icon src={lock} alt="lock" />
+                    <Secret type="password" viewSecret={showSecret}>
+                      {secretsData.accessKeySecret}
+                    </Secret>
+
+                    <FolderIconWrap>
+                      <PopperElement
+                        anchorOrigin={{
+                          vertical: 'bottom',
+                          horizontal: 'right',
+                        }}
+                        transformOrigin={{
+                          vertical: 'top',
+                          horizontal: 'right',
+                        }}
+                      >
+                        <PopperItem onClick={() => onViewSecretsCliked()}>
+                          {showSecret ? (
+                            <VisibilityOffIcon />
+                          ) : (
+                            <VisibilityIcon />
+                          )}
+                          <span>
+                            {showSecret ? 'Hide Secret' : 'View Secret'}
+                          </span>
+                        </PopperItem>
+                        {writePermission && (
+                          <PopperItem onClick={() => onResetClicked()}>
+                            <img alt="refersh-ic" src={IconRefreshCC} />
+                            <span>Rotate Secret</span>
+                          </PopperItem>
+                        )}
+                        <CopyToClipboard
+                          text={secretsData.accessKeySecret}
+                          onCopy={() => onCopyClicked()}
+                        >
+                          <PopperItem>
+                            <FileCopyIcon />
+                            <span>Copy Secret</span>
+                          </PopperItem>
+                        </CopyToClipboard>
+                      </PopperElement>
+                    </FolderIconWrap>
+                  </UserList>
+                )}
+              </Folder>
+            ))
+          : null}
+        {!accountMetaData?.response?.isActivated && (
           <UserList>
             <Icon src={lock} alt="lock" />
             <Secret type="password" viewSecret={showSecret}>
@@ -292,49 +362,13 @@ const IamServiceAccountSecrets = (props) => {
             </FolderIconWrap>
           </UserList>
         )}
-        {response.status === 'success' && secretsData && (
-          <UserList>
-            <Icon src={lock} alt="lock" />
-            <Secret type="password" viewSecret={showSecret}>
-              {secretsData.accessKeySecret}
-            </Secret>
 
-            <FolderIconWrap>
-              <PopperElement
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-              >
-                <PopperItem onClick={() => onViewSecretsCliked()}>
-                  {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  <span>{showSecret ? 'Hide Secret' : 'View Secret'}</span>
-                </PopperItem>
-                {writePermission && (
-                  <PopperItem onClick={() => onResetClicked()}>
-                    <img alt="refersh-ic" src={IconRefreshCC} />
-                    <span>Rotate Secret</span>
-                  </PopperItem>
-                )}
-                <CopyToClipboard
-                  text={secretsData.accessKeySecret}
-                  onCopy={() => onCopyClicked()}
-                >
-                  <PopperItem>
-                    <FileCopyIcon />
-                    <span>Copy Secret</span>
-                  </PopperItem>
-                </CopyToClipboard>
-              </PopperElement>
-            </FolderIconWrap>
-          </UserList>
-        )}
         {response.status === 'error' && (
-          <Error description={accountSecretError || 'Something went wrong!'} />
+          <Error
+            description={
+              accountSecretError || response.message || 'Something went wrong!'
+            }
+          />
         )}
         {response.status === 'no-permission' && (
           <NoPermission>

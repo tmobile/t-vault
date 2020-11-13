@@ -107,28 +107,27 @@ const AccountSelectionTabs = (props) => {
   // Function to get the secret of the given service account.
   const getSecrets = useCallback(() => {
     setSecretResStatus({ status: 'loading' });
-    if (accountDetail.access !== '') {
-      apiService
-        .getIamSvcAccountSecrets(`${accountDetail.name}_${accountDetail?.name}`)
-        .then((res) => {
-          setSecretResStatus({ status: 'success' });
-          if (res?.data) {
-            setAccountSecretData(res.data);
-          }
-        })
-        .catch((err) => {
-          if (
-            err?.response &&
-            err.response.data?.errors &&
-            err.response.data.errors[0]
-          ) {
-            setAccountSecretError(err.response.data.errors[0]);
-          }
-          setSecretResStatus({ status: 'error' });
-        });
-    } else {
-      setSecretResStatus({ status: 'no-permission' });
-    }
+
+    apiService
+      .getIamSvcAccountSecrets(
+        `${accountDetail.iamAccountId}_${accountDetail?.name}`
+      )
+      .then((res) => {
+        setSecretResStatus({ status: 'success' });
+        if (res?.data) {
+          setAccountSecretData(res.data);
+        }
+      })
+      .catch((err) => {
+        if (
+          err?.response &&
+          err.response.data?.errors &&
+          err.response.data.errors[0]
+        ) {
+          setAccountSecretError(err.response.data.errors[0]);
+        }
+        setSecretResStatus({ status: 'error' });
+      });
   }, [accountDetail]);
 
   // Function to get the metadata of the given service account
@@ -161,7 +160,7 @@ const AccountSelectionTabs = (props) => {
 
     if (accountDetail?.name) {
       fetchPermission();
-      //   getSecrets();
+      getSecrets();
     }
   }, [accountDetail, fetchPermission, getSecrets]);
 
