@@ -239,7 +239,6 @@ const IamServiceAccountDashboard = () => {
           });
         }
         setIamServiceAccountList([...listArray]);
-        console.log('listArray', listArray);
         setStatus({});
         setGetResponse(1);
       })

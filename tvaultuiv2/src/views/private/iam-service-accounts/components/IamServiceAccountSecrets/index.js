@@ -1,18 +1,21 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
+import { makeStyles } from '@material-ui/core/styles';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
+import ReportProblemOutlinedIcon from '@material-ui/icons/ReportProblemOutlined';
 import PropTypes from 'prop-types';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import IconRefreshCC from '../../../../../assets/refresh-ccw.svg';
-import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
+import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import apiService from '../../apiService';
 import lock from '../../../../../assets/icon_lock.svg';
+import refreshIcon from '../../../../../assets/refresh-ccw.svg';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
@@ -47,9 +50,7 @@ const Secret = styled.div`
   word-break: break-all;
 `;
 
-const customStyle = css`
-  height: 100%;
-`;
+const Span = styled('span')``;
 
 const Icon = styled.img`
   width: 1.5rem;
@@ -88,12 +89,27 @@ const NoPermission = styled.div`
   }
 `;
 
+const LabelWrap = styled.div`
+  display: flex;
+  align-items: center;
+  padding-left: 2rem;
+  span {
+    margin-left: 1rem;
+  }
+`;
+
+const useStyles = makeStyles(() => ({
+  backdrop: {
+    position: 'absolute',
+  },
+}));
 const IamServiceAccountSecrets = (props) => {
   const {
     accountDetail,
     accountMetaData,
     accountSecretError,
     accountSecretData,
+    getSecrets,
   } = props;
   const [response, setResponse] = useState({ status: '' });
   const [secretsData, setSecretsData] = useState({});
@@ -104,7 +120,7 @@ const IamServiceAccountSecrets = (props) => {
   const [writePermission, setWritePermission] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const [state] = useStateValue();
-
+  const loaderStyles = useStyles();
   /**
    * @function handleClose
    * @description function to handle opening and closing of confirmation modal.
@@ -125,9 +141,9 @@ const IamServiceAccountSecrets = (props) => {
    * @function onCopyClicked
    * @description function to copy the secret.
    */
-  const onCopyClicked = () => {
+  const onCopyClicked = (message = 'Secret copied to clipboard') => {
     setResponseType(1);
-    setToastMessage('Secret copied to clipboard');
+    setToastMessage(message);
   };
 
   /**
@@ -159,9 +175,13 @@ const IamServiceAccountSecrets = (props) => {
    * @description function to reset secret when the confirm is clicked.
    */
   const onRotateConfirmedClicked = () => {
-    const payload = {};
+    const payload = {
+      accessKeyId: secretsData?.accessKeyId,
+      accountId: secretsData?.awsAccountId,
+      userName: secretsData.userName,
+    };
     setOpenConfirmationModal({
-      status: 'open',
+      status: 'close',
       type: 'rotate',
       title: '',
       description: '',
@@ -169,13 +189,14 @@ const IamServiceAccountSecrets = (props) => {
     setResponse({ status: 'loading' });
     apiService
       .rotateIamServiceAccountPassword(payload)
-      .then((res) => {
+      .then(async (res) => {
         setResponse({ status: 'success' });
         if (res?.data) {
           setResponseType(1);
           setToastMessage(
             res.data.messages[0] || 'Password rotated successfully!'
           );
+          await getSecrets();
         }
       })
       .catch(() => {
@@ -205,6 +226,12 @@ const IamServiceAccountSecrets = (props) => {
    */
 
   const onActivateConfirm = () => {
+    setOpenConfirmationModal({
+      status: 'close',
+      type: 'activate',
+      title: '',
+      description: '',
+    });
     setResponse({ status: 'loading' });
     apiService
       .activateIamServiceAccount()
@@ -221,10 +248,10 @@ const IamServiceAccountSecrets = (props) => {
   };
 
   /**
-   * @function onResetClicked
+   * @function onRotateClicked
    * @description function to open the confirmation modal.
    */
-  const onResetClicked = () => {
+  const onRotateClicked = () => {
     setOpenConfirmationModal({
       status: 'open',
       type: 'rotate',
@@ -252,10 +279,13 @@ const IamServiceAccountSecrets = (props) => {
   useEffect(() => {
     if (accountMetaData?.response?.users) {
       Object.entries(accountMetaData.response.users).map(([key, value]) => {
-        if (key === state.username && value === 'write') {
+        debugger;
+        if (
+          key.toLowerCase() === state.username.toLowerCase() &&
+          value === 'write'
+        ) {
           return setWritePermission(true);
         }
-        return setWritePermission(false);
       });
     }
   }, [accountMetaData, state]);
@@ -289,10 +319,10 @@ const IamServiceAccountSecrets = (props) => {
             />
           }
         />
-        {response.status === 'loading' && (
-          <LoaderSpinner customStyle={customStyle} />
+        {(response.status === 'loading' || !accountSecretData) && (
+          <BackdropLoader classes={loaderStyles} />
         )}
-        {accountSecretData?.folders?.length
+        {accountSecretData?.folders?.length && !accountSecretError
           ? accountSecretData?.folders.map((secret, index) => (
               <Folder
                 key={secret}
@@ -303,6 +333,7 @@ const IamServiceAccountSecrets = (props) => {
                 {response.status === 'success' && secretsData && (
                   <UserList>
                     <Icon src={lock} alt="lock" />
+                    <Span>{secretsData.accessKeyId}</Span>
                     <Secret type="password" viewSecret={showSecret}>
                       {secretsData.accessKeySecret}
                     </Secret>
@@ -328,8 +359,9 @@ const IamServiceAccountSecrets = (props) => {
                             {showSecret ? 'Hide Secret' : 'View Secret'}
                           </span>
                         </PopperItem>
+
                         {writePermission && (
-                          <PopperItem onClick={() => onResetClicked()}>
+                          <PopperItem onClick={() => onRotateClicked()}>
                             <img alt="refersh-ic" src={IconRefreshCC} />
                             <span>Rotate Secret</span>
                           </PopperItem>
@@ -343,6 +375,17 @@ const IamServiceAccountSecrets = (props) => {
                             <span>Copy Secret</span>
                           </PopperItem>
                         </CopyToClipboard>
+                        <CopyToClipboard
+                          text={secretsData.accessKeyId}
+                          onCopy={() =>
+                            onCopyClicked('Copied Access Id To Clipboard!')
+                          }
+                        >
+                          <PopperItem>
+                            <FileCopyIcon />
+                            <span>Copy Access Id</span>
+                          </PopperItem>
+                        </CopyToClipboard>
                       </PopperElement>
                     </FolderIconWrap>
                   </UserList>
@@ -350,20 +393,25 @@ const IamServiceAccountSecrets = (props) => {
               </Folder>
             ))
           : null}
-        {!accountMetaData?.response?.isActivated && (
-          <UserList>
-            <Icon src={lock} alt="lock" />
-            <Secret type="password" viewSecret={showSecret}>
-              ****
-            </Secret>
 
-            <FolderIconWrap onClick={() => activateServiceAccount()}>
-              activate
-            </FolderIconWrap>
-          </UserList>
-        )}
+        {!accountMetaData?.response?.isActivated &&
+          response.status === 'success' && (
+            <UserList>
+              <LabelWrap>
+                <ReportProblemOutlinedIcon />
+                <Span>Rotate Secret to Activate</Span>
+              </LabelWrap>
+              <Secret type="password" viewSecret={showSecret}>
+                ****
+              </Secret>
 
-        {response.status === 'error' && (
+              <FolderIconWrap onClick={() => activateServiceAccount()}>
+                <Icon src={refreshIcon} alt="refresh" />
+              </FolderIconWrap>
+            </UserList>
+          )}
+
+        {(response.status === 'error' || accountSecretError) && (
           <Error
             description={
               accountSecretError || response.message || 'Something went wrong!'
@@ -403,12 +451,14 @@ IamServiceAccountSecrets.propTypes = {
   accountSecretError: PropTypes.string,
   accountSecretData: PropTypes.objectOf(PropTypes.any),
   secretStatus: PropTypes.string,
+  getSecrets: PropTypes.func,
 };
 
 IamServiceAccountSecrets.defaultProps = {
   accountSecretError: 'Something went wrong!',
   accountSecretData: {},
   secretStatus: 'loading',
+  getSecrets: () => {},
 };
 
 export default IamServiceAccountSecrets;

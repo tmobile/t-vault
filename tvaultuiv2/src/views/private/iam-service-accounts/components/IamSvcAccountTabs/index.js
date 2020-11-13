@@ -90,8 +90,8 @@ const AccountSelectionTabs = (props) => {
   const { accountDetail, refresh } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
-  const [response, setResponse] = useState({ status: 'loading' });
-  const [accountSecretData, setAccountSecretData] = useState({});
+  const [response, setResponse] = useState({ status: '' });
+  const [accountSecretData, setAccountSecretData] = useState(null);
   const [accountSecretError, setAccountSecretError] = useState('');
   const [disabledPermission, setDisabledPermission] = useState(false);
   const [secretResStatus, setSecretResStatus] = useState({ status: 'loading' });
@@ -148,9 +148,12 @@ const AccountSelectionTabs = (props) => {
           }
         }
       })
-      .catch(() => {
+      .catch((err) => {
         setResponse({ status: 'error' });
-        setAccountMetaData({ response: {}, error: 'Something went wrong' });
+        if (err) {
+          setAccountSecretError(err?.response?.data?.errors[0]);
+          setAccountMetaData({ response: {}, error: 'Something went wrong' });
+        }
       });
   }, [accountDetail, state]);
 
