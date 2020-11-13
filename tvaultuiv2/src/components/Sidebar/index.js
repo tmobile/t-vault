@@ -34,7 +34,7 @@ const NavLink = styled(Link)`
   padding: 2rem 4rem;
   font-weight: bold;
   background: ${(props) =>
-    props.active ? props.theme.gradients.sideBar : 'none'};
+    props.active === 'true' ? props.theme.gradients.sideBar : 'none'};
   :hover {
     text-decoration: none;
   }
@@ -49,12 +49,13 @@ const Sidebar = (props) => {
   const {
     onClose,
     navItems,
-    location,
+    currentTab,
     userName,
     checkToken,
     DescriptionIcon,
     EachLink,
   } = props;
+
   return (
     <SideMenuWrapper>
       <Close src={close} alt="close" onClick={onClose} />
@@ -67,7 +68,7 @@ const Sidebar = (props) => {
             <NavLink
               href={`/${item.path}`}
               key={item.label}
-              active={`/${location.pathname}`.includes(item.path)}
+              active={currentTab === item.path ? 'true' : 'false'}
             >
               {item.label}
             </NavLink>
@@ -93,10 +94,10 @@ const Sidebar = (props) => {
 Sidebar.propTypes = {
   onClose: PropTypes.func.isRequired,
   navItems: PropTypes.arrayOf(PropTypes.any).isRequired,
-  location: PropTypes.objectOf(PropTypes.any).isRequired,
   userName: PropTypes.string.isRequired,
   checkToken: PropTypes.func.isRequired,
   DescriptionIcon: PropTypes.objectOf(PropTypes.any).isRequired,
   EachLink: PropTypes.objectOf(PropTypes.any).isRequired,
+  currentTab: PropTypes.string.isRequired,
 };
 export default withRouter(Sidebar);

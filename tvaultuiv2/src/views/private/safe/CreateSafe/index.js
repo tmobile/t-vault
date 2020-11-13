@@ -239,6 +239,7 @@ const CreateModal = (props) => {
             } else {
               setSafeType('Shared Safe');
             }
+            setIsValidEmail(true);
           }
         })
         .catch((err) => {
