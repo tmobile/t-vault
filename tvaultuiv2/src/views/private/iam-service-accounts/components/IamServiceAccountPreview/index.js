@@ -134,19 +134,27 @@ const ViewIamServiceAccount = (props) => {
    */
 
   const onRotateSecret = () => {
+    const payload = {
+      accessKeyId: iamServiceAccountDetails?.secret[0]?.accessKeyId,
+      accountId: iamServiceAccountDetails?.awsAccountId,
+      userName: iamServiceAccountDetails?.userName,
+    };
     setStatus({ status: 'loading' });
+    setOpenModal({});
     apiService
-      .resetIamServiceAccountPassword()
+      .rotateIamServiceAccountPassword(payload)
       .then(async (res) => {
         if (res?.data) {
           setStatus({ status: 'success', message: res.data.messages[0] });
-          // setPasswordDetails(res.data);
         }
         await refresh();
       })
       .catch((err) => {
         if (err?.response?.data?.errors[0]) {
-          setStatus({ status: 'failed' });
+          setStatus({
+            status: 'failed',
+            message: err?.response?.data?.errors[0],
+          });
         }
       });
   };
@@ -155,7 +163,7 @@ const ViewIamServiceAccount = (props) => {
     <ComponentError>
       <>
         <ConfirmationModal
-          open={openModal.status === 'open'}
+          open={openModal?.status === 'open'}
           handleClose={() => handleCloseConfirmationModal()}
           title={openModal.message}
           description={openModal?.description}
@@ -210,20 +218,20 @@ const ViewIamServiceAccount = (props) => {
             </Fade>
           </Modal>
         </div>
-        {status.status === 'failed' && (
+        {status?.status === 'failed' && (
           <SnackbarComponent
             open
             onClose={() => onToastClose()}
             severity="error"
             icon="error"
-            message="Something went wrong!"
+            message={status?.message || 'Something went wrong!'}
           />
         )}
-        {status.status === 'success' && (
+        {status?.status === 'success' && (
           <SnackbarComponent
             open
             onClose={() => onToastClose()}
-            message="Request Successfull!"
+            message={status?.message || 'Request Successfull!'}
           />
         )}
       </>
