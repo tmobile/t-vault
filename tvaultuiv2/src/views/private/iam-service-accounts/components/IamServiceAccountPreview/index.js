@@ -105,6 +105,29 @@ const ViewIamServiceAccount = (props) => {
         "During the activation. the password of the LAM service account will be rotated to ensure AWS and T-Vault are in sync If you want to continue with activation now please click the 'ACTIVATE IAM SERVICE ACCOUNT’ button below and make sure to update any services depending on the service account with its new password",
     });
   };
+
+  /**
+   * @function activateServiceAccount
+   * @description function when user clicked on activate iam service account for the very first time.
+   */
+  const activateServiceAccount = () => {
+    setStatus({ status: 'loading', message: '' });
+    apiService
+      .activateIamServiceAccount(
+        iamServiceAccountDetails?.userName,
+        iamServiceAccountDetails?.awsAccountId
+      )
+      .then((res) => {
+        setStatus({ status: 'success', message: res?.data?.messages[0] });
+      })
+      .catch((err) => {
+        setStatus({
+          status: 'failed',
+          message: err?.response?.data?.errors[0],
+        });
+      });
+  };
+
   /**
    * @function onRotateSecret
    * @description function when user clicked on rotate secret to rotate the secret.
@@ -150,7 +173,11 @@ const ViewIamServiceAccount = (props) => {
                 iamServiceAccountDetails?.isActivated ? 'Rotate' : 'Activate'
               }
               color="secondary"
-              onClick={() => onRotateSecret()}
+              onClick={
+                iamServiceAccountDetails?.isActivated
+                  ? () => onRotateSecret()
+                  : () => activateServiceAccount()
+              }
               width={isMobileScreen ? '100%' : '38%'}
             />
           }

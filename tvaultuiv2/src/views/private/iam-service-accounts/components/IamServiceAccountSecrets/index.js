@@ -279,7 +279,6 @@ const IamServiceAccountSecrets = (props) => {
   useEffect(() => {
     if (accountMetaData?.response?.users) {
       Object.entries(accountMetaData.response.users).map(([key, value]) => {
-        debugger;
         if (
           key.toLowerCase() === state.username.toLowerCase() &&
           value === 'write'
