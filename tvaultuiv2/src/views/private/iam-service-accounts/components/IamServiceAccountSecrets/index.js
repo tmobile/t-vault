@@ -110,6 +110,7 @@ const IamServiceAccountSecrets = (props) => {
     accountSecretError,
     accountSecretData,
     getSecrets,
+    isIamSvcAccountActive,
   } = props;
   const [response, setResponse] = useState({ status: '' });
   const [secretsData, setSecretsData] = useState({});
@@ -233,17 +234,26 @@ const IamServiceAccountSecrets = (props) => {
       description: '',
     });
     setResponse({ status: 'loading' });
+
     apiService
-      .activateIamServiceAccount()
+      .activateIamServiceAccount(
+        accountMetaData?.response?.userName,
+        accountMetaData?.response?.awsAccountId
+      )
       .then((res) => {
         if (res?.data) {
           setResponse({ status: 'success', message: res.data.messages[0] });
+          setResponseType(1);
+          setToastMessage(res.data.messages[0]);
         }
       })
       .catch((err) => {
         if (err?.response?.data?.errors[0]) {
           setResponse({ status: 'error' });
+          setToastMessage(err?.response?.data?.errors[0]);
         }
+        setResponseType(-1);
+        debugger;
       });
   };
 
@@ -285,6 +295,7 @@ const IamServiceAccountSecrets = (props) => {
         ) {
           return setWritePermission(true);
         }
+        return null;
       });
     }
   }, [accountMetaData, state]);
@@ -307,7 +318,11 @@ const IamServiceAccountSecrets = (props) => {
           }
           confirmButton={
             <ButtonComponent
-              label="Confirm"
+              label={
+                openConfirmationModal?.type === 'activate'
+                  ? 'Activate'
+                  : 'Rotate'
+              }
               color="secondary"
               onClick={
                 openConfirmationModal?.type === 'activate'
@@ -318,7 +333,8 @@ const IamServiceAccountSecrets = (props) => {
             />
           }
         />
-        {(response.status === 'loading' || !accountSecretData) && (
+        {(response.status === 'loading' ||
+          (!accountSecretData && !accountSecretError)) && (
           <BackdropLoader classes={loaderStyles} />
         )}
         {accountSecretData?.folders?.length && !accountSecretError
@@ -393,24 +409,24 @@ const IamServiceAccountSecrets = (props) => {
             ))
           : null}
 
-        {!accountMetaData?.response?.isActivated &&
-          response.status === 'success' && (
-            <UserList>
-              <LabelWrap>
-                <ReportProblemOutlinedIcon />
-                <Span>Rotate Secret to Activate</Span>
-              </LabelWrap>
-              <Secret type="password" viewSecret={showSecret}>
-                ****
-              </Secret>
+        {!isIamSvcAccountActive && (
+          <UserList>
+            <LabelWrap>
+              <ReportProblemOutlinedIcon />
+              <Span>Rotate Secret to Activate</Span>
+            </LabelWrap>
+            <Secret type="password" viewSecret={showSecret}>
+              ****
+            </Secret>
 
-              <FolderIconWrap onClick={() => activateServiceAccount()}>
-                <Icon src={refreshIcon} alt="refresh" />
-              </FolderIconWrap>
-            </UserList>
-          )}
+            <FolderIconWrap onClick={() => activateServiceAccount()}>
+              <Icon src={refreshIcon} alt="refresh" />
+            </FolderIconWrap>
+          </UserList>
+        )}
 
-        {(response.status === 'error' || accountSecretError) && (
+        {(response.status === 'error' ||
+          (accountSecretError && isIamSvcAccountActive)) && (
           <Error
             description={
               accountSecretError || response.message || 'Something went wrong!'
@@ -451,6 +467,7 @@ IamServiceAccountSecrets.propTypes = {
   accountSecretData: PropTypes.objectOf(PropTypes.any),
   secretStatus: PropTypes.string,
   getSecrets: PropTypes.func,
+  isIamSvcAccountActive: PropTypes.bool.isRequired,
 };
 
 IamServiceAccountSecrets.defaultProps = {

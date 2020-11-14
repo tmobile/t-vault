@@ -99,6 +99,7 @@ const AccountSelectionTabs = (props) => {
     response: {},
     error: '',
   });
+  const [isIamSvcAccountActive, setIsIamSvcAccountActive] = useState(false);
   const [state] = useStateValue();
 
   const handleChange = (event, newValue) => {
@@ -140,6 +141,7 @@ const AccountSelectionTabs = (props) => {
       .then((res) => {
         if (res?.data) {
           setResponse({ status: 'success' });
+          setIsIamSvcAccountActive(res?.data?.isActivated);
           if (
             res.data.owner_ntid.toLowerCase() === state.username.toLowerCase()
           ) {
@@ -196,6 +198,8 @@ const AccountSelectionTabs = (props) => {
               accountSecretData={accountSecretData}
               accountSecretError={accountSecretError}
               secretStatus={secretResStatus.status}
+              getSecrets={getSecrets}
+              isIamSvcAccountActive={isIamSvcAccountActive}
             />
           </TabPanel>
           <TabPanel value={value} index={1}>
@@ -205,6 +209,7 @@ const AccountSelectionTabs = (props) => {
               parentStatus={response.status}
               refresh={refresh}
               fetchPermission={fetchPermission}
+              isIamSvcAccountActive={isIamSvcAccountActive}
             />
           </TabPanel>
         </TabContentsWrap>

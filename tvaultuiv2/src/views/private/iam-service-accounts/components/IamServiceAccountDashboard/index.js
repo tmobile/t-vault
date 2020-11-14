@@ -236,6 +236,7 @@ const IamServiceAccountDashboard = () => {
               };
               return listArray.push(data);
             }
+            return null;
           });
         }
         setIamServiceAccountList([...listArray]);

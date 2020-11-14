@@ -8,12 +8,13 @@ const fetchIamServiceAccountDetails = (svcName) =>
   api.get(`/iamserviceaccounts/${svcName}`);
 
 const activateIamServiceAccount = (svcName, iamAccountId) =>
-  api.put(
-    `/iamserviceaccount/activate?serviceAccountName=${svcName}&awsAccountId=${iamAccountId}`
+  api.post(
+    `/iamserviceaccount/activate?serviceAccountName=${svcName}&awsAccountId=${iamAccountId}`,
+    {}
   );
 // Service account secret API call.
 const rotateIamServiceAccountPassword = (payload) =>
-  api.put(`/iamserviceaccount/rotate`, payload);
+  api.post(`/iamserviceaccount/rotate`, payload);
 
 //get password details
 
