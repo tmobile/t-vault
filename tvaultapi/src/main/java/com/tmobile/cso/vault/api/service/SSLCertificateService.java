@@ -6327,6 +6327,19 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         try {
 
             boolean isValid = ControllerUtil.validateInputs(certificateName,certType);
+
+            if(!userDetails.isAdmin()){
+                log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "unLinkCertificate").
+                        put(LogMessage.MESSAGE, "Access denied: No permission to delete certificate").
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\"Access denied: No " +
+                        "permission to Un Claim certificate[" + certificateName + "]\"]}");
+            }
+
+
             if(!isValid){
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).

@@ -1986,8 +1986,7 @@
             var certName = certificateDetails.certificateName;
             var certificateType = certificateDetails.certType;
             var unClaimCertEndPoint = RestEndpoints.baseURL + "/v2/sslcert/unlink/" + certName+"/"+ certificateType;
-            console.log("unClaimCertEndPoint"+unClaimCertEndPoint);
-             AdminSafesManagement.unclaimCert(null, unClaimCertEndPoint).then(function (response) {
+            AdminSafesManagement.unclaimCert(null, unClaimCertEndPoint).then(function (response) {
                     $scope.isLoadingData = true;
                     $scope.isLoadingCerts = true;
                     if (UtilityService.ifAPIRequestSuccessful(response)) {

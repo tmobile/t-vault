@@ -1104,7 +1104,6 @@
            } else{
                 var Difference_In_Time = new Date(certDetails.expiryDate).getTime() - new Date().getTime() ;
                 var Difference_In_Days = Math.round(Difference_In_Time / (1000 * 3600 * 24));
-                console.log("AppConstant.VALID_RENEW_DAYS"+AppConstant.VALID_RENEW_DAYS);
                 if(Difference_In_Days > AppConstant.VALID_RENEW_DAYS){
                     $scope.renewConfirmMessage = "Certificate expiring in  " +Difference_In_Days + " Days . Do you want to renew this certificate?" ;
                 } else {
