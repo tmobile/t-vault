@@ -177,7 +177,7 @@ public class SSLCertificateController {
      * @param certificateApprole
      * @return
      */
-    @ApiOperation(value = "${SSLCertificateController.associateApproletoCertificate.value}", notes = "${SSLCertificateController.associateApproletoCertificate.notes}", hidden = true)
+    @ApiOperation(value = "${SSLCertificateController.associateApproletoCertificate.value}", notes = "${SSLCertificateController.associateApproletoCertificate.notes}", hidden = false)
     @PostMapping(value="/v2/sslcert/approle",consumes="application/json",produces="application/json")
     public ResponseEntity<String> associateApproletoCertificate(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateApprole certificateApprole) {
         UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
@@ -510,7 +510,7 @@ public class SSLCertificateController {
 	 * @return
 	 */
 	@ApiOperation(value = "${SSLCertificateController.unlinkCertificate.value}", notes = "${SSLCertificateController" +
-			".unlinkCertificate.notes}", hidden = true)
+			".unlinkCertificate.notes}", hidden = false)
 	@PostMapping(value="/v2/sslcert/unlink/{certificate-name}/{certificate-type}",produces="application/json")
 	public ResponseEntity<String> unlinkCertificate(HttpServletRequest request,
 											@RequestHeader(value="vault-token") String token,
