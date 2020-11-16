@@ -12,6 +12,7 @@ import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.*;
 import com.tmobile.cso.vault.api.validator.TokenValidator;
+import org.apache.catalina.User;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -6519,15 +6520,48 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.process(eq("/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
         when(ControllerUtil.validateInputs(anyString(),anyString())).thenReturn(true);
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        userDetails.setUsername("normaluser");
-        userDetails.setAdmin(true);
-        userDetails.setClientToken(token);
-        userDetails.setSelfSupportToken(token);
+        UserDetails userInfo = new UserDetails();
+        userInfo.setUsername("admin");
+        userInfo.setAdmin(true);
+        userInfo.setClientToken(token);
+        userInfo.setSelfSupportToken(token);
 
         when(reqProcessor.process(eq("/access/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
 
-        ResponseEntity<?> enrollResponse = sSLCertificateService.unLinkCertificate(userDetails, token, "test.t-mobile.com", "internal");
+        ResponseEntity<?> enrollResponse = sSLCertificateService.unLinkCertificate(userInfo, token, "test.t-mobile.com", "internal");
         assertEquals(enrollResponse.getStatusCode(), HttpStatus.OK);
+
+    }
+
+    @Test
+    public void unLinkCertificate_Success_Test_Failure_Normal_User() throws Exception {
+        CertManagerLogin certManagerLogin = new CertManagerLogin();
+        certManagerLogin.setToken_type("token type");
+        certManagerLogin.setAccess_token("1234");
+        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"SpectrumClearingTools@T-Mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"containerId\":123,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(metaDataJson);
+        response.setSuccess(true);
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(response);
+
+        Response metadataDeleteResponse = new Response();
+        metadataDeleteResponse.setHttpstatus(HttpStatus.NO_CONTENT);
+        metadataDeleteResponse.setResponse(null);
+        metadataDeleteResponse.setSuccess(true);
+        when(reqProcessor.process(eq("/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
+        when(ControllerUtil.validateInputs(anyString(),anyString())).thenReturn(true);
+        token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userInfo = new UserDetails();
+        userInfo.setUsername("normaluser");
+        userInfo.setAdmin(false);
+        userInfo.setClientToken(token);
+        userInfo.setSelfSupportToken(token);
+
+        when(reqProcessor.process(eq("/access/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
+
+        ResponseEntity<?> enrollResponse = sSLCertificateService.unLinkCertificate(userInfo, token, "test.t-mobile.com", "internal");
+        assertEquals(enrollResponse.getStatusCode(), HttpStatus.UNAUTHORIZED);
 
     }
 }
