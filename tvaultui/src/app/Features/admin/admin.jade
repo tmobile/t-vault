@@ -875,7 +875,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           .down.view
                                                               .list-icon(ng-click="transferCertPopup(value)") Transfer Owner
                                                           .down.view
-                                                              .list-icon(ng-click="unClaimCert(value)") Un Claim
+                                                              .list-icon(ng-click="unClaimCert(value)") Release
                                               .pagination-wrapper(ng-show='hasMoreCertsToShow()')
                                                   .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshown}} of {{numOfCertificates}}
                                                   .pagination-button-wrapper(ng-click='showMoreCertItems()')
@@ -922,7 +922,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           .down.view
                                                               .list-icon(ng-click="transferCertPopup(value)") Transfer Owner
                                                           .down.view
-                                                              .list-icon(ng-click="unClaimCert(value)") Un Claim
+                                                              .list-icon(ng-click="unClaimCert(value)") Release
                                               .pagination-wrapper(ng-show='hasMoreCertsToShowExt()')
                                                   .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshownExt}} of {{numOfCertificates}}
                                                   .pagination-button-wrapper(ng-click='showMoreCertItemsExt()')
