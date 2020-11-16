@@ -6336,7 +6336,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                         put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                         build()));
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"errors\":[\"Access denied: No " +
-                        "permission to Un Claim certificate\"]}");
+                        "permission to Un Claim certificate[" + certificateName + "]\"]}");
             }
 
 
