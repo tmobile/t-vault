@@ -16,6 +16,7 @@ public class CertificateData {
     private List<String> dnsNames;
 	private Integer previousCertId;
 	private List<Integer> deployStatus;
+	private String certType;
 
     public List<String> getDnsNames() {
         return dnsNames;
@@ -96,11 +97,20 @@ public class CertificateData {
 		this.previousCertId = previousCertId;
 	}
 
+	public String getCertType() {
+		return certType;
+	}
+
+	public void setCertType(String certType) {
+		this.certType = certType;
+	}
+
 	@Override
 	public String toString() {
 		return "CertificateData [certificateId=" + certificateId + ", certificateStatus=" + certificateStatus
 				+ ", expiryDate=" + expiryDate + ", createDate=" + createDate + ", containerName=" + containerName
 				+ ", certificateName=" + certificateName + ", authority=" + authority + ", dnsNames=" + dnsNames
-				+ ", previousCertId=" + previousCertId + "]";
+				+ ", previousCertId=" + previousCertId + ", deployStatus=" + deployStatus + ", certType=" + certType
+				+ "]";
 	}
 }
