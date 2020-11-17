@@ -496,6 +496,11 @@
                     return response;
                 });
             },
+            getAllOnboardPendingCertificates: function(payload, url) {
+                return ServiceEndpoint.getAllOnboardPendingCertificates.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;

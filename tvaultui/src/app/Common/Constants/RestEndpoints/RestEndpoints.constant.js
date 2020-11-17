@@ -504,7 +504,12 @@ readTextFile("../apiUrls.json");
             name: 'unclaimCert',
             url: '/v2/sslcert/unlink/{certificate_name}/{certificate_type}',
             method: 'POST'
-         }
+        },{
+            name: 'getAllOnboardPendingCertificates',
+            url: '/v2/sslcert/pendingcertificates',
+            method: 'GET'
+        }
+
     ]
     });
 })( angular.module( 'vault.constants.RestEndpoints', []));

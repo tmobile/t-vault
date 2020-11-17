@@ -35,6 +35,8 @@ import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.*;
 import com.tmobile.cso.vault.api.validator.TokenValidator;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpEntity;
@@ -275,6 +277,9 @@ public class SSLCertificateService {
     
     @Value("${sslcertmanager.container_name}")
     private String container_name;
+
+    @Value("${sslcertmanager.endpoint.findAllCertificate}")
+    private String findAllCertificate;
 
     @Autowired
 	private OIDCUtil oidcUtil;
@@ -5839,7 +5844,6 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
     //Delete the Metadata and permissions
     private boolean deleteMetaDataAndPermissions(SSLCertificateMetadataDetails certificateMetaData,
                                                  String certificatePath, String authToken) {
-
         //Delete Metadata
         Response response = reqProcessor.process("/delete", "{\"path\":\"" + certificatePath + "\"}", authToken);
         if (HttpStatus.NO_CONTENT.equals(response.getHttpstatus())) {
@@ -8484,4 +8488,252 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			   	}
 
 
+	/**
+	 * API to get all pending certificates to onboard
+	 *
+	 * @param userDetails
+	 * @param token
+	 * @return
+	 * @throws Exception
+	 */
+	public ResponseEntity<String> getAllOnboardPendingCertificates(String token, UserDetails userDetails)
+			throws Exception {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, SSLCertificateConstants.GET_ALL_PENDING_CERT_MSG)
+				.put(LogMessage.MESSAGE, "Trying to get all pending certificates from nclm to onboard")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+		if (ObjectUtils.isEmpty(userDetails) || (!userDetails.isAdmin())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.GET_ALL_PENDING_CERT_MSG)
+					.put(LogMessage.MESSAGE, "Access denied: No permission to get the pending certificates")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"errors\":[\"Access denied: No permission to get the pending certificates\"]}");
+		}
+
+		String nclmAccessToken = getNclmToken();
+		if (StringUtils.isEmpty(nclmAccessToken)) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.GET_ALL_PENDING_CERT_MSG)
+					.put(LogMessage.MESSAGE, "NCLM services are down. Please try after some time")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("{\"errors\":[\"" + nclmErrorMessage + "\"]}");
+		}
+		List<CertificateData> certificatesList = new ArrayList<>();
+		String targetEndpointVal = findAllCertificate;
+
+		// Getting all on-boarded internal certificates
+		List<String> onboardedInternalCerts = getCertificateNameList(
+				getListOfCertificates(token, SSLCertificateConstants.INTERNAL));
+
+		// Getting all on-boarded external certificates
+		List<String> onboardedExternalCerts = getCertificateNameList(
+				getListOfCertificates(token, SSLCertificateConstants.EXTERNAL));
+
+		getCertificateListFromNclm(nclmAccessToken, certificatesList, targetEndpointVal, onboardedInternalCerts,
+				onboardedExternalCerts);
+
+		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(certificatesList));
+	}
+
+	/**
+	 * Method to get the list of certificate names from ResponseEntity<String>
+	 *
+	 * @param onboardedCerts
+	 * @return
+	 */
+	private List<String> getCertificateNameList(ResponseEntity<String> onboardedCerts) {
+		JsonParser jsonParser = new JsonParser();
+		List<String> certNames = null;
+		try {
+			if (!ObjectUtils.isEmpty(onboardedCerts)) {
+				JsonObject jsonObject = (JsonObject) jsonParser.parse(onboardedCerts.getBody());
+				JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
+				if (!ObjectUtils.isEmpty(jsonArray)) {
+					certNames = new ArrayList<>();
+					for (int i = 0; i < jsonArray.size(); i++) {
+						certNames.add(jsonArray.get(i).toString().replaceAll("^\"+|\"+$", ""));
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.GET_ALL_PENDING_CERT_MSG)
+					.put(LogMessage.MESSAGE, "Error in getting the onboarded certificates")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		}
+		return certNames;
+	}
+
+	/**
+	 * Method to call NCLM API and get the list of active certificates
+	 *
+	 * @param nclmAccessToken
+	 * @param certificatesList
+	 * @param targetEndpointVal
+	 * @param onboardedInternalCerts
+	 * @param onboardedExternalCerts
+	 * @return
+	 * @throws Exception
+	 */
+	private List<CertificateData> getCertificateListFromNclm(String nclmAccessToken,
+			List<CertificateData> certificatesList, String targetEndpointVal, List<String> onboardedInternalCerts,
+			List<String> onboardedExternalCerts) throws Exception {
+		String findAllCertificateEndpoint = "/certmanager/findAllCertificates";
+		CertResponse response = reqProcessor.processCert(findAllCertificateEndpoint, "", nclmAccessToken,
+				getCertmanagerEndPoint(targetEndpointVal));
+		Map<String, Object> responseMap = ControllerUtil.parseJson(response.getResponse());
+		if (!MapUtils.isEmpty(responseMap) && (responseMap.get(SSLCertificateConstants.CERTIFICATES) != null)) {
+			JsonParser jsonParser = new JsonParser();
+			JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
+			if (jsonObject != null) {
+				JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.CERTIFICATES);
+				setAllActiveCertificates(jsonArray, certificatesList, onboardedInternalCerts, onboardedExternalCerts);
+				if (responseMap.get("next") != null) {
+					String nextURL = responseMap.get("next").toString();
+					certificatesList = getCertificateListFromNclm(nclmAccessToken, certificatesList, nextURL,
+							onboardedInternalCerts, onboardedExternalCerts);
+				}
+			}
+		}
+		return certificatesList;
+	}
+
+	/**
+	 * Method to set all active certificates based on the active status and
+	 * container name
+	 *
+	 * @param certificateData
+	 * @param certName
+	 * @param jsonArray
+	 * @return
+	 */
+	private List<CertificateData> setAllActiveCertificates(JsonArray jsonArray, List<CertificateData> certificatesList,
+			List<String> onboardedInternalCerts, List<String> onboardedExternalCerts) {
+		try {
+			for (int i = 0; i < jsonArray.size(); i++) {
+				JsonObject jsonElement = jsonArray.get(i).getAsJsonObject();
+				String certificateName = null;
+				if (!ObjectUtils.isEmpty(jsonElement.get("sortedSubjectName"))) {
+					certificateName = getCertficateName(jsonElement.get("sortedSubjectName").getAsString());
+				}
+				if ((certificateName != null) && (!certificateName.startsWith("*"))) {
+					CertificateData certificateData = new CertificateData();
+					boolean isOnboarded = false;
+					constructCertificateData(jsonElement, certificateData);
+					isOnboarded = isCertificateAlreadyOnboarded(onboardedInternalCerts, onboardedExternalCerts,
+							certificateData, isOnboarded);
+					if (!isOnboarded && !containsCertificateName(certificatesList, certificateName)) {
+						certificatesList.add(certificateData);
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.GET_ALL_PENDING_CERT_MSG)
+					.put(LogMessage.MESSAGE, "Error while setting the active certificates from nclm")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		}
+		return certificatesList;
+	}
+
+	/**
+	 * Method to check whether the certificate already added to the list
+	 *
+	 * @param certificatesList
+	 * @param certName
+	 * @return
+	 */
+	public boolean containsCertificateName(List<CertificateData> certificatesList, String certName) {
+		return certificatesList.stream().map(CertificateData::getCertificateName).anyMatch(certName::equalsIgnoreCase);
+	}
+
+	/**
+	 * Method to check whether the certificate already on-boarded
+	 *
+	 * @param onboardedInternalCerts
+	 * @param onboardedExternalCerts
+	 * @param certificateData
+	 * @param isOnboarded
+	 * @return
+	 */
+	private boolean isCertificateAlreadyOnboarded(List<String> onboardedInternalCerts,
+			List<String> onboardedExternalCerts, CertificateData certificateData, boolean isOnboarded) {
+		if (certificateData.getCertType().equals(SSLCertificateConstants.INTERNAL)
+				&& !CollectionUtils.isEmpty(onboardedInternalCerts)) {
+			isOnboarded = onboardedInternalCerts.stream()
+					.anyMatch(certificateData.getCertificateName()::equalsIgnoreCase);
+		} else if (certificateData.getCertType().equals(SSLCertificateConstants.EXTERNAL)
+				&& !CollectionUtils.isEmpty(onboardedExternalCerts)) {
+			isOnboarded = onboardedExternalCerts.stream()
+					.anyMatch(certificateData.getCertificateName()::equalsIgnoreCase);
+		}
+		return isOnboarded;
+	}
+
+	/**
+	 * Method to populate CertificateData object
+	 *
+	 * @param jsonElement
+	 * @param certificateData
+	 */
+	private void constructCertificateData(JsonObject jsonElement, CertificateData certificateData) {
+		certificateData.setCertificateId(Integer.parseInt(jsonElement.get("certificateId").getAsString()));
+		certificateData.setExpiryDate(validateString(jsonElement.get("NotAfter")));
+		certificateData.setCreateDate(validateString(jsonElement.get("NotBefore")));
+		certificateData.setContainerName(validateString(jsonElement.get("containerName")));
+		certificateData
+				.setCertificateStatus(validateString(jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS)));
+		certificateData.setCertificateName(getCertficateName(jsonElement.get("sortedSubjectName").getAsString()));
+		certificateData.setAuthority((!StringUtils.isEmpty(jsonElement.get("enrollServiceInfo"))
+				? validateString(jsonElement.get("enrollServiceInfo").getAsJsonObject().get("name"))
+				: null));
+		certificateData.setPreviousCertId((!ObjectUtils.isEmpty(jsonElement.get("previous"))
+				? Integer.parseInt(jsonElement.get("previous").getAsString())
+				: null));
+		if (Objects.nonNull(jsonElement.getAsJsonObject("subjectAltName"))) {
+			JsonObject subjectAltNameObject = jsonElement.getAsJsonObject("subjectAltName");
+			JsonArray jsonArr = subjectAltNameObject.getAsJsonArray("dns");
+			if (!ObjectUtils.isEmpty(jsonArr)) {
+				List<String> list = new ArrayList<>();
+				for (int index = 0; index < jsonArr.size(); index++) {
+					list.add(jsonArr.get(index).getAsString());
+				}
+				certificateData.setDnsNames(list);
+			}
+		}
+		setCertificateTypeBasedOnContainerId(jsonElement, certificateData);
+	}
+
+	/**
+	 * Method to set the certificate type based on the container name and Id
+	 *
+	 * @param jsonElement
+	 * @param certificateData
+	 */
+	private void setCertificateTypeBasedOnContainerId(JsonObject jsonElement, CertificateData certificateData) {
+		if (jsonElement.get("containerPath") != null) {
+			JsonArray containerPathArray = jsonElement.getAsJsonArray("containerPath");
+			for (int j = 0; j < containerPathArray.size(); j++) {
+				JsonObject containerPathElement = containerPathArray.get(j).getAsJsonObject();
+				if (containerPathElement.get("containerName") != null && containerPathElement.get("containerName")
+						.getAsString().equalsIgnoreCase(SSLCertificateConstants.VENAFIBIN_CONTAINER)) {
+					if (containerPathElement.get("containerId") != null && Integer.parseInt(
+							containerPathElement.get("containerId").getAsString()) != private_single_san_ts_gp_id) {
+						certificateData.setCertType(SSLCertificateConstants.EXTERNAL);
+					} else {
+						certificateData.setCertType(SSLCertificateConstants.INTERNAL);
+					}
+				}
+			}
+		}
+	}
 }

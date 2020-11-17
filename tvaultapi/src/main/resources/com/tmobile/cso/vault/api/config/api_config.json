@@ -1223,5 +1223,12 @@
 			{ "name": "path","required": true, "appendToPath": true }
 		],
 		"outparams": ["data/keys"]
+	},
+	{"#" : "**** - Find all Certificates****** ",
+
+		"apiEndPoint":"/certmanager/findAllCertificates",
+		"vaultEndPoint":"certificates",
+		"method":"GET",
+		"outparams":["certificates", "href", "last", "limit", "next", "offset", "totalCount"]
 	}
 ]
