@@ -19,7 +19,7 @@
 
 'use strict';
 (function (app) {
-    app.controller('ChangeCertificateCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant,RestEndpoints,orderByFilter, $compile) {
+    app.controller('ChangeCertificateCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant,RestEndpoints,filterFilter, orderByFilter, $compile) {
         
         
         $scope.selectedGroupOption = '';            // Selected dropdown value to be used for filtering
@@ -117,6 +117,9 @@
 
         var init = function () {
         	$scope.isUserSearchLoading = false;
+        	$scope.isOwnerSearchLoading = false;
+        	$scope.isLeadSearchLoading = false;
+        	$scope.isNotificationSearchLoading = false;
         	$scope.certificateToOnboard = null;
         	 $scope.notificationEmails = [];
              $scope.selectedNotificationEmails= [];
@@ -124,6 +127,9 @@
              $scope.isNotificationEmailSelected = false;
              $scope.notificationEmailErrorMessage = "";             
              $scope.isNotificationEmailSearch = false;
+             $scope.notificationEmailErrorMessage = "";
+             $scope.ownerEmailErrorMessage = "";
+             $scope.leadEmailErrorMessage = "";
         };
         
         
@@ -649,8 +655,10 @@
                                     var i = 0;
                                     $scope.certificate.notificationEmails.forEach(function (email) {
                                     var id = "dns"+ (i++);
+                                    $scope.notificationEmails.push({ "id": id, "email":email});
                                     angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
                                     });
+                                    $scope.certificate.notificationEmails = notificationStr;
                                 }
                                 
 
@@ -1122,8 +1130,13 @@
         $scope.updateCertPopup = function (certDetails) {
             $scope.fetchDataError = false;
             $rootScope.certDetails = certDetails;
+            if(certDetails.appOwnerEmail==null || certDetails.appOwnerEmail==""){
+            	$scope.ownerEmailErrorMessage = "Application owner email id should not empty";
+            }else if(certDetails.leadEmail==null || certDetails.leadEmail=="" &&certDetails.leadEmail==undefined ){
+            	$scope.leadEmailErrorMessage = "Lead email id should not empty";
+            }else{
             Modal.createModal('md', 'updateCertPopup.html', 'ChangeCertificateCtrl', $scope);
-        };
+            }};
         
 
          //Revoke Certificate
@@ -1336,15 +1349,15 @@
                 $scope.updateMessage = '';
                 var certificateName = $scope.getCertSubjectName(certificateDetails);
                 $scope.certificateNameForDelete = certificateName;
-                var certType = certificateDetails.certType;                
+                var certType = certificateDetails.certType;                 
                 var url = RestEndpoints.baseURL + "/v2/sslcert/";
                 $scope.isLoadingData = true;
                 var reqObjtobeSent =  { 
                         "certificateName":certificateName,
                         "certType":certType,
-                        "projectLeadEmail":certificateDetails.projectLeadEmailId,
-                        "applicationOwnerEmail":certificateDetails.ownerEmail,
-                        "notificationEmail": certificateDetails.notificationEmail
+                        "projectLeadEmail":certificateDetails.leadEmail,
+                        "applicationOwnerEmail":certificateDetails.appOwnerEmail,
+                        "notificationEmail": $scope.certificate.notificationEmails
                     }
                 AdminSafesManagement.updateCertificate(reqObjtobeSent, url).then(function (response) {
                     $scope.isLoadingData = false;
@@ -1357,7 +1370,7 @@
                 },
                 function (error) {
                     var errors = error.data.errors;
-                    $scope.updateMessage = 'Delete Failed';                    
+                    $scope.updateMessage = 'Update Failed';                    
                     if (errors[0] == "Access denied: No permission to update certificate") {
                         $scope.updateMessage = "For security reasons, you need to log out and log in again for the permissions to take effect.";
                     } else {
@@ -1369,6 +1382,7 @@
                     console.log(error);
                     $scope.searchValue = '';
                 })
+                
             }catch (e) {
                 $scope.isLoadingData = false;
                 console.log(e);
@@ -1380,8 +1394,7 @@
         //editable fields
         $scope.selectLeadforCert = function (ownerEmail) {
             if (ownerEmail != null) {
-            	console.log("here3333333333333 == "+ownerEmail);
-                $scope.certificateToOnboard.projectLead = ownerEmail.userEmail;                
+                $scope.certificate.leadEmail = ownerEmail.userEmail;                
                 $scope.isLeadSelectedForOnboard = true;
                 $scope.isLeadEmailSearch = false;
             }
@@ -1389,14 +1402,14 @@
         
         $scope.selectOwnerforCert = function (ownerEmail) {
             if (ownerEmail != null) {
-            	console.log("here66666666666666 == "+ownerEmail);
-                $scope.certificateToOnboard.ownerEmail = ownerEmail.userEmail;                
+            	$scope.certificate.appOwnerEmail = ownerEmail.userEmail;                
                 $scope.isOwnerSelectedForOnboard = true;
                 $scope.isOwnerEmailSearch = false;
             }
         }
 
         $scope.selectNotificationEmail = function (ownerEmail) {
+        	$scope.notificationEmail = { email:""};
             if (ownerEmail != null) {
                 $scope.notificationEmail.email = ownerEmail.userEmail;
                 $scope.isNotificationEmailSelected = true;
@@ -1404,45 +1417,52 @@
             }
         }
 
-        var isDuplicateNotificationEmail = function (email) {
-            $scope.certDnsErrorMessage = '';
-            for (var i=0;i<$scope.notificationEmails.length;i++) {
-                if (email.toLowerCase() == $scope.notificationEmails[i].email.toLowerCase()) {
-                    $scope.notificationEmailErrorMessage = 'Duplicate Email';
-                    return true;
-                }
-            }
-            return false;
-        }
-        
-        $scope.clearNotificationEmail = function() {
-            $scope.notificationEmail = { email:""};
-            $scope.notificationEmail.email = "";
-            $scope.isNotificationEmailSelected = false;
-        }
         
         $scope.searchLeadEmailForCert = function (email) {
             if (!email.endsWith("\\")) {
-            	console.log("hereeeeeeeeeeee LLLLLLLLL -- "+email);
             	$scope.isOwnerEmailSearch = false;
+            	$scope.isNotificationEmailSearch = false;
                 $scope.isLeadEmailSearch = true;
-                return $scope.searchEmail(email);
+                return $scope.searchEmail(email,"lead");
             }
         }
         
         $scope.searchOwnerEmailForCert = function (email) {
-            if (!email.endsWith("\\")) {
-            	console.log("hereeeeeeeeeeee OOOOOOOOOOOO -- "+email);
+            if (!email.endsWith("\\")) {            	
             	$scope.isLeadEmailSearch = false;
+            	$scope.isNotificationEmailSearch = false;
                 $scope.isOwnerEmailSearch = true;
-                return $scope.searchEmail(email);
+                return $scope.searchEmail(email,"owner");
+            }
+        }
+        
+        $scope.searchEmailForNotification = function (email) {
+            if (!email.endsWith("\\")) {
+                $scope.isNotificationEmailSearch = true;
+                $scope.isLeadEmailSearch = false;
+                $scope.isOwnerEmailSearch = false;
+                return $scope.searchEmail(email,"notification");
             }
         }
             
-            $scope.searchEmail = function (searchVal) {        	
+            $scope.searchEmail = function (searchVal,val) {        	
                 if (searchVal.length > 2) {
-                	console.log("hereeeeeeeeeeee 2222222222 -- "+searchVal);
-                    $scope.isUserSearchLoading = true;
+                    
+                    if(val=="notification"){
+                    	$scope.isNotificationSearchLoading = true;
+                    	$scope.isOwnerSearchLoading = false;
+                    	$scope.isLeadSearchLoading = false;
+                    }
+                    if(val=="owner"){
+                    	$scope.isOwnerSearchLoading = true;
+                    	$scope.isLeadSearchLoading = false;
+                    	$scope.isNotificationSearchLoading = false;
+                    }
+                    if(val=="lead"){
+                    	$scope.isLeadSearchLoading = true;
+                    	$scope.isOwnerSearchLoading = false;
+                    	$scope.isNotificationSearchLoading = false;
+                    }
                     searchVal = searchVal.toLowerCase();
                     try {
                         $scope.userSearchList = [];
@@ -1451,7 +1471,16 @@
                         var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('usersGetData', queryParameters);
                         return AdminSafesManagement.usersGetData(null, updatedUrlOfEndPoint).then(
                             function(response) {
-                                $scope.isUserSearchLoading = false;
+                            	if(val=="notification"){
+                                	$scope.isNotificationSearchLoading = false;
+                                }
+                                if(val=="owner"){
+                                	$scope.isOwnerSearchLoading = false;
+                                }
+                                if(val=="lead"){
+                                	$scope.isLeadSearchLoading = false;
+                                }
+                                
                                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                                     var filterdUserData = [];
                                     $scope.userSearchList = response.data.data.values;
@@ -1460,7 +1489,15 @@
                                             filterdUserData.push(userData);
                                         }
                                     });
-                                    console.log("filterdUserData -- "+filterdUserData[0].userEmail);
+                                    if(val=="notification"){
+                                    	$scope.isNotificationSearchLoading = false;
+                                    }
+                                    if(val=="owner"){
+                                    	$scope.isOwnerSearchLoading = false;
+                                    }
+                                    if(val=="lead"){
+                                    	$scope.isLeadSearchLoading = false;
+                                    }
                                     return orderByFilter(filterFilter(filterdUserData, searchVal), 'userEmail', true);
                                 } else {
                                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
@@ -1470,13 +1507,29 @@
                             function(error) {
                                 // Error handling function
                                 console.log(error);
-                                $scope.isUserSearchLoading = false;
+                                if(val=="notification"){
+                                	$scope.isNotificationSearchLoading = false;
+                                }
+                                if(val=="owner"){
+                                	$scope.isOwnerSearchLoading = false;
+                                }
+                                if(val=="lead"){
+                                	$scope.isLeadSearchLoading = false;
+                                }
                                 $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                                 $scope.error('md');
                         });
                     } catch (e) {
                         console.log(e);
-                        $scope.isUserSearchLoading = false;
+                        if(val=="notification"){
+                        	$scope.isNotificationSearchLoading = false;
+                        }
+                        if(val=="owner"){
+                        	$scope.isOwnerSearchLoading = false;
+                        }
+                        if(val=="lead"){
+                        	$scope.isLeadSearchLoading = false;
+                        }
                         $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                         $scope.error('md');
                     }
@@ -1486,14 +1539,26 @@
             $scope.clearLeadEmail = function () {
                 $scope.certificate.leadEmail = "";                
                 $scope.isLeadSelectedForOnboard = false;
+                $scope.leadEmailErrorMessage="";
             }
             
             $scope.clearOwnerEmail = function () {
                 $scope.certificate.appOwnerEmail = "";                
                 $scope.isOwnerSelectedForOnboard = false;
+                $scope.ownerEmailErrorMessage="";
+            }
+            
+            $scope.clearNotificationEmail = function() {
+                $scope.notificationEmail = { email:""};
+                $scope.notificationEmail.email = "";
+                $scope.notificationEmailErrorMessage = '';
+                $scope.isNotificationEmailSelected = false;
             }
             
             $scope.addNotificationEmail = function () {
+            	if($scope.notificationEmails==undefined){
+            		$scope.notificationEmails = [];
+            	}
                 var length = $scope.notificationEmails.length;
                 if ($scope.notificationEmail && $scope.notificationEmail.email!="" && !isDuplicateNotificationEmail($scope.notificationEmail.email)) {
                     var id="dns"+length;
@@ -1502,6 +1567,8 @@
                     addNotificationEmailString($scope.notificationEmail.email);
                     $scope.notificationEmail.email = "";
                     $scope.isNotificationEmailSelected = false;
+                }else{
+                    $scope.isNotificationEmailSelected = false;
                 }
             }
             
@@ -1509,7 +1576,7 @@
                 if ($scope.certificate.notificationEmails != "") {
                     $scope.certificate.notificationEmails = $scope.certificate.notificationEmails + ",";
                 }
-                $scope.certificate.notificationEmails = $scope.certificate.notificationEmails.add(email);
+                $scope.certificate.notificationEmails = $scope.certificate.notificationEmails + email;
             }
 
             $scope.deleteNotificationEmail = function (id) {
@@ -1538,13 +1605,7 @@
                 return false;
             }
             
-            $scope.searchEmailForNotification = function (email) {
-                if (!email.endsWith("\\")) {
-                    $scope.isNotificationEmailSearch = true;
-                    return $scope.searchEmail(email);
-                }
-            }
-            
+                        
             $scope.onboardCert = function() {
                 var onboardRequest = {
                     certificateName: $scope.certificateToOnboard.certificateName,

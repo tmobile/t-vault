@@ -434,7 +434,7 @@ public class SSLCertificateController {
 	 * @param sslCertificateRequest
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.sslcreate.value}", notes = "${SSLCertificateController.sslcreate.notes}", hidden = true)
+	@ApiOperation(value = "${SSLCertificateController.ssledit.value}", notes = "${SSLCertificateController.ssledit.notes}", hidden = false)
 	@PutMapping(value="/v2/sslcert/",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> updateSSLCertificate(HttpServletRequest request, @RequestHeader(value=
 			"vault-token") String token,@Valid @RequestBody CertificateUpdateRequest certificateUpdateRequest)  {

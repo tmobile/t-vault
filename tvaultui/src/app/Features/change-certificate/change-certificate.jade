@@ -137,7 +137,7 @@ script(type='text/ng-template', id='updateCertificateSuccessPopUp.html')
       .top-lg-sep.notification-text  {{ updateMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
-        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancelUpdate()") CLOSE
+        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE
 
 script(type='text/ng-template', id='updateCertificateFailedPopUp.html')
   .top-lg-sep(ng-if="!isLoadingModalData")
@@ -197,9 +197,9 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                               .row
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Aplication Owner
-                                    input.form-control.input-box-style(id="appOwnerEmail" ng-model="certificate.appOwnerEmail"  name="appOwnerEmail"   typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchOwnerEmailForCert($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectOwnerforCert(certificate.appOwnerEmail)")
+                                    input.form-control.input-box-style(id="appOwnerEmail" ng-model="certificate.appOwnerEmail" ng-click="clearOwnerEmail()" name="appOwnerEmail" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchOwnerEmailForCert($viewValue) | limitTo: 8" typeahead-wait-ms="500" aria-expanded="true"  typeahead-on-select="selectOwnerforCert(certificate.appOwnerEmail)")
                                     
-                                    div.loader(ng-if='isUserSearchLoading && isOwnerEmailSearch && certificate.appOwnerEmail.length > 2')
+                                    div.loader(ng-if='isOwnerSearchLoading && isOwnerEmailSearch && certificate.appOwnerEmail.length > 2')
                                          div.ball-spin-fade-loader
                                              div
                                              div
@@ -209,9 +209,10 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                              div
                                              div
                                              div
-                                     div.input-cross.svcaccid(ng-if='!isUserSearchLoading && !isNotificationEmailSearch && !isLeadEmailSearch && certificate.appOwnerEmail.length > 2' ng-click="clearOwnerEmail()")
+                                     div.input-cross.svcaccid(ng-if='!isOwnerSearchLoading && certificate.appOwnerEmail.length > 2' ng-click="clearOwnerEmail()")
                                          div.delete-title
                                            img.delete-icon(src="../../assets/images/delete.png")
+                                     span.invalid-email   {{ ownerEmailErrorMessage }}        
                         .row.middle
                           .common-form-row.clearfix
                             .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
@@ -223,8 +224,8 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                               .row
                                 .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Project Lead
-                                    input.form-control.input-box-style(id="leadEmail" ng-model="certificate.leadEmail"  typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchLeadEmailForCert($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectLeadforCert(certificate.leadEmail)")
-                                    div.loader(ng-if='isUserSearchLoading  && isLeadEmailSearch && certificate.leadEmail.length > 2')
+                                    input.form-control.input-box-style(id="leadEmail" ng-model="certificate.leadEmail" ng-click="clearLeadEmail()" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchLeadEmailForCert($viewValue) | limitTo: 8" typeahead-wait-ms="500" aria-expanded="true" typeahead-on-select="selectLeadforCert(certificate.leadEmail)")
+                                    div.loader(ng-if='isLeadSearchLoading  && isLeadEmailSearch && certificate.leadEmail.length > 2')
                                         div.ball-spin-fade-loader
                                             div
                                             div
@@ -234,9 +235,10 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                             div
                                             div
                                             div
-                                    div.input-cross.svcaccid(ng-if='!isUserSearchLoading && !isNotificationEmailSearch && !isOwnerEmailSearch && certificate.leadEmail.length > 2' ng-click="clearLeadEmail()")
+                                    div.input-cross.svcaccid(ng-if='!isLeadSearchLoading  && certificate.leadEmail.length > 2' ng-click="clearLeadEmail()")
                                         div.delete-title
                                           img.delete-icon(src="../../assets/images/delete.png")
+                                    span.invalid-email   {{ leadEmailErrorMessage }}       
                         .row.middle
                           .common-form-row.clearfix
                             .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
@@ -294,26 +296,26 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                 .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Notification Emails                                
                                     div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="certificate.notificationEmails.length>0")                                    
-                      div.dns-wrapper.addnotificationemail
-                        .col-lg-9.col-md-9.col-sm-9.col-xs-9
-                          .cert-input-group.cert-suffix
-                            input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmailForNotification($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
-                            div.loader.svcaccid.notification-email-loader(ng-if='isUserSearchLoading && isNotificationEmailSearch && notificationEmail.email.length > 2')
-                                div.ball-spin-fade-loader
-                                    div
-                                    div
-                                    div
-                                    div
-                                    div
-                                    div
-                                    div
-                                    div
-                            div.input-cross.svcaccid.notification-email-loader(ng-if='!isUserSearchLoading && !isOwnerEmailSearch && !isLeadEmailSearch && notificationEmail.email.length > 2' ng-click="clearNotificationEmail()")
-                                div.delete-title
-                                    img.delete-icon(src="../../assets/images/delete.png")
-                          div.key-acceptance-info() 
-                        .col-lg-3.col-md-3.col-sm-3.col-xs-3
-                          button.common-btn.dns-add-btn(ng-click="addNotificationEmail(notificationEmail)" ng-disabled="!isNotificationEmailSelected") Add Email     
+                                    div.dns-wrapper.addnotificationemail
+                                      .col-lg-9.col-md-9.col-sm-9.col-xs-9
+                                        .cert-input-group.cert-suffix
+                                          input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" ng-click="clearNotificationEmail()" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmailForNotification($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
+                                          div.loader.svcaccid.notification-email-loader(ng-if='isNotificationSearchLoading && isNotificationEmailSearch && notificationEmail.email.length > 2')
+                                              div.ball-spin-fade-loader
+                                                  div
+                                                  div
+                                                  div
+                                                  div
+                                                  div
+                                                  div
+                                                  div
+                                                  div
+                                          div.input-cross.svcaccid(ng-if='!isNotificationSearchLoading && notificationEmail.email.length > 2' ng-click="clearNotificationEmail()")
+                                              div.delete-title
+                                                  img.delete-icon(src="../../assets/images/delete.png")
+                                        div.key-acceptance-info() {{ notificationEmailErrorMessage }} 
+                                      .col-lg-3.col-md-3.col-sm-3.col-xs-3
+                                        button.common-btn.dns-add-btn(ng-click="addNotificationEmail(notificationEmail)" ng-disabled="!isNotificationEmailSelected") Add Email     
                         
                         .row.middle
                           .common-form-row.clearfix

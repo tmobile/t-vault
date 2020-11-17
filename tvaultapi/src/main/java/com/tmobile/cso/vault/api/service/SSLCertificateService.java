@@ -7968,7 +7968,25 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			     */
 			    public ResponseEntity<String> updateSSLCertificate(CertificateUpdateRequest certificateUpdateRequest, UserDetails userDetails,  String token) {  
 			    
-			    	boolean isValidData = validateRequestData(certificateUpdateRequest, userDetails);
+			    	boolean isValidData = false;
+			    	int count =0;
+			    	if(isValidInputs(certificateUpdateRequest.getCertificateName(), certificateUpdateRequest.getCertType()) && (certificateUpdateRequest.getApplicationOwnerEmail()!=null ? validateCertficateEmail(certificateUpdateRequest.getApplicationOwnerEmail()):true)
+			    			&& (certificateUpdateRequest.getProjectLeadEmail()!=null ? validateCertficateEmail(certificateUpdateRequest.getProjectLeadEmail() ):true)) {
+			    		isValidData = true;
+			    		if(certificateUpdateRequest.getNotificationEmail()!=null) {
+			    			String[] notifEmailLst =   certificateUpdateRequest.getNotificationEmail().split(",");
+			    			for(int i=0; i<notifEmailLst.length;i++) {
+			    				if(validateCertficateEmail(notifEmailLst[i] )) {
+			    					count++;
+			    				}
+			    			}
+			    			if(count==notifEmailLst.length) {
+			    				isValidData = true;
+			    			}else if(count<notifEmailLst.length) {
+			    				isValidData = false;
+			    			}
+			    		}
+			    	}
 			    	Map<String, String> metaDataParams = new HashMap<String, String>();
 					if (!isValidData) {
 						return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
@@ -8014,10 +8032,15 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 						JsonParser jsonParser = new JsonParser();
 						JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
 						metaDataParams = new Gson().fromJson(object.toString(), Map.class);	
-						boolean sslMetaDataUpdationStatus;			
+						boolean sslMetaDataUpdationStatus;
+						if(certificateUpdateRequest.getApplicationOwnerEmail()!=null ) {
 						metaDataParams.put("applicationOwnerEmailId", certificateUpdateRequest.getApplicationOwnerEmail());
+						}
+						if(certificateUpdateRequest.getProjectLeadEmail()!=null) {
 						metaDataParams.put("projectLeadEmailId", certificateUpdateRequest.getProjectLeadEmail());
+						}if(certificateUpdateRequest.getNotificationEmail()!=null ){						
 						metaDataParams.put("notificationEmails", certificateUpdateRequest.getNotificationEmail());
+						}
 					try {
 					if (userDetails.isAdmin()) {
 						sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
@@ -8065,19 +8088,5 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					}
 			    }
 			    
-			    /**
-			     * Validate input data
-			     * @param sslCertificateRequest
-			     * @return
-			     */
-				private boolean validateRequestData(CertificateUpdateRequest certificateUpdateRequest, UserDetails userDetails){
-				    boolean isValid=true;
-				    if((!validateCertficateName(certificateUpdateRequest.getCertificateName()))  ||				            
-				    		certificateUpdateRequest.getProjectLeadEmail().contains(" ") ||  certificateUpdateRequest.getCertType().contains(" ") ||
-				            (!certificateUpdateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)) 
-				            ){
-				        isValid= false;
-				    }
-				    return isValid;
-				}
+			   
 }
