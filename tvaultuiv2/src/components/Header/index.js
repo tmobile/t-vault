@@ -12,6 +12,7 @@ import vaultIcon from '../../assets/tvault.svg';
 import menu from '../../assets/menu.svg';
 import Sidebar from '../Sidebar';
 import UserLogout from './userLogout';
+import configData from '../../config/config';
 
 const { small, smallAndMedium, semiLarge } = mediaBreakpoints;
 
@@ -152,8 +153,10 @@ const Header = (props) => {
     if (loggedIn) {
       setIsLogin(true);
       const name = sessionStorage.getItem('displayName');
-      const str = name.split(',');
-      setUserName(`${str[1]} ${str[0]}` || 'User');
+      if (name) {
+        const str = name?.split(',');
+        setUserName(`${str[1]} ${str[0]}` || 'User');
+      }
     } else {
       setIsLogin(false);
     }
@@ -216,14 +219,16 @@ const Header = (props) => {
             {!isLogin ? (
               <DocLinks>
                 <EachLink
-                  href="https://docs.corporate.t-mobile.com/t-vault/introduction/"
+                  href={configData.DOCS_LINK}
                   target="_blank"
+                  rel="noopener noreferrer"
                 >
                   Docs
                 </EachLink>
                 <EachLink
                   href="https://perf-vault.corporate.t-mobile.com/vault/swagger-ui.html"
                   target="_blank"
+                  rel="noopener noreferrer"
                 >
                   Developer API
                 </EachLink>
@@ -231,8 +236,9 @@ const Header = (props) => {
             ) : (
               <ProfileIconWrap>
                 <EachLink
-                  href="https://docs.corporate.t-mobile.com/t-vault/introduction/"
+                  href={configData.DOCS_LINK}
                   target="_blank"
+                  rel="noopener noreferrer"
                   decoration="none"
                 >
                   <DescriptionIcon
