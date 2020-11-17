@@ -1460,6 +1460,13 @@
             Modal.createModal('md', 'transferCertFailedPopup.html', 'AdminCtrl', $scope);
         };
 
+        $scope.certificateOnboardPopUp = function (svcaccname) {
+            Modal.createModal('md', 'certificateOnboardPopUp.html', 'AdminCtrl', $scope);
+        };
+        $scope.certificateOnboardFailedPopUp = function (svcaccname) {
+            Modal.createModal('md', 'certificateOnboardFailedPopUp.html', 'AdminCtrl', $scope);
+        };
+
         $scope.transferSvcacc = function (svcaccToTransfer) {
             $scope.transferFailedMessage = '';
             $scope.isLoadingData = true;
@@ -1778,11 +1785,12 @@
 
         $scope.successCancel = function () {
             Modal.close('');
-            if($scope.selectedTab == 1){            	
+            $scope.selectedTab = 0;
+            if($scope.selectedTab == 1){
               	 getCertificates("", null, null,"external");
-              }else{        	   
-              getCertificates("", null, null,"internal");
-              }
+            }else{
+                getCertificates("", null, null,"internal");
+            }
         };
 
         $scope.collapseADDetails = function() {
@@ -2630,15 +2638,53 @@
         }
 
         $scope.onboardCert = function() {
-            var onboardRequest = {
-                certificateName: $scope.certificateToOnboard.certificateName,
-                certificateType:$scope.certificateToOnboard.certType,
-                applicationName: $scope.certificateToOnboard.tag,
-                notificationEmails: $scope.certificateToOnboard.notificationEmails,
-                ownerEmail: $scope.certificateToOnboard.ownerEmail,
-                ownerNtId: $scope.certificateToOnboard.ownerNtId
+            try{
+                Modal.close('');
+                var sslcertType = 'PRIVATE_SINGLE_SAN';
+                $scope.appNameTagValue=$scope.certObj.certDetails.applicationName;
+                $scope.certObj.sslcertType = sslcertType;
+                var multiSanDns = [];
+                var onboardRequest =  {
+                    "appName": $scope.certificateToOnboard.tag,
+                    "certificateName":$scope.certificateToOnboard.certificateName,
+                    "certType":$scope.certificateToOnboard.certType,
+                    "certOwnerEmailId":$scope.certificateToOnboard.ownerEmail,
+                    "certOwnerNTId":$scope.certificateToOnboard.ownerNtId,
+                    "notificationEmail": $scope.certificateToOnboard.notificationEmails,
+                    "dnsList": multiSanDns
+                }
+                $scope.certificateOnboardMessage = '';
+                var url = '';
+                $scope.isLoadingData = true;
+                $scope.isLoadingCerts = true;
+                AdminSafesManagement.onboardSslCertificates(onboardRequest, url).then(function (response) {
+                    $scope.isLoadingData = false;
+                    $scope.isLoadingCerts = false;
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        $scope.certificateOnboardMessage = response.data.messages[0];
+                        resetOnBoardCert();
+                        $scope.certificateOnboardPopUp();
+                        $scope.searchValue = '';
+                    }
+                    $scope.multiSan=[];
+                },
+                function (error) {
+                    resetOnBoardCert();
+                    var errors = error.data.errors;
+                    $scope.certificateOnboardMessage = errors[0];
+                    $scope.certificateOnboardFailedPopUp();
+                    $scope.isLoadingData = false;
+                    $scope.isLoadingCerts = false;
+                    console.log(error);
+                    $scope.searchValue = '';
+                })
+            } catch (e) {
+                resetOnBoardCert();
+                $scope.isLoadingData = false;
+                console.log(e);
+                $scope.searchValue = '';
             }
-            console.log(onboardRequest);
+            resetOnBoardCert();
         }
 
         var resetOnBoardCert = function () {

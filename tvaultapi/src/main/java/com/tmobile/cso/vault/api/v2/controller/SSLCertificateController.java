@@ -531,4 +531,22 @@ public class SSLCertificateController {
 		return sslCertificateService.getAllOnboardPendingCertificates(token, userDetails);
 	}
 
+	/**
+	 * To Onboard single NCLM certificates to tvault
+	 *
+	 * @param request
+	 * @param token
+	 * @param sslCertificateRequest
+	 * @return
+	 * @throws Exception
+	 */
+	@ApiOperation(value = "${SSLCertificateController.onboardSSLCertificate.value}", notes = "${SSLCertificateController.onboardSSLCertificate.notes}", hidden = true)
+	@PostMapping(value = "/v2/sslcert/onboardSSLcertificate", consumes = "application/json", produces = "application/json")
+	public ResponseEntity<String> onboardSSLCertificate(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token,
+			@Valid @RequestBody SSLCertificateRequest sslCertificateRequest) throws Exception {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateService.onboardSSLcertificate(userDetails, token, sslCertificateRequest);
+	}
+
 }
