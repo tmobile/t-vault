@@ -15,6 +15,8 @@ const Resources = {
     'Are you sure you want to offboard this Service Account? This will not delete the Service Account from AD server.',
   offBoardSuccessfull:
     'Offboarding of Service Account has been completed successfully. The Service Account Password can no longer be managed by T-Vault. For security reasons, you need to log out and log in order for the changes to effect.',
+  noSafeSecretFound:
+    'Add a <strong>Folder</strong> and then you will be able to add <strong>Secrets</strong> to view them all here.',
   noUsersPermissionFound:
     'No <strong>Users</strong> are given permission to access this safe, add users to access the safe',
   noGroupsPermissionFound:
