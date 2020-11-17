@@ -850,6 +850,7 @@ public class SSLCertificateService {
                 .put(LogMessage.ACTION, String.format("sendCreationEmail for SSL certificate [%s] - certType [%s] - "
                         , sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType()))
                 .build()));
+        
 
          if (sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) {
             //Send email for certificate creation
@@ -1213,6 +1214,7 @@ public class SSLCertificateService {
 		if(operation!=null && operation.equalsIgnoreCase("onboard")) {
 			 addUserresponse = addUserToCertificateOnboard(certificateUser, userDetails, true);
 		}
+		
 		else {
 		 addUserresponse = addUserToCertificate(certificateUser, userDetails, true);
 		}
@@ -1548,6 +1550,7 @@ public class SSLCertificateService {
             sslCertificateMetadataDetails.setCertificateStatus(certDetails.getCertificateStatus());
             sslCertificateMetadataDetails.setContainerName(certDetails.getContainerName());
             sslCertificateMetadataDetails.setDnsNames(certDetails.getDnsNames());
+            sslCertificateMetadataDetails.setNotificationEmail(sslCertificateRequest.getNotificationEmail());
 
         } else {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1581,6 +1584,7 @@ public class SSLCertificateService {
                 sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
                 sslCertificateMetadataDetails.setRequestStatus(SSLCertificateConstants.REQUEST_PENDING_APPROVAL);
                 sslCertificateMetadataDetails.setActionId(actionId);
+                sslCertificateMetadataDetails.setNotificationEmail(sslCertificateRequest.getNotificationEmail());
             }
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -1649,27 +1653,30 @@ public class SSLCertificateService {
         }
         return true;
     }
-//	/**
-//     * Validate the notificationEmails
-//     * @param sslCertificateRequest
-//     * @return
-//     */
-//	private boolean validateNotificationEmails(SSLCertificateRequest sslCertificateRequest) {
-//        String[] notificationEmails = sslCertificateRequest.getNotificationEmail();
-//        Set<String> set = new HashSet<>();
-//
-//        if(!ArrayUtils.isEmpty(notificationEmails)) {
-//	        for (String notificationEmail : notificationEmails) {
-//	            if (notificationEmail.contains(" ") || (!notificationEmail.matches("^[a-zA-Z0-9.-]+$")) || (notificationEmail.endsWith(certificateNameTailText)) ||
-//	                    (notificationEmail.contains(".-")) || (notificationEmail.contains("-.")) || (notificationEmail.contains("..")) || (notificationEmail.endsWith(".")) ||
-//	                    (!set.add(notificationEmail))) {
-//	                return false;
-//	            }
-//	        }
-//
-//        }
-//        return true;
-//    }
+	/**
+     * Validate the notificationEmails
+     * @param sslCertificateRequest
+     * @return
+     */
+	private boolean validateNotificationEmails(SSLCertificateRequest sslCertificateRequest) {
+        String notificationEmails = sslCertificateRequest.getNotificationEmail();
+        //Set<String> set = new HashSet<>();
+
+        if(!StringUtils.isEmpty(notificationEmails)) {
+	       // for (String notificationEmail : notificationEmails) {
+	            if (notificationEmails.contains(" ") || 
+	            		(notificationEmails.endsWith(certificateNameTailText)) ||
+	                    (notificationEmails.contains(".-")) || 
+	                    (notificationEmails.contains("-.")) || 
+	                    (notificationEmails.contains("..")) || 
+	                    (notificationEmails.endsWith("."))) {
+	                return false;
+	            }
+	       // }
+
+        }
+        return true;
+    }
     /**
      * Validate input data
      * @param sslCertificateRequest
@@ -1681,7 +1688,7 @@ public class SSLCertificateService {
 	            (!populateCertOwnerEmaild(sslCertificateRequest, userDetails)) ||
 	            sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
 	            (!sslCertificateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)) 
-	            || (!validateDNSNames(sslCertificateRequest))){
+	            || (!validateDNSNames(sslCertificateRequest))|| (!validateNotificationEmails(sslCertificateRequest))){
 	        isValid= false;
 	    }
 	    return isValid;
@@ -7945,7 +7952,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		                sslCertificateMetadataDetails.setApplicationOwnerEmailId(appOwnerEmail);
 		                sslCertificateMetadataDetails.setApplicationTag(applicationTag);
 		                sslCertificateMetadataDetails.setApplicationName(applicationName);
-		                sslCertificateMetadataDetails.setNotificationEmails(tagsOwner);
+		                sslCertificateMetadataDetails.setNotificationEmail(tagsOwner);
 		            }
 		            }
 		        } else {
