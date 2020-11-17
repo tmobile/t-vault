@@ -26,13 +26,14 @@ public class SSLCertificateMetadataDetails implements Serializable {
     private String requestStatus;
     private List<String> dnsNames;
     private int actionId;
-    private String notificationEmails;
+    private String notificationEmail;
     
-    public String getNotificationEmails() {
-		return notificationEmails;
+    
+	public String getNotificationEmail() {
+		return notificationEmail;
 	}
-	public void setNotificationEmails(String notificationEmails) {
-		this.notificationEmails = notificationEmails;
+	public void setNotificationEmail(String notificationEmail) {
+		this.notificationEmail = notificationEmail;
 	}
 	public int getActionId() {
         return actionId;
@@ -177,27 +178,15 @@ public class SSLCertificateMetadataDetails implements Serializable {
     }
 
     @Override
-    public String toString() {
-        return "SSLCertificateMetadataDetails{" +
-                "certificateId=" + certificateId +
-                ", certificateStatus='" + certificateStatus + '\'' +
-                ", expiryDate='" + expiryDate + '\'' +
-                ", createDate='" + createDate + '\'' +
-                ", containerName='" + containerName + '\'' +
-                ", certificateName='" + certificateName + '\'' +
-                ", authority='" + authority + '\'' +
-                ", applicationTag='" + applicationTag + '\'' +
-                ", applicationName='" + applicationName + '\'' +
-                ", projectLeadEmailId='" + projectLeadEmailId + '\'' +
-                ", applicationOwnerEmailId='" + applicationOwnerEmailId + '\'' +
-                ", akmid='" + akmid + '\'' +
-                ", certType='" + certType + '\'' +
-                ", certCreatedBy='" + certCreatedBy + '\'' +
-                ", certOwnerEmailId='" + certOwnerEmailId + '\'' +
-                ", certOwnerNtid='" + certOwnerNtid + '\'' +
-                ", containerId=" + containerId +
-                ", requestStatus='" + requestStatus + '\'' +
-                ", dnsNames='" + dnsNames + '\'' +
-                '}';
-    }
+	public String toString() {
+		return "SSLCertificateMetadataDetails [certificateId=" + certificateId + ", certificateStatus="
+				+ certificateStatus + ", expiryDate=" + expiryDate + ", createDate=" + createDate + ", containerName="
+				+ containerName + ", certificateName=" + certificateName + ", authority=" + authority
+				+ ", applicationTag=" + applicationTag + ", applicationName=" + applicationName
+				+ ", projectLeadEmailId=" + projectLeadEmailId + ", applicationOwnerEmailId=" + applicationOwnerEmailId
+				+ ", akmid=" + akmid + ", certType=" + certType + ", certCreatedBy=" + certCreatedBy
+				+ ", certOwnerEmailId=" + certOwnerEmailId + ", certOwnerNtid=" + certOwnerNtid + ", containerId="
+				+ containerId + ", requestStatus=" + requestStatus + ", dnsNames=" + dnsNames + ", actionId=" + actionId
+				+ ", notificationEmail=" + notificationEmail + "]";
+	}
 }
