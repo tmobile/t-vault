@@ -15,6 +15,8 @@ const Resources = {
     'Are you sure you want to offboard this Service Account? This will not delete the Service Account from AD server.',
   offBoardSuccessfull:
     'Offboarding of Service Account has been completed successfully. The Service Account Password can no longer be managed by T-Vault. For security reasons, you need to log out and log in order for the changes to effect.',
+  noSafeSecretFound:
+    'Add a <strong>Folder</strong> and then you will be able to add <strong>Secrets</strong> to view them all here.',
   noUsersPermissionFound:
     'No <strong>Users</strong> are given permission to access this safe, add users to access the safe.',
   noGroupsPermissionFound:
@@ -43,6 +45,8 @@ const Resources = {
     'External certificate requests require approval from the NCLM team, that process is outlined when you request an external certificate.',
   certificateGuide5:
     'Suggestions for improvements and features are welcome, please reach out to T-Vault@T-Mobile.com if you have any to share. For more information on how to manage certificates please go <a href="https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/">here</a>.',
+  iamServiceAccountDesc:
+    'IAM Service Accounts can only be modified in AWS/IAM. You can only view the details of this IAM Service Account and rotate the associaed secret within T-vault. The associated secret needs to be rotated to active the account, ',
 };
 
 export default { Resources };

@@ -315,7 +315,7 @@ const SafeDashboard = () => {
       );
       setSelectedSafeDetails(activeSafeDetail[0]);
     }
-  }, [allSafeList, safes, history, safeList]);
+  }, [allSafeList, safes, history.location.pathname, safeList]);
 
   /**
    * @function onSearchChange
@@ -666,6 +666,14 @@ const SafeDashboard = () => {
                     detailData={safeList}
                     params={routerProps}
                     resetClicked={() => onResetClicked()}
+                    goodToRoute={goodToRoute}
+                    refresh={fetchData}
+                    renderContent={
+                      <SelectionTabs
+                        safeDetail={selectedSafeDetails}
+                        refresh={fetchData}
+                      />
+                    }
                   />
                 )}
               />

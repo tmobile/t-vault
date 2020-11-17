@@ -8,6 +8,7 @@ import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
+import Strings from '../../../../../resources';
 import Tree from '../Tree';
 import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
@@ -43,6 +44,19 @@ const noDataStyle = css`
   width: 45%;
   ${mediaBreakpoints.small} {
     width: 100%;
+  }
+`;
+
+const AccessDeniedWrap = styled.div`
+  height: 100%;
+`;
+const NoPermission = styled.div`
+  display: inline-block;
+  color: #5a637a;
+  text-align: center;
+  span {
+    margin: 0 0.3rem;
+    color: #fff;
   }
 `;
 
@@ -85,26 +99,33 @@ const Secrets = (props) => {
           secretsStatus.status !== 'loading' ? (
           // eslint-disable-next-line react/jsx-indent
           <EmptySecretBox>
-            <NoData
-              imageSrc={NoSecretsIcon}
-              description="add a <strong>Folder</strong> and then you will be able to add <strong>secrets</strong> to view them all here"
-              actionButton={
-                // eslint-disable-next-line react/jsx-wrap-multilines
-                <ButtonComponent
-                  label="add"
-                  icon="add"
-                  color="secondary"
-                  disabled={
-                    safeDetail?.access?.toLowerCase() === 'read' ||
-                    safeDetail?.access === ''
-                  }
-                  width={isMobileScreen ? '100%' : '9.4rem'}
-                  onClick={() => setEnableAddFolder(true)}
-                />
-              }
-              bgIconStyle={bgIconStyle}
-              customStyle={noDataStyle}
-            />
+            {safeDetail?.access?.toLowerCase() === 'read' ||
+            safeDetail?.access === '' ? (
+              <AccessDeniedWrap>
+                <NoPermission>
+                  Access denied: No permission to read/write for the
+                  <span>{safeDetail.name}</span>
+                  safe.
+                </NoPermission>
+              </AccessDeniedWrap>
+            ) : (
+              <NoData
+                imageSrc={NoSecretsIcon}
+                description={Strings.Resources.noSafeSecretFound}
+                actionButton={
+                  // eslint-disable-next-line react/jsx-wrap-multilines
+                  <ButtonComponent
+                    label="add"
+                    icon="add"
+                    color="secondary"
+                    width={isMobileScreen ? '100%' : '9.4rem'}
+                    onClick={() => setEnableAddFolder(true)}
+                  />
+                }
+                bgIconStyle={bgIconStyle}
+                customStyle={noDataStyle}
+              />
+            )}
           </EmptySecretBox>
         ) : (
           <></>
