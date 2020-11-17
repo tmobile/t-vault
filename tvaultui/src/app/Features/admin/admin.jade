@@ -412,9 +412,9 @@ script(type='text/ng-template', id='onboardCertificatePopup.html')
                       drop-down(drop-down-options="dropdownApplicationName" name="certApplicationNameForOnboard" id="applicationNameOnboard"  ng-click="appNameSelectForOnboard()")
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group(ng-if="!appnameSelectedForOnboard")
-                      .certificate-form-label {{ applicationNameSelectMsg==""?"Select appliation name and add/update notification emails": applicationNameSelectMsg}}
+                      .certificate-form-label {{ applicationNameSelectMsg==""?"Select application name and add/update notification emails": applicationNameSelectMsg}}
                     .details-input-group(ng-show="appnameSelectedForOnboard")
-                      .certificate-form-label(uib-tooltip="Notification emails list") Notification emails
+                      .certificate-form-label(uib-tooltip="Notification emails list") Notification Emails*
                       div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="notificationEmails.length>0")
                       div.dns-wrapper.addnotificationemail
                         .col-lg-9.col-md-9.col-sm-9.col-xs-9
@@ -447,7 +447,7 @@ script(type='text/ng-template', id='onboardCertificatePopup.html')
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Certificate Type :
-                      .cert-preview-details {{ certificateToOnboard.certificateType }}
+                      .cert-preview-details {{ certificateToOnboard.certType }}
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Certificate Name :
@@ -463,7 +463,7 @@ script(type='text/ng-template', id='onboardCertificatePopup.html')
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Notification Emails :
-                      .cert-preview-details(ng-if="notificationEmails.length>0" ng-repeat="email in notificationEmails") * {{ email.email }}
+                      .cert-preview-details(ng-if="notificationEmails.length>0" ng-repeat="email in notificationEmails") {{ email.email }}
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Signature Algorithm :
@@ -475,13 +475,13 @@ script(type='text/ng-template', id='onboardCertificatePopup.html')
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Extended Key Usage :
-                      .cert-preview-details(ng-if="certificateToOnboard.certificateType.toLowerCase()=='internal'") serverAuth
-                      .cert-preview-details(ng-if="certificateToOnboard.certificateType.toLowerCase()=='external'") serverAuth, clientAuth
+                      .cert-preview-details(ng-if="certificateToOnboard.certType.toLowerCase()=='internal'") serverAuth
+                      .cert-preview-details(ng-if="certificateToOnboard.certType.toLowerCase()=='external'") serverAuth, clientAuth
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Enroll Service :
-                      .cert-preview-details(ng-if="certificateToOnboard.certificateType.toLowerCase()=='internal'") T-Mobile Issuing CA 01 - SHA2
-                      .cert-preview-details(ng-if="certificateToOnboard.certificateType.toLowerCase()=='external'") Entrust CA
+                      .cert-preview-details(ng-if="certificateToOnboard.certType.toLowerCase()=='internal'") T-Mobile Issuing CA 01 - SHA2
+                      .cert-preview-details(ng-if="certificateToOnboard.certType.toLowerCase()=='external'") Entrust CA
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Note : Select the Edit button  to modify the input details else Onboard button  to Onboard a certificate
@@ -847,7 +847,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                   .unavailable-text(ng-show="!isLoadingData && certificateData.certificates.length==0")
                                                       .container.name No Certificates Available
                                               .row.change-data.header.solid-header.removeborder(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length != '0')")
-                                                  .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-3 CERTIFICATE
+                                                  .container.name.action.col-lg-3.col-md-2.col-sm-2.col-xs-3 CERTIFICATE
                                                   .container.name.action.col-lg-3.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 STATUS
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
@@ -942,13 +942,13 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                       .container.name No Certificates Available for onboard
                                               .row.change-data.header.solid-header(ng-show="!isLoadingData && !isApplicationsLoading && certificatesToOnboard.length>0")
                                                   .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3 CERTIFICATE
-                                                  .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 Type
-                                                  .container.name.action.col-lg-5.col-md-5.col-sm-5.col-xs-5 Validity
+                                                  .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 Type
+                                                  .container.name.col-lg-5.col-md-5.col-sm-5.col-xs-5 Validity
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 Action
                                               .row.change-data.item(ng-show="!isLoadingData && !isApplicationsLoading" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="cert in certificatesToOnboard")
                                                       .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3(title="{{ cert.certificateName }}") {{ cert.certificateName }}
-                                                      .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 {{ cert.certificateType }}
-                                                      .container.name.col-lg-5.col-md-5.col-sm-5.col-xs-5(title="{{ cert.validFrom }} - {{ cert.validTo }}") {{ cert.validFrom }} - {{ cert.validTo }}
+                                                      .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 {{ cert.certType }}
+                                                      .container.name.col-lg-5.col-md-5.col-sm-5.col-xs-5(title="{{ cert.createDate }} - {{ cert.expiryDate }}") {{ cert.createDate }} - {{ cert.expiryDate }}
                                                       .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                                           .down.view
                                                               .list-icon(ng-click="showOnboardCertificatePopup(cert)")  Onboard

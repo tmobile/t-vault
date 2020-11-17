@@ -2392,33 +2392,35 @@
             $scope.isInternalCert = false;
             $scope.isExternalCert = false;
             $scope.isLoadingData = true;
-            $scope.certificatesToOnboard = [
-                {
-                    certificateName: "certest-1.t-mobile.com",
-                    certificateType: "Internal",
-                    validFrom: "2021-07-27T04:30:49-07:00",
-                    validTo: "2022-07-27T04:30:49-07:00"
-                },
-                {
-                    certificateName: "certest-2.t-mobile.com",
-                    certificateType: "External",
-                    validFrom: "2021-07-27T04:30:49-07:00",
-                    validTo: "2022-07-27T04:30:49-07:00"
-                },
-                {
-                    certificateName: "certest-3.t-mobile.com",
-                    certificateType: "Internal",
-                    validFrom: "2021-07-27T04:30:49-07:00",
-                    validTo: "2022-07-27T04:30:49-07:00"
-                },
-                {
-                    certificateName: "certest-4.t-mobile.com",
-                    certificateType: "Internal",
-                    validFrom: "2021-07-27T04:30:49-07:00",
-                    validTo: "2022-07-27T04:30:49-07:00"
-                },
-            ];
-            $scope.isLoadingData = false;
+            $scope.isLoadingCerts = true;
+
+            var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/pendingcertificates";
+            AdminSafesManagement.getAllOnboardPendingCertificates(null, updatedUrlOfEndPoint).then(function (response) {
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    if (response.data != "" && response.data != undefined) {
+                        $scope.certificatesToOnboard = response.data;
+                    }
+                }else {
+                    $scope.certificatesLoaded =  true;
+                    if(response.status !== 404) {
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                        $scope.error('md');
+                    }
+                }
+                $scope.isLoadingData = false;
+                $scope.isLoadingCerts = false;
+            },
+            function (error) {
+                // Error handling function
+                $scope.isLoadingData = false;
+                $scope.isLoadingCerts = false;
+                $scope.certificatesLoaded =  true;
+                if (error.status !== 404) {
+                    console.log(error);
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            });
         }
 
         $scope.showOnboardCertificatePopup = function(certificateToOnboard) {
@@ -2443,11 +2445,14 @@
 
         $rootScope.cancelCertOnboard = function () {
             $scope.certificateToOnboard = null;
+            resetOnBoardCert();
             Modal.close();
         };
 
         $scope.toogleOnboardPreview = function() {
             $scope.isCertificateOnboardPreview = !$scope.isCertificateOnboardPreview;
+            $scope.notificationEmail.email = '';
+            $scope.notificationEmailErrorMessage = '';
         }
 
         $scope.addNotificationEmail = function () {
@@ -2565,7 +2570,7 @@
 
         var clearNotificationEmails = function () {
             angular.element('#notificationEmailList').html("");
-
+            $scope.notificationEmail.email = "";
         }
 
         $scope.addExistingNotificationEmail = function(emailListAsString) {
@@ -2621,13 +2626,28 @@
         $scope.onboardCert = function() {
             var onboardRequest = {
                 certificateName: $scope.certificateToOnboard.certificateName,
-                certificateType:$scope.certificateToOnboard.certificateType,
+                certificateType:$scope.certificateToOnboard.certType,
                 applicationName: $scope.certificateToOnboard.tag,
                 notificationEmails: $scope.certificateToOnboard.notificationEmails,
                 ownerEmail: $scope.certificateToOnboard.ownerEmail,
                 ownerNtId: $scope.certificateToOnboard.ownerNtId
             }
             console.log(onboardRequest);
+        }
+
+        var resetOnBoardCert = function () {
+            $scope.isCertCollapsed = false;
+            $scope.certObj.certDetails.ownerEmail = "";
+            $scope.isCertificateOnboardPreview = false;
+            if($scope.appNameTableOptions!==undefined){
+                $scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort(function (a, b) {
+                    return (a.name > b.name ? 1 : -1);
+                });
+                $scope.dropdownApplicationName = {
+                        'selectedGroupOption': {"type": "Select Application Name","name":"Application Name"},       // As initial placeholder
+                        'tableOptions': $scope.appNameTableOptionsSort
+                }
+            }
         }
 
         init();

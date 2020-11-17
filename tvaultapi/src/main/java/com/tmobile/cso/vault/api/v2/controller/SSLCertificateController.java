@@ -500,7 +500,6 @@ public class SSLCertificateController {
 		return sslCertificateAWSRoleService.removeAWSRoleFromSSLCertificate(userDetails, token, certificateAWSRoleRequest);
 	}
 
-
 	/**
 	 * Delete/UnLink the certificate from application
 	 * @param request
@@ -520,8 +519,16 @@ public class SSLCertificateController {
 		return sslCertificateService.unLinkCertificate(userDetails, token, certificateName,certificateType);
 	}
 
-
-
-
+	/**
+	 * Get all on-board pending certificates from nclm
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.getAllOnboardPendingCertificates.value}", notes = "${SSLCertificateController.getAllOnboardPendingCertificates.notes}")
+	@GetMapping(value = "/v2/sslcert/pendingcertificates", produces = "application/json")
+	public ResponseEntity<String> getAllOnboardPendingCertificates(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token) throws Exception { 
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateService.getAllOnboardPendingCertificates(token, userDetails);
+	}
 
 }
