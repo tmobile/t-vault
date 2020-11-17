@@ -1,0 +1,244 @@
+.admin.new-container.page-content-container {
+    height: calc(100% - 6vh) !important;
+    clear:both;
+}
+.page-header-container.admin {
+    box-shadow: none !important;
+}
+.admin .md-content-inner-wrapper {
+    height: 100%;
+    position: relative;
+}
+.row{
+    margin: 0 !important;
+}
+.admin .table-container {
+    height: calc(100%) !important;
+}
+.admin .pink-text {
+    color: $gray-dark !important;
+}
+.page-content-container .md-content-inner-wrapper{
+    margin: 0 auto;
+}
+
+.page-content-wrapper{
+    overflow: hidden;
+}
+
+
+@media #{$small-only}{
+  
+}
+
+
+.admin-content {
+    margin-top: 1vh;
+}
+
+.data-management-content md-tabs md-tabs-wrapper{
+    box-shadow: 0 0 0 0 #fff !important;
+}
+
+.data-management-content md-tab-item.md-tab.ng-scope.ng-isolate-scope.md-ink-ripple{
+    color: gray !important;
+}
+
+.data-management-content md-tab-item.md-tab.ng-scope.ng-isolate-scope.md-ink-ripple.md-active {
+    color: #f6006e !important;
+}
+
+.data-management-content .row.change-data.header {
+    border-bottom: 1px solid $gray-dark;
+}
+.data-management-content .row.change-data.header .name,
+.data-management-content .row.change-data.header .action {
+    padding: 1.5vh 0;
+    font-size: 1.6vh;    
+    color: #333;
+}
+.data-management-content .row.change-data.header .action {
+    padding-left: 15px;
+}
+.data-management-content .change-svc-table-container .row.change-data.header,
+.data-management-content .change-svc-table-container .row.change-data.item {
+    padding-left: 1rem !important;
+}
+
+.data-management-content .change-list-table-data {
+    height: 300px;
+    //overflow-y: scroll;
+}
+
+.data-management-content .change-svc-table-container .item {
+    border-bottom: 1px solid #ccc;
+}
+
+.data-management-content .row.change-data .container.name {
+    height: 6vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #333;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block;
+}
+
+.data-management-content .change-svc-table-container .item .name {
+    // padding: 1rem 5% 1rem 0;
+    // overflow: hidden;
+    padding: 1.4vh 5% 1.4vh 0;
+    font-size: 1.7vh;
+    color: #333!important;
+    //width: 31.5% !important;
+    font-weight: bold;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.data-management-content .change-svc-table-container .item .down {
+    height: 6vh;
+    width: 4vw;
+}
+
+.data-management-content .change-svc-table-container .item .down .list-icon {
+    padding: 1vh 3vh 1vh 0.3vw;
+    font-size: 3vh;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.data-management-content .change-svc-table-container .item .down .list-icon.icon-delete {
+  padding: 1.5vh 2vh 1.5vh 0.3vw;
+}
+
+.data-management-content .change-svc-table-container .item .down:first-child {
+    margin-left: 0vw;
+    float: right;
+}
+
+.data-management-content .change-svc-table-container .item .down.view,
+.data-management-content .change-svc-table-container .item .down.deletesecretids {
+    width: 4vw;
+    float: left;
+}
+
+.data-management-content .change-svc-table-container .item:hover {
+    background: #f6f6f6 !important;
+}
+.data-management-content .change-svc-table-container .item .down.view .list-icon,
+.data-management-content .change-svc-table-container .item .down.deletesecretids .list-icon {
+    font-size: 1.7vh;
+    font-family: montserrat;
+    font-weight: bold;
+    letter-spacing: 0.1rem;
+    padding: 1.3vh 3vh 1.3vh 0;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+}
+.md-approle-management {
+    width: 96% !important;
+}
+
+.list-download {
+    font-size: 12px;
+    color: #333 !important;
+    transition: 0s ease-in-out color;
+    margin-top: 10px;
+}
+
+.change-list-table-data.row.secretids {
+    max-height: 300px;
+    overflow-y: scroll;
+}
+
+.common-form input[type='checkbox'] {
+    width:auto!important;
+}
+
+.data-management-content .row.change-approle .container.checkbox {
+    height: 6vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #333;
+    width:auto;
+}
+.download-link {
+    color: #e20074!important;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.download-notification-text {
+    padding: 5% 5% 0% 5%!important;
+    font-size: 1.9vh;
+    color: #666;
+    text-align: center;
+}
+
+.download-link-style {
+    background: url(../assets/images/download.png) no-repeat center;
+    background-size: contain;
+    padding: 2% 5%;
+    width:20px;
+    height:20px;
+    border: none;
+}
+
+.details-input-group .role-status-text {
+    display: inline-block;
+    font-weight: bold;
+    letter-spacing: 0.05vw;
+    float:right;
+}
+.details-input-group .role-status-text.available {
+    color: rgba(0, 180, 0, 0.9);
+}
+.details-input-group .role-status-text.exists {
+    color: rgba(220, 0, 0, 0.9);
+}
+
+.notification-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.data-management-content .row.change-svc-table-container .change-list-table-data.row {
+    height: 100%;
+}
+
+.margin-leftform {
+    margin-left: 10px!important;
+}
+
+.reset {
+    font-size: 1.7vh!important;
+    font-family: montserrat;
+    font-weight: bold;
+    letter-spacing: 0.1rem;
+    padding-left: 0!important;
+    display: -ms-flexbox;
+    display: flex;
+    height: 100%;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    -ms-flex-pack: center;
+    justify-content: center;
+}
+
+.solid-header .container.name {
+    font-weight: lighter!important;
+    font-family: montserrat!important;
+    padding-right: 2%!important;
+    font-size: 1.7vh!important;
+}
+
+.md-serviceaccount {
+    width: 80vw!important;
+}
