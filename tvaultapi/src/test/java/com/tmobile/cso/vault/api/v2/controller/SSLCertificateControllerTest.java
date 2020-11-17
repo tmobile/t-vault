@@ -546,4 +546,17 @@ public class SSLCertificateControllerTest {
 				.content(expected)).andExpect(status().isOk()).andReturn();
 
 	}
+
+    @Test
+    public void testOnboardSSLCertificateSuccess() throws Exception {
+        sSLCertificateRequest.setCertificateName("CertificateName.t-mobile.com");
+        sSLCertificateRequest.setAppName("tvt");
+        sSLCertificateRequest.setCertType("internal");
+        sSLCertificateRequest.setCertOwnerEmailId("test@test.com");
+        sSLCertificateRequest.setCertOwnerNtid("testuser");
+
+        when(sslCertificateService.onboardSSLcertificate(userDetails, token, sSLCertificateRequest)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
+        assertEquals(HttpStatus.OK, SslCertificateController.onboardSSLCertificate(httpServletRequest, token, sSLCertificateRequest).getStatusCode());
+    }
 }

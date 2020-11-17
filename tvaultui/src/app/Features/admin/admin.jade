@@ -498,6 +498,25 @@ script(type='text/ng-template', id='onboardCertificatePopup.html')
             .col-lg-6.col-md-6.col-sm-6.col-xs-6
               button.common-btn.btn.btn-primary.btn-lg(id="cert_preview_btn" ng-click="toogleOnboardPreview()" ng-disabled="isOnboardCertBtnDisabled()" ) Preview
             .clearfix
+script(type='text/ng-template', id='certificateOnboardPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Onboarded Successful!
+      .top-lg-sep.notification-text  {{ certificateOnboardMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="successCancel()") CLOSE
+
+script(type='text/ng-template', id='certificateOnboardFailedPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Onboard Failed!
+      .top-lg-sep.notification-text  {{ certificateOnboardMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE
 
 script(type='text/ng-template', id='appRolePopup.html')
           .modal-sep
