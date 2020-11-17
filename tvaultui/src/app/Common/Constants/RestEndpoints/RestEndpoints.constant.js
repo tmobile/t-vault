@@ -508,8 +508,11 @@ readTextFile("../apiUrls.json");
             name: 'getAllOnboardPendingCertificates',
             url: '/v2/sslcert/pendingcertificates',
             method: 'GET'
+        },{
+            name: 'onboardSslCertificates',
+            url: '/v2/sslcert/onboardSSLcertificate',
+            method: 'POST'
         }
-
     ]
     });
 })( angular.module( 'vault.constants.RestEndpoints', []));
