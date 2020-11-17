@@ -1230,5 +1230,32 @@
 		"vaultEndPoint":"certificates",
 		"method":"GET",
 		"outparams":["certificates", "href", "last", "limit", "next", "offset", "totalCount"]
-	}
+	},{"#" : "**** To get list of all onboarded Azure service accounts ****** ",
+		"apiEndPoint": "/azure/onboardedlist",
+		"vaultEndPoint": "/<path>?list=true",
+		"method": "GET",
+		"params": [
+			{ "name": "path","required": true, "appendToPath": true }
+		],
+		"outparams": ["data/keys"]
+	},
+    {"#":"**** Listing all Azure Service Prinicipal Folders*****",
+    	"apiEndPoint":"/azure/list",
+    	"vaultEndPoint":"/<path>?list=true",
+    	"method":"GET",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+         "outparams":["data/keys"]
+    },
+    {"#":"Getting Azure service Prinicipal Info",
+
+    	"apiEndPoint":"/azuresvcacct",
+    	"vaultEndPoint":"/<path>",
+    	"method":"GET",
+      	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+        "outparams":["data"]
+    }
 ]

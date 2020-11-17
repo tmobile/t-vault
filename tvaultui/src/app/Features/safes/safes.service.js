@@ -185,6 +185,11 @@
                 navigationName: 'iam-service-accounts',
                 addComma: false,
                 show: true
+            },{
+                displayName: 'AZURE SERVICE PRINCIPALS',
+                navigationName: 'azure-service-prinicipals',
+                addComma: false,
+                show: true
             }, {
                 displayName: 'ADMIN',
                 navigationName: 'admin',
