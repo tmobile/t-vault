@@ -851,3 +851,16 @@ input.highlightBox {
   color: #000;
   font-weight: bold;
 }
+.dns-list {
+    float:left;
+    margin-top: 5px;
+    height: 90px!important;
+    overflow: scroll!important;
+}
+.cert-suffix {
+    border-left: 0;
+    border-radius: 0px 4px 4px 0px;
+}
+.addnotificationemail {
+    margin-top: 5px!important;
+}
