@@ -57,6 +57,7 @@
         $scope.notificationEmailErrorMessage = "";
         $scope.applicationNameSelectMsg = "";
         $scope.isNotificationEmailSearch = false;
+        $scope.numOfOnboardPendingCertificates = 0;
         // Type of safe to be filtered from the rest
 
         $scope.safeType = {
@@ -182,6 +183,7 @@
             $scope.notificationEmailErrorMessage = "";
             $scope.applicationNameSelectMsg = "";
             $scope.isNotificationEmailSearch = false;
+            $scope.numOfOnboardPendingCertificates = 0;
             $scope.certObj = {
                 'sslcertType': 'PRIVATE_SINGLE_SAN',
                 'certDetails': {"certType":"internal"},
@@ -914,6 +916,7 @@
         var certpagesShown = 1;
         var certpagesShownExt = 1;
         var certpageSize = 50;
+        var pagesShownOnboard = 1;
 
         $scope.paginationLimit = function () {
             $scope.currentshown = pageSize * pagesShown;
@@ -2393,12 +2396,15 @@
             $scope.isExternalCert = false;
             $scope.isLoadingData = true;
             $scope.isLoadingCerts = true;
+            pagesShownOnboard = 1;
+            $scope.searchValue = "";
 
             var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/sslcert/pendingcertificates";
             AdminSafesManagement.getAllOnboardPendingCertificates(null, updatedUrlOfEndPoint).then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     if (response.data != "" && response.data != undefined) {
                         $scope.certificatesToOnboard = response.data;
+                        $scope.numOfOnboardPendingCertificates = $scope.certificatesToOnboard.length;
                     }
                 }else {
                     $scope.certificatesLoaded =  true;
@@ -2649,6 +2655,28 @@
                 }
             }
         }
+
+        $scope.hasMoreCertsToShowForOnboard = function () {
+            if ($scope.searchValue != '' && $scope.searchValue!= undefined) {
+                if ($scope.searchValue.length<3) {
+                    return pagesShownOnboard < ($scope.numOfOnboardPendingCertificates / pageSize);
+                }
+                else {
+                    return false;
+                }
+            }
+            return pagesShownOnboard < ($scope.numOfOnboardPendingCertificates / pageSize);
+       };
+       $scope.showMoreCertItemsOnboard = function () {
+            pagesShownOnboard = pagesShownOnboard + 1;
+       };
+       $scope.certpaginationLimitForOnboard = function () {
+           $scope.certcurrentshownonboardlist = pageSize * pagesShownOnboard;
+           if (($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) || $scope.certcurrentshownExt >= $scope.numOfOnboardPendingCertificates) {
+               $scope.certcurrentshownonboardlist = $scope.numOfOnboardPendingCertificates;
+           }
+           return $scope.certcurrentshownonboardlist;
+       };
 
         init();
 
