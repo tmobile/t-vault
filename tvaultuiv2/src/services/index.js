@@ -1,5 +1,5 @@
 import axios from 'axios';
-import config from '../config';
+import configUrl from '../config';
 
 function ApiCall(url, method, data, header) {
   if (!sessionStorage.getItem('token')) {
@@ -17,19 +17,19 @@ function ApiCall(url, method, data, header) {
 
 const api = {
   get(path, payload, header) {
-    const url = config.url + path;
+    const url = configUrl.baseUrl + path;
     return ApiCall(url, 'GET', payload, header);
   },
   post(path, payload, header) {
-    const url = config.url + path;
+    const url = configUrl.baseUrl + path;
     return ApiCall(url, 'POST', payload, header);
   },
   put(path, payload, header) {
-    const url = config.url + path;
+    const url = configUrl.baseUrl + path;
     return ApiCall(url, 'PUT', payload, header);
   },
   delete(path, payload, header) {
-    const url = config.url + path;
+    const url = configUrl.baseUrl + path;
     return ApiCall(url, 'DELETE', payload, header);
   },
 };

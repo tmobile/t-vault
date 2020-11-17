@@ -132,8 +132,8 @@ const Users = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
-          updateToastMessage(-1, err.response.data.errors[0]);
+        if (err.response?.data?.messages && err.response.data.messages[0]) {
+          updateToastMessage(-1, err.response.data.messages[0]);
         }
         setResponse({ status: 'success' });
       });
@@ -182,8 +182,8 @@ const Users = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
-          updateToastMessage(-1, err.response.data.errors[0]);
+        if (err.response?.data?.messages && err.response.data.messages[0]) {
+          updateToastMessage(-1, err.response.data.messages[0]);
         }
         setResponse({ status: 'success' });
       });

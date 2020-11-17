@@ -26,6 +26,7 @@ import PreviewCertificate from './preview';
 import SwitchComponent from '../../../../components/FormFields/SwitchComponent';
 import RadioButtonComponent from '../../../../components/FormFields/RadioButton';
 import CertificateHeader from '../components/CertificateHeader';
+import configData from '../../../../config/config';
 import {
   GlobalModalWrapper,
   RequiredCircle,
@@ -498,7 +499,11 @@ const CreateCertificates = (props) => {
                       </div>
                     </InputRequiredWrap>
                     <RadioButtonComponent
-                      menu={['internal', 'external']}
+                      menu={
+                        configData.SSL_EXT_CERTIFICATE
+                          ? ['internal', 'external']
+                          : ['internal']
+                      }
                       handleChange={(e) => setCertificateType(e.target.value)}
                       value={certificateType}
                     />

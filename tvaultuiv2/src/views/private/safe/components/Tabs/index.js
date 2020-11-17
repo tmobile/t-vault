@@ -1,10 +1,4 @@
 /* eslint-disable react/jsx-props-no-spreading */
-/* eslint-disable no-nested-ternary */
-/* eslint-disable import/no-unresolved */
-/* eslint-disable react/forbid-prop-types */
-/* eslint-disable react/require-default-props */
-// eslint-disable-next-line react/forbid-prop-types
-// eslint-disable-next-line react/require-default-props
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
@@ -20,11 +14,9 @@ import NamedButton from '../../../../../components/NamedButton';
 
 import Secrets from '../Secrets';
 import mediaBreakpoints from '../../../../../breakpoints';
-// import AddFolder from '../AddFolder';
 
 import Permissions from '../Permissions';
 import apiService from '../../apiService';
-import disableAddFolder from '../../../../../assets/addfolder_inactive.svg';
 import AddFolderModal from '../AddFolderModal';
 import SnackbarComponent from '../../../../../components/Snackbar';
 // styled components goes here
@@ -214,23 +206,16 @@ const SelectionTabs = (props) => {
             {safeDetail.manage && <Tab label="Permissions" {...a11yProps(1)} />}
           </Tabs>
           {value === 0 && (
-            <NamedButton
-              label="Add Folder"
-              onClick={addSecretsFolder}
-              customStyle={customBtnStyles}
-              iconSrc={
-                safeDetail?.access === '' ||
-                safeDetail?.access?.toLowerCase() === 'read' ||
-                Object.keys(safeDetail).length === 0
-                  ? disableAddFolder
-                  : addFolderPlus
-              }
-              disable={
-                safeDetail?.access === '' ||
-                safeDetail?.access?.toLowerCase() === 'read' ||
-                Object.keys(safeDetail).length === 0
-              }
-            />
+            <>
+              {safeDetail?.access?.toLowerCase() === 'write' && (
+                <NamedButton
+                  label="Add Folder"
+                  onClick={addSecretsFolder}
+                  customStyle={customBtnStyles}
+                  iconSrc={addFolderPlus}
+                />
+              )}
+            </>
           )}
         </AppBar>
         <TabContentsWrap>
