@@ -43,6 +43,8 @@ const Resources = {
     'External certificate requests require approval from the NCLM team, that process is outlined when you request an external certificate.',
   certificateGuide5:
     'Suggestions for improvements and features are welcome, please reach out to T-Vault@T-Mobile.com if you have any to share. For more information on how to manage certificates please go <a href="https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/">here</a>.',
+  iamServiceAccountDesc:
+    'IAM Service Accounts can only be modified in AWS/IAM. You can only view the details of this IAM Service Account and rotate the associaed secret within T-vault. The associated secret needs to be rotated to active the account, ',
 };
 
 export default { Resources };

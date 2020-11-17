@@ -54,7 +54,7 @@ const SafeDetails = (props) => {
           title={safe?.name || 'No Safe'}
           description={
             safe?.description ||
-            'This provides information about safe. You can able to see the secrets associated with it, And also create  a safe to see your secrets, folders and manage permissions for safes'
+            'A Safe is a logical unit to store the secrets. All the safes are created within Vault. You can control access only at the safe level. As a vault administrator you can manage safes but cannot view the content of the safe.'
           }
           bgImage={
             isMobileScreen

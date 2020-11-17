@@ -169,7 +169,6 @@ const SelectionTabs = (props) => {
   };
 
   useEffect(() => {
-    setStatus({ status: 'loading', message: 'loading...' });
     const safeObj = history?.location?.state?.safe;
     if (safeDetail?.path || safeObj?.path) {
       if (!safeDetail.manage || !safeObj?.manage) {
