@@ -118,6 +118,7 @@ const AccountSelectionTabs = (props) => {
         if (res?.data) {
           setAccountSecretData(res.data);
         }
+        setAccountSecretError('');
       })
       .catch((err) => {
         if (

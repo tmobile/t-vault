@@ -30,7 +30,6 @@ import Error from '../../../../../components/Error';
 import Folder from '../Folder';
 
 const UserList = styled.div`
-  margin-top: 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -111,6 +110,7 @@ const IamServiceAccountSecrets = (props) => {
     accountSecretData,
     getSecrets,
     isIamSvcAccountActive,
+    secretStatus,
   } = props;
   const [response, setResponse] = useState({ status: '' });
   const [secretsData, setSecretsData] = useState({});
@@ -240,11 +240,12 @@ const IamServiceAccountSecrets = (props) => {
         accountMetaData?.response?.userName,
         accountMetaData?.response?.awsAccountId
       )
-      .then((res) => {
+      .then(async (res) => {
         if (res?.data) {
           setResponse({ status: 'success', message: res.data.messages[0] });
           setResponseType(1);
           setToastMessage(res.data.messages[0]);
+          await getSecrets();
         }
       })
       .catch((err) => {
@@ -253,7 +254,6 @@ const IamServiceAccountSecrets = (props) => {
           setToastMessage(err?.response?.data?.errors[0]);
         }
         setResponseType(-1);
-        debugger;
       });
   };
 
@@ -334,6 +334,7 @@ const IamServiceAccountSecrets = (props) => {
           }
         />
         {(response.status === 'loading' ||
+          secretStatus === 'loading' ||
           (!accountSecretData && !accountSecretError)) && (
           <BackdropLoader classes={loaderStyles} />
         )}
