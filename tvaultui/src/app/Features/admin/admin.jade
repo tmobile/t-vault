@@ -945,16 +945,17 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                   .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 Type
                                                   .container.name.col-lg-5.col-md-5.col-sm-5.col-xs-5 Validity
                                                   .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 Action
-                                              .row.change-data.item(ng-show="!isLoadingData && !isApplicationsLoading" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="cert in certificatesToOnboard")
+                                              .row.change-data.item(ng-show="!isLoadingData && !isApplicationsLoading" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="cert in certificatesToOnboard |  filter: {certificateName:searchValue} | limitTo: certpaginationLimitForOnboard()")
                                                       .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3(title="{{ cert.certificateName }}") {{ cert.certificateName }}
                                                       .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 {{ cert.certType }}
                                                       .container.name.col-lg-5.col-md-5.col-sm-5.col-xs-5(title="{{ cert.createDate }} - {{ cert.expiryDate }}") {{ cert.createDate }} - {{ cert.expiryDate }}
                                                       .container.radio-inputs.col-lg-2.col-md-2.col-sm-2.col-xs-2
                                                           .down.view
                                                               .list-icon(ng-click="showOnboardCertificatePopup(cert)")  Onboard
-                                              .pagination-wrapper(ng-show='hasMoreCertsToShow()')
-                                                  .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshown}} of {{numOfCertificates}}
-                                                  .pagination-button-wrapper(ng-click='showMoreCertItems()')
+                                              .pagination-wrapper(ng-show='hasMoreCertsToShowForOnboard()')
+                                                  .pagination-count(ng-if="numOfOnboardPendingCertificates>0") Displaying {{certcurrentshownonboardlist}} of {{numOfOnboardPendingCertificates}}
+                                                  .pagination-button-wrapper(ng-click='showMoreCertItemsOnboard()')
                                                       button.show-more-btn VIEW MORE
                                                       span
                                                           img(src="assets/icons/front-arrow.svg")
+                                              .pagination-wrapper(ng-show='!hasMoreCertsToShowForOnboard()') No more certificates available for onboard.
