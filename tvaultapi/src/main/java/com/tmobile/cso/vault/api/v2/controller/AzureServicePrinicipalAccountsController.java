@@ -85,7 +85,7 @@ public class AzureServicePrinicipalAccountsController {
 	}
 	
 	/**
-	 * Read Secrets
+	 * Read Secret
 	 * @param token
 	 * @param azureSvcName
 	 * @param accessKey
