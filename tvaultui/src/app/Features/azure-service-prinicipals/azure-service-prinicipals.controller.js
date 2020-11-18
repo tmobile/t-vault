@@ -143,7 +143,7 @@
             $scope.write = false;
             $scope.azuresvcaccSecretData = {};
             var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/azureserviceaccounts/secrets/" + path;
-            AdminSafesManagement.getSecretForIamSvcacc(null, updatedUrlOfEndPoint).then(function (response) {
+            AdminSafesManagement.getSecretForAzureSvcacc(null, updatedUrlOfEndPoint).then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isLoadingData = false;
                     $scope.viewPassword = true;

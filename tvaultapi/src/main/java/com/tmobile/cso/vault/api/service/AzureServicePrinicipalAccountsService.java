@@ -298,7 +298,7 @@ public class AzureServicePrinicipalAccountsService {
 	private AzureServiceAccountMetadataDetails constructAzureSvcAccMetaData(AzureServiceAccount azureServiceAccount) {
 
 		AzureServiceAccountMetadataDetails azureServiceAccountMetadataDetails = new AzureServiceAccountMetadataDetails();
-		List<AzureSecretsMetadata> iamSecretsMetadatas = new ArrayList<>();
+		List<AzureSecretsMetadata> azureSecretsMetadatas = new ArrayList<>();
 		azureServiceAccountMetadataDetails.setServicePrinicipalName(azureServiceAccount.getServicePrinicipalName());
 		azureServiceAccountMetadataDetails.setServicePrinicipalId(azureServiceAccount.getServicePrinicipalId());
 		azureServiceAccountMetadataDetails
@@ -313,9 +313,9 @@ public class AzureServicePrinicipalAccountsService {
 			AzureSecretsMetadata azureSecretsMetadata = new AzureSecretsMetadata();
 			azureSecretsMetadata.setSecretKeyId(azureSecrets.getSecretKeyId());
 			azureSecretsMetadata.setExpiryDuration(azureSecrets.getExpiryDuration());
-			iamSecretsMetadatas.add(azureSecretsMetadata);
+			azureSecretsMetadatas.add(azureSecretsMetadata);
 		}
-		azureServiceAccountMetadataDetails.setSecret(iamSecretsMetadatas);
+		azureServiceAccountMetadataDetails.setSecret(azureSecretsMetadatas);
 		azureServiceAccountMetadataDetails.setTenantId(azureServiceAccount.getTenantId());
 
 		return azureServiceAccountMetadataDetails;
@@ -414,13 +414,13 @@ public class AzureServicePrinicipalAccountsService {
 			if (TVaultConstants.getSvcAccPolicies().get(policyPrefix).equals(TVaultConstants.SUDO_POLICY)) {
 				accessMap.put(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + azureSvcAccName + "/*",
 						TVaultConstants.WRITE_POLICY);
-				accessMap.put(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + azureSvcAccName,
+				accessMap.put(AzureServiceAccountConstants.AZURE_SVCC_ACC_META_PATH + azureSvcAccName,
 						TVaultConstants.WRITE_POLICY);
 			}
 			if (TVaultConstants.getSvcAccPolicies().get(policyPrefix).equals(TVaultConstants.WRITE_POLICY)) {
 				accessMap.put(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + azureSvcAccName + "/*",
 						TVaultConstants.WRITE_POLICY);
-				accessMap.put(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + azureSvcAccName,
+				accessMap.put(AzureServiceAccountConstants.AZURE_SVCC_ACC_META_PATH + azureSvcAccName,
 						TVaultConstants.WRITE_POLICY);
 			}
 			accessPolicy.setAccess(accessMap);
@@ -823,12 +823,12 @@ public class AzureServicePrinicipalAccountsService {
 	}
 	
 	/**
-	 * Method to verify the user for add user to IAM service account.
+	 * Method to verify the user for add user to Azure service account.
 	 * @param token
 	 * @param userDetails
-	 * @param iamServiceAccountUser
+	 * @param azureServiceAccountUser
 	 * @param oidcEntityResponse
-	 * @param uniqueIAMSvcaccName
+	 * @param azureSvcaccName
 	 * @return
 	 */
 	private ResponseEntity<String> getUserPoliciesForAddUserToAzureSvcAcc(String token, UserDetails userDetails,
@@ -870,12 +870,12 @@ public class AzureServicePrinicipalAccountsService {
 	}
 	
 	/**
-	 * Method to create policies for add user to IAM service account and call the update process.
+	 * Method to create policies for add user to Azure service account and call the update process.
 	 * @param token
 	 * @param userDetails
-	 * @param iamServiceAccountUser
+	 * @param azureServiceAccountUser
 	 * @param oidcEntityResponse
-	 * @param uniqueIAMSvcaccName
+	 * @param azureSvcaccName
 	 * @param userResponse
 	 * @return
 	 */
@@ -1003,10 +1003,10 @@ public class AzureServicePrinicipalAccountsService {
 	}
 	
 	/**
-	 * Method to update metadata for add user to IAM service account.
+	 * Method to update metadata for add user to Azure service account.
 	 * @param token
 	 * @param userDetails
-	 * @param iamServiceAccountUser
+	 * @param azureServiceAccountUser
 	 * @param oidcEntityResponse
 	 * @param groups
 	 * @param currentpolicies
@@ -1098,7 +1098,9 @@ public class AzureServicePrinicipalAccountsService {
 	
 	/**
 	 * Method to check if the owner permission is getting changed.
-	 * @param iamServiceAccountUser
+	 * @param azureServiceAccountUser
+	 * @param currentUsername
+	 * @param isPartOfOnboard
 	 * @return
 	 */
 	private boolean isOwnerPemissionGettingChanged(AzureServiceAccountUser azureServiceAccountUser, String currentUsername, boolean isPartOfOnboard) {
