@@ -5718,7 +5718,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 							.body("{\"errors\":[\"Access denied: No permission to access this certificate\"]}");
 				}
-				return getCertificateDetailsAndProcessMetadata(certificatePath, authToken, certificateMetaData);
+				return getCertificateDetailsAndProcessMetadata(certificatePath, authToken, certificateMetaData, userDetails);
 			}
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -5918,7 +5918,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	 * @return
 	 */
 	private ResponseEntity<String> getCertificateDetailsAndProcessMetadata(String certificatePath, String authToken,
-			SSLCertificateMetadataDetails certificateMetaData) {
+			SSLCertificateMetadataDetails certificateMetaData, UserDetails userDetails) {
 		try {
             if (certificateMetaData.getCertType().equalsIgnoreCase(SSLCertificateConstants.EXTERNAL)) {
                 String status = getExternalCertReqStatus(certificateMetaData);
@@ -5936,6 +5936,36 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                                 "\":[\"Renew Certificate has been rejected . Validate request and try " +
                                 "again\"]}");
                     } else if (deleteMetaDataAndPermissions(certificateMetaData, certificatePath, authToken)) {
+						Response response = getCertificateDetailsByMatadataPath(certificatePath, authToken);
+						JsonParser jsonParser = new JsonParser();
+                        JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+
+                        //remove user permissions
+                        deleteUserPermissionForCertificate(certificateMetaData.getCertType(), certificateMetaData.getCertificateName(), userDetails, jsonParser, object);
+                        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                                .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                                .put(LogMessage.ACTION, "unLinkCertificate")
+                                .put(LogMessage.MESSAGE, String.format("deleteUserPermissionForCertificate Completed for certificate " +
+                                        "= [%s]", certificateMetaData.getCertificateName()))
+                                .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+                        //remove group permissions
+                        removeGroupPermissionsToCertificate(certificateMetaData.getCertType(), certificateMetaData.getCertificateName(), userDetails, jsonParser, object);
+                        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                                .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                                .put(LogMessage.ACTION, "unLinkCertificate")
+                                .put(LogMessage.MESSAGE, String.format("removeGroupPermissionsToCertificate Completed for certificate " +
+                                        "= [%s]", certificateMetaData.getCertificateName()))
+                                .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+                        //remove AWS role permissions
+                        deleteAwsRoleOnCertificateDelete(certificateMetaData.getCertificateName(), authToken, jsonParser, object);
+
+						// remove Sudo permissions
+						removeSudoPermissionForPreviousOwner(certificateMetaData.getCertOwnerNtid().toLowerCase(),
+								certificateMetaData.getCertificateName(), userDetails,
+								certificateMetaData.getCertType());
+
                         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                                 put(LogMessage.ACTION, SSLCertificateConstants.GET_CERTIFICATE_DETAILS_PROCESS_METADATA).
