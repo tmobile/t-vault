@@ -1550,7 +1550,7 @@ public class SSLCertificateService {
             sslCertificateMetadataDetails.setCertificateStatus(certDetails.getCertificateStatus());
             sslCertificateMetadataDetails.setContainerName(certDetails.getContainerName());
             sslCertificateMetadataDetails.setDnsNames(certDetails.getDnsNames());
-            sslCertificateMetadataDetails.setNotificationEmail(sslCertificateRequest.getNotificationEmail());
+            sslCertificateMetadataDetails.setNotificationEmails(sslCertificateRequest.getNotificationEmail());
 
         } else {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1584,7 +1584,7 @@ public class SSLCertificateService {
                 sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
                 sslCertificateMetadataDetails.setRequestStatus(SSLCertificateConstants.REQUEST_PENDING_APPROVAL);
                 sslCertificateMetadataDetails.setActionId(actionId);
-                sslCertificateMetadataDetails.setNotificationEmail(sslCertificateRequest.getNotificationEmail());
+                sslCertificateMetadataDetails.setNotificationEmails(sslCertificateRequest.getNotificationEmail());
             }
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -7952,7 +7952,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		                sslCertificateMetadataDetails.setApplicationOwnerEmailId(appOwnerEmail);
 		                sslCertificateMetadataDetails.setApplicationTag(applicationTag);
 		                sslCertificateMetadataDetails.setApplicationName(applicationName);
-		                sslCertificateMetadataDetails.setNotificationEmail(tagsOwner);
+		                sslCertificateMetadataDetails.setNotificationEmails(tagsOwner);
 		            }
 		            }
 		        } else {
@@ -9122,7 +9122,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 						sslCertificateMetadataDetails.setApplicationTag(applicationTag);
 						sslCertificateMetadataDetails.setApplicationName(applicationName);
 
-						sslCertificateMetadataDetails.setNotificationEmail(sslCertificateRequest.getNotificationEmail());
+						sslCertificateMetadataDetails.setNotificationEmails(sslCertificateRequest.getNotificationEmail());
 
 					}
 				}
