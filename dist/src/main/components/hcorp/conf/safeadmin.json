@@ -93,6 +93,14 @@
          "delete",
          "list"
        ]
+     },
+	 "azuresvcacc/*": {
+       "capabilities": [
+         "create",
+         "update",
+         "delete",
+         "list"
+       ]
      }
    }
 }

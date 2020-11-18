@@ -512,6 +512,10 @@ readTextFile("../apiUrls.json");
             name: 'onboardSslCertificates',
             url: '/v2/sslcert/onboardSSLcertificate',
             method: 'POST'
+        },{
+            name: 'getSecretForAzureSvcacc',
+            url: '/v2/azureserviceaccounts/secrets/{azure_svc_name}/{folderName}',
+            method: 'GET'
         }
     ]
     });
