@@ -594,11 +594,13 @@
                         $scope.error('md');
                     });
             }
+            /*
             if($scope.selectedTab == 1){            	
            	 getCertificates("", null, null,"external");
            }else{        	   
            getCertificates("", null, null,"internal");
            }
+           */
         };
 
         $scope.getExtCertificates = function () { 
