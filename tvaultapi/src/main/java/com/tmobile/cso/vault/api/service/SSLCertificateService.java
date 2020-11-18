@@ -8777,7 +8777,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	public ResponseEntity<String> onboardSSLcertificate(UserDetails userDetails, String token,
 			SSLCertificateRequest sslCertificateRequest) throws Exception {
 		if (ObjectUtils.isEmpty(sslCertificateRequest)
-				|| !isValidInputs(sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType())) {
+				|| !isValidInputs(sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType()) || (StringUtils.isEmpty(sslCertificateRequest.getNotificationEmail()))) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "onboardSSLcertificate").put(LogMessage.MESSAGE, "Invalid user inputs")
@@ -9095,6 +9095,10 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 						}
 						String appOwnerEmail = validateString(jsonElement.get("brtContactEmail"));
 						String akmid = validateString(jsonElement.get("akmid"));
+						String notificationEmails = sslCertificateRequest.getNotificationEmail();
+						if(!sslCertificateRequest.getNotificationEmail().contains(sslCertificateRequest.getCertOwnerEmailId())) {
+							notificationEmails = new StringBuilder().append(notificationEmails).append(",").append(sslCertificateRequest.getCertOwnerEmailId()).toString();
+						}
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 								.put(LogMessage.ACTION, "Populate Application details in SSL Certificate Metadata")
@@ -9111,7 +9115,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 						sslCertificateMetadataDetails.setApplicationTag(applicationTag);
 						sslCertificateMetadataDetails.setApplicationName(applicationName);
 						sslCertificateMetadataDetails
-								.setNotificationEmails(sslCertificateRequest.getNotificationEmail());
+								.setNotificationEmails(notificationEmails);
 					}
 				}
 			} else {
