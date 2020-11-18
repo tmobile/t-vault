@@ -252,7 +252,7 @@ public class SSLCertificateController {
 	 * @param certificateId
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.renewCertificate.value}", notes = "${SSLCertificateController.renewCertificate.notes}", hidden = true)
+	@ApiOperation(value = "${SSLCertificateController.renewCertificate.value}", notes = "${SSLCertificateController.renewCertificate.notes}", hidden = false)
 	@PostMapping(value = "/v2/certificates/{certType}/{certName}/renew", produces = "application/json")
 	public ResponseEntity<String> renewCertificate(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("certType") String certType, @PathVariable("certName") String certName) {
