@@ -110,7 +110,7 @@ const IamServiceAccountSecrets = (props) => {
     accountSecretData,
     getSecrets,
     isIamSvcAccountActive,
-    secretStatus,
+    status,
   } = props;
   const [response, setResponse] = useState({ status: '' });
   const [secretsData, setSecretsData] = useState({});
@@ -200,10 +200,10 @@ const IamServiceAccountSecrets = (props) => {
           await getSecrets();
         }
       })
-      .catch(() => {
-        setResponse({ status: 'error' });
+      .catch((err) => {
+        setResponse({});
         setResponseType(-1);
-        setToastMessage('Unable to rotate password!');
+        setToastMessage(err?.response?.data?.errors[0]);
       });
   };
 
@@ -250,7 +250,7 @@ const IamServiceAccountSecrets = (props) => {
       })
       .catch((err) => {
         if (err?.response?.data?.errors[0]) {
-          setResponse({ status: 'error' });
+          setResponse({});
           setToastMessage(err?.response?.data?.errors[0]);
         }
         setResponseType(-1);
@@ -334,11 +334,10 @@ const IamServiceAccountSecrets = (props) => {
           }
         />
         {(response.status === 'loading' ||
-          secretStatus === 'loading' ||
-          (!accountSecretData && !accountSecretError)) && (
+          status.status === 'secrets-loading') && (
           <BackdropLoader classes={loaderStyles} />
         )}
-        {accountSecretData?.folders?.length && !accountSecretError
+        {accountSecretData?.folders?.length
           ? accountSecretData?.folders.map((secret, index) => (
               <Folder
                 key={secret}
@@ -372,7 +371,7 @@ const IamServiceAccountSecrets = (props) => {
                             <VisibilityIcon />
                           )}
                           <span>
-                            {showSecret ? 'Hide Secret' : 'View Secret'}
+                            {showSecret ? 'Hide Secret key' : 'View Secret key'}
                           </span>
                         </PopperItem>
 
@@ -388,7 +387,7 @@ const IamServiceAccountSecrets = (props) => {
                         >
                           <PopperItem>
                             <FileCopyIcon />
-                            <span>Copy Secret</span>
+                            <span>Copy Secret Key</span>
                           </PopperItem>
                         </CopyToClipboard>
                         <CopyToClipboard
@@ -399,7 +398,7 @@ const IamServiceAccountSecrets = (props) => {
                         >
                           <PopperItem>
                             <FileCopyIcon />
-                            <span>Copy Access Id</span>
+                            <span>Copy Access Key</span>
                           </PopperItem>
                         </CopyToClipboard>
                       </PopperElement>
@@ -427,6 +426,7 @@ const IamServiceAccountSecrets = (props) => {
         )}
 
         {(response.status === 'error' ||
+          status.status === 'error' ||
           (accountSecretError && isIamSvcAccountActive)) && (
           <Error
             description={
@@ -464,9 +464,9 @@ const IamServiceAccountSecrets = (props) => {
 IamServiceAccountSecrets.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
+  status: PropTypes.objectOf(PropTypes.any).isRequired,
   accountSecretError: PropTypes.string,
   accountSecretData: PropTypes.objectOf(PropTypes.any),
-  secretStatus: PropTypes.string,
   getSecrets: PropTypes.func,
   isIamSvcAccountActive: PropTypes.bool.isRequired,
 };
@@ -474,7 +474,6 @@ IamServiceAccountSecrets.propTypes = {
 IamServiceAccountSecrets.defaultProps = {
   accountSecretError: 'Something went wrong!',
   accountSecretData: {},
-  secretStatus: 'loading',
   getSecrets: () => {},
 };
 

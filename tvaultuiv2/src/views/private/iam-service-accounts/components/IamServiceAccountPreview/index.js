@@ -16,6 +16,7 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import ViewIamSvcAccountDetails from './components/ViewIamSvcAccount';
 import apiService from '../../../iam-service-accounts/apiService';
+import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 
 const { small } = mediaBreakpoints;
 
@@ -53,7 +54,12 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const ViewIamServiceAccount = (props) => {
-  const { refresh, iamServiceAccountDetails, setViewDetails } = props;
+  const {
+    refresh,
+    iamServiceAccountDetails,
+    setViewDetails,
+    getSecrets,
+  } = props;
   const classes = useStyles();
   const [open] = useState(true);
   const [status, setStatus] = useState(null);
@@ -117,8 +123,10 @@ const ViewIamServiceAccount = (props) => {
         iamServiceAccountDetails?.userName,
         iamServiceAccountDetails?.awsAccountId
       )
-      .then((res) => {
+      .then(async (res) => {
         setStatus({ status: 'success', message: res?.data?.messages[0] });
+        await getSecrets();
+        await refresh();
       })
       .catch((err) => {
         setStatus({
@@ -147,6 +155,7 @@ const ViewIamServiceAccount = (props) => {
         if (res?.data) {
           setStatus({ status: 'success', message: res.data.messages[0] });
         }
+        await getSecrets();
         await refresh();
       })
       .catch((err) => {
@@ -191,32 +200,38 @@ const ViewIamServiceAccount = (props) => {
           }
         />
         <div>
-          <Modal
-            aria-labelledby="transition-modal-title"
-            aria-describedby="transition-modal-description"
-            className={classes.modal}
-            onClose={() => setViewDetails(false)}
-            open={open}
-            closeAfterTransition
-            BackdropComponent={Backdrop}
-            BackdropProps={{
-              timeout: 500,
-            }}
-          >
-            <Fade in={open}>
-              {!iamServiceAccountDetails ? (
-                <LoaderSpinner customStyle={loaderStyle} />
-              ) : (
-                <ViewIamSvcAccountDetails
-                  iamSvcAccountData={iamServiceAccountDetails}
-                  isMobileScreen={isMobileScreen}
-                  isRotateSecret={rotateSecret}
-                  isActivateIamSvcAcc={isActivateIamSvcAcc}
-                  setViewDetails={setViewDetails}
-                />
-              )}
-            </Fade>
-          </Modal>
+          {!(openModal?.status === 'open') ? (
+            <Modal
+              aria-labelledby="transition-modal-title"
+              aria-describedby="transition-modal-description"
+              className={classes.modal}
+              onClose={() => setViewDetails(false)}
+              open={open}
+              closeAfterTransition
+              BackdropComponent={Backdrop}
+              BackdropProps={{
+                timeout: 500,
+              }}
+            >
+              <Fade in={open}>
+                {!iamServiceAccountDetails ? (
+                  <LoaderSpinner customStyle={loaderStyle} />
+                ) : (
+                  <ViewIamSvcAccountDetails
+                    iamSvcAccountData={iamServiceAccountDetails}
+                    isMobileScreen={isMobileScreen}
+                    isRotateSecret={rotateSecret}
+                    isActivateIamSvcAcc={isActivateIamSvcAcc}
+                    setViewDetails={setViewDetails}
+                  />
+                )}
+              </Fade>
+            </Modal>
+          ) : status?.status === 'loading' ? (
+            <BackdropLoader />
+          ) : (
+            <></>
+          )}
         </div>
         {status?.status === 'failed' && (
           <SnackbarComponent
@@ -243,6 +258,7 @@ ViewIamServiceAccount.propTypes = {
   refresh: PropTypes.func.isRequired,
   setViewDetails: PropTypes.func.isRequired,
   iamServiceAccountDetails: PropTypes.objectOf(PropTypes.any).isRequired,
+  getSecrets: PropTypes.func.isRequired,
 };
 
 export default ViewIamServiceAccount;
