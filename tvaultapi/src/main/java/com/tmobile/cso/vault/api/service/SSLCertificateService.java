@@ -7595,6 +7595,9 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		                                        "projectLeadEmail =  [%s],appOwnerEmail =  [%s], akmid = [%s]", applicationName,
 		                                applicationTag, projectLeadEmail, appOwnerEmail, akmid)).build()));
 
+		                if(!StringUtils.isEmpty(tagsOwner)) {
+		                    tagsOwner = tagsOwner.replace(";", ",");
+		                    }		                
 		                sslCertificateMetadataDetails.setAkmid(akmid);		                
 		                sslCertificateMetadataDetails.setApplicationOwnerEmailId(appOwnerEmail);
 		                sslCertificateMetadataDetails.setApplicationTag(applicationTag);
@@ -7959,6 +7962,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			   		}
 			   	}
 			    
+			   
 			    /**
 			     * To update the metadata for certificate
 			     * @param certificateUpdateRequest
@@ -7967,7 +7971,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			     * @return
 			     */
 			    public ResponseEntity<String> updateSSLCertificate(CertificateUpdateRequest certificateUpdateRequest, UserDetails userDetails,  String token) {  
-			    
+
 			    	boolean isValidData = false;
 			    	int count =0;
 			    	if(isValidInputs(certificateUpdateRequest.getCertificateName(), certificateUpdateRequest.getCertType()) && (certificateUpdateRequest.getApplicationOwnerEmail()!=null ? validateCertficateEmail(certificateUpdateRequest.getApplicationOwnerEmail()):true)
@@ -8044,14 +8048,14 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					try {
 					if (userDetails.isAdmin()) {
 						sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
-						
+
 					} else {
 						sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams,
 								userDetails.getSelfSupportToken());	
-						
+
 					}
 					if (sslMetaDataUpdationStatus) {
-						
+
 			            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 			                    put(LogMessage.ACTION, "updateSSLCertificate").
@@ -8074,7 +8078,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 						return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 								.body("{\"errors\":[\"" + "Certificate metadata updation failed" + "\"]}");
 					}
-			    
+
 					}
 					 catch (Exception e) {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
