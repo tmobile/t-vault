@@ -297,8 +297,11 @@ public class SSLCertificateServiceTest {
     @Test
     public void test_validateInputData(){
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
+        String[] dnsNames = {"test.sample1@t-mobile.com"};
         sslCertificateRequest.setCertificateName("qeqeqwe");
         sslCertificateRequest.setCertType("test");
+        sslCertificateRequest.setNotificationEmail("test.sample1@t-mobile.com");
+        sslCertificateRequest.setDnsList(dnsNames);
         ResponseEntity<?> enrollResponse = sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
         assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
 
