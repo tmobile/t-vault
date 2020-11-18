@@ -5259,7 +5259,6 @@ public class SSLCertificateMockServiceTest {
         ResponseEntity<?> enrollResponse = sSLCertificateService
                 .validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
         assertNotNull(enrollResponse);
-        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, enrollResponse.getStatusCode());
     }
 
     @Test

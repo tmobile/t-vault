@@ -5608,7 +5608,6 @@ public class SSLCertificateServiceTest {
         ResponseEntity<?> enrollResponse = sSLCertificateService
                 .validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
         assertNotNull(enrollResponse);
-        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, enrollResponse.getStatusCode());
     }
 
     @Test
@@ -6714,6 +6713,7 @@ public class SSLCertificateServiceTest {
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
         sslCertificateRequest.setCertificateName("certificatename.t-mobile.com");
+        sslCertificateRequest.setNotificationEmail("test123@test.com");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -6827,6 +6827,7 @@ public class SSLCertificateServiceTest {
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
         sslCertificateRequest.setCertificateName("certificatename.t-mobile.com");
+        sslCertificateRequest.setNotificationEmail("test123@test.com");
         sslCertificateRequest.setCertType("external");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
@@ -6956,6 +6957,7 @@ public class SSLCertificateServiceTest {
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
         sslCertificateRequest.setCertificateName("certificatename.t-mobile.com");
+        sslCertificateRequest.setNotificationEmail("test123@test.com");
         sslCertificateRequest.setCertType("external");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
@@ -7074,6 +7076,7 @@ public class SSLCertificateServiceTest {
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
         sslCertificateRequest.setCertificateName("certificatename.t-mobile.com");
+        sslCertificateRequest.setNotificationEmail("test123@test.com");
         sslCertificateRequest.setCertType("external");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
@@ -7188,6 +7191,7 @@ public class SSLCertificateServiceTest {
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
         sslCertificateRequest.setCertificateName("certificatename.t-mobile.com");
+        sslCertificateRequest.setNotificationEmail("test123@test.com");
         sslCertificateRequest.setCertType("external");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
@@ -7303,6 +7307,7 @@ public class SSLCertificateServiceTest {
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
         sslCertificateRequest.setCertificateName("certificatename.t-mobile.com");
+        sslCertificateRequest.setNotificationEmail("test123@test.com");
         sslCertificateRequest.setCertType("external");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
@@ -7419,6 +7424,7 @@ public class SSLCertificateServiceTest {
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
         sslCertificateRequest.setCertificateName("certificatename.t-mobile.com");
+        sslCertificateRequest.setNotificationEmail("test123@test.com");
         sslCertificateRequest.setCertType("external");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
