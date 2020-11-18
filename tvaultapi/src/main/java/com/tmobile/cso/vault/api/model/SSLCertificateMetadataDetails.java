@@ -26,14 +26,15 @@ public class SSLCertificateMetadataDetails implements Serializable {
     private String requestStatus;
     private List<String> dnsNames;
     private int actionId;
-    private String notificationEmail;
+    private String notificationEmails;
     
     
-	public String getNotificationEmail() {
-		return notificationEmail;
+	
+	public String getNotificationEmails() {
+		return notificationEmails;
 	}
-	public void setNotificationEmail(String notificationEmail) {
-		this.notificationEmail = notificationEmail;
+	public void setNotificationEmails(String notificationEmails) {
+		this.notificationEmails = notificationEmails;
 	}
 	public int getActionId() {
         return actionId;
@@ -187,6 +188,6 @@ public class SSLCertificateMetadataDetails implements Serializable {
 				+ ", akmid=" + akmid + ", certType=" + certType + ", certCreatedBy=" + certCreatedBy
 				+ ", certOwnerEmailId=" + certOwnerEmailId + ", certOwnerNtid=" + certOwnerNtid + ", containerId="
 				+ containerId + ", requestStatus=" + requestStatus + ", dnsNames=" + dnsNames + ", actionId=" + actionId
-				+ ", notificationEmail=" + notificationEmail + "]";
+				+ ", notificationEmail=" + notificationEmails + "]";
 	}
 }
