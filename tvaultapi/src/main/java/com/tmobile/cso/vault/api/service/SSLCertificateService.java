@@ -9121,8 +9121,9 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 						sslCertificateMetadataDetails.setApplicationOwnerEmailId(appOwnerEmail);
 						sslCertificateMetadataDetails.setApplicationTag(applicationTag);
 						sslCertificateMetadataDetails.setApplicationName(applicationName);
-						sslCertificateMetadataDetails
-								.setNotificationEmails(notificationEmails);
+
+						sslCertificateMetadataDetails.setNotificationEmail(sslCertificateRequest.getNotificationEmail());
+
 					}
 				}
 			} else {
