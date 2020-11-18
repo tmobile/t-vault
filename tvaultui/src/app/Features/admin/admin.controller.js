@@ -2467,6 +2467,10 @@
             $scope.isCertificateOnboardPreview = !$scope.isCertificateOnboardPreview;
             $scope.notificationEmail.email = '';
             $scope.notificationEmailErrorMessage = '';
+            var length = $scope.notificationEmails.length;
+            if($scope.certificateToOnboard.ownerEmail !== "" && $scope.certificateToOnboard.notificationEmails !== "" && !isDuplicateOwnerNotificationEmail($scope.certificateToOnboard.ownerEmail)) {
+                $scope.notificationEmails.push({ "id": length, "email":$scope.certificateToOnboard.ownerEmail});
+            }
         }
 
         $scope.addNotificationEmail = function () {
@@ -2496,6 +2500,13 @@
         }
 
         $scope.clearOnboardOwnerEmail = function () {
+            $scope.selectedNotificationEmails = [];
+            for (var i=0;i<$scope.notificationEmails.length;i++) {
+                if ($scope.certificateToOnboard.ownerEmail !=="" && $scope.certificateToOnboard.ownerEmail.toLowerCase() !== $scope.notificationEmails[i].email.toLowerCase()) {
+                    $scope.selectedNotificationEmails.push($scope.notificationEmails[i]);
+                }
+            }
+            $scope.notificationEmails = $scope.selectedNotificationEmails;
             $scope.certificateToOnboard.ownerEmail = "";
             $scope.certificateToOnboard.ownerNtId = "";
             $scope.isOwnerSelectedForOnboard = false;
@@ -2723,6 +2734,16 @@
            }
            return $scope.certcurrentshownonboardlist;
        };
+
+       var isDuplicateOwnerNotificationEmail = function (email) {
+        $scope.certDnsErrorMessage = '';
+        for (var i=0;i<$scope.notificationEmails.length;i++) {
+            if (email.toLowerCase() == $scope.notificationEmails[i].email.toLowerCase()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
         init();
 
