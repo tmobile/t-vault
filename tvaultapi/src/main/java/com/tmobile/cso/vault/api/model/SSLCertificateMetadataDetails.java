@@ -28,7 +28,9 @@ public class SSLCertificateMetadataDetails implements Serializable {
     private int actionId;
     private String notificationEmails;
     
-    public String getNotificationEmails() {
+    
+	
+	public String getNotificationEmails() {
 		return notificationEmails;
 	}
 	public void setNotificationEmails(String notificationEmails) {
@@ -177,27 +179,15 @@ public class SSLCertificateMetadataDetails implements Serializable {
     }
 
     @Override
-    public String toString() {
-        return "SSLCertificateMetadataDetails{" +
-                "certificateId=" + certificateId +
-                ", certificateStatus='" + certificateStatus + '\'' +
-                ", expiryDate='" + expiryDate + '\'' +
-                ", createDate='" + createDate + '\'' +
-                ", containerName='" + containerName + '\'' +
-                ", certificateName='" + certificateName + '\'' +
-                ", authority='" + authority + '\'' +
-                ", applicationTag='" + applicationTag + '\'' +
-                ", applicationName='" + applicationName + '\'' +
-                ", projectLeadEmailId='" + projectLeadEmailId + '\'' +
-                ", applicationOwnerEmailId='" + applicationOwnerEmailId + '\'' +
-                ", akmid='" + akmid + '\'' +
-                ", certType='" + certType + '\'' +
-                ", certCreatedBy='" + certCreatedBy + '\'' +
-                ", certOwnerEmailId='" + certOwnerEmailId + '\'' +
-                ", certOwnerNtid='" + certOwnerNtid + '\'' +
-                ", containerId=" + containerId +
-                ", requestStatus='" + requestStatus + '\'' +
-                ", dnsNames='" + dnsNames + '\'' +
-                '}';
-    }
+	public String toString() {
+		return "SSLCertificateMetadataDetails [certificateId=" + certificateId + ", certificateStatus="
+				+ certificateStatus + ", expiryDate=" + expiryDate + ", createDate=" + createDate + ", containerName="
+				+ containerName + ", certificateName=" + certificateName + ", authority=" + authority
+				+ ", applicationTag=" + applicationTag + ", applicationName=" + applicationName
+				+ ", projectLeadEmailId=" + projectLeadEmailId + ", applicationOwnerEmailId=" + applicationOwnerEmailId
+				+ ", akmid=" + akmid + ", certType=" + certType + ", certCreatedBy=" + certCreatedBy
+				+ ", certOwnerEmailId=" + certOwnerEmailId + ", certOwnerNtid=" + certOwnerNtid + ", containerId="
+				+ containerId + ", requestStatus=" + requestStatus + ", dnsNames=" + dnsNames + ", actionId=" + actionId
+				+ ", notificationEmail=" + notificationEmails + "]";
+	}
 }

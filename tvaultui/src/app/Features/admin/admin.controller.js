@@ -157,6 +157,7 @@
             $scope.isTargetSystemListLoading = false;
             $scope.existingTargetSystemObj = "";
             $scope.appNameSelected = false;
+            $scope.isDuplicateNotificationEmail=false;
             $scope.certApplicationName = "";
 
             $scope.targetSystemServiceSelected = false;
@@ -186,7 +187,7 @@
             $scope.numOfOnboardPendingCertificates = 0;
             $scope.certObj = {
                 'sslcertType': 'PRIVATE_SINGLE_SAN',
-                'certDetails': {"certType":"internal"},
+                'certDetails': {"certType":"internal",},
                 'certName': ''
             }
 
@@ -247,6 +248,8 @@
                 'certDetails': {"certType":"internal"},
                 'certName': ''
             }
+            $scope.isDuplicateNotificationEmail=false;
+            $scope.appNameSelected = false;
             $scope.isCertCollapsed = false;
             $scope.isTargetCollapsed = true;
             $scope.isTargetServiceCollapsed = true;
@@ -1629,12 +1632,46 @@
         }
         
         $scope.appNameSelect = function(){
+            $scope.appNameSelected = false;
+            $scope.selectedNotificationEmails = [];
+            $scope.notificationEmails = [];
+            clearNotificationEmails();
+            $scope.applicationNameSelectMsg = "Fetching notification list..";
         	if($scope.dropdownApplicationName !==undefined){
+                var appId = $scope.dropdownApplicationName.selectedGroupOption.id;
+            console.log("appid id:",appId);
             $scope.dropdownApplicationName.selectedGroupOption.type;
             $scope.certObj.certDetails.applicationName = $scope.dropdownApplicationName.selectedGroupOption.tag;
             $scope.appName = $scope.dropdownApplicationName.selectedGroupOption.name;
-            $scope.appNameSelected = true;
             $scope.isOwnerSelected = true
+            try{
+                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getApplicationDetails', "appName="+appId);
+                AdminSafesManagement.getApplicationDetails(null, updatedUrlOfEndPoint).then(function (response) {
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        var ownerEmail=$scope.certObj.certDetails.ownerEmail;
+                        var brtContactEmail = response.data.spec.brtContactEmail;
+                        var opsContactEmail = response.data.spec.opsContactEmail;
+                        $scope.addExistingNotificationEmail(ownerEmail);
+                        $scope.addExistingNotificationEmail(brtContactEmail);
+                        $scope.addExistingNotificationEmail(opsContactEmail);
+                        $scope.appNameSelected = true;
+                        $scope.applicationNameSelectMsg = "";
+                        var i = 0;
+                        $scope.notificationEmails.forEach(function (email) {
+                            console.log("notificationEmails:",email);
+                            console.log("email.email:",email.email);
+                            addNotificationEmailCertString(email.email);
+                            var id = "dns"+ (i++);
+                            angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+                        });
+                    }
+                },
+                function (error) {
+                    console.log(error);
+                });
+            }catch (e) {
+                console.log(e);
+            };
         	}
          }
 
@@ -1713,6 +1750,7 @@
                 certificateName: $scope.certObj.certDetails.certName+".t-mobile.com",
                 certOwnerEmailId: $scope.certObj.certDetails.ownerEmail,
                 applicationName: $scope.appName,
+                notificationEmail:$scope.certObj.certDetails.notificationEmails,
                 certType: certificateTypeName,
                 dnsList: multiSanDnsPreview
             }
@@ -1725,6 +1763,7 @@
 
         $scope.createCert = function () {
             try {
+                clearNotificationEmails();
                 Modal.close('');
                 var sslcertType = 'PRIVATE_SINGLE_SAN';
                 $scope.appNameTagValue=$scope.certObj.certDetails.applicationName;
@@ -1738,6 +1777,7 @@
                     "certificateName":$scope.certObj.certDetails.certName,
                     "certType":$scope.certObj.certDetails.certType,
                     "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail,
+                    "notificationEmail":$scope.certObj.certDetails.notificationEmails,
                     "certOwnerNTId":SessionStore.getItem("username"),
                     "dnsList": multiSanDns
                 }
@@ -2485,6 +2525,18 @@
             }
         }
 
+        $scope.addNotificationEmailCert = function () {
+            var length = $scope.notificationEmails.length;
+            if ($scope.notificationEmail && $scope.notificationEmail.email!="" && !isDuplicateNotificationEmail($scope.notificationEmail.email)) {
+                var id="dns"+length;
+                angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+$scope.notificationEmail.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+                $scope.notificationEmails.push({ "id": length, "email":$scope.notificationEmail.email});
+                addNotificationEmailCertString($scope.notificationEmail.email);
+                $scope.notificationEmail.email = "";
+                $scope.isNotificationEmailSelected = false;
+            }
+        }
+
         $scope.deleteNotificationEmail = function (id) {
             var notificationEmailElement = angular.element( document.querySelector( '#'+id ) );
             notificationEmailElement.remove();
@@ -2546,9 +2598,11 @@
 
         var isDuplicateNotificationEmail = function (email) {
             $scope.certDnsErrorMessage = '';
+            $scope.isDuplicateNotificationEmail=false;
             for (var i=0;i<$scope.notificationEmails.length;i++) {
                 if (email.toLowerCase() == $scope.notificationEmails[i].email.toLowerCase()) {
                     $scope.notificationEmailErrorMessage = 'Duplicate Email';
+                    $scope.isDuplicateNotificationEmail=true;
                     return true;
                 }
             }
@@ -2648,6 +2702,14 @@
             $scope.certificateToOnboard.notificationEmails = $scope.certificateToOnboard.notificationEmails + email;
         }
 
+        var addNotificationEmailCertString = function(email) {
+            if ($scope.certObj.certDetails.notificationEmails != "" && $scope.certObj.certDetails.notificationEmails != undefined) {
+                    $scope.certObj.certDetails.notificationEmails =    $scope.certObj.certDetails.notificationEmails + "," + email;
+                }
+                else{
+                    $scope.certObj.certDetails.notificationEmails= email;
+                 }
+            }
         $scope.onboardCert = function() {
             try{
                 Modal.close('');

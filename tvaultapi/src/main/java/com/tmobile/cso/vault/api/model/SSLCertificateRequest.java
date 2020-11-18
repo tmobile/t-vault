@@ -63,9 +63,16 @@ public class SSLCertificateRequest implements Serializable {
 
 	@NotNull
 	private String[] dnsList;
-
-	@ApiModelProperty(hidden = true)
+	
+	@NotNull
 	private String notificationEmail;
+	
+	public String getNotificationEmail() {
+		return notificationEmail;
+	}
+	public void setNotificationEmail(String notificationEmail) {
+		this.notificationEmail = notificationEmail;
+	}
 
 	public String[] getDnsList() {
 		return dnsList;
@@ -132,19 +139,19 @@ public class SSLCertificateRequest implements Serializable {
 		this.targetSystem = targetSystem;
 	}
 
-	public String getNotificationEmail() {
-		return notificationEmail;
-	}
-
-	public void setNotificationEmail(String notificationEmail) {
-		this.notificationEmail = notificationEmail;
-	}
 
 	@Override
 	public String toString() {
-		return "SSLCertificateRequest [targetSystemServiceRequest=" + targetSystemServiceRequest + ", targetSystem="
-				+ targetSystem + ", certificateName=" + certificateName + ", appName=" + appName + ", certOwnerEmailId="
-				+ certOwnerEmailId + ", certType=" + certType + ", certOwnerNtid=" + certOwnerNtid + ", dnsList="
-				+ Arrays.toString(dnsList) + ", notificationEmail=" + notificationEmail + "]";
+		return "SSLCertificateRequest{" +
+				"targetSystemServiceRequest=" + targetSystemServiceRequest +
+				", targetSystem=" + targetSystem +
+				", certificateName='" + certificateName + '\'' +
+				", appName='" + appName + '\'' +
+				", certOwnerEmailId='" + certOwnerEmailId + '\'' +
+				", certType='" + certType + '\'' +
+				", certOwnerNtid='" + certOwnerNtid + '\'' +
+				", dnsList=" + Arrays.toString(dnsList) +
+				",notificationEmail='" + notificationEmail + '\'' +
+				'}';
 	}
 }
