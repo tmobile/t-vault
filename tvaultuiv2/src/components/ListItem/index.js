@@ -33,6 +33,7 @@ const Flag = styled('span')`
   opacity: 0.7;
   font-size: ${(props) => props.fontSize};
   font-style: ${(props) => (props.fontStyle ? props.fontStyle : '')};
+  color: ${(props) => props.theme.customColor.secondary.color || '#5e627c'};
 `;
 
 const FolderIconWrap = styled('div')`

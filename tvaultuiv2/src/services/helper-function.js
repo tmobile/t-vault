@@ -192,9 +192,12 @@ export const formatSecondsToTime = (seconds) => {
     return `${minutes} minutes`;
   }
 };
-export const checkAccess = (access) => {
+export const checkAccess = (access, type) => {
   let val = '';
   if (access === 'write') {
+    if (type?.toLowerCase() === 'iamsvcaccount') {
+      val = 'rotate';
+    }
     val = 'reset';
   } else {
     val = access;

@@ -15,20 +15,22 @@ const Resources = {
     'Are you sure you want to offboard this Service Account? This will not delete the Service Account from AD server.',
   offBoardSuccessfull:
     'Offboarding of Service Account has been completed successfully. The Service Account Password can no longer be managed by T-Vault. For security reasons, you need to log out and log in order for the changes to effect.',
+  noSafeSecretFound:
+    'Add a <strong>Folder</strong> and then you will be able to add <strong>Secrets</strong> to view them all here.',
   noUsersPermissionFound:
-    'No <strong>Users</strong> are given permission to access this safe, add users to access the safe',
+    'No <strong>Users</strong> are given permission to access this safe, add users to access the safe.',
   noGroupsPermissionFound:
-    'No <strong>Groups</strong> are given permission to access this safe, add groups to access the safe',
+    'No <strong>Groups</strong> are given permission to access this safe, add groups to access the safe.',
   noAwsPermissionFound:
-    'No <strong>Applications</strong> are given permission to access this safe, add applications to access the safe',
+    'No <strong>Applications</strong> are given permission to access this safe, add applications to access the safe.',
   noAppRolePermissionFound:
-    'No <strong>App roles</strong> are given permission to access this safe, add approles to access the safe',
+    'No <strong>App roles</strong> are given permission to access this safe, add approles to access the safe.',
   transferConfirmation:
     'Are you sure you want to transfer service account owner?',
   noCertificatesFound:
     'Once you add a <strong>Certificate</strong> you’ll see the  Corresponding <strong>Details</strong> here!',
   appRoles:
-    'AppRoles operate a lot like safes, but they put the aplication as the logical unit for sharing. Additional Accersor ID and Secret ID pairs can easily be created through T-Vault, Secret IDs can only be accessed when downloaded',
+    'AppRoles operate a lot like safes, but they put the aplication as the logical unit for sharing. Additional Accersor ID and Secret ID pairs can easily be created through T-Vault, Secret IDs can only be accessed when downloaded.',
   certificateDesc:
     'Create both internal and external certificates, External certificates do require approval from an admin before activating, this may take some time. Try to limit your use of external certificates unless completely necessary.',
   noTransferOwnerAvailable:
@@ -43,6 +45,8 @@ const Resources = {
     'External certificate requests require approval from the NCLM team, that process is outlined when you request an external certificate.',
   certificateGuide5:
     'Suggestions for improvements and features are welcome, please reach out to T-Vault@T-Mobile.com if you have any to share. For more information on how to manage certificates please go <a href="https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/">here</a>.',
+  iamServiceAccountDesc:
+    'IAM Service Accounts can only be modified in AWS/IAM. You can only view the details of this IAM Service Account and rotate the associaed secret within T-vault. The associated secret needs to be rotated to active the account, ',
 };
 
 export default { Resources };

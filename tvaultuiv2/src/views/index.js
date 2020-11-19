@@ -10,11 +10,13 @@ import ScaledLoader from '../components/Loaders/ScaledLoader';
 import { UserContextProvider } from '../contexts';
 import { revokeToken, renewToken } from './public/HomePage/utils';
 import { addLeadingZeros } from '../services/helper-function';
+import configData from '../config/config';
 
 const Home = lazy(() => import('./public/HomePage'));
 const VaultAppRoles = lazy(() => import('./private/vault-app-roles'));
 const Certificates = lazy(() => import('./private/certificates'));
 const ServiceAccounts = lazy(() => import('./private/service-accounts'));
+const IamServiceAccounts = lazy(() => import('./private/iam-service-accounts'));
 
 const LoaderWrap = styled('div')`
   height: 100vh;
@@ -30,6 +32,7 @@ const Wrapper = styled.section`
 
 const PrivateRoutes = () => {
   const [idleTimer] = useState(1000 * 60 * 3);
+  const [timeWhenLoggedIn] = useState(new Date().getTime());
   const [endTime, setEndTime] = useState(
     new Date(new Date().getTime() + 30 * 60 * 1000)
   );
@@ -86,13 +89,13 @@ const PrivateRoutes = () => {
   };
 
   const handleOnIdle = () => {
-    if (window.location.pathname !== '/') {
+    if (window.location.pathname !== '/' && configData.AUTH_TYPE === 'oidc') {
       timer.initCountdown();
     }
   };
 
   const handleOnActive = async () => {
-    if (window.location.pathname !== '/') {
+    if (window.location.pathname !== '/' && configData.AUTH_TYPE === 'oidc') {
       if (getRemainingTime() === 0) {
         document.title = 'VAULT';
         timer.cancelCountdown();
@@ -106,10 +109,21 @@ const PrivateRoutes = () => {
     }
   };
 
-  const { getRemainingTime } = useIdleTimer({
+  const handleOnAction = () => {
+    if (window.location.pathname !== '/') {
+      const diff = Math.abs(timeWhenLoggedIn - getLastActiveTime());
+      const minutes = diff / 60000;
+      if (configData.AUTH_TYPE !== 'oidc' && minutes > 30) {
+        loggedOut();
+      }
+    }
+  };
+
+  const { getRemainingTime, getLastActiveTime } = useIdleTimer({
     timeout: idleTimer,
     onIdle: handleOnIdle,
     onActive: handleOnActive,
+    onAction: handleOnAction,
     debounce: 250,
   });
 
@@ -144,6 +158,14 @@ const PrivateRoutes = () => {
             render={(routeProps) => (
               <Wrapper>
                 <ServiceAccounts routeProps={routeProps} />
+              </Wrapper>
+            )}
+          />
+          <Route
+            path="/iam-service-accounts"
+            render={(routeProps) => (
+              <Wrapper>
+                <IamServiceAccounts routeProps={routeProps} />
               </Wrapper>
             )}
           />

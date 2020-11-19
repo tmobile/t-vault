@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-one-expression-per-line */
 import React, { useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
@@ -27,8 +27,12 @@ import { useStateValue } from '../../../contexts/globalState';
 import mediaBreakpoints from '../../../breakpoints';
 import apiService from './apiService';
 import Loader from '../../../components/Loaders/ScaledLoader';
-import config from '../../../config';
+import configUrl from '../../../config';
+import configData from '../../../config/config';
+import LoginModal from './LoginModal';
+import SnackbarComponent from '../../../components/Snackbar';
 import { renewToken } from './utils';
+import { ldapResponse, userpassResponse } from './__mock/loginResponse';
 
 const { smallAndMedium, small } = mediaBreakpoints;
 
@@ -199,6 +203,13 @@ const SignUp = styled.a`
   }
 `;
 
+const ForgetPwd = styled.a`
+  text-decoration: none;
+  color: #fff;
+  margin-top: 1.5rem;
+  display: block;
+`;
+
 const RightColumn = styled.div`
   background: url(${(props) => props.AllGroups || ''});
   background-size: contain;
@@ -348,6 +359,9 @@ const ContactUs = styled.p`
 
 const LoginPage = () => {
   const [response, setResponse] = useState({ status: 'home' });
+  const [openLoginModal, setOpenLoginModal] = useState(false);
+  const [responseType, setResponseType] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
   const [, dispatch] = useStateValue();
   const isMobileScreen = useMediaQuery(small);
 
@@ -371,8 +385,10 @@ const LoginPage = () => {
           }
         }
       })
-      .catch((e) => {
-        console.log('e', e);
+      .catch(() => {
+        setResponseType(-1);
+        setResponse({ status: 'home' });
+        setToastMessage('Something went wrong while fetching owner details!');
       });
   };
 
@@ -388,7 +404,11 @@ const LoginPage = () => {
           await getOwnerAllDetails(res.data.data.username.toLowerCase());
         }
       })
-      .catch((err) => console.log('err', err));
+      .catch(() => {
+        setResponseType(-1);
+        setResponse({ status: 'home' });
+        setToastMessage('Something went wrong while fetching username!');
+      });
   };
 
   useEffect(() => {
@@ -397,7 +417,7 @@ const LoginPage = () => {
       setResponse({ status: 'loading' });
       axios
         .get(
-          `${config.url}/auth/oidc/callback?state=${urlParams.state}&code=${urlParams.code}`
+          `${configUrl.baseUrl}/auth/oidc/callback?state=${urlParams.state}&code=${urlParams.code}`
         )
         .then(async (res) => {
           if (res?.data) {
@@ -414,28 +434,115 @@ const LoginPage = () => {
             window.location = '/safes';
           }
         })
-        .catch((e) => console.log('e', e));
+        .catch(() => {
+          setResponseType(-1);
+          setResponse({ status: 'home' });
+        });
     }
     // eslint-disable-next-line
   }, []);
 
   const onDashboardClicked = () => {
-    setResponse({ status: 'loading' });
-    const payload = {
-      role: 'default',
-      redirect_uri: window.location.origin,
-    };
+    if (configData.AUTH_TYPE === 'oidc') {
+      setResponse({ status: 'loading' });
+      const payload = {
+        role: 'default',
+        redirect_uri: configUrl.redirectUrl,
+      };
+      axios
+        .post(`${configUrl.baseUrl}/auth/oidc/auth_url`, payload)
+        .then((res) => {
+          window.location = res.data?.data?.auth_url;
+        })
+        .catch(() => {
+          setResponseType(null);
+          setResponse({ status: 'home' });
+        });
+    } else {
+      setOpenLoginModal(true);
+    }
+  };
+  const closeLoginModal = () => {
+    setOpenLoginModal(false);
+  };
+
+  const ldapApiCall = (payload) => {
     axios
-      .post(`${config.url}/auth/oidc/auth_url`, payload)
-      .then((res) => {
-        window.location = res.data?.data?.auth_url;
+      .post(`${configUrl.baseUrl}/auth/ldap/login`, payload)
+      .then(() => {
+        // TODO: ONCE THE API IS ACTIVE REPLACE MOCK DATA ldapResponse WITH RESPONSE
+        sessionStorage.setItem('token', ldapResponse.client_token);
+        if (ldapResponse.admin === 'yes') {
+          sessionStorage.setItem('isAdmin', true);
+        } else {
+          sessionStorage.setItem('isAdmin', false);
+        }
+        sessionStorage.setItem('policies', ldapResponse.policies);
+        window.location = '/safes';
       })
-      .catch((e) => console.log(e.response));
+      .catch((err) => {
+        if (err.response.data.errors && err.response.data.errors[0]) {
+          setToastMessage(err.response.data.errors[0]);
+        }
+        setResponseType(-1);
+        setResponse({ status: 'home' });
+      });
+  };
+
+  const userpassApiCall = (payload) => {
+    axios
+      .post(`${configUrl.baseUrl}/auth/userpass/login`, payload)
+      .then(() => {
+        // TODO: ONCE THE API IS ACTIVE REPLACE MOCK DATA userpassResponse WITH RESPONSE
+        sessionStorage.setItem('token', userpassResponse.response.client_token);
+        if (userpassResponse.response.admin === 'yes') {
+          sessionStorage.setItem('isAdmin', true);
+        } else {
+          sessionStorage.setItem('isAdmin', false);
+        }
+        sessionStorage.setItem('policies', userpassResponse.response.policies);
+        window.location = '/safes';
+      })
+      .catch((err) => {
+        if (err.response.data.errors && err.response.data.errors[0]) {
+          setToastMessage(err.response.data.errors[0]);
+        }
+        setResponseType(-1);
+        setResponse({ status: 'home' });
+      });
+  };
+
+  const onSignInClicked = (username, password) => {
+    setResponse({ status: 'loading' });
+    setOpenLoginModal(false);
+    const payload = {
+      username,
+      password,
+    };
+    if (configData.AUTH_TYPE === 'userpass') {
+      userpassApiCall(payload);
+    } else {
+      ldapApiCall(payload);
+    }
+  };
+
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
   };
 
   return (
     <ComponentError>
       <>
+        <LoginModal
+          handleClose={() => closeLoginModal()}
+          open={openLoginModal}
+          onSignInClicked={(username, password) =>
+            onSignInClicked(username, password)
+          }
+        />
         {response.status === 'loading' && (
           <LoaderWrap>
             <Loader />
@@ -468,13 +575,20 @@ const LoginPage = () => {
                       width={isMobileScreen ? '100%' : ''}
                     />
                     <SignUp
-                      href="https://access.t-mobile.com/manage"
+                      href={configData.SIGN_UP_LINK}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
                       Sign Up
                     </SignUp>
                   </ButtonWrap>
+                  <ForgetPwd
+                    href={configData.FORGOT_PASSWORD_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Forget Password ?
+                  </ForgetPwd>
                 </LeftColumn>
                 <RightColumn AllGroups={AllGroups} />
               </FirstRow>
@@ -512,15 +626,23 @@ const LoginPage = () => {
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="https://t-mobile.enterprise.slack.com/?redir=%2Fr-t2678170234%3Fredir%3D%252Fmessages%252FCA5SB94HY"
+                  href={configData.SLACK_LINK}
                 >
                   Slack
                 </a>
-                or shoot us an{' '}
-                <a href="mailto: CloudSupport@t-mobile.com">email</a>
+                or shoot us an <a href={configData.EMAIL_LINK}>email</a>
               </ContactUs>
             </ThirdRow>
           </Container>
+        )}
+        {responseType === -1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message={toastMessage || 'Something went wrong!'}
+          />
         )}
       </>
     </ComponentError>

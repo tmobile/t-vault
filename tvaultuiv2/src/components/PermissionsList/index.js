@@ -8,6 +8,7 @@ import {
   TitleFour,
   BackgroundColor,
 } from '../../styles/GlobalStyles';
+import { useStateValue } from '../../contexts/globalState';
 
 const UserList = styled.div`
   margin-top: 2rem;
@@ -25,6 +26,7 @@ const EachUserWrap = styled.div`
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
   }
+  ${(props) => props.inActitveStyles}
 `;
 
 const IconDetailsWrap = styled.div`
@@ -48,18 +50,38 @@ const permissionStyles = css`
 `;
 
 const PermissionsList = (props) => {
-  const { onEditClick, list, onDeleteClick, isSvcAccount } = props;
+  const {
+    onEditClick,
+    list,
+    onDeleteClick,
+    isSvcAccount,
+    isIamSvcAccount,
+  } = props;
+  //get logged in user info
+  const state = useStateValue();
 
   return (
     <UserList>
       {Object.entries(list).map(([key, value]) => (
-        <EachUserWrap key={key}>
+        <EachUserWrap
+          key={key}
+          inActitveStyles={
+            state[0]?.username?.toLowerCase() === key.toLowerCase() &&
+            isIamSvcAccount
+              ? 'pointer-events:none;opacity:0.5'
+              : ''
+          }
+        >
           <IconDetailsWrap>
             <Icon src={userIcon} alt="user" />
             <Details>
               <TitleTwo extraCss={styles}>{key}</TitleTwo>
               <TitleFour extraCss={permissionStyles}>
-                {isSvcAccount && value === 'write' ? 'reset' : value}
+                {isSvcAccount && value === 'write'
+                  ? 'reset'
+                  : isIamSvcAccount && value === 'write'
+                  ? 'Rotate'
+                  : value}
               </TitleFour>
             </Details>
           </IconDetailsWrap>
@@ -77,10 +99,12 @@ PermissionsList.propTypes = {
   onEditClick: PropTypes.func.isRequired,
   list: PropTypes.objectOf(PropTypes.any).isRequired,
   isSvcAccount: PropTypes.bool,
+  isIamSvcAccount: PropTypes.bool,
 };
 
 PermissionsList.defaultProps = {
   isSvcAccount: false,
+  isIamSvcAccount: false,
 };
 
 export default PermissionsList;

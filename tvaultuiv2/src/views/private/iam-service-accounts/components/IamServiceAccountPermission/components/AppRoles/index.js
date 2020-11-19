@@ -1,4 +1,5 @@
 /* eslint-disable react/jsx-indent */
+/* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
@@ -6,12 +7,13 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../../../components/NoData';
 import ButtonComponent from '../../../../../../../components/FormFields/ActionButton';
+import PermissionsList from '../../../../../../../components/PermissionsList';
 import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
-import AddUser from '../../../../../../../components/AddUser';
+import AddAppRole from '../../../../../../../components/AddAppRole';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import PermissionsList from '../../../../../../../components/PermissionsList';
+import Error from '../../../../../../../components/Error';
 import Strings from '../../../../../../../resources';
 import { checkAccess } from '../../../../../../../services/helper-function';
 
@@ -20,10 +22,8 @@ const { small, belowLarge } = mediaBreakpoints;
 const NoDataWrapper = styled.section`
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100%;
   width: 100%;
-
+  height: 100%;
   p {
     ${small} {
       margin-top: 2rem;
@@ -52,19 +52,21 @@ const noDataStyle = css`
   }
 `;
 
-const Users = (props) => {
+const AppRoles = (props) => {
   const {
     accountDetail,
-    newPermission,
-    onNewPermissionChange,
     accountMetaData,
+    fetchPermission,
+    onNewAppRoleChange,
+    newAppRole,
     updateToastMessage,
-    refresh,
   } = props;
 
-  const [editUser, setEditUser] = useState('');
-  const [editAccess, setEditAccess] = useState('');
   const [response, setResponse] = useState({ status: 'loading' });
+  const [editRole, setEditRole] = useState('');
+  const [editAccess, setEditAccess] = useState('');
+  const [editClicked, setEditClicked] = useState(false);
+
   const isMobileScreen = useMediaQuery(small);
 
   // on svc account meta data is available.
@@ -72,39 +74,47 @@ const Users = (props) => {
     if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
       if (Object.keys(accountMetaData?.response).length !== 0) {
         setResponse({ status: 'success' });
+      } else if (accountMetaData.error !== '') {
+        setResponse({ status: 'error' });
       }
     } else {
       setResponse({ status: '' });
     }
   }, [accountMetaData]);
 
-  // When add permission button is clicked.
+  // When add app role button is clicked.
   useEffect(() => {
-    if (newPermission) {
+    if (newAppRole) {
       setResponse({ status: 'add' });
     }
-  }, [newPermission]);
+  }, [newAppRole]);
+
+  const constructPayload = (role, access) => {
+    const data = {
+      access: checkAccess(access,"iamsvcaccount"),
+      approlename: role,
+      awsAccountId: accountDetail.iamAccountId,
+      iamSvcAccName: accountDetail.name,
+    };
+    return data;
+  };
 
   /**
    * @function onDeleteClick
-   * @description function to delete the user from the svc account users list.
-   * @param {username} string username of the user.
-   * @param {access} string permission of the user.
+   * @description function to delete the app role from the svc account app role list.
+   * @param {role} string app role name.
+   * @param {access} string permission of the app role.
    */
-  const onDeleteClick = async (username, access) => {
+  const onDeleteClick = (role, access) => {
     setResponse({ status: 'loading' });
-    const payload = {
-      access: checkAccess(access),
-      svcAccName: accountDetail.name,
-      username,
-    };
+    const payload = constructPayload(role, access);
     apiService
-      .deleteUserPermission(payload)
+      .deleteAppRolePermission(payload)
       .then(async (res) => {
-        if (res && res.data?.messages && res.data.messages[0]) {
+        if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          await refresh();
+          await fetchPermission();
         }
       })
       .catch((err) => {
@@ -117,23 +127,23 @@ const Users = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the user to the svc account users list.
+   * @description function to save the app rolr to the svc account app role list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {
     setResponse({ status: 'loading' });
     return apiService
-      .addUserPermission(data)
+      .addAppRolePermission(data)
       .then(async (res) => {
-        if (res && res.data?.messages) {
+        if (res?.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          await refresh();
+          await fetchPermission();
         }
       })
       .catch((err) => {
-        if (err.response?.data?.messages && err.response.data.messages[0]) {
-          updateToastMessage(-1, err.response.data.messages[0]);
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });
       });
@@ -142,76 +152,64 @@ const Users = (props) => {
   /**
    * @function onSubmit
    * @description function structure the payload when save/edit is clicked and call save api.
-   * @param {username} string user name of the user.
-   * @param {access} string permission given to the user.
+   * @param {role} string role name.
+   * @param {access} string permission given to the app role.
    */
-  const onSubmit = async (username, access) => {
-    const value = {
-      access: checkAccess(access),
-      svcAccName: `${accountDetail.name}`,
-      username: username.toLowerCase(),
-    };
-    try {
-      await onSaveClicked(value);
-      onNewPermissionChange();
-    } catch {
-      setResponse({ status: 'success' });
-      updateToastMessage(-1, 'Something went wrong');
-    }
+  const onSubmit = async (role, access) => {
+    const payload = constructPayload(role, access);
+    await onSaveClicked(payload);
+    onNewAppRoleChange();
   };
 
   /**
    * @function onEditSaveClicked
-   * @description function to edit the existing user.
-   * @param {username} string user name of the user.
-   * @param {access} string permission given to the user.
+   * @description function to edit the existing app role.
+   * @param {role} string app role name to edit.
+   * @param {access} string permission given to the app role.
    */
-  const onEditSaveClicked = (username, access) => {
+  const onEditSaveClicked = (role, access) => {
     setResponse({ status: 'loading' });
-    const payload = {
-      access: checkAccess(access),
-      svcAccName: accountDetail.name,
-      username,
-    };
+    const payload = constructPayload(role, access);
     apiService
-      .deleteUserPermission(payload)
+      .deleteAppRolePermission(payload)
       .then(async (res) => {
         if (res) {
           setResponse({ status: 'loading' });
-          await onSubmit(username, access);
+          await onSubmit(role, access);
         }
       })
       .catch((err) => {
-        if (err.response?.data?.messages && err.response.data.messages[0]) {
-          updateToastMessage(-1, err.response.data.messages[0]);
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });
       });
   };
 
   /**
-   * @function onCancelClicked
-   * @description function when cancel of add user and edit user is called.
-   */
-  const onCancelClicked = () => {
-    setResponse({ status: 'success' });
-    onNewPermissionChange();
-  };
-
-  /**
    * @function onEditClick
-   * @description function to edit the existing user.
-   * @param {key} key user name of the user.
-   * @param {value} value permission given to the user.
+   * @description function to edit the existing app role.
+   * @param {key} key role name of  the permission.
+   * @param {value} value permission given to the app role.
    */
   const onEditClick = (key, value) => {
+    setEditClicked(true);
     if (value === 'write') {
       setEditAccess('reset');
     } else {
       setEditAccess(value);
     }
-    setEditUser(key);
+    setEditRole(key);
     setResponse({ status: 'edit' });
+  };
+
+  /**
+   * @function onCancelClicked
+   * @description function when cancel of add app role and edit app role is called.
+   */
+  const onCancelClicked = () => {
+    setResponse({ status: 'success' });
+    onNewAppRoleChange();
   };
 
   return (
@@ -221,41 +219,44 @@ const Users = (props) => {
           <LoaderSpinner customStyle={customStyle} />
         )}
         {response.status === 'add' && (
-          <AddUser
-            handleSaveClick={(user, access) => onSubmit(user, access)}
-            handleCancelClick={onCancelClicked}
-            refresh={refresh}
+          <AddAppRole
+            handleSaveClick={(role, access) => onSubmit(role, access)}
+            handleCancelClick={() => onCancelClicked()}
             isSvcAccount
           />
         )}
         {response.status === 'edit' && (
-          <AddUser
-            handleSaveClick={(user, access) => onEditSaveClicked(user, access)}
-            handleCancelClick={onCancelClicked}
-            username={editUser}
+          <AddAppRole
+            handleSaveClick={(role, access) => onEditSaveClicked(role, access)}
+            handleCancelClick={() => onCancelClicked()}
             access={editAccess}
-            refresh={refresh}
+            editClicked={editClicked}
+            role={editRole}
             isSvcAccount
           />
         )}
-        {response.status === 'success' &&
-          accountMetaData &&
-          accountMetaData.response && (
+
+        {accountMetaData &&
+          accountMetaData.response &&
+          response.status === 'success' && (
             <>
-              {Object.keys(accountMetaData.response?.users).length > 0 && (
-                <PermissionsList
-                  list={accountMetaData.response.users}
-                  isSvcAccount
-                  onEditClick={(key, value) => onEditClick(key, value)}
-                  onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                />
-              )}
-              {(!accountMetaData.response.users ||
-                Object.keys(accountMetaData.response.users).length === 0) && (
+              {accountMetaData.response['app-roles'] &&
+                Object.keys(accountMetaData.response['app-roles']).length >
+                  0 && (
+                  <PermissionsList
+                    list={accountMetaData.response['app-roles']}
+                    onEditClick={(key, value) => onEditClick(key, value)}
+                    onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                    isIamSvcAccount
+                  />
+                )}
+              {(!accountMetaData.response['app-roles'] ||
+                Object.keys(accountMetaData.response['app-roles']).length ===
+                  0) && (
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description={Strings.Resources.noUsersPermissionFound}
+                    description={Strings.Resources.noAppRolePermissionFound}
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent
@@ -273,17 +274,22 @@ const Users = (props) => {
               )}
             </>
           )}
+        {response.status === 'error' && (
+          <Error
+            description={accountMetaData.error || 'Something went wrong!'}
+          />
+        )}
       </>
     </ComponentError>
   );
 };
 
-Users.propTypes = {
+AppRoles.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
-  newPermission: PropTypes.bool.isRequired,
-  onNewPermissionChange: PropTypes.func.isRequired,
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
+  fetchPermission: PropTypes.func.isRequired,
+  newAppRole: PropTypes.bool.isRequired,
+  onNewAppRoleChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
-  refresh: PropTypes.func.isRequired,
 };
-export default Users;
+export default AppRoles;

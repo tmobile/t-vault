@@ -11,8 +11,9 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import CertificatePermissionsList from '../../../PermissionList';
+import PermissionsList from '../../../../../../../components/PermissionsList';
 import Strings from '../../../../../../../resources';
+import { checkAccess } from '../../../../../../../services/helper-function';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -53,13 +54,12 @@ const noDataStyle = css`
 
 const Users = (props) => {
   const {
-    certificateMetaData,
+    accountDetail,
     newPermission,
     onNewPermissionChange,
+    accountMetaData,
     updateToastMessage,
-    responseStatus,
     refresh,
-    username,
   } = props;
 
   const [editUser, setEditUser] = useState('');
@@ -69,8 +69,14 @@ const Users = (props) => {
 
   // on svc account meta data is available.
   useEffect(() => {
-    setResponse({ status: responseStatus });
-  }, [responseStatus]);
+    if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
+      if (Object.keys(accountMetaData?.response).length !== 0) {
+        setResponse({ status: 'success' });
+      }
+    } else {
+      setResponse({ status: '' });
+    }
+  }, [accountMetaData]);
 
   // When add permission button is clicked.
   useEffect(() => {
@@ -79,27 +85,22 @@ const Users = (props) => {
     }
   }, [newPermission]);
 
-  const constructPayload = (userName, access) => {
-    const data = {
-      access,
-      certType: certificateMetaData.certType,
-      certificateName: certificateMetaData.certificateName,
-      username: userName,
-    };
-    return data;
-  };
-
   /**
    * @function onDeleteClick
    * @description function to delete the user from the svc account users list.
    * @param {username} string username of the user.
    * @param {access} string permission of the user.
    */
-  const onDeleteClick = async (userName, access) => {
+  const onDeleteClick = async (username, access) => {
     setResponse({ status: 'loading' });
-    const payload = constructPayload(userName, access);
+    const payload = {
+      access: checkAccess(access, 'iamsvcaccount'),
+      awsAccountId: `${accountDetail.iamAccountId}`,
+      iamSvcAccName: accountDetail.name,
+      username,
+    };
     apiService
-      .deleteCertificateUser(payload)
+      .deleteUserPermission(payload)
       .then(async (res) => {
         if (res && res.data?.messages && res.data.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
@@ -122,8 +123,8 @@ const Users = (props) => {
    */
   const onSaveClicked = (data) => {
     setResponse({ status: 'loading' });
-    apiService
-      .addCertificateUser(data)
+    return apiService
+      .addUserPermission(data)
       .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
@@ -132,8 +133,8 @@ const Users = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response?.data?.messages && err.response.data.messages[0]) {
-          updateToastMessage(-1, err.response.data.messages[0]);
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });
       });
@@ -145,10 +146,15 @@ const Users = (props) => {
    * @param {username} string user name of the user.
    * @param {access} string permission given to the user.
    */
-  const onSubmit = async (userName, access) => {
-    const payload = constructPayload(userName, access);
+  const onSubmit = async (username, access) => {
+    const value = {
+      access: checkAccess(access, 'iamsvcaccount'),
+      awsAccountId: `${accountDetail.iamAccountId}`,
+      username: username.toLowerCase(),
+      iamSvcAccName: `${accountDetail.name}`,
+    };
     try {
-      await onSaveClicked(payload);
+      await onSaveClicked(value);
       onNewPermissionChange();
     } catch {
       setResponse({ status: 'success' });
@@ -162,20 +168,24 @@ const Users = (props) => {
    * @param {username} string user name of the user.
    * @param {access} string permission given to the user.
    */
-  const onEditSaveClicked = (userName, access) => {
+  const onEditSaveClicked = (username, access) => {
     setResponse({ status: 'loading' });
-    const payload = constructPayload(userName, access);
+    const payload = {
+      access: checkAccess(access, 'iamsvcaccount'),
+      svcAccName: accountDetail.name,
+      username,
+    };
     apiService
-      .deleteCertificateUser(payload)
+      .deleteUserPermission(payload)
       .then(async (res) => {
         if (res) {
           setResponse({ status: 'loading' });
-          await onSubmit(userName, access);
+          await onSubmit(username, access);
         }
       })
       .catch((err) => {
-        if (err.response?.data?.messages && err.response.data.messages[0]) {
-          updateToastMessage(-1, err.response.data.messages[0]);
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });
       });
@@ -197,7 +207,11 @@ const Users = (props) => {
    * @param {value} value permission given to the user.
    */
   const onEditClick = (key, value) => {
-    setEditAccess(value);
+    if (value === 'write') {
+      setEditAccess('reset');
+    } else {
+      setEditAccess(value);
+    }
     setEditUser(key);
     setResponse({ status: 'edit' });
   };
@@ -213,7 +227,7 @@ const Users = (props) => {
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
             refresh={refresh}
-            isCertificate
+            isSvcAccount
           />
         )}
         {response.status === 'edit' && (
@@ -223,23 +237,23 @@ const Users = (props) => {
             username={editUser}
             access={editAccess}
             refresh={refresh}
-            isCertificate
+            isSvcAccount
           />
         )}
         {response.status === 'success' &&
-          Object.keys(certificateMetaData).length > 0 && (
+          accountMetaData &&
+          accountMetaData.response && (
             <>
-              {certificateMetaData.users &&
-                Object.keys(certificateMetaData.users).length > 1 && (
-                  <CertificatePermissionsList
-                    list={certificateMetaData.users}
-                    username={username}
-                    onEditClick={(key, value) => onEditClick(key, value)}
-                    onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                  />
-                )}
-              {(!certificateMetaData.users ||
-                Object.keys(certificateMetaData.users).length === 1) && (
+              {Object.keys(accountMetaData.response?.users).length > 0 && (
+                <PermissionsList
+                  list={accountMetaData.response.users}
+                  isIamSvcAccount
+                  onEditClick={(key, value) => onEditClick(key, value)}
+                  onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                />
+              )}
+              {(!accountMetaData.response.users ||
+                Object.keys(accountMetaData.response.users).length === 0) && (
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
@@ -267,12 +281,11 @@ const Users = (props) => {
 };
 
 Users.propTypes = {
-  responseStatus: PropTypes.string.isRequired,
+  accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   newPermission: PropTypes.bool.isRequired,
   onNewPermissionChange: PropTypes.func.isRequired,
-  certificateMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
+  accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
-  username: PropTypes.string.isRequired,
 };
 export default Users;

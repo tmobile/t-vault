@@ -13,6 +13,8 @@ import ButtonComponent from '../FormFields/ActionButton';
 import apiService from '../../views/private/safe/apiService';
 import LoaderSpinner from '../Loaders/LoaderSpinner';
 import RadioButtonComponent from '../FormFields/RadioButton';
+import configData from '../../config/config';
+import TextFieldComponent from '../FormFields/TextField';
 import {
   InstructionText,
   RequiredCircle,
@@ -133,18 +135,28 @@ const AddGroup = (props) => {
   }, [searchValue, searchLoader, options]);
 
   useEffect(() => {
-    if (groupname) {
-      if (
-        (groupname.toLowerCase() !== searchValue?.toLowerCase() &&
-          !isValidGroupName) ||
-        (groupname.toLowerCase() === searchValue?.toLowerCase() &&
-          access === radioValue)
-      ) {
+    if (configData.AD_GROUP_AUTOCOMPLETE) {
+      if (groupname) {
+        if (
+          (groupname.toLowerCase() !== searchValue?.toLowerCase() &&
+            !isValidGroupName) ||
+          (groupname.toLowerCase() === searchValue?.toLowerCase() &&
+            access === radioValue)
+        ) {
+          setDisabledSave(true);
+        } else {
+          setDisabledSave(false);
+        }
+      } else if (!isValidGroupName || searchValue === '') {
         setDisabledSave(true);
       } else {
         setDisabledSave(false);
       }
-    } else if (!isValidGroupName || searchValue === '') {
+    } else if (
+      (groupname.toLowerCase() === searchValue?.toLowerCase() &&
+        access === radioValue) ||
+      searchValue === ''
+    ) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
@@ -209,25 +221,37 @@ const AddGroup = (props) => {
             Group Name
             <RequiredCircle margin="0.5rem" />
           </InputLabel>
-          <AutoCompleteComponent
-            options={options}
-            icon="search"
-            classes={classes}
-            searchValue={searchValue}
-            onSelected={(e, val) => onSelected(e, val)}
-            onChange={(e) => onSearchChange(e)}
-            placeholder="Groupname - Enter min 3 characters"
-            error={groupname !== searchValue && !isValidGroupName}
-            helperText={
-              groupname !== searchValue && !isValidGroupName
-                ? `Group name ${searchValue} does not exist!`
-                : ''
-            }
-          />
-          <InstructionText>
-            Search the T-Mobile system to add groups
-          </InstructionText>
-          {searchLoader && <LoaderSpinner customStyle={customStyle} />}
+          {configData.AD_GROUP_AUTOCOMPLETE ? (
+            <>
+              <AutoCompleteComponent
+                options={options}
+                icon="search"
+                classes={classes}
+                searchValue={searchValue}
+                onSelected={(e, val) => onSelected(e, val)}
+                onChange={(e) => onSearchChange(e)}
+                placeholder="Groupname - Enter min 3 characters"
+                error={groupname !== searchValue && !isValidGroupName}
+                helperText={
+                  groupname !== searchValue && !isValidGroupName
+                    ? `Group name ${searchValue} does not exist!`
+                    : ''
+                }
+              />
+              <InstructionText>
+                Search the T-Mobile system to add groups
+              </InstructionText>
+              {searchLoader && <LoaderSpinner customStyle={customStyle} />}
+            </>
+          ) : (
+            <TextFieldComponent
+              value={searchValue}
+              placeholder="Groupname"
+              fullWidth
+              name="searchValue"
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+          )}
         </InputWrapper>
         <RadioButtonWrapper>
           <RadioButtonComponent
