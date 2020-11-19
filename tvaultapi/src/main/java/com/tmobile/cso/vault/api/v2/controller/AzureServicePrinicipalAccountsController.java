@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tmobile.cso.vault.api.model.AzureServiceAccount;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountOffboardRequest;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.AzureServicePrinicipalAccountsService;
 
@@ -98,6 +99,20 @@ public class AzureServicePrinicipalAccountsController {
 			@PathVariable("azure_svc_name") String azureSvcName,
 			@PathVariable("accessKey") String accessKey) throws IOException {
 		return azureServicePrinicipalAccountsService.readSecret(token, azureSvcName, accessKey);
+	}
+	
+	/**
+	 * Offboard Azure service account.
+	 * @param request
+	 * @param token
+	 * @param azureServiceAccountOffboardRequest
+	 * @return
+	 */
+	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.offboardAzureServiceAccount.value}", notes = "${AzureServicePrinicipalAccountsController.offboardAzureServiceAccount.notes}")
+	@PostMapping(value="/v2/azureserviceaccounts/offboard", produces="application/json")
+	public ResponseEntity<String> offboardAzureServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AzureServiceAccountOffboardRequest azureServiceAccountOffboardRequest ){
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return azureServicePrinicipalAccountsService.offboardAzureServiceAccount(token, azureServiceAccountOffboardRequest, userDetails);
 	}
 
 }

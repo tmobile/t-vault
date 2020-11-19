@@ -31,11 +31,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.AzureSecrets;
 import com.tmobile.cso.vault.api.model.AzureServiceAccount;
-import com.tmobile.cso.vault.api.model.IAMSecrets;
-import com.tmobile.cso.vault.api.model.IAMServiceAccount;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountOffboardRequest;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.AzureServicePrinicipalAccountsService;
-import com.tmobile.cso.vault.api.service.IAMServiceAccountsService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -190,6 +188,25 @@ public class AzureServicePrinicipalAccountsControllerTest {
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/azureserviceaccounts/secret/testiamsvcacc01/1212zdasdssss")
 				.header(VAULT_TOKEN_STRING, token).header(CONTENT_TYPE_STRING, CONTENT_TYPE_VALUE_STRING)
 				.requestAttr(USER_DETAILS_STRING, userDetails)).andExpect(status().isOk()).andReturn();
+
+		String actual = result.getResponse().getContentAsString();
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void testoffboardAzureServiceAccountSuccess() throws Exception {
+
+		AzureServiceAccountOffboardRequest azureServiceAccountOffboardRequest = new AzureServiceAccountOffboardRequest("testaccount");
+		String expected = "{\"messages\":[\"Successfully offboarded Azure service account (if existed) from T-Vault\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
+		when(azureServicePrinicipalAccountsService.offboardAzureServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any()))
+				.thenReturn(responseEntityExpected);
+		String inputJson = getJSON(azureServiceAccountOffboardRequest);
+		MvcResult result = mockMvc
+				.perform(MockMvcRequestBuilders.post("/v2/azureserviceaccounts/offboard").header(VAULT_TOKEN_STRING, token)
+						.header(CONTENT_TYPE_STRING, CONTENT_TYPE_VALUE_STRING)
+						.requestAttr(USER_DETAILS_STRING, userDetails).content(inputJson))
+				.andExpect(status().isOk()).andReturn();
 
 		String actual = result.getResponse().getContentAsString();
 		assertEquals(expected, actual);
