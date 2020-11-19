@@ -101,7 +101,6 @@ public class AzureServicePrinicipalAccountsController {
 			@PathVariable("accessKey") String accessKey) throws IOException {
 		return azureServicePrinicipalAccountsService.readSecret(token, azureSvcName, accessKey);
 	}
-	
 	/**
 	 * Offboard Azure service account.
 	 * @param request
@@ -114,6 +113,18 @@ public class AzureServicePrinicipalAccountsController {
 	public ResponseEntity<String> offboardAzureServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AzureServiceAccountOffboardRequest azureServiceAccountOffboardRequest ){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return azureServicePrinicipalAccountsService.offboardAzureServiceAccount(token, azureServiceAccountOffboardRequest, userDetails);
+	}
+	/**
+	 * Gets the list of azure service prinicipal onboarded 
+	 * @param request
+	 * @param token
+	 * @return
+	 */
+	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.getOnboardedAsureServicePrincipal.value}", notes = "${AzureServicePrinicipalAccountsController.getOnboardedAsureServicePrincipal.notes}",hidden = false)
+	@GetMapping(value="/v2/azureserviceaccounts", produces="application/json")
+	public ResponseEntity<String> getOnboardedIAMServiceAccounts(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return azureServicePrinicipalAccountsService.getOnboardedAzureServiceAccounts(token, userDetails);
 	}
 
 	/**

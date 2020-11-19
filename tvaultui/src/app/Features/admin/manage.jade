@@ -259,7 +259,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                       div.form-control.input-box-style.dns-list(id="dnslist")
                 .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group(ng-if="!appNameSelected")
-                      .certificate-form-label {{ applicationNameSelectMsg==""?"Select appliation name and add/update notification emails": applicationNameSelectMsg}}
+                      .certificate-form-label {{ applicationNameSelectMsg==""?"Select application name and add/update notification emails": applicationNameSelectMsg}}
                     .details-input-group(ng-show="appNameSelected")
                       .certificate-form-label(uib-tooltip="Notification emails list") Notification emails
                       div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="notificationEmails.length>0")
@@ -620,6 +620,44 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                             .list-icon(ng-show="!isLoadingData && iamSvcaccOnboardedData.keys.length>0" ng-click = "editOnboardedIamSvcacc(value.metaDataName, 'md')" uib-tooltip="View/Edit IAM Service Account password rotation configuration")  View/Edit
                                             .pagination-wrapper(ng-show='hasMoreIAMItemsToShow()')
                                                 .pagination-count(ng-if="numOfIamSvcaccs>0") Displaying {{iamcurrentshown}} of {{numOfIamSvcaccs}}
+                                                .pagination-button-wrapper(ng-click='showMoreIAMItems()')
+                                                    button.show-more-btn VIEW MORE
+                                                    span
+                                                        img(src="assets/icons/front-arrow.svg")
+                    md-tab(label="Azure Service Principals" md-on-select="tabChangeForAdmin()" ng-if="enableAzureSvcacc")
+                        md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
+                            .new-container.page-content-container
+                                .md-content-inner-wrapper
+                                    div.svcnotes T-Vault can be used to manage to read and rotate the secrets of Azure service accounts. In order to self-service your Azure service accounts there is a three-step process to onboard the account into T-Vault.
+                                      span.svc-collapse-link(ng-click="collapseNoteIAM()") >>
+                                    div.svccollapsible(uib-collapse="isCollapsedIAM")
+                                      div.svcdescription 
+                                      div.svcdescription
+                                        text.weighted Step 1: On-Boarding:
+                                        text This step brings the Azure service account into T-Vault so that the secrets can be read or rotated through T-Vault. This is a one-time operation.
+                                      div.svcdescription
+                                        text.weighted Step 2: Service Account Activation:
+                                        text The Azure service account owner will Activate (rotate) the account password once after on-boarding the account into T-Vault. This process ensures that the secrets in T-Vault and IAM portal are in sync.
+                                      div.svcdescription
+                                        text.weighted Step 3: Granting Permissions:
+                                        text When an Azure service account is activated in T-Vault, the account owner can grant specific permissions to other users and groups allowing others to read and/or rotate the secrets for the Azure service account as well through T-Vault.
+                                    div.svcdescription(ng-show="!isLoadingData && azureSvcaccOnboardedData.keys.length>0") The following are list of Azure service accounts managed by T-Vault. You can click View/Edit link to either activate the Azure Service account  or grant permissions for users and groups.
+                                    div.data-management-content
+                                        .row.change-safe-table-container(ng-if='true')
+                                            loading-state(ng-if='isLoadingData')
+                                            .row.change-data.header.solid-header(ng-show="!isLoadingData && azureSvcaccOnboardedData.keys.length>0")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="AZURE SERVICE PRINCIPAL NAME") ACCOUNT NAME
+                                                .container.name.cell.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION     
+                                            .change-list-table-data.row
+                                                .unavailable-text(ng-show="!isLoadingData && azureSvcaccOnboardedData.keys.length==0")
+                                                    .container.name No Azure Service Accounts enabled.
+                                                .row.change-data.item(ng-show="!isLoadingData"  ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in azureSvcaccOnboardedData.keys | filter:searchValue | limitTo: azurepaginationLimit()")
+                                                    .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value}}") {{value}}
+                                                    .container.radio-inputs.cell.col-lg-4.col-md-.col-sm-4.col-xs-4
+                                                        .down.view
+                                                            .list-icon(ng-show="!isLoadingData && azureSvcaccOnboardedData.keys.length>0" ng-click = "editOnboardedAzureSvcacc(value, 'md')" uib-tooltip="View/Edit Service Account password rotation configuration")  View/Edit
+                                            .pagination-wrapper(ng-show='hasMoreAzureItemsToShow()')
+                                                .pagination-count(ng-if="numOfAzureSvcaccs>0") Displaying {{azurecurrentshown}} of {{numOfAzureSvcaccs}}
                                                 .pagination-button-wrapper(ng-click='showMoreIAMItems()')
                                                     button.show-more-btn VIEW MORE
                                                     span

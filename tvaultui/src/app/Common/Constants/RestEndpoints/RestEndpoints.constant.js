@@ -520,6 +520,10 @@ readTextFile("../apiUrls.json");
             name: 'updateCertificate',
             url: '/v2/sslcert',
             method: 'PUT' 
+        }, {
+            name: 'getOnboardedAzureServiceAccounts',
+            url: '/v2/azureserviceaccounts',
+            method: 'GET' 
         }
     ]
     });

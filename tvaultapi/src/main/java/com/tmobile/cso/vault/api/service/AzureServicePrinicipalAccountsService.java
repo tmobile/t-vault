@@ -1976,5 +1976,47 @@ public class AzureServicePrinicipalAccountsService {
     }
 
 
+	/**
+	 * To get list of azure service prinicipal onboarded
+	 * 
+	 * @param token
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> getOnboardedAzureServiceAccounts(String token, UserDetails userDetails) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "listOnboardedIAzureerviceAccounts")
+				.put(LogMessage.MESSAGE, "Trying to get list of onboaded Azure service accounts")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		Response response = null;
+		String[] latestPolicies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(),
+				userDetails.getUsername(), userDetails);
+		List<String> onboardedlist = new ArrayList<>();
+		for (String policy : latestPolicies) {
+			
+			//Need to change policy name for Azure services  public static final String AZURE_SVCC_ACC_META_PATH = "metadata/azuresvcacc/"; //
+			if (policy.startsWith("o_azuresvcacc")) {
+				onboardedlist.add(policy.substring(14));
+			}
+		}
+		response = new Response();
+		response.setHttpstatus(HttpStatus.OK);
+		response.setSuccess(true);
+		response.setResponse("{\"keys\":" + JSONUtil.getJSON(onboardedlist) + "}");
+		
+		if (HttpStatus.OK.equals(response.getHttpstatus())) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "listOnboardedAzureServiceAccounts")
+					.put(LogMessage.MESSAGE, "Successfully retrieved the list of Azure Service Accounts")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		} else if (HttpStatus.NOT_FOUND.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(HttpStatus.OK).body("{\"keys\":[]}");
+		}
+		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+	}
+
 
 }
