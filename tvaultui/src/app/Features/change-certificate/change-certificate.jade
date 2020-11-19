@@ -99,6 +99,18 @@ script(type='text/ng-template', id='deleteCertPopup.html')
         button.common-btn.btn.btn-primary.btn-lg(ng-click="deleteCertificate(certDetails)") DELETE
       .clearfix
         button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL  
+       
+script(type='text/ng-template', id='updateCertPopup.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text Are you sure you want to update this certificate details?
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="updateCertificate(certDetails)") UPDATE
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL 
     
 script(type='text/ng-template', id='deleteCertificateSuccessPopUp.html')
   .top-lg-sep(ng-if="!isLoadingModalData")
@@ -114,6 +126,23 @@ script(type='text/ng-template', id='deleteCertificateFailedPopUp.html')
     .top-lg-sep
         .common-header-label.text-center Certificate Deletion Failed!
       .top-lg-sep.notification-text  {{ deleteMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE
+
+script(type='text/ng-template', id='updateCertificateSuccessPopUp.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Details Updation Successful!
+      .top-lg-sep.notification-text  {{ updateMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE
+script(type='text/ng-template', id='updateCertificateFailedPopUp.html')
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Details Updation Failed!
+      .top-lg-sep.notification-text  {{ updateMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
         button.link-style.common-btn.btn.btn-cert.btn-lg(ng-click="cancel()") CLOSE
@@ -236,8 +265,37 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                             .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
                               .row
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
-                                    .common-form-label Owner
+                                    .common-form-label Certificate Owner
                                     input.form-control.input-box-style(id="ownerEmail" ng-model="certificate.ownerEmail" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="ownerEmail" placeholder="Email address - Enter min 3 characters" required)
+                        .row.middle
+                          .common-form-row.clearfix
+                            .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
+                              .row
+                                .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                    .common-form-label Status
+                                    input.form-control.input-box-style(id="certificateStatus" ng-model="certificate.certificateStatus" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)
+                                                     
+                            .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
+                              .row
+                                .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                    .common-form-label Aplication Owner
+                                    input.form-control.input-box-style(id="appOwnerEmail" ng-model="certificate.appOwnerEmail" ng-click="clearOwnerEmail()" name="appOwnerEmail" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchOwnerEmailForCert($viewValue) | limitTo: 8" typeahead-wait-ms="500" placeholder="Email address - Enter min 3 characters"  typeahead-on-select="selectOwnerforCert(certificate.appOwnerEmail)")
+                                    
+                                    div.loader(ng-if='isOwnerSearchLoading && isOwnerEmailSearch && certificate.appOwnerEmail.length > 2')
+                                         div.ball-spin-fade-loader
+                                             div
+                                             div
+                                             div
+                                             div
+                                             div
+                                             div
+                                             div
+                                             div
+                                     div.input-cross.svcaccid(ng-if='!isOwnerSearchLoading && certificate.appOwnerEmail.length > 2' ng-click="clearOwnerEmail()")
+                                         div.delete-title
+                                           img.delete-icon(src="../../assets/images/delete.png")
+                                     span.invalid-email   {{ ownerEmailErrorMessage }}  
+                        
                         .row.middle
                           .common-form-row.clearfix
                             .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
@@ -247,9 +305,23 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                   input.form-control.input-box-style(id="applicationTag" ng-model="appName" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="applicationTag"  required)
                             .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
                               .row
-                                .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
-                                    .common-form-label Status
-                                    input.form-control.input-box-style(id="certificateStatus" ng-model="certificate.certificateStatus" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)
+                                .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                    .common-form-label Project Lead
+                                    input.form-control.input-box-style(id="leadEmail" ng-model="certificate.leadEmail" ng-click="clearLeadEmail()" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchLeadEmailForCert($viewValue) | limitTo: 8" typeahead-wait-ms="500" placeholder="Email address - Enter min 3 characters" typeahead-on-select="selectLeadforCert(certificate.leadEmail)")
+                                    div.loader(ng-if='isLeadSearchLoading  && isLeadEmailSearch && certificate.leadEmail.length > 2')
+                                        div.ball-spin-fade-loader
+                                            div
+                                            div
+                                            div
+                                            div
+                                            div
+                                            div
+                                            div
+                                            div
+                                    div.input-cross.svcaccid(ng-if='!isLeadSearchLoading  && certificate.leadEmail.length > 2' ng-click="clearLeadEmail()")
+                                        div.delete-title
+                                          img.delete-icon(src="../../assets/images/delete.png")
+                                    span.invalid-email   {{ leadEmailErrorMessage }}
                         .row.middle
                           .common-form-row.clearfix
                             .col-lg-5.col-md-12.col-sm-12.col-xs-12.full-row-fix
@@ -303,6 +375,33 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                             .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
                               .row
                                 .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                                    .common-form-label Notification Emails                                
+                                    div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="certificate.notificationEmails.length>0")                                    
+                                    div.dns-wrapper.addnotificationemail
+                                      .col-lg-9.col-md-9.col-sm-9.col-xs-9
+                                        .cert-input-group.cert-suffix
+                                          input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" ng-click="clearNotificationEmail()" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmailForNotification($viewValue) | limitTo: 8" typeahead-wait-ms="500" placeholder="Email address - Enter min 3 characters" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
+                                          div.loader.svcaccid.notification-email-loader(ng-if='isNotificationSearchLoading && isNotificationEmailSearch && notificationEmail.email.length > 2')
+                                              div.ball-spin-fade-loader
+                                                  div
+                                                  div
+                                                  div
+                                                  div
+                                                  div
+                                                  div
+                                                  div
+                                                  div
+                                          div.input-cross.svcaccid(ng-if='!isNotificationSearchLoading && notificationEmail.email.length > 2' ng-click="clearNotificationEmail()")
+                                              div.delete-title
+                                                  img.delete-icon(src="../../assets/images/delete.png")
+                                        div.key-acceptance-info() {{ notificationEmailErrorMessage }} 
+                                      .col-lg-3.col-md-3.col-sm-3.col-xs-3
+                                        button.common-btn.dns-add-btn(ng-click="addNotificationEmail(notificationEmail)" ng-disabled="!isNotificationEmailSelected") Add Email  
+                        .row.middle
+                          .common-form-row.clearfix
+                            .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                              .row
+                                .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Subject Alternate Names                                
                                     textarea.form-control.input-box-style.dns-list(id="dnsStr" ng-value="dnsStr"  ng-model="dnsStr" ng-disabled="true"  name="certificateStatus"  required)
                                     div( ng-repeat="item in certificate.dnsNames" ) 
@@ -320,6 +419,8 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                         button.common-btn.btn.btn-cert.btn-lg(type='button' ng-if="renewButtonShow  && revokeButtonShow && certificate.certificateStatus!=='Expired'" ng-click="renewCertPopup(certificate)") Renew
                       .right.svc-action-button
                         button.common-btn.btn.btn-primary.btn-lg(type='submit' ng-if="isCertificateOwner" ng-disabled="!isCertificateOwner") Grant Permission
+                      .right.svc-action-button
+                        button.common-btn.btn.btn-primary.btn-lg(type='button' ng-click="updateCertPopup(certificate)" ) Update    
                       .right.right-sm-sepshowInputLoader
                         button.link-style.common-btn.btn.btn-default.btn-lg.col-lg-6.col-md-6.col-sm-6.col-xs-12(type='button' ng-click="goBack()") Cancel
 

@@ -548,5 +548,18 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.onboardSSLcertificate(userDetails, token, sslCertificateRequest);
 	}
+	
+	/**
+	 * To Update SSL Certificate metadata
+	 * @param sslCertificateRequest
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.ssledit.value}", notes = "${SSLCertificateController.ssledit.notes}", hidden = false)
+	@PutMapping(value="/v2/sslcert/",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> updateSSLCertificate(HttpServletRequest request, @RequestHeader(value=
+			"vault-token") String token,@Valid @RequestBody CertificateUpdateRequest certificateUpdateRequest)  {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateService.updateSSLCertificate(certificateUpdateRequest,userDetails,token);
+	}
 
 }

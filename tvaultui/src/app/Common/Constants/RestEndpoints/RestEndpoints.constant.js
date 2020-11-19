@@ -516,6 +516,10 @@ readTextFile("../apiUrls.json");
             name: 'getSecretForAzureSvcacc',
             url: '/v2/azureserviceaccounts/secrets/{azure_svc_name}/{folderName}',
             method: 'GET'
+        }, {
+            name: 'updateCertificate',
+            url: '/v2/sslcert',
+            method: 'PUT' 
         }
     ]
     });
