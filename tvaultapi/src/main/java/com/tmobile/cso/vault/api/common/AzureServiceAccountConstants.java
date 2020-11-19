@@ -6,6 +6,9 @@ import java.util.Map;
 
 public class AzureServiceAccountConstants {
 	
+	private AzureServiceAccountConstants(){	
+	}
+	
 	public static final String AZURE_SVCC_ACC_META_PATH = "metadata/azuresvcacc/";
 	public static final String AZURE_SVCC_ACC_PATH = "azuresvcacc/";
 	public static final String AZURE_SVCC_ACC_PATH_PREFIX = "azuresvcacc";
@@ -19,6 +22,8 @@ public class AzureServiceAccountConstants {
 	public static final String AZURE_GROUP_MSG_STRING = "groups";
 	
 	public static final String ADD_USER_TO_AZURESVCACC_MSG = "Add User to Azure Service Account";
+	public static final String AZURE_SVCACC_OFFBOARD_CREATION_TITLE = "Offboard Azure Service Account";
+
 	
 	public static final String USERNAME_PARAM_STRING = "{\"username\":\"";
 	
@@ -33,5 +38,8 @@ public class AzureServiceAccountConstants {
 		AZURE_EMAIL_TEMPLATE_IMAGE_IDS.put("permissiontab", "templates/images/permissiontab.png");
 		AZURE_EMAIL_TEMPLATE_IMAGE_IDS.put("adduser", "templates/images/adduser.png");
 	}
+	
+	public static final String OWNER_NT_ID = "owner_ntid";
+
 
 }
