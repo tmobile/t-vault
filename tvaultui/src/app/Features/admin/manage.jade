@@ -257,7 +257,32 @@ script(type='text/ng-template', id='certificatePopup.html')
                         .col-lg-3.col-md-3.col-sm-3.col-xs-3
                           button.common-btn.dns-add-btn(ng-click="addDns(multiSanDnsName)" ng-disabled="dnsInvalid") Add DNS
                       div.form-control.input-box-style.dns-list(id="dnslist")
-
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group(ng-if="!appNameSelected")
+                      .certificate-form-label {{ applicationNameSelectMsg==""?"Select appliation name and add/update notification emails": applicationNameSelectMsg}}
+                    .details-input-group(ng-show="appNameSelected")
+                      .certificate-form-label(uib-tooltip="Notification emails list") Notification emails
+                      div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="notificationEmails.length>0")
+                      div.dns-wrapper.addnotificationemailcert
+                        .col-lg-9.col-md-9.col-sm-9.col-xs-9
+                          .cert-input-group.cert-suffix
+                            input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmailForNotification($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
+                            div.loader.svcaccid.notification-email-loader(ng-if='isUserSearchLoading && isNotificationEmailSearch && $scope.certObj.certDetails.notificationEmail.length > 2')
+                                div.ball-spin-fade-loader
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                            div.input-cross.svcaccid.notification-email-loader(ng-if='!isUserSearchLoading && !isOwnerEmailSearch && notificationEmail.email.length > 2' ng-click="clearNotificationEmail()")
+                                div.delete-title
+                                    img.delete-icon(src="../../assets/images/delete.png")
+                          div.key-acceptance-info() {{ notificationEmailErrorMessage }}
+                        .col-lg-3.col-md-3.col-sm-3.col-xs-3
+                          button.common-btn.dns-add-btn(ng-click="addNotificationEmailCert(notificationEmail)" ng-disabled="!isNotificationEmailSelected") Add Email
             .common-form.modal-inner-wrapper.aws(ng-show='isCertificateManagePreview')  
               .common-form-row
                 .cert-conf.clearfix
@@ -277,6 +302,10 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .details-input-group
                       .certificate-form-label Application Name :
                       .cert-preview-details {{ certificateDetails.applicationName }}
+                      .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Notification Emails:
+                      .cert-preview-details(ng-if="notificationEmails.length>0" ng-repeat="email in notificationEmails") * {{ email.email }}
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Owner Email ID :
