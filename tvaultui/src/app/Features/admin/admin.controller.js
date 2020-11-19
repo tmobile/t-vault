@@ -58,6 +58,7 @@
         $scope.applicationNameSelectMsg = "";
         $scope.isNotificationEmailSearch = false;
         $scope.numOfOnboardPendingCertificates = 0;
+        $scope.isOffboardingDecommitioned = false;
         // Type of safe to be filtered from the rest
 
         $scope.safeType = {
@@ -185,6 +186,7 @@
             $scope.applicationNameSelectMsg = "";
             $scope.isNotificationEmailSearch = false;
             $scope.numOfOnboardPendingCertificates = 0;
+            $scope.isOffboardingDecommitioned = false;
             $scope.certObj = {
                 'sslcertType': 'PRIVATE_SINGLE_SAN',
                 'certDetails': {"certType":"internal",},
@@ -820,6 +822,7 @@
             if (svcaccUserId != '') {
                 Modal.close();
                 $scope.isLoadingData = true;
+                $scope.isOffboardingDecommitioned = false;
                 //var queryParameters = svcaccUserId;
                 var queryParameters = "serviceAccountName=" + svcaccUserId + "&excludeOnboarded=false";
                 var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccInfo', queryParameters);
@@ -1473,6 +1476,7 @@
         };
 
         $scope.transferSvcacc = function (svcaccToTransfer) {
+            $scope.svcaccToOffboard = "";
             $scope.transferFailedMessage = '';
             $scope.isLoadingData = true;
             Modal.close();
@@ -1493,14 +1497,23 @@
                     $scope.transferFailedPopUp();
                 }
             },
-                function (error) {
-                    // Error handling function
-                    console.log(error);
-                    $scope.isLoadingData = false;
-                    $scope.svcaccToTransfer = '';
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.isLoadingData = false;
+                $scope.svcaccToTransfer = '';
+                if (error.status == 404 || error.status == "404") {
+                    var errorMsg = error.data.errors;
+                    $scope.decommitionMessage = errorMsg[0];
+                    $scope.svcaccToOffboard = svcaccToTransfer;
+                    $scope.isOffboardingDecommitioned = true;
+                    Modal.createModal('md', 'decommissionMessagePopup.html', 'AdminCtrl', $scope);
+                }
+                else {
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                     $scope.error('md');
-                });
+                }
+            });
         }
 
         $scope.newCertificateConfiguration = function (size) {           
