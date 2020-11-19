@@ -143,6 +143,7 @@
             $scope.ifTargetSystemExisting=false;
             $scope.enableSvcacc = true;
             $scope.enableIamSvcacc = true;
+            $scope.enableAzureSvcacc=true;
             $scope.enableSelfService = true;
             $scope.isCollapsed = true;
             $scope.isCollapsedIAM = true;
@@ -621,6 +622,31 @@
                         $scope.error('md');
                     });
             }
+             //AZURE SERVICE ACCOUNT
+        if ($scope.enableAzureSvcacc == true) {
+            $scope.numOfazureSvcaccs = 0;
+            $scope.azureSvcaccOnboardedData = { "keys": [] };
+            $scope.isLoadingData = true;
+            AdminSafesManagement.getOnboardedAzureServiceAccounts().then(function (response) {
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    $scope.azureSvcaccOnboardedData = response.data;
+                    $scope.numOfAzureSvcaccs = $scope.azureSvcaccOnboardedData.keys.length;
+                    $scope.isLoadingData = false;
+                }
+                else {
+                    $scope.isLoadingData = false;
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    error('md');
+                }
+            },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.isLoadingData = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                });
+        }
             /*
             if($scope.selectedTab == 1){            	
            	 getCertificates("", null, null,"external");
@@ -940,6 +966,13 @@
             }        
             return $scope.iamcurrentshown;
         };
+        $scope.azurepaginationLimit = function () {
+            $scope.azurecurrentshown = iampageSize * iampagesShown;            
+            if (($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) || $scope.azurecurrentshown >= $scope.numOfAzureSvcaccs) {
+                $scope.azurecurrentshown = $scope.numOfAzureSvcaccs;
+            }        
+            return $scope.azurecurrentshown;
+        };
         $scope.hasMoreItemsToShow = function () {
             if ($scope.searchValue != '' && $scope.searchValue!= undefined) {
                 if ($scope.searchValue.length<3) {
@@ -961,6 +994,17 @@
                 }
             }
                return iampagesShown < ($scope.numOfIamSvcaccs / iampageSize);
+        };
+        $scope.hasMoreAzureItemsToShow = function () {
+            if ($scope.searchValue != '' && $scope.searchValue!= undefined) {
+                if ($scope.searchValue.length<3) {
+                    return iampagesShown < ($scope.numOfAzureSvcaccs / iampageSize);
+                }
+                else {
+                    return false;
+                }
+            }
+               return iampagesShown < ($scope.numOfAzureSvcaccs / iampageSize);
         };
         $scope.showMoreItems = function () {
             pagesShown = pagesShown + 1;
