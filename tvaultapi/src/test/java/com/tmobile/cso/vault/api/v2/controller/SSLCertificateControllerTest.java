@@ -63,6 +63,9 @@ public class SSLCertificateControllerTest {
     @Mock
     HttpServletRequest httpServletRequest;
     String token;
+    
+    @Mock
+    private CertificateUpdateRequest certificateUpdateRequest;
 
     @Before
     public void setUp() {
@@ -558,5 +561,17 @@ public class SSLCertificateControllerTest {
         when(sslCertificateService.onboardSSLcertificate(userDetails, token, sSLCertificateRequest)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
         assertEquals(HttpStatus.OK, SslCertificateController.onboardSSLCertificate(httpServletRequest, token, sSLCertificateRequest).getStatusCode());
+    }
+    
+    @Test
+    public void test_updateCertificate_success_Test() {
+        
+	 certificateUpdateRequest.setCertificateName("CertificateName");
+	 certificateUpdateRequest.setCertType("internal");
+	 certificateUpdateRequest.setProjectLeadEmail("user@test.com");
+
+        when(sslCertificateService.updateSSLCertificate(certificateUpdateRequest, userDetails, token)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
+        assertEquals(HttpStatus.OK, SslCertificateController.updateSSLCertificate(httpServletRequest, token, certificateUpdateRequest).getStatusCode());
     }
 }
