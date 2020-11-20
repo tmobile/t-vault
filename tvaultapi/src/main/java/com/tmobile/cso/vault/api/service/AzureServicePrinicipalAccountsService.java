@@ -762,8 +762,7 @@ public class AzureServicePrinicipalAccountsService {
 		}
 		// Owner of the service account can add/remove users, groups, aws roles and approles to service account
 		String ownerPolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.
-				getKey(TVaultConstants.SUDO_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).
-				append("_").append(serviceAccount).toString();
+				getKey(TVaultConstants.SUDO_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(serviceAccount).toString();
 		String [] policies = policyUtils.getCurrentPolicies(tokenUtils.getSelfServiceToken(), userDetails.getUsername(), userDetails);
 
 		return ArrayUtils.contains(policies, ownerPolicy);

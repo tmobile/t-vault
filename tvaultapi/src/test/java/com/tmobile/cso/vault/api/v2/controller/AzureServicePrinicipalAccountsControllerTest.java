@@ -211,5 +211,19 @@ public class AzureServicePrinicipalAccountsControllerTest {
 		String actual = result.getResponse().getContentAsString();
 		assertEquals(expected, actual);
 	}
+	@Test
+	public void test_getOnboardedAzureServiceAccounts_successful() throws Exception {
+		String responseJson = "{\"accessKeySecret\":" + "assO/OetcHce1VugthF6KE9hqv2PWWbX3ULrpe1Tss" + "}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+		String expected = responseEntityExpected.getBody();
 
+		when(azureServicePrinicipalAccountsService.getOnboardedAzureServiceAccounts(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any()))
+				.thenReturn(responseEntityExpected);		
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/azureserviceaccounts")
+				.header(VAULT_TOKEN_STRING, token)
+				.requestAttr(USER_DETAILS_STRING, userDetails)).andExpect(status().isOk()).andReturn();
+
+		String actual = result.getResponse().getContentAsString();
+		assertEquals(expected, actual);
+	}
 }
