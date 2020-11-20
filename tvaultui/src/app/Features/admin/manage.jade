@@ -261,9 +261,9 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .details-input-group(ng-if="!appNameSelected")
                       .certificate-form-label {{ applicationNameSelectMsg==""?"Select application name and add/update notification emails": applicationNameSelectMsg}}
                     .details-input-group(ng-show="appNameSelected")
-                      .certificate-form-label(uib-tooltip="Notification emails list") Notification emails
+                      .certificate-form-label(uib-tooltip="Notification emails list") Notification emails*
                       div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="notificationEmails.length>0")
-                      div.dns-wrapper.addnotificationemailcert
+                      div.dns-wrapper.addnotificationemail
                         .col-lg-9.col-md-9.col-sm-9.col-xs-9
                           .cert-input-group.cert-suffix
                             input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmailForNotification($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
@@ -278,7 +278,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                                     div
                                     div
                             div.input-cross.svcaccid.notification-email-loader(ng-if='!isUserSearchLoading && !isOwnerEmailSearch && notificationEmail.email.length > 2' ng-click="clearNotificationEmail()")
-                                div.delete-title
+                                div.delete-title(ng-click="clearNotificationEmailmessage()")
                                     img.delete-icon(src="../../assets/images/delete.png")
                           div.key-acceptance-info() {{ notificationEmailErrorMessage }}
                         .col-lg-3.col-md-3.col-sm-3.col-xs-3
@@ -305,7 +305,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                       .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Notification Emails:
-                      .cert-preview-details(ng-if="notificationEmails.length>0" ng-repeat="email in notificationEmails") * {{ email.email }}
+                      .cert-preview-details(ng-if="notificationEmails.length>0" ng-repeat="email in notificationEmails") {{ email.email }}
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Owner Email ID :
@@ -629,8 +629,8 @@ script(type='text/ng-template', id='manageSecretId.html')
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
                                     div.svcnotes T-Vault can be used to manage to read and rotate the secrets of Azure service accounts. In order to self-service your Azure service accounts there is a three-step process to onboard the account into T-Vault.
-                                      span.svc-collapse-link(ng-click="collapseNoteIAM()") >>
-                                    div.svccollapsible(uib-collapse="isCollapsedIAM")
+                                      span.svc-collapse-link(ng-click="collapseNoteAzure()") >>
+                                    div.svccollapsible(uib-collapse="isCollapsedAzure")
                                       div.svcdescription 
                                       div.svcdescription
                                         text.weighted Step 1: On-Boarding:
