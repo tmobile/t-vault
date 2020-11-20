@@ -31,12 +31,12 @@ const Wrapper = styled.section`
 `;
 
 const PrivateRoutes = () => {
-  const [idleTimer] = useState(1000 * 60 * 3);
+  const [idleTimer] = useState(1000 * 60 * 1);
   const [timeWhenLoggedIn, setTimeWhenLoggedIn] = useState(
     new Date().getTime()
   );
   const [endTime, setEndTime] = useState(
-    new Date(new Date().getTime() + 30 * 60 * 1000)
+    new Date(new Date().getTime() + 3 * 60 * 1000)
   );
 
   const calculateCountdown = () => {
@@ -98,7 +98,7 @@ const PrivateRoutes = () => {
 
   const callRenewApi = async () => {
     try {
-      setEndTime(new Date(new Date().getTime() + 30 * 60 * 1000));
+      setEndTime(new Date(new Date().getTime() + 3 * 60 * 1000));
       setTimeWhenLoggedIn(new Date().getTime());
       return await renewToken();
     } catch (err) {
@@ -107,6 +107,7 @@ const PrivateRoutes = () => {
   };
 
   const handleOnActive = async () => {
+    console.log('Active');
     if (window.location.pathname !== '/' && configData.AUTH_TYPE === 'oidc') {
       if (getRemainingTime() === 0) {
         document.title = 'VAULT';
@@ -118,11 +119,12 @@ const PrivateRoutes = () => {
 
   const handleOnAction = async () => {
     if (window.location.pathname !== '/') {
+      console.log('object');
       const diff = Math.abs(timeWhenLoggedIn - getLastActiveTime());
       const minutes = diff / 60000;
       if (configData.AUTH_TYPE !== 'oidc' && minutes > 30) {
         loggedOut();
-      } else if (configData.AUTH_TYPE === 'oidc' && minutes > 27) {
+      } else if (configData.AUTH_TYPE === 'oidc' && minutes > 1) {
         await callRenewApi();
       }
     }
