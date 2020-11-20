@@ -6066,10 +6066,11 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	}
 
     /**
-     * Approle policy update as part of offboarding
-     * @param svcAccName
-     * @param acessInfo
+     * Approle policy delete as part of certificate delete
+     * @param certificateName
      * @param token
+     * @param jsonParser
+     * @param object
      */
     private void deleteApprolePolicyAssociationOnCertificate(String certificateName, String token, JsonParser jsonParser,
 			JsonObject object) {
