@@ -10,6 +10,7 @@ import ScaledLoader from '../components/Loaders/ScaledLoader';
 import { UserContextProvider } from '../contexts';
 import { revokeToken, renewToken } from './public/HomePage/utils';
 import { addLeadingZeros } from '../services/helper-function';
+import configData from '../config/config';
 
 const Home = lazy(() => import('./public/HomePage'));
 const VaultAppRoles = lazy(() => import('./private/vault-app-roles'));
@@ -90,7 +91,7 @@ const PrivateRoutes = () => {
   };
 
   const handleOnIdle = () => {
-    if (window.location.pathname !== '/') {
+    if (window.location.pathname !== '/' && configData.AUTH_TYPE === 'oidc') {
       timer.initCountdown();
     }
   };
@@ -106,7 +107,7 @@ const PrivateRoutes = () => {
   };
 
   const handleOnActive = async () => {
-    if (window.location.pathname !== '/') {
+    if (window.location.pathname !== '/' && configData.AUTH_TYPE === 'oidc') {
       if (getRemainingTime() === 0) {
         document.title = 'VAULT';
         timer.cancelCountdown();
@@ -119,7 +120,9 @@ const PrivateRoutes = () => {
     if (window.location.pathname !== '/') {
       const diff = Math.abs(timeWhenLoggedIn - getLastActiveTime());
       const minutes = diff / 60000;
-      if (minutes > 27) {
+      if (configData.AUTH_TYPE !== 'oidc' && minutes > 30) {
+        loggedOut();
+      } else if (configData.AUTH_TYPE === 'oidc' && minutes > 27) {
         await callRenewApi();
       }
     }

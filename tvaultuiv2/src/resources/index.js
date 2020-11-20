@@ -18,19 +18,19 @@ const Resources = {
   noSafeSecretFound:
     'Add a <strong>Folder</strong> and then you will be able to add <strong>Secrets</strong> to view them all here.',
   noUsersPermissionFound:
-    'No <strong>Users</strong> are given permission to access this safe, add users to access the safe',
+    'No <strong>Users</strong> are given permission to access this safe, add users to access the safe.',
   noGroupsPermissionFound:
-    'No <strong>Groups</strong> are given permission to access this safe, add groups to access the safe',
+    'No <strong>Groups</strong> are given permission to access this safe, add groups to access the safe.',
   noAwsPermissionFound:
-    'No <strong>Applications</strong> are given permission to access this safe, add applications to access the safe',
+    'No <strong>Applications</strong> are given permission to access this safe, add applications to access the safe.',
   noAppRolePermissionFound:
-    'No <strong>App roles</strong> are given permission to access this safe, add approles to access the safe',
+    'No <strong>App roles</strong> are given permission to access this safe, add approles to access the safe.',
   transferConfirmation:
     'Are you sure you want to transfer service account owner?',
   noCertificatesFound:
     'Once you add a <strong>Certificate</strong> you’ll see the  Corresponding <strong>Details</strong> here!',
   appRoles:
-    'AppRoles operate a lot like safes, but they put the aplication as the logical unit for sharing. Additional Accersor ID and Secret ID pairs can easily be created through T-Vault, Secret IDs can only be accessed when downloaded',
+    'AppRoles operate a lot like safes, but they put the aplication as the logical unit for sharing. Additional Accersor ID and Secret ID pairs can easily be created through T-Vault, Secret IDs can only be accessed when downloaded.',
   certificateDesc:
     'Create both internal and external certificates, External certificates do require approval from an admin before activating, this may take some time. Try to limit your use of external certificates unless completely necessary.',
   noTransferOwnerAvailable:
