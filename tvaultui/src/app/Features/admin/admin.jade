@@ -892,7 +892,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                             .list-icon(ng-show="!isLoadingData && azureSvcaccOnboardedData.keys.length>0" ng-click = "editOnboardedAzureSvcacc(value, 'md')" uib-tooltip="View/Edit Service Account password rotation configuration")  View/Edit
                                             .pagination-wrapper(ng-show='hasMoreAzureItemsToShow()')
                                                 .pagination-count(ng-if="numOfAzureSvcaccs>0") Displaying {{azurecurrentshown}} of {{numOfAzureSvcaccs}}
-                                                .pagination-button-wrapper(ng-click='showMoreIAMItems()')
+                                                .pagination-button-wrapper(ng-click='showMoreAzureItems()')
                                                     button.show-more-btn VIEW MORE
                                                     span
                                                         img(src="assets/icons/front-arrow.svg")

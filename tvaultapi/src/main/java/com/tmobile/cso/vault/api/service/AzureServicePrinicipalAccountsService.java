@@ -1995,7 +1995,6 @@ public class AzureServicePrinicipalAccountsService {
 		List<String> onboardedlist = new ArrayList<>();
 		for (String policy : latestPolicies) {
 			
-			//Need to change policy name for Azure services  public static final String AZURE_SVCC_ACC_META_PATH = "metadata/azuresvcacc/"; //
 			if (policy.startsWith("o_azuresvcacc")) {
 				onboardedlist.add(policy.substring(14));
 			}
@@ -2005,17 +2004,12 @@ public class AzureServicePrinicipalAccountsService {
 		response.setSuccess(true);
 		response.setResponse("{\"keys\":" + JSONUtil.getJSON(onboardedlist) + "}");
 		
-		if (HttpStatus.OK.equals(response.getHttpstatus())) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "listOnboardedAzureServiceAccounts")
 					.put(LogMessage.MESSAGE, "Successfully retrieved the list of Azure Service Accounts")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-		} else if (HttpStatus.NOT_FOUND.equals(response.getHttpstatus())) {
-			return ResponseEntity.status(HttpStatus.OK).body("{\"keys\":[]}");
-		}
-		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
 
 

@@ -998,13 +998,13 @@
         $scope.hasMoreAzureItemsToShow = function () {
             if ($scope.searchValue != '' && $scope.searchValue!= undefined) {
                 if ($scope.searchValue.length<3) {
-                    return iampagesShown < ($scope.numOfAzureSvcaccs / iampageSize);
+                    return azurepagesShown < ($scope.numOfAzureSvcaccs / azurepageSize);
                 }
                 else {
                     return false;
                 }
             }
-               return iampagesShown < ($scope.numOfAzureSvcaccs / iampageSize);
+               return azurepagesShown < ($scope.numOfAzureSvcaccs / azurepagesShown);
         };
         $scope.showMoreItems = function () {
             pagesShown = pagesShown + 1;
@@ -1013,7 +1013,9 @@
         $scope.showMoreIAMItems = function () {
             iampagesShown = iampagesShown + 1;
         };
-                    
+        $scope.showMoreAzureItems = function () {
+            azurepagesShown = azurepagesShown + 1;
+        };         
         $scope.certpaginationLimit = function (data) {
             $scope.certcurrentshown = certpageSize * certpagesShown;            
             if (($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) || $scope.certcurrentshown >= $scope.numOfCertificates) {
