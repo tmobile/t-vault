@@ -549,6 +549,8 @@
         }       
 
         $rootScope.goToCertPermissions = function () {
+        	alert("notif emails="+$scope.certificate.notificationEmails);
+        	$scope.requestDataFrChangeCertificate();
             $scope.isLoadingData = true;
             $rootScope.showDetails = false;               // To show the 'permissions' and hide the 'details'
             $rootScope.activeDetailsTab = 'permissions';
@@ -653,20 +655,19 @@
                                 
                                 	$scope.notificationEmails = [];
                                     var notificationStr = $scope.certificate.notificationEmails; 
+                                    alert(" here :"+$scope.certificate.notificationEmails);
                                     angular.element('#notificationEmailList').empty();
-                                    notificationStr = addOwnerTonotificationList(notificationStr);
+//                                    notificationStr = addOwnerTonotificationList(notificationStr);
                                     $scope.notificationList  = notificationStr.split(',')
                                     $scope.certificate.notificationEmails = $scope.notificationList;
                                     var i = 0;
+                                    if(notificationStr!="" && notificationStr!=undefined){
                                     $scope.certificate.notificationEmails.forEach(function (email) {
                                     var id = "dns"+ (i++);
-                                    $scope.notificationEmails.push({ "id": id, "email":email});
-                                    if(($scope.certificate.ownerEmail.toLowerCase() == email.toLowerCase())){
-                                    	angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email+'</div></div>')($scope));	
-                                    }else{
+                                    $scope.notificationEmails.push({ "id": id, "email":email});       
                                     angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
-                                    }
                                     });
+                            }
                                     $scope.certificate.notificationEmails = notificationStr;
                                 
 
@@ -1134,7 +1135,14 @@
 
         $scope.renewCertPopup = function (certDetails) {
             $scope.fetchDataError = false;
-            $rootScope.certDetails = certDetails;            
+            $rootScope.certDetails = certDetails;  
+            $scope.ownerEmailErrorMessage ="";
+            if($scope.notificationEmail!=undefined){
+                $scope.notificationEmail.email = "";
+                }
+            $scope.notificationEmailErrorMessage = '';
+            $scope.leadEmailErrorMessage ="";
+            angular.element('#notificationEmailList').empty();
             if((certDetails.certType === "external")){
                 var Difference_In_Time =  new Date().getTime()  - new Date(certDetails.createDate).getTime();
                 var Difference_In_Days = Math.round(Difference_In_Time / (1000 * 3600 * 24));
@@ -1219,6 +1227,12 @@
             $scope.isLoadingData = true;
             $scope.revocationMessage = '';
             $scope.revocationStatusMessage = '';
+            $scope.ownerEmailErrorMessage ="";
+            if($scope.notificationEmail!=undefined){
+                $scope.notificationEmail.email = "";
+                }
+            $scope.notificationEmailErrorMessage = '';
+            $scope.leadEmailErrorMessage ="";
             var certificateName = $scope.getCertSubjectName(certificateDetails);
             $scope.certificateNameForRevoke = certificateName;
             $scope.certificateTypeForRevoke = certificateDetails.certType;
@@ -1691,13 +1705,20 @@
                 var notificationEmailElement = angular.element( document.querySelector( '#'+id ) );
                 notificationEmailElement.remove();
                 var index = id.substring(3);
+                $scope.notificationEmailstr = "";
                 $scope.selectedNotificationEmails = [];
                 for (var i=0;i<$scope.notificationEmails.length;i++) {
-                    if (index != $scope.notificationEmails[i].id) {
-                        $scope.selectedNotificationEmails.push($scope.notificationEmails[i]);
+                    if (id != $scope.notificationEmails[i].id) {
+                        $scope.selectedNotificationEmails.push($scope.notificationEmails[i].email);
+                        if(i==0){
+                        	$scope.notificationEmailstr=$scope.notificationEmails[i].email;
+                        }else{
+                        	$scope.notificationEmailstr=$scope.notificationEmailstr+","+$scope.notificationEmails[i].email;
+                        }
                     }
                 }
                 $scope.notificationEmails = $scope.selectedNotificationEmails;
+                $scope.certificate.notificationEmails = $scope.notificationEmailstr;
                 $scope.isNotificationEmailSelected = false;
             }
 

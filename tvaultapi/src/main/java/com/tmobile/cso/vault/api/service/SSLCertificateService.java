@@ -9342,7 +9342,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 				if (!isPermission) {
 					return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 							.body("{\"errors\":[\""
-									+ "Access denied: No permission to renew certificate"
+									+ "Access denied: No permission to update certificate"
 									+ "\"]}");
 				}
 			}
@@ -9403,12 +9403,12 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
                     build()));
 
 			return ResponseEntity.status(HttpStatus.OK)
-					.body("{\"messages\":[\"" + "Certificate metadata updated successfully" + "\"]}");
+					.body("{\"messages\":[\"" + "Certificate details updated successfully" + "\"]}");
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
 					.put(LogMessage.ACTION, "updateSSLCertificate")
-					.put(LogMessage.MESSAGE, "Certificate metadata updation failed")
+					.put(LogMessage.MESSAGE, "Certificate details updation failed")
 					.put(LogMessage.STATUS, HttpStatus.INTERNAL_SERVER_ERROR.toString())
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 					.build()));
