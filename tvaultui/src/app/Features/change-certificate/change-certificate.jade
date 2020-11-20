@@ -247,7 +247,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                 .page-content-container
                   .clearfix.details-wrapper
                     loading-state(ng-if='isLoadingData')
-                    .safe-left-content-container.border-right.col-lg-6.col-sm-5
+                    .safe-left-content-container.col-lg-6.col-sm-5
                       .common-section-label CERTIFICATE DETAILS
                       .common-form
                         .row
@@ -278,7 +278,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                             .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
                               .row
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
-                                    .common-form-label Aplication Owner
+                                    .common-form-label Application Owner
                                     input.form-control.input-box-style(id="appOwnerEmail" ng-model="certificate.appOwnerEmail" ng-click="clearOwnerEmail()" name="appOwnerEmail" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchOwnerEmailForCert($viewValue) | limitTo: 8" typeahead-wait-ms="500" placeholder="Email address - Enter min 3 characters"  typeahead-on-select="selectOwnerforCert(certificate.appOwnerEmail)")
                                     
                                     div.loader(ng-if='isOwnerSearchLoading && isOwnerEmailSearch && certificate.appOwnerEmail.length > 2')
