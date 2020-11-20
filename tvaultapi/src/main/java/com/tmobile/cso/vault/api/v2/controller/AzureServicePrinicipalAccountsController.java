@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tmobile.cso.vault.api.model.AzureServiceAccount;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountOffboardRequest;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountUser;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.AzureServicePrinicipalAccountsService;
 
@@ -113,6 +114,18 @@ public class AzureServicePrinicipalAccountsController {
 	public ResponseEntity<String> offboardAzureServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AzureServiceAccountOffboardRequest azureServiceAccountOffboardRequest ){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return azureServicePrinicipalAccountsService.offboardAzureServiceAccount(token, azureServiceAccountOffboardRequest, userDetails);
+	}
+
+	/**
+	 * Add user to Azure Service Principal
+	 * @param azureServiceAccountUser
+	 * @return
+	 */
+	@PostMapping(value="/v2/azureserviceaccounts/user",produces="application/json")
+	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.addUserToAzureServicePrincipal.value}", notes = "${AzureServicePrinicipalAccountsController.addUserToAzureServicePrincipal.notes}")
+	public ResponseEntity<String> addUserToAzureServicePrincipal(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid AzureServiceAccountUser azureServiceAccountUser){
+	   UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+	   return azureServicePrinicipalAccountsService.addUserToAzureServiceAccount(token, userDetails, azureServiceAccountUser, false);
 	}
 
 }

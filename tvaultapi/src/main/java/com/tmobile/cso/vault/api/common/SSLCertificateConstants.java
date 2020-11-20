@@ -106,4 +106,6 @@ public final class SSLCertificateConstants {
     public static final String REMOVE_AWS_ROLE_FROM_CERT_MSG = "Remove AWS Role from Certificate";
     public static final String GET_ALL_PENDING_CERT_MSG = "Get All Pending Certificates";
     public static final String VENAFIBIN_CONTAINER="VenafiBin_12345";
+    public static final String CERTIFICATE_TYPE_INTERNAL="Private Certificates";
+	public static final String CERTIFICATE_TYPE_EXTERNAL = "Public Certificates";
 }
