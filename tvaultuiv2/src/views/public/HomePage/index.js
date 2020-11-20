@@ -32,7 +32,6 @@ import configData from '../../../config/config';
 import LoginModal from './LoginModal';
 import SnackbarComponent from '../../../components/Snackbar';
 import { renewToken } from './utils';
-import { ldapResponse, userpassResponse } from './__mock/loginResponse';
 
 const { smallAndMedium, small } = mediaBreakpoints;
 
@@ -469,16 +468,19 @@ const LoginPage = () => {
   const ldapApiCall = (payload) => {
     axios
       .post(`${configUrl.baseUrl}/auth/ldap/login`, payload)
-      .then(() => {
-        // TODO: ONCE THE API IS ACTIVE REPLACE MOCK DATA ldapResponse WITH RESPONSE
-        sessionStorage.setItem('token', ldapResponse.client_token);
-        if (ldapResponse.admin === 'yes') {
-          sessionStorage.setItem('isAdmin', true);
-        } else {
-          sessionStorage.setItem('isAdmin', false);
+      .then(async (res) => {
+        if (res?.data) {
+          sessionStorage.setItem('token', res.data.client_token);
+          if (res.data.admin === 'yes') {
+            sessionStorage.setItem('isAdmin', true);
+          } else {
+            sessionStorage.setItem('isAdmin', false);
+          }
+          sessionStorage.setItem('access', JSON.stringify(res.data.access));
+          sessionStorage.setItem('username', payload.username.toLowerCase());
+          await getOwnerAllDetails(payload.username.toLowerCase());
+          window.location = '/safes';
         }
-        sessionStorage.setItem('policies', ldapResponse.policies);
-        window.location = '/safes';
       })
       .catch((err) => {
         if (err.response.data.errors && err.response.data.errors[0]) {
@@ -492,21 +494,22 @@ const LoginPage = () => {
   const userpassApiCall = (payload) => {
     axios
       .post(`${configUrl.baseUrl}/auth/userpass/login`, payload)
-      .then(() => {
-        // TODO: ONCE THE API IS ACTIVE REPLACE MOCK DATA userpassResponse WITH RESPONSE
-        sessionStorage.setItem('token', userpassResponse.response.client_token);
-        if (userpassResponse.response.admin === 'yes') {
+      .then(async (res) => {
+        const val = res.data.split('response=');
+        const data = val[1].split(', adminPolicies');
+        const responseData = JSON.parse(data[0]);
+        sessionStorage.setItem('token', responseData.client_token);
+        if (responseData.admin === 'yes') {
           sessionStorage.setItem('isAdmin', true);
         } else {
           sessionStorage.setItem('isAdmin', false);
         }
-        sessionStorage.setItem('policies', userpassResponse.response.policies);
+        sessionStorage.setItem('access', JSON.stringify(responseData.access));
+        sessionStorage.setItem('username', payload.username.toLowerCase());
+        await getOwnerAllDetails(payload.username.toLowerCase());
         window.location = '/safes';
       })
-      .catch((err) => {
-        if (err.response.data.errors && err.response.data.errors[0]) {
-          setToastMessage(err.response.data.errors[0]);
-        }
+      .catch(() => {
         setResponseType(-1);
         setResponse({ status: 'home' });
       });

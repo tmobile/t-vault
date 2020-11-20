@@ -501,7 +501,7 @@ const OnBoardForm = (props) => {
         serviceAccountDetails: { ...svcObj },
       },
     });
-    if (svcObj?.accountStatus.toLowerCase() === 'expired') {
+    if (svcObj?.accountStatus?.toLowerCase() === 'expired') {
       setStatus({
         status: 'failed',
         message: 'Expired service accounts cannot be onboarded',
@@ -619,7 +619,7 @@ const OnBoardForm = (props) => {
       timeError ||
       !inputServiceName ||
       !inputApplicationName ||
-      serviceAccountDetails?.accountStatus.toLowerCase() === 'expired'
+      serviceAccountDetails?.accountStatus?.toLowerCase() === 'expired'
     );
   };
   // render grid row of service account details
@@ -1018,8 +1018,8 @@ const OnBoardForm = (props) => {
                     buttonType="containedSecondary"
                     onClick={(e) => handleSaveClick(e)}
                   />
-                  {userState?.username.toLowerCase() ===
-                    serviceAccountDetails?.managedBy?.userId.toLowerCase() &&
+                  {userState?.username?.toLowerCase() ===
+                    serviceAccountDetails?.managedBy?.userId?.toLowerCase() &&
                   !isActiveServiceAccount ? (
                     <OwnerActionsWrap>
                       <BtnWrap>

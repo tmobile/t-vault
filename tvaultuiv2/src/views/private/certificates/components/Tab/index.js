@@ -218,7 +218,7 @@ const CertificateSelectionTabs = (props) => {
       const available = Object.keys(certificateMetaData.users).find(
         (key) =>
           certificateMetaData.users[key] === 'write' &&
-          key.toLowerCase() === state.username.toLowerCase()
+          key.toLowerCase() === state?.username?.toLowerCase()
       );
       if (available) {
         setHasPermission(true);
