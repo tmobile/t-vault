@@ -101,7 +101,7 @@ public class AzureServicePrinicipalAccountsService {
 	@Value("${azurePortal.auth.masterPolicy}")
 	private String azureMasterPolicyName;
 	
-	private static final String[] ACCESS_PERMISSIONS = { "read", AzureServiceAccountConstants.AZURE_ROTATE_MSG_STRING, "deny", "sudo" };
+	private static final String[] ACCESS_PERMISSIONS = { "read", "rotate", "deny", "sudo" };
 	
 	private static Logger log = LogManager.getLogger(AzureServicePrinicipalAccountsService.class);
 
@@ -664,7 +664,7 @@ public class AzureServicePrinicipalAccountsService {
 	}
 	
 	/**
-	 * Add user to Azure Service account.
+	 * Add user to Azure Service principal.
 	 *
 	 * @param token
 	 * @param userDetails
@@ -683,7 +683,7 @@ public class AzureServicePrinicipalAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_USER_TO_AZURESVCACC_MSG)
-				.put(LogMessage.MESSAGE, String.format("Trying to add user to ServiceAccount [%s]", azureServiceAccountUser.getAzureSvcAccName()))
+				.put(LogMessage.MESSAGE, String.format("Trying to add user to Azure Service principal [%s]", azureServiceAccountUser.getAzureSvcAccName()))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
 		if (!isAzureSvcaccPermissionInputValid(azureServiceAccountUser.getAccess())) {
@@ -756,7 +756,7 @@ public class AzureServicePrinicipalAccountsService {
 	 */
 	public boolean isAuthorizedToAddPermissionInAzureSvcAcc(UserDetails userDetails, String serviceAccount,
 			boolean isPartOfOnboard) {
-		//  admin users can add sudo policy for owner while onboarding the service account
+		// Admin users can add sudo policy for owner while onboarding the azure service principal
 		if (isPartOfOnboard) {
 			return true;
 		}
@@ -765,15 +765,13 @@ public class AzureServicePrinicipalAccountsService {
 				getKey(TVaultConstants.SUDO_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).
 				append("_").append(serviceAccount).toString();
 		String [] policies = policyUtils.getCurrentPolicies(tokenUtils.getSelfServiceToken(), userDetails.getUsername(), userDetails);
-		if (ArrayUtils.contains(policies, ownerPolicy)) {
-			return true;
-		}
-		return false;
+
+		return ArrayUtils.contains(policies, ownerPolicy);
 	}
 
 	
 	/**
-	 * To check if the  service account is activated.
+	 * To check if the Azure service principal is activated.
 	 *
 	 * @param token
 	 * @param userDetails
@@ -894,20 +892,20 @@ public class AzureServicePrinicipalAccountsService {
 		AzureServiceAccountUser azureServiceAccountUser, OIDCEntityResponse oidcEntityResponse,
 		String azureSvcaccName, Response userResponse) {
 
-		String policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(azureServiceAccountUser.getAccess())).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcaccName).toString();
+		String policy = new StringBuilder().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(azureServiceAccountUser.getAccess())).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcaccName).toString();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_USER_TO_AZURESVCACC_MSG)
-				.put(LogMessage.MESSAGE, String.format("Trying to [%s] policy to user [%s] for the  service account [%s]", policy, azureServiceAccountUser.getUsername(), azureServiceAccountUser.getAzureSvcAccName()))
+				.put(LogMessage.MESSAGE, String.format("Trying to [%s] policy to user [%s] for the Azure service principal [%s]", policy, azureServiceAccountUser.getUsername(), azureServiceAccountUser.getAzureSvcAccName()))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
-		String readPolicy = new StringBuffer()
+		String readPolicy = new StringBuilder()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
 				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcaccName).toString();
-		String writePolicy = new StringBuffer()
+		String writePolicy = new StringBuilder()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
 				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcaccName).toString();
-		String denyPolicy = new StringBuffer()
+		String denyPolicy = new StringBuilder()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
 				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcaccName).toString();
 
@@ -958,12 +956,12 @@ public class AzureServicePrinicipalAccountsService {
 		return configureUserPoliciesForAddUserToAzureSvcAcc(token, userDetails, azureServiceAccountUser, oidcEntityResponse,
 				groups, policies, currentpolicies);
 	}
-	
+
 	/**
-	 * Method to update policies for add user to  service account.
+	 * Method to update policies for add user to Azure service principal.
 	 * @param token
 	 * @param userDetails
-	 * @param ServiceAccountUser
+	 * @param azureServiceAccountUser
 	 * @param oidcEntityResponse
 	 * @param groups
 	 * @param policies
@@ -1119,11 +1117,12 @@ public class AzureServicePrinicipalAccountsService {
 			// sudo as part of onboard is allowed.
 			return false;
 		}
+		boolean isPermissionChanged = false;
 		// if owner is grating read/ deny to himself, not allowed. Write is allowed as part of activation.
 		if (azureServiceAccountUser.getUsername().equalsIgnoreCase(currentUsername) && !azureServiceAccountUser.getAccess().equals(TVaultConstants.WRITE_POLICY)) {
-			return true;
+			isPermissionChanged = true;
 		}
-		return false;
+		return isPermissionChanged;
 	}
 	
 	

@@ -991,9 +991,9 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                       .container.name No Certificates Available for onboard
                                               .row.change-data.header.solid-header(ng-show="!isLoadingData && !isApplicationsLoading && certificatesToOnboard.length>0")
                                                   .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3 CERTIFICATE
-                                                  .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 Type
-                                                  .container.name.col-lg-5.col-md-5.col-sm-5.col-xs-5 Validity
-                                                  .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 Action
+                                                  .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 TYPE
+                                                  .container.name.col-lg-5.col-md-5.col-sm-5.col-xs-5 VALIDITY
+                                                  .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
                                               .row.change-data.item(ng-show="!isLoadingData && !isApplicationsLoading" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="cert in certificatesToOnboard |  filter: {certificateName:searchValue} | limitTo: certpaginationLimitForOnboard()")
                                                       .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3(title="{{ cert.certificateName }}") {{ cert.certificateName }}
                                                       .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2(ng-if="cert.certType=='internal'") Internal
