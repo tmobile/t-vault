@@ -6529,7 +6529,8 @@ public class SSLCertificateServiceTest {
 
         when(reqProcessor.process(eq("/access/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
 
-        ResponseEntity<?> enrollResponse = sSLCertificateService.unLinkCertificate(userInfo, token, "test.t-mobile.com", "internal");
+        ResponseEntity<?> enrollResponse = sSLCertificateService.unLinkCertificate(userInfo, token, "test.t-mobile" +
+                ".com", "internal","Test");
         assertEquals(enrollResponse.getStatusCode(), HttpStatus.OK);
 
     }
@@ -6561,7 +6562,8 @@ public class SSLCertificateServiceTest {
 
         when(reqProcessor.process(eq("/access/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
 
-        ResponseEntity<?> enrollResponse = sSLCertificateService.unLinkCertificate(userInfo, token, "test.t-mobile.com", "internal");
+        ResponseEntity<?> enrollResponse = sSLCertificateService.unLinkCertificate(userInfo, token, "test.t-mobile" +
+                ".com", "internal","Test");
         assertEquals(enrollResponse.getStatusCode(), HttpStatus.UNAUTHORIZED);
 
     }

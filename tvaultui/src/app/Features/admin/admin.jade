@@ -222,6 +222,34 @@ script(type='text/ng-template', id='transferCertPopup.html')
             .clearfix
               button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelCert()") Cancel     
 
+script(type='text/ng-template', id='releasePopUp.html')
+          .modal-sep
+            .common-header-label.text-center Release Detail
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws
+              .common-form-row
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label Certificate Name
+                    input.form-control.input-box-style(ng-model="certDetails.certificateName" ng-disabled="true" name="certificateName" required)
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label Certificate Type
+                    input.form-control.input-box-style(ng-model="certificateTypeVal" ng-disabled="true"
+                    name="certType" required)
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label Reason release *
+                    input.form-control.input-box-style(ng-model="certObj.certDetails.releaseReason"    name="certificateReleaseReason"  ng-change="reasonValidation()" required)
+               .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label
+           .text-center.bottom-lg-sep.modal-sep.aws
+            .clearfix.bottom-sm-sep
+              button.common-btn.btn.btn-primary.btn-lg(id="cert_release_btn" ng-click="unClaimCert(certDetails)"
+              ng-disabled="releaseReasonInValid") Release
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelCert()") Cancel
 script(type='text/ng-template', id='transferCertSuccessPopup.html')
   loading-state(ng-if="isLoadingModalData")
   .top-lg-sep(ng-if="!isLoadingModalData")
@@ -971,7 +999,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           .down.view
                                                               .list-icon(ng-click="transferCertPopup(value)") Transfer Owner
                                                           .down.view
-                                                              .list-icon(ng-click="unClaimCert(value)") Release
+                                                              .list-icon(ng-click="releasePopUp(value)") Release
                                               .pagination-wrapper(ng-show='hasMoreCertsToShow()')
                                                   .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshown}} of {{numOfCertificates}}
                                                   .pagination-button-wrapper(ng-click='showMoreCertItems()')
@@ -1018,7 +1046,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                           .down.view
                                                               .list-icon(ng-click="transferCertPopup(value)") Transfer Owner
                                                           .down.view
-                                                              .list-icon(ng-click="unClaimCert(value)") Release
+                                                              .list-icon(ng-click="releasePopUp(value)") Release
                                               .pagination-wrapper(ng-show='hasMoreCertsToShowExt()')
                                                   .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshownExt}} of {{numOfCertificates}}
                                                   .pagination-button-wrapper(ng-click='showMoreCertItemsExt()')
