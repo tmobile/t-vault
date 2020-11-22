@@ -25,6 +25,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.ParseException;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
@@ -347,7 +349,7 @@ public class SSLCertificateControllerTest {
 	}
 
 	@Test
-	public void test_renewCertificate_Success() {
+	public void test_renewCertificate_Success() throws ParseException {
 		String certName = "test@t-mobile.com";		
 		String certficateType = "internal";
 		when(sslCertificateService.renewCertificate(certficateType, certName, userDetails, token))
@@ -565,13 +567,23 @@ public class SSLCertificateControllerTest {
     
     @Test
     public void test_updateCertificate_success_Test() {
-        
-	 certificateUpdateRequest.setCertificateName("CertificateName");
-	 certificateUpdateRequest.setCertType("internal");
-	 certificateUpdateRequest.setProjectLeadEmail("user@test.com");
+
+        certificateUpdateRequest.setCertificateName("CertificateName");
+        certificateUpdateRequest.setCertType("internal");
+        certificateUpdateRequest.setProjectLeadEmail("user@test.com");
 
         when(sslCertificateService.updateSSLCertificate(certificateUpdateRequest, userDetails, token)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
         assertEquals(HttpStatus.OK, SslCertificateController.updateSSLCertificate(httpServletRequest, token, certificateUpdateRequest).getStatusCode());
     }
+
+    @Test
+    public void test_releaseCertificate_success_Test() {
+        when(sslCertificateService.unLinkCertificate(userDetails,token,"test.t-mobile.com","internal","TEST")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
+        assertEquals(HttpStatus.OK,
+                SslCertificateController.unlinkCertificate(httpServletRequest,token,"test.t-mobile.com","internal",
+                        "TEST").getStatusCode());
+    }
+
 }

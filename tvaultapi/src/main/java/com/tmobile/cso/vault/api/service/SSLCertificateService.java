@@ -18,7 +18,6 @@
 package com.tmobile.cso.vault.api.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -75,6 +74,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -4500,7 +4501,20 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		return ResponseEntity.status(HttpStatus.FORBIDDEN)
 				.body("{\"errors\":[\"Access denied: Unable to read certificate details.\"]}");
 	}
-    
+
+
+    /**
+     * This method will be used to validate the no.of days for external certificates
+     * @param metadataParams
+     * @return
+     * @throws ParseException
+     */
+    private long validateNoOfDays(Map<String, String> metadataParams) throws ParseException {
+        String createDate = metadataParams.get("createDate");
+        Date date1 = new SimpleDateFormat("yyyy-MM-dd").parse(createDate.substring(0, 10));
+        return ((new Date().getTime() - date1.getTime()) / (1000 * 60 * 60 * 24)) % 365;
+    }
+
     /**
 	 * Renew SSL Certificate and update metadata
 	 * 
@@ -4511,7 +4525,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	 * @throws JsonMappingException
 	 * @throws JsonParseException
 	 */
-	public ResponseEntity<String> renewCertificate(String certType, String certificateName, UserDetails userDetails, String token) {
+	public ResponseEntity<String> renewCertificate(String certType, String certificateName, UserDetails userDetails, String token) throws ParseException {
 
 		Map<String, String> metaDataParams = new HashMap<>();
 		Boolean isPermission = true;
@@ -4564,7 +4578,19 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		JsonParser jsonParser = new JsonParser();
 		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
 		metaDataParams = new Gson().fromJson(object.toString(), Map.class);		
-		
+        if(Objects.nonNull(metaDataParams.get("requestStatus")) && (!metaDataParams.get("requestStatus").equalsIgnoreCase(SSLCertificateConstants.REQUEST_PENDING_APPROVAL))
+                && metaDataParams.get("certType").equalsIgnoreCase("external")){
+            long noOfDays = validateNoOfDays(metaDataParams);
+            if(noOfDays<=30){
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                        .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                        .put(LogMessage.ACTION, "validateNoOfDays")
+                        .put(LogMessage.MESSAGE, "Invalid user inputs")
+                        .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"External certificate can be renewed only after a month of  certificate  creation\"]}");
+            }
+        }
+
 		String certID = object.get("certificateId").getAsString();
 		int containerId = object.get("containerId").getAsInt();
         float value = Float.valueOf(certID);
@@ -6455,7 +6481,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
      * @return
      */
     public ResponseEntity<String> unLinkCertificate(UserDetails userDetails, String token, String certificateName,
-                                                    String certType) throws Exception {
+                                                    String certType,String releaseReason) {
         try {
 
             boolean isValid = ControllerUtil.validateInputs(certificateName,certType);
@@ -6489,13 +6515,6 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 token = userDetails.getSelfSupportToken();
             }
 
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-                    .put(LogMessage.ACTION, "unLinkCertificate")
-                    .put(LogMessage.MESSAGE, String.format("unLinkCertificate-> certificateName = [%s] = certType = [%s] " +
-                                    "= unlink by = [%s] = on date = [%s]", certificateName, certType, userDetails.getUsername(),
-                            LocalDateTime.now()))
-                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
             //Metadata path
             String metaDataPath = (certType.equalsIgnoreCase("internal")) ?
@@ -6552,6 +6571,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                     .put(LogMessage.ACTION, "unLinkCertificate")
                     .put(LogMessage.MESSAGE, String.format("deleteCertificateDetailsFromCertMetaPath->metadataResponse Completed for " +
                             "certificate = [%s] = responseStatus = [%s]", certificateName, metadataResponse.getResponse()))
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "unLinkCertificate")
+                    .put(LogMessage.MESSAGE, String.format("unLinkCertificate-> Certificate released from application" +
+                                    " successfully - details = certificate name = [%s] = certType = [%s] = release by = [%s] = on date = [%s] = reason = [%s]",
+                            certificateName, certType,userDetails.getUsername(),LocalDateTime.now(),releaseReason))
                     .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
             return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Certificate [" + certificateName + "] details " +
