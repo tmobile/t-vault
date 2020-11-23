@@ -610,7 +610,7 @@ public class  ServiceAccountsService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "offboardServiceAccount").
-						put(LogMessage.MESSAGE, String.format ("Successfully completed offboarding of AD service account from TVault for password rotation.")).
+						put(LogMessage.MESSAGE, String.format ("Successfully completed offboarding of AD service account [%s] by [%s] from TVault for password rotation.", serviceAccount.getName(), userDetails.getUsername())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}");
@@ -1286,6 +1286,22 @@ public class  ServiceAccountsService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account\"]}");
 		}
 
+		// check if service account decommitioned in AD.
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new LikeFilter("userPrincipalName", svcAccName + "*"));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new NotFilter(new EqualsFilter("CN", adMasterServiveAccount)));
+		List<ADServiceAccount> allServiceAccounts = getADServiceAccounts(andFilter);
+		if (allServiceAccounts == null || allServiceAccounts.isEmpty() || !allServiceAccounts.stream().anyMatch(s-> s.getDisplayName().equalsIgnoreCase(svcAccName))) {
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "resetSvcAccPassword").
+					put(LogMessage.MESSAGE, String.format("Unable to reset the password for the service account [%s] since it does not exist in Active Directory", svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"Unable to reset the password for the service account since it does not exist in Active Directory\"]}");
+		}
+
 		long ttl = onbSvcAccDtls.getTtl();
 		ServiceAccount serviceAccount = new ServiceAccount();
 		serviceAccount.setName(svcAccName);
@@ -1482,6 +1498,22 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to read service account password. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+		}
+
+		// check if service account decommitioned in AD.
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new LikeFilter("userPrincipalName", svcAccName + "*"));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new NotFilter(new EqualsFilter("CN", adMasterServiveAccount)));
+		List<ADServiceAccount> allServiceAccounts = getADServiceAccounts(andFilter);
+		if (allServiceAccounts == null || allServiceAccounts.isEmpty() || !allServiceAccounts.stream().anyMatch(s-> s.getDisplayName().equalsIgnoreCase(svcAccName))) {
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "readSvcAccPassword").
+					put(LogMessage.MESSAGE, String.format("Unable to read the password for the service account [%s] since it does not exist in Active Directory", svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"Unable to read the password for the service account since it does not exist in Active Directory\"]}");
 		}
 
 		Response response = reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token);
@@ -3273,6 +3305,22 @@ public class  ServiceAccountsService {
 		if (!userDetails.isAdmin()) {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied. No permission to transfer service account.\"]}");
 		}
+		// check if service account decommitioned in AD.
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new LikeFilter("userPrincipalName", svcAccName + "*"));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new NotFilter(new EqualsFilter("CN", adMasterServiveAccount)));
+		List<ADServiceAccount> getServiceAccounts = getADServiceAccounts(andFilter);
+		if (getServiceAccounts == null || getServiceAccounts.isEmpty() || !getServiceAccounts.stream().anyMatch(s-> s.getDisplayName().equalsIgnoreCase(svcAccName))) {
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "transferSvcAccountOwner").
+					put(LogMessage.MESSAGE, String.format("Unable to transfer the service account [%s] since it does not exist in Active Directory", svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"The Service account does not exist in Active Directory and can't be managed from T-Vault\"]}");
+		}
+
 		boolean isSvcAccOwnerChanged = false;
 		ServiceAccountMetadataDetails serviceAccountMetadataDetails = getServiceAccountMetadataDetails(token, userDetails, svcAccName);
 		OnboardedServiceAccountDetails onbSvcAccDtls = getOnboarderdServiceAccountDetails(token, svcAccName);
