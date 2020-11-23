@@ -9307,7 +9307,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
      * @param token
      * @return
      */
-    public ResponseEntity<String> updateSSLCertificate(CertificateUpdateRequest certificateUpdateRequest, UserDetails userDetails,  String token) {  
+	public ResponseEntity<String> updateSSLCertificate(CertificateUpdateRequest certificateUpdateRequest, UserDetails userDetails,  String token) {  
 
     	boolean isValidData = false;
     	int count =0;
@@ -9376,12 +9376,22 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
 			metaDataParams = new Gson().fromJson(object.toString(), Map.class);	
 			boolean sslMetaDataUpdationStatus;
-			if(certificateUpdateRequest.getApplicationOwnerEmail()!=null ) {
+			if(userDetails.isAdmin()) {
+			if(certificateUpdateRequest.getApplicationOwnerEmail()!=null  ) {
 			metaDataParams.put("applicationOwnerEmailId", certificateUpdateRequest.getApplicationOwnerEmail());
 			}
 			if(certificateUpdateRequest.getProjectLeadEmail()!=null) {
 			metaDataParams.put("projectLeadEmailId", certificateUpdateRequest.getProjectLeadEmail());
-			}if(certificateUpdateRequest.getNotificationEmail()!=null ){						
+			}
+			}else if(!((certificateUpdateRequest.getApplicationOwnerEmail()==null ?true: certificateUpdateRequest.getApplicationOwnerEmail().equalsIgnoreCase(metaDataParams.get("applicationOwnerEmailId")))
+					&& (certificateUpdateRequest.getProjectLeadEmail()==null ?true: certificateUpdateRequest.getProjectLeadEmail().equalsIgnoreCase(metaDataParams.get("projectLeadEmailId"))))){
+			
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+						.body("{\"errors\":[\""
+								+ "Access denied: No permission to update application owner email or project lead email"
+								+ "\"]}");
+			}
+			if(certificateUpdateRequest.getNotificationEmail()!=null ){						
 			metaDataParams.put("notificationEmails", String.join(",", notifEmailLst));
 			}
 		try {
