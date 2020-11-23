@@ -130,6 +130,7 @@
              $scope.notificationEmailErrorMessage = "";
              $scope.ownerEmailErrorMessage = "";
              $scope.leadEmailErrorMessage = "";
+             $scope.isadmin=false;
         };
         
         var clearInputPermissionData = function () {
@@ -154,7 +155,7 @@
                 targetState = 'admin';
             }
             if ($scope.goBackToAdmin !== true) {               
-                if ($rootScope.showDetails === true) {                   
+                if ($rootScope.showDetails === true) {  
                     $state.go(targetState);
                 }
                 else {                    
@@ -163,10 +164,9 @@
                 }
             }
             else {
-                
                 if ($rootScope.lastVisited) {                   
                     $state.go($rootScope.lastVisited);
-                } else                    
+                } else  
                     $state.go(targetState);
             }
         }
@@ -549,12 +549,22 @@
         }       
 
         $rootScope.goToCertPermissions = function () {
-        	alert("notif emails="+$scope.certificate.notificationEmails);
         	$scope.requestDataFrChangeCertificate();
+        	$scope.ownerEmailErrorMessage ="";
+            if($scope.notificationEmail!=undefined){
+                $scope.notificationEmail.email = "";
+                }
+            $scope.notificationEmailErrorMessage = '';
+            $scope.leadEmailErrorMessage ="";
             $scope.isLoadingData = true;
             $rootScope.showDetails = false;               // To show the 'permissions' and hide the 'details'
             $rootScope.activeDetailsTab = 'permissions';
             $scope.isLoadingData = false;
+            
+        } 
+        
+        $scope.showcertdetails = function () {
+        	$scope.requestDataFrChangeCertificate();
         } 
 
         $scope.requestDataFrChangeCertificate = function () {
@@ -652,10 +662,16 @@
                                 }
                                 
 
+                                if(JSON.parse(SessionStore.getItem("isAdmin")) == false){
+                               	 $scope.isadmin = false;
+                                }else{
+                                	$scope.isadmin = true; 
+                                }
+                                
                                 
                                 	$scope.notificationEmails = [];
                                     var notificationStr = $scope.certificate.notificationEmails; 
-                                    alert(" here :"+$scope.certificate.notificationEmails);
+                                    
                                     angular.element('#notificationEmailList').empty();
 //                                    notificationStr = addOwnerTonotificationList(notificationStr);
                                     $scope.notificationList  = notificationStr.split(',')
@@ -1217,6 +1233,8 @@
             	$scope.ownerEmailErrorMessage = "Application Owner should not be empty";
             }else if(certDetails.leadEmail==null || certDetails.leadEmail=="" || certDetails.leadEmail==undefined ){
             	$scope.leadEmailErrorMessage = "Project Lead should not be empty";
+            }else if($scope.certificate.notificationEmails==null || $scope.certificate.notificationEmails=="" || $scope.certificate.notificationEmails==undefined ){
+            	$scope.notificationEmailErrorMessage = "Notification Emails should not be empty";
             }else{
             Modal.createModal('md', 'updateCertPopup.html', 'ChangeCertificateCtrl', $scope);
             }};
@@ -1685,7 +1703,7 @@
                 if ($scope.notificationEmail && $scope.notificationEmail.email!="" && !isDuplicateNotificationEmail($scope.notificationEmail.email)) {
                     var id="dns"+length;
                     angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+$scope.notificationEmail.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
-                    $scope.notificationEmails.push({ "id": length, "email":$scope.notificationEmail.email});
+                    $scope.notificationEmails.push({ "id": id, "email":$scope.notificationEmail.email});
                     addNotificationEmailString($scope.notificationEmail.email);
                     $scope.notificationEmail.email = "";
                     $scope.isNotificationEmailSelected = false;
@@ -1708,9 +1726,9 @@
                 $scope.notificationEmailstr = "";
                 $scope.selectedNotificationEmails = [];
                 for (var i=0;i<$scope.notificationEmails.length;i++) {
-                    if (id != $scope.notificationEmails[i].id) {
-                        $scope.selectedNotificationEmails.push($scope.notificationEmails[i].email);
-                        if(i==0){
+                    if ($scope.notificationEmails[i]!=undefined && id != $scope.notificationEmails[i].id) {
+                        $scope.selectedNotificationEmails.push($scope.notificationEmails[i]);
+                        if($scope.selectedNotificationEmails.length==1){
                         	$scope.notificationEmailstr=$scope.notificationEmails[i].email;
                         }else{
                         	$scope.notificationEmailstr=$scope.notificationEmailstr+","+$scope.notificationEmails[i].email;
@@ -1726,10 +1744,12 @@
             var isDuplicateNotificationEmail = function (email) {
                 $scope.certDnsErrorMessage = '';
                 for (var i=0;i<$scope.notificationEmails.length;i++) {
+                	if($scope.notificationEmails[i]!=undefined && $scope.notificationEmails[i].email){
                     if (email.toLowerCase() == $scope.notificationEmails[i].email.toLowerCase()) {
                         $scope.notificationEmailErrorMessage = 'Duplicate Email';
                         return true;
                     }
+                }
                 }
                 return false;
             }
