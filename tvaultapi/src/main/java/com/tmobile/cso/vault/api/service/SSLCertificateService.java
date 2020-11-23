@@ -35,6 +35,7 @@ import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.*;
 import com.tmobile.cso.vault.api.validator.TokenValidator;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -8902,12 +8903,12 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
      * @throws Exception
      */
 	public ResponseEntity<String> onboardSSLcertificate(UserDetails userDetails, String token,
-			SSLCertificateRequest sslCertificateRequest) throws Exception {
+			SSLCertificateOnboardRequest sslCertificateRequest) throws Exception {
 		if (ObjectUtils.isEmpty(sslCertificateRequest)
 				|| !isValidInputs(sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType()) || (StringUtils.isEmpty(sslCertificateRequest.getNotificationEmail()))) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "onboardSSLcertificate").put(LogMessage.MESSAGE, "Invalid user inputs")
+					.put(LogMessage.ACTION, "onboard SSLcertificate").put(LogMessage.MESSAGE, "Invalid user inputs")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
@@ -8997,7 +8998,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
      * Method to Create policies and metadata for the given certificate
      * @param certObject
      */
-	public ResponseEntity<String> processAndSaveCertificateMetadata(SSLCertificateRequest sslCertificateRequest,
+	public ResponseEntity<String> processAndSaveCertificateMetadata(SSLCertificateOnboardRequest sslCertificateRequest,
 			UserDetails userDetails, int containerId, String nclmAccessToken) {
 		try {
 			ResponseEntity<String> metadataResponse = createCertificateMetadataAndPolicies(sslCertificateRequest,
@@ -9049,7 +9050,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
      * @param containerId
      * @return
      */
-	private ResponseEntity<String> createCertificateMetadataAndPolicies(SSLCertificateRequest sslCertificateRequest,
+	private ResponseEntity<String> createCertificateMetadataAndPolicies(SSLCertificateOnboardRequest sslCertificateRequest,
 			UserDetails userDetails, int containerId, String nclmAccessToken) {
 		// Policy Creation
 		boolean isPoliciesCreated = false;
@@ -9063,6 +9064,9 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body("{\"errors\":[\"Certificate onboard failed.\"]}");
 			}
+			SSLCertificateRequest sslCertRequest = new SSLCertificateRequest();
+			BeanUtils.copyProperties(sslCertRequest, sslCertificateRequest);
+
 			boolean sslMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson,
 					tokenUtils.getSelfServiceToken());
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -9079,7 +9083,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 						.put(LogMessage.ACTION, String.format(" [%s] - Metadata Creation - Completed ",
 								sslCertificateRequest.getCertificateName()))
 						.build()));
-				isPoliciesCreated = createPolicies(sslCertificateRequest, tokenUtils.getSelfServiceToken());
+				isPoliciesCreated = createPolicies(sslCertRequest, tokenUtils.getSelfServiceToken());
 			}
 
 			if (isPoliciesCreated) {
@@ -9119,7 +9123,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 						.put(LogMessage.ACTION, "generateSSLCertificate")
 						.put(LogMessage.MESSAGE, "Sudo Policy Creation Started  ")
 						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-				permissionResponse = addSudoPermissionToCertificateOwner(sslCertificateRequest, userDetails,
+				permissionResponse = addSudoPermissionToCertificateOwner(sslCertRequest, userDetails,
 						enrollResponse, isPoliciesCreated, sslMetaDataCreationStatus, tokenUtils.getSelfServiceToken(),
 						"onboard");
 				if (permissionResponse != null && !(HttpStatus.OK.equals(permissionResponse.getStatusCode()))) {
@@ -9167,7 +9171,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	 * @return
 	 * @throws Exception
 	 */
-	private String populateMetadataForSSLOnboard(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails,
+	private String populateMetadataForSSLOnboard(SSLCertificateOnboardRequest sslCertificateRequest, UserDetails userDetails,
 			int containerId, String nclmAccessToken) throws Exception {
 
 		String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal"))
@@ -9242,7 +9246,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 						sslCertificateMetadataDetails.setApplicationTag(applicationTag);
 						sslCertificateMetadataDetails.setApplicationName(applicationName);
 
-						sslCertificateMetadataDetails.setNotificationEmails(sslCertificateRequest.getNotificationEmail());
+						sslCertificateMetadataDetails.setNotificationEmails(notificationEmails);
 
 					}
 				}

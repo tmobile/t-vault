@@ -12,6 +12,8 @@ import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.*;
 import com.tmobile.cso.vault.api.validator.TokenValidator;
+
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -6717,8 +6719,10 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
-        sslCertificateRequest.setCertificateName("certificatename.t-mobile.com");
-        sslCertificateRequest.setNotificationEmail("test123@test.com");
+        SSLCertificateOnboardRequest sslCertOnboardRequest = new SSLCertificateOnboardRequest();
+        BeanUtils.copyProperties(sslCertOnboardRequest, sslCertificateRequest);
+        sslCertOnboardRequest.setCertificateName("certificatename.t-mobile.com");
+        sslCertOnboardRequest.setNotificationEmail("test123@test.com");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -6807,7 +6811,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertificateRequest);
+                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertOnboardRequest);
         //Assert
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
@@ -6831,9 +6835,11 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
-        sslCertificateRequest.setCertificateName("certificatename.t-mobile.com");
-        sslCertificateRequest.setNotificationEmail("test123@test.com");
-        sslCertificateRequest.setCertType("external");
+        SSLCertificateOnboardRequest sslCertOnboardRequest = new SSLCertificateOnboardRequest();
+        BeanUtils.copyProperties(sslCertOnboardRequest, sslCertificateRequest);
+        sslCertOnboardRequest.setCertificateName("certificatename.t-mobile.com");
+        sslCertOnboardRequest.setNotificationEmail("test123@test.com");
+        sslCertOnboardRequest.setCertType("external");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -6922,7 +6928,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertificateRequest);
+                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertOnboardRequest);
         //Assert
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
@@ -6931,13 +6937,15 @@ public class SSLCertificateServiceTest {
 	@Test
     public void testOnboardExternalSSLcertificateFailedInValid() throws Exception {
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
-        sslCertificateRequest.setCertificateName(" certificatename.t-mobile.com");
+        SSLCertificateOnboardRequest sslCertOnboardRequest = new SSLCertificateOnboardRequest();
+        BeanUtils.copyProperties(sslCertOnboardRequest, sslCertificateRequest);
+        sslCertOnboardRequest.setCertificateName("certificatename.t-mobile.com");
         String[] dnsNames = { };
-        sslCertificateRequest.setDnsList(dnsNames);
-        sslCertificateRequest.setCertType("test");
+        sslCertOnboardRequest.setDnsList(dnsNames);
+        sslCertOnboardRequest.setCertType("test");
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertificateRequest);
+                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertOnboardRequest);
         //Assert
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
@@ -6961,9 +6969,11 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
-        sslCertificateRequest.setCertificateName("certificatename.t-mobile.com");
-        sslCertificateRequest.setNotificationEmail("test123@test.com");
-        sslCertificateRequest.setCertType("external");
+        SSLCertificateOnboardRequest sslCertOnboardRequest = new SSLCertificateOnboardRequest();
+        BeanUtils.copyProperties(sslCertOnboardRequest, sslCertificateRequest);
+        sslCertOnboardRequest.setCertificateName("certificatename.t-mobile.com");
+        sslCertOnboardRequest.setNotificationEmail("test123@test.com");
+        sslCertOnboardRequest.setCertType("external");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -7056,7 +7066,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertificateRequest);
+                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertOnboardRequest);
         //Assert
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, enrollResponse.getStatusCode());
@@ -7080,9 +7090,11 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
-        sslCertificateRequest.setCertificateName("certificatename.t-mobile.com");
-        sslCertificateRequest.setNotificationEmail("test123@test.com");
-        sslCertificateRequest.setCertType("external");
+        SSLCertificateOnboardRequest sslCertOnboardRequest = new SSLCertificateOnboardRequest();
+        BeanUtils.copyProperties(sslCertOnboardRequest, sslCertificateRequest);
+        sslCertOnboardRequest.setCertificateName("certificatename.t-mobile.com");
+        sslCertOnboardRequest.setNotificationEmail("test123@test.com");
+        sslCertOnboardRequest.setCertType("external");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -7171,7 +7183,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertificateRequest);
+                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertOnboardRequest);
         //Assert
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
@@ -7195,9 +7207,11 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
-        sslCertificateRequest.setCertificateName("certificatename.t-mobile.com");
-        sslCertificateRequest.setNotificationEmail("test123@test.com");
-        sslCertificateRequest.setCertType("external");
+        SSLCertificateOnboardRequest sslCertOnboardRequest = new SSLCertificateOnboardRequest();
+        BeanUtils.copyProperties(sslCertOnboardRequest, sslCertificateRequest);
+        sslCertOnboardRequest.setCertificateName("certificatename.t-mobile.com");
+        sslCertOnboardRequest.setNotificationEmail("test123@test.com");
+        sslCertOnboardRequest.setCertType("external");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -7287,7 +7301,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertificateRequest);
+                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertOnboardRequest);
         //Assert
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
@@ -7311,9 +7325,11 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
-        sslCertificateRequest.setCertificateName("certificatename.t-mobile.com");
-        sslCertificateRequest.setNotificationEmail("test123@test.com");
-        sslCertificateRequest.setCertType("external");
+        SSLCertificateOnboardRequest sslCertOnboardRequest = new SSLCertificateOnboardRequest();
+        BeanUtils.copyProperties(sslCertOnboardRequest, sslCertificateRequest);
+        sslCertOnboardRequest.setCertificateName("certificatename.t-mobile.com");
+        sslCertOnboardRequest.setNotificationEmail("test123@test.com");
+        sslCertOnboardRequest.setCertType("external");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -7404,7 +7420,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertificateRequest);
+                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertOnboardRequest);
         //Assert
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
@@ -7428,9 +7444,11 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
-        sslCertificateRequest.setCertificateName("certificatename.t-mobile.com");
-        sslCertificateRequest.setNotificationEmail("test123@test.com");
-        sslCertificateRequest.setCertType("external");
+        SSLCertificateOnboardRequest sslCertOnboardRequest = new SSLCertificateOnboardRequest();
+        BeanUtils.copyProperties(sslCertOnboardRequest, sslCertificateRequest);
+        sslCertOnboardRequest.setCertificateName("certificatename.t-mobile.com");
+        sslCertOnboardRequest.setNotificationEmail("test123@test.com");
+        sslCertOnboardRequest.setCertType("external");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -7511,7 +7529,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertificateRequest);
+                sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertOnboardRequest);
         //Assert
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());

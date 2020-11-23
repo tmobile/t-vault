@@ -4,13 +4,20 @@ package com.tmobile.cso.vault.api.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.validator.constraints.NotEmpty;
+
+import java.io.Serializable;
+
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class TargetSystemServiceRequest {
-    @Min(value = 1, message = "Please enter value between 0 and 65536")
+public class TargetSystemServiceRequest implements Serializable {
+    /**
+	 * Serial version Id
+	 */
+	private static final long serialVersionUID = 6151712250016775287L;
+	@Min(value = 1, message = "Please enter value between 0 and 65536")
     @Max(65535)
     @ApiModelProperty(example="1", position=1)
     private int port;
