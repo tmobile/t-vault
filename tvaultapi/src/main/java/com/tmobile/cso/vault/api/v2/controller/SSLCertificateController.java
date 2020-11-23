@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.text.ParseException;
 
 @RestController
 @CrossOrigin
@@ -255,7 +256,7 @@ public class SSLCertificateController {
 	@ApiOperation(value = "${SSLCertificateController.renewCertificate.value}", notes = "${SSLCertificateController.renewCertificate.notes}", hidden = false)
 	@PostMapping(value = "/v2/certificates/{certType}/{certName}/renew", produces = "application/json")
 	public ResponseEntity<String> renewCertificate(HttpServletRequest request,
-			@RequestHeader(value = "vault-token") String token, @PathVariable("certType") String certType, @PathVariable("certName") String certName) {
+			@RequestHeader(value = "vault-token") String token, @PathVariable("certType") String certType, @PathVariable("certName") String certName) throws ParseException {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.renewCertificate(certType, certName, userDetails, token);
 	}
@@ -510,13 +511,14 @@ public class SSLCertificateController {
 	 */
 	@ApiOperation(value = "${SSLCertificateController.unlinkCertificate.value}", notes = "${SSLCertificateController" +
 			".unlinkCertificate.notes}", hidden = false)
-	@PostMapping(value="/v2/sslcert/unlink/{certificate-name}/{certificate-type}",produces="application/json")
+	@PostMapping(value="/v2/sslcert/unlink/{certificate-name}/{certificate-type}/{release-reason}",produces="application/json")
 	public ResponseEntity<String> unlinkCertificate(HttpServletRequest request,
 											@RequestHeader(value="vault-token") String token,
 													@PathVariable(value="certificate-name") String certificateName,
-													@PathVariable(value="certificate-type") String certificateType) throws Exception {
+													@PathVariable(value="certificate-type") String certificateType,
+													@PathVariable(value="release-reason") String releaseReason) {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return sslCertificateService.unLinkCertificate(userDetails, token, certificateName,certificateType);
+		return sslCertificateService.unLinkCertificate(userDetails, token, certificateName,certificateType,releaseReason);
 	}
 
 	/**

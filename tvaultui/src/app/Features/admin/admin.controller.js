@@ -1508,6 +1508,9 @@
             Modal.createModal('md', 'transferCertPopup.html', 'AdminCtrl', $scope);
         };
         
+        $scope.releasePopUp = function (svcaccname) {
+            Modal.createModal('md', 'releasePopUp.html', 'AdminCtrl', $scope);
+        };
         $scope.transferCertSuccessPopup = function (svcaccname) {
             Modal.createModal('md', 'transferCertSuccessPopup.html', 'AdminCtrl', $scope);
         };
@@ -2100,11 +2103,14 @@
         };
 
         $scope.unClaimCert = function (certificateDetails) {
+            Modal.close();
             $scope.isLoadingData = true;
             $scope.isLoadingCerts = true;
             var certName = certificateDetails.certificateName;
             var certificateType = certificateDetails.certType;
-            var unClaimCertEndPoint = RestEndpoints.baseURL + "/v2/sslcert/unlink/" + certName+"/"+ certificateType;
+            var releaseReason = $scope.certObj.certDetails.releaseReason;
+            var unClaimCertEndPoint = RestEndpoints.baseURL + "/v2/sslcert/unlink/" + certName+"/"+
+            certificateType+"/"+releaseReason;
             AdminSafesManagement.unclaimCert(null, unClaimCertEndPoint).then(function (response) {
                     $scope.isLoadingData = true;
                     $scope.isLoadingCerts = true;
@@ -2385,6 +2391,19 @@
                     $scope.dnsInvalid = true;
                 }
             }
+          $scope.releasePopUp = function (certDetails) {
+                $scope.releaseReasonInValid = true;
+                $scope.certObj.certDetails.releaseReason="";
+                $scope.fetchDataError = false;
+                $rootScope.certDetails = certDetails;
+                if ($rootScope.certDetails.certType != null &&  $rootScope.certDetails.certType == "internal") {
+                    $scope.certificateTypeVal= "Internal";
+                 } else if ($rootScope.certDetails.certType != null && $rootScope.certDetails.certType ==  "external") {
+                   $scope.certificateTypeVal= "External";
+                 }
+
+                Modal.createModal('md', 'releasePopUp.html', 'AdminCtrl', $scope);
+            };
             
             $scope.transferCertPopup = function (certDetails) {
                 $scope.fetchDataError = false;
@@ -2400,6 +2419,16 @@
                 Modal.createModal('md', 'transferCertPopup.html', 'AdminCtrl', $scope);	
             }	
             };
+
+
+            $scope.reasonValidation = function () {
+                $scope.releaseReasonInValid = true;
+                if ($scope.certObj.certDetails.releaseReason== null || $scope.certObj.certDetails.releaseReason == ""){
+                        $scope.releaseReasonInValid = true;
+                } else {
+                      $scope.releaseReasonInValid = false;
+                }
+            }
             
             $scope.ownerEmailValidation = function () {
                 $scope.certOwnerEmailErrorMessage = '';
