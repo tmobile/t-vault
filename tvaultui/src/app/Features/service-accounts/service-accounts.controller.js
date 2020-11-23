@@ -251,7 +251,7 @@
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
                         try {
                             if (response.data.data) {
-                                let managedBy = response.data.data.managedBy;
+                                var managedBy = response.data.data.managedBy;
                                 if (SessionStore.getItem("username").toLowerCase() == managedBy.toLowerCase()) {
                                     Notifications.toast("Offboarding decommissioned service account..");
                                     var offboardPayload = {
