@@ -863,4 +863,10 @@ input.highlightBox {
 }
 .addnotificationemail {
     margin-top: 5px!important;
-} 
+}    
+.details .border-left {
+  border-left: 1px solid #999;
+}
+.details .border-right-edit {
+  border-left: 0px solid $gray-dark;
+}   

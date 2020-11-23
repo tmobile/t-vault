@@ -239,15 +239,15 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
               .left-arrow.glyphicon.glyphicon-menu-left.left.common-header-label(ng-click="goBack()")
               .left-sm-sep.left.page-header-text {{changeCertificateHeader}}             
                   span.safe-in-edit {{certificate.name}}
-            nav-bar(active-tab="details" gotoPage="goToPage" nav-tags="detailsNavTags" ng-if="activeDetailsTab == 'details' ")
-            nav-bar(active-tab="permissions" gotoPage="goToPage" nav-tags="detailsNavTags" ng-if="activeDetailsTab == 'permissions' ")
+            nav-bar(active-tab="details" gotoPage="goToPage" nav-tags="detailsNavTags"  ng-if="activeDetailsTab == 'details' ")
+            nav-bar(active-tab="permissions" gotoPage="goToPage" nav-tags="detailsNavTags" ng-click="showcertdetails()" ng-if="activeDetailsTab == 'permissions' ")
       .page-content-container(ng-class="{'no-tabs-body' : showDetails}" ng-cloak="") 
           .page-content-container.details(ng-if="showDetails" ng-cloak="" )
               form.row(name="editCertificateDetails" ng-submit="goToCertPermissions()" autocomplete="off" novalidate)
                 .page-content-container
                   .clearfix.details-wrapper
                     loading-state(ng-if='isLoadingData')
-                    .safe-left-content-container.border-right.col-lg-6.col-sm-5
+                    .safe-left-content-container.col-lg-6.col-sm-5
                       .common-section-label CERTIFICATE DETAILS
                       .common-form
                         .row
@@ -278,8 +278,8 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                             .col-lg-6.col-md-12.col-sm-12.col-xs-12.full-row-fix.col-lg-offset-1.col-lg-offset-1
                               .row
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
-                                    .common-form-label Aplication Owner
-                                    input.form-control.input-box-style(id="appOwnerEmail" ng-model="certificate.appOwnerEmail" ng-click="clearOwnerEmail()" name="appOwnerEmail" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchOwnerEmailForCert($viewValue) | limitTo: 8" typeahead-wait-ms="500" placeholder="Email address - Enter min 3 characters"  typeahead-on-select="selectOwnerforCert(certificate.appOwnerEmail)")
+                                    .common-form-label Application Owner
+                                    input.form-control.input-box-style(id="appOwnerEmail" ng-model="certificate.appOwnerEmail" ng-disabled="!isadmin" ng-click="clearOwnerEmail()" name="appOwnerEmail" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchOwnerEmailForCert($viewValue) | limitTo: 8" typeahead-wait-ms="500" placeholder="Email address - Enter min 3 characters"  typeahead-on-select="selectOwnerforCert(certificate.appOwnerEmail)")
                                     
                                     div.loader(ng-if='isOwnerSearchLoading && isOwnerEmailSearch && certificate.appOwnerEmail.length > 2')
                                          div.ball-spin-fade-loader
@@ -291,7 +291,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                              div
                                              div
                                              div
-                                     div.input-cross.svcaccid(ng-if='!isOwnerSearchLoading && certificate.appOwnerEmail.length > 2' ng-click="clearOwnerEmail()")
+                                     div.input-cross.svcaccid(ng-if='!isOwnerSearchLoading && certificate.appOwnerEmail.length && isadmin > 2' ng-click="clearOwnerEmail()")
                                          div.delete-title
                                            img.delete-icon(src="../../assets/images/delete.png")
                                      span.invalid-email   {{ ownerEmailErrorMessage }}  
@@ -307,7 +307,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                               .row
                                 .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Project Lead
-                                    input.form-control.input-box-style(id="leadEmail" ng-model="certificate.leadEmail" ng-click="clearLeadEmail()" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchLeadEmailForCert($viewValue) | limitTo: 8" typeahead-wait-ms="500" placeholder="Email address - Enter min 3 characters" typeahead-on-select="selectLeadforCert(certificate.leadEmail)")
+                                    input.form-control.input-box-style(id="leadEmail" ng-model="certificate.leadEmail" ng-click="clearLeadEmail()" ng-disabled="!isadmin" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchLeadEmailForCert($viewValue) | limitTo: 8" typeahead-wait-ms="500" placeholder="Email address - Enter min 3 characters" typeahead-on-select="selectLeadforCert(certificate.leadEmail)")
                                     div.loader(ng-if='isLeadSearchLoading  && isLeadEmailSearch && certificate.leadEmail.length > 2')
                                         div.ball-spin-fade-loader
                                             div
@@ -318,7 +318,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                             div
                                             div
                                             div
-                                    div.input-cross.svcaccid(ng-if='!isLeadSearchLoading  && certificate.leadEmail.length > 2' ng-click="clearLeadEmail()")
+                                    div.input-cross.svcaccid(ng-if='!isLeadSearchLoading  && certificate.leadEmail.length && isadmin > 2' ng-click="clearLeadEmail()")
                                         div.delete-title
                                           img.delete-icon(src="../../assets/images/delete.png")
                                     span.invalid-email   {{ leadEmailErrorMessage }}
@@ -368,15 +368,10 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                     .common-form-label Enroll Service 
                                     input.form-control.input-box-style(ng-if="certificateTypeVal=='Internal'" id="enrolService" ng-init="enrolService='T-Mobile Issuing CA 01 - SHA2'" ng-model="enrolService" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)
                                     input.form-control.input-box-style(ng-if="certificateTypeVal=='External'" id="enrolService" ng-init="enrolService='Entrust CA'" ng-model="enrolService" ng-disabled="changeCertificateHeader == 'EDIT CERTIFICATE'"  name="certificateStatus"  required)
-                            
-                       
-                        .row.middle
-                          .common-form-row.clearfix
-                            .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
-                              .row
+                        .row
                                 .details-input-group.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Notification Emails                                
-                                    div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="certificate.notificationEmails.length>0")                                    
+                                    div.form-control.input-box-style.dns-list(id="notificationEmailList" )                                    
                                     div.dns-wrapper.addnotificationemail
                                       .col-lg-9.col-md-9.col-sm-9.col-xs-9
                                         .cert-input-group.cert-suffix
