@@ -9311,11 +9311,13 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 
     	boolean isValidData = false;
     	int count =0;
+    	String[] notifEmailLst =new String[] {};
     	if(isValidInputs(certificateUpdateRequest.getCertificateName(), certificateUpdateRequest.getCertType()) && (certificateUpdateRequest.getApplicationOwnerEmail()!=null ? validateCertficateEmail(certificateUpdateRequest.getApplicationOwnerEmail()):true)
     			&& (certificateUpdateRequest.getProjectLeadEmail()!=null ? validateCertficateEmail(certificateUpdateRequest.getProjectLeadEmail() ):true)) {
     		isValidData = true;
     		if(certificateUpdateRequest.getNotificationEmail()!=null) {
-    			String[] notifEmailLst =   certificateUpdateRequest.getNotificationEmail().split(",");
+    			notifEmailLst =   certificateUpdateRequest.getNotificationEmail().split(",");
+    			notifEmailLst = new HashSet<String>(Arrays.asList(notifEmailLst)).toArray(new String[0]);
     			for(int i=0; i<notifEmailLst.length;i++) {
     				if(validateCertficateEmail(notifEmailLst[i] )) {
     					count++;
@@ -9380,7 +9382,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			if(certificateUpdateRequest.getProjectLeadEmail()!=null) {
 			metaDataParams.put("projectLeadEmailId", certificateUpdateRequest.getProjectLeadEmail());
 			}if(certificateUpdateRequest.getNotificationEmail()!=null ){						
-			metaDataParams.put("notificationEmails", certificateUpdateRequest.getNotificationEmail());
+			metaDataParams.put("notificationEmails", String.join(",", notifEmailLst));
 			}
 		try {
 		if (userDetails.isAdmin()) {
@@ -9413,7 +9415,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 					.build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"" + "Certificate metadata updation failed" + "\"]}");
+					.body("{\"errors\":[\"" + "Certificate details updation failed" + "\"]}");
 		}
 
 		}
