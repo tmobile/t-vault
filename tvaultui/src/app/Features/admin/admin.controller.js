@@ -33,6 +33,7 @@
         $scope.isCollapsed = true;
         $scope.isCollapsedCert = true;
         $scope.isCollapsedIAM = true;
+        $scope.isCollapsedAzure = true;
         $scope.existingTargetSystem = false;
         $scope.existingService = false;
         $scope.isCertCollapsed = false;
@@ -143,9 +144,11 @@
             $scope.ifTargetSystemExisting=false;
             $scope.enableSvcacc = true;
             $scope.enableIamSvcacc = true;
+            $scope.enableAzureSvcacc=true;
             $scope.enableSelfService = true;
             $scope.isCollapsed = true;
             $scope.isCollapsedIAM = true;
+            $scope.isCollapsedAzure = true;
             $scope.transferFailedMessage = '';
             $scope.selectedIndex = 0;
             $scope.existingTargetSystem = false;
@@ -621,6 +624,31 @@
                         $scope.error('md');
                     });
             }
+             //AZURE SERVICE ACCOUNT
+        if ($scope.enableAzureSvcacc == true) {
+            $scope.numOfazureSvcaccs = 0;
+            $scope.azureSvcaccOnboardedData = { "keys": [] };
+            $scope.isLoadingData = true;
+            AdminSafesManagement.getOnboardedAzureServiceAccounts().then(function (response) {
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    $scope.azureSvcaccOnboardedData = response.data;
+                    $scope.numOfAzureSvcaccs = $scope.azureSvcaccOnboardedData.keys.length;
+                    $scope.isLoadingData = false;
+                }
+                else {
+                    $scope.isLoadingData = false;
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    error('md');
+                }
+            },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.isLoadingData = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                });
+        }
             /*
             if($scope.selectedTab == 1){            	
            	 getCertificates("", null, null,"external");
@@ -920,7 +948,9 @@
         var pagesShown = 1;
         var pageSize = AppConstant.PAGE_SIZE;
         var iampagesShown = 1;
+        var azurepagesShown = 1;
         var iampageSize = AppConstant.PAGE_SIZE;
+        var azurepageSize = AppConstant.PAGE_SIZE;
         var certpagesShown = 1;
         var certpagesShownExt = 1;
         var certpageSize = 50;
@@ -939,6 +969,13 @@
                 $scope.iamcurrentshown = $scope.numOfIamSvcaccs;
             }        
             return $scope.iamcurrentshown;
+        };
+        $scope.azurepaginationLimit = function () {
+            $scope.azurecurrentshown = azurepageSize * azurepagesShown;            
+            if (($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) || $scope.azurecurrentshown >= $scope.numOfAzureSvcaccs) {
+                $scope.azurecurrentshown = $scope.numOfAzureSvcaccs;
+            }        
+            return $scope.azurecurrentshown;
         };
         $scope.hasMoreItemsToShow = function () {
             if ($scope.searchValue != '' && $scope.searchValue!= undefined) {
@@ -962,6 +999,17 @@
             }
                return iampagesShown < ($scope.numOfIamSvcaccs / iampageSize);
         };
+        $scope.hasMoreAzureItemsToShow = function () {
+            if ($scope.searchValue != '' && $scope.searchValue!= undefined) {
+                if ($scope.searchValue.length<3) {
+                    return azurepagesShown < ($scope.numOfAzureSvcaccs / azurepageSize);
+                }
+                else {
+                    return false;
+                }
+            }
+               return azurepagesShown < ($scope.numOfAzureSvcaccs / azurepagesShown);
+        };
         $scope.showMoreItems = function () {
             pagesShown = pagesShown + 1;
         };
@@ -969,7 +1017,9 @@
         $scope.showMoreIAMItems = function () {
             iampagesShown = iampagesShown + 1;
         };
-                    
+        $scope.showMoreAzureItems = function () {
+            azurepagesShown = azurepagesShown + 1;
+        };         
         $scope.certpaginationLimit = function (data) {
             $scope.certcurrentshown = certpageSize * certpagesShown;            
             if (($scope.searchValue != '' && $scope.searchValue != undefined && $scope.searchValue.length > 2) || $scope.certcurrentshown >= $scope.numOfCertificates) {
@@ -1413,7 +1463,9 @@
         $scope.collapseNoteIAM = function () {
             $scope.isCollapsedIAM = !$scope.isCollapsedIAM;
         }
-
+        $scope.collapseNoteAzure = function () {
+            $scope.isCollapsedAzure = !$scope.isCollapsedAzure;
+        }
         $scope.transferOwnerPopUp = function (svcaccname) {
             $scope.svcaccToTransfer = svcaccname;
             Modal.createModal('md', 'transferSvcaccPopUp.html', 'AdminCtrl', $scope);
@@ -1524,6 +1576,7 @@
             $scope.targetAddrErrorMessage = '';
             $scope.portErrorMessage = '';
             $scope.ownerEmailErrorMessage='';
+            $scope.notificationEmailErrorMessage='';
             Modal.createModal(size, 'certificatePopup.html', 'AdminCtrl', $scope);
             $scope.multiSanDnsName.name='';
             $scope.certDnsErrorMessage='';
@@ -1634,7 +1687,8 @@
                 && $scope.certObj.certDetails.certType != undefined
                 && $scope.certObj.certDetails.applicationName != undefined
                 && $scope.isOwnerSelected == true
-                && $scope.appNameSelected == true) {
+                && $scope.appNameSelected == true
+                && $scope.notificationEmails.length >0) {
                 return false;
             }
             return true;
@@ -1745,6 +1799,8 @@
         $scope.createCertPreview = function () {
             $scope.multiSanDnsName.name = '';
             $scope.certDnsErrorMessage = '';
+            $scope.notificationEmail.email='';
+            $scope.notificationEmailErrorMessage = '';
             $scope.isCertificatePreview = true;
             $scope.isCertificateManagePreview = true;
             var multiSanDnsPreview = [];
@@ -2539,8 +2595,9 @@
 
         $scope.addNotificationEmailCert = function () {
             var length = $scope.notificationEmails.length;
-            if ($scope.notificationEmail && $scope.notificationEmail.email!="" && !isDuplicateNotificationEmail($scope.notificationEmail.email)) {
-                var id="dns"+length;
+           $scope.notificationEmailErrorMessage = '';
+           var id="dns"+length;
+                if ($scope.notificationEmail && $scope.notificationEmail.email!="" && !isDuplicateNotificationEmail($scope.notificationEmail.email)) {
                 angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+$scope.notificationEmail.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
                 $scope.notificationEmails.push({ "id": length, "email":$scope.notificationEmail.email});
                 addNotificationEmailCertString($scope.notificationEmail.email);
@@ -2580,7 +2637,9 @@
             $scope.notificationEmail = { email:""};
             $scope.isNotificationEmailSelected = false;
         }
-
+        $scope.clearNotificationEmailmessage = function() {
+            $scope.notificationEmailErrorMessage='';
+        }
         $scope.clearOnboardCert = function () {
             $scope.certificateToOnboard = null;
             $scope.isOwnerSelectedForOnboard = false;

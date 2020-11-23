@@ -705,8 +705,6 @@ public class AzureServicePrinicipalAccountsServiceTest {
 			assertEquals(responseEntityExpected, responseEntity);
 		}
 	 
-	 
-	 
 		@Test
 		public void test_getAzureServiceAccountSecretKey_successfully() {
 			String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
@@ -1258,7 +1256,17 @@ public class AzureServicePrinicipalAccountsServiceTest {
 			assertEquals(responseEntityExpected, responseEntity);
 		}
 
-
+		@Test
+		public void test_getOnboardedAzureServiceAccounts_successfully() throws IOException {
+			String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+			UserDetails userDetails=new UserDetails();
+			String[] latestPolicies= {"o_azuresvcacctestpolicy"} ;
+			when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(),
+					userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
+			ResponseEntity<String> responseEntity = azureServicePrinicipalAccountsService.getOnboardedAzureServiceAccounts(token, userDetails);
+			assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+		}
+	 
 
 
 }
