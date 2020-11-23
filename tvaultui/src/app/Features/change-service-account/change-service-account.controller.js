@@ -1745,7 +1745,7 @@
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
                         try {
                             if (response.data.data) {
-                                let managedBy = response.data.data.managedBy;
+                                var managedBy = response.data.data.managedBy;
                                 console.log(managedBy);
                                 var offboardPayload = {
                                     "owner": managedBy,
