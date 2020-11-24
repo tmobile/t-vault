@@ -36,12 +36,16 @@ import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.model.AWSIAMRole;
+import com.tmobile.cso.vault.api.model.AWSLoginRole;
 import com.tmobile.cso.vault.api.model.AccessPolicy;
 import com.tmobile.cso.vault.api.model.AzureSecrets;
 import com.tmobile.cso.vault.api.model.AzureSecretsMetadata;
 import com.tmobile.cso.vault.api.model.AzureServiceAccount;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountAWSRole;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountMetadataDetails;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountNode;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountOffboardRequest;
@@ -97,6 +101,12 @@ public class AzureServicePrinicipalAccountsService {
 	
 	@Autowired
 	private AppRoleService appRoleService;
+	
+	@Autowired
+	private AWSAuthService awsAuthService;
+	
+	@Autowired
+	private AWSIAMAuthService awsiamAuthService;
 	
 	@Value("${azurePortal.auth.masterPolicy}")
 	private String azureMasterPolicyName;
@@ -1314,11 +1324,11 @@ public class AzureServicePrinicipalAccountsService {
 	 * Read Secret.
 	 * @param token
 	 * @param azureSvcName
-	 * @param accessKey
+	 * @param secretKey
 	 * @return
 	 * @throws IOException
 	 */
-	public ResponseEntity<String> readSecret(String token, String azureSvcName, String accessKey)
+	public ResponseEntity<String> readSecret(String token, String azureSvcName, String secretKey)
 			throws IOException {
 
 		azureSvcName = azureSvcName.toLowerCase();
@@ -1336,24 +1346,24 @@ public class AzureServicePrinicipalAccountsService {
 					if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
 						AzureServiceAccountSecret azureServiceAccountSecret = mapper.readValue(responseEntity.getBody(),
 								AzureServiceAccountSecret.class);
-						if (accessKey.equals(azureServiceAccountSecret.getSecretKeyId())) {
+						if (secretKey.equals(azureServiceAccountSecret.getSecretKeyId())) {
 							secret = azureServiceAccountSecret.getSecretText();
 							break;
 						}
 					} else {
 						return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"error\":"
-								+ JSONUtil.getJSON("No secret found for the accesskeyID :" + accessKey + "") + "}");
+								+ JSONUtil.getJSON("No secret found for the secretKey :" + secretKey + "") + "}");
 					}
 				}
 				if (StringUtils.isEmpty(secret)) {
 					return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"error\":"
-							+ JSONUtil.getJSON("No secret found for the accesskeyID :" + accessKey + "") + "}");
+							+ JSONUtil.getJSON("No secret found for the secretKey :" + secretKey + "") + "}");
 				}
 				return ResponseEntity.status(HttpStatus.OK)
 						.body("{\"accessKeySecret\":" + JSONUtil.getJSON(secret) + "}");
 			} else {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-						"{\"error\":" + JSONUtil.getJSON("No secret found for the accesskeyID :" + accessKey + "") + "}");
+						"{\"error\":" + JSONUtil.getJSON("No secret found for the secretKey :" + secretKey + "") + "}");
 			}
 		} else if (HttpStatus.FORBIDDEN.equals(response.getStatusCode())) {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"error\":"
@@ -1973,8 +1983,68 @@ public class AzureServicePrinicipalAccountsService {
             }
         }
     }
+    
+	/**
+	 * Removes user from Azure service account
+	 * 
+	 * @param token
+	 * @param safeUser
+	 * @return
+	 */
+	public ResponseEntity<String> removeUserFromAzureServiceAccount(String token,
+			AzureServiceAccountUser azureServiceAccountUser, UserDetails userDetails) {
+		azureServiceAccountUser.setAzureSvcAccName(azureServiceAccountUser.getAzureSvcAccName().toLowerCase());
+		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+		if (!userDetails.isAdmin()) {
+			token = tokenUtils.getSelfServiceToken();
+		}
+		if (!isAzureSvcaccPermissionInputValid(azureServiceAccountUser.getAccess())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+		}
+		if (azureServiceAccountUser.getAccess()
+				.equalsIgnoreCase(AzureServiceAccountConstants.AZURE_ROTATE_MSG_STRING)) {
+			azureServiceAccountUser.setAccess(TVaultConstants.WRITE_POLICY);
+		}
 
+		String azureSvcaccName = azureServiceAccountUser.getAzureSvcAccName();
 
+		boolean isAuthorized = isAuthorizedToAddPermissionInAzureSvcAcc(userDetails, azureSvcaccName, false);
+
+		if (isAuthorized) {
+			// Only Sudo policy can be added (as part of onbord) before
+			// activation.
+			if (!isAzureSvcaccActivated(token, userDetails, azureSvcaccName)
+					&& !TVaultConstants.SUDO_POLICY.equals(azureServiceAccountUser.getAccess())) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
+						.put(LogMessage.MESSAGE,
+								String.format(
+										"Failed to remove user permission from Azure Service account. [%s] is not activated.",
+										azureServiceAccountUser.getAzureSvcAccName()))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+						"{\"errors\":[\"Failed to remove user permission from Azure Service account. Azure Service Account is not activated. Please activate this Azure service account and try again.\"]}");
+			}
+			// Deleting owner permission is not allowed
+			if (azureServiceAccountUser.getUsername().equalsIgnoreCase(userDetails.getUsername())) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
+						.put(LogMessage.MESSAGE,
+								"Failed to remove user permission to Azure Service account. Owner permission cannot be changed..")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+						"{\"errors\":[\"Failed to remove user permission to Azure Service account. Owner permission cannot be changed.\"]}");
+			}
+			return processAndRemoveUserPermissionFromAzureSvcAcc(token, azureServiceAccountUser, userDetails,
+					oidcEntityResponse, azureSvcaccName);
+		} else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+					"{\"errors\":[\"Access denied: No permission to remove user from this Azure service account\"]}");
+		}
+	}
 	/**
 	 * To get list of azure service principal onboarded
 	 * 
@@ -2027,6 +2097,487 @@ public class AzureServicePrinicipalAccountsService {
 		}
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 				.body("{\"errors\":[\"No Azure Service Principal with " + azureSvcName + ".\"]}");
+	}
+	/*	
+	 * Method to verify the user for removing from Azure service account.
+	 * 
+	 * @param token
+	 * @param azureServiceAccountUser
+	 * @param userDetails
+	 * @param oidcEntityResponse
+	 * @param azureSvcaccName
+	 * @return
+	 */
+	private ResponseEntity<String> processAndRemoveUserPermissionFromAzureSvcAcc(String token,
+			AzureServiceAccountUser azureServiceAccountUser, UserDetails userDetails,
+			OIDCEntityResponse oidcEntityResponse, String azureSvcaccName) {
 
+		Response userResponse = new Response();
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+			userResponse = reqProcessor.process("/auth/userpass/read",
+					"{\"username\":\"" + azureServiceAccountUser.getUsername() + "\"}", token);
+		} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+			userResponse = reqProcessor.process("/auth/ldap/users",
+					"{\"username\":\"" + azureServiceAccountUser.getUsername() + "\"}", token);
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			// OIDC implementation changes
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token,
+					azureServiceAccountUser.getUsername(), userDetails);
+			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+					log.error(
+							JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+									.put(LogMessage.ACTION,
+											AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
+									.put(LogMessage.MESSAGE, "Trying to fetch OIDC user policies, failed")
+									.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+									.build()));
+				}
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
+			}
+			oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
+			oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
+			userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
+			userResponse.setHttpstatus(responseEntity.getStatusCode());
+		}
+
+		log.debug(
+				JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
+						.put(LogMessage.MESSAGE,
+								String.format("userResponse status is [%s]", userResponse.getHttpstatus()))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+		return createPoliciesAndRemoveUserFromAzureSvcAcc(token, azureServiceAccountUser, userDetails,
+				oidcEntityResponse, azureSvcaccName, userResponse);
+	}
+
+	/**
+	 * Method to create policies for removing user from Azure service account
+	 * and call the metadata update.
+	 * 
+	 * @param token
+	 * @param azureServiceAccountUser
+	 * @param userDetails
+	 * @param oidcEntityResponse
+	 * @param azureSvcaccName
+	 * @param userResponse
+	 * @return
+	 */
+	private ResponseEntity<String> createPoliciesAndRemoveUserFromAzureSvcAcc(String token,
+			AzureServiceAccountUser azureServiceAccountUser, UserDetails userDetails,
+			OIDCEntityResponse oidcEntityResponse, String azureSvcaccName, Response userResponse) {
+		String readPolicy = new StringBuffer()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
+				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcaccName).toString();
+		String writePolicy = new StringBuffer()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
+				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcaccName).toString();
+		String denyPolicy = new StringBuffer()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
+				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcaccName).toString();
+		String ownerPolicy = new StringBuffer()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcaccName).toString();
+
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
+				.put(LogMessage.MESSAGE,
+						String.format("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy,
+								writePolicy, denyPolicy, ownerPolicy))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+		String responseJson = "";
+		String groups = "";
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+		if (HttpStatus.OK.equals(userResponse.getHttpstatus())) {
+			responseJson = userResponse.getResponse();
+			try {
+				ObjectMapper objMapper = new ObjectMapper();
+				if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					currentpolicies.addAll(oidcEntityResponse.getPolicies());
+				} else {
+					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+					}
+				}
+			} catch (IOException e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
+						.put(LogMessage.MESSAGE, "Exception while creating currentpolicies or groups")
+						.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			}
+			policies.addAll(currentpolicies);
+			policies.remove(readPolicy);
+			policies.remove(writePolicy);
+			policies.remove(denyPolicy);
+		}
+		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+
+		Response ldapConfigresponse = configureRemovedUserPermissions(token, azureServiceAccountUser, userDetails,
+				oidcEntityResponse, groups, policies, policiesString);
+
+		if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+				|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
+
+			return updateMetadataAfterRemovePermissionFromAzureSvcAcc(token, azureServiceAccountUser, userDetails,
+					oidcEntityResponse, groups, currentpolicies, currentpoliciesString);
+		} else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("{\"errors\":[\"Failed to remvoe the user from the Azure Service Account\"]}");
+		}
+	}
+
+	/**
+	 * Method to configure the user permission after removed from Azure service
+	 * account.
+	 * 
+	 * @param token
+	 * @param azureServiceAccountUser
+	 * @param userDetails
+	 * @param oidcEntityResponse
+	 * @param groups
+	 * @param policies
+	 * @param policiesString
+	 * @return
+	 */
+	private Response configureRemovedUserPermissions(String token, AzureServiceAccountUser azureServiceAccountUser,
+			UserDetails userDetails, OIDCEntityResponse oidcEntityResponse, String groups, List<String> policies,
+			String policiesString) {
+		Response ldapConfigresponse = new Response();
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+			ldapConfigresponse = ControllerUtil.configureUserpassUser(azureServiceAccountUser.getUsername(),
+					policiesString, token);
+		} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+			ldapConfigresponse = ControllerUtil.configureLDAPUser(azureServiceAccountUser.getUsername(), policiesString,
+					groups, token);
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			// OIDC Implementation : Entity Update
+			try {
+				ldapConfigresponse = oidcUtil.updateOIDCEntity(policies, oidcEntityResponse.getEntityName());
+				oidcUtil.renewUserToken(userDetails.getClientToken());
+			} catch (Exception e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
+						.put(LogMessage.MESSAGE, "Exception while updating the identity")
+						.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			}
+		}
+		return ldapConfigresponse;
+	}
+
+	/**
+	 * Method to update the metadata after removed user from Azure service
+	 * account
+	 * 
+	 * @param token
+	 * @param azureServiceAccountUser
+	 * @param userDetails
+	 * @param oidcEntityResponse
+	 * @param groups
+	 * @param currentpolicies
+	 * @param currentpoliciesString
+	 * @return
+	 */
+	private ResponseEntity<String> updateMetadataAfterRemovePermissionFromAzureSvcAcc(String token,
+			AzureServiceAccountUser azureServiceAccountUser, UserDetails userDetails,
+			OIDCEntityResponse oidcEntityResponse, String groups, List<String> currentpolicies,
+			String currentpoliciesString) {
+		String azureSvcaccName = azureServiceAccountUser.getAzureSvcAccName();
+		// User has been removed from this Azure Service Account. Now metadata
+		// has to be deleted
+		String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(azureSvcaccName)
+				.toString();
+		Map<String, String> params = new HashMap<>();
+		params.put("type", "users");
+		params.put("name", azureServiceAccountUser.getUsername());
+		params.put("path", path);
+		params.put("access", "delete");
+		Response metadataResponse = ControllerUtil.updateMetadata(params, token);
+		if (metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())
+				|| HttpStatus.OK.equals(metadataResponse.getHttpstatus()))) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
+					.put(LogMessage.MESSAGE, "User is successfully Removed from Azure Service Account")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(HttpStatus.OK)
+					.body("{\"messages\":[\"Successfully removed user from the Azure Service Account\"]}");
+		} else {
+			return revertUserPermission(token, azureServiceAccountUser, userDetails, oidcEntityResponse, groups,
+					currentpolicies, currentpoliciesString);
+		}
+	}
+
+	/**
+	 * Method to revert user permission for remove user from Azure service
+	 * account if update failed.
+	 * 
+	 * @param token
+	 * @param azureServiceAccountUser
+	 * @param userDetails
+	 * @param oidcEntityResponse
+	 * @param groups
+	 * @param currentpolicies
+	 * @param currentpoliciesString
+	 * @return
+	 */
+	private ResponseEntity<String> revertUserPermission(String token, AzureServiceAccountUser azureServiceAccountUser,
+			UserDetails userDetails, OIDCEntityResponse oidcEntityResponse, String groups, List<String> currentpolicies,
+			String currentpoliciesString) {
+		Response configUserResponse = new Response();
+		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+			configUserResponse = ControllerUtil.configureUserpassUser(azureServiceAccountUser.getUsername(),
+					currentpoliciesString, token);
+		} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+			configUserResponse = ControllerUtil.configureLDAPUser(azureServiceAccountUser.getUsername(),
+					currentpoliciesString, groups, token);
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			// OIDC changes
+			try {
+				configUserResponse = oidcUtil.updateOIDCEntity(currentpolicies, oidcEntityResponse.getEntityName());
+				oidcUtil.renewUserToken(userDetails.getClientToken());
+			} catch (Exception e2) {
+				log.error(e2);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
+						.put(LogMessage.MESSAGE, "Exception while updating the identity")
+						.put(LogMessage.STACKTRACE, Arrays.toString(e2.getStackTrace()))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			}
+		}
+		if (configUserResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+				|| configUserResponse.getHttpstatus().equals(HttpStatus.OK)) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+					"{\"errors\":[\"Failed to remove the user from the Azure Service Account. Metadata update failed\"]}");
+		} else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("{\"errors\":[\"Failed to revert user association on Azure Service Account\"]}");
+		}
+	}
+	
+	/**
+	 * To create aws ec2 role
+	 * @param userDetails
+	 * @param token
+	 * @param awsLoginRole
+	 * @return
+	 * @throws TVaultValidationException
+	 */
+	public ResponseEntity<String> createAWSRole(UserDetails userDetails, String token, AWSLoginRole awsLoginRole) throws TVaultValidationException {
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
+		return awsAuthService.createRole(token, awsLoginRole, userDetails);
+	}
+	
+	/**
+	 * Create aws iam role
+	 * @param userDetails
+	 * @param token
+	 * @param awsiamRole
+	 * @return
+	 * @throws TVaultValidationException
+	 */
+	public ResponseEntity<String> createIAMRole(UserDetails userDetails, String token, AWSIAMRole awsiamRole) throws TVaultValidationException {
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
+		return awsiamAuthService.createIAMRole(awsiamRole, token, userDetails);
+	}
+	
+	/**
+	 * Add AWS role to Azure Service Account
+	 * @param userDetails
+	 * @param token
+	 * @param azureServiceAccountAWSRole
+	 * @return
+	 */
+	public ResponseEntity<String> addAwsRoleToAzureSvcacc(UserDetails userDetails, String token, AzureServiceAccountAWSRole azureServiceAccountAWSRole) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
+				put(LogMessage.MESSAGE, "Trying to add AWS Role to Azure Service Account").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
+		if(!isAzureSvcaccPermissionInputValid(azureServiceAccountAWSRole.getAccess())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+		}
+		if (azureServiceAccountAWSRole.getAccess().equalsIgnoreCase(AzureServiceAccountConstants.AZURE_ROTATE_MSG_STRING)) {
+			azureServiceAccountAWSRole.setAccess(TVaultConstants.WRITE_POLICY);
+		}
+		String roleName = azureServiceAccountAWSRole.getRolename();
+		String azureSvcName = azureServiceAccountAWSRole.getAzureSvcAccName().toLowerCase();
+		String access = azureServiceAccountAWSRole.getAccess();
+
+		roleName = (roleName !=null) ? roleName.toLowerCase() : roleName;
+		access = (access != null) ? access.toLowerCase(): access;
+
+		boolean isAuthorized = hasAddOrRemovePermission(userDetails, azureSvcName, token);
+		if(isAuthorized){
+			String policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access))
+					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
+
+
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
+					put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			
+			String readPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
+					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
+			String writePolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
+					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
+			String denyPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
+					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
+			String ownerPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
+			
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
+					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, ownerPolicy)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+
+			Response roleResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+roleName+"\"}",token);
+			String responseJson="";
+			String authType = TVaultConstants.EC2;
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+			String policiesString = "";
+			String currentpoliciesString = "";
+
+			if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
+				responseJson = roleResponse.getResponse();
+				ObjectMapper objMapper = new ObjectMapper();
+				try {
+					JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
+					for(JsonNode policyNode : policiesArry){
+						currentpolicies.add(policyNode.asText());
+					}
+					authType = objMapper.readTree(responseJson).get("auth_type").asText();
+				} catch (IOException e) {
+                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                            put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
+                            put(LogMessage.MESSAGE, e.getMessage()).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                            build()));
+				}
+				policies.addAll(currentpolicies);
+				policies.remove(readPolicy);
+				policies.remove(writePolicy);
+				policies.remove(denyPolicy);
+				policies.add(policy);
+				policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+				currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+			} else{
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"AWS role '"+roleName+"' does not exist. Please create the role and try again!\"]}");
+			}
+			Response awsRoleConfigresponse = null;
+			if (TVaultConstants.IAM.equals(authType)) {
+				awsRoleConfigresponse = awsiamAuthService.configureAWSIAMRole(roleName,policiesString,token);
+			}
+			else {
+				awsRoleConfigresponse = awsAuthService.configureAWSRole(roleName,policiesString,token);
+			}
+			if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
+				String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(azureSvcName).toString();
+				Map<String,String> params = new HashMap<>();
+				params.put("type", "aws-roles");
+				params.put("name",roleName);
+				params.put("path",path);
+				params.put("access",access);
+				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
+							put(LogMessage.MESSAGE, "AWS Role configuration Success.").
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role successfully associated with Azure Service Account\"]}");
+				}
+				if (TVaultConstants.IAM.equals(authType)) {
+					awsRoleConfigresponse = awsiamAuthService.configureAWSIAMRole(roleName,currentpoliciesString,token);
+				}
+				else {
+					awsRoleConfigresponse = awsAuthService.configureAWSRole(roleName,currentpoliciesString,token);
+				}
+				if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
+							put(LogMessage.MESSAGE, "Reverting, AWS Role policy update success").
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Please try again\"]}");
+				} else{
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
+							put(LogMessage.MESSAGE, "Reverting AWS Role policy update failed").
+							put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+							put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Contact Admin \"]}");
+				}
+			} else{
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed. Try Again\"]}");
+			}
+		} else{
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add AWS Role to this Azure service account\"]}");
+		}
+	}
+	
+	/**
+	 * Check if user has the permission to add user/group/awsrole/approles to
+	 * the Azure Service Account
+	 *
+	 * @param userDetails
+	 * @param action
+	 * @param token
+	 * @return
+	 */
+	public boolean hasAddOrRemovePermission(UserDetails userDetails, String serviceAccount, String token) {
+		// Owner of the service account can add/remove users, groups, aws roles
+		// and approles to service account
+
+		String ownerPolicy = new StringBuffer()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(serviceAccount).toString();
+		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
+		if (ArrayUtils.contains(policies, ownerPolicy)) {
+			return true;
+		}
+		return false;
 	}
 }
