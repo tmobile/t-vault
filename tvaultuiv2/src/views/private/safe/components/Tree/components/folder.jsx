@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import IconFolderActive from '../../../../../../assets/icon_folder_active.png';
 import IconFolderInactive from '../../../../../../assets/icon_folder.png';
 
@@ -157,7 +157,7 @@ const Folder = (props) => {
         >
           <div role="button" className="folder--label" tabIndex={0}>
             <LabelWrap onClick={(e) => handleToggle(e)}>
-              {isOpen ? <ExpandMoreIcon /> : <ExpandLessIcon />}
+              {isOpen ? <ExpandMoreIcon /> : <ChevronRightIcon />}
 
               {isOpen ? (
                 <Icon alt="folder--icon" src={IconFolderActive} />
