@@ -37,6 +37,7 @@ import {
   ListContainer,
   ListContent,
 } from '../../../../../styles/GlobalStyles/listingStyle';
+import configData from '../../../../../config/config';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -201,7 +202,10 @@ const CertificatesDashboard = () => {
     setResponse({ status: 'loading' });
     setAllCertList([]);
     setCertificateList([]);
-    const allCertInternal = await apiService.getAllAdminCertInternal();
+    let allCertInternal = [];
+    if (configData.AUTH_TYPE === 'oidc') {
+      allCertInternal = await apiService.getAllAdminCertInternal();
+    }
     const internalCertificates = await apiService.getInternalCertificates();
     const externalCertificates = await apiService.getExternalCertificates();
     const allApiResponse = Promise.all([
@@ -214,10 +218,24 @@ const CertificatesDashboard = () => {
         const allCertArray = [];
         const internalCertArray = [];
         const externalCertArray = [];
-        if (result && result[0]?.data?.data?.keys) {
-          result[0].data.data.keys.map((item) => {
-            return allCertArray.push(item);
-          });
+        if (configData.AUTH_TYPE === 'oidc') {
+          if (result && result[0]?.data?.data?.keys) {
+            result[0].data.data.keys.map((item) => {
+              return allCertArray.push(item);
+            });
+          }
+        } else {
+          const access = JSON.parse(sessionStorage.getItem('access'));
+          if (Object.keys(access).length > 0) {
+            Object.keys(access).forEach((item) => {
+              if (item === 'cert' || item === 'externalcerts') {
+                access[item].map((ele) => {
+                  const val = Object.keys(ele);
+                  return allCertArray.push(val[0]);
+                });
+              }
+            });
+          }
         }
         if (result && result[1]?.data?.keys) {
           result[1].data.keys.map((item) => {
@@ -247,8 +265,12 @@ const CertificatesDashboard = () => {
 
   const fetchNonAdminData = useCallback(async () => {
     setResponse({ status: 'loading' });
-    const allCertInternal = await apiService.getAllNonAdminCertInternal();
-    const allCertExternal = await apiService.getAllNonAdminCertExternal();
+    let allCertInternal = [];
+    let allCertExternal = [];
+    if (configData.AUTH_TYPE === 'oidc') {
+      allCertInternal = await apiService.getAllNonAdminCertInternal();
+      allCertExternal = await apiService.getAllNonAdminCertExternal();
+    }
     const internalCertificates = await apiService.getInternalCertificates();
     const externalCertificates = await apiService.getExternalCertificates();
     const allApiResponse = Promise.all([
@@ -263,22 +285,41 @@ const CertificatesDashboard = () => {
         const allCertificateExternal = [];
         const internalCertArray = [];
         const externalCertArray = [];
-        if (result && result[0]?.data?.cert) {
-          result[0].data.cert.map((item) => {
-            return Object.entries(item).map(([key, value]) => {
-              if (value.toLowerCase() !== 'deny') {
-                return allCertificateInternal.push(key);
+        if (configData.AUTH_TYPE === 'oidc') {
+          if (result && result[0]?.data?.cert) {
+            result[0].data.cert.map((item) => {
+              return Object.entries(item).map(([key, value]) => {
+                if (value.toLowerCase() !== 'deny') {
+                  return allCertificateInternal.push(key);
+                }
+                return null;
+              });
+            });
+          }
+          if (result && result[1]?.data?.externalcerts) {
+            result[1].data.externalcerts.map((item) => {
+              return Object.entries(item).map(([key]) => {
+                return allCertificateExternal.push(key);
+              });
+            });
+          }
+        } else {
+          const access = JSON.parse(sessionStorage.getItem('access'));
+          if (Object.keys(access).length > 0) {
+            Object.keys(access).forEach((item) => {
+              if (item === 'cert' || item === 'externalcerts') {
+                access[item].map((ele) => {
+                  const val = Object.keys(ele);
+                  if (item === 'cert') {
+                    allCertificateInternal.push(val[0]);
+                  } else {
+                    allCertificateExternal.push(val[0]);
+                  }
+                  return null;
+                });
               }
-              return null;
             });
-          });
-        }
-        if (result && result[1]?.data?.externalcerts) {
-          result[1].data.externalcerts.map((item) => {
-            return Object.entries(item).map(([key]) => {
-              return allCertificateExternal.push(key);
-            });
-          });
+          }
         }
         if (result && result[2]?.data?.keys) {
           result[2].data.keys.map((item) => {

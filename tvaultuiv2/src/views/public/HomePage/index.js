@@ -32,7 +32,6 @@ import configData from '../../../config/config';
 import LoginModal from './LoginModal';
 import SnackbarComponent from '../../../components/Snackbar';
 import { renewToken } from './utils';
-import { ldapResponse, userpassResponse } from './__mock/loginResponse';
 
 const { smallAndMedium, small } = mediaBreakpoints;
 
@@ -368,6 +367,14 @@ const LoginPage = () => {
   const { search } = useLocation();
   const urlParams = queryString.parse(search);
 
+  const checkAdmin = (value) => {
+    if (value === 'yes') {
+      sessionStorage.setItem('isAdmin', true);
+    } else {
+      sessionStorage.setItem('isAdmin', false);
+    }
+  };
+
   const getOwnerAllDetails = (loggedInUser) => {
     return apiService
       .getOwnerDetails(loggedInUser)
@@ -423,11 +430,7 @@ const LoginPage = () => {
           if (res?.data) {
             setResponse({ status: 'loading' });
             sessionStorage.setItem('token', res.data.client_token);
-            if (res?.data?.admin === 'yes') {
-              sessionStorage.setItem('isAdmin', true);
-            } else {
-              sessionStorage.setItem('isAdmin', false);
-            }
+            checkAdmin(res?.data?.admin);
             await getLoggedInUserName();
             await renewToken();
             dispatch({ type: 'CALLBACK_DATA', payload: { ...res.data } });
@@ -469,19 +472,18 @@ const LoginPage = () => {
   const ldapApiCall = (payload) => {
     axios
       .post(`${configUrl.baseUrl}/auth/ldap/login`, payload)
-      .then(() => {
-        // TODO: ONCE THE API IS ACTIVE REPLACE MOCK DATA ldapResponse WITH RESPONSE
-        sessionStorage.setItem('token', ldapResponse.client_token);
-        if (ldapResponse.admin === 'yes') {
-          sessionStorage.setItem('isAdmin', true);
-        } else {
-          sessionStorage.setItem('isAdmin', false);
+      .then(async (res) => {
+        if (res?.data) {
+          sessionStorage.setItem('token', res.data.client_token);
+          checkAdmin(res?.data?.admin);
+          sessionStorage.setItem('access', JSON.stringify(res.data.access));
+          sessionStorage.setItem('username', payload.username.toLowerCase());
+          await getOwnerAllDetails(payload.username.toLowerCase());
+          window.location = '/safes';
         }
-        sessionStorage.setItem('policies', ldapResponse.policies);
-        window.location = '/safes';
       })
       .catch((err) => {
-        if (err.response.data.errors && err.response.data.errors[0]) {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
           setToastMessage(err.response.data.errors[0]);
         }
         setResponseType(-1);
@@ -492,19 +494,19 @@ const LoginPage = () => {
   const userpassApiCall = (payload) => {
     axios
       .post(`${configUrl.baseUrl}/auth/userpass/login`, payload)
-      .then(() => {
-        // TODO: ONCE THE API IS ACTIVE REPLACE MOCK DATA userpassResponse WITH RESPONSE
-        sessionStorage.setItem('token', userpassResponse.response.client_token);
-        if (userpassResponse.response.admin === 'yes') {
-          sessionStorage.setItem('isAdmin', true);
-        } else {
-          sessionStorage.setItem('isAdmin', false);
-        }
-        sessionStorage.setItem('policies', userpassResponse.response.policies);
+      .then(async (res) => {
+        const val = res.data.split('response=');
+        const data = val[1].split(', adminPolicies');
+        const responseData = JSON.parse(data[0]);
+        sessionStorage.setItem('token', responseData?.client_token);
+        checkAdmin(responseData?.admin);
+        sessionStorage.setItem('access', JSON.stringify(responseData?.access));
+        sessionStorage.setItem('username', payload.username.toLowerCase());
+        await getOwnerAllDetails(payload.username.toLowerCase());
         window.location = '/safes';
       })
       .catch((err) => {
-        if (err.response.data.errors && err.response.data.errors[0]) {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
           setToastMessage(err.response.data.errors[0]);
         }
         setResponseType(-1);
