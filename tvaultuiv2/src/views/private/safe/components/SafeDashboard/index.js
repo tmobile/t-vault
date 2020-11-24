@@ -343,7 +343,7 @@ const SafeDashboard = () => {
   const onSearchChange = (value) => {
     setInputSearchValue(value);
     if (value !== '') {
-      const array = allSafeList.filter((item) => {
+      const array =  allSafeList?.filter((item) => {
         return String(item.name).startsWith(value);
       });
       setSafeList([...array]);

@@ -307,7 +307,7 @@ const ServiceAccountDashboard = () => {
   const onSearchChange = (value) => {
     setInputSearchValue(value);
     if (value !== '') {
-      const array = state?.serviceAccountList.filter((item) => {
+      const array = state?.serviceAccountList?.filter((item) => {
         return String(item.name).startsWith(value);
       });
       setServiceAccountList([...array]);
