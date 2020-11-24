@@ -39,7 +39,7 @@ const PrivateRoutes = () => {
     new Date(new Date().getTime() + 3 * 60 * 1000)
   );
 
-  let isEndTime = '';
+  let isCalled= false;
 
   const calculateCountdown = () => {
     let diff = (Date.parse(endTime) - Date.parse(new Date())) / 1000;
@@ -100,7 +100,6 @@ const PrivateRoutes = () => {
 
   const callRenewApi = async () => {
     try {
-      isEndTime = new Date(new Date().getTime() + 3 * 60 * 1000);
       setEndTime(new Date(new Date().getTime() + 3 * 60 * 1000));
       setTimeWhenLoggedIn(new Date().getTime());
 
@@ -117,9 +116,13 @@ const PrivateRoutes = () => {
       if (getRemainingTime() === 0) {
         document.title = 'VAULT';
         timer.cancelCountdown();
-        console.log('called');
-        console.log(isEndTime);
-        await callRenewApi();
+        console.log(isCalled);
+        setTimeout(async ()=> {
+          if(isCalled)isCalled=false;
+        else 
+          {isCalled = true;console.log('called');await callRenewApi();}
+        },0);
+        
       }
     }
   };
@@ -133,9 +136,11 @@ const PrivateRoutes = () => {
         loggedOut();
       } else if (configData.AUTH_TYPE === 'oidc' && minutes > 1) {
         console.log(endTime);
-        console.log('called again');
-        console.log(isEndTime);
-        await callRenewApi();
+        
+        console.log(isCalled);
+        if(!isCalled)
+          {await callRenewApi();console.log('called again');}
+        else isCalled =true;
       }
     }
   };
