@@ -39,6 +39,8 @@ const PrivateRoutes = () => {
     new Date(new Date().getTime() + 3 * 60 * 1000)
   );
 
+  let isEndTime = '';
+
   const calculateCountdown = () => {
     let diff = (Date.parse(endTime) - Date.parse(new Date())) / 1000;
     if (diff <= 0) return false;
@@ -98,20 +100,25 @@ const PrivateRoutes = () => {
 
   const callRenewApi = async () => {
     try {
+      isEndTime = new Date(new Date().getTime() + 3 * 60 * 1000);
       setEndTime(new Date(new Date().getTime() + 3 * 60 * 1000));
       setTimeWhenLoggedIn(new Date().getTime());
+
       return await renewToken();
     } catch (err) {
       return loggedOut();
     }
   };
 
+  // when idle
   const handleOnActive = async () => {
     console.log('Active');
     if (window.location.pathname !== '/' && configData.AUTH_TYPE === 'oidc') {
       if (getRemainingTime() === 0) {
         document.title = 'VAULT';
         timer.cancelCountdown();
+        console.log('called');
+        console.log(isEndTime);
         await callRenewApi();
       }
     }
@@ -125,6 +132,9 @@ const PrivateRoutes = () => {
       if (configData.AUTH_TYPE !== 'oidc' && minutes > 30) {
         loggedOut();
       } else if (configData.AUTH_TYPE === 'oidc' && minutes > 1) {
+        console.log(endTime);
+        console.log('called again');
+        console.log(isEndTime);
         await callRenewApi();
       }
     }
