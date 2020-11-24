@@ -94,7 +94,7 @@ const NoListWrap = styled.div`
 
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 3rem;
+  bottom: 1rem;
   right: 2.5rem;
   z-index: 1;
 `;
