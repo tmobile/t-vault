@@ -521,6 +521,16 @@
                     return response;
                 });
             },
+            getAzureSvcaccOnboardInfo: function(payload, url) {
+                return ServiceEndpoint.getAzureSvcaccOnboardInfo.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addUserPermissionForAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.addUserPermissionForAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;

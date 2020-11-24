@@ -546,7 +546,7 @@ public class SSLCertificateController {
 	@PostMapping(value = "/v2/sslcert/onboardSSLcertificate", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<String> onboardSSLCertificate(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,
-			@Valid @RequestBody SSLCertificateRequest sslCertificateRequest) throws Exception {
+			@Valid @RequestBody SSLCertificateOnboardRequest sslCertificateRequest) throws Exception {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.onboardSSLcertificate(userDetails, token, sslCertificateRequest);
 	}
