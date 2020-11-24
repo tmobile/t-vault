@@ -3133,6 +3133,7 @@ public class  IAMServiceAccountsService {
 			Map<String, String> approles = (Map<String, String>) metadataMap.get("app-roles");
 			Map<String, String> groups = (Map<String, String>) metadataMap.get("groups");
 			Map<String, String> users = (Map<String, String>) metadataMap.get("users");
+            Map<String,String> awsroles = (Map<String, String>)metadataMap.get("aws-roles");
 			// always add owner to the users list whose policy should be updated
 			managedBy = (String) metadataMap.get(IAMServiceAccountConstants.OWNER_NT_ID);
 			if (!org.apache.commons.lang3.StringUtils.isEmpty(managedBy)) {
@@ -3145,6 +3146,7 @@ public class  IAMServiceAccountsService {
 			updateUserPolicyAssociationOnIAMSvcaccDelete(uniqueIAMSvcName, users, selfSupportToken, userDetails);
 			updateGroupPolicyAssociationOnIAMSvcaccDelete(uniqueIAMSvcName, groups, selfSupportToken, userDetails);
 			updateApprolePolicyAssociationOnIAMSvcaccDelete(uniqueIAMSvcName, approles, selfSupportToken);
+            deleteAwsRoleonOnIAMOffboard(iamSvcName, awsroles, selfSupportToken);
 		}
 
 		OnboardedIAMServiceAccount iamSvcAccToOffboard = new OnboardedIAMServiceAccount(iamSvcName,
@@ -3173,6 +3175,41 @@ public class  IAMServiceAccountsService {
 		}
 	}
 
+    /**
+     * Aws role deletion as part of IAM Service account Offboarding
+     * @param iamSvcAccName
+     * @param acessInfo
+     * @param token
+     */
+    private void deleteAwsRoleonOnIAMOffboard(String iamSvcAccName, Map<String,String> acessInfo, String token) {
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, "deleteAwsRoleonOnIAMOffboard").
+                put(LogMessage.MESSAGE, String.format ("Trying to delete AwsRole on offboarding of IAM Service Account [%s]", iamSvcAccName)).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+        if(acessInfo!=null){
+            Set<String> roles = acessInfo.keySet();
+            for(String role : roles){
+                Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);
+                if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                            put(LogMessage.ACTION, "deleteAwsRoleonOnIAMOffboard").
+                            put(LogMessage.MESSAGE, String.format ("%s, AWS Role is deleted as part of offboarding IAM Service account [%s].", role, iamSvcAccName)).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                            build()));
+                }else{
+                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                            put(LogMessage.ACTION, "deleteAwsRoleonOnIAMOffboard").
+                            put(LogMessage.MESSAGE, String.format ("%s, AWS Role deletion as part of offboarding IAM Service account [%s] failed.", role, iamSvcAccName)).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                            build()));
+                }
+            }
+        }
+    }
 
 	/**
 	 * Update User policy on IAM Service account offboarding
