@@ -8,6 +8,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +17,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
+import com.tmobile.cso.vault.api.model.AWSIAMRole;
+import com.tmobile.cso.vault.api.model.AWSLoginRole;
 import com.tmobile.cso.vault.api.model.AzureServiceAccount;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountAWSRole;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountOffboardRequest;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountUser;
 import com.tmobile.cso.vault.api.model.UserDetails;
@@ -95,11 +100,11 @@ public class AzureServicePrinicipalAccountsController {
 	 * @throws IOException 
 	 */
 	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.readSecret.value}", notes = "${AzureServicePrinicipalAccountsController.readSecret.notes}", hidden = false)
-	@GetMapping(value = "/v2/azureserviceaccounts/secret/{azure_svc_name}/{accessKey}", produces = "application/json")
+	@GetMapping(value = "/v2/azureserviceaccounts/secret/{azure_svc_name}/{secretKey}", produces = "application/json")
 	public ResponseEntity<String> readSecret(@RequestHeader(value = "vault-token") String token,
 			@PathVariable("azure_svc_name") String azureSvcName,
-			@PathVariable("accessKey") String accessKey) throws IOException {
-		return azureServicePrinicipalAccountsService.readSecret(token, azureSvcName, accessKey);
+			@PathVariable("secretKey") String secretKey) throws IOException {
+		return azureServicePrinicipalAccountsService.readSecret(token, azureSvcName, secretKey);
 	}
 	/**
 	 * Offboard Azure service account.
@@ -137,6 +142,60 @@ public class AzureServicePrinicipalAccountsController {
 	public ResponseEntity<String> addUserToAzureServicePrincipal(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid AzureServiceAccountUser azureServiceAccountUser){
 	   UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 	   return azureServicePrinicipalAccountsService.addUserToAzureServiceAccount(token, userDetails, azureServiceAccountUser, false);
+	}
+	/**
+	 * Removes permission for a user from the Azure service account
+	 * @param request
+	 * @param token
+	 * @param azureServiceAccountUser
+	 * @return
+	 */
+	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.removeUserFromAzureServiceAccount.value}", notes = "${AzureServicePrinicipalAccountsController.removeUserFromAzureServiceAccount.notes}")
+	@DeleteMapping(value="/v2/azureserviceaccounts/user", produces="application/json")
+	public ResponseEntity<String> removeUserFromAzureServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody AzureServiceAccountUser azureServiceAccountUser ){
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return azureServicePrinicipalAccountsService.removeUserFromAzureServiceAccount(token, azureServiceAccountUser, userDetails);
+	}
+	/**
+	 * Method to create an aws app role
+	 * @param token
+	 * @param awsLoginRole
+	 * @return
+	 */
+	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.createAWSRole.value}", notes = "${AzureServicePrinicipalAccountsController.createAWSRole.notes}")
+	@PostMapping(value="/v2/azureserviceaccounts/aws/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> createAWSRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole) throws TVaultValidationException {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return azureServicePrinicipalAccountsService.createAWSRole(userDetails, token, awsLoginRole);
+	}
+	
+	/**
+	 * Method to create aws iam role
+	 * @param token
+	 * @param awsiamRole
+	 * @return
+	 */
+	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.createIamRole.value}", notes = "${AzureServicePrinicipalAccountsController.createIamRole.notes}")
+	@PostMapping(value="/v2/azureserviceaccounts/aws/iam/role",produces="application/json")
+	public ResponseEntity<String> createIAMRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSIAMRole awsiamRole) throws TVaultValidationException{
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return azureServicePrinicipalAccountsService.createIAMRole(userDetails, token, awsiamRole);
+	}
+	
+	/**
+	 * Adds AWS role to Azure Service Account
+	 * 
+	 * @param token
+	 * @param azureServiceAccountAWSRole
+	 * @return
+	 */
+	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.addAwsRoleToAzureSvcacc.value}", notes = "${AzureServicePrinicipalAccountsController.addAwsRoleToAzureSvcacc.notes}")
+	@PostMapping(value = "/v2/azureserviceaccounts/role", produces = "application/json")
+	public ResponseEntity<String> addAwsRoleToAzureSvcacc(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token,
+			@Valid @RequestBody AzureServiceAccountAWSRole azureServiceAccountAWSRole) {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return azureServicePrinicipalAccountsService.addAwsRoleToAzureSvcacc(userDetails, token, azureServiceAccountAWSRole);
 	}
 
 	/**

@@ -23,6 +23,8 @@ public class AzureServiceAccountConstants {
 	
 	public static final String ADD_USER_TO_AZURESVCACC_MSG = "Add User to Azure Service Account";
 	public static final String AZURE_SVCACC_OFFBOARD_CREATION_TITLE = "Offboard Azure Service Account";
+	public static final String REMOVE_USER_FROM_AZURESVCACC_MSG = "Remove User from Azure Service Account";
+	public static final String ADD_AWS_ROLE_MSG = "Add AWS Role to Azure Service Account";
 
 	
 	public static final String USERNAME_PARAM_STRING = "{\"username\":\"";

@@ -532,6 +532,22 @@ readTextFile("../apiUrls.json");
             name: 'addUserPermissionForAzureSvcacc',
             url: '/v2/azureserviceaccounts/user',
             method: 'POST'
+        },{
+            name: 'deleteUserPermissionFromAzureSvcacc',
+            url: '/v2/azureserviceaccounts/user',
+            method: 'DELETE'
+        },{
+            name: 'addAWSPermissionForAzureSvcacc',
+            url: '/v2/azureserviceaccounts/role',
+            method: 'POST'
+        },{
+            name: 'createAwsRoleAzureSvcacc',
+            url: '/v2/azureserviceaccounts/aws/role',
+            method: 'POST'
+        },{
+            name: 'createAwsIAMRoleAzureSvcacc',
+            url: '/v2/azureserviceaccounts/aws/iam/role',
+            method: 'POST'
         }
     ]
     });
