@@ -181,7 +181,7 @@ const ViewIamServiceAccount = (props) => {
               label="Cancel"
               color="primary"
               onClick={() => handleCloseConfirmationModal()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
           confirmButton={
@@ -195,7 +195,7 @@ const ViewIamServiceAccount = (props) => {
                   ? () => onRotateSecret()
                   : () => activateServiceAccount()
               }
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
         />
