@@ -1661,25 +1661,47 @@ public class SSLCertificateService {
      * @return
      */
 	private boolean validateNotificationEmails(SSLCertificateRequest sslCertificateRequest) {
+		boolean isValidData =true;
+		if(sslCertificateRequest.getNotificationEmail()!=null) {
+		String[] notifEmailLst;
+		int count=0;
         String notificationEmails = sslCertificateRequest.getNotificationEmail();
-        //Set<String> set = new HashSet<>();
-
-        if(!StringUtils.isEmpty(notificationEmails)) {
-	       // for (String notificationEmail : notificationEmails) {
-	            if (notificationEmails.contains(" ") || 
-	            		(notificationEmails.endsWith(certificateNameTailText)) ||
-	                    (notificationEmails.contains(".-")) || 
-	                    (notificationEmails.contains("-.")) || 
-	                    (notificationEmails.contains("..")) || 
-	                    (notificationEmails.endsWith("."))) {
-	                return false;
-	            }
-	       // }
-
-        }
-        return true;
+        notifEmailLst =   sslCertificateRequest.getNotificationEmail().split(",");
+        notifEmailLst = new HashSet<String>(Arrays.asList(notifEmailLst)).toArray(new String[0]);
+        for(int i=0; i<notifEmailLst.length;i++) {
+			if(validateCertficateNotificationEmail(notifEmailLst[i] )) {
+				count++;
+			}
+		}
+        if(count==notifEmailLst.length) {
+        	isValidData = true;
+		}else if(count<notifEmailLst.length) {
+			isValidData = false;
+		}
+		}
+		if(isValidData == true) {
+			return true;
+		}
+		return false;
     }
-    /**
+	/**
+     * Validate the notificationEmailString
+     * @param notificationEmailString
+     * @return
+     */
+    private boolean validateCertficateNotificationEmail(String notificationEmailString) {
+            if (notificationEmailString.contains(" ") || 
+            		(notificationEmailString.endsWith(certificateNameTailText)) ||
+                    (notificationEmailString.contains(".-")) || 
+                    (notificationEmailString.contains("-.")) || 
+                    (notificationEmailString.contains("..")) || 
+                    (notificationEmailString.endsWith("."))) {
+                return false;
+            }
+		return true;
+	}
+
+	/**
      * Validate input data
      * @param sslCertificateRequest
      * @return
@@ -9227,6 +9249,10 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 						String appOwnerEmail = validateString(jsonElement.get("brtContactEmail"));
 						String akmid = validateString(jsonElement.get("akmid"));
 						String notificationEmails = sslCertificateRequest.getNotificationEmail();
+
+						if(!sslCertificateRequest.getNotificationEmail().contains(sslCertificateRequest.getCertOwnerEmailId())) {
+							notificationEmails = new StringBuilder().append(notificationEmails).append(",").append(sslCertificateRequest.getCertOwnerEmailId()).toString();
+					}
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 								.put(LogMessage.ACTION, "Populate Application details in SSL Certificate Metadata")
