@@ -35,6 +35,7 @@ import {
   ListContainer,
   StyledInfiniteScroll,
 } from '../../../../../styles/GlobalStyles/listingStyle';
+import configData from '../../../../../config/config';
 
 const CreateSafe = lazy(() => import('../../CreateSafe'));
 
@@ -242,7 +243,10 @@ const SafeDashboard = () => {
   const fetchData = useCallback(async () => {
     setStatus({ status: 'loading', message: 'Loading...' });
     setInputSearchValue('');
-    const safesApiResponse = await apiService.getSafes();
+    let safesApiResponse = [];
+    if (configData.AUTH_TYPE === 'oidc') {
+      safesApiResponse = await apiService.getSafes();
+    }
     const usersListApiResponse = await apiService.getManageUsersList();
     const sharedListApiResponse = await apiService.getManageSharedList();
     const appsListApiResponse = await apiService.getManageAppsList();
@@ -255,13 +259,27 @@ const SafeDashboard = () => {
     allApiResponse
       .then((response) => {
         const safesObject = { users: [], apps: [], shared: [] };
-        if (response[0] && response[0].data) {
-          Object.keys(response[0].data).forEach((item) => {
-            const data = makeSafesList(response[0].data[item], item);
-            data.map((value) => {
-              return safesObject[item].push(value);
+        if (configData.AUTH_TYPE === 'oidc') {
+          if (response[0] && response[0].data) {
+            Object.keys(response[0].data).forEach((item) => {
+              const data = makeSafesList(response[0].data[item], item);
+              data.map((value) => {
+                return safesObject[item].push(value);
+              });
             });
-          });
+          }
+        } else {
+          const access = JSON.parse(sessionStorage.getItem('access'));
+          if (Object.keys(access).length > 0) {
+            Object.keys(access).forEach((item) => {
+              if (item === 'shared' || item === 'users' || item === 'apps') {
+                const data = makeSafesList(access[item], item);
+                data.map((value) => {
+                  return safesObject[item].push(value);
+                });
+              }
+            });
+          }
         }
         if (response[1] && response[1]?.data?.keys) {
           compareSafesAndList(response[1].data.keys, 'users', safesObject);

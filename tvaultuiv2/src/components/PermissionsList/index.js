@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
@@ -57,7 +58,7 @@ const PermissionsList = (props) => {
     isSvcAccount,
     isIamSvcAccount,
   } = props;
-  //get logged in user info
+  // get logged in user info
   const state = useStateValue();
 
   return (
@@ -66,7 +67,7 @@ const PermissionsList = (props) => {
         <EachUserWrap
           key={key}
           inActitveStyles={
-            state[0]?.username?.toLowerCase() === key.toLowerCase() &&
+            state[0]?.username?.toLowerCase() === key?.toLowerCase() &&
             isIamSvcAccount
               ? 'pointer-events:none;opacity:0.5'
               : ''

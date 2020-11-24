@@ -190,6 +190,7 @@ const CreateModal = (props) => {
       owner === '' ||
       description.length < 10 ||
       safeError ||
+      name.length < 3 ||
       emailError ||
       !isValidEmail ||
       (safeDetails.owner === owner && safeDetails.description === description)
@@ -361,15 +362,28 @@ const CreateModal = (props) => {
     }
     setResponseType(null);
   };
+  const InputValidation = (text) => {
+    if (text) {
+      const res = /^[A-Za-z0-9_.-]*?[a-z0-9]$/i;
+      return res.test(text);
+    }
+    return null;
+  };
 
-  const onInputBlur = (e) => {
-    if (e.target.name === 'name') {
-      if (name.length < 3) {
+  const onSafeNameChange = (value) => {
+    if (value !== '') {
+      if (!InputValidation(value)) {
         setSafeError(true);
       } else {
         setSafeError(false);
       }
+    } else {
+      setSafeError(false);
     }
+    setName(value);
+  };
+
+  const onInputBlur = (e) => {
     if (e.target.name === 'owner') {
       if (validateEmail(owner)) {
         setEmailError(false);
@@ -427,19 +441,17 @@ const CreateModal = (props) => {
                 </LabelRequired>
                 <TextFieldComponent
                   value={name}
-                  placeholder="Save Name"
+                  placeholder="Save Name- Enter min 3 characters"
                   fullWidth
                   readOnly={!!editSafe}
                   name="name"
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setSafeError(false);
-                  }}
+                  onChange={(e) => onSafeNameChange(e.target.value)}
                   error={safeError}
                   helperText={
-                    safeError ? 'Please enter minimum 3 characters' : ''
+                    safeError
+                      ? 'Safe name can have alphabets, numbers, dot, hyphen and underscore only, and it should not start or end with any special characters!'
+                      : ''
                   }
-                  onInputBlur={(e) => onInputBlur(e)}
                 />
               </InputFieldLabelWrapper>
               <InputFieldLabelWrapper postion>
