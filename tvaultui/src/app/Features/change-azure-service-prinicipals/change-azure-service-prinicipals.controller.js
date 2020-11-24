@@ -411,36 +411,32 @@
                 try {
                     key = key.replace($scope.domainName, '');
                     $scope.isLoadingData = true;
-                    var svcaccname = $scope.svcacc.svcaccId;
-                    var awsAccountId = $scope.svcacc.awsAccId;
-                    var iamsvcId = awsAccountId+"_"+svcaccname;
+                    var svcaccname = $scope.azureSvcacc.azureSvcAccId;
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
                     switch (type) {
                         case 'users' :
-                            apiCallFunction = AdminSafesManagement.deleteUserPermissionFromIAMSvcacc;
+                            apiCallFunction = AdminSafesManagement.deleteUserPermissionFromAzureSvcacc;
                             if (SessionStore.getItem("username") == key) {
                                 $scope.isLoadingData = false;
                                 clearInputPermissionData();
-                                $scope.errorMessage = "Owner permission for an IAM service account cannot be changed!";
+                                $scope.errorMessage = "Owner permission for an Azure service prinicipal cannot be changed!";
                                 $scope.error('md');
-                                getAzureSvcaccInfo(iamsvcId);
+                                getAzureSvcaccInfo(svcaccname);
                                 return;
                             }
                             if (editingPermission) {
                                 reqObjtobeSent = {
-                                    "iamSvcAccName": svcaccname,
+                                    "azureSvcAccName": svcaccname,
                                     "username": key,
-                                    "access": permission,
-                                    "awsAccountId": awsAccountId
+                                    "access": permission.toLowerCase()
                                 };
                             }
                             else {
                                 reqObjtobeSent = {
-                                    "iamSvcAccName": svcaccname,
+                                    "azureSvcAccName": svcaccname,
                                     "username": key,
-                                    "access": permission,
-                                    "awsAccountId": awsAccountId
+                                    "access": permission.toLowerCase()
                                 };
                             }
                             break;
@@ -456,10 +452,9 @@
                         case 'AWSPermission':
                             apiCallFunction = AdminSafesManagement.detachAWSPermissionFromIAMSvcacc;
                             reqObjtobeSent = {
-                                "iamSvcAccName": svcaccname,
+                                "azureSvcAccName": svcaccname,
                                 "rolename": key,
-                                "access": permission,
-                                "awsAccountId": awsAccountId
+                                "access": permission
                             };
                             break;
                         case 'AppRolePermission':
@@ -483,7 +478,7 @@
                                         $scope.addPermission(type, key, permission, true);  // This will be executed when we're editing permissions
                                     }
                                     else {
-                                        getAzureSvcaccInfo(iamsvcId);
+                                        getAzureSvcaccInfo(svcaccname);
                                         // if (type === "users") {
                                         //     return Modal.createModalWithController('stop.modal.html', {
                                         //         title: 'Permission changed',
@@ -610,7 +605,7 @@
             $scope.isLoadingData = true;
             $scope.isSvcaccExpired = false;
             $scope.expiredNote = '';
-            $scope.iamSecretsData = { "secret": [] };
+            $scope.azureSecretsData = { "secret": [] };
 
             var updatedUrlOfEndPoint = RestEndpoints.baseURL + "/v2/azureserviceaccounts/" + azureSvcaccId;
             AdminSafesManagement.getAzureSvcaccOnboardInfo(null, updatedUrlOfEndPoint).then(
@@ -1093,15 +1088,15 @@
                             reqObjtobeSent = {"iamSvcAccName": azureSvcaccName, "groupname": key, "access": permission.toLowerCase(), "awsAccountId":$scope.svcacc.awsAccId};
                             break;
                         case 'AWSPermission':
-                            apiCallFunction = AdminSafesManagement.addAWSPermissionForIAMSvcacc;
-                            reqObjtobeSent = { "iamSvcAccName": azureSvcaccName, "rolename": key, "access": permission.toLowerCase(), "awsAccountId":$scope.svcacc.awsAccId };
+                            apiCallFunction = AdminSafesManagement.addAWSPermissionForAzureSvcacc;
+                            reqObjtobeSent = { "azureSvcAccName": azureSvcaccName, "rolename": key, "access": permission.toLowerCase() };
                             break;
                         case 'AwsRoleConfigure':
                             $scope.awsConfPopupObj['policies'] = "";   // Todo: Because of unavailability of edit service, this has been put
                             // Validate the input here if requried...
                             if ($scope.awsConfPopupObj.auth_type === 'ec2') {
                                 $scope.awsConfPopupObj.bound_iam_principal_arn = "";
-                                apiCallFunction = AdminSafesManagement.createAwsRoleIAMSvcacc;
+                                apiCallFunction = AdminSafesManagement.createAwsRoleAzureSvcacc;
                             }
                             else {
                                 $scope.awsConfPopupObj['policies'] = [];
@@ -1115,7 +1110,7 @@
                                 var arn = [];
                                 arn.push($scope.awsConfPopupObj.bound_iam_principal_arn);
                                 $scope.awsConfPopupObj.bound_iam_principal_arn = arn;
-                                apiCallFunction = AdminSafesManagement.createAwsIAMRoleIAMSvcacc;
+                                apiCallFunction = AdminSafesManagement.createAwsIAMRoleAzureSvcacc;
                             }
                             reqObjtobeSent = $scope.awsConfPopupObj
                             break;    

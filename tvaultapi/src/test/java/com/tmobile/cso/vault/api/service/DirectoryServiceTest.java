@@ -273,4 +273,30 @@ public class DirectoryServiceTest {
         assertEquals(responseEntityExpected.getBody().getData().getValues()[0], responseEntity.getBody().getData().getValues()[0]);
 
     }
+    
+    
+    @Test
+    public void test_getUserDetailsByCorpId_successfully() {
+
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(persons);
+        DirectoryUser directoryUser2 = directoryService.getUserDetailsByCorpId("test_corpid");
+
+        assertEquals(directoryUser, directoryUser2);
+
+    }
 }

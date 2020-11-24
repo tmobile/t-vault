@@ -530,6 +530,25 @@
                 return ServiceEndpoint.addUserPermissionForAzureSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
+            },deleteUserPermissionFromAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.deleteUserPermissionFromAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAWSPermissionForAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.addAWSPermissionForAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsRoleAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.createAwsRoleAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsIAMRoleAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.createAwsIAMRoleAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
             },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){

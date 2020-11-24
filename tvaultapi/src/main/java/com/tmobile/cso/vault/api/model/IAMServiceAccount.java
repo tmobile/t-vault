@@ -64,6 +64,7 @@ public class IAMServiceAccount implements Serializable {
 	@NotBlank
 	@Email
 	@Size(min = 1, message = "Owner Email can not be null or empty")
+	@Pattern(regexp = "^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$", message = "Owner Email is not valid")
 	@JsonProperty("owner_email")
 	private String ownerEmail;
 

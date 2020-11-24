@@ -270,7 +270,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                             .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
                                         .change-safe-table-data.row
                                             .row.change-safe.item.hide-in-mobile(ng-if="!isLoadingData && userPermission.value !== 'sudo'" ng-init="editPermissionItem = false; activeItem = false; radioValue = (userPermission.value=='write')?'rotate':userPermission.value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="userPermission in UsersPermissionsDetails")
-                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{userPermission.displayName}}-{{userPermission.value}}
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{userPermission.displayName}}
                                                 .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="Click edit icon to change permission")
                                                     radio-buttons(data="radio" value="radioValue" state="editPermissionItem")
                                                 .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
