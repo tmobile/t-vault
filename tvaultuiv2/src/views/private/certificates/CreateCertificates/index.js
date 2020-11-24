@@ -304,7 +304,7 @@ const CreateCertificates = (props) => {
     if (!InputValidation(e.target.value)) {
       setCertNameError(true);
       setErrorMessage(
-        'Certificate name can have alphabets, numbers, . and - characters only, And it should not start or end with special characters(-.)'
+        'Certificate name can have alphabets, numbers, . and - characters only, and it should not start or end with special characters(-.)'
       );
     } else if (value.toLowerCase().includes('.t-mobile.com')) {
       setCertNameError(true);
