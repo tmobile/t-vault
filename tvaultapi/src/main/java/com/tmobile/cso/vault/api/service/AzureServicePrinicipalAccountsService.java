@@ -1976,7 +1976,7 @@ public class AzureServicePrinicipalAccountsService {
 
 
 	/**
-	 * To get list of azure service prinicipal onboarded
+	 * To get list of azure service principal onboarded
 	 * 
 	 * @param token
 	 * @param userDetails
@@ -2011,5 +2011,22 @@ public class AzureServicePrinicipalAccountsService {
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
 
+	/**
+	 * Find Azure service principal from metadata.
+	 *
+	 * @param token
+	 * @param azureSvcName
+	 * @return
+	 */
+	public ResponseEntity<String> getAzureServicePrincipalDetail(String token, String azureSvcName) {
+		String path = AzureServiceAccountConstants.AZURE_SVCC_ACC_META_PATH + azureSvcName;
+		Response response = reqProcessor.process("/azuresvcacct", "{\"path\":\"" + path + "\"}", token);
+		if (response.getHttpstatus().equals(HttpStatus.OK)) {
+			JsonObject data = populateMetaData(response);
+			return ResponseEntity.status(HttpStatus.OK).body(data.toString());
+		}
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body("{\"errors\":[\"No Azure Service Principal with " + azureSvcName + ".\"]}");
 
+	}
 }
