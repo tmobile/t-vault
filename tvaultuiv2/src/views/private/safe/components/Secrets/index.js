@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable no-nested-ternary */
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -12,6 +13,7 @@ import Strings from '../../../../../resources';
 import Tree from '../Tree';
 import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
+import accessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
 
 const SecretsContainer = styled('div')`
   height: 100%;
@@ -49,11 +51,20 @@ const noDataStyle = css`
 
 const AccessDeniedWrap = styled.div`
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const AccessDeniedIcon = styled.img`
+  width: 16rem;
+  height: 16rem;
 `;
 const NoPermission = styled.div`
   display: inline-block;
   color: #5a637a;
   text-align: center;
+  margin-top: 4rem;
   span {
     margin: 0 0.3rem;
     color: #fff;
@@ -102,10 +113,13 @@ const Secrets = (props) => {
             {safeDetail?.access?.toLowerCase() === 'read' ||
             safeDetail?.access === '' ? (
               <AccessDeniedWrap>
+                <AccessDeniedIcon
+                  src={accessDeniedLogo}
+                  alt="accessDeniedLogo"
+                />
                 <NoPermission>
-                  Access denied: No permission to read/write for the
-                  <span>{safeDetail.name}</span>
-                  safe.
+                  You <span>do</span> not have acess to this <span>Safe</span>{' '}
+                  and cannot view it’s contents
                 </NoPermission>
               </AccessDeniedWrap>
             ) : (
