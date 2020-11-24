@@ -15,6 +15,9 @@ const AutoCompleteField = styled(Autocomplete)`
     .MuiAutocomplete-input {
     padding-left: 0;
   }
+  .MuiAutocomplete-inputRoot[class*="MuiFilledInput-root"]{
+    padding-left:1.5rem;
+  }
   .MuiFilledInput-root.Mui-focused {
     background-color: #fff;
   }

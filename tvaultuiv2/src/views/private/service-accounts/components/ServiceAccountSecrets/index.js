@@ -229,7 +229,7 @@ const ServiceAccountSecrets = (props) => {
               label="Cancel"
               color="primary"
               onClick={() => handleClose()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
           confirmButton={
@@ -237,7 +237,7 @@ const ServiceAccountSecrets = (props) => {
               label="Confirm"
               color="secondary"
               onClick={() => onResetConfirmedClicked()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
         />

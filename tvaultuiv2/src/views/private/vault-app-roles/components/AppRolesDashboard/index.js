@@ -436,7 +436,7 @@ const AppRolesDashboard = () => {
               label="Cancel"
               color="primary"
               onClick={() => handleConfirmationModalClose()}
-              width={isMobileScreen ? '45%' : ''}
+              width={isMobileScreen ? '44%' : ''}
             />
           }
           confirmButton={
@@ -445,7 +445,7 @@ const AppRolesDashboard = () => {
               label="Delete"
               color="secondary"
               onClick={() => onAppRoleDelete()}
-              width={isMobileScreen ? '45%' : ''}
+              width={isMobileScreen ? '44%' : ''}
             />
           }
         />
