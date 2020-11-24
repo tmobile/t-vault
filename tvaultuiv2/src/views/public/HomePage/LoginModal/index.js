@@ -9,6 +9,7 @@ import ComponentError from '../../../../errorBoundaries/ComponentError/component
 import TextFieldComponent from '../../../../components/FormFields/TextField';
 import ButtonComponent from '../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../breakpoints';
+import configData from '../../../../config/config';
 
 const { small } = mediaBreakpoints;
 
@@ -31,6 +32,12 @@ const Header = styled.h3`
 
 const Form = styled.form`
   margin: 5rem 0;
+`;
+const ForgetPwd = styled.a`
+  text-decoration: none;
+  color: #fff;
+  font-size: 1.3rem;
+  display: block;
 `;
 const InputFieldLabelWrapper = styled.div`
   margin-bottom: 2rem;
@@ -119,6 +126,14 @@ const LoginModal = (props) => {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </InputFieldLabelWrapper>
+
+              <ForgetPwd
+                href={configData.FORGOT_PASSWORD_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Forget Password ?
+              </ForgetPwd>
             </Form>
             <CancelSaveWrapper>
               <CancelButton>

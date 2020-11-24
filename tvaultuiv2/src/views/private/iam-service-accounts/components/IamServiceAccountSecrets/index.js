@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect } from 'react';
@@ -10,12 +11,12 @@ import VisibilityIcon from '@material-ui/icons/Visibility';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
-import IconRefreshCC from '../../../../../assets/refresh-ccw.svg';
 import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import apiService from '../../apiService';
 import lock from '../../../../../assets/icon_lock.svg';
 import refreshIcon from '../../../../../assets/refresh-ccw.svg';
+import accessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
@@ -75,26 +76,38 @@ const FolderIconWrap = styled('div')`
   }
 `;
 
-const NoPermission = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #5a637a;
-  text-align: center;
-  span {
-    display: contents;
-    margin: 0 0.3rem;
-    color: #fff;
-  }
-`;
-
 const LabelWrap = styled.div`
   display: flex;
   align-items: center;
   padding-left: 2rem;
   span {
     margin-left: 1rem;
+  }
+`;
+
+const AccessDeniedWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+`;
+
+const AccessDeniedIcon = styled.img`
+  width: 16rem;
+  height: 16rem;
+`;
+
+const NoPermission = styled.div`
+  color: #5a637a;
+  text-align: center;
+  margin-top: 2rem;
+  span {
+    display: contents;
+    margin: 0 0.3rem;
+    color: #fff;
   }
 `;
 
@@ -163,7 +176,7 @@ const IamServiceAccountSecrets = (props) => {
         setResponse({ status: 'success' });
         setSecretsData(res?.data);
       })
-      .catch((err) => {
+      .catch(() => {
         setResponse({
           status: 'error',
           message: 'There was a  error while fetching secret details!',
@@ -253,7 +266,6 @@ const IamServiceAccountSecrets = (props) => {
           setToastMessage(err?.response?.data?.errors[0]);
         }
         setResponseType(-1);
-        debugger;
       });
   };
 
@@ -338,13 +350,13 @@ const IamServiceAccountSecrets = (props) => {
           <BackdropLoader classes={loaderStyles} />
         )}
         {accountSecretData?.folders?.length && !accountSecretError
-          ? accountSecretData?.folders.map((secret, index) => (
+          ? accountSecretData?.folders.map((secret) => (
+              // eslint-disable-next-line react/jsx-indent
               <Folder
                 key={secret}
                 labelValue={secret}
                 onClick={onViewSecretDetails}
               >
-                {' '}
                 {response.status === 'success' && secretsData && (
                   <UserList>
                     <Icon src={lock} alt="lock" />
@@ -377,7 +389,7 @@ const IamServiceAccountSecrets = (props) => {
 
                         {writePermission && (
                           <PopperItem onClick={() => onRotateClicked()}>
-                            <img alt="refersh-ic" src={IconRefreshCC} />
+                            <img alt="refersh-ic" src={refreshIcon} />
                             <span>Rotate Secret</span>
                           </PopperItem>
                         )}
@@ -434,10 +446,13 @@ const IamServiceAccountSecrets = (props) => {
           />
         )}
         {response.status === 'no-permission' && (
-          <NoPermission>
-            Access denied: no permission to read the password details for the{' '}
-            <span>{accountDetail.name}</span> service account.
-          </NoPermission>
+          <AccessDeniedWrap>
+            <AccessDeniedIcon src={accessDeniedLogo} alt="accessDeniedLogo" />
+            <NoPermission>
+              Access denied: no permission to read the password details for the{' '}
+              <span>{accountDetail.name}</span> service account.
+            </NoPermission>
+          </AccessDeniedWrap>
         )}
         {responseType === 1 && (
           <SnackbarComponent
@@ -465,7 +480,6 @@ IamServiceAccountSecrets.propTypes = {
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   accountSecretError: PropTypes.string,
   accountSecretData: PropTypes.objectOf(PropTypes.any),
-  secretStatus: PropTypes.string,
   getSecrets: PropTypes.func,
   isIamSvcAccountActive: PropTypes.bool.isRequired,
 };
@@ -473,7 +487,6 @@ IamServiceAccountSecrets.propTypes = {
 IamServiceAccountSecrets.defaultProps = {
   accountSecretError: 'Something went wrong!',
   accountSecretData: {},
-  secretStatus: 'loading',
   getSecrets: () => {},
 };
 
