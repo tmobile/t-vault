@@ -4,6 +4,7 @@ const initilaState = {
   isAdmin: sessionStorage.getItem('isAdmin'),
   userEmail: sessionStorage.getItem('owner'),
   appRoleList: [],
+  iamServiceAccountList:[]
 };
 
 export default initilaState;

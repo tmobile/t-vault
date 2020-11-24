@@ -199,7 +199,7 @@ const IamServiceAccountDashboard = () => {
     error: '',
   });
 
-  const [state] = useStateValue();
+  const [state,dispatch] = useStateValue();
 
   let scrollParentRef = null;
   // const classes = useStyles();
@@ -249,6 +249,10 @@ const IamServiceAccountDashboard = () => {
           });
         }
         setIamServiceAccountList([...listArray]);
+        dispatch({
+          type: 'GET_ALL_IAM_SERVICE_ACCOUNT_LIST',
+          payload: [...listArray],
+        });
         setStatus({});
         setGetResponse(1);
       })
@@ -256,7 +260,7 @@ const IamServiceAccountDashboard = () => {
         setStatus({ status: 'failed', message: 'failed' });
         setGetResponse(-1);
       });
-  }, []);
+  }, [dispatch]);
 
   /**
    * @description On component load call fetchData function.
@@ -274,7 +278,7 @@ const IamServiceAccountDashboard = () => {
   const onSearchChange = (value) => {
     setInputSearchValue(value);
     if (value !== '') {
-      const array = state?.iamServiceAccountList.filter((item) => {
+      const array = state?.iamServiceAccountList?.filter((item) => {
         return String(item.name).startsWith(value);
       });
       setIamServiceAccountList([...array]);

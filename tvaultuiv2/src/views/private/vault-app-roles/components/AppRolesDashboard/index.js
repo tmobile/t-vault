@@ -245,7 +245,7 @@ const AppRolesDashboard = () => {
   const onSearchChange = (value) => {
     setInputSearchValue(value);
     if (value !== '') {
-      const array = state?.appRoleList.filter((item) => {
+      const array = state?.appRoleList?.filter((item) => {
         return String(item.name).startsWith(value);
       });
       setAppRoleList([...array]);
