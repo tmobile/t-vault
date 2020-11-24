@@ -203,13 +203,6 @@ const SignUp = styled.a`
   }
 `;
 
-const ForgetPwd = styled.a`
-  text-decoration: none;
-  color: #fff;
-  margin-top: 1.5rem;
-  display: block;
-`;
-
 const RightColumn = styled.div`
   background: url(${(props) => props.AllGroups || ''});
   background-size: contain;
@@ -582,13 +575,6 @@ const LoginPage = () => {
                       Sign Up
                     </SignUp>
                   </ButtonWrap>
-                  <ForgetPwd
-                    href={configData.FORGOT_PASSWORD_LINK}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Forget Password ?
-                  </ForgetPwd>
                 </LeftColumn>
                 <RightColumn AllGroups={AllGroups} />
               </FirstRow>
