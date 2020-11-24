@@ -919,7 +919,7 @@ public class AzureServicePrinicipalAccountsService {
 		List<String> policies = new ArrayList<>();
 		List<String> currentpolicies = new ArrayList<>();
 
-		if (HttpStatus.OK.equals(userResponse.getHttpstatus())) {
+		if (userResponse != null && HttpStatus.OK.equals(userResponse.getHttpstatus())) {
 			responseJson = userResponse.getResponse();
 			try {
 				ObjectMapper objMapper = new ObjectMapper();
@@ -1000,8 +1000,8 @@ public class AzureServicePrinicipalAccountsService {
 			}
 		}
 
-		if (userConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
-				|| userConfigresponse.getHttpstatus().equals(HttpStatus.OK)) {
+		if (userConfigresponse != null && (userConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+				|| userConfigresponse.getHttpstatus().equals(HttpStatus.OK))) {
 			return updateMetadataForAddUserToAzureSvcAcc(token, userDetails, azureServiceAccountUser, oidcEntityResponse,
 					groups, currentpolicies, currentpoliciesString);
 		} else {
