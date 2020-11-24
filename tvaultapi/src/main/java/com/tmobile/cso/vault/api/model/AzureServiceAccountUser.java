@@ -50,7 +50,7 @@ public class AzureServiceAccountUser implements Serializable {
 
 	@ApiModelProperty(example = "testuser1", position = 2)
 	public String getUsername() {
-		return username;
+		return username.toLowerCase();
 	}
 
 	public void setUsername(String username) {
@@ -59,7 +59,7 @@ public class AzureServiceAccountUser implements Serializable {
 
 	@ApiModelProperty(example = "read", position = 3, allowableValues = "read,reset,deny,owner")
 	public String getAccess() {
-		return access;
+		return access.toLowerCase();
 	}
 
 	public void setAccess(String access) {

@@ -43,7 +43,7 @@ public class AzureServicePrinicipalAccountsController {
 	}
 	
 	/**
-	 * Get the list of azure service prinicipal for users with permissions.
+	 * Get the list of azure service principal for users with permissions.
 	 * @param request
 	 * @param token
 	 * @return
@@ -115,7 +115,7 @@ public class AzureServicePrinicipalAccountsController {
 		return azureServicePrinicipalAccountsService.offboardAzureServiceAccount(token, azureServiceAccountOffboardRequest, userDetails);
 	}
 	/**
-	 * Gets the list of azure service prinicipal onboarded 
+	 * Gets the list of azure service principal onboarded
 	 * @param request
 	 * @param token
 	 * @return
@@ -137,6 +137,20 @@ public class AzureServicePrinicipalAccountsController {
 	public ResponseEntity<String> addUserToAzureServicePrincipal(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid AzureServiceAccountUser azureServiceAccountUser){
 	   UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 	   return azureServicePrinicipalAccountsService.addUserToAzureServiceAccount(token, userDetails, azureServiceAccountUser, false);
+	}
+
+	/**
+	 * Get Azure Service Principal detail from metadata
+	 * @param request
+	 * @param token
+	 * @param azureSvcName
+	 * @return
+	 */
+	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.getAzureServicePrincipalDetail.value}", notes = "${AzureServicePrinicipalAccountsController.getAzureServicePrincipalDetail.notes}", hidden = true)
+	@GetMapping(value = "/v2/azureserviceaccounts/{azure_svc_name}", produces = "application/json")
+	public ResponseEntity<String> getAzureServicePrincipalDetail(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token, @PathVariable("azure_svc_name") String azureSvcName){
+		return azureServicePrinicipalAccountsService.getAzureServicePrincipalDetail(token, azureSvcName);
 	}
 
 }

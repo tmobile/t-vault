@@ -841,6 +841,13 @@
             $state.go('change-iam-service-account', fullObj);
         }
 
+        $scope.editOnboardedAzureSvcacc = function (userId, size) {
+            var obj = "azuresvcaccData";
+            var fullObj = {};
+            fullObj[obj] = { "userId": userId };
+            $state.go('change-azure-service-prinicipals', fullObj);
+        }
+
         $scope.offboardSvcaccPopUp = function (svcaccname) {
             $scope.svcaccToOffboard = svcaccname;
             Modal.createModal('md', 'offboardSvcaccPopUp.html', 'AdminCtrl', $scope);

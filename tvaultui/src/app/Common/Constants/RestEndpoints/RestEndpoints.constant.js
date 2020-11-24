@@ -524,6 +524,14 @@ readTextFile("../apiUrls.json");
             name: 'getOnboardedAzureServiceAccounts',
             url: '/v2/azureserviceaccounts',
             method: 'GET' 
+        },{
+            name: 'getAzureSvcaccOnboardInfo',
+            url: '/v2/azureserviceaccounts/',
+            method: 'GET'
+        },{
+            name: 'addUserPermissionForAzureSvcacc',
+            url: '/v2/azureserviceaccounts/user',
+            method: 'POST'
         }
     ]
     });
