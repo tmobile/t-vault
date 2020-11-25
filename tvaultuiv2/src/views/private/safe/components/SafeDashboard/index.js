@@ -269,7 +269,7 @@ const SafeDashboard = () => {
             });
           }
         } else {
-          const access = JSON.parse(sessionStorage.getItem('access'));
+          const access = JSON.parse(localStorage.getItem('access'));
           if (Object.keys(access).length > 0) {
             Object.keys(access).forEach((item) => {
               if (item === 'shared' || item === 'users' || item === 'apps') {
