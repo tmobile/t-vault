@@ -19,7 +19,7 @@
 
 'use strict';
 (function (app) {
-    app.controller('ChangeAzureServicePrinicipalsCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant, $filter, filterFilter, orderByFilter, RestEndpoints) {
+    app.controller('ChangeAzureServicePrincipalsCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant, $filter, filterFilter, orderByFilter, RestEndpoints) {
         $scope.selectedGroupOption = '';            // Selected dropdown value to be used for filtering
         $rootScope.showDetails = true;              // Set true to show details view first
         $rootScope.activeDetailsTab = 'details';
@@ -1342,7 +1342,7 @@
         $scope.init();
 
     });
-})(angular.module('vault.features.ChangeAzureServicePrinicipalsCtrl', [
+})(angular.module('vault.features.ChangeAzureServicePrincipalsCtrl', [
     'vault.services.AdminSafesManagement',
     'vault.services.ModifyUrl',
     'vault.constants.AppConstant'

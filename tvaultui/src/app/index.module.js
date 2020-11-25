@@ -79,7 +79,7 @@
         'vault.features.ChangeIamServiceAccountCtrl',
         'vault.features.IamServiceAccountsCtrl',
         'vault.features.AzureServicePrinicipalsCtrl',
-        'vault.features.ChangeAzureServicePrinicipalsCtrl'
+        'vault.features.ChangeAzureServicePrincipalsCtrl'
     ]);
     angular.module( 'vault.services', [
         'vault.services.CopyToClipboard',
