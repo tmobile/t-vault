@@ -216,9 +216,11 @@
             if ($rootScope.lastVisited == "change-iam-service-account") {
                 $scope.selectedIndex = 3;
             }
-
-            if ($rootScope.lastVisited == "change-certificate") {
+            if ($rootScope.lastVisited == "change-azure-service-prinicipals") {
                 $scope.selectedIndex = 4;
+            }
+            if ($rootScope.lastVisited == "change-certificate") {
+                $scope.selectedIndex = 5;
             }
 
             var feature = JSON.parse(SessionStore.getItem("feature"));
@@ -228,8 +230,6 @@
             if (feature.selfservice == false) {
                 $scope.enableSelfService = false;
             }
-
-
 
             $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
             if ($scope.enableSvcacc == false && $scope.enableSelfService == false && JSON.parse(SessionStore.getItem("isAdmin")) == false) {
@@ -2611,10 +2611,7 @@
             $scope.isCertificateOnboardPreview = !$scope.isCertificateOnboardPreview;
             $scope.notificationEmail.email = '';
             $scope.notificationEmailErrorMessage = '';
-            var length = $scope.notificationEmails.length;
-            if($scope.certificateToOnboard.ownerEmail !== "" && $scope.certificateToOnboard.notificationEmails !== "" && !isDuplicateOwnerNotificationEmail($scope.certificateToOnboard.ownerEmail)) {
-                $scope.notificationEmails.push({ "id": length, "email":$scope.certificateToOnboard.ownerEmail});
-            }
+            $scope.certificateToOnboard.notificationEmails = "";
         }
 
         $scope.addNotificationEmail = function () {
@@ -2625,15 +2622,16 @@
                 $scope.notificationEmails.push({ "id": length, "email":$scope.notificationEmail.email});
                 addNotificationEmailString($scope.notificationEmail.email);
                 $scope.notificationEmail.email = "";
+                $scope.notificationEmailErrorMessage = '';
                 $scope.isNotificationEmailSelected = false;
             }
         }
 
         $scope.addNotificationEmailCert = function () {
             var length = $scope.notificationEmails.length;
-           $scope.notificationEmailErrorMessage = '';
-           var id="dns"+length;
-                if ($scope.notificationEmail && $scope.notificationEmail.email!="" && !isDuplicateNotificationEmail($scope.notificationEmail.email)) {
+            $scope.notificationEmailErrorMessage = '';
+            var id="dns"+length;
+            if ($scope.notificationEmail && $scope.notificationEmail.email!="" && !isDuplicateNotificationEmail($scope.notificationEmail.email)) {
                 angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+$scope.notificationEmail.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
                 $scope.notificationEmails.push({ "id": length, "email":$scope.notificationEmail.email});
                 addNotificationEmailCertString($scope.notificationEmail.email);
@@ -2667,11 +2665,13 @@
             $scope.certificateToOnboard.ownerEmail = "";
             $scope.certificateToOnboard.ownerNtId = "";
             $scope.isOwnerSelectedForOnboard = false;
+            refreshOnboardNotificationEmails();
         }
 
         $scope.clearNotificationEmail = function() {
             $scope.notificationEmail = { email:""};
             $scope.isNotificationEmailSelected = false;
+            $scope.notificationEmailErrorMessage = '';
         }
         $scope.clearNotificationEmailmessage = function() {
             $scope.notificationEmailErrorMessage='';
@@ -2692,6 +2692,13 @@
                 $scope.certificateToOnboard.ownerNtId = ownerEmail.userName;
                 $scope.isOwnerSelectedForOnboard = true;
                 $scope.isOwnerEmailSearch = false;
+
+                var length = $scope.notificationEmails.length;
+                if ($scope.notificationEmail && !isDuplicateOwnerNotificationEmail($scope.certificateToOnboard.ownerEmail)) {
+                    var id="dns"+length;
+                    angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+$scope.certificateToOnboard.ownerEmail+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+                    $scope.notificationEmails.push({ "id": length, "email":$scope.certificateToOnboard.ownerEmail});
+                }
             }
         }
 
@@ -2700,11 +2707,13 @@
                 $scope.notificationEmail.email = ownerEmail.userEmail;
                 $scope.isNotificationEmailSelected = true;
                 $scope.isNotificationEmailSearch = false;
+                $scope.notificationEmailErrorMessage = '';
             }
         }
 
         var isDuplicateNotificationEmail = function (email) {
             $scope.certDnsErrorMessage = '';
+            $scope.notificationEmailErrorMessage = '';
             $scope.isDuplicateNotificationEmail=false;
             for (var i=0;i<$scope.notificationEmails.length;i++) {
                 if (email.toLowerCase() == $scope.notificationEmails[i].email.toLowerCase()) {
@@ -2720,6 +2729,8 @@
             $scope.appnameSelectedForOnboard = false;
             $scope.selectedNotificationEmails = [];
             $scope.notificationEmails = [];
+            $scope.certificateToOnboard.notificationEmails = "";
+            $scope.notificationEmailErrorMessage = '';
             clearNotificationEmails();
             $scope.applicationNameSelectMsg = "Fetching notification list..";
             if($scope.dropdownApplicationName !==undefined){
@@ -2737,9 +2748,11 @@
                             $scope.appnameSelectedForOnboard = true;
                             $scope.applicationNameSelectMsg = "";
                             $scope.certificateToOnboard.tag = tag;
+                            if($scope.certificateToOnboard.ownerEmail != null && $scope.certificateToOnboard.ownerEmail !== "" && $scope.certificateToOnboard.ownerEmail !== undefined){
+                                $scope.addExistingNotificationEmail($scope.certificateToOnboard.ownerEmail);
+                            }
                             var i = 0;
                             $scope.notificationEmails.forEach(function (email) {
-                                addNotificationEmailString(email.email);
                                 var id = "dns"+ (i++);
                                 angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
                             });
@@ -2764,7 +2777,7 @@
                 emailListAsString.split(",").forEach(function (email) {
                     var id = $scope.notificationEmails.length;
                     //var duplicate = $scope.notificationEmails.find(element => element.email.toLowerCase() == email.toLowerCase());
-                    var duplicate = $scope.notificationEmails.find(function (element) {
+                    var duplicate = $scope.notificationEmails.find(function (element) {                        
                         return (element.email.toLowerCase() == email.toLowerCase());
                     });
                     if (duplicate == undefined) {
@@ -2824,6 +2837,10 @@
                 $scope.appNameTagValue=$scope.certObj.certDetails.applicationName;
                 $scope.certObj.sslcertType = sslcertType;
                 var multiSanDns = [];
+                $scope.certificateToOnboard.notificationEmails = "";
+                $scope.notificationEmails.forEach(function (email) {
+                    addNotificationEmailString(email.email);
+                });
                 var onboardRequest =  {
                     "appName": $scope.certificateToOnboard.tag,
                     "certificateName":$scope.certificateToOnboard.certificateName,
@@ -2871,6 +2888,7 @@
             $scope.isCertCollapsed = false;
             $scope.certObj.certDetails.ownerEmail = "";
             $scope.isCertificateOnboardPreview = false;
+            $scope.notificationEmailErrorMessage = '';
             if($scope.appNameTableOptions!==undefined){
                 $scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort(function (a, b) {
                     return (a.name > b.name ? 1 : -1);
@@ -2904,15 +2922,24 @@
            return $scope.certcurrentshownonboardlist;
        };
 
-       var isDuplicateOwnerNotificationEmail = function (email) {
-        $scope.certDnsErrorMessage = '';
-        for (var i=0;i<$scope.notificationEmails.length;i++) {
-            if (email.toLowerCase() == $scope.notificationEmails[i].email.toLowerCase()) {
-                return true;
+        var isDuplicateOwnerNotificationEmail = function (email) {
+            $scope.certDnsErrorMessage = '';
+            for (var i=0;i<$scope.notificationEmails.length;i++) {
+                if (email.toLowerCase() == $scope.notificationEmails[i].email.toLowerCase()) {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
-    }
+
+        var refreshOnboardNotificationEmails = function() {
+            angular.element('#notificationEmailList').html("");
+            var i = 0;
+            $scope.notificationEmails.forEach(function (email) {
+                var id = "dns"+ (i++);
+                angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+            });
+        }
 
         init();
 

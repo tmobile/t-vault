@@ -642,7 +642,7 @@ public class AzureServicePrinicipalAccountsServiceTest {
 		Response userResponse = getMockResponse(HttpStatus.OK, true,
 				"{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
 		Response ldapConfigureResponse = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, "{\"errors\":[\"Failed to add user to the Azure Service Account\"]}");
-		when(reqProcessor.process("/auth/ldap/users", "{\"username\":\"testUser\"}", token)).thenReturn(userResponse);
+		when(reqProcessor.process("/auth/ldap/users", "{\"username\":\"testuser\"}", token)).thenReturn(userResponse);
 
 		try {
 			List<String> resList = new ArrayList<>();
@@ -651,7 +651,7 @@ public class AzureServicePrinicipalAccountsServiceTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		when(ControllerUtil.configureLDAPUser(eq("testUser"), any(), any(), eq(token)))
+		when(ControllerUtil.configureLDAPUser(eq("testuser"), any(), any(), eq(token)))
 				.thenReturn(ldapConfigureResponse);
 
 		// delete policy mock
