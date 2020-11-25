@@ -555,6 +555,11 @@
                     return response;
                 });
             },
+            addGroupPermissionForAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.addGroupPermissionForAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;

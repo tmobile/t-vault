@@ -23,6 +23,8 @@ public class AzureServiceAccount implements Serializable{
 	private static final long serialVersionUID = -5548453449664949292L;
 	
 	@NotBlank
+	@Size(min = 11, message = "Azure service principal name specified should be minimum 11 chanracters only")
+	@Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Azure service principal name can have alphabets, numbers, _ and - characters only")
 	private String servicePrinicipalName;
 
 	@NotBlank

@@ -2,6 +2,9 @@ package com.tmobile.cso.vault.api.model;
 
 import java.io.Serializable;
 
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+
 import org.hibernate.validator.constraints.NotBlank;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -13,10 +16,16 @@ public class AzureServiceAccountUser implements Serializable {
 	private static final long serialVersionUID = -2100272556105686915L;
 
 	@NotBlank
+	@Size(min = 11, message = "Azure service principal name specified should be minimum 11 chanracters only")
+	@Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Azure service principal name can have alphabets, numbers, _ and - characters only")
 	private String azureSvcAccName;
+
 	@NotBlank
+	@Size(min = 1, message = "User name can not be null or empty")
 	private String username;
+
 	@NotBlank
+	@Size(min = 1, message = "Access can not be null or empty")
 	private String access;
 
 	/**
