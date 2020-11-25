@@ -1,5 +1,6 @@
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-curly-newline */
+/* eslint-disable no-nested-ternary */
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
@@ -15,7 +16,7 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import mediaBreakpoints from '../../../../../breakpoints';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import ViewIamSvcAccountDetails from './components/ViewIamSvcAccount';
-import apiService from '../../../iam-service-accounts/apiService';
+import apiService from '../../apiService';
 import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 
 const { small } = mediaBreakpoints;
@@ -59,11 +60,11 @@ const ViewIamServiceAccount = (props) => {
     iamServiceAccountDetails,
     setViewDetails,
     getSecrets,
+    getSvcAccDetails,
   } = props;
   const classes = useStyles();
   const [open] = useState(true);
   const [status, setStatus] = useState(null);
-  // const [passwordDetails, setPasswordDetails] = useState(null);
   const [openModal, setOpenModal] = useState({
     status: '',
     message: '',
@@ -118,6 +119,7 @@ const ViewIamServiceAccount = (props) => {
    */
   const activateServiceAccount = () => {
     setStatus({ status: 'loading', message: '' });
+    setOpenModal({});
     apiService
       .activateIamServiceAccount(
         iamServiceAccountDetails?.userName,
@@ -125,8 +127,16 @@ const ViewIamServiceAccount = (props) => {
       )
       .then(async (res) => {
         setStatus({ status: 'success', message: res?.data?.messages[0] });
+
         await getSecrets();
+
         await refresh();
+        if (iamServiceAccountDetails) {
+          await getSvcAccDetails(
+            null,
+            `${iamServiceAccountDetails?.awsAccountId}_${iamServiceAccountDetails?.userName}`
+          );
+        }
       })
       .catch((err) => {
         setStatus({
@@ -214,7 +224,7 @@ const ViewIamServiceAccount = (props) => {
               }}
             >
               <Fade in={open}>
-                {!iamServiceAccountDetails ? (
+                {!iamServiceAccountDetails || status?.status === 'loading' ? (
                   <LoaderSpinner customStyle={loaderStyle} />
                 ) : (
                   <ViewIamSvcAccountDetails
@@ -259,6 +269,7 @@ ViewIamServiceAccount.propTypes = {
   setViewDetails: PropTypes.func.isRequired,
   iamServiceAccountDetails: PropTypes.objectOf(PropTypes.any).isRequired,
   getSecrets: PropTypes.func.isRequired,
+  getSvcAccDetails: PropTypes.func.isRequired,
 };
 
 export default ViewIamServiceAccount;
