@@ -8,6 +8,7 @@ import InfiniteScroll from 'react-infinite-scroller';
 import { Link, Route, Switch, useHistory, Redirect } from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
+import VisibilityIcon from '@material-ui/icons/Visibility';
 import { useStateValue } from '../../../../../contexts/globalState';
 import sectionHeaderBg from '../../../../../assets/svc_banner_img.png';
 import mediaBreakpoints from '../../../../../breakpoints';
@@ -21,7 +22,6 @@ import ListItem from '../../../../../components/ListItem';
 import Error from '../../../../../components/Error';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
-import VisibilityIcon from '@material-ui/icons/Visibility';
 import ViewIamServiceAccount from '../IamServiceAccountPreview';
 import apiService from '../../apiService';
 import Strings from '../../../../../resources';
@@ -199,7 +199,7 @@ const IamServiceAccountDashboard = () => {
     error: '',
   });
 
-  const [state,dispatch] = useStateValue();
+  const [state, dispatch] = useStateValue();
 
   let scrollParentRef = null;
   // const classes = useStyles();
@@ -256,7 +256,7 @@ const IamServiceAccountDashboard = () => {
         setStatus({});
         setGetResponse(1);
       })
-      .catch((err) => {
+      .catch(() => {
         setStatus({ status: 'failed', message: 'failed' });
         setGetResponse(-1);
       });
@@ -304,7 +304,7 @@ const IamServiceAccountDashboard = () => {
    * @description function to prevent default click.
    * @param {object} e event
    */
-  const onActionClicked = (e, svcname) => {
+  const onActionClicked = (e) => {
     e.stopPropagation();
     e.preventDefault();
   };
@@ -317,7 +317,7 @@ const IamServiceAccountDashboard = () => {
         setGetResponse(1);
         setSelectedIamServiceAccountDetails(res?.data);
       })
-      .catch((err) => {
+      .catch(() => {
         setGetResponse(-1);
       });
   };
@@ -621,6 +621,7 @@ const IamServiceAccountDashboard = () => {
               setViewDetails={setViewDetails}
               refresh={fetchData}
               getSecrets={getSecrets}
+              getSvcAccDetails={onViewClicked}
             />
           ) : (
             <></>
