@@ -13,6 +13,7 @@ import menu from '../../assets/menu.svg';
 import Sidebar from '../Sidebar';
 import UserLogout from './userLogout';
 import configData from '../../config/config';
+import configUrl from '../../config';
 
 const { small, smallAndMedium, semiLarge } = mediaBreakpoints;
 
@@ -149,10 +150,10 @@ const Header = (props) => {
   };
 
   const checkToken = () => {
-    const loggedIn = sessionStorage.getItem('token');
+    const loggedIn = localStorage.getItem('token');
     if (loggedIn) {
       setIsLogin(true);
-      const name = sessionStorage.getItem('displayName');
+      const name = localStorage.getItem('displayName');
       if (name) {
         const str = name?.split(',');
         setUserName(`${str[1]} ${str[0]}` || 'User');
@@ -226,7 +227,10 @@ const Header = (props) => {
                   Docs
                 </EachLink>
                 <EachLink
-                  href={`${configData.OIDC_REDIRECT_URL}/vault/swagger-ui.html`}
+                  href={`${configUrl.baseUrl.replace(
+                    '/vault/v2',
+                    ''
+                  )}/vault/swagger-ui.html`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
