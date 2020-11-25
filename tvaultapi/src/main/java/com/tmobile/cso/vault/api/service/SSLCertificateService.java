@@ -6696,6 +6696,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                    
                    //Remove certificate policies
                    deletePolicies(certType, certificateName, authToken);
+                   deleteApprolePolicyAssociationOnCertificate(certificateName, authToken, jsonParser, object);
 
                    if (unAssignResponse != null && (HttpStatus.OK.equals(unAssignResponse.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(unAssignResponse.getHttpstatus())))) {
                        response = deleteCertificateDetailsFromCertMetaPath(metaDataPath, authToken);
