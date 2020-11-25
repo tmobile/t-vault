@@ -160,7 +160,8 @@
                 }
                 else {                    
                     $rootScope.showDetails = true;
-                    $rootScope.activeDetailsTab = 'details';                    
+                    $rootScope.activeDetailsTab = 'details';  
+                    $scope.requestDataFrChangeCertificate();
                 }
             }
             else {
@@ -1157,8 +1158,7 @@
                 $scope.notificationEmail.email = "";
                 }
             $scope.notificationEmailErrorMessage = '';
-            $scope.leadEmailErrorMessage ="";
-            angular.element('#notificationEmailList').empty();
+            $scope.leadEmailErrorMessage ="";            
             if((certDetails.certType === "external")){
                 var Difference_In_Time =  new Date().getTime()  - new Date(certDetails.createDate).getTime();
                 var Difference_In_Days = Math.round(Difference_In_Time / (1000 * 3600 * 24));
@@ -1371,8 +1371,7 @@
                 $scope.notificationEmail.email = "";
                 }
             $scope.notificationEmailErrorMessage = '';
-            $scope.leadEmailErrorMessage ="";
-            angular.element('#notificationEmailList').empty();
+            $scope.leadEmailErrorMessage ="";            
             try{
                 $scope.isLoadingData = true;
                 Modal.close();
@@ -1550,6 +1549,7 @@
 
         $scope.selectNotificationEmail = function (ownerEmail) {
         	$scope.notificationEmail = { email:""};
+        	$scope.notificationEmailErrorMessage = '';
             if (ownerEmail != null) {
                 $scope.notificationEmail.email = ownerEmail.userEmail;
                 $scope.isNotificationEmailSelected = true;
@@ -1745,7 +1745,7 @@
                 $scope.certDnsErrorMessage = '';
                 for (var i=0;i<$scope.notificationEmails.length;i++) {
                 	if($scope.notificationEmails[i]!=undefined && $scope.notificationEmails[i].email){
-                    if (email.toLowerCase() == $scope.notificationEmails[i].email.toLowerCase()) {
+                    if (email.toLowerCase() == $scope.notificationEmails[i].email.toLowerCase().trim()) {
                         $scope.notificationEmailErrorMessage = 'Duplicate Email';
                         return true;
                     }
