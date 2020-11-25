@@ -2,10 +2,10 @@ import axios from 'axios';
 import configUrl from '../config';
 
 function ApiCall(url, method, data, header) {
-  if (!sessionStorage.getItem('token')) {
+  if (!localStorage.getItem('token')) {
     window.location.href = '/';
   }
-  const token = sessionStorage.getItem('token');
+  const token = localStorage.getItem('token');
   const headers = {
     ...header,
     'vault-token': token,
