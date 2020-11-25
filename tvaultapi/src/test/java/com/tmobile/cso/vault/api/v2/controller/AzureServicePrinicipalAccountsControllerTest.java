@@ -35,6 +35,7 @@ import com.tmobile.cso.vault.api.model.AWSLoginRole;
 import com.tmobile.cso.vault.api.model.AzureSecrets;
 import com.tmobile.cso.vault.api.model.AzureServiceAccount;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountAWSRole;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountGroup;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountOffboardRequest;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountUser;
 import com.tmobile.cso.vault.api.model.UserDetails;
@@ -306,5 +307,20 @@ public class AzureServicePrinicipalAccountsControllerTest {
 				.andExpect(content().string(containsString(responseJson)));
 	}
 
-	
+	@Test
+	public void testAddGroupToAzureSvcAccSuccess() throws Exception {
+		AzureServiceAccountGroup azureSvcAccGroup = new AzureServiceAccountGroup("testaccount", "group1", "write");
+		String inputJson = getJSON(azureSvcAccGroup);
+		String responseJson = "{\"messages\":[\"Group is successfully associated with Azure Service Principal\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+		when(azureServicePrinicipalAccountsService.addGroupToAzureServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any()))
+				.thenReturn(responseEntityExpected);
+		MvcResult result = mockMvc
+				.perform(MockMvcRequestBuilders.post("/v2/azureserviceaccounts/group")
+						.requestAttr(USER_DETAILS_STRING, userDetails).header(VAULT_TOKEN_STRING, token)
+						.header(CONTENT_TYPE_STRING, CONTENT_TYPE_VALUE_STRING).content(inputJson))
+				.andExpect(status().isOk()).andReturn();
+		String actual = result.getResponse().getContentAsString();
+		assertEquals(responseJson, actual);
+	}
 }

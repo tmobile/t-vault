@@ -22,8 +22,10 @@ import com.tmobile.cso.vault.api.model.AWSIAMRole;
 import com.tmobile.cso.vault.api.model.AWSLoginRole;
 import com.tmobile.cso.vault.api.model.AzureServiceAccount;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountAWSRole;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountGroup;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountOffboardRequest;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountUser;
+import com.tmobile.cso.vault.api.model.IAMServiceAccountGroup;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.AzureServicePrinicipalAccountsService;
 
@@ -212,4 +214,17 @@ public class AzureServicePrinicipalAccountsController {
 		return azureServicePrinicipalAccountsService.getAzureServicePrincipalDetail(token, azureSvcName);
 	}
 
+	/**
+	 * Add Group to Azure Service Principal.
+	 * @param request
+	 * @param token
+	 * @param azureServiceAccountGroup
+	 * @return
+	 */
+	@PostMapping(value="/v2/azureserviceaccounts/group",produces="application/json")
+	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.addGroupToAzureServiceAccount.value}", notes = "${AzureServicePrinicipalAccountsController.addGroupToAzureServiceAccount.notes}")
+	public ResponseEntity<String> addGroupToAzureServiceAccount(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid AzureServiceAccountGroup azureServiceAccountGroup){
+	   UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+	   return azureServicePrinicipalAccountsService.addGroupToAzureServiceAccount(token, azureServiceAccountGroup, userDetails);
+	}
 }
