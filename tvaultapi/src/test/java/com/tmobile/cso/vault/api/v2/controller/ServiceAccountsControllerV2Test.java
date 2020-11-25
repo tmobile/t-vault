@@ -590,4 +590,26 @@ public class ServiceAccountsControllerV2Test {
         String actual = result.getResponse().getContentAsString();
         assertEquals(expected, actual);
     }
+
+    @Test
+    public void test_offboardDecommissionedServiceAccount_success() throws Exception{
+        UserDetails userDetails = getMockUser(false);
+        String token = userDetails.getClientToken();
+        ServiceAccount serviceAccount = generateServiceAccount("testacc02", "testacc01");
+
+        String expected = "{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
+        when(serviceAccountsService.offboardDecommissionedServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+        String inputJson = getJSON(serviceAccount);
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/v2/serviceaccounts/offboarddecommissioned")
+                .header("vault-token", token)
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .requestAttr("UserDetails", userDetails)
+                .content(inputJson))
+                .andExpect(status().isOk()).andReturn();
+
+        String actual = result.getResponse().getContentAsString();
+        assertEquals(expected, actual);
+
+    }
 }
