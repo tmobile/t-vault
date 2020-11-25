@@ -278,7 +278,7 @@ script(type='text/ng-template', id='decommissionMessagePopup.html')
     .top-lg-sep.notification-text.notification-justify {{ decommitionMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
-        button.common-btn.btn.btn-primary.btn-lg(ng-click="offboardSvcacc(svcaccToOffboard)") Offboard
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="offboardDecommissionedSvcacc(svcaccToOffboard)") Offboard
 script(type='text/ng-template', id='validateCertificateDetailPopUp.html')
   loading-state(ng-if="isLoadingModalData")
   .top-lg-sep(ng-if="!isLoadingModalData")

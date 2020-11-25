@@ -261,6 +261,11 @@
                     return response;
                 });
             },
+            offboardDecommissionedServiceAccount: function(payload, url) {
+                return ServiceEndpoint.offboardDecommissionedServiceAccount.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getSvcaccMetadata: function(payload, url) {
                 return ServiceEndpoint.getSvcaccMetadata.makeRequest(payload, url).then(function(response) {
                     return response;

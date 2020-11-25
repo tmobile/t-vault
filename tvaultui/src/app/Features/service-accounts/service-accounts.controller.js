@@ -258,7 +258,7 @@
                                         "owner": managedBy,
                                         "name": svcaccUserId
                                     }
-                                    AdminSafesManagement.offboardSvcacc(offboardPayload, '').then(
+                                    AdminSafesManagement.offboardDecommissionedServiceAccount(offboardPayload, '').then(
                                         function (response) {
                                             if (UtilityService.ifAPIRequestSuccessful(response)) {
                                                 $scope.isLoadingData = false;
