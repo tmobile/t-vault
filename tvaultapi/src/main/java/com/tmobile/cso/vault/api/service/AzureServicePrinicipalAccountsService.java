@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.tmobile.cso.vault.api.model.*;
+import org.apache.catalina.User;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -105,10 +107,10 @@ public class AzureServicePrinicipalAccountsService {
 	
 	@Autowired
 	private AWSAuthService awsAuthService;
-	
+
 	@Autowired
 	private AWSIAMAuthService awsiamAuthService;
-	
+
 	@Value("${azurePortal.auth.masterPolicy}")
 	private String azureMasterPolicyName;
 	
@@ -1984,10 +1986,10 @@ public class AzureServicePrinicipalAccountsService {
             }
         }
     }
-    
+
 	/**
 	 * Removes user from Azure service account
-	 * 
+	 *
 	 * @param token
 	 * @param safeUser
 	 * @return
@@ -2099,9 +2101,9 @@ public class AzureServicePrinicipalAccountsService {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 				.body("{\"errors\":[\"No Azure Service Principal with " + azureSvcName + ".\"]}");
 	}
-	/*	
+	/*
 	 * Method to verify the user for removing from Azure service account.
-	 * 
+	 *
 	 * @param token
 	 * @param azureServiceAccountUser
 	 * @param userDetails
@@ -2159,7 +2161,7 @@ public class AzureServicePrinicipalAccountsService {
 	/**
 	 * Method to create policies for removing user from Azure service account
 	 * and call the metadata update.
-	 * 
+	 *
 	 * @param token
 	 * @param azureServiceAccountUser
 	 * @param userDetails
@@ -2242,7 +2244,7 @@ public class AzureServicePrinicipalAccountsService {
 	/**
 	 * Method to configure the user permission after removed from Azure service
 	 * account.
-	 * 
+	 *
 	 * @param token
 	 * @param azureServiceAccountUser
 	 * @param userDetails
@@ -2283,7 +2285,7 @@ public class AzureServicePrinicipalAccountsService {
 	/**
 	 * Method to update the metadata after removed user from Azure service
 	 * account
-	 * 
+	 *
 	 * @param token
 	 * @param azureServiceAccountUser
 	 * @param userDetails
@@ -2326,7 +2328,7 @@ public class AzureServicePrinicipalAccountsService {
 	/**
 	 * Method to revert user permission for remove user from Azure service
 	 * account if update failed.
-	 * 
+	 *
 	 * @param token
 	 * @param azureServiceAccountUser
 	 * @param userDetails
@@ -2370,7 +2372,7 @@ public class AzureServicePrinicipalAccountsService {
 					.body("{\"errors\":[\"Failed to revert user association on Azure Service Account\"]}");
 		}
 	}
-	
+
 	/**
 	 * To create aws ec2 role
 	 * @param userDetails
@@ -2385,7 +2387,7 @@ public class AzureServicePrinicipalAccountsService {
         }
 		return awsAuthService.createRole(token, awsLoginRole, userDetails);
 	}
-	
+
 	/**
 	 * Create aws iam role
 	 * @param userDetails
@@ -2400,7 +2402,7 @@ public class AzureServicePrinicipalAccountsService {
         }
 		return awsiamAuthService.createIAMRole(awsiamRole, token, userDetails);
 	}
-	
+
 	/**
 	 * Add AWS role to Azure Service Account
 	 * @param userDetails
@@ -2443,7 +2445,7 @@ public class AzureServicePrinicipalAccountsService {
 					put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-			
+
 			String readPolicy = new StringBuffer()
 					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
 					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
@@ -2456,7 +2458,7 @@ public class AzureServicePrinicipalAccountsService {
 			String ownerPolicy = new StringBuffer()
 					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
 					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
-			
+
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
@@ -2558,7 +2560,7 @@ public class AzureServicePrinicipalAccountsService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add AWS Role to this Azure service account\"]}");
 		}
 	}
-	
+
 	/**
 	 * Check if user has the permission to add user/group/awsrole/approles to
 	 * the Azure Service Account
@@ -2859,4 +2861,224 @@ public class AzureServicePrinicipalAccountsService {
 					.body("{\"errors\":[\"Group configuration failed. Contact Admin \"]}");
 		}
 	}
+
+	/**
+	 * Activate Azure Service Principal.
+	 * @param token
+	 * @param userDetails
+	 * @param servicePrinicipalName
+	 * @return
+	 */
+	public ResponseEntity<String> activateAzureServicePrinicipal(String token, UserDetails userDetails, String servicePrinicipalName) {
+
+		servicePrinicipalName = servicePrinicipalName.toLowerCase();
+		String servicePrinicipalId;
+		String tenantId;
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
+				put(LogMessage.MESSAGE, String.format ("Trying to activate Azure Service Principal [%s]", servicePrinicipalName)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+
+		boolean isAuthorized = true;
+		if (userDetails != null) {
+			isAuthorized = isAuthorizedToAddPermissionInAzureSvcAcc(userDetails, servicePrinicipalName, false);
+		}
+		if (isAuthorized) {
+			if (!isAzureSvcaccActivated(token, userDetails, servicePrinicipalName)) {
+				log.error(
+						JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION)
+								.put(LogMessage.MESSAGE, String.format("Failed to activate Azure Service Principal. [%s] is already activated", servicePrinicipalName))
+								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+						"{\"errors\":[\"Azure Service Principal is already activated. You can now grant permissions from Permissions menu\"]}");
+			}
+
+			String azureAccPath = AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + servicePrinicipalName;
+			JsonObject azureMetadataJson = getAzureMetadata(token, azureAccPath);
+
+			if (null!= azureMetadataJson && azureMetadataJson.has("secret")) {
+				if (!azureMetadataJson.get("secret").isJsonNull()) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
+							put(LogMessage.MESSAGE, String.format ("Trying to rotate secret for the Azure Service Principal [%s]", servicePrinicipalName)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+
+					JsonArray svcSecretArray = null;
+					try {
+						svcSecretArray = azureMetadataJson.get("secret").getAsJsonArray();
+						servicePrinicipalId = azureMetadataJson.get("servicePrinicipalId").getAsString();
+						tenantId = azureMetadataJson.get("tenantId").getAsString();
+					} catch (IllegalStateException e) {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+								put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
+								put(LogMessage.MESSAGE, String.format ("Failed to activate Azure Service Principal. Invalid metadata for [%s].", servicePrinicipalName)).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+								build()));
+						return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to activate Azure Service Principal. Invalid metadata.\"]}");
+					}
+
+					if (null != svcSecretArray) {
+						int secretSaveCount = 0;
+						for (int i=0;i<svcSecretArray.size();i++) {
+
+							JsonObject iamSecret = (JsonObject) svcSecretArray.get(i);
+
+							if (iamSecret.has(AzureServiceAccountConstants.SECRET_KEY_ID)) {
+								String secretKeyId = iamSecret.get(AzureServiceAccountConstants.SECRET_KEY_ID).getAsString();
+								log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+										put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
+										put(LogMessage.MESSAGE, String.format ("Trying to rotate secret for the Azure Service Principal [%s] secret key id: [%s]", servicePrinicipalName, secretKeyId)).
+										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+										build()));
+								// Rotate IAM service account secret for each secret key id in metadata
+								if (rotateAzureServicePrincipalSecret(token, secretKeyId, servicePrinicipalId, tenantId, i+1)) {
+									secretSaveCount++;
+								}
+							}
+						}
+						if (secretSaveCount == svcSecretArray.size()) {
+							// Update status to activated.
+							Response metadataUpdateResponse = iamServiceAccountUtils.updateActivatedStatusInMetadata(token, iamServiceAccountName, awsAccountId);
+							if(metadataUpdateResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataUpdateResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataUpdateResponse.getHttpstatus()))){
+								log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+										put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
+										put(LogMessage.MESSAGE, String.format("Metadata updated Successfully for IAM service account [%s].", iamServiceAccountName)).
+										put(LogMessage.STATUS, metadataUpdateResponse.getHttpstatus().toString()).
+										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+										build()));
+								// Add rotate permission for owner
+								String ownerNTId = getOwnerNTIdFromMetadata(token, uniqueIAMSvcaccName );
+								if (StringUtils.isEmpty(ownerNTId)) {
+									log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+											put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+											put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
+											put(LogMessage.MESSAGE, String.format("Failed to add rotate permission for owner for IAM service account [%s]. Owner NT id not found in metadata", iamServiceAccountName)).
+											put(LogMessage.STATUS, HttpStatus.BAD_REQUEST.toString()).
+											put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+											build()));
+									return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Failed to activateAzureServicePrinicipal IAM Service account. IAM secrets are rotated and saved in T-Vault. However failed to add permission to owner. Owner info not found in Metadata.\"]}");
+								}
+								IAMServiceAccountUser iamServiceAccountUser = new IAMServiceAccountUser(iamServiceAccountName, ownerNTId, IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING, awsAccountId);
+
+								ResponseEntity<String> addUserToIAMSvcAccResponse = addUserToIAMServiceAccount(token, userDetails, iamServiceAccountUser, false);
+								if (HttpStatus.OK.equals(addUserToIAMSvcAccResponse.getStatusCode())) {
+									log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+											put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+											put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
+											put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] activated successfully", iamServiceAccountName)).
+											put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+											build()));
+									return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"IAM Service account activated successfully\"]}");
+
+								}
+								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+										put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
+										put(LogMessage.MESSAGE, String.format("Failed to add rotate permission to owner as part of IAM service account activation for [%s].", iamServiceAccountName)).
+										put(LogMessage.STATUS, addUserToIAMSvcAccResponse!=null?addUserToIAMSvcAccResponse.getStatusCode().toString():HttpStatus.BAD_REQUEST.toString()).
+										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+										build()));
+								return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activateAzureServicePrinicipal IAM Service account. IAM secrets are rotated and saved in T-Vault. However owner permission update failed.\"]}");
+
+							}
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activateAzureServicePrinicipal IAM Service account. IAM secrets are rotated and saved in T-Vault. However metadata update failed.\"]}");
+						}
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+								put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
+								put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] activated successfully", iamServiceAccountName)).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+								build()));
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activateAzureServicePrinicipal IAM Service account. Failed to rotate secrets for one or more AccessKeyIds.\"]}");
+					}
+				}
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
+						put(LogMessage.MESSAGE, String.format ("Failed to activateAzureServicePrinicipal IAM Service account. Invalid metadata for [%s].", uniqueIAMSvcaccName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to activateAzureServicePrinicipal IAM Service account. Invalid metadata.\"]}");
+			}
+			else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
+						put(LogMessage.MESSAGE, String.format ("AccessKey information not found in metadata for IAM Service account [%s]", uniqueIAMSvcaccName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"AccessKey information not found in metadata for this IAM Service account\"]}");
+			}
+
+		}
+		else{
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: No permission to activateAzureServicePrinicipal this IAM service account\"]}");
+		}
+	}
+
+	/**
+	 * Rotate Azure Service Principal secret by secretKeyId.
+	 * @param token
+	 * @param azureServicePrinicipalRotateRequest
+	 * @return
+	 */
+	public ResponseEntity<String> rotateSecret(String token, AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest) {
+		return null;
+	}
+
+	/**
+	 * Rotate secret for a secretKeyID in an Azure Service Principal.
+	 * @param token
+	 * @param awsAccountId
+	 * @param iamServiceAccountName
+	 * @param accessKeyId
+	 * @return
+	 */
+//	private boolean rotateAzureServicePrincipalSecret(String token,  String secretKeyId, String servicePrinicipalId, String tenantId, int accessKeyIndex) {
+//		AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest  = new AzureServicePrinicipalRotateRequest(secretKeyId, servicePrinicipalId, tenantId);
+//
+//		AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecret(azureServicePrinicipalRotateRequest);
+//
+//		if (null != iamServiceAccountSecret) {
+//			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+//					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+//					put(LogMessage.ACTION, "rotate IAM Service Account By AccessKeyId").
+//					put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] rotated successfully for " +
+//									"AccessKeyId [%s]", iamServiceAccountRotateRequest.getUserName(),
+//							iamServiceAccountRotateRequest.getAccessKeyId())).
+//					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+//					build()));
+//			// Save secret in iamavcacc mount
+//			String path = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + uniqueIAMSvcaccName + "/" + IAMServiceAccountConstants.IAM_SECRET_FOLDER_PREFIX + (accessKeyIndex);
+//			if (iamServiceAccountUtils.writeIAMSvcAccSecret(token, path, iamServiceAccountName, iamServiceAccountSecret)) {
+//				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+//						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+//						put(LogMessage.ACTION, "rotate IAM Service Account By AccessKeyId").
+//						put(LogMessage.MESSAGE, "Secret saved to IAM service account mount").
+//						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+//						build()));
+//				Response metadataUdpateResponse = iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(token, awsAccountId, iamServiceAccountName, accessKeyId, iamServiceAccountSecret);
+//				if (null != metadataUdpateResponse && HttpStatus.NO_CONTENT.equals(metadataUdpateResponse.getHttpstatus())) {
+//					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+//							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+//							put(LogMessage.ACTION, "rotate IAM Service Account By AccessKeyId").
+//							put(LogMessage.MESSAGE, "Updated IAM service account metadata with new AccessKeyId and expiry").
+//							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+//							build()));
+//					return true;
+//				}
+//			}
+//		}
+//		return false;
+//	}
 }

@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -170,7 +171,7 @@ public class AzureServicePrinicipalAccountsController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return azureServicePrinicipalAccountsService.createAWSRole(userDetails, token, awsLoginRole);
 	}
-	
+
 	/**
 	 * Method to create aws iam role
 	 * @param token
@@ -183,10 +184,10 @@ public class AzureServicePrinicipalAccountsController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return azureServicePrinicipalAccountsService.createIAMRole(userDetails, token, awsiamRole);
 	}
-	
+
 	/**
 	 * Adds AWS role to Azure Service Account
-	 * 
+	 *
 	 * @param token
 	 * @param azureServiceAccountAWSRole
 	 * @return
@@ -226,5 +227,31 @@ public class AzureServicePrinicipalAccountsController {
 	public ResponseEntity<String> addGroupToAzureServiceAccount(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid AzureServiceAccountGroup azureServiceAccountGroup){
 	   UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 	   return azureServicePrinicipalAccountsService.addGroupToAzureServiceAccount(token, azureServiceAccountGroup, userDetails);
+	}
+	/**
+	 * Activate Azure Service Principal.
+	 * @param request
+	 * @param token
+	 * @param azureServicePrinicipalRotateRequest
+	 * @return
+	 */
+	@PostMapping(value="/v2/iamserviceaccount/activateAzureServicePrinicipal",produces="application/json")
+	@ApiOperation(value = "${IAMServiceAccountsController.activateIAMServiceAccount.value}", notes = "${IAMServiceAccountsController.activateIAMServiceAccount.notes}")
+	public ResponseEntity<String> activateIAMServiceAccount(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("servicePrinicipalName") String servicePrinicipalName){
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return azureServicePrinicipalAccountsService.activateAzureServicePrinicipal(token, userDetails, servicePrinicipalName);
+	}
+
+	/**
+	 * Rotate Azure Service Principal secret by secretKeyId.
+	 * @param request
+	 * @param token
+	 * @param azureServicePrinicipalRotateRequest
+	 * @return
+	 */
+	@PostMapping(value="/v2/iamserviceaccount/rotate",produces="application/json")
+	@ApiOperation(value = "${IAMServiceAccountsController.rotateIAMServiceAccountCreds.value}", notes = "${IAMServiceAccountsController.rotateIAMServiceAccountCreds.notes}")
+	public ResponseEntity<String> rotateIAMServiceAccountCreds(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest){
+		return azureServicePrinicipalAccountsService.rotateSecret(token, azureServicePrinicipalRotateRequest);
 	}
 }
