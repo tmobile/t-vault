@@ -552,6 +552,10 @@ readTextFile("../apiUrls.json");
             name: 'createAwsIAMRoleAzureSvcacc',
             url: '/v2/azureserviceaccounts/aws/iam/role',
             method: 'POST'
+        },{
+            name: 'addGroupPermissionForAzureSvcacc',
+            url: '/v2/azureserviceaccounts/group',
+            method: 'POST'
         }
     ]
     });

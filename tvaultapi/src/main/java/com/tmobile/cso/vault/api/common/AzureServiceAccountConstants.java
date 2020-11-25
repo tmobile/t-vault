@@ -26,6 +26,8 @@ public class AzureServiceAccountConstants {
 	public static final String REMOVE_USER_FROM_AZURESVCACC_MSG = "Remove User from Azure Service Account";
 	public static final String ADD_AWS_ROLE_MSG = "Add AWS Role to Azure Service Account";
 
+	public static final String ADD_GROUP_TO_AZURESVCACC_MSG = "Add Group to Azure Service Principal";
+
 	
 	public static final String USERNAME_PARAM_STRING = "{\"username\":\"";
 	

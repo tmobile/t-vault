@@ -8928,12 +8928,44 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	public ResponseEntity<String> onboardSSLcertificate(UserDetails userDetails, String token,
 			SSLCertificateOnboardRequest sslCertificateRequest) throws Exception {
 		if (ObjectUtils.isEmpty(sslCertificateRequest)
-				|| !isValidInputs(sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType()) || (StringUtils.isEmpty(sslCertificateRequest.getNotificationEmail()))) {
+				|| !isValidInputs(sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType())
+				|| (!validateNotificationEmailsForOnboard(sslCertificateRequest))
+				|| (StringUtils.isEmpty(sslCertificateRequest.getNotificationEmail()))) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "onboard SSLcertificate").put(LogMessage.MESSAGE, "Invalid user inputs")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+		}
+
+		if (ObjectUtils.isEmpty(userDetails) || (!userDetails.isAdmin())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "Onboard SSL Certificate")
+					.put(LogMessage.MESSAGE, "Access denied: No permission to onboard certificates")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"errors\":[\"Access denied: No permission to onboard certificates\"]}");
+		}
+
+		boolean isValidAppName = validateApplicationNameForOnboard(sslCertificateRequest);
+		if(!isValidAppName) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "onboard SSLcertificate").put(LogMessage.MESSAGE, "Invalid application name")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid app name\"]}");
+		}
+
+		boolean isValidUser = validateOwnerEmailForOnboard(sslCertificateRequest);
+
+		if(!isValidUser) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "onboard SSLcertificate").put(LogMessage.MESSAGE, "Invalid owner email")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid owner email\"]}");
 		}
 
 		ResponseEntity<String> response;
@@ -8953,29 +8985,8 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 
 		List<Integer> containerList = new ArrayList<>();
 		String nclmAccessToken = getNclmToken();
-		if (sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) {
-			containerList.add(private_single_san_ts_gp_id_test != 0 ? private_single_san_ts_gp_id_test
-					: private_single_san_ts_gp_id);
-		} else {
-			CertificateData certDetailsExtSsan = null;
-			CertificateData certDetailsExtMsan = null;
-			int containerIdExtSsan = public_single_san_ts_gp_id_test != 0 ? public_single_san_ts_gp_id_test
-					: public_single_san_ts_gp_id;
-			int containerIdExtMsan = public_multi_san_ts_gp_id_test != 0 ? public_multi_san_ts_gp_id_test
-					: public_multi_san_ts_gp_id;
-			certDetailsExtSsan = getLatestCertificateFromNCLM(sslCertificateRequest.getCertificateName(),
-					nclmAccessToken, containerIdExtSsan);
-			if ((!ObjectUtils.isEmpty(certDetailsExtSsan))
-					&& (!ObjectUtils.isEmpty(certDetailsExtSsan.getCertificateName()))) {
-				containerList.add(containerIdExtSsan);
-			}
-			certDetailsExtMsan = getLatestCertificateFromNCLM(sslCertificateRequest.getCertificateName(),
-					nclmAccessToken, containerIdExtMsan);
-			if ((!ObjectUtils.isEmpty(certDetailsExtMsan))
-					&& (!ObjectUtils.isEmpty(certDetailsExtMsan.getCertificateName()))) {
-				containerList.add(containerIdExtMsan);
-			}
-		}
+		//Get the container Id to onboard certificate
+		findContainerIdForOnboardCertificate(sslCertificateRequest, containerList, nclmAccessToken);
 		if (!containerList.isEmpty()) {
 			for (int i = 0; i < containerList.size(); i++) {
 				response = processAndSaveCertificateMetadata(sslCertificateRequest, userDetails, containerList.get(i),
@@ -9016,12 +9027,95 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SSL certificate onboarded successfully\"]}");
 	}
- 
+
+	/**
+	 * Method to find the container Id
+	 * @param sslCertificateRequest
+	 * @param containerList
+	 * @param nclmAccessToken
+	 * @throws Exception
+	 */
+	private void findContainerIdForOnboardCertificate(SSLCertificateOnboardRequest sslCertificateRequest,
+			List<Integer> containerList, String nclmAccessToken) throws Exception {
+		if (sslCertificateRequest.getCertType().equalsIgnoreCase("internal")) {
+			containerList.add(private_single_san_ts_gp_id_test != 0 ? private_single_san_ts_gp_id_test
+					: private_single_san_ts_gp_id);
+		} else {
+			CertificateData certDetailsExtSsan = null;
+			CertificateData certDetailsExtMsan = null;
+			int containerIdExtSsan = public_single_san_ts_gp_id_test != 0 ? public_single_san_ts_gp_id_test
+					: public_single_san_ts_gp_id;
+			int containerIdExtMsan = public_multi_san_ts_gp_id_test != 0 ? public_multi_san_ts_gp_id_test
+					: public_multi_san_ts_gp_id;
+			certDetailsExtSsan = getLatestCertificateFromNCLM(sslCertificateRequest.getCertificateName(),
+					nclmAccessToken, containerIdExtSsan);
+			if ((!ObjectUtils.isEmpty(certDetailsExtSsan))
+					&& (!ObjectUtils.isEmpty(certDetailsExtSsan.getCertificateName()))) {
+				containerList.add(containerIdExtSsan);
+			}
+			certDetailsExtMsan = getLatestCertificateFromNCLM(sslCertificateRequest.getCertificateName(),
+					nclmAccessToken, containerIdExtMsan);
+			if ((!ObjectUtils.isEmpty(certDetailsExtMsan))
+					&& (!ObjectUtils.isEmpty(certDetailsExtMsan.getCertificateName()))) {
+				containerList.add(containerIdExtMsan);
+			}
+		}
+	}
+
+	/**
+	 * Method to validate the owner email
+	 * @param sslCertificateRequest
+	 * @return
+	 */
+	private boolean validateOwnerEmailForOnboard(SSLCertificateOnboardRequest sslCertificateRequest) {
+		boolean isValidUser = false;
+		ResponseEntity<DirectoryObjects> userResponse = directoryService
+				.searchByUPN(sslCertificateRequest.getCertOwnerEmailId());
+		Object[] users = null;
+		if (userResponse.getStatusCode().equals(HttpStatus.OK)) {
+			users = userResponse.getBody().getData().getValues();
+			if (!ObjectUtils.isEmpty(users)) {
+				isValidUser = true;
+			}
+		}
+		return isValidUser;
+	}
+
+	/**
+	 * Method to validate the owner email
+	 * @param sslCertificateRequest
+	 * @return
+	 */
+	private boolean validateNotificationEmailsForOnboard(SSLCertificateOnboardRequest sslCertificateRequest) {
+		boolean isValidNotificationEmail = true;
+		String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";		
+		for (String notifyEmail: sslCertificateRequest.getNotificationEmail().split(",")) {
+			if((!Pattern.matches(regex, notifyEmail)) && (!notifyEmail.endsWith(certificateNameTailText))) {
+				isValidNotificationEmail = false;
+			}
+	    }
+		return isValidNotificationEmail;
+	}
+
+	/**
+	 * Method to validate whether the given application name is valid
+	 * @param sslCertificateRequest
+	 * @return
+	 */
+	private boolean validateApplicationNameForOnboard(SSLCertificateOnboardRequest sslCertificateRequest) {
+		boolean isValidAppName = false;
+		ResponseEntity<String> appResponse = workloadDetailsService.getWorkloadDetailsByAppName(sslCertificateRequest.getAppName());
+		if (appResponse != null && HttpStatus.OK.equals(appResponse.getStatusCode())) {
+			isValidAppName = true;
+		}
+		return isValidAppName;
+	}
+
     /**
      * Method to Create policies and metadata for the given certificate
      * @param certObject
      */
-	public ResponseEntity<String> processAndSaveCertificateMetadata(SSLCertificateOnboardRequest sslCertificateRequest,
+	private ResponseEntity<String> processAndSaveCertificateMetadata(SSLCertificateOnboardRequest sslCertificateRequest,
 			UserDetails userDetails, int containerId, String nclmAccessToken) {
 		try {
 			ResponseEntity<String> metadataResponse = createCertificateMetadataAndPolicies(sslCertificateRequest,
@@ -9079,7 +9173,6 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		boolean isPoliciesCreated = false;
 		CertResponse enrollResponse = new CertResponse();
 		ResponseEntity<String> permissionResponse;
-		boolean isDeleted = false;
 		try {
 			String metadataJson = populateMetadataForSSLOnboard(sslCertificateRequest, userDetails, containerId,
 					nclmAccessToken);
@@ -9093,7 +9186,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			boolean sslMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson,
 					tokenUtils.getSelfServiceToken());
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION,
 							String.format(" [%s] - Metadata creation status - [%s] for metadatajson - [%s]",
 									sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus,
@@ -9102,37 +9195,42 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 
 			if (sslMetaDataCreationStatus) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 						.put(LogMessage.ACTION, String.format(" [%s] - Metadata Creation - Completed ",
 								sslCertificateRequest.getCertificateName()))
 						.build()));
 				isPoliciesCreated = createPolicies(sslCertRequest, tokenUtils.getSelfServiceToken());
+			}else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION,
+								String.format(" ERROR [%s] - Onboard failed. Metadata creation failed. metaDataStatus[%s]",
+										sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus))
+						.build()));
 			}
 
 			if (isPoliciesCreated) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 						.put(LogMessage.ACTION, String.format(" [%s] - Policycreation - Completed",
 								sslCertificateRequest.getCertificateName()))
 						.build()));
 			} else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 						.put(LogMessage.ACTION,
 								String.format(" ERROR [%s] - Onboard failed. Policy creation failed . policyStatus[%s]",
 										sslCertificateRequest.getCertificateName(), isPoliciesCreated))
 						.build()));
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-						.body("{\"errors\":[\"" + enrollResponse.getResponse() + "\"]}");
 			}
 
 			// Send failed certificate response in case of any issues in Policy/Meta data
 			// creation
-			if ((!isPoliciesCreated) || (!sslMetaDataCreationStatus)) {
+			if ((!sslMetaDataCreationStatus) || (!isPoliciesCreated)) {
 				enrollResponse.setResponse("Metadatacreation failed");
 				enrollResponse.setSuccess(Boolean.FALSE);
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 						.put(LogMessage.ACTION, String.format(
 								"ERROR [%s] - Onboard failed. Metadata creation failed - metaDataStatus[%s] - policyStatus[%s]",
 								sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus,
@@ -9143,46 +9241,61 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			} else {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-						.put(LogMessage.ACTION, "generateSSLCertificate")
+						.put(LogMessage.ACTION, "Onboard SSL certificate")
 						.put(LogMessage.MESSAGE, "Sudo Policy Creation Started  ")
 						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 				permissionResponse = addSudoPermissionToCertificateOwner(sslCertRequest, userDetails,
 						enrollResponse, isPoliciesCreated, sslMetaDataCreationStatus, tokenUtils.getSelfServiceToken(),
 						"onboard");
-				if (permissionResponse != null && !(HttpStatus.OK.equals(permissionResponse.getStatusCode()))) {
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-							.put(LogMessage.ACTION, "generateSSLCertificate")
-							.put(LogMessage.MESSAGE,
-									String.format(" [%s] - ERROR - Sudo Policy Creation Failed  ",
-											sslCertificateRequest.getCertificateName()))
-							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
-							.build()));
-					SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(
-							tokenUtils.getSelfServiceToken(), sslCertificateRequest.getCertificateName(),
-							sslCertificateRequest.getCertType());
-					String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal"))
-							? SSLCertificateConstants.SSL_CERT_PATH
-							: SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
-					String certificatePath = metaDataPath + '/' + sslCertificateRequest.getCertificateName();
-					isDeleted = deleteMetaDataAndPermissions(certificateMetaData, certificatePath,
-							tokenUtils.getSelfServiceToken());
-					if (isDeleted) {
-						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-								.put(LogMessage.ACTION, "generateSSLCertificate")
-								.put(LogMessage.MESSAGE,
-										String.format(" [%s] - ERROR - Metadata and policy deletion Completed  ",
-												sslCertificateRequest.getCertificateName()))
-								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
-								.build()));
-					}
-				}
+				//Delete metadata and permissions if add sudo permission failed
+				deleteMeataDataIfOwnerPermissionFailed(sslCertificateRequest, permissionResponse);
+
 				return permissionResponse;
 			}
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body("{\"errors\":[\"" + enrollResponse.getResponse() + "\"]}");
+		}
+	}
+
+	/**
+	 * Method to process and call the deleteMetaDataAndPermissions method for
+	 * deleting the metadata and permissions
+	 *
+	 * @param sslCertificateRequest
+	 * @param permissionResponse
+	 */
+	private void deleteMeataDataIfOwnerPermissionFailed(SSLCertificateOnboardRequest sslCertificateRequest,
+			ResponseEntity<String> permissionResponse) {
+		boolean isDeleted = false;
+		if (permissionResponse != null && !(HttpStatus.OK.equals(permissionResponse.getStatusCode()))) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "Onboard SSL certificate")
+					.put(LogMessage.MESSAGE,
+							String.format(" [%s] - ERROR - Sudo Policy Creation Failed  ",
+									sslCertificateRequest.getCertificateName()))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+					.build()));
+			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(
+					tokenUtils.getSelfServiceToken(), sslCertificateRequest.getCertificateName(),
+					sslCertificateRequest.getCertType());
+			String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal"))
+					? SSLCertificateConstants.SSL_CERT_PATH
+					: SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
+			String certificatePath = metaDataPath + '/' + sslCertificateRequest.getCertificateName();
+			isDeleted = deleteMetaDataAndPermissions(certificateMetaData, certificatePath,
+					tokenUtils.getSelfServiceToken());
+			if (isDeleted) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, "OnboardSSLcertificate")
+						.put(LogMessage.MESSAGE,
+								String.format(" [%s] - ERROR - Metadata and policy deletion Completed  ",
+										sslCertificateRequest.getCertificateName()))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+						.build()));
+			}
 		}
 	}
 
@@ -9200,87 +9313,15 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase("internal"))
 				? SSLCertificateConstants.SSL_CERT_PATH
 				: SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
-		String projectLeadEmail = "";
 		String certOwnerNtId = "";
 		String displayName = "";
 		String certMetadataPath = metaDataPath + '/' + sslCertificateRequest.getCertificateName();
 
 		SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
 
-		// Get Application details
-		String applicationName = sslCertificateRequest.getAppName();
-		if (StringUtils.isEmpty(applicationName)) {
-			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "populateSSLCertificateMetadataForOnboard ")
-					.put(LogMessage.MESSAGE,
-							String.format("ERROR -[%s]- Application Name is not available in the certificate details. ",
-									sslCertificateRequest.getCertificateName()))
-					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-		} else {
-			ResponseEntity<String> appResponse = workloadDetailsService.getWorkloadDetailsByAppName(applicationName);
-			if (HttpStatus.OK.equals(appResponse.getStatusCode())) {
-				JsonParser jsonParser = new JsonParser();
-				JsonObject response = (JsonObject) jsonParser.parse(appResponse.getBody());
-				JsonObject jsonElement = null;
-				if (Objects.nonNull(response)) {
-					jsonElement = response.get("spec").getAsJsonObject();
-					if (Objects.nonNull(jsonElement)) {
-						String applicationTag = validateString(jsonElement.get("tag"));
-						projectLeadEmail = validateString(jsonElement.get("projectLeadEmail"));
+		//Populate the sslCertificateMetadataDetails based on the App name details from workload api
+		populateMetadataDetailsByAppNameDetails(sslCertificateRequest, sslCertificateMetadataDetails);
 
-						if (projectLeadEmail != null && !StringUtils.isEmpty(projectLeadEmail)) {
-							String[] projectLeadEmails = Arrays.stream(projectLeadEmail.split(",")).map(String::trim)
-									.toArray(String[]::new);
-							sslCertificateMetadataDetails.setProjectLeadEmailId(projectLeadEmails[0]);
-						} else {
-							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-									.put(LogMessage.ACTION, "populateSSLCertificateMetadataForOnboard")
-									.put(LogMessage.MESSAGE,
-											String.format(
-													"Project lead email id is not available for given "
-															+ "certificate = [%s]",
-													sslCertificateRequest.getCertificateName()))
-									.build()));
-							projectLeadEmail = sslCertificateRequest.getCertOwnerEmailId();
-							sslCertificateMetadataDetails
-									.setProjectLeadEmailId(sslCertificateRequest.getCertOwnerEmailId());
-						}
-						String appOwnerEmail = validateString(jsonElement.get("brtContactEmail"));
-						String akmid = validateString(jsonElement.get("akmid"));
-						String notificationEmails = sslCertificateRequest.getNotificationEmail();
-
-						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-								.put(LogMessage.ACTION, "Populate Application details in SSL Certificate Metadata")
-								.put(LogMessage.MESSAGE,
-										String.format("Application Details  for an "
-												+ "applicationName = [%s] , applicationTag = [%s], "
-												+ "projectLeadEmail =  [%s],appOwnerEmail =  [%s], akmid = [%s]",
-												applicationName, applicationTag, projectLeadEmail, appOwnerEmail,
-												akmid))
-								.build()));
-
-						sslCertificateMetadataDetails.setAkmid(akmid);
-						sslCertificateMetadataDetails.setApplicationOwnerEmailId(appOwnerEmail);
-						sslCertificateMetadataDetails.setApplicationTag(applicationTag);
-						sslCertificateMetadataDetails.setApplicationName(applicationName);
-
-						sslCertificateMetadataDetails.setNotificationEmails(notificationEmails);
-
-					}
-				}
-			} else {
-				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-						.put(LogMessage.ACTION, "Getting Application Details by app name during Meta data creation ")
-						.put(LogMessage.MESSAGE,
-								String.format("Application details will not insert/update in metadata  "
-										+ "for an application =  [%s] ", applicationName))
-						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			}
-		}
 		CertificateData certDetails = null;
 		certDetails = getLatestCertificateFromNCLM(sslCertificateRequest.getCertificateName(), nclmAccessToken,
 				containerId);
@@ -9348,6 +9389,102 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		Map<String, Object> rqstParams = ControllerUtil.parseJson(jsonStr);
 		rqstParams.put("path", certMetadataPath);
 		return ControllerUtil.convetToJson(rqstParams);
+	}
+
+	/**
+	 * Method to populate the sslCertificateMetadataDetails based on the App name details from workload api
+	 * @param sslCertificateRequest
+	 * @param sslCertificateMetadataDetails
+	 */
+	private void populateMetadataDetailsByAppNameDetails(SSLCertificateOnboardRequest sslCertificateRequest,
+			SSLCertificateMetadataDetails sslCertificateMetadataDetails) {
+		// Get Application details
+		String applicationName = sslCertificateRequest.getAppName();
+		if (StringUtils.isEmpty(applicationName)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "populateSSLCertificateMetadataForOnboard ")
+					.put(LogMessage.MESSAGE,
+							String.format("ERROR -[%s]- Application Name is not available in the certificate details. ",
+									sslCertificateRequest.getCertificateName()))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		} else {
+			ResponseEntity<String> appResponse = workloadDetailsService.getWorkloadDetailsByAppName(applicationName);
+			if (HttpStatus.OK.equals(appResponse.getStatusCode())) {
+				JsonParser jsonParser = new JsonParser();
+				JsonObject response = (JsonObject) jsonParser.parse(appResponse.getBody());
+				processWorkloadDetailsAndConstructMetadata(sslCertificateRequest, sslCertificateMetadataDetails,
+						applicationName, response);
+			} else {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, "Getting Application Details by app name during Meta data creation ")
+						.put(LogMessage.MESSAGE,
+								String.format("Application details will not insert/update in metadata  "
+										+ "for an application =  [%s] ", applicationName))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			}
+		}
+	}
+
+	/**
+	 * Method to process workload details and construct the metadata for onboarding the certificate
+	 * @param sslCertificateRequest
+	 * @param sslCertificateMetadataDetails
+	 * @param applicationName
+	 * @param response
+	 */
+	private void processWorkloadDetailsAndConstructMetadata(SSLCertificateOnboardRequest sslCertificateRequest,
+			SSLCertificateMetadataDetails sslCertificateMetadataDetails, String applicationName, JsonObject response) {
+		String projectLeadEmail = "";
+		JsonObject jsonElement = null;
+		if (Objects.nonNull(response)) {
+			jsonElement = response.get("spec").getAsJsonObject();
+			if (Objects.nonNull(jsonElement)) {
+				String applicationTag = validateString(jsonElement.get("tag"));
+				projectLeadEmail = validateString(jsonElement.get("projectLeadEmail"));
+
+				if (projectLeadEmail != null && !StringUtils.isEmpty(projectLeadEmail)) {
+					String[] projectLeadEmails = Arrays.stream(projectLeadEmail.split(",")).map(String::trim)
+							.toArray(String[]::new);
+					sslCertificateMetadataDetails.setProjectLeadEmailId(projectLeadEmails[0]);
+				} else {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, "populateSSLCertificateMetadataForOnboard")
+							.put(LogMessage.MESSAGE,
+									String.format(
+											"Project lead email id is not available for given "
+													+ "certificate = [%s]",
+											sslCertificateRequest.getCertificateName()))
+							.build()));
+					projectLeadEmail = sslCertificateRequest.getCertOwnerEmailId();
+					sslCertificateMetadataDetails
+							.setProjectLeadEmailId(sslCertificateRequest.getCertOwnerEmailId());
+				}
+				String appOwnerEmail = validateString(jsonElement.get("brtContactEmail"));
+				String akmid = validateString(jsonElement.get("akmid"));
+				String notificationEmails = sslCertificateRequest.getNotificationEmail();
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, "Populate Application details in SSL Certificate Metadata")
+						.put(LogMessage.MESSAGE,
+								String.format("Application Details  for an "
+										+ "applicationName = [%s] , applicationTag = [%s], "
+										+ "projectLeadEmail =  [%s],appOwnerEmail =  [%s], akmid = [%s]",
+										applicationName, applicationTag, projectLeadEmail, appOwnerEmail,
+										akmid))
+						.build()));
+
+				sslCertificateMetadataDetails.setAkmid(akmid);
+				sslCertificateMetadataDetails.setApplicationOwnerEmailId(appOwnerEmail);
+				sslCertificateMetadataDetails.setApplicationTag(applicationTag);
+				sslCertificateMetadataDetails.setApplicationName(applicationName);
+
+				sslCertificateMetadataDetails.setNotificationEmails(notificationEmails);
+
+			}
+		}
 	}
 	
 	   
