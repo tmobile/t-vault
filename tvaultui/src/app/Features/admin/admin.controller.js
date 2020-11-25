@@ -1015,7 +1015,7 @@
                     return false;
                 }
             }
-               return azurepagesShown < ($scope.numOfAzureSvcaccs / azurepagesShown);
+               return azurepagesShown < ($scope.numOfAzureSvcaccs / azurepageSize);
         };
         $scope.showMoreItems = function () {
             pagesShown = pagesShown + 1;
@@ -1711,6 +1711,7 @@
         }
         
         $scope.appNameSelect = function(){
+            $scope.certObj.certDetails.notificationEmails="";
             $scope.appNameSelected = false;
             $scope.selectedNotificationEmails = [];
             $scope.notificationEmails = [];
