@@ -321,5 +321,18 @@ public class ServiceAccountsControllerV2 {
 		return serviceAccountsService.getServiceAccounts(userDetails, token);
 	}
 
+	/**
+	 * Offboard a decommissioned service account
+	 * @param request
+	 * @param token
+	 * @param serviceAccount
+	 * @return
+	 */
+	@ApiOperation(value = "${ServiceAccountsControllerV2.offboarddecommissioned.value}", notes = "${ServiceAccountsControllerV2.offboarddecommissioned.notes}", hidden = true)
+	@PostMapping(value="/v2/serviceaccounts/offboarddecommissioned", produces="application/json")
+	public ResponseEntity<String> offboardDecommissionedServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody OnboardedServiceAccount serviceAccount){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.offboardDecommissionedServiceAccount(token, serviceAccount, userDetails);
+	}
 
 }

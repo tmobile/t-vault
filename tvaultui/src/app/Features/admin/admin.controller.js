@@ -914,7 +914,6 @@
 
                                         });
                                 } else {
-                                    console.log(error);
                                     $scope.isLoadingData = false;
                                     $scope.svcaccToOffboard = '';
                                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
@@ -2940,6 +2939,98 @@
                 var id = "dns"+ (i++);
                 angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
             });
+        }
+
+        $scope.offboardDecommissionedSvcacc = function (svcaccUserId) {
+            if (svcaccUserId != '') {
+                Modal.close();
+                $scope.isLoadingData = true;
+                $scope.isOffboardingDecommitioned = false;
+                var queryParameters = "path=ad/roles/"+svcaccUserId;
+                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccMetadata', queryParameters);
+                AdminSafesManagement.getSvcaccMetadata(null, updatedUrlOfEndPoint).then(
+                    function (response) {
+                        if (UtilityService.ifAPIRequestSuccessful(response)) {
+                            try {
+                                if (response.data.data) {
+                                    var managedBy = response.data.data.managedBy;
+                                    var offboardPayload = {
+                                        "owner": managedBy,
+                                        "name": svcaccUserId
+                                    }
+                                    AdminSafesManagement.offboardDecommissionedServiceAccount(offboardPayload, '').then(
+                                        function (response) {
+                                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                                try {
+                                                    $scope.isLoadingData = false;
+                                                    var currentOnboardList = $scope.svcaccOnboardedData.keys;
+                                                    for (var i = 0; i < currentOnboardList.length; i++) {
+                                                        if (currentOnboardList[i] == svcaccUserId) {
+                                                            currentOnboardList.splice(i, 1);
+                                                            $scope.svcaccOnboardedData.keys = currentOnboardList;
+                                                            break;
+                                                        }
+                                                    }
+                                                    $scope.svcaccToOffboard = '';
+                                                    Modal.createModal('md', 'offboardWarning.html', 'AdminCtrl', $scope);
+                                                }
+                                                catch (e) {
+                                                    console.log(e);
+                                                    $scope.svcaccToOffboard = '';
+                                                    $scope.isLoadingData = false;
+                                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                                    $scope.error('md');
+                                                }
+                                            }
+                                            else {
+                                                $scope.isLoadingData = false;
+                                                $scope.svcaccToOffboard = '';
+                                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                                $scope.error('md');
+                                            }
+                                        },
+                                        function (error) {
+                                            // Error handling function
+                                            console.log(error);
+                                            $scope.isLoadingData = false;
+                                            $scope.svcaccToOffboard = '';
+                                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                            $scope.error('md');
+
+                                        });
+                                } else {
+                                    $scope.isLoadingData = false;
+                                    $scope.svcaccToOffboard = '';
+                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                    $scope.error('md');
+                                }
+                            }
+                            catch (e) {
+                                console.log(e);
+                                $scope.isLoadingData = false;
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
+                                $scope.error('md');
+                            }
+                        }
+                        else {
+                            $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                            error('md');
+                        }
+                    },
+                    function (error) {
+                        // Error handling function
+                        console.log(error);
+                        $scope.isLoadingData = false;
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                        $scope.error('md');
+                    })
+            }
+            else {
+                $scope.isLoadingData = false;
+                $scope.svcaccToOffboard = '';
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            }
         }
 
         init();
