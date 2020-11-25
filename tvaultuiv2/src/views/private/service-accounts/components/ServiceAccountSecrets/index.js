@@ -17,6 +17,7 @@ import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import { useStateValue } from '../../../../../contexts/globalState';
+import accessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
 import {
   PopperItem,
   BackgroundColor,
@@ -73,13 +74,25 @@ const FolderIconWrap = styled('div')`
   }
 `;
 
-const NoPermission = styled.div`
+const AccessDeniedWrap = styled.div`
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+`;
+
+const AccessDeniedIcon = styled.img`
+  width: 16rem;
+  height: 16rem;
+`;
+
+const NoPermission = styled.div`
   color: #5a637a;
   text-align: center;
+  margin-top: 2rem;
   span {
     display: contents;
     margin: 0 0.3rem;
@@ -216,7 +229,7 @@ const ServiceAccountSecrets = (props) => {
               label="Cancel"
               color="primary"
               onClick={() => handleClose()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
           confirmButton={
@@ -224,7 +237,7 @@ const ServiceAccountSecrets = (props) => {
               label="Confirm"
               color="secondary"
               onClick={() => onResetConfirmedClicked()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
         />
@@ -277,10 +290,13 @@ const ServiceAccountSecrets = (props) => {
           <Error description={accountSecretError || 'Something went wrong!'} />
         )}
         {response.status === 'no-permission' && (
-          <NoPermission>
-            Access denied: no permission to read the password details for the{' '}
-            <span>{accountDetail.name}</span> service account.
-          </NoPermission>
+          <AccessDeniedWrap>
+            <AccessDeniedIcon src={accessDeniedLogo} alt="accessDeniedLogo" />
+            <NoPermission>
+              Access denied: no permission to read the password details for the{' '}
+              <span>{accountDetail.name}</span> service account.
+            </NoPermission>
+          </AccessDeniedWrap>
         )}
         {responseType === 1 && (
           <SnackbarComponent

@@ -350,7 +350,7 @@ const EditCertificate = (props) => {
                       ? backToEdit()
                       : handleCloseConfirmationModal()
                   }
-                  width={isMobileScreen ? '100%' : '38%'}
+                  width={isMobileScreen ? '100%' : '45%'}
                 />
               ) : (
                 <LoaderSpinner customStyle={loaderStyle} />
@@ -368,7 +368,7 @@ const EditCertificate = (props) => {
               label="Cancel"
               color="primary"
               onClick={() => onCloseRenewConfirmation()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
           confirmButton={
@@ -376,7 +376,7 @@ const EditCertificate = (props) => {
               label="Renew"
               color="secondary"
               onClick={() => onRenewConfirmClicked()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
         />

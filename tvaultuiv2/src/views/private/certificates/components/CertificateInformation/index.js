@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import Loader from '../../../../../components/Loaders/LoaderSpinner';
 import mediaBreakPoint from '../../../../../breakpoints';
+import accessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
 
 const DetailsWrap = styled.div`
   padding: 0 4rem;
@@ -50,8 +51,19 @@ const ErrorWrap = styled.div`
   height: 100%;
   display: flex;
   justify-content: center;
+  flex-direction: column;
   align-items: center;
+`;
+
+const AccessDeniedIcon = styled.img`
+  width: 16rem;
+  height: 16rem;
+`;
+
+const NoPermission = styled.div`
   color: ${(props) => props.theme.customColor.label.color};
+  text-align: center;
+  margin-top: 2rem;
 `;
 
 const CertificateInformation = (props) => {
@@ -145,7 +157,13 @@ const CertificateInformation = (props) => {
             </EachDetail>
           </DetailsWrap>
         )}
-        {response.status === 'error' && <ErrorWrap>{errorMessage}</ErrorWrap>}
+        {response.status === 'error' && (
+          <ErrorWrap>
+            {' '}
+            <AccessDeniedIcon src={accessDeniedLogo} alt="accessDeniedLogo" />
+            <NoPermission>{errorMessage}</NoPermission>
+          </ErrorWrap>
+        )}
       </>
     </ComponentError>
   );

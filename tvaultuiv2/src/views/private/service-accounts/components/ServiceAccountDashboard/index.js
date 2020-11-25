@@ -44,6 +44,7 @@ import {
   ListContainer,
   StyledInfiniteScroll,
 } from '../../../../../styles/GlobalStyles/listingStyle';
+import configData from '../../../../../config/config';
 
 const OnBoardForm = lazy(() => import('../../OnBoardForm'));
 
@@ -129,7 +130,7 @@ const BorderLine = styled.div`
 `;
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 3rem;
+  bottom: 1rem;
   right: 2.5rem;
   z-index: 1;
 `;
@@ -218,22 +219,44 @@ const ServiceAccountDashboard = () => {
   const fetchData = useCallback(async () => {
     setStatus({ status: 'loading', message: 'Loading...' });
     setInputSearchValue('');
-    const serviceList = await apiService.getServiceAccountList();
+    let serviceList = [];
+    if (configData.AUTH_TYPE === 'oidc') {
+      serviceList = await apiService.getServiceAccountList();
+    }
     const serviceAccounts = await apiService.getServiceAccounts();
     const allApiResponse = Promise.all([serviceList, serviceAccounts]);
     allApiResponse
       .then((response) => {
         const listArray = [];
-        if (response[0] && response[0].data && response[0].data.svcacct) {
-          response[0].data.svcacct.map((item) => {
-            const data = {
-              name: Object.keys(item)[0],
-              access: Object.values(item)[0],
-              admin,
-              manage: true,
-            };
-            return listArray.push(data);
-          });
+        if (configData.AUTH_TYPE === 'oidc') {
+          if (response[0] && response[0].data && response[0].data.svcacct) {
+            response[0].data.svcacct.map((item) => {
+              const data = {
+                name: Object.keys(item)[0],
+                access: Object.values(item)[0],
+                admin,
+                manage: true,
+              };
+              return listArray.push(data);
+            });
+          }
+        } else {
+          const access = JSON.parse(sessionStorage.getItem('access'));
+          if (Object.keys(access).length > 0) {
+            Object.keys(access).forEach((item) => {
+              if (item === 'svcacct') {
+                access[item].map((ele) => {
+                  const data = {
+                    name: Object.keys(ele)[0],
+                    access: Object.values(ele)[0],
+                    admin,
+                    manage: true,
+                  };
+                  return listArray.push(data);
+                });
+              }
+            });
+          }
         }
         if (response[1] && response[1]?.data?.keys) {
           listArray.map((item) => {
@@ -284,7 +307,7 @@ const ServiceAccountDashboard = () => {
   const onSearchChange = (value) => {
     setInputSearchValue(value);
     if (value !== '') {
-      const array = state?.serviceAccountList.filter((item) => {
+      const array = state?.serviceAccountList?.filter((item) => {
         return String(item.name).startsWith(value);
       });
       setServiceAccountList([...array]);

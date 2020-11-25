@@ -87,7 +87,9 @@ const PrivateRoutes = () => {
   const loggedOut = async () => {
     document.title = 'Your session has expired.';
     timer.cancelCountdown();
-    await revokeToken();
+    if (configData.AUTH_TYPE === 'oidc') {
+      await revokeToken();
+    }
     window.location.href = '/';
     sessionStorage.clear();
   };

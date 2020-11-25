@@ -27,6 +27,11 @@ const StyleTextField = styled(TextField)`
     font-size: 1.2rem;
     margin: 1rem 0 0;
   }
+  .MuiFilledInput-multiline {
+    height: auto;
+    padding: 1.5rem 1.5rem
+  }
+  
 `;
 
 const setIcon = (props) => {

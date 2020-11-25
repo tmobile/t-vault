@@ -191,7 +191,7 @@ const AppRoleSecrets = (props) => {
               label="Cancel"
               color="primary"
               onClick={() => handleClose()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '44%'}
             />
           }
           confirmButton={
@@ -199,7 +199,7 @@ const AppRoleSecrets = (props) => {
               label="Confirm"
               color="secondary"
               onClick={() => onDeleteSecretId()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '44%'}
             />
           }
         />
@@ -257,14 +257,14 @@ const AppRoleSecrets = (props) => {
                     label="Cancel"
                     color="primary"
                     onClick={() => handleDeleteSlideUp(false)}
-                    width={isMobileScreen ? '100%' : '38%'}
+                    width={isMobileScreen ? '100%' : '45%'}
                   />
                 </div>
                 <ButtonComponent
                   label="Delete"
                   color="secondary"
                   onClick={() => onDeleteClicked()}
-                  width={isMobileScreen ? '100%' : '38%'}
+                  width={isMobileScreen ? '100%' : '45%'}
                 />
               </OptionsWrap>
             </DeleteOptionWrap>

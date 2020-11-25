@@ -316,7 +316,7 @@ const AppRoleDetails = (props) => {
               label="Cancel"
               color="primary"
               onClick={() => setCreateSecretIdModal(false)}
-              width={isMobileScreen ? '45%' : ''}
+              width={isMobileScreen ? '44%' : ''}
             />
           }
           confirmButton={
@@ -325,7 +325,7 @@ const AppRoleDetails = (props) => {
               label="Create"
               color="secondary"
               onClick={() => onCreateSecretId()}
-              width={isMobileScreen ? '45%' : ''}
+              width={isMobileScreen ? '44%' : ''}
             />
           }
         />
@@ -340,7 +340,7 @@ const AppRoleDetails = (props) => {
               label="Close"
               color="primary"
               onClick={() => setDownloadSecretModal()}
-              width={isMobileScreen ? '45%' : ''}
+              width={isMobileScreen ? '44%' : ''}
             />
           }
           confirmButton={
@@ -349,7 +349,7 @@ const AppRoleDetails = (props) => {
               label="Download"
               color="secondary"
               onClick={() => onDownloadSecretId()}
-              width={isMobileScreen ? '45%' : ''}
+              width={isMobileScreen ? '44%' : ''}
               icon="get_app"
             />
           }
@@ -402,7 +402,7 @@ const AppRoleDetails = (props) => {
                         icon="add"
                         color="secondary"
                         onClick={() => createSecretId()}
-                        width={isMobileScreen ? '45%' : ''}
+                        width={isMobileScreen ? '44%' : ''}
                       />
                     }
                     bgIconStyle={bgIconStyle}

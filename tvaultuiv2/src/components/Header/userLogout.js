@@ -9,6 +9,7 @@ import { useHistory } from 'react-router-dom';
 import userIcon from '../../assets/icon-profile.svg';
 import vectorIcon from '../../assets/vector.svg';
 import { revokeToken } from '../../views/public/HomePage/utils';
+import configData from '../../config/config';
 import mediaBreakpoints from '../../breakpoints';
 
 const UserWrap = styled.div`
@@ -56,8 +57,10 @@ const UserLogout = (props) => {
     setAnchorEl(anchorEl ? null : event.currentTarget);
   };
 
-  const onLogoutClicked = () => {
-    revokeToken();
+  const onLogoutClicked = async () => {
+    if (configData.AUTH_TYPE === 'oidc') {
+      await revokeToken();
+    }
     sessionStorage.clear();
     checkToken();
     history.push('/');

@@ -226,7 +226,7 @@ const Header = (props) => {
                   Docs
                 </EachLink>
                 <EachLink
-                  href="https://perf-vault.corporate.t-mobile.com/vault/swagger-ui.html"
+                  href={`${configData.OIDC_REDIRECT_URL}/vault/swagger-ui.html`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
