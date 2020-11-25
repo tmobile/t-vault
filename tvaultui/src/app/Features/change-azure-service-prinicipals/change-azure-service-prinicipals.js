@@ -31,7 +31,7 @@
                 url: '/change-azure-service-prinicipals/',
                 params: { "azuresvcaccData": null, "azuresvcaccList":[]},
                 templateUrl: 'app/Features/change-azure-service-prinicipals/change-azure-service-prinicipals.html',
-                controller: 'ChangeAzureServicePrinicipalsCtrl'
+                controller: 'ChangeAzureServicePrincipalsCtrl'
             } );
     }
 })();

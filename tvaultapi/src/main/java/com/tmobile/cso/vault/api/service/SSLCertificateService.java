@@ -9227,9 +9227,6 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 						String appOwnerEmail = validateString(jsonElement.get("brtContactEmail"));
 						String akmid = validateString(jsonElement.get("akmid"));
 						String notificationEmails = sslCertificateRequest.getNotificationEmail();
-						if(!sslCertificateRequest.getNotificationEmail().contains(sslCertificateRequest.getCertOwnerEmailId())) {
-							notificationEmails = new StringBuilder().append(notificationEmails).append(",").append(sslCertificateRequest.getCertOwnerEmailId()).toString();
-						}
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 								.put(LogMessage.ACTION, "Populate Application details in SSL Certificate Metadata")
