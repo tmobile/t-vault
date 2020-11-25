@@ -1015,7 +1015,7 @@
                     return false;
                 }
             }
-               return azurepagesShown < ($scope.numOfAzureSvcaccs / azurepagesShown);
+               return azurepagesShown < ($scope.numOfAzureSvcaccs / azurepageSize);
         };
         $scope.showMoreItems = function () {
             pagesShown = pagesShown + 1;
