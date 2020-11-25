@@ -4636,7 +4636,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                         nclmMockUtil.getRenewCertificateMockData();
 				if((!ObjectUtils.isEmpty(cerificatetData)&& cerificatetData.getCertificateId()!=0)) {
 					if(cerificatetData.getCertificateStatus().equalsIgnoreCase("Revoked")) {
-						return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)	
+						return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
 		    					.body("{\"errors\":[\"" + "Certificate in Revoked status cannot be renewed." + "\"]}");
 					}
 				}else {
@@ -4685,7 +4685,12 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 CertManagerLogin certManagerLogin = new CertManagerLogin();
                 certManagerLogin.setAccess_token(nclmAccessToken);
                 Map<String, Object> responseMap = ControllerUtil.parseJson(renewResponse.getResponse());
-                if (!MapUtils.isEmpty(responseMap) && responseMap.get("actionId") != null) {
+                if(certID.equalsIgnoreCase(String.valueOf(certData.getCertificateId()))) {
+                    //Make sure certificate renewed
+                    certData = getRenewedCertificate(certType, certificateName, nclmAccessToken, containerId, certID);
+                }
+                if (responseMap.size() > 0 && Objects.nonNull(responseMap.get("actionId")) && !MapUtils.isEmpty(responseMap) && responseMap.get(
+                        "actionId") != null) {
                     actionId = (Integer) responseMap.get("actionId");
                     if (actionId != 0) {
                         renewResponse = approvalRequest(certManagerLogin, actionId);
@@ -4705,6 +4710,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                         metaDataParams.put("certificateStatus", certData.getCertificateStatus() != null ? certData.getCertificateStatus() :
                                 object.get("certificateStatus").getAsString());
                     }
+                } else {
+                    metaDataParams.put("certificateId", ((Integer) certData.getCertificateId()).toString() != null ?
+                            ((Integer) certData.getCertificateId()).toString() : String.valueOf(certificateId));
+                    metaDataParams.put("createDate", certData.getCreateDate() != null ? certData.getCreateDate() : object.get("createDate").getAsString());
+                    metaDataParams.put("expiryDate", certData.getExpiryDate() != null ? certData.getExpiryDate() : object.get("expiryDate").getAsString());
+                    metaDataParams.put("certificateStatus", certData.getCertificateStatus() != null ? certData.getCertificateStatus() :
+                            object.get("certificateStatus").getAsString());
                 }
 
             }else {
@@ -4798,6 +4810,38 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	}
 
     /**
+     * This method to get the renewed certificate
+     * @param certType
+     * @param certificateName
+     * @param nclmAccessToken
+     * @param containerId
+     * @param certID
+     * @return
+     * @throws Exception
+     */
+    private CertificateData getRenewedCertificate(String certType, String certificateName, String nclmAccessToken,
+                                                  int containerId, String certID) throws Exception {
+        CertificateData certData = null;
+        for (int i = 0; i < retrycount; i++) {
+
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "getRenewedCertificate")
+                    .put(LogMessage.MESSAGE, String.format("RETRY COUNT = [%s]",  i))
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+            Thread.sleep(renewDelayTime);
+            certData = (!isMockingEnabled(certType)) ?
+                    getLatestCertificate(certificateName, nclmAccessToken, containerId) :
+                    nclmMockUtil.getRenewCertificateMockData();
+            if (!certID.equalsIgnoreCase(String.valueOf(certData.getCertificateId()))) {
+                break;
+            }
+        }
+        return certData;
+    }
+
+    /**
      * This method will be responsible for sending an email for renew certificate for both internal and external
      * @param certType
      * @param certificateName
@@ -4830,7 +4874,9 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
     private CertificateData getLatestCertificate(String certName, String accessToken, int containerId) throws Exception {
         CertificateData certificateData=new CertificateData(); 
         String findCertificateEndpoint = "/certmanager/findCertificate";
-        String targetEndpoint = findCertificate.replace("certname", String.valueOf(certName)).replace("cid", String.valueOf(containerId));
+
+        String targetEndpoint = findCertificate.replace("certname", " \"" +String.valueOf(certName)+"\" ").replace(
+                "cid", String.valueOf(containerId));
         CertResponse response = reqProcessor.processCert(findCertificateEndpoint, "", accessToken, getCertmanagerEndPoint(targetEndpoint));        
         Map<String, Object> responseMap = ControllerUtil.parseJson(response.getResponse());
         if (!MapUtils.isEmpty(responseMap) && (ControllerUtil.parseJson(response.getResponse()).get(SSLCertificateConstants.CERTIFICATES) != null)) {
