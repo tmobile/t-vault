@@ -1049,11 +1049,18 @@
                                 }
                             },
                             function (error) {
-                                  console.log(error);
+                                console.log(error);
                                 $scope.isLoadingData = false;
-                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                                $scope.error('md');
-                            })                        
+                                if (error.status == 404 || error.status == "404") {
+                                    $scope.isLoadingData = false;
+                                    $scope.isOffboarding = true;
+                                    $scope.openSvcDecommissionedMessage(svcaccId);
+                                }
+                                else {
+                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                    $scope.error('md');
+                                }
+                            })
                     }
                     else {
                         $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
