@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
@@ -11,8 +11,6 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import mediaBreakpoints from '../../../../../breakpoints';
 import IamServiceAccountSecrets from '../IamServiceAccountSecrets';
 import IamServiceAccountPermission from '../IamServiceAccountPermission';
-import { useStateValue } from '../../../../../contexts/globalState';
-import apiService from '../../apiService';
 // styled components goes here
 
 const TabPanelWrap = styled.div`
@@ -87,87 +85,31 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const AccountSelectionTabs = (props) => {
-  const { accountDetail, refresh } = props;
+  const {
+    accountDetail,
+    refresh,
+    getSecrets,
+    fetchPermission,
+    isIamSvcAccountActive,
+    accountSecretData,
+    accountSecretError,
+    disabledPermission,
+    accountMetaData,
+    status,
+  } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
-  const [response, setResponse] = useState({ status: '' });
-  const [accountSecretData, setAccountSecretData] = useState(null);
-  const [accountSecretError, setAccountSecretError] = useState('');
-  const [disabledPermission, setDisabledPermission] = useState(false);
-  const [secretResStatus, setSecretResStatus] = useState({ status: 'loading' });
-  const [accountMetaData, setAccountMetaData] = useState({
-    response: {},
-    error: '',
-  });
-  const [isIamSvcAccountActive, setIsIamSvcAccountActive] = useState(false);
-  const [state] = useStateValue();
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-  // Function to get the secret of the given service account.
-  const getSecrets = useCallback(() => {
-    setSecretResStatus({ status: 'loading' });
-
-    apiService
-      .getIamSvcAccountSecrets(
-        `${accountDetail.iamAccountId}_${accountDetail?.name}`
-      )
-      .then((res) => {
-        setSecretResStatus({ status: 'success' });
-        if (res?.data) {
-          setAccountSecretData(res.data);
-        }
-      })
-      .catch((err) => {
-        if (
-          err?.response &&
-          err.response.data?.errors &&
-          err.response.data.errors[0]
-        ) {
-          setAccountSecretError(err.response.data.errors[0]);
-        }
-        setSecretResStatus({ status: 'error' });
-      });
-  }, [accountDetail]);
-
-  // Function to get the metadata of the given service account
-  const fetchPermission = useCallback(() => {
-    setResponse({ status: 'loading' });
-    return apiService
-      .fetchIamServiceAccountDetails(
-        `${accountDetail.iamAccountId}_${accountDetail.name}`
-      )
-      .then((res) => {
-        if (res?.data) {
-          setResponse({ status: 'success' });
-          setIsIamSvcAccountActive(res?.data?.isActivated);
-          if (
-            res.data.owner_ntid.toLowerCase() === state.username.toLowerCase()
-          ) {
-            setDisabledPermission(false);
-            setAccountMetaData({ response: res.data, error: '' });
-          }
-        }
-      })
-      .catch((err) => {
-        setResponse({ status: 'error' });
-        if (err) {
-          setAccountSecretError(err?.response?.data?.errors[0]);
-          setAccountMetaData({ response: {}, error: 'Something went wrong' });
-        }
-      });
-  }, [accountDetail, state]);
 
   useEffect(() => {
-    setResponse({ status: 'loading' });
-    setSecretResStatus({ status: ' loading' });
-
     if (accountDetail?.name) {
       fetchPermission();
-      getSecrets();
     }
-  }, [accountDetail, fetchPermission, getSecrets]);
+    if (accountDetail?.name && isIamSvcAccountActive) getSecrets();
+  }, [accountDetail, fetchPermission, getSecrets, isIamSvcAccountActive]);
 
   return (
     <ComponentError>
@@ -197,16 +139,16 @@ const AccountSelectionTabs = (props) => {
               accountMetaData={accountMetaData}
               accountSecretData={accountSecretData}
               accountSecretError={accountSecretError}
-              secretStatus={secretResStatus.status}
               getSecrets={getSecrets}
               isIamSvcAccountActive={isIamSvcAccountActive}
+              status={status}
             />
           </TabPanel>
           <TabPanel value={value} index={1}>
             <IamServiceAccountPermission
               accountDetail={accountDetail}
               accountMetaData={accountMetaData}
-              parentStatus={response.status}
+              parentStatus={status?.status}
               refresh={refresh}
               fetchPermission={fetchPermission}
               isIamSvcAccountActive={isIamSvcAccountActive}
@@ -220,6 +162,14 @@ const AccountSelectionTabs = (props) => {
 AccountSelectionTabs.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.object),
   refresh: PropTypes.func.isRequired,
+  fetchPermission: PropTypes.func.isRequired,
+  getSecrets: PropTypes.func.isRequired,
+  isIamSvcAccountActive: PropTypes.bool.isRequired,
+  accountMetaData: PropTypes.objectOf(PropTypes.object).isRequired,
+  accountSecretData: PropTypes.objectOf(PropTypes.object),
+  accountSecretError: PropTypes.string.isRequired,
+  disabledPermission: PropTypes.bool.isRequired,
+  status: PropTypes.objectOf(PropTypes.object).isRequired,
 };
 AccountSelectionTabs.defaultProps = {
   accountDetail: {},

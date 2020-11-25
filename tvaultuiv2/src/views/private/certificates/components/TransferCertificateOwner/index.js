@@ -296,7 +296,7 @@ const CreateCertificates = (props) => {
                   ? backToTransfer()
                   : closeModal()
               }
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
         />

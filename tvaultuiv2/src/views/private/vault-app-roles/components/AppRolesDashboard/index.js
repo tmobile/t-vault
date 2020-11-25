@@ -130,7 +130,7 @@ const BorderLine = styled.div`
 `;
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 3rem;
+  bottom: 1rem;
   right: 2.5rem;
   z-index: 1;
 `;
@@ -245,7 +245,7 @@ const AppRolesDashboard = () => {
   const onSearchChange = (value) => {
     setInputSearchValue(value);
     if (value !== '') {
-      const array = state?.appRoleList.filter((item) => {
+      const array = state?.appRoleList?.filter((item) => {
         return String(item.name).startsWith(value);
       });
       setAppRoleList([...array]);
@@ -436,7 +436,7 @@ const AppRolesDashboard = () => {
               label="Cancel"
               color="primary"
               onClick={() => handleConfirmationModalClose()}
-              width={isMobileScreen ? '45%' : ''}
+              width={isMobileScreen ? '44%' : ''}
             />
           }
           confirmButton={
@@ -445,7 +445,7 @@ const AppRolesDashboard = () => {
               label="Delete"
               color="secondary"
               onClick={() => onAppRoleDelete()}
-              width={isMobileScreen ? '45%' : ''}
+              width={isMobileScreen ? '44%' : ''}
             />
           }
         />

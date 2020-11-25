@@ -136,7 +136,7 @@ const BorderLine = styled.div`
 `;
 const FloatBtnWrapper = styled('div')`
   position: absolute;
-  bottom: 3rem;
+  bottom: 1rem;
   right: 2.5rem;
   z-index: 1;
 `;
@@ -343,7 +343,7 @@ const SafeDashboard = () => {
   const onSearchChange = (value) => {
     setInputSearchValue(value);
     if (value !== '') {
-      const array = allSafeList.filter((item) => {
+      const array = allSafeList?.filter((item) => {
         return String(item.name).startsWith(value);
       });
       setSafeList([...array]);

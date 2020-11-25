@@ -1,4 +1,4 @@
-/* eslint-disable react/jsx-curly-newline */
+ /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect } from 'react';
@@ -31,7 +31,6 @@ import Error from '../../../../../components/Error';
 import Folder from '../Folder';
 
 const UserList = styled.div`
-  margin-top: 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -124,6 +123,7 @@ const IamServiceAccountSecrets = (props) => {
     accountSecretData,
     getSecrets,
     isIamSvcAccountActive,
+    status,
   } = props;
   const [response, setResponse] = useState({ status: '' });
   const [secretsData, setSecretsData] = useState({});
@@ -213,10 +213,10 @@ const IamServiceAccountSecrets = (props) => {
           await getSecrets();
         }
       })
-      .catch(() => {
-        setResponse({ status: 'error' });
+      .catch((err) => {
+        setResponse({});
         setResponseType(-1);
-        setToastMessage('Unable to rotate password!');
+        setToastMessage(err?.response?.data?.errors[0]);
       });
   };
 
@@ -253,16 +253,17 @@ const IamServiceAccountSecrets = (props) => {
         accountMetaData?.response?.userName,
         accountMetaData?.response?.awsAccountId
       )
-      .then((res) => {
+      .then(async (res) => {
         if (res?.data) {
           setResponse({ status: 'success', message: res.data.messages[0] });
           setResponseType(1);
           setToastMessage(res.data.messages[0]);
+          await getSecrets();
         }
       })
       .catch((err) => {
         if (err?.response?.data?.errors[0]) {
-          setResponse({ status: 'error' });
+          setResponse({});
           setToastMessage(err?.response?.data?.errors[0]);
         }
         setResponseType(-1);
@@ -325,7 +326,7 @@ const IamServiceAccountSecrets = (props) => {
               label="Cancel"
               color="primary"
               onClick={() => handleClose()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
           confirmButton={
@@ -341,12 +342,12 @@ const IamServiceAccountSecrets = (props) => {
                   ? () => onActivateConfirm()
                   : () => onRotateConfirmedClicked()
               }
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
         />
         {(response.status === 'loading' ||
-          (!accountSecretData && !accountSecretError)) && (
+          status.status === 'secrets-loading') && (
           <BackdropLoader classes={loaderStyles} />
         )}
         {accountSecretData?.folders?.length && !accountSecretError
@@ -383,7 +384,7 @@ const IamServiceAccountSecrets = (props) => {
                             <VisibilityIcon />
                           )}
                           <span>
-                            {showSecret ? 'Hide Secret' : 'View Secret'}
+                            {showSecret ? 'Hide Secret key' : 'View Secret key'}
                           </span>
                         </PopperItem>
 
@@ -399,7 +400,7 @@ const IamServiceAccountSecrets = (props) => {
                         >
                           <PopperItem>
                             <FileCopyIcon />
-                            <span>Copy Secret</span>
+                            <span>Copy Secret Key</span>
                           </PopperItem>
                         </CopyToClipboard>
                         <CopyToClipboard
@@ -410,7 +411,7 @@ const IamServiceAccountSecrets = (props) => {
                         >
                           <PopperItem>
                             <FileCopyIcon />
-                            <span>Copy Access Id</span>
+                            <span>Copy Access Key</span>
                           </PopperItem>
                         </CopyToClipboard>
                       </PopperElement>
@@ -438,6 +439,7 @@ const IamServiceAccountSecrets = (props) => {
         )}
 
         {(response.status === 'error' ||
+          status.status === 'error' ||
           (accountSecretError && isIamSvcAccountActive)) && (
           <Error
             description={
@@ -478,6 +480,7 @@ const IamServiceAccountSecrets = (props) => {
 IamServiceAccountSecrets.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
+  status: PropTypes.objectOf(PropTypes.any).isRequired,
   accountSecretError: PropTypes.string,
   accountSecretData: PropTypes.objectOf(PropTypes.any),
   getSecrets: PropTypes.func,

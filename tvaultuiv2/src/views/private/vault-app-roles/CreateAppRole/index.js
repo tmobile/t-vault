@@ -493,7 +493,7 @@ const CreateAppRole = (props) => {
                       ? 'This approle name already exists, Please take another name.'
                       : roleName && appRoleError?.type === 'invalid-role'
                       ? 'Please enter valid role name'
-                      : 'Please enter minimum 3 characters'
+                      : !nameAvailable && 'Please enter minimum 3 characters'
                   }
                   onInputBlur={(e) => onInputBlur(e)}
                 />
