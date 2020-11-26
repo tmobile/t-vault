@@ -237,7 +237,7 @@ public class AzureServicePrinicipalAccountsController {
 	 * @return
 	 */
 	@PostMapping(value="/v2/azureserviceaccounts/activateAzureServicePrinicipal",produces="application/json")
-	@ApiOperation(value = "${IAMServiceAccountsController.activateIAMServiceAccount.value}", notes = "${IAMServiceAccountsController.activateIAMServiceAccount.notes}")
+	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.activateAzureServicePrinicipal.value}", notes = "${AzureServicePrinicipalAccountsController.activateAzureServicePrinicipal.notes}")
 	public ResponseEntity<String> activateAzureServicePrinicipal(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("servicePrinicipalName") String servicePrinicipalName){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return azureServicePrinicipalAccountsService.activateAzureServicePrinicipal(token, userDetails, servicePrinicipalName);
@@ -251,7 +251,7 @@ public class AzureServicePrinicipalAccountsController {
 	 * @return
 	 */
 	@PostMapping(value="/v2/azureserviceaccounts/rotate",produces="application/json")
-	@ApiOperation(value = "${IAMServiceAccountsController.rotateIAMServiceAccountCreds.value}", notes = "${IAMServiceAccountsController.rotateIAMServiceAccountCreds.notes}")
+	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.rotateSecret.value}", notes = "${AzureServicePrinicipalAccountsController.rotateSecret.notes}")
 	public ResponseEntity<String> rotateSecret(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest){
 		return azureServicePrinicipalAccountsService.rotateSecret(token, azureServicePrinicipalRotateRequest);
 	}
