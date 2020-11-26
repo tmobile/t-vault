@@ -4827,7 +4827,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
                     .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
                     .put(LogMessage.ACTION, "getRenewedCertificate")
-                    .put(LogMessage.MESSAGE, String.format("RETRY COUNT = [%s]",  i))
+                    .put(LogMessage.MESSAGE, String.format("Renew RETRY COUNT = [%s] = certificate name = " +
+                                    "[%s]=certificateType = [%s]", i,certificateName,certType))
                     .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
             Thread.sleep(renewDelayTime);
