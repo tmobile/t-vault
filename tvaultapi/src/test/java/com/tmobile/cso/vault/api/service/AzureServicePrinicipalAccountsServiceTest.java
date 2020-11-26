@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -40,22 +41,6 @@ import com.tmobile.cso.vault.api.common.AzureServiceAccountConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
-import com.tmobile.cso.vault.api.model.AzureSecrets;
-import com.tmobile.cso.vault.api.model.AzureSecretsMetadata;
-import com.tmobile.cso.vault.api.model.AzureServiceAccount;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountAWSRole;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountGroup;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountMetadataDetails;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountOffboardRequest;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountUser;
-import com.tmobile.cso.vault.api.model.AzureSvccAccMetadata;
-import com.tmobile.cso.vault.api.model.DirectoryObjects;
-import com.tmobile.cso.vault.api.model.DirectoryObjectsList;
-import com.tmobile.cso.vault.api.model.DirectoryUser;
-import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
-import com.tmobile.cso.vault.api.model.OIDCGroup;
-import com.tmobile.cso.vault.api.model.OIDCLookupEntityRequest;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.AzureServiceAccountUtils;
@@ -1764,5 +1749,443 @@ public class AzureServicePrinicipalAccountsServiceTest {
 				azureSvcAccGroup, userDetails);
 		assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
 		assertEquals(responseEntityExpected, responseEntity);
+	}
+
+	@Test
+	public void test_activateAzureServicePrinicipal_successfull() {
+
+		String servicePrincipal = "svc_vault_test5";
+		String token = "123123123123";
+		String path = "metadata/azuresvcacc/svc_vault_test5";
+		String azureSecret = "abcdefgh";
+		String secretKeyId = "12345678-1234-1234-1234-123456789098";
+		String [] policies = {"o_azuresvcacc_svc_vault_test5"};
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		String azureMetaDataStr = getAzureMockMetadata(false);
+		String azureMetaDataStrActivated = getAzureMockMetadata(true);
+
+		Response metaResponse = getMockResponse(HttpStatus.OK, true, azureMetaDataStr);
+		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, azureMetaDataStrActivated);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenAnswer(new Answer() {
+			private int count = 0;
+
+			public Object answer(InvocationOnMock invocation) {
+				if (count++ == 1)
+					return metaActivatedResponse;
+
+				return metaResponse;
+			}
+		});
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				azureMetaDataStr));
+
+		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
+
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
+		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
+		when(azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipal)).thenReturn(responseNoContent);
+
+
+		// Add User to Azure service principal
+		Response userResponse = getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
+		Response ldapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+		when(reqProcessor.process("/auth/ldap/users", "{\"username\":\"testuser1\"}", token)).thenReturn(userResponse);
+
+		try {
+			List<String> resList = new ArrayList<>();
+			resList.add("default");
+			when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		when(ControllerUtil.configureLDAPUser(eq("testuser1"), any(), any(), eq(token)))
+				.thenReturn(ldapConfigureResponse);
+		when(ControllerUtil.updateMetadata(any(), any())).thenReturn(responseNoContent);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Azure Service Principal activated successfully\"]}");
+		ResponseEntity<String> actualResponse = azureServicePrinicipalAccountsService.activateAzureServicePrinicipal(token, userDetails, servicePrincipal);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_activateAzureServicePrinicipal_failed_403() {
+
+		String servicePrincipal = "svc_vault_test5";
+		String token = "123123123123";
+		String [] policies = {"defaullt"};
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: No permission to activate this Azure Service Prinicipal\"]}");
+		ResponseEntity<String> actualResponse = azureServicePrinicipalAccountsService.activateAzureServicePrinicipal(token, userDetails, servicePrincipal);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_activateAzureServicePrinicipal_failure_already_activated() {
+
+		String servicePrincipal = "svc_vault_test5";
+		String token = "123123123123";
+		String [] policies = {"o_azuresvcacc_svc_vault_test5"};
+		String azureMetaDataStrActivated = getAzureMockMetadata(true);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, azureMetaDataStrActivated);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(metaActivatedResponse);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Azure Service Principal is already activated. You can now grant permissions from Permissions menu\"]}");
+		ResponseEntity<String> actualResponse = azureServicePrinicipalAccountsService.activateAzureServicePrinicipal(token, userDetails, servicePrincipal);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_activateAzureServicePrinicipal_failed_owner_association() {
+
+		String servicePrincipal = "svc_vault_test5";
+		String token = "123123123123";
+		String path = "metadata/azuresvcacc/svc_vault_test5";
+		String [] policies = {"o_azuresvcacc_svc_vault_test5"};
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		String azureMetaDataStr = "{ \"data\": {" +
+				"  \"application_id\": \"tvt\"," +
+				"  \"application_name\": \"tvt\"," +
+				"  \"application_tag\": \"tvt\"," +
+				"  \"createdAtEpoch\": 1601894197," +
+				"  \"isActivated\": false," +
+				"  \"owner_email\": \"abc@company.com\"," +
+				"  \"secret\": [" +
+				"    {" +
+				"      \"expiryDuration\": 604800000," +
+				"      \"secretKeyId\": \"12345678-1234-1234-1234-123456789098\"" +
+				"    }], \"servicePrinicipalClientId\": \"34521345-1234-1234-1234-123456789098\", " +
+				"\"servicePrinicipalId\": \"98765432-1234-1234-1234-123456789098\", \"servicePrinicipalName\": " +
+				"\"svc_vault_test5\",  \"tenantId\": \"abcd1234-1234-1234-1234-123456789098\"}}";
+
+		String azureMetaDataStrActivated = "{ \"data\": {" +
+				"  \"application_id\": \"tvt\"," +
+				"  \"application_name\": \"tvt\"," +
+				"  \"application_tag\": \"tvt\"," +
+				"  \"createdAtEpoch\": 1601894197," +
+				"  \"isActivated\": true," +
+				"  \"owner_email\": \"abc@company.com\"," +
+				"  \"secret\": [" +
+				"    {" +
+				"      \"expiryDuration\": 604800000," +
+				"      \"secretKeyId\": \"12345678-1234-1234-1234-123456789098\"" +
+				"    }], \"servicePrinicipalClientId\": \"34521345-1234-1234-1234-123456789098\", " +
+				"\"servicePrinicipalId\": \"98765432-1234-1234-1234-123456789098\", \"servicePrinicipalName\": " +
+				"\"svc_vault_test5\",  \"tenantId\": \"abcd1234-1234-1234-1234-123456789098\"}}";
+		Response metaResponse = getMockResponse(HttpStatus.OK, true, azureMetaDataStr);
+		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, azureMetaDataStrActivated);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenAnswer(new Answer() {
+			private int count = 0;
+
+			public Object answer(InvocationOnMock invocation) {
+				if (count++ == 1)
+					return metaActivatedResponse;
+
+				return metaResponse;
+			}
+		});
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				azureMetaDataStr));
+
+		String azureSecret = "abcdefgh";
+		String secretKeyId = "12345678-1234-1234-1234-123456789098";
+		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
+
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
+		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
+		when(azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipal)).thenReturn(responseNoContent);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Failed to activate Azure Service Prinicipal. Azure secrets are rotated and saved in T-Vault. However failed to add permission to owner. Owner info not found in Metadata.\"]}");
+		ResponseEntity<String> actualResponse = azureServicePrinicipalAccountsService.activateAzureServicePrinicipal(token, userDetails, servicePrincipal);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_activateAzureServicePrinicipal_failed_add_user() {
+
+		String servicePrincipal = "svc_vault_test5";
+		String token = "123123123123";
+		String path = "metadata/azuresvcacc/svc_vault_test5";
+		String [] policies = {"o_azuresvcacc_svc_vault_test5"};
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		String azureMetaDataStr = getAzureMockMetadata(false);
+		String azureMetaDataStrActivated = getAzureMockMetadata(false);
+
+		Response metaResponse = getMockResponse(HttpStatus.OK, true, azureMetaDataStr);
+		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, azureMetaDataStrActivated);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenAnswer(new Answer() {
+			private int count = 0;
+
+			public Object answer(InvocationOnMock invocation) {
+				if (count++ == 1)
+					return metaActivatedResponse;
+
+				return metaResponse;
+			}
+		});
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				azureMetaDataStr));
+
+		String azureSecret = "abcdefgh";
+		String secretKeyId = "12345678-1234-1234-1234-123456789098";
+		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
+
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
+		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
+		when(azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipal)).thenReturn(responseNoContent);
+
+
+		// Add User to Service Account
+		Response userResponse = getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
+		Response ldapConfigureResponse = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "{\"policies\":null}");
+		when(reqProcessor.process("/auth/ldap/users", "{\"username\":\"normaluser\"}", token)).thenReturn(userResponse);
+
+		try {
+			List<String> resList = new ArrayList<>();
+			resList.add("default");
+			when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		when(ControllerUtil.configureLDAPUser(eq("normaluser"), any(), any(), eq(token)))
+				.thenReturn(ldapConfigureResponse);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate Azure Service Principal. Azure secrets are rotated and saved in T-Vault. However owner permission update failed.\"]}");
+		ResponseEntity<String> actualResponse = azureServicePrinicipalAccountsService.activateAzureServicePrinicipal(token, userDetails, servicePrincipal);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_activateAzureServicePrinicipal_failed_to_save_secret() {
+
+		String servicePrincipal = "svc_vault_test5";
+		String token = "123123123123";
+		String path = "metadata/azuresvcacc/svc_vault_test5";
+		String [] policies = {"o_azuresvcacc_svc_vault_test5"};
+		String azureMetaDataStr = getAzureMockMetadata(false);
+		String azureMetaDataStrActivated = getAzureMockMetadata(false);
+		Response metaResponse = getMockResponse(HttpStatus.OK, true, azureMetaDataStr);
+		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, azureMetaDataStrActivated);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenAnswer(new Answer() {
+			private int count = 0;
+
+			public Object answer(InvocationOnMock invocation) {
+				if (count++ == 1)
+					return metaActivatedResponse;
+
+				return metaResponse;
+			}
+		});
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				azureMetaDataStr));
+
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(null);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(null);
+
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate Azure Service Principal. Failed to rotate secrets for one or more SecretKeyIds.\"]}");
+		ResponseEntity<String> actualResponse = azureServicePrinicipalAccountsService.activateAzureServicePrinicipal(token, userDetails, servicePrincipal);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	private String getAzureMockMetadata(boolean isActivated) {
+		return  "{ \"data\": {" +
+				"  \"application_id\": \"tvt\"," +
+				"  \"application_name\": \"tvt\"," +
+				"  \"application_tag\": \"tvt\"," +
+				"  \"createdAtEpoch\": 1601894197," +
+				"  \"isActivated\": "+isActivated+"," +
+				"  \"owner_email\": \"abc@company.com\"," +
+				"  \"owner_ntid\": \"testuser1\"," +
+				"  \"secret\": [" +
+				"    {" +
+				"      \"expiryDuration\": 604800000," +
+				"      \"secretKeyId\": \"12345678-1234-1234-1234-123456789098\"" +
+				"    }], \"servicePrinicipalClientId\": \"34521345-1234-1234-1234-123456789098\", " +
+				"\"servicePrinicipalId\": \"98765432-1234-1234-1234-123456789098\", \"servicePrinicipalName\": " +
+				"\"svc_vault_test5\",  \"tenantId\": \"abcd1234-1234-1234-1234-123456789098\"}}";
+	}
+
+	@Test
+	public void test_activateAzureServicePrinicipal_failed_metadata_update() {
+
+		String servicePrincipal = "svc_vault_test5";
+		String token = "123123123123";
+		String path = "metadata/azuresvcacc/svc_vault_test5";
+		String [] policies = {"o_azuresvcacc_svc_vault_test5"};
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		String azureMetaDataStr = getAzureMockMetadata(false);
+		String azureMetaDataStrActivated = getAzureMockMetadata(false);
+
+		Response metaResponse = getMockResponse(HttpStatus.OK, true, azureMetaDataStr);
+		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, azureMetaDataStrActivated);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenAnswer(new Answer() {
+			private int count = 0;
+
+			public Object answer(InvocationOnMock invocation) {
+				if (count++ == 1)
+					return metaActivatedResponse;
+
+				return metaResponse;
+			}
+		});
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				azureMetaDataStr));
+
+		String azureSecret = "abcdefgh";
+		String secretKeyId = "12345678-1234-1234-1234-123456789098";
+		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
+
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
+		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
+		when(azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipal)).thenReturn(getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, ""));
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate Azure Service Principal. Azure secrets are rotated and saved in T-Vault. However metadata update failed.\"]}");
+		ResponseEntity<String> actualResponse = azureServicePrinicipalAccountsService.activateAzureServicePrinicipal(token, userDetails, servicePrincipal);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_rotateSecret_successfull() {
+
+		String servicePrincipal = "svc_vault_test5";
+		String token = "123123123123";
+		String path = "metadata/azuresvcacc/svc_vault_test5";
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		String azureMetaDataStr = getAzureMockMetadata(false);
+
+		// Mock approle permission check
+		Response lookupResponse = getMockResponse(HttpStatus.OK, true, "{\"policies\":[\"w_azuresvcacc_svc_vault_test5 \"]}");
+		when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(lookupResponse);
+		List<String> currentPolicies = new ArrayList<>();
+		currentPolicies.add("w_azuresvcacc_svc_vault_test5");
+		try {
+			when(azureServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(currentPolicies);
+			when(policyUtils.getIdentityPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(new ArrayList<>());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				azureMetaDataStr));
+
+		String azureSecret = "abcdefgh";
+		String secretKeyId = "12345678-1234-1234-1234-123456789098";
+		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
+
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
+		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
+		when(azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipal)).thenReturn(responseNoContent);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Azure Service Principal secret rotated successfully\"]}");
+		AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest = new AzureServicePrinicipalRotateRequest(servicePrincipal, secretKeyId, "98765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
+		ResponseEntity<String> actualResponse = azureServicePrinicipalAccountsService.rotateSecret(token, azureServicePrinicipalRotateRequest);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_rotateSecret_failed_403() {
+
+		String servicePrincipal = "svc_vault_test5";
+		String token = "123123123123";
+
+		// Mock approle permission check
+		Response lookupResponse = getMockResponse(HttpStatus.OK, true, "{\"policies\":[\"w_azuresvcacc_svc_vault_test1 \"]}");
+		when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(lookupResponse);
+		List<String> currentPolicies = new ArrayList<>();
+		currentPolicies.add("w_azuresvcacc_svc_vault_test1");
+		try {
+			when(azureServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(currentPolicies);
+			when(policyUtils.getIdentityPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(new ArrayList<>());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		String secretKeyId = "12345678-1234-1234-1234-123456789098";
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: No permission to rotate secret for this Azure Service Principal.\"]}");
+		AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest = new AzureServicePrinicipalRotateRequest(servicePrincipal, secretKeyId, "98765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
+		ResponseEntity<String> actualResponse = azureServicePrinicipalAccountsService.rotateSecret(token, azureServicePrinicipalRotateRequest);
+		assertEquals(expectedResponse, actualResponse);
+	}
+
+	@Test
+	public void test_rotateIAMServiceAccount_faile_to_rotate_secret() {
+
+		String servicePrincipal = "svc_vault_test5";
+		String token = "123123123123";
+		String path = "metadata/azuresvcacc/svc_vault_test5";
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		String azureMetaDataStr = getAzureMockMetadata(false);
+
+		// Mock approle permission check
+		Response lookupResponse = getMockResponse(HttpStatus.OK, true, "{\"policies\":[\"w_iamsvcacc_1234567890_svc_vault_test5 \"]}");
+		when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(lookupResponse);
+		List<String> currentPolicies = new ArrayList<>();
+		currentPolicies.add("w_azuresvcacc_svc_vault_test5");
+		try {
+			when(azureServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(currentPolicies);
+			when(policyUtils.getIdentityPoliciesAsListFromTokenLookupJson(Mockito.any(),Mockito.any())).thenReturn(new ArrayList<>());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+
+		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
+				azureMetaDataStr));
+
+		String azureSecret = "abcdefgh";
+		String secretKeyId = "12345678-1234-1234-1234-123456789098";
+		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
+
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(null);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
+		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
+		when(azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipal)).thenReturn(responseNoContent);
+
+		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to rotate secret for Azure Service Principal\"]}");
+		AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest = new AzureServicePrinicipalRotateRequest(servicePrincipal, secretKeyId, "98765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
+		ResponseEntity<String> actualResponse = azureServicePrinicipalAccountsService.rotateSecret(token, azureServicePrinicipalRotateRequest);
+		assertEquals(expectedResponse, actualResponse);
 	}
 }

@@ -455,6 +455,14 @@
                 return ServiceEndpoint.rotateIAMSvcaccSecret.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
+            },activateAzureServicePrincipal: function(payload, url) {
+                return ServiceEndpoint.activateAzureServicePrincipal.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },rotateAzureSecret: function(payload, url) {
+                return ServiceEndpoint.rotateAzureSecret.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
             },
             createAwsRoleCertificate: function(payload, url) {
                 return ServiceEndpoint.createAwsRoleCertificate.makeRequest(payload, url).then(function(response) {

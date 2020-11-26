@@ -183,16 +183,14 @@
             CopyToClipboard.copy(copyValue);
         }
 
-        $scope.rotateIAMSvcaccSecret = function(rotateSecretDetails) {
-            var folderName = $scope.iamsvcaccSecretData.userName.split("/")[1];
+        $scope.rotateAzureSecret = function(rotateSecretDetails) {
+            var folderName = $scope.azuresvcaccSecretData.servicePrinicipalName.split("/")[1];
             if (folderName != '') {
                  $scope.isLoadingData = true;
                  Modal.close();
-                 var pathParameters = folderName;
-                 var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('rotateIAMSvcaccSecret',pathParameters);
-                 AdminSafesManagement.rotateIAMSvcaccSecret(rotateSecretDetails, "").then(function (response) {
+                 AdminSafesManagement.rotateAzureSecret(rotateSecretDetails, "").then(function (response) {
                      if (UtilityService.ifAPIRequestSuccessful(response)) {
-                        $scope.viewSecret(rotateSecretDetails.accountId + "_" + rotateSecretDetails.userName, folderName);
+                        $scope.viewSecret(rotateSecretDetails.azureSvcAccName, folderName);
                         var notification = UtilityService.getAParticularSuccessMessage("MESSAGE_RESET_SUCCESS");
                         Notifications.toast("Password "+notification);
                      }
@@ -218,12 +216,13 @@
 
         $scope.rotatePasswordPopup = function(azuresvcaccSecretData) {
             $scope.fetchDataError = false;
-            var svcName = azuresvcaccSecretData.userName.split("/")[0];
-            if (svcName != undefined) {
+            var servicePrinicipalName = azuresvcaccSecretData.servicePrinicipalName.split("/")[0];
+            if (servicePrinicipalName != undefined) {
                 $scope.rotateSecretDetails = {
-                    accessKeyId: azuresvcaccSecretData.accessKeyId,
-                    accountId: azuresvcaccSecretData.awsAccountId,
-                    userName: svcName
+                    azureSvcAccName: servicePrinicipalName,
+                    secretKeyId: azuresvcaccSecretData.secretKeyId,
+                    servicePrinicipalId: azuresvcaccSecretData.servicePrinicipalId,
+                    tenantId: azuresvcaccSecretData.tenantId
                 };
                 Modal.createModal('md', 'rotatePopup.html', 'AzureServicePrinicipalsCtrl', $scope);
             }
