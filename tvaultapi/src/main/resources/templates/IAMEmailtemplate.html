@@ -19,9 +19,9 @@
 
     <h4>Activate IAM Service Account:</h4>
     <ol>
-        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your CORP AD account.</li>
+        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your NT account.</li>
         <li>
-            <div>Navigate to the "MANAGE" tab</div>
+            <div>Navigate to the "MANAGE" tab – "IAM Service Accounts".</div>
             <img class ="image" src="iammanagetab.png" th:src="|cid:${iammanagetab}|"/>
         </li>
         <li>
@@ -39,8 +39,8 @@
     <div>Once you are finished activating your IAM service account you can assign permissions to other users or groups you want to have permission to view or rotate the password for the account.</div>
     <div data-th-text="${groupContent}"></div>
     <ol>
-        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your CORP AD account.</li>
-        <li>Navigate to the "MANAGE" tab.</li>
+        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your NT account.</li>
+        <li>Navigate to the "MANAGE" tab – "IAM Service Accounts".</li>
         <li>Select the "View/Edit" option corresponding to the IAM service account you want to manage.</li>
         <li>
             <div>Select the "Grant Permission" button.</div>
@@ -54,6 +54,20 @@
             <div>Provide the group or user name you want to give permissions to and select either read, reset, or deny depending on the level of access you want to give.</div>
             <img class ="image" src="adduser.png" th:src="|cid:${adduser}|"/>
         </li>
+    </ol>
+    
+    <h4>Rotate Secret Key: </h4>
+    <div>Once you are finished activating your IAM service account you can rotate the password for the account.</div>
+    <ol>
+        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your NT account.</li>
+        <li>Navigate to the "IAM SERVICE ACCOUNTS" tab.</li>
+        <li>Select the IAM service account you want to manage.</li>
+        <li>Select the secret folder.</li>
+        <li>
+            <div>Select the "Rotate secret" link.</div>
+            <img class ="image" src="iamrotate.png" th:src="|cid:${iamrotate}|"/>
+        </li>
+        
     </ol>
 
     <div>Please contact Cloud Support <span class="special-text" data-th-text="${contactLink}"></span> if you need assistance.</div>
