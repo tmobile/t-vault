@@ -29,6 +29,10 @@ public class AzureServicePrinicipalRotateRequest implements Serializable {
     private static final long serialVersionUID = -2124663808021117763L;
 
     @NotBlank
+    @Size(min = 11, message = "Azure service principal name specified should be minimum 11 chanracters only")
+    @Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Azure service principal name can have alphabets, numbers, _ and - characters only")
+    private String azureSvcAccName;
+    @NotBlank
     private String secretKeyId;
     @NotBlank
     @Size(min = 10, max = 128, message = "ServicePrinicipalId specified should be minimum 10 chanracters and maximum 128 characters only")
@@ -50,8 +54,9 @@ public class AzureServicePrinicipalRotateRequest implements Serializable {
      * @param servicePrinicipalId
      * @param tenantId
      */
-    public AzureServicePrinicipalRotateRequest(String secretKeyId, String servicePrinicipalId, String tenantId) {
+    public AzureServicePrinicipalRotateRequest(String azureSvcAccName, String secretKeyId, String servicePrinicipalId, String tenantId) {
         super();
+        this.azureSvcAccName = azureSvcAccName;
         this.secretKeyId = secretKeyId;
         this.servicePrinicipalId = servicePrinicipalId;
         this.tenantId = tenantId;
@@ -81,10 +86,19 @@ public class AzureServicePrinicipalRotateRequest implements Serializable {
         this.tenantId = tenantId;
     }
 
+    public String getAzureSvcAccName() {
+        return azureSvcAccName;
+    }
+
+    public void setAzureSvcAccName(String azureSvcAccName) {
+        this.azureSvcAccName = azureSvcAccName;
+    }
+
     @Override
     public String toString() {
         return "AzureServicePrinicipalRotateRequest{" +
-                "secretKeyId='" + secretKeyId + '\'' +
+                "azureSvcAccName='" + azureSvcAccName + '\'' +
+                ", secretKeyId='" + secretKeyId + '\'' +
                 ", servicePrinicipalId='" + servicePrinicipalId + '\'' +
                 ", tenantId='" + tenantId + '\'' +
                 '}';
