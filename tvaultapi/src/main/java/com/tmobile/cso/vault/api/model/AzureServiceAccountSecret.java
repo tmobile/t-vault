@@ -17,7 +17,22 @@ public class AzureServiceAccountSecret implements Serializable{
 	    private String expiryDate;
 	    private String servicePrinicipalId;
 		private String tenantId;
-		public String getSecretKeyId() {
+
+	public AzureServiceAccountSecret() {
+		super();
+	}
+
+	public AzureServiceAccountSecret(String secretKeyId, String secretText, Long expiryDateEpoch, String expiryDate, String servicePrinicipalId, String tenantId) {
+		super();
+		this.secretKeyId = secretKeyId;
+		this.secretText = secretText;
+		this.expiryDateEpoch = expiryDateEpoch;
+		this.expiryDate = expiryDate;
+		this.servicePrinicipalId = servicePrinicipalId;
+		this.tenantId = tenantId;
+	}
+
+	public String getSecretKeyId() {
 			return secretKeyId;
 		}
 		public void setSecretKeyId(String secretKeyId) {
