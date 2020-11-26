@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,14 +32,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
-import com.tmobile.cso.vault.api.model.AWSLoginRole;
-import com.tmobile.cso.vault.api.model.AzureSecrets;
-import com.tmobile.cso.vault.api.model.AzureServiceAccount;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountAWSRole;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountGroup;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountOffboardRequest;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountUser;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.AzureServicePrinicipalAccountsService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -322,5 +315,35 @@ public class AzureServicePrinicipalAccountsControllerTest {
 				.andExpect(status().isOk()).andReturn();
 		String actual = result.getResponse().getContentAsString();
 		assertEquals(responseJson, actual);
+	}
+
+	@Test
+	public void test_activateAzureServicePrinicipal() throws Exception {
+
+		String responseJson = "{\"messages\":[\"Azure Service Principal activated successfully\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+		when(azureServicePrinicipalAccountsService.activateAzureServicePrinicipal(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), eq(userDetails), Mockito.any())).thenReturn(responseEntityExpected);
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/v2/azureserviceaccounts/activateAzureServicePrinicipal?servicePrinicipalName=testaureserviceprincipal").requestAttr("UserDetails", userDetails)
+				.header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+				.header("Content-Type", "application/json;charset=UTF-8"))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString(responseJson)));
+	}
+
+	@Test
+	public void test_rotateSecret() throws Exception {
+		AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest = new AzureServicePrinicipalRotateRequest("testaureserviceprincipal", "testsecretkeyid", "12345678-1234-1234-1234-123456789098", "12345678-1234-1234-97c8-123456789098");
+		String inputJson = getJSON(azureServicePrinicipalRotateRequest);
+		String responseJson = "{\"messages\":[\"Azure Service Principal secret rotated successfully\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+		when(azureServicePrinicipalAccountsService.rotateSecret(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AzureServicePrinicipalRotateRequest.class))).thenReturn(responseEntityExpected);
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/v2/azureserviceaccounts/rotate").requestAttr("UserDetails", userDetails)
+				.header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+				.header("Content-Type", "application/json;charset=UTF-8")
+				.content(inputJson))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString(responseJson)));
 	}
 }
