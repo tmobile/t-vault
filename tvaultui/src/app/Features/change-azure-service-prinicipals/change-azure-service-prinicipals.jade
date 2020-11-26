@@ -34,10 +34,10 @@ script(type='text/ng-template', id='iamActivationConfirmation.html')
   .top-lg-sep(ng-if="!isLoadingModalData")
     .top-lg-sep
         .common-header-label.text-center Azure Service Principal Activation!
-    .top-lg-sep.notification-text.notification-justify During the activation, <strong>the password of the Azure service principal will be rotated</strong> to ensure Azure and T-Vault are in sync. If you want to continue with activation now please click  the &quot;ACTIVATE AZURE SERVICE PRINCIPAL&quot; button below and make sure to update any services depending on the service account with its new password.
+    .top-lg-sep.notification-text.notification-justify During the activation, <strong>the password of the Azure service principal will be rotated</strong> to ensure Azure and T-Vault are in sync. If you want to continue with activation now please click  the &quot;ACTIVATE&quot; button below and make sure to update any services depending on the service principal with its new password.
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
-        button.common-btn.btn.btn-primary.btn-lg(ng-click="activateIAM()") Activate
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="activateAzureServicePrincipal()") Activate
       .clearfix
         button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") CANCEL
 

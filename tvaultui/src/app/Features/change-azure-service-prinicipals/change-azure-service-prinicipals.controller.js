@@ -903,7 +903,6 @@
                 AwsPermissionsData: '',
                 AppRolePermissionsData: ''
             }
-            $scope.newPassword = '';
             $scope.hideSudoPolicy = false;
             $scope.ttlToolip = '';
             $scope.defatulTTL = '';
@@ -1296,30 +1295,27 @@
             $rootScope.activeDetailsTab = 'permissions';
         }
 
-        $scope.activateIAM = function () {
+        $scope.activateAzureServicePrincipal = function () {
             $scope.isLoadingData = true;
             $scope.isActivating = true;
             Modal.close();
-            Notifications.toast('Activating Service account. Please wait..');
-            var queryParameters = "serviceAccountName=" + $scope.svcacc.svcaccId + "&awsAccountId=" + $scope.svcacc.awsAccId;
-            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('activateIAMSvcacc',queryParameters);
-            AdminSafesManagement.activateIAMSvcacc(null, updatedUrlOfEndPoint).then(function (response) {
+            Notifications.toast('Activating Azure service principal. Please wait..');
+            var queryParameters = "servicePrinicipalName=" + $scope.azureSvcacc.azureSvcAccId;
+            var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('activateAzureServicePrincipal',queryParameters);
+            AdminSafesManagement.activateAzureServicePrincipal(null, updatedUrlOfEndPoint).then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isLoadingData = false;
-                    $scope.newPassword = response.data.current_password;
-                    $scope.resetMessage = "IAM Service account "+$scope.svcacc.svcaccId+" has been activated successfully!"
+                    $scope.resetMessage = "Azure service principal "+$scope.azureSvcacc.azureSvcAccId+" has been activated successfully!"
                     $scope.initialPwdResetRequired = false;
                     $scope.detailsNavTags[1].show = true;
                     $scope.isActivating = false;
-                    $scope.svcacc.isActivated = true;
-                    var uniqueIAMSvcName = $scope.svcacc.awsAccId + "_" + $scope.svcacc.svcaccId;
-                    getAzureSvcaccInfo(uniqueIAMSvcName);
+                    $scope.azureSvcacc.isActivated = true;
+                    getAzureSvcaccInfo($scope.azureSvcacc.azureSvcAccId);
                     $scope.openActivationStatus();
                 }
                 else {
                     $scope.isLoadingData = false;
                     $scope.isActivating = false;
-                    $scope.newPassword = '';
                     $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
                     error('md');
                 }
