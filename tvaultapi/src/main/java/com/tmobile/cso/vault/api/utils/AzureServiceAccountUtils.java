@@ -4,29 +4,26 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmobile.cso.vault.api.common.AzureServiceAccountConstants;
 import com.tmobile.cso.vault.api.common.IAMServiceAccountConstants;
-import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
+import com.tmobile.cso.vault.api.process.Response;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -84,6 +81,21 @@ public class AzureServiceAccountUtils {
 
 
     /**
+     * To mock rotate Azure secret API.
+     * @param azureServicePrinicipalRotateRequest
+     * @return
+     */
+    public AzureServiceAccountSecret rotateAzureServicePrincipalSecretMOCK(AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest) {
+        AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret();
+        azureServiceAccountSecret.setServicePrinicipalId(azureServicePrinicipalRotateRequest.getServicePrinicipalId());
+        azureServiceAccountSecret.setTenantId(azureServicePrinicipalRotateRequest.getTenantId());
+        azureServiceAccountSecret.setSecretKeyId(azureServicePrinicipalRotateRequest.getSecretKeyId());
+        azureServiceAccountSecret.setSecretText("mocksecrettext_"+ new Date().getTime());
+        azureServiceAccountSecret.setExpiryDateEpoch(604800000L);
+        azureServiceAccountSecret.setExpiryDate(new Date(604800000L).toString());
+        return azureServiceAccountSecret;
+    }
+    /**
      * To get response from rotate api.
      *
      * @return
@@ -93,7 +105,7 @@ public class AzureServiceAccountUtils {
         if (StringUtils.isEmpty(iamApproleToken)) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                    put(LogMessage.ACTION, AzureServiceAccountConstants.GET_AZURE_SP_ROTATE_SECRET_ACTION).
+                    put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
                     put(LogMessage.MESSAGE, "Invalid IAM Portal approle token").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
@@ -104,8 +116,8 @@ public class AzureServiceAccountUtils {
         if (StringUtils.isEmpty(iamPortalDomain) || StringUtils.isEmpty(azurePortalrotateSecretEndpoint)) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                    put(LogMessage.ACTION, AzureServiceAccountConstants.GET_AZURE_SP_ROTATE_SECRET_ACTION).
-                    put(LogMessage.MESSAGE, "Invalid IAM portal endpoint").
+                    put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
+                    put(LogMessage.MESSAGE, "Invalid Azure service principal endpoint").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
             return null;
@@ -116,7 +128,7 @@ public class AzureServiceAccountUtils {
         if (httpClient == null) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                    put(LogMessage.ACTION, AzureServiceAccountConstants.GET_AZURE_SP_ROTATE_SECRET_ACTION).
+                    put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
                     put(LogMessage.MESSAGE, "Failed to initialize httpClient").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
@@ -140,7 +152,7 @@ public class AzureServiceAccountUtils {
         } catch (UnsupportedEncodingException e) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                    put(LogMessage.ACTION, AzureServiceAccountConstants.GET_AZURE_SP_ROTATE_SECRET_ACTION).
+                    put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
                     put(LogMessage.MESSAGE, "Failed to build StringEntity").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
@@ -162,7 +174,7 @@ public class AzureServiceAccountUtils {
                 r.close();
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                        put(LogMessage.ACTION, AzureServiceAccountConstants.GET_AZURE_SP_ROTATE_SECRET_ACTION).
+                        put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
                         put(LogMessage.MESSAGE, "Failed to build StringEntity:"+total.toString()).
                         put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                         build()));
@@ -195,10 +207,209 @@ public class AzureServiceAccountUtils {
         } catch (IOException e) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                    put(LogMessage.ACTION, AzureServiceAccountConstants.GET_AZURE_SP_ROTATE_SECRET_ACTION).
+                    put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
                     put(LogMessage.MESSAGE, "Failed to parse Azure Service Principal Secret response").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
+        }
+        return null;
+    }
+
+    /**
+     * To save Azure Service Principal Secret for a single SecretKeyId.
+     * @param token
+     * @param path
+     * @param servicePrinicipalName
+     * @param azureServiceAccountSecret
+     * @return
+     */
+    public boolean writeAzureSPSecret(String token, String path, String servicePrinicipalName, AzureServiceAccountSecret azureServiceAccountSecret) {
+        boolean isSecretUpdated = false;
+        ObjectMapper objMapper = new ObjectMapper();
+        String secretJson = null;
+        try {
+            secretJson = objMapper.writeValueAsString(azureServiceAccountSecret);
+        } catch (JsonProcessingException e) {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "writeAzureSPSecret").
+                    put(LogMessage.MESSAGE, "Failed to write Azure Service Principal secret request as string json").
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+            return isSecretUpdated;
+        }
+        String writeJson =  "{\"path\":\""+path+"\",\"data\":"+ secretJson +"}";
+        Response response = requestProcessor.process("/write", writeJson, token);
+
+
+        if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+            isSecretUpdated = true;
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "writeAzureSPSecret").
+                    put(LogMessage.MESSAGE, String.format("Successfully saved secrets for Azure Service Principal " +
+                                    "[%s] for secret key id: [%s]", servicePrinicipalName,
+                            azureServiceAccountSecret.getSecretKeyId())).
+                    put(LogMessage.STATUS, response.getHttpstatus().toString()).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        } else {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "writeAzureSPSecret").
+                    put(LogMessage.MESSAGE, "Failed to save Azure Service Principal Secret in T-Vault").
+                    put(LogMessage.STATUS, response.getHttpstatus().toString()).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        }
+        return isSecretUpdated;
+    }
+
+    /**
+     * To update Secret key details in metadata.
+     * @param token
+     * @param servicePrinicipalName
+     * @param secretKeyId
+     * @param azureServiceAccountSecret
+     * @return
+     */
+    public Response updateAzureSPSecretKeyInfoInMetadata(String token, String servicePrinicipalName, String secretKeyId, AzureServiceAccountSecret azureServiceAccountSecret){
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, "updateAzureSPSecretKeyInfoInMetadata").
+                put(LogMessage.MESSAGE, String.format ("Trying to update the metadata with secretKeyId [%s] for Azure Service Principal [%s]", secretKeyId, servicePrinicipalName)).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+
+        String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(servicePrinicipalName).toString();
+
+        List<AzureSvccAccMetadata> secretData = new ArrayList<>();
+
+
+        String typeSecret = "secret";
+        path = "metadata/"+path;
+
+        ObjectMapper objMapper = new ObjectMapper();
+        String pathjson ="{\"path\":\""+path+"\"}";
+        // Read info for the path
+        Response metadataResponse = requestProcessor.process("/read",pathjson,token);
+        Map<String,Object> _metadataMap = null;
+        if(HttpStatus.OK.equals(metadataResponse.getHttpstatus())){
+            try {
+                _metadataMap = objMapper.readValue(metadataResponse.getResponse(), new TypeReference<Map<String,Object>>() {});
+            } catch (IOException e) {
+                log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "updateAzureSPSecretKeyInfoInMetadata").
+                        put(LogMessage.MESSAGE, String.format ("Error creating _metadataMap for type [%s] and path [%s] message [%s]", typeSecret, path, e.getMessage())).
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+            }
+
+            @SuppressWarnings("unchecked")
+            Map<String,Object> metadataMap = (Map<String,Object>) _metadataMap.get("data");
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<AzureSecretsMetadata> currentSecretData = objectMapper.convertValue((List<AzureSecretsMetadata>) metadataMap.get(typeSecret), new TypeReference<List<AzureSecretsMetadata>>() { });
+            if(null != currentSecretData) {
+                List<AzureSecretsMetadata> newSecretData = new ArrayList<>();
+                for (int i=0;i<currentSecretData.size();i++) {
+                    AzureSecretsMetadata azureSecretsMetadata = currentSecretData.get(i);
+                    if (secretKeyId.equals(azureSecretsMetadata.getSecretKeyId())) {
+                        azureSecretsMetadata.setSecretKeyId(azureServiceAccountSecret.getSecretKeyId());
+                        azureSecretsMetadata.setExpiryDuration(azureServiceAccountSecret.getExpiryDateEpoch());
+                    }
+                    newSecretData.add(azureSecretsMetadata);
+                }
+
+                metadataMap.put(typeSecret, newSecretData);
+                String metadataJson = "";
+                try {
+                    metadataJson = objMapper.writeValueAsString(metadataMap);
+                } catch (JsonProcessingException e) {
+                    log.error(e);
+                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                            put(LogMessage.ACTION, "updateAzureSPSecretKeyInfoInMetadata").
+                            put(LogMessage.MESSAGE, String.format ("Error in creating metadataJson for type [%s] and path [%s] with message [%s]", typeSecret, path, e.getMessage())).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                            build()));
+                }
+
+                String writeJson =  "{\"path\":\""+path+"\",\"data\":"+ metadataJson +"}";
+                metadataResponse = requestProcessor.process("/write",writeJson,token);
+                return metadataResponse;
+            }
+            return metadataResponse;
+        }
+        return null;
+    }
+
+    /**
+     * Update metadata for the Azure Service Principal on activation.
+     * @param token
+     * @param servicePrinicipalName
+     * @return
+     */
+    public Response updateActivatedStatusInMetadata(String token, String servicePrinicipalName){
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, "updateActivatedStatusInMetadata").
+                put(LogMessage.MESSAGE, String.format ("Trying to update metadata on Azure Service Principal activation for [%s]", servicePrinicipalName)).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+
+        String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(servicePrinicipalName).toString();
+        Map<String,String> isActivatedParams = new Hashtable<>();
+        isActivatedParams.put("type", "isActivated");
+        isActivatedParams.put("path",path);
+        isActivatedParams.put("value","true");
+
+        String typeIsActivated = isActivatedParams.get("type");
+        path = "metadata/"+path;
+
+        ObjectMapper objMapper = new ObjectMapper();
+        String pathjson ="{\"path\":\""+path+"\"}";
+        // Read info for the path
+        Response metadataResponse = requestProcessor.process("/read",pathjson,token);
+        Map<String,Object> _metadataMap = null;
+        if(HttpStatus.OK.equals(metadataResponse.getHttpstatus())){
+            try {
+                _metadataMap = objMapper.readValue(metadataResponse.getResponse(), new TypeReference<Map<String,Object>>() {});
+            } catch (IOException e) {
+                log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "updateActivatedStatusInMetadata").
+                        put(LogMessage.MESSAGE, String.format ("Error creating _metadataMap for type [%s] and path [%s] message [%s]", typeIsActivated, path, e.getMessage())).
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+            }
+
+            @SuppressWarnings("unchecked")
+            Map<String,Object> metadataMap = (Map<String,Object>) _metadataMap.get("data");
+
+            @SuppressWarnings("unchecked")
+            boolean isActivated = (boolean) metadataMap.get(typeIsActivated);
+            if(StringUtils.isEmpty(isActivated) || !isActivated) {
+                metadataMap.put(typeIsActivated, true);
+                String metadataJson = "";
+                try {
+                    metadataJson = objMapper.writeValueAsString(metadataMap);
+                } catch (JsonProcessingException e) {
+                    log.error(e);
+                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                            put(LogMessage.ACTION, "updateActivatedStatusInMetadata").
+                            put(LogMessage.MESSAGE, String.format ("Error in creating metadataJson for type [%s] and path [%s] with message [%s]", typeIsActivated, path, e.getMessage())).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                            build()));
+                }
+
+                String writeJson =  "{\"path\":\""+path+"\",\"data\":"+ metadataJson +"}";
+                metadataResponse = requestProcessor.process("/write",writeJson,token);
+                return metadataResponse;
+            }
+            return metadataResponse;
         }
         return null;
     }
