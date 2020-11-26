@@ -465,6 +465,14 @@ readTextFile("../apiUrls.json");
             url: '/v2/iamserviceaccount/rotate',
             method: 'POST'
         },{
+            name: 'activateAzureServicePrincipal',
+            url: '/v2/azureserviceaccounts/activateAzureServicePrinicipal?',
+            method: 'POST'
+        },{
+            name: 'rotateAzureSecret',
+            url: '/v2/azureserviceaccounts/rotate',
+            method: 'POST'
+        },{
             name: 'addUserPermissionForIAMSvcacc',
             url: '/v2/iamserviceaccounts/user',
             method: 'POST'
