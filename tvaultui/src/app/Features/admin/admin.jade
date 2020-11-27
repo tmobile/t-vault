@@ -354,7 +354,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .details-input-group(ng-show="appNameSelected")
                       .certificate-form-label(uib-tooltip="Notification emails list") Notification emails*
                       div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="notificationEmails.length>0")
-                      div.dns-wrapper.addnotificationemail
+                      div.dns-wrapper.addNotificationEmailCert
                         .col-lg-9.col-md-9.col-sm-9.col-xs-9
                           .cert-input-group.cert-suffix
                             input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmailForNotification($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
