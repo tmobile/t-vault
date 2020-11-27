@@ -518,6 +518,7 @@ public class SSLCertificateMockServiceTest {
         sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
+        sslCertificateRequest.setNotificationEmail("test.sample1@t-mobile.com");
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -1500,6 +1501,7 @@ public class SSLCertificateMockServiceTest {
         sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
+        sslCertificateRequest.setNotificationEmail("test.sample1@t-mobile.com");
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -1568,6 +1570,7 @@ public class SSLCertificateMockServiceTest {
         createCertPolicyMap.put("appName", "tvt");
         createCertPolicyMap.put("certType", "internal");
         createCertPolicyMap.put("certOwnerNtid", "testusername1");
+        createCertPolicyMap.put("notificationEmail", "certificatename.t-mobile.com");
 
         Response responseOkContent = getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
@@ -1647,6 +1650,7 @@ public class SSLCertificateMockServiceTest {
         sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
+        sslCertificateRequest.setNotificationEmail("test.sample1@t-mobile.com");
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -4922,6 +4926,7 @@ public class SSLCertificateMockServiceTest {
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         String[] dnsNames = {"internal","second","third" };
         sslCertificateRequest.setDnsList(dnsNames);
+        sslCertificateRequest.setNotificationEmail("test.sample1@t-mobile.com");
         CertResponse response = new CertResponse();
         response.setHttpstatus(HttpStatus.OK);
         response.setResponse(jsonStr);
