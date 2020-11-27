@@ -740,7 +740,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 			policies.add("safeadmin");
 			oidcEntityResponse.setPolicies(policies);
 			ResponseEntity<OIDCEntityResponse> oidcResponse = ResponseEntity.status(HttpStatus.OK).body(oidcEntityResponse);
-			when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(oidcResponse);
+			when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(oidcResponse);
 
 			// delete policy mock
 			ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.OK)
@@ -827,7 +827,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 			policies.add("safeadmin");
 			oidcEntityResponse.setPolicies(policies);
 			ResponseEntity<OIDCEntityResponse> oidcResponse = ResponseEntity.status(HttpStatus.OK).body(oidcEntityResponse);
-			when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(oidcResponse);
+			when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(oidcResponse);
 
 			// delete policy mock
 			ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.OK)
@@ -947,7 +947,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 			policies.add("safeadmin");
 			oidcEntityResponse.setPolicies(policies);
 			ResponseEntity<OIDCEntityResponse> oidcResponse = ResponseEntity.status(HttpStatus.OK).body(oidcEntityResponse);
-			when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(oidcResponse);
+			when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(oidcResponse);
 
 			// delete policy mock
 			ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -992,7 +992,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 			policies.add("safeadmin");
 			oidcEntityResponse.setPolicies(policies);
 			ResponseEntity<OIDCEntityResponse> oidcResponse = ResponseEntity.status(HttpStatus.OK).body(oidcEntityResponse);
-			when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(oidcResponse);
+			when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(oidcResponse);
 
 			// delete policy mock
 			ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.OK)
@@ -1081,7 +1081,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 			policies.add("safeadmin");
 			oidcEntityResponse.setPolicies(policies);
 			ResponseEntity<OIDCEntityResponse> oidcResponse = ResponseEntity.status(HttpStatus.OK).body(oidcEntityResponse);
-			when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(oidcResponse);
+			when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(oidcResponse);
 
 			// delete policy mock
 			ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.OK)
@@ -1180,7 +1180,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 			policies.add("safeadmin");
 			oidcEntityResponse.setPolicies(policies);
 			ResponseEntity<OIDCEntityResponse> oidcResponse = ResponseEntity.status(HttpStatus.OK).body(oidcEntityResponse);
-			when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(oidcResponse);
+			when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(oidcResponse);
 
 			// delete policy mock
 			ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.OK)
@@ -1354,7 +1354,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true,
 					"{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 			when(OIDCUtil.updateOIDCEntity(any(), any())).thenReturn(responseEntity3);
-			when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(responseEntity2);
+			when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(responseEntity2);
 			when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 			ResponseEntity<String> responseEntity = azureServicePrincipalAccountsService.removeUserFromAzureServiceAccount(token,
 					iamSvcAccUser, userDetails);

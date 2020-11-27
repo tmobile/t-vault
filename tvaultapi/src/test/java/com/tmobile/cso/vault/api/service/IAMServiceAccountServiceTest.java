@@ -485,7 +485,7 @@ public class IAMServiceAccountServiceTest {
 		Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true,
 				"{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 		when(OIDCUtil.updateOIDCEntity(any(), any())).thenReturn(responseEntity3);
-		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(responseEntity2);
+		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(responseEntity2);
 		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		ResponseEntity<String> responseEntity = iamServiceAccountsService.removeUserFromIAMServiceAccount(token,
 				iamSvcAccUser, userDetails);
@@ -1569,7 +1569,7 @@ public class IAMServiceAccountServiceTest {
 		oidcEntityResponse.setPolicies(policies1);
 		ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
 				.body(oidcEntityResponse);
-		when(OIDCUtil.oidcFetchEntityDetails(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(responseEntity2);
+		when(OIDCUtil.oidcFetchEntityDetails(Mockito.any(), Mockito.any(), Mockito.any(), eq(true))).thenReturn(responseEntity2);
 
 		when(OIDCUtil.updateOIDCEntity(Mockito.any(), Mockito.any())).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
 		when(ControllerUtil.updateMetadata(any(), any())).thenReturn(responseNoContent);
@@ -1617,7 +1617,7 @@ public class IAMServiceAccountServiceTest {
 		policies.add("safeadmin");
 		oidcEntityResponse.setPolicies(policies);
 		ResponseEntity<OIDCEntityResponse> oidcResponse = ResponseEntity.status(HttpStatus.OK).body(oidcEntityResponse);
-		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(oidcResponse);
+		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(oidcResponse);
 
 		// delete policy mock
 		ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.OK)
@@ -1704,7 +1704,7 @@ public class IAMServiceAccountServiceTest {
 		policies.add("safeadmin");
 		oidcEntityResponse.setPolicies(policies);
 		ResponseEntity<OIDCEntityResponse> oidcResponse = ResponseEntity.status(HttpStatus.OK).body(oidcEntityResponse);
-		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(oidcResponse);
+		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(oidcResponse);
 
 		// delete policy mock
 		ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.OK)
@@ -1791,7 +1791,7 @@ public class IAMServiceAccountServiceTest {
 		policies.add("safeadmin");
 		oidcEntityResponse.setPolicies(policies);
 		ResponseEntity<OIDCEntityResponse> oidcResponse = ResponseEntity.status(HttpStatus.OK).body(oidcEntityResponse);
-		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(oidcResponse);
+		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(oidcResponse);
 
 		// delete policy mock
 		ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.OK)
@@ -1910,7 +1910,7 @@ public class IAMServiceAccountServiceTest {
 		policies.add("safeadmin");
 		oidcEntityResponse.setPolicies(policies);
 		ResponseEntity<OIDCEntityResponse> oidcResponse = ResponseEntity.status(HttpStatus.OK).body(oidcEntityResponse);
-		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(oidcResponse);
+		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(oidcResponse);
 
 		// delete policy mock
 		ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -1954,7 +1954,7 @@ public class IAMServiceAccountServiceTest {
 		policies.add("safeadmin");
 		oidcEntityResponse.setPolicies(policies);
 		ResponseEntity<OIDCEntityResponse> oidcResponse = ResponseEntity.status(HttpStatus.OK).body(oidcEntityResponse);
-		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(oidcResponse);
+		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(oidcResponse);
 
 		// delete policy mock
 		ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.OK)
@@ -2043,7 +2043,7 @@ public class IAMServiceAccountServiceTest {
 		policies.add("safeadmin");
 		oidcEntityResponse.setPolicies(policies);
 		ResponseEntity<OIDCEntityResponse> oidcResponse = ResponseEntity.status(HttpStatus.OK).body(oidcEntityResponse);
-		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(oidcResponse);
+		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(oidcResponse);
 
 		// delete policy mock
 		ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.OK)
@@ -2140,7 +2140,7 @@ public class IAMServiceAccountServiceTest {
 		policies.add("safeadmin");
 		oidcEntityResponse.setPolicies(policies);
 		ResponseEntity<OIDCEntityResponse> oidcResponse = ResponseEntity.status(HttpStatus.OK).body(oidcEntityResponse);
-		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(oidcResponse);
+		when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(oidcResponse);
 
 		// delete policy mock
 		ResponseEntity<String> deletePolicyResponse = ResponseEntity.status(HttpStatus.OK)

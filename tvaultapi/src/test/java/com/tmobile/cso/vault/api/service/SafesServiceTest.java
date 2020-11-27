@@ -650,7 +650,7 @@ public class SafesServiceTest {
 			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 			when(OIDCUtil.updateOIDCEntity(policies, oidcEntityResponse.getEntityName()))
 					.thenReturn(responseEntity3);
-        when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails)).thenReturn(responseEntity2);
+        when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails, true)).thenReturn(responseEntity2);
         ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -846,7 +846,7 @@ public class SafesServiceTest {
 //					.thenReturn(responseEntity3);
 //        
 
-        when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails)).thenReturn(responseEntity2);
+        when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails, true)).thenReturn(responseEntity2);
         ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser, userDetails);
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1775,7 +1775,7 @@ public class SafesServiceTest {
 					.configureLDAPUser(eq("testuser1"), any(), any(), eq(token)))
 					.thenReturn(responseNotFound);
 
-            when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails)).thenReturn(responseEntity2);
+            when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails, true)).thenReturn(responseEntity2);
 			when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
 			ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
 			assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -1860,7 +1860,7 @@ public class SafesServiceTest {
 			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 			when(OIDCUtil.updateOIDCEntity(any(), any()))
 					.thenReturn(responseEntity3);
-              when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails)).thenReturn(responseEntity2);
+              when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails, true)).thenReturn(responseEntity2);
      ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
      assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
      assertEquals(responseEntityExpected, responseEntity);
@@ -1996,7 +1996,7 @@ public class SafesServiceTest {
 			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 			when(OIDCUtil.updateOIDCEntity(any(), any()))
 					.thenReturn(responseEntity3);
-			when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails)).thenReturn(responseEntity2);
+			when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails, true)).thenReturn(responseEntity2);
      
      ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
      assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -2089,7 +2089,7 @@ public class SafesServiceTest {
 
 			Response responseEntity3 = getMockResponse(HttpStatus.BAD_REQUEST, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 		when(OIDCUtil.updateOIDCEntity(any(), any())).thenReturn(responseEntity3);
-     when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails)).thenReturn(responseEntity2);
+     when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails, true)).thenReturn(responseEntity2);
      ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
      assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
  }

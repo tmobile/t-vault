@@ -2489,7 +2489,7 @@ public class SSLCertificateServiceTest {
 			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 			when(OIDCUtil.updateOIDCEntity(any(), any()))
 					.thenReturn(responseEntity3);
-        when(OIDCUtil.oidcFetchEntityDetails(anyString(), anyString(), any())).thenReturn(responseEntity2);
+        when(OIDCUtil.oidcFetchEntityDetails(anyString(), anyString(), any(), eq(true))).thenReturn(responseEntity2);
         ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(certUser, userDetail, false);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -4499,7 +4499,7 @@ public class SSLCertificateServiceTest {
 			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 			when(OIDCUtil.updateOIDCEntity(any(), any()))
 					.thenReturn(responseEntity3);
-        when(OIDCUtil.oidcFetchEntityDetails(anyString(), anyString(), any())).thenReturn(responseEntity2);
+        when(OIDCUtil.oidcFetchEntityDetails(anyString(), anyString(), any(), eq(true))).thenReturn(responseEntity2);
         ResponseEntity<String> responseEntity = sSLCertificateService.removeUserFromCertificate(certUser, userDetail);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
