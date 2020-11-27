@@ -865,7 +865,7 @@ public class AzureServicePrincipalAccountsService {
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
 			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, azureServiceAccountUser.getUsername(),
-					userDetails);
+					userDetails, true);
 			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -1526,7 +1526,7 @@ public class AzureServicePrincipalAccountsService {
 				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 					// OIDC implementation changes
 					ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName,
-							null);
+							null, true);
 					if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 						if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
@@ -2126,7 +2126,7 @@ public class AzureServicePrincipalAccountsService {
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
 			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token,
-					azureServiceAccountUser.getUsername(), userDetails);
+					azureServiceAccountUser.getUsername(), userDetails, true);
 			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 					log.error(

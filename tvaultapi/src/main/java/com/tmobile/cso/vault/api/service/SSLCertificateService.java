@@ -3288,7 +3288,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
             //OIDC Changes
 
 			// OIDC implementation changes
-			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails, true);
 			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -5001,7 +5001,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}", authToken);
 		}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
-			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(authToken, userName, userDetails);
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(authToken, userName, userDetails, true);
 			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -6422,7 +6422,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		}
 		else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
-						ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(authToken, userName, userDetails);
+						ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(authToken, userName, userDetails, true);
 						if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 							if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()

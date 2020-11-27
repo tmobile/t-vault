@@ -905,7 +905,7 @@ public final class ControllerUtil {
 					userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
 				}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 					// OIDC implementation changes
-					ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, null);
+					ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, null, true);
 					if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 						if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()

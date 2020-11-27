@@ -346,7 +346,7 @@ public class OIDCUtilTest {
            when(reqProcessor.process("/identity/lookup/entity", jsonStr, token)).thenReturn(response);
            when(reqProcessor.process("/auth/tvault/lookup", "{}", token)).thenReturn(response);
            when(directoryService.getUserDetailsByCorpId(username)).thenReturn(directoryUser);
-    	ResponseEntity<OIDCEntityResponse> oiEntity = oidcUtil.oidcFetchEntityDetails(token, username, null);
+    	ResponseEntity<OIDCEntityResponse> oiEntity = oidcUtil.oidcFetchEntityDetails(token, username, null, true);
         assertEquals(oiEntity.getStatusCode(), responseEntityExpected.getStatusCode());
     }
 
@@ -399,7 +399,7 @@ public class OIDCUtilTest {
         userDetails.setSelfSupportToken(token);
         userDetails.setEmail("testUser@sprint.com");
 
-        ResponseEntity<OIDCEntityResponse> oiEntity = oidcUtil.oidcFetchEntityDetails(token, username, userDetails);
+        ResponseEntity<OIDCEntityResponse> oiEntity = oidcUtil.oidcFetchEntityDetails(token, username, userDetails, true);
         assertEquals(oiEntity.getStatusCode(), responseEntityExpected.getStatusCode());
     }
 
@@ -449,7 +449,7 @@ public class OIDCUtilTest {
         when(reqProcessor.process("/identity/entity-alias", jsonStr, token)).thenReturn(getMockResponse(HttpStatus.OK, true, ""));
         when(reqProcessor.process("/auth/tvault/lookup", "{}", token)).thenReturn(response);
         when(directoryService.getUserDetailsByCorpId(username)).thenReturn(directoryUser);
-        ResponseEntity<OIDCEntityResponse> oiEntity = oidcUtil.oidcFetchEntityDetails(token, username, null);
+        ResponseEntity<OIDCEntityResponse> oiEntity = oidcUtil.oidcFetchEntityDetails(token, username, null, true);
         assertEquals(oiEntity.getStatusCode(), responseEntityExpected.getStatusCode());
     }
 
