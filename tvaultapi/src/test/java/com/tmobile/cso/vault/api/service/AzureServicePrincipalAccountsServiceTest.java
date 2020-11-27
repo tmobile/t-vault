@@ -1867,7 +1867,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 
 		        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
-		        ResponseEntity<String> responseEntityActual =  azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
+		        ResponseEntity<String> responseEntityActual =  azureServicePrincipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
 
 		        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
 		        assertEquals(responseEntityExpected, responseEntityActual);
@@ -1897,7 +1897,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 
 		        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
-		        ResponseEntity<String> responseEntityActual =  azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
+		        ResponseEntity<String> responseEntityActual =  azureServicePrincipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
 
 		        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
 		        assertEquals(responseEntityExpected, responseEntityActual);
@@ -1927,7 +1927,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 
 		        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
-		        ResponseEntity<String> responseEntityActual =  azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
+		        ResponseEntity<String> responseEntityActual =  azureServicePrincipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
 
 		        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
 		        assertEquals(responseEntityExpected, responseEntityActual);
@@ -1957,7 +1957,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 
 		        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
-		        ResponseEntity<String> responseEntityActual =  azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
+		        ResponseEntity<String> responseEntityActual =  azureServicePrincipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
 
 		        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
 		        assertEquals(responseEntityExpected, responseEntityActual);
@@ -1983,7 +1983,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		        when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
 		        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
-		        ResponseEntity<String> responseEntityActual =  azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
+		        ResponseEntity<String> responseEntityActual =  azureServicePrincipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
 
 		        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
 		        assertEquals(responseEntityExpected, responseEntityActual);

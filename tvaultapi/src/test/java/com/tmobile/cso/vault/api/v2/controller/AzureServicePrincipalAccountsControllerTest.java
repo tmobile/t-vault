@@ -358,7 +358,7 @@ public class AzureServicePrincipalAccountsControllerTest {
 		String responseJson = "{\"messages\":[\"AWS Role successfully removed from Azure Service Account\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-		when(azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
+		when(azureServicePrincipalAccountsService.removeAwsRoleFromAzureSvcacc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
 				Mockito.any(AzureServiceAccountAWSRole.class))).thenReturn(responseEntityExpected);
 		
 		
