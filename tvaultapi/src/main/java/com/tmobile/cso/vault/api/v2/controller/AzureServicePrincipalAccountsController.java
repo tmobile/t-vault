@@ -226,7 +226,7 @@ public class AzureServicePrincipalAccountsController {
 			@RequestHeader(value = "vault-token") String token,
 			@Valid @RequestBody AzureServiceAccountAWSRole azureServiceAccountAWSRole) {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, azureServiceAccountAWSRole);
+		return azureServicePrincipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, azureServiceAccountAWSRole);
 	}
 
 	/**
