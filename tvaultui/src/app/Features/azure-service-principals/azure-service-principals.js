@@ -27,10 +27,10 @@
     /** @ngInject */
     function routerConfig( $stateProvider ) {
         $stateProvider
-            .state( 'azure-service-prinicipals', {
-                url: '/azure-service-prinicipals',
-                templateUrl: 'app/Features/azure-service-prinicipals/azure-service-prinicipals.html',
-                controller: 'AzureServicePrinicipalsCtrl'
+            .state( 'azure-service-principals', {
+                url: '/azure-service-principals',
+                templateUrl: 'app/Features/azure-service-principals/azure-service-principals.html',
+                controller: 'AzureServicePrincipalsCtrl'
             })
             ;
     }

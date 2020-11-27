@@ -166,7 +166,7 @@
         }
 
         $scope.error = function (size) {
-            Modal.createModal(size, 'error.html', 'ChangeAzureServicePrinicipalsCtrl', $scope);
+            Modal.createModal(size, 'error.html', 'ChangeAzureServicePrincipalsCtrl', $scope);
         };
 
         /************************  Functions for autosuggest start here ***************************/
@@ -420,7 +420,7 @@
                             if (SessionStore.getItem("username") == key) {
                                 $scope.isLoadingData = false;
                                 clearInputPermissionData();
-                                $scope.errorMessage = "Owner permission for an Azure service prinicipal cannot be changed!";
+                                $scope.errorMessage = "Owner permission for an Azure service principal cannot be changed!";
                                 $scope.error('md');
                                 getAzureSvcaccInfo(svcaccname);
                                 return;
@@ -624,14 +624,14 @@
                                 appId: object.application_id || '',
                                 appName: object.application_name || '',
                                 appTag: object.application_tag || '',
-                                svcPrinicipalClientId: object.servicePrinicipalClientId || '',
-                                svcPrinicipalId: object.servicePrinicipalId || '',
+                                svcPrincipalClientId: object.servicePrincipalClientId || '',
+                                svcPrincipalId: object.servicePrincipalId || '',
                                 ownerEmail: object.owner_email || '',
                                 ownerNtId: object.owner_ntid || '',
                                 creationDate: object.createdDate || '',
                                 isActivated: object.isActivated || '',
-                                azureSvcAccId: object.servicePrinicipalName || '',
-                                userName: object.servicePrinicipalName || '',
+                                azureSvcAccId: object.servicePrincipalName || '',
+                                userName: object.servicePrincipalName || '',
                                 tenantId: object.tenantId || '',
                             };
 
@@ -1238,24 +1238,24 @@
 
         /* TODO: What is open, functon name should be more descriptive */
         $scope.open = function (size) {
-            Modal.createModal(size, 'changeSafePopup.html', 'ChangeAzureServicePrinicipalsCtrl', $scope);
+            Modal.createModal(size, 'changeSafePopup.html', 'ChangeAzureServicePrincipalsCtrl', $scope);
         };
 
         /* TODO: What is open, functon name should be more descriptive */
         $scope.openApprole = function (size) {
-            Modal.createModal(size, 'appRolePopup.html', 'ChangeAzureServicePrinicipalsCtrl', $scope);
+            Modal.createModal(size, 'appRolePopup.html', 'ChangeAzureServicePrincipalsCtrl', $scope);
         };
 //
         $scope.openActivationStatus = function (size) {
-            Modal.createModal(size, 'openActivationStatus.html', 'ChangeAzureServicePrinicipalsCtrl', $scope);
+            Modal.createModal(size, 'openActivationStatus.html', 'ChangeAzureServicePrincipalsCtrl', $scope);
         }
 //
         $scope.openOneTimeResetFailedMessage = function (size) {
-            Modal.createModal(size, 'openOneTimeResetFailedMessage.html', 'ChangeAzureServicePrinicipalsCtrl', $scope);
+            Modal.createModal(size, 'openOneTimeResetFailedMessage.html', 'ChangeAzureServicePrincipalsCtrl', $scope);
         };
 //
         $scope.iamActivationConfirmation = function (size) {
-            Modal.createModal(size, 'iamActivationConfirmation.html', 'ChangeAzureServicePrinicipalsCtrl', $scope);
+            Modal.createModal(size, 'iamActivationConfirmation.html', 'ChangeAzureServicePrincipalsCtrl', $scope);
         }
         
         /* TODO: What is ok, functon name should be more descriptive */
@@ -1300,7 +1300,7 @@
             $scope.isActivating = true;
             Modal.close();
             Notifications.toast('Activating Azure service principal. Please wait..');
-            var queryParameters = "servicePrinicipalName=" + $scope.azureSvcacc.azureSvcAccId;
+            var queryParameters = "servicePrincipalName=" + $scope.azureSvcacc.azureSvcAccId;
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('activateAzureServicePrincipal',queryParameters);
             AdminSafesManagement.activateAzureServicePrincipal(null, updatedUrlOfEndPoint).then(function (response) {
                 if (UtilityService.ifAPIRequestSuccessful(response)) {

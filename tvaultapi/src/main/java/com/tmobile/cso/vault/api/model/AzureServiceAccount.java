@@ -23,20 +23,20 @@ public class AzureServiceAccount implements Serializable{
 	private static final long serialVersionUID = -5548453449664949292L;
 	
 	@NotBlank
-	@Size(min = 11, message = "Azure service principal name specified should be minimum 11 chanracters only")
+	@Size(min = 11, message = "Azure service principal name specified should be minimum 11 characters only")
 	@Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Azure service principal name can have alphabets, numbers, _ and - characters only")
-	private String servicePrinicipalName;
+	private String servicePrincipalName;
 
 	@NotBlank
-	@Size(min = 10, max = 128, message = "ServicePrinicipalId specified should be minimum 10 chanracters and maximum 128 characters only")
-	private String servicePrinicipalId;
+	@Size(min = 10, max = 128, message = "ServicePrincipalId specified should be minimum 10 characters and maximum 128 characters only")
+	private String servicePrincipalId;
 
 	@NotBlank
-	@Size(min = 10, max = 128, message = "ServicePrinicipalClientId specified should be minimum 10 chanracters and maximum 128 characters only")
-	private String servicePrinicipalClientId;
+	@Size(min = 10, max = 128, message = "ServicePrincipalClientId specified should be minimum 10 characters and maximum 128 characters only")
+	private String servicePrincipalClientId;
 	
 	@NotBlank
-	@Size(min = 10, max = 128, message = "TenantId specified should be minimum 10 chanracters and maximum 128 characters only")
+	@Size(min = 10, max = 128, message = "TenantId specified should be minimum 10 characters and maximum 128 characters only")
 	private String tenantId;
 
 	@NotNull
@@ -84,9 +84,9 @@ public class AzureServiceAccount implements Serializable{
 	
 	/**
 	 * 
-	 * @param servicePrinicipalName
-	 * @param servicePrinicipalId
-	 * @param servicePrinicipalClientId
+	 * @param servicePrincipalName
+	 * @param servicePrincipalId
+	 * @param servicePrincipalClientId
 	 * @param tenantId
 	 * @param createdAtEpoch
 	 * @param ownerNtid
@@ -96,13 +96,13 @@ public class AzureServiceAccount implements Serializable{
 	 * @param applicationTag
 	 * @param secret
 	 */
-	public AzureServiceAccount(String servicePrinicipalName, String servicePrinicipalId,
-			String servicePrinicipalClientId, String tenantId, Long createdAtEpoch, String ownerNtid, String ownerEmail,
-			String applicationId, String applicationName, String applicationTag, List<AzureSecrets> secret) {
+	public AzureServiceAccount(String servicePrincipalName, String servicePrincipalId,
+							   String servicePrincipalClientId, String tenantId, Long createdAtEpoch, String ownerNtid, String ownerEmail,
+							   String applicationId, String applicationName, String applicationTag, List<AzureSecrets> secret) {
 		super();
-		this.servicePrinicipalName = servicePrinicipalName;
-		this.servicePrinicipalId = servicePrinicipalId;
-		this.servicePrinicipalClientId = servicePrinicipalClientId;
+		this.servicePrincipalName = servicePrincipalName;
+		this.servicePrincipalId = servicePrincipalId;
+		this.servicePrincipalClientId = servicePrincipalClientId;
 		this.tenantId = tenantId;
 		this.createdAtEpoch = createdAtEpoch;
 		this.ownerNtid = ownerNtid;
@@ -115,28 +115,28 @@ public class AzureServiceAccount implements Serializable{
 
 
 
-	public String getServicePrinicipalName() {
-		return servicePrinicipalName;
+	public String getServicePrincipalName() {
+		return servicePrincipalName;
 	}
 
-	public void setServicePrinicipalName(String servicePrinicipalName) {
-		this.servicePrinicipalName = servicePrinicipalName;
+	public void setServicePrincipalName(String servicePrincipalName) {
+		this.servicePrincipalName = servicePrincipalName;
 	}
 
-	public String getServicePrinicipalId() {
-		return servicePrinicipalId;
+	public String getServicePrincipalId() {
+		return servicePrincipalId;
 	}
 
-	public void setServicePrinicipalId(String servicePrinicipalId) {
-		this.servicePrinicipalId = servicePrinicipalId;
+	public void setServicePrincipalId(String servicePrincipalId) {
+		this.servicePrincipalId = servicePrincipalId;
 	}
 
-	public String getServicePrinicipalClientId() {
-		return servicePrinicipalClientId;
+	public String getServicePrincipalClientId() {
+		return servicePrincipalClientId;
 	}
 
-	public void setServicePrinicipalClientId(String servicePrinicipalClientId) {
-		this.servicePrinicipalClientId = servicePrinicipalClientId;
+	public void setServicePrincipalClientId(String servicePrincipalClientId) {
+		this.servicePrincipalClientId = servicePrincipalClientId;
 	}
 
 	public String getTenantId() {
@@ -205,9 +205,9 @@ public class AzureServiceAccount implements Serializable{
 
 	@Override
 	public String toString() {
-		return "AzureServicePrinicipalAccount [servicePrinicipalName=" + servicePrinicipalName
-				+ ", servicePrinicipalId=" + servicePrinicipalId + ", servicePrinicipalClientId="
-				+ servicePrinicipalClientId + ", tenantId=" + tenantId + ", createdAtEpoch=" + createdAtEpoch
+		return "AzureServicePrincipalAccount [servicePrincipalName=" + servicePrincipalName
+				+ ", servicePrincipalId=" + servicePrincipalId + ", servicePrincipalClientId="
+				+ servicePrincipalClientId + ", tenantId=" + tenantId + ", createdAtEpoch=" + createdAtEpoch
 				+ ", ownerNtid=" + ownerNtid + ", ownerEmail=" + ownerEmail + ", applicationId=" + applicationId
 				+ ", applicationName=" + applicationName + ", applicationTag=" + applicationTag + ", secret=" + secret
 				+ "]";

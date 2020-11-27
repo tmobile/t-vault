@@ -27,10 +27,10 @@
     /** @ngInject */
     function routerConfig( $stateProvider ) {
         $stateProvider
-            .state( 'change-azure-service-prinicipals', {
-                url: '/change-azure-service-prinicipals/',
+            .state( 'change-azure-service-principals', {
+                url: '/change-azure-service-principals/',
                 params: { "azuresvcaccData": null, "azuresvcaccList":[]},
-                templateUrl: 'app/Features/change-azure-service-prinicipals/change-azure-service-prinicipals.html',
+                templateUrl: 'app/Features/change-azure-service-principals/change-azure-service-principals.html',
                 controller: 'ChangeAzureServicePrincipalsCtrl'
             } );
     }

@@ -25,23 +25,23 @@
             <img class ="image" src="iammanagetab.png" th:src="|cid:${iammanagetab}|"/>
         </li>
         <li>
-            <div>Select the "View/Edit" option corresponding to the Azure service prinicipal you want to activate.</div>
+            <div>Select the "View/Edit" option corresponding to the Azure service principal you want to activate.</div>
             <img class ="image" src="iamviewlink.png" th:src="|cid:${iamviewlink}|"/>
         </li>
         <li>
-            <div>Click the "Activate Azure Service prinicipal" link at the bottom right.</div>
+            <div>Click the "Activate Azure Service principal" link at the bottom right.</div>
             <img class ="image" src="iamactivate.png" th:src="|cid:${iamactivate}|"/>
         </li>
 
     </ol>
 
     <h4>Assigning Permissions: </h4>
-    <div>Once you are finished activating your Azure service prinicipal you can assign permissions to other users or groups you want to have permission to view or rotate the password for the account.</div>
+    <div>Once you are finished activating your Azure service principal you can assign permissions to other users or groups you want to have permission to view or rotate the password for the account.</div>
     <div data-th-text="${groupContent}"></div>
     <ol>
         <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your CORP AD account.</li>
         <li>Navigate to the "MANAGE" tab.</li>
-        <li>Select the "View/Edit" option corresponding to the Azure service prinicipal you want to manage.</li>
+        <li>Select the "View/Edit" option corresponding to the Azure service principal you want to manage.</li>
         <li>
             <div>Select the "Grant Permission" button.</div>
             <img class ="image" src="iampermission.png" th:src="|cid:${iampermission}|"/>
