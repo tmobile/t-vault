@@ -2586,7 +2586,6 @@ public class AzureServicePrinicipalAccountsService {
 		return false;
 	}
 
-<<<<<<< HEAD
 	/**
 	 * Add Group to Azure service principal
 	 *

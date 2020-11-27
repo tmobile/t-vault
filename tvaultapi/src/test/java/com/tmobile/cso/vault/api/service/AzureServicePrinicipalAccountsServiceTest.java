@@ -1843,7 +1843,7 @@ public class AzureServicePrinicipalAccountsServiceTest {
 		ResponseEntity<String> actualResponse = azureServicePrinicipalAccountsService.activateAzureServicePrinicipal(token, userDetails, servicePrincipal);
 		assertEquals(expectedResponse, actualResponse);
 	}
-	}	
+		
 		    @Test
 		    public void test_removeAwsRoleToAzureSvcacc_succssfully_iam() throws Exception {
 
