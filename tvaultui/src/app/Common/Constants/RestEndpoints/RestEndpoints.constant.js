@@ -564,6 +564,10 @@ readTextFile("../apiUrls.json");
             name: 'addGroupPermissionForAzureSvcacc',
             url: '/v2/azureserviceaccounts/group',
             method: 'POST'
+        },{
+            name: 'detachAwsRoleFromAzureSvcacc',
+            url: '/v2/azureserviceaccounts/role',
+            method: 'DELETE'
         }
     ]
     });

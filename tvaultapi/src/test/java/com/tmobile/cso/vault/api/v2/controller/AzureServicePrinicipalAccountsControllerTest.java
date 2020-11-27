@@ -346,4 +346,26 @@ public class AzureServicePrinicipalAccountsControllerTest {
 				.andExpect(status().isOk())
 				.andExpect(content().string(containsString(responseJson)));
 	}
+	@Test
+	public void test_removeAWSroletoAzureSvcAcc() throws Exception {
+		AzureServiceAccountAWSRole serviceAccountApprole = new AzureServiceAccountAWSRole();
+
+		serviceAccountApprole.setAccess("read");
+		serviceAccountApprole.setAzureSvcAccName("testaccount");
+		serviceAccountApprole.setRolename("role1");
+
+		String inputJson = new ObjectMapper().writeValueAsString(serviceAccountApprole);
+		String responseJson = "{\"messages\":[\"AWS Role successfully removed from Azure Service Account\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+
+		when(azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
+				Mockito.any(AzureServiceAccountAWSRole.class))).thenReturn(responseEntityExpected);
+		
+		
+		mockMvc.perform(MockMvcRequestBuilders.delete("/v2/azureserviceaccounts/role")
+				.requestAttr("UserDetails", userDetails).header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+				.header("Content-Type", "application/json;charset=UTF-8").content(inputJson)).andExpect(status().isOk())
+				.andExpect(content().string(containsString(responseJson)));
+	}
+	
 }

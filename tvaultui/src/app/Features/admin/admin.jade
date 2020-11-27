@@ -350,7 +350,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                       div.form-control.input-box-style.dns-list(id="dnslist")
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group(ng-if="!appNameSelected")
-                      .certificate-form-label {{ applicationNameSelectMsg==""?"Select appliation name and add/update notification emails": applicationNameSelectMsg}}
+                      .certificate-form-label {{ applicationNameSelectMsg==""?"Select application name and add/update notification emails": applicationNameSelectMsg}}
                     .details-input-group(ng-show="appNameSelected")
                       .certificate-form-label(uib-tooltip="Notification emails list") Notification emails*
                       div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="notificationEmails.length>0")
