@@ -14,9 +14,9 @@ public class AzureServiceAccountMetadataDetails implements Serializable{
 	 */
 	private static final long serialVersionUID = -7689315256335697595L;
 	
-	private String servicePrinicipalName;
-	private String servicePrinicipalId;
-	private String servicePrinicipalClientId;
+	private String servicePrincipalName;
+	private String servicePrincipalId;
+	private String servicePrincipalClientId;
 	private String tenantId;
 	private Long createdAtEpoch;
 
@@ -40,28 +40,28 @@ public class AzureServiceAccountMetadataDetails implements Serializable{
 
 	private List<AzureSecretsMetadata> secret;
 
-	public String getServicePrinicipalName() {
-		return servicePrinicipalName;
+	public String getServicePrincipalName() {
+		return servicePrincipalName;
 	}
 
-	public void setServicePrinicipalName(String servicePrinicipalName) {
-		this.servicePrinicipalName = servicePrinicipalName;
+	public void setServicePrincipalName(String servicePrincipalName) {
+		this.servicePrincipalName = servicePrincipalName;
 	}
 
-	public String getServicePrinicipalId() {
-		return servicePrinicipalId;
+	public String getServicePrincipalId() {
+		return servicePrincipalId;
 	}
 
-	public void setServicePrinicipalId(String servicePrinicipalId) {
-		this.servicePrinicipalId = servicePrinicipalId;
+	public void setServicePrincipalId(String servicePrincipalId) {
+		this.servicePrincipalId = servicePrincipalId;
 	}
 
-	public String getServicePrinicipalClientId() {
-		return servicePrinicipalClientId;
+	public String getServicePrincipalClientId() {
+		return servicePrincipalClientId;
 	}
 
-	public void setServicePrinicipalClientId(String servicePrinicipalClientId) {
-		this.servicePrinicipalClientId = servicePrinicipalClientId;
+	public void setServicePrincipalClientId(String servicePrincipalClientId) {
+		this.servicePrincipalClientId = servicePrincipalClientId;
 	}
 
 	public String getTenantId() {
@@ -138,9 +138,9 @@ public class AzureServiceAccountMetadataDetails implements Serializable{
 
 	@Override
 	public String toString() {
-		return "AzureServiceAccountMetadataDetails [servicePrinicipalName=" + servicePrinicipalName
-				+ ", servicePrinicipalId=" + servicePrinicipalId + ", servicePrinicipalClientId="
-				+ servicePrinicipalClientId + ", tenantId=" + tenantId + ", createdAtEpoch=" + createdAtEpoch
+		return "AzureServiceAccountMetadataDetails [servicePrincipalName=" + servicePrincipalName
+				+ ", servicePrincipalId=" + servicePrincipalId + ", servicePrincipalClientId="
+				+ servicePrincipalClientId + ", tenantId=" + tenantId + ", createdAtEpoch=" + createdAtEpoch
 				+ ", ownerNtid=" + ownerNtid + ", ownerEmail=" + ownerEmail + ", applicationId=" + applicationId
 				+ ", applicationName=" + applicationName + ", applicationTag=" + applicationTag + ", accountActivated="
 				+ accountActivated + ", secret=" + secret + "]";

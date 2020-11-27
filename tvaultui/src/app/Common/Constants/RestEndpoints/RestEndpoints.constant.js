@@ -466,7 +466,7 @@ readTextFile("../apiUrls.json");
             method: 'POST'
         },{
             name: 'activateAzureServicePrincipal',
-            url: '/v2/azureserviceaccounts/activateAzureServicePrinicipal?',
+            url: '/v2/azureserviceaccounts/activateAzureServicePrincipal?',
             method: 'POST'
         },{
             name: 'rotateAzureSecret',

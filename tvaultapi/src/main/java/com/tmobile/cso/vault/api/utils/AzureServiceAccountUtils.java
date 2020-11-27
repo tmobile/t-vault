@@ -82,14 +82,14 @@ public class AzureServiceAccountUtils {
 
     /**
      * To mock rotate Azure secret API.
-     * @param azureServicePrinicipalRotateRequest
+     * @param azureServicePrincipalRotateRequest
      * @return
      */
-    public AzureServiceAccountSecret rotateAzureServicePrincipalSecretMOCK(AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest) {
+    public AzureServiceAccountSecret rotateAzureServicePrincipalSecretMOCK(AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest) {
         AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret();
-        azureServiceAccountSecret.setServicePrinicipalId(azureServicePrinicipalRotateRequest.getServicePrinicipalId());
-        azureServiceAccountSecret.setTenantId(azureServicePrinicipalRotateRequest.getTenantId());
-        azureServiceAccountSecret.setSecretKeyId(azureServicePrinicipalRotateRequest.getSecretKeyId());
+        azureServiceAccountSecret.setServicePrincipalId(azureServicePrincipalRotateRequest.getServicePrincipalId());
+        azureServiceAccountSecret.setTenantId(azureServicePrincipalRotateRequest.getTenantId());
+        azureServiceAccountSecret.setSecretKeyId(azureServicePrincipalRotateRequest.getSecretKeyId());
         azureServiceAccountSecret.setSecretText("mocksecrettext_"+ new Date().getTime());
         azureServiceAccountSecret.setExpiryDateEpoch(604800000L);
         azureServiceAccountSecret.setExpiryDate(new Date(604800000L).toString());
@@ -100,7 +100,7 @@ public class AzureServiceAccountUtils {
      *
      * @return
      */
-    public AzureServiceAccountSecret rotateAzureServicePrincipalSecret(AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest)  {
+    public AzureServiceAccountSecret rotateAzureServicePrincipalSecret(AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest)  {
         String iamApproleToken = iamServiceAccountUtils.getIAMApproleToken();
         if (StringUtils.isEmpty(iamApproleToken)) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -137,7 +137,7 @@ public class AzureServiceAccountUtils {
 
         HttpPut httpPut = new HttpPut(api);
 
-        String inputJson = JSONUtil.getJSON(azureServicePrinicipalRotateRequest);
+        String inputJson = JSONUtil.getJSON(azureServicePrincipalRotateRequest);
         StringEntity entity;
         String iamAuthToken = IAMServiceAccountConstants.IAM_AUTH_TOKEN_PREFIX + " " + Base64.getEncoder().encodeToString(iamApproleToken.getBytes());
 
@@ -187,8 +187,8 @@ public class AzureServiceAccountUtils {
             AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret();
             JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
             if (!responseJson.isJsonNull()) {
-                if (responseJson.has("servicePrinicipalId")) {
-                    azureServiceAccountSecret.setServicePrinicipalId(responseJson.get("servicePrinicipalId").getAsString());
+                if (responseJson.has("servicePrincipalId")) {
+                    azureServiceAccountSecret.setServicePrincipalId(responseJson.get("servicePrincipalId").getAsString());
                 }
                 if (responseJson.has("tenantId")) {
                     azureServiceAccountSecret.setTenantId(responseJson.get("tenantId").getAsString());
@@ -219,11 +219,11 @@ public class AzureServiceAccountUtils {
      * To save Azure Service Principal Secret for a single SecretKeyId.
      * @param token
      * @param path
-     * @param servicePrinicipalName
+     * @param servicePrincipalName
      * @param azureServiceAccountSecret
      * @return
      */
-    public boolean writeAzureSPSecret(String token, String path, String servicePrinicipalName, AzureServiceAccountSecret azureServiceAccountSecret) {
+    public boolean writeAzureSPSecret(String token, String path, String servicePrincipalName, AzureServiceAccountSecret azureServiceAccountSecret) {
         boolean isSecretUpdated = false;
         ObjectMapper objMapper = new ObjectMapper();
         String secretJson = null;
@@ -248,7 +248,7 @@ public class AzureServiceAccountUtils {
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, "writeAzureSPSecret").
                     put(LogMessage.MESSAGE, String.format("Successfully saved secrets for Azure Service Principal " +
-                                    "[%s] for secret key id: [%s]", servicePrinicipalName,
+                                    "[%s] for secret key id: [%s]", servicePrincipalName,
                             azureServiceAccountSecret.getSecretKeyId())).
                     put(LogMessage.STATUS, response.getHttpstatus().toString()).
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -268,20 +268,20 @@ public class AzureServiceAccountUtils {
     /**
      * To update Secret key details in metadata.
      * @param token
-     * @param servicePrinicipalName
+     * @param servicePrincipalName
      * @param secretKeyId
      * @param azureServiceAccountSecret
      * @return
      */
-    public Response updateAzureSPSecretKeyInfoInMetadata(String token, String servicePrinicipalName, String secretKeyId, AzureServiceAccountSecret azureServiceAccountSecret){
+    public Response updateAzureSPSecretKeyInfoInMetadata(String token, String servicePrincipalName, String secretKeyId, AzureServiceAccountSecret azureServiceAccountSecret){
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, "updateAzureSPSecretKeyInfoInMetadata").
-                put(LogMessage.MESSAGE, String.format ("Trying to update the metadata with secretKeyId [%s] for Azure Service Principal [%s]", secretKeyId, servicePrinicipalName)).
+                put(LogMessage.MESSAGE, String.format ("Trying to update the metadata with secretKeyId [%s] for Azure Service Principal [%s]", secretKeyId, servicePrincipalName)).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
 
-        String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(servicePrinicipalName).toString();
+        String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(servicePrincipalName).toString();
 
         List<AzureSvccAccMetadata> secretData = new ArrayList<>();
 
@@ -348,18 +348,18 @@ public class AzureServiceAccountUtils {
     /**
      * Update metadata for the Azure Service Principal on activation.
      * @param token
-     * @param servicePrinicipalName
+     * @param servicePrincipalName
      * @return
      */
-    public Response updateActivatedStatusInMetadata(String token, String servicePrinicipalName){
+    public Response updateActivatedStatusInMetadata(String token, String servicePrincipalName){
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, "updateActivatedStatusInMetadata").
-                put(LogMessage.MESSAGE, String.format ("Trying to update metadata on Azure Service Principal activation for [%s]", servicePrinicipalName)).
+                put(LogMessage.MESSAGE, String.format ("Trying to update metadata on Azure Service Principal activation for [%s]", servicePrincipalName)).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
 
-        String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(servicePrinicipalName).toString();
+        String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(servicePrincipalName).toString();
         Map<String,String> isActivatedParams = new Hashtable<>();
         isActivatedParams.put("type", "isActivated");
         isActivatedParams.put("path",path);

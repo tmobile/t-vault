@@ -14,7 +14,7 @@ public class AzureServiceAccountNode implements Serializable{
 
 	private String path;
 
-	private String servicePrinicipalName;
+	private String servicePrincipalName;
 
 	public List<String> getFolders() {
 		return folders;
@@ -32,18 +32,18 @@ public class AzureServiceAccountNode implements Serializable{
 		this.path = path;
 	}
 
-	public String getServicePrinicipalName() {
-		return servicePrinicipalName;
+	public String getServicePrincipalName() {
+		return servicePrincipalName;
 	}
 
-	public void setServicePrinicipalName(String servicePrinicipalName) {
-		this.servicePrinicipalName = servicePrinicipalName;
+	public void setServicePrincipalName(String servicePrincipalName) {
+		this.servicePrincipalName = servicePrincipalName;
 	}
 
 	@Override
 	public String toString() {
-		return "AzureServiceAccountNode [folders=" + folders + ", path=" + path + ", servicePrinicipalName="
-				+ servicePrinicipalName + "]";
+		return "AzureServiceAccountNode [folders=" + folders + ", path=" + path + ", servicePrincipalName="
+				+ servicePrincipalName + "]";
 	}
 	
 	

@@ -19,12 +19,11 @@ package com.tmobile.cso.vault.api.model;
 
 import org.hibernate.validator.constraints.NotBlank;
 
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 
-public class AzureServicePrinicipalRotateRequest implements Serializable {
+public class AzureServicePrincipalRotateRequest implements Serializable {
 
     private static final long serialVersionUID = -2124663808021117763L;
 
@@ -35,8 +34,8 @@ public class AzureServicePrinicipalRotateRequest implements Serializable {
     @NotBlank
     private String secretKeyId;
     @NotBlank
-    @Size(min = 10, max = 128, message = "ServicePrinicipalId specified should be minimum 10 chanracters and maximum 128 characters only")
-    private String servicePrinicipalId;
+    @Size(min = 10, max = 128, message = "ServicePrincipalId specified should be minimum 10 chanracters and maximum 128 characters only")
+    private String servicePrincipalId;
     @NotBlank
     @Size(min = 10, max = 128, message = "TenantId specified should be minimum 10 chanracters and maximum 128 characters only")
     private String tenantId;
@@ -44,21 +43,21 @@ public class AzureServicePrinicipalRotateRequest implements Serializable {
     /**
      *
      */
-    public AzureServicePrinicipalRotateRequest() {
+    public AzureServicePrincipalRotateRequest() {
         super();
     }
 
 
     /**
      * @param secretKeyId
-     * @param servicePrinicipalId
+     * @param servicePrincipalId
      * @param tenantId
      */
-    public AzureServicePrinicipalRotateRequest(String azureSvcAccName, String secretKeyId, String servicePrinicipalId, String tenantId) {
+    public AzureServicePrincipalRotateRequest(String azureSvcAccName, String secretKeyId, String servicePrincipalId, String tenantId) {
         super();
         this.azureSvcAccName = azureSvcAccName;
         this.secretKeyId = secretKeyId;
-        this.servicePrinicipalId = servicePrinicipalId;
+        this.servicePrincipalId = servicePrincipalId;
         this.tenantId = tenantId;
     }
 
@@ -70,12 +69,12 @@ public class AzureServicePrinicipalRotateRequest implements Serializable {
         this.secretKeyId = secretKeyId;
     }
 
-    public String getServicePrinicipalId() {
-        return servicePrinicipalId;
+    public String getServicePrincipalId() {
+        return servicePrincipalId;
     }
 
-    public void setServicePrinicipalId(String servicePrinicipalId) {
-        this.servicePrinicipalId = servicePrinicipalId;
+    public void setServicePrincipalId(String servicePrincipalId) {
+        this.servicePrincipalId = servicePrincipalId;
     }
 
     public String getTenantId() {
@@ -96,10 +95,10 @@ public class AzureServicePrinicipalRotateRequest implements Serializable {
 
     @Override
     public String toString() {
-        return "AzureServicePrinicipalRotateRequest{" +
+        return "AzureServicePrincipalRotateRequest{" +
                 "azureSvcAccName='" + azureSvcAccName + '\'' +
                 ", secretKeyId='" + secretKeyId + '\'' +
-                ", servicePrinicipalId='" + servicePrinicipalId + '\'' +
+                ", servicePrincipalId='" + servicePrincipalId + '\'' +
                 ", tenantId='" + tenantId + '\'' +
                 '}';
     }

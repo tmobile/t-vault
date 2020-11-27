@@ -216,7 +216,7 @@
             if ($rootScope.lastVisited == "change-iam-service-account") {
                 $scope.selectedIndex = 3;
             }
-            if ($rootScope.lastVisited == "change-azure-service-prinicipals") {
+            if ($rootScope.lastVisited == "change-azure-service-principals") {
                 $scope.selectedIndex = 4;
             }
             if ($rootScope.lastVisited == "change-certificate") {
@@ -845,7 +845,7 @@
             var obj = "azuresvcaccData";
             var fullObj = {};
             fullObj[obj] = { "userId": userId };
-            $state.go('change-azure-service-prinicipals', fullObj);
+            $state.go('change-azure-service-principals', fullObj);
         }
 
         $scope.offboardSvcaccPopUp = function (svcaccname) {
