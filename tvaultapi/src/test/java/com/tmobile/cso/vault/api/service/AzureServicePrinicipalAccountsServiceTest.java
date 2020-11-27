@@ -1371,7 +1371,6 @@ public class AzureServicePrinicipalAccountsServiceTest {
 			ResponseEntity<String> responseEntity = azureServicePrinicipalAccountsService.getOnboardedAzureServiceAccounts(token, userDetails);
 			assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 		}
-		
 		@Test
 	    public void test_addAwsRoleToAzureSvcacc_succssfully_iam() throws Exception {
 
@@ -1432,7 +1431,6 @@ public class AzureServicePrinicipalAccountsServiceTest {
 
 	    }
 		
-		
 		 @Test
 		    public void test_addAwsRoleToAzureSvcacc_ec2_metadata_failure() throws Exception {
 
@@ -1462,7 +1460,7 @@ public class AzureServicePrinicipalAccountsServiceTest {
 		        assertEquals(responseEntityExpected, responseEntityActual);
 
 		    }
-
+		 
 		    @Test
 		    public void test_addAwsRoleToAzureSvcacc_iam_metadata_failure() throws Exception {
 
@@ -1493,6 +1491,7 @@ public class AzureServicePrinicipalAccountsServiceTest {
 
 		    }
 		    
+		    
 		    @Test
 		    public void test_addAwsRoleToIAMSvcacc_failure() throws Exception {
 
@@ -1519,7 +1518,7 @@ public class AzureServicePrinicipalAccountsServiceTest {
 		        assertEquals(responseEntityExpected, responseEntityActual);
 
 		    }
-
+		    
 		    @Test
 		    public void test_addAwsRoleToIAMSvcacc_failure_403() throws Exception {
 
@@ -1838,13 +1837,158 @@ public class AzureServicePrinicipalAccountsServiceTest {
 		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		Response metaActivatedResponse = getMockResponse(HttpStatus.OK, true, azureMetaDataStrActivated);
 		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
-
 		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(metaActivatedResponse);
 
 		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Azure Service Principal is already activated. You can now grant permissions from Permissions menu\"]}");
 		ResponseEntity<String> actualResponse = azureServicePrinicipalAccountsService.activateAzureServicePrinicipal(token, userDetails, servicePrincipal);
 		assertEquals(expectedResponse, actualResponse);
 	}
+	}	
+		    @Test
+		    public void test_removeAwsRoleToAzureSvcacc_succssfully_iam() throws Exception {
+
+		        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role successfully removed from Azure Service Account\"]}");
+		        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		        UserDetails userDetails = getMockUser(false);
+		        AzureServiceAccountAWSRole serviceAccountAWSRole = new AzureServiceAccountAWSRole("testsvcname", "role1", "read");
+
+		        String [] policies = {"o_azuresvcacc_testsvcname"};
+		        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+		        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+		                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+		                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+		                " [ \"\\\"[prod\",\"dev\\\"]\" ], \"auth_type\":\"iam\"}";
+		        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+		        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+		        Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+		        when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+		        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+		        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+		        ResponseEntity<String> responseEntityActual =  azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
+
+		        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+		        assertEquals(responseEntityExpected, responseEntityActual);
+
+		    }
+	 
+		    @Test
+		    public void test_removeAwsRoleToAzureSvcacc_succssfully_ec2() throws Exception {
+
+		        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role successfully removed from Azure Service Account\"]}");
+		        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		        UserDetails userDetails = getMockUser(false);
+		        AzureServiceAccountAWSRole serviceAccountAWSRole = new AzureServiceAccountAWSRole("testsvcname", "role1", "read");
+
+		        String [] policies = {"o_azuresvcacc_testsvcname"};
+		        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+		        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+		                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+		                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+		                " [ \"\\\"[prod\",\"dev\\\"]\" ], \"auth_type\":\"ec2\"}";
+		        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+		        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+		        Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+		        when(awsAuthService.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+		        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+		        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+		        ResponseEntity<String> responseEntityActual =  azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
+
+		        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+		        assertEquals(responseEntityExpected, responseEntityActual);
+
+		    }
+			
+		    @Test
+		    public void test_removeAwsRoleToAzureSvcacc_ec2_metadata_failure() throws Exception {
+
+		        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Please try again\"]}");
+		        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		        UserDetails userDetails = getMockUser(false);
+		        AzureServiceAccountAWSRole serviceAccountAWSRole = new AzureServiceAccountAWSRole("testsvcname", "role1", "read");
+
+		        String [] policies = {"o_azuresvcacc_testsvcname"};
+		        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+		        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+		                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+		                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+		                " [ \"\\\"[prod\",\"dev\\\"]\" ], \"auth_type\":\"ec2\"}";
+		        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+		        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+		        Response configureAWSRoleResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		        when(awsAuthService.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+		        Response updateMetadataResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+		        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+		        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+		        ResponseEntity<String> responseEntityActual =  azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
+
+		        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+		        assertEquals(responseEntityExpected, responseEntityActual);
+
+		    }
+
+		    @Test
+		    public void test_removeAwsRoleToAzureSvcacc_iam_metadata_failure() throws Exception {
+
+		        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Please try again\"]}");
+		        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		        UserDetails userDetails = getMockUser(false);
+		        AzureServiceAccountAWSRole serviceAccountAWSRole = new AzureServiceAccountAWSRole("testsvcname", "role1", "read");
+
+		        String [] policies = {"o_azuresvcacc_testsvcname"};
+		        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+		        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+		                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+		                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+		                " [ \"\\\"[prod\",\"dev\\\"]\" ], \"auth_type\":\"iam\"}";
+		        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+		        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+		        Response configureAWSRoleResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+		        when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+		        Response updateMetadataResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+		        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+		        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+		        ResponseEntity<String> responseEntityActual =  azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
+
+		        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+		        assertEquals(responseEntityExpected, responseEntityActual);
+
+		    }
+		    @Test
+		    public void test_removeAwsRoleToIAMSvcacc_failure() throws Exception {
+
+		        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed. Try Again\"]}");
+		        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		        UserDetails userDetails = getMockUser(false);
+		        AzureServiceAccountAWSRole serviceAccountAWSRole = new AzureServiceAccountAWSRole("testsvcname", "role1", "read");
+
+		        String [] policies = {"o_azuresvcacc_testsvcname"};
+		        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+		        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+		                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+		                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+		                " [ \"\\\"[prod\",\"dev\\\"]\" ], \"auth_type\":\"iam\"}";
+		        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+		        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+		        Response configureAWSRoleResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+		        when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+		        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+		        ResponseEntity<String> responseEntityActual =  azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, serviceAccountAWSRole);
+
+		        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+		        assertEquals(responseEntityExpected, responseEntityActual);
+
+		    }
 
 	@Test
 	public void test_activateAzureServicePrinicipal_failed_owner_association() {

@@ -35,6 +35,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmobile.cso.vault.api.common.AzureServiceAccountConstants;
+import com.tmobile.cso.vault.api.common.IAMServiceAccountConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
@@ -2585,6 +2586,7 @@ public class AzureServicePrinicipalAccountsService {
 		return false;
 	}
 
+<<<<<<< HEAD
 	/**
 	 * Add Group to Azure service principal
 	 *
@@ -3255,5 +3257,154 @@ public class AzureServicePrinicipalAccountsService {
 			}
 		}
 		return false;
+	}
+	public ResponseEntity<String> removeAwsRoleFromAzureSvcacc(UserDetails userDetails, String token,
+			AzureServiceAccountAWSRole azureServiceAccountAWSRole) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_AWS_ROLE_AZURE_MSG).
+				put(LogMessage.MESSAGE, String.format ("Trying to remove AWS Role from Azure service principal [%s]", azureServiceAccountAWSRole.getRolename())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		if(!isAzureSvcaccPermissionInputValid(azureServiceAccountAWSRole.getAccess())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+		}
+		if (azureServiceAccountAWSRole.getAccess().equalsIgnoreCase(AzureServiceAccountConstants.AZURE_ROTATE_MSG_STRING)) {
+			azureServiceAccountAWSRole.setAccess(TVaultConstants.WRITE_POLICY);
+		}
+		String roleName = azureServiceAccountAWSRole.getRolename();
+		String azureSvcName = azureServiceAccountAWSRole.getAzureSvcAccName().toLowerCase();
+		String access = azureServiceAccountAWSRole.getAccess();
+
+		roleName = (roleName !=null) ? roleName.toLowerCase() : roleName;
+		access = (access != null) ? access.toLowerCase(): access;
+
+		boolean isAuthorized = hasAddOrRemovePermission(userDetails, azureSvcName, token);
+		if(isAuthorized){
+			String policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access))
+					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
+
+
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_AWS_ROLE_AZURE_MSG).
+					put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			
+			String readPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
+					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
+			String writePolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
+					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
+			String denyPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
+					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
+			String ownerPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
+			
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_AWS_ROLE_AZURE_MSG).
+					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, ownerPolicy)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			
+			Response roleResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+roleName+"\"}",token);
+			String responseJson="";
+			String authType = TVaultConstants.EC2;
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+			String policiesString = "";
+			String currentpoliciesString = "";
+
+			if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
+				responseJson = roleResponse.getResponse();
+				ObjectMapper objMapper = new ObjectMapper();
+				try {
+					JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
+					for(JsonNode policyNode : policiesArry){
+						currentpolicies.add(policyNode.asText());
+					}
+					authType = objMapper.readTree(responseJson).get("auth_type").asText();
+				} catch (IOException e) {
+                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                            put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_AWS_ROLE_AZURE_MSG).
+                            put(LogMessage.MESSAGE, e.getMessage()).
+                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                            build()));
+                    policies.addAll(currentpolicies);
+    				policies.remove(readPolicy);
+    				policies.remove(writePolicy);
+    				policies.remove(denyPolicy);
+    				policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+    				currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+				}
+			} else{
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"AWS role '"+roleName+"' does not exist. Please create the role and try again!\"]}");
+			}
+			Response awsRoleConfigresponse = null;
+			if (TVaultConstants.IAM.equals(authType)) {
+				awsRoleConfigresponse = awsiamAuthService.configureAWSIAMRole(roleName,policiesString,token);
+			}
+			else {
+				awsRoleConfigresponse = awsAuthService.configureAWSRole(roleName,policiesString,token);
+			}
+			if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
+				String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(azureSvcName).toString();
+				Map<String,String> params = new HashMap<>();
+				params.put("type", "aws-roles");
+				params.put("name",roleName);
+				params.put("path",path);
+				params.put("access","delete");
+				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
+							put(LogMessage.MESSAGE, "AWS Role configuration Success.").
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role successfully removed from Azure Service Account\"]}");
+				}
+				if (TVaultConstants.IAM.equals(authType)) {
+					awsRoleConfigresponse = awsiamAuthService.configureAWSIAMRole(roleName,currentpoliciesString,token);
+				}
+				else {
+					awsRoleConfigresponse = awsAuthService.configureAWSRole(roleName,currentpoliciesString,token);
+				}
+			if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_AWS_ROLE_AZURE_MSG).
+						put(LogMessage.MESSAGE, "Reverting, AWS Role policy update success").
+						put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+						put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Please try again\"]}");
+			}
+			else{
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
+						put(LogMessage.MESSAGE, "Reverting AWS Role policy update failed").
+						put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+						put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Contact Admin \"]}");
+			}
+		} 
+			else{
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed. Try Again\"]}");
+			}
+		}else{
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove AWS Role from this Azure service account\"]}");
+		}
 	}
 }

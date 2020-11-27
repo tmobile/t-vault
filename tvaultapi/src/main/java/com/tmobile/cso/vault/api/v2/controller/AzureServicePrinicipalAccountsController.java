@@ -214,6 +214,21 @@ public class AzureServicePrinicipalAccountsController {
 			@RequestHeader(value = "vault-token") String token, @PathVariable("azure_svc_name") String azureSvcName){
 		return azureServicePrinicipalAccountsService.getAzureServicePrincipalDetail(token, azureSvcName);
 	}
+	/**
+	 * Remove AWS role from Azure Service Account
+	 * 
+	 * @param token
+	 * @param azureServiceAccountAWSRole
+	 * @return
+	 */
+	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.removeAwsRoleToAzureSvcacc.value}", notes = "${AzureServicePrinicipalAccountsController.removeAwsRoleToAzureSvcacc.notes}" ,hidden = false)
+	@DeleteMapping(value = "/v2/azureserviceaccounts/role", produces = "application/json")
+	public ResponseEntity<String> removeAwsRoleToAzureSvcacc(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token,
+			@Valid @RequestBody AzureServiceAccountAWSRole azureServiceAccountAWSRole) {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, azureServiceAccountAWSRole);
+	}
 
 	/**
 	 * Add Group to Azure Service Principal.

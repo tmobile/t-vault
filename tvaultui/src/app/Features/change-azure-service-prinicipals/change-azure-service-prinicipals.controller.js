@@ -450,7 +450,7 @@
                             };
                             break;
                         case 'AWSPermission':
-                            apiCallFunction = AdminSafesManagement.detachAWSPermissionFromIAMSvcacc;
+                            apiCallFunction = AdminSafesManagement.detachAwsRoleFromAzureSvcacc;
                             reqObjtobeSent = {
                                 "azureSvcAccName": svcaccname,
                                 "rolename": key,

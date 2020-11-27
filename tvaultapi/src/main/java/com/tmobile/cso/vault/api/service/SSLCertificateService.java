@@ -737,6 +737,7 @@ public class SSLCertificateService {
                                 build()));
                     }
 
+
                     String metadataJson = populateSSLCertificateMetadata(sslCertificateRequest, userDetails,
                             certManagerLogin,actionId);
 
@@ -1552,7 +1553,6 @@ public class SSLCertificateService {
             sslCertificateMetadataDetails.setCertificateStatus(certDetails.getCertificateStatus());
             sslCertificateMetadataDetails.setContainerName(certDetails.getContainerName());
             sslCertificateMetadataDetails.setDnsNames(certDetails.getDnsNames());
-            sslCertificateMetadataDetails.setNotificationEmails(sslCertificateRequest.getNotificationEmail());
 
         } else {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1566,6 +1566,10 @@ public class SSLCertificateService {
         sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
         sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
         sslCertificateMetadataDetails.setContainerId(containerId);
+        String notifEmailstringArrayvalues =   sslCertificateRequest.getNotificationEmail().toLowerCase();
+        String [] arraystrValues=notifEmailstringArrayvalues.split(",");
+        String notifEmailList  = new HashSet<String>(Arrays.asList(arraystrValues)).toString();
+        sslCertificateMetadataDetails.setNotificationEmails(notifEmailList);
 
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -1586,7 +1590,10 @@ public class SSLCertificateService {
                 sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
                 sslCertificateMetadataDetails.setRequestStatus(SSLCertificateConstants.REQUEST_PENDING_APPROVAL);
                 sslCertificateMetadataDetails.setActionId(actionId);
-                sslCertificateMetadataDetails.setNotificationEmails(sslCertificateRequest.getNotificationEmail());
+                String notifEmailstringArrayvalues =   sslCertificateRequest.getNotificationEmail().toLowerCase();
+                String [] arraystrValues=notifEmailstringArrayvalues.split(",");
+                String notifEmailList  = new HashSet<String>(Arrays.asList(arraystrValues)).toString();
+                sslCertificateMetadataDetails.setNotificationEmails(notifEmailList);
             }
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -1655,52 +1662,30 @@ public class SSLCertificateService {
         }
         return true;
     }
-	/**
+    /**
      * Validate the notificationEmails
      * @param sslCertificateRequest
      * @return
      */
-	private boolean validateNotificationEmails(SSLCertificateRequest sslCertificateRequest) {
-		boolean isValidData =true;
-		if(sslCertificateRequest.getNotificationEmail()!=null) {
-		String[] notifEmailLst;
-		int count=0;
-        String notificationEmails = sslCertificateRequest.getNotificationEmail();
-        notifEmailLst =   sslCertificateRequest.getNotificationEmail().split(",");
-        notifEmailLst = new HashSet<String>(Arrays.asList(notifEmailLst)).toArray(new String[0]);
-        for(int i=0; i<notifEmailLst.length;i++) {
-			if(validateCertficateNotificationEmail(notifEmailLst[i] )) {
-				count++;
-			}
-		}
-        if(count==notifEmailLst.length) {
-        	isValidData = true;
-		}else if(count<notifEmailLst.length) {
-			isValidData = false;
-		}
-		}
-		if(isValidData == true) {
-			return true;
-		}
-		return false;
-    }
-	/**
-     * Validate the notificationEmailString
-     * @param notificationEmailString
-     * @return
-     */
-    private boolean validateCertficateNotificationEmail(String notificationEmailString) {
-            if (notificationEmailString.contains(" ") || 
-            		(notificationEmailString.endsWith(certificateNameTailText)) ||
-                    (notificationEmailString.contains(".-")) || 
-                    (notificationEmailString.contains("-.")) || 
-                    (notificationEmailString.contains("..")) || 
-                    (notificationEmailString.endsWith("."))) {
-                return false;
+    private boolean validateCertNotificationEmail(SSLCertificateRequest sslCertificateRequest) {
+    	boolean isValid=true;
+    	if(sslCertificateRequest.getNotificationEmail()!=null) {
+    		String[] notifEmailLst;
+    		notifEmailLst =   sslCertificateRequest.getNotificationEmail().split(",");
+            for(int i=0; i<notifEmailLst.length;i++) {
+        if (notifEmailLst[i].contains(" ") || 
+        		(notifEmailLst[i].endsWith(certificateNameTailText)) ||
+        		(!notifEmailLst[i].toLowerCase().endsWith("@t-mobile.com")) ||
+                (notifEmailLst[i].contains(".-")) || 
+                (notifEmailLst[i].contains("-.")) || 
+                (notifEmailLst[i].contains("..")) || 
+                (notifEmailLst[i].endsWith("."))) {
+            return isValid=false;
+        }
             }
-		return true;
-	}
-
+    	}
+	return isValid;
+}
 	/**
      * Validate input data
      * @param sslCertificateRequest
@@ -1712,7 +1697,8 @@ public class SSLCertificateService {
 	            (!populateCertOwnerEmaild(sslCertificateRequest, userDetails)) ||
 	            sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
 	            (!sslCertificateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)) 
-	            || (!validateDNSNames(sslCertificateRequest))|| (!validateNotificationEmails(sslCertificateRequest))){
+	            || (!validateDNSNames(sslCertificateRequest))|| 
+	             (!validateCertNotificationEmail(sslCertificateRequest))){
 	        isValid= false;
 	    }
 	    return isValid;

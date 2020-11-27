@@ -373,6 +373,7 @@ public class SSLCertificateServiceTest {
         sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
+        sslCertificateRequest.setNotificationEmail("test.sample1@t-mobile.com");
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -743,6 +744,7 @@ public class SSLCertificateServiceTest {
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         sslCertificateRequest.setCertType("external");
+        sslCertificateRequest.setNotificationEmail("notificationemail@t-mobile.com");
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -859,6 +861,7 @@ public class SSLCertificateServiceTest {
         createCertPolicyMap.put("appName", "tvt");
         createCertPolicyMap.put("certType", "internal");
         createCertPolicyMap.put("certOwnerNtid", "testusername1");
+        createCertPolicyMap.put("notificationEmail", "certificatename@t-mobile.com");
 
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
         when(ControllerUtil.parseJson(metaDataStr)).thenReturn(createCertPolicyMap);
@@ -911,6 +914,7 @@ public class SSLCertificateServiceTest {
         String[] dnsNames = {"test1","test2" };
         sslCertificateRequest.setDnsList(dnsNames);
         sslCertificateRequest.setCertType("external");
+        sslCertificateRequest.setNotificationEmail("test.sample1@t-mobile.com");
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -1449,6 +1453,7 @@ public class SSLCertificateServiceTest {
         sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
+        sslCertificateRequest.setNotificationEmail("test.sample1@t-mobile.com");
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -1596,6 +1601,7 @@ public class SSLCertificateServiceTest {
         sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
+        sslCertificateRequest.setNotificationEmail("test.sample1@t-mobile.com");
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -1733,6 +1739,7 @@ public class SSLCertificateServiceTest {
 
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
         sslCertificateRequest.setCertificateName("certificatename");
+        sslCertificateRequest.setNotificationEmail("testCert@t-mobile.com");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
         Map<String, Object> requestMap = new HashMap<>();
@@ -5264,6 +5271,7 @@ public class SSLCertificateServiceTest {
         String userDetailToken = userDetails.getSelfSupportToken();
         SSLCertificateRequest sslCertificateRequest = getSSLCertificateRequest();
         sslCertificateRequest.setCertificateName("certificatename");
+        sslCertificateRequest.setNotificationEmail("testCert@t-mobile.com");
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
