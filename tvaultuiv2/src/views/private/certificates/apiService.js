@@ -19,6 +19,16 @@ const addCertificateGroup = (payload) => api.post('/sslcert/group', payload);
 const deleteCertificateGroup = (payload) =>
   api.delete('/sslcert/group', payload);
 
+// Api Calls for aws application
+const addAwsPermission = (url, payload) => api.post(url, payload);
+const addAwsRole = (payload) => api.post('/sslcert/aws', payload);
+const deleteAwsRole = (payload) => api.delete('/sslcert/aws', payload);
+
+// Api call for app roles permission
+const addAppRolePermission = (payload) => api.post('/sslcert/approle', payload);
+const deleteAppRolePermission = (payload) =>
+  api.delete('/sslcert/approle', payload);
+
 const getApplicationName = () => api.get('/serviceaccounts/cwm/approles');
 const getOwnerEmail = (corpId) => api.get(`/ldap/corpusers?CorpId=${corpId}`);
 const createCertificate = (payload) => api.post('/sslcert', payload);
@@ -63,4 +73,9 @@ export default {
   transferOwner,
   onDownloadCertificate,
   onPrivateDownload,
+  addAwsPermission,
+  addAwsRole,
+  deleteAwsRole,
+  addAppRolePermission,
+  deleteAppRolePermission,
 };

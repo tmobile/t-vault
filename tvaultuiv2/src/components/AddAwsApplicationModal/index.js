@@ -1,3 +1,5 @@
+/* eslint-disable no-nested-ternary */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
@@ -42,6 +44,7 @@ const AddAwsApplicationModal = (props) => {
     handleModalClose,
     open,
     isSvcAccount,
+    isCertificate,
   } = props;
 
   const classes = useStyles();
@@ -66,6 +69,7 @@ const AddAwsApplicationModal = (props) => {
               handleSaveClick={handleSaveClick}
               handleCancelClick={handleCancelClick}
               isSvcAccount={isSvcAccount}
+              isCertificate={isCertificate}
             />
           </ModalWrapper>
         </Fade>
@@ -80,9 +84,11 @@ AddAwsApplicationModal.propTypes = {
   handleModalClose: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,
   isSvcAccount: PropTypes.bool,
+  isCertificate: PropTypes.bool,
 };
 AddAwsApplicationModal.defaultProps = {
   isSvcAccount: false,
+  isCertificate: false,
 };
 
 export default AddAwsApplicationModal;
