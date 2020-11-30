@@ -6628,6 +6628,24 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                     .put(LogMessage.MESSAGE, String.format("deleteCertificateDetailsFromCertMetaPath->metadataResponse Completed for " +
                             "certificate = [%s] = responseStatus = [%s]", certificateName, metadataResponse.getResponse()))
                     .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+            //remove AWS role permissions
+            deleteAwsRoleOnCertificateDelete(certificateName, token, jsonParser, object);
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "unLinkCertificate")
+                    .put(LogMessage.MESSAGE, String.format("DeleteAwsRoleOnCertificate Completed for certificate = [%s]", certificateName))
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+            //remove App role permissions
+            deleteApprolePolicyAssociationOnCertificate(certificateName, token, jsonParser, object);
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "unLinkCertificate")
+                    .put(LogMessage.MESSAGE, String.format("DeleteApprolePolicyAssociationOnCertificate Completed for certificate = [%s]", certificateName))
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
                     .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
                     .put(LogMessage.ACTION, "unLinkCertificate")
@@ -6635,6 +6653,9 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                                     " successfully - details = certificate name = [%s] = certType = [%s] = release by = [%s] = on date = [%s] = reason = [%s]",
                             certificateName, certType,userDetails.getUsername(),LocalDateTime.now(),releaseReason))
                     .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+
+
 
             return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Certificate [" + certificateName + "] details " +
                     " removed from the application \"]}");
