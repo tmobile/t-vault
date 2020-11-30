@@ -269,4 +269,18 @@ public class AzureServicePrincipalAccountsController {
 	public ResponseEntity<String> rotateSecret(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest){
 		return azureServicePrincipalAccountsService.rotateSecret(token, azureServicePrincipalRotateRequest);
 	}
+	
+	/**
+	 * Removes permission for a group from the IAM service account
+	 * @param request
+	 * @param token
+	 * @param iamServiceAccountGroup
+	 * @return
+	 */
+	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.removeGroupFromAzureServiceAccount.value}", notes = "${AzureServicePrinicipalAccountsController.removeGroupFromAzureServiceAccount.notes}")
+	@DeleteMapping(value="/v2/azureserviceaccounts/group", produces="application/json")
+	public ResponseEntity<String> removeGroupFromAzureServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody AzureServiceAccountGroup azureServiceAccountGroup ){
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return azureServicePrincipalAccountsService.removeGroupFromAzureServiceAccount(token, azureServiceAccountGroup, userDetails);
+	}
 }

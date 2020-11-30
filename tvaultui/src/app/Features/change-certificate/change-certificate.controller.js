@@ -1701,6 +1701,7 @@
             }
 
             $scope.addNotificationEmail = function () {
+            	event.preventDefault();
             	if($scope.notificationEmails==undefined){
             		$scope.notificationEmails = [];
             	}
