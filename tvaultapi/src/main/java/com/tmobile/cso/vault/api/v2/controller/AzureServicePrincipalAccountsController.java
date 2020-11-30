@@ -277,7 +277,7 @@ public class AzureServicePrincipalAccountsController {
 	 * @param azureServiceAccountGroup
 	 * @return
 	 */
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.removeGroupFromAzureServiceAccount.value}", notes = "${AzureServicePrinicipalAccountsController.removeGroupFromAzureServiceAccount.notes}")
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.removeGroupFromAzureServiceAccount.value}", notes = "${AzureServicePrincipalAccountsController.removeGroupFromAzureServiceAccount.notes}")
 	@DeleteMapping(value="/v2/azureserviceaccounts/group", produces="application/json")
 	public ResponseEntity<String> removeGroupFromAzureServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody AzureServiceAccountGroup azureServiceAccountGroup ){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
