@@ -6536,6 +6536,11 @@ public class SSLCertificateServiceTest {
         userInfo.setAdmin(true);
         userInfo.setClientToken(token);
         userInfo.setSelfSupportToken(token);
+        String role = "role1";
+        Response roleResponse = new Response();
+        roleResponse.setHttpstatus(HttpStatus.NO_CONTENT);
+        roleResponse.setSuccess(true);
+        when( reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token)).thenReturn(roleResponse);
 
         when(reqProcessor.process(eq("/access/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
 
@@ -6569,6 +6574,12 @@ public class SSLCertificateServiceTest {
         userInfo.setAdmin(false);
         userInfo.setClientToken(token);
         userInfo.setSelfSupportToken(token);
+
+        String role = "role1";
+        Response roleResponse = new Response();
+        roleResponse.setHttpstatus(HttpStatus.NO_CONTENT);
+        roleResponse.setSuccess(true);
+        when( reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token)).thenReturn(roleResponse);
 
         when(reqProcessor.process(eq("/access/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
 
