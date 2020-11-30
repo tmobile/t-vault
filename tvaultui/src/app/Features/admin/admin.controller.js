@@ -1737,7 +1737,7 @@
                         var i = 0;
                         $scope.notificationEmails.forEach(function (email) {
                             addNotificationEmailCertString(email.email);
-                            var id = "dns"+ (i++);
+                            var id = "notificationemail"+ (i++);
                             angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
                         });
                     }
@@ -2630,7 +2630,7 @@
         $scope.addNotificationEmailCert = function () {
             var length = $scope.notificationEmails.length;
             $scope.notificationEmailErrorMessage = '';
-            var id="dns"+length;
+            var id="notificationemail"+length;
             if ($scope.notificationEmail && $scope.notificationEmail.email!="" && !isDuplicateNotificationEmail($scope.notificationEmail.email)) {
                 angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+$scope.notificationEmail.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
                 $scope.notificationEmails.push({ "id": length, "email":$scope.notificationEmail.email});
@@ -2643,7 +2643,7 @@
         $scope.deleteNotificationEmail = function (id) {
             var notificationEmailElement = angular.element( document.querySelector( '#'+id ) );
             notificationEmailElement.remove();
-            var index = id.substring(3);
+            var index = id.substring(17);
             $scope.selectedNotificationEmails = [];
             for (var i=0;i<$scope.notificationEmails.length;i++) {
                 if (index != $scope.notificationEmails[i].id) {
