@@ -271,10 +271,10 @@ public class AzureServicePrincipalAccountsController {
 	}
 	
 	/**
-	 * Removes permission for a group from the IAM service account
+	 * Removes permission for a group from the Azure service account
 	 * @param request
 	 * @param token
-	 * @param iamServiceAccountGroup
+	 * @param azureServiceAccountGroup
 	 * @return
 	 */
 	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.removeGroupFromAzureServiceAccount.value}", notes = "${AzureServicePrinicipalAccountsController.removeGroupFromAzureServiceAccount.notes}")
