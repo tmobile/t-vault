@@ -412,6 +412,7 @@
                     key = key.replace($scope.domainName, '');
                     $scope.isLoadingData = true;
                     var svcaccname = $scope.azureSvcacc.azureSvcAccId;
+                    var awsAccountId = $scope.svcacc.awsAccId;
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
                     switch (type) {
@@ -441,9 +442,9 @@
                             }
                             break;
                         case 'groups' :
-                            apiCallFunction = AdminSafesManagement.deleteGroupPermissionFromIAMSvcacc;
+                            apiCallFunction = AdminSafesManagement.deleteGroupPermissionFromAzureSvcacc;
                             reqObjtobeSent = {
-                                "iamSvcAccName": svcaccname,
+                                "azureSvcAccName": svcaccname,
                                 "groupname": key,
                                 "access": permission,
                                 "awsAccountId": awsAccountId

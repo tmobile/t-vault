@@ -1204,6 +1204,11 @@
         $scope.deleteCertPopup = function (certDetails) {
             $scope.fetchDataError = false;
             $rootScope.certDetails = certDetails;
+            if($scope.notificationEmail!=undefined){
+            $scope.notificationEmail.email = "";
+            }
+            $scope.notificationEmailErrorMessage = '';
+            $rootScope.certDetails = certDetails;
             Modal.createModal('md', 'deleteCertPopup.html', 'ChangeCertificateCtrl', $scope);
         };
         
@@ -1696,6 +1701,7 @@
             }
 
             $scope.addNotificationEmail = function () {
+            	event.preventDefault();
             	if($scope.notificationEmails==undefined){
             		$scope.notificationEmails = [];
             	}
