@@ -91,7 +91,7 @@ const PrivateRoutes = () => {
       await revokeToken();
     }
     window.location.href = '/';
-    sessionStorage.clear();
+    localStorage.clear();
   };
 
   const handleOnIdle = () => {

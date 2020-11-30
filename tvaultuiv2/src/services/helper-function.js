@@ -194,9 +194,10 @@ export const formatSecondsToTime = (seconds) => {
 };
 export const checkAccess = (access, type) => {
   let val = '';
-  if (access === 'write') {
+  if (access === 'write' || access === 'reset') {
     if (type?.toLowerCase() === 'iamsvcaccount') {
       val = 'rotate';
+      return val;
     }
     val = 'reset';
   } else {

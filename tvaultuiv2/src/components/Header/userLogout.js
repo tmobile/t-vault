@@ -61,7 +61,7 @@ const UserLogout = (props) => {
     if (configData.AUTH_TYPE === 'oidc') {
       await revokeToken();
     }
-    sessionStorage.clear();
+    localStorage.clear();
     checkToken();
     history.push('/');
   };
