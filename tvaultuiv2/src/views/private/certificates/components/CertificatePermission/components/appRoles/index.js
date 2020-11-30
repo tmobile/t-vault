@@ -230,7 +230,7 @@ const AppRoles = (props) => {
           />
         )}
 
-        {certificateMetaData && (
+        {certificateMetaData && response.status === 'success' && (
           <>
             {certificateMetaData['app-roles'] &&
               Object.keys(certificateMetaData['app-roles']).length > 0 && (

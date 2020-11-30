@@ -250,7 +250,7 @@ const AwsApplications = (props) => {
             isCertificate
           />
         )}
-        {certificateMetaData && (
+        {certificateMetaData && response.status === 'success' && (
           <>
             {certificateMetaData['aws-roles'] &&
               Object.keys(certificateMetaData['aws-roles']).length > 0 && (
