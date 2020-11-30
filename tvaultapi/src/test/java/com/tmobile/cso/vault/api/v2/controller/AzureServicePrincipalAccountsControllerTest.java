@@ -34,6 +34,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.service.AzureServicePrincipalAccountsService;
 
+import com.tmobile.cso.vault.api.model.AWSLoginRole;
+import com.tmobile.cso.vault.api.model.AzureSecrets;
+import com.tmobile.cso.vault.api.model.AzureServiceAccount;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountAWSRole;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountApprole;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountGroup;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountOffboardRequest;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountUser;
+import com.tmobile.cso.vault.api.model.UserDetails;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 public class AzureServicePrincipalAccountsControllerTest {
@@ -327,7 +337,21 @@ public class AzureServicePrincipalAccountsControllerTest {
 		mockMvc.perform(MockMvcRequestBuilders.post("/v2/azureserviceaccounts/activateAzureServicePrincipal?servicePrincipalName=testaureserviceprincipal").requestAttr("UserDetails", userDetails)
 				.header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
 				.header("Content-Type", "application/json;charset=UTF-8"))
-				.andExpect(status().isOk())
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	public void testAssociateApproletoAzureSvcAcc() throws Exception {
+		AzureServiceAccountApprole azureServiceAccountApprole = new AzureServiceAccountApprole("svc_vault_test2", "role1", "write");
+		String inputJson = getJSON(azureServiceAccountApprole);
+		String responseJson = "{\"messages\":[\"Approle successfully associated with Azure Service Principal\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+		when(azureServicePrincipalAccountsService.associateApproletoAzureServiceAccount(Mockito.any(), Mockito.anyString(),
+				Mockito.any())).thenReturn(responseEntityExpected);
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/v2/azureserviceaccounts/approle")
+				.requestAttr("UserDetails", userDetails).header("vault-token", token)
+				.header("Content-Type", "application/json;charset=UTF-8").content(inputJson)).andExpect(status().isOk())
 				.andExpect(content().string(containsString(responseJson)));
 	}
 
@@ -346,6 +370,7 @@ public class AzureServicePrincipalAccountsControllerTest {
 				.andExpect(status().isOk())
 				.andExpect(content().string(containsString(responseJson)));
 	}
+
 	@Test
 	public void test_removeAWSroletoAzureSvcAcc() throws Exception {
 		AzureServiceAccountAWSRole serviceAccountApprole = new AzureServiceAccountAWSRole();
@@ -360,8 +385,7 @@ public class AzureServicePrincipalAccountsControllerTest {
 
 		when(azureServicePrincipalAccountsService.removeAwsRoleFromAzureSvcacc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
 				Mockito.any(AzureServiceAccountAWSRole.class))).thenReturn(responseEntityExpected);
-		
-		
+
 		mockMvc.perform(MockMvcRequestBuilders.delete("/v2/azureserviceaccounts/role")
 				.requestAttr("UserDetails", userDetails).header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
 				.header("Content-Type", "application/json;charset=UTF-8").content(inputJson)).andExpect(status().isOk())
@@ -384,5 +408,38 @@ public class AzureServicePrincipalAccountsControllerTest {
 		String actual = result.getResponse().getContentAsString();
 		assertEquals(responseJson, actual);
 	}
-	
+
+	@Test
+	public void testAddUserToAzureSvcAccSuccess() throws Exception {
+		AzureServiceAccountUser azureServiceAccountUser = new AzureServiceAccountUser("svc_vault_test2", "testuser1", "read");
+
+		String expected = "{\"errors\":[\"Successfully added the user to Azure Service Principal\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
+		when(azureServicePrincipalAccountsService.addUserToAzureServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any(),
+				eq(false))).thenReturn(responseEntityExpected);
+		String inputJson = getJSON(azureServiceAccountUser);
+		MvcResult result = mockMvc
+				.perform(MockMvcRequestBuilders.post("/v2/azureserviceaccounts/user").header(VAULT_TOKEN_STRING, token)
+						.header(CONTENT_TYPE_STRING, CONTENT_TYPE_VALUE_STRING)
+						.requestAttr(USER_DETAILS_STRING, userDetails).content(inputJson))
+				.andExpect(status().isOk()).andReturn();
+
+		String actual = result.getResponse().getContentAsString();
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void testGetAzureServicePrincipalDetailSuccessful() throws Exception {
+		String responseJson = "{\"application_id\":1222,\"application_name\":\"T-Vault\",\"application_tag\":\"TVT\",\"servicePrinicipalId\":\"123456789012\",\"servicePrinicipalClientId\":\"AWS-SEC\",\"tenantId\":\"testidccc\",\"createdAtEpoch\":1086073200000,\"isActivated\":true,\"owner_email\":\"test@T-mobile.com\",\"owner_ntid\":\"testUser1\",\"secret\":[{\"accessKeyId\":\"1212zdasd\",\"expiryDuration\":\"2004-06-01\"},{\"accessKeyId\":\"abcdwww\",\"expiryDuration\":\"2004-06-01\"}],\"servicePrinicipalName\":\"testiamsvcacc01\",\"users\":{\"testuser1\":\"write\"},\"createdDate\":\"2004-06-01\",\"secretData\":[{\"accessKeyId\":\"1212zdasd\",\"expiryDuration\":\"2004-06-01\"},{\"accessKeyId\":\"abcdwww\",\"expiryDuration\":\"2004-06-01\"}]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+		String expected = responseEntityExpected.getBody();
+
+		when(azureServicePrincipalAccountsService.getAzureServicePrincipalDetail(token , "testiamsvcacc01"))
+				.thenReturn(responseEntityExpected);
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/azureserviceaccounts/testiamsvcacc01")
+				.header(VAULT_TOKEN_STRING, token).header(CONTENT_TYPE_STRING, CONTENT_TYPE_VALUE_STRING)
+				.requestAttr(USER_DETAILS_STRING, userDetails)).andExpect(status().isOk()).andReturn();
+		String actual = result.getResponse().getContentAsString();
+		assertEquals(expected, actual);
+	}
 }

@@ -1,3 +1,19 @@
+/** *******************************************************************************
+*  Copyright 2020 T-Mobile, US
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*  See the readme.txt file for additional language around disclaimer of warranties.
+*********************************************************************************** */
 package com.tmobile.cso.vault.api.v2.controller;
 
 import java.io.IOException;
@@ -23,6 +39,7 @@ import com.tmobile.cso.vault.api.model.AWSIAMRole;
 import com.tmobile.cso.vault.api.model.AWSLoginRole;
 import com.tmobile.cso.vault.api.model.AzureServiceAccount;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountAWSRole;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountApprole;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountGroup;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountOffboardRequest;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountUser;
@@ -220,7 +237,7 @@ public class AzureServicePrincipalAccountsController {
 	 * @param azureServiceAccountAWSRole
 	 * @return
 	 */
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.removeAwsRoleToAzureSvcacc.value}", notes = "${AzureServicePrinicipalAccountsController.removeAwsRoleToAzureSvcacc.notes}" ,hidden = false)
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.removeAwsRoleToAzureSvcacc.value}", notes = "${AzureServicePrincipalAccountsController.removeAwsRoleToAzureSvcacc.notes}" ,hidden = false)
 	@DeleteMapping(value = "/v2/azureserviceaccounts/role", produces = "application/json")
 	public ResponseEntity<String> removeAwsRoleToAzureSvcacc(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,
@@ -269,7 +286,7 @@ public class AzureServicePrincipalAccountsController {
 	public ResponseEntity<String> rotateSecret(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest){
 		return azureServicePrincipalAccountsService.rotateSecret(token, azureServicePrincipalRotateRequest);
 	}
-	
+
 	/**
 	 * Removes permission for a group from the Azure service account
 	 * @param request
@@ -282,5 +299,22 @@ public class AzureServicePrincipalAccountsController {
 	public ResponseEntity<String> removeGroupFromAzureServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody AzureServiceAccountGroup azureServiceAccountGroup ){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return azureServicePrincipalAccountsService.removeGroupFromAzureServiceAccount(token, azureServiceAccountGroup, userDetails);
+	}
+
+	/**
+	 * Add approle to Azure Service Principal.
+	 *
+	 * @param request
+	 * @param token
+	 * @param azureServiceAccountApprole
+	 * @return
+	 */
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.associateApproletoAzureServiceAccount.value}", notes = "${AzureServicePrincipalAccountsController.associateApproletoAzureServiceAccount.notes}")
+	@PostMapping(value = "/v2/azureserviceaccounts/approle", consumes = "application/json", produces = "application/json")
+	public ResponseEntity<String> associateApproletoAzureServiceAccount(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token,
+			@Valid @RequestBody AzureServiceAccountApprole azureServiceAccountApprole) {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return azureServicePrincipalAccountsService.associateApproletoAzureServiceAccount(userDetails, token, azureServiceAccountApprole);
 	}
 }

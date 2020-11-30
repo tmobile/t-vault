@@ -41,6 +41,25 @@ import com.tmobile.cso.vault.api.common.AzureServiceAccountConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
+
+import com.tmobile.cso.vault.api.model.AzureSecrets;
+import com.tmobile.cso.vault.api.model.AzureSecretsMetadata;
+import com.tmobile.cso.vault.api.model.AzureServiceAccount;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountAWSRole;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountApprole;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountGroup;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountMetadataDetails;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountOffboardRequest;
+import com.tmobile.cso.vault.api.model.AzureServiceAccountUser;
+import com.tmobile.cso.vault.api.model.AzureSvccAccMetadata;
+import com.tmobile.cso.vault.api.model.DirectoryObjects;
+import com.tmobile.cso.vault.api.model.DirectoryObjectsList;
+import com.tmobile.cso.vault.api.model.DirectoryUser;
+import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
+import com.tmobile.cso.vault.api.model.OIDCGroup;
+import com.tmobile.cso.vault.api.model.OIDCLookupEntityRequest;
+import com.tmobile.cso.vault.api.model.UserDetails;
+
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.AzureServiceAccountUtils;
@@ -1612,6 +1631,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		currentpolicies.add("w_shared_mysafe01");
 		currentpolicies.add("w_shared_mysafe02");
 		OIDCGroup oidcGroup = new OIDCGroup("123-123-123", currentpolicies);
+		currentpolicies.addAll(oidcGroup.getPolicies());
 		when(OIDCUtil.getIdentityGroupDetails("mygroup01", token)).thenReturn(oidcGroup);
 
 		Response response = new Response();
@@ -2332,7 +2352,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		ResponseEntity<String> actualResponse = azureServicePrincipalAccountsService.rotateSecret(token, azureServicePrincipalRotateRequest);
 		assertEquals(expectedResponse, actualResponse);
 	}
-	
+
 	@Test
 	public void testRemoveGroupFromAzureSvcAccSuccessfully() {
 		token = userDetails.getClientToken();
@@ -2421,4 +2441,291 @@ public class AzureServicePrincipalAccountsServiceTest {
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 		assertEquals(responseEntityExpected, responseEntity);
 	}
+
+	@Test
+	public void testAddGroupToAzureSvcAccFailureInvalidAccess() {
+		AzureServiceAccountGroup azureSvcAccGroup = new AzureServiceAccountGroup("testaccount", "group1", "test");
+		userDetails = getMockUser(false);
+		token = userDetails.getClientToken();
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+				"{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		ResponseEntity<String> responseEntity = azureServicePrincipalAccountsService.addGroupToAzureServiceAccount(token,
+				azureSvcAccGroup, userDetails);
+		assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
+
+	@Test
+	public void testAddGroupToAzureSvcAccFailureAuthTypeNotSupport() {
+		AzureServiceAccountGroup azureSvcAccGroup = new AzureServiceAccountGroup("testaccount", "group1", "read");
+		userDetails = getMockUser(false);
+		token = userDetails.getClientToken();
+		ReflectionTestUtils.setField(azureServicePrincipalAccountsService, "vaultAuthMethod", "userpass");
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+				"{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		ResponseEntity<String> responseEntity = azureServicePrincipalAccountsService.addGroupToAzureServiceAccount(token,
+				azureSvcAccGroup, userDetails);
+		assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
+
+	@Test
+	public void testAddGroupToAzureSvcAccMetadataRevertFailure() {
+		AzureServiceAccountGroup azureSvcAccGroup = new AzureServiceAccountGroup("testaccount", "group1", "rotate");
+		userDetails = getMockUser(false);
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body("{\"errors\":[\"Group configuration failed. Contact Admin \"]}");
+		Response responseNoContent = getMockResponse(HttpStatus.OK, true, "");
+		Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+
+		String[] policies = { "o_azuresvcacc_testaccount" };
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+		Response groupResp = getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+		when(reqProcessor.process("/auth/ldap/groups", "{\"groupname\":\"group1\"}", token)).thenReturn(groupResp);
+		ObjectMapper objMapper = new ObjectMapper();
+		String responseJson = groupResp.getResponse();
+		try {
+			List<String> resList = new ArrayList<>();
+			resList.add("default");
+			resList.add("w_shared_mysafe01");
+			resList.add("w_shared_mysafe02");
+			when(ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson)).thenReturn(resList);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		when(ControllerUtil.configureLDAPGroup(any(), any(), any())).thenReturn(responseNoContent);
+		when(ControllerUtil.updateMetadata(any(), eq(token))).thenReturn(response404);
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		ResponseEntity<String> responseEntity = azureServicePrincipalAccountsService.addGroupToAzureServiceAccount(token,
+				azureSvcAccGroup, userDetails);
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
+
+	@Test
+	public void testAddGroupToAzureSvcACcOidcFailed() {
+		AzureServiceAccountGroup azureSvcAccGroup = new AzureServiceAccountGroup("testaccount", "group1", "read");
+		userDetails = getMockUser(false);
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body("{\"errors\":[\"Group configuration failed. Contact Admin \"]}");
+		Response responseNoContent = getMockResponse(HttpStatus.FORBIDDEN, true, "");
+
+		String[] policies = { "o_azuresvcacc_testaccount" };
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+		Response groupResp = getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+		when(reqProcessor.process("/auth/ldap/groups", "{\"groupname\":\"group1\"}", token)).thenReturn(groupResp);
+		ObjectMapper objMapper = new ObjectMapper();
+		String responseJson = groupResp.getResponse();
+		try {
+			List<String> resList = new ArrayList<>();
+			resList.add("default");
+			resList.add("w_shared_mysafe01");
+			resList.add("w_shared_mysafe02");
+			when(ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson)).thenReturn(resList);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		when(ControllerUtil.configureLDAPGroup(any(), any(), any())).thenReturn(responseNoContent);
+		when(ControllerUtil.updateMetadata(any(), eq(token))).thenReturn(responseNoContent);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+
+		ReflectionTestUtils.setField(azureServicePrincipalAccountsService, "vaultAuthMethod", "oidc");
+		List<String> policie = new ArrayList<>();
+		policie.add("default");
+		policie.add("w_shared_mysafe02");
+		policie.add("r_shared_mysafe01");
+		List<String> currentpolicies = new ArrayList<>();
+		currentpolicies.add("default");
+		currentpolicies.add("w_shared_mysafe01");
+		currentpolicies.add("w_shared_mysafe02");
+		OIDCGroup oidcGroup = new OIDCGroup("123-123-123", currentpolicies);
+		when(OIDCUtil.getIdentityGroupDetails("mygroup01", token)).thenReturn(oidcGroup);
+
+		Response response = new Response();
+		response.setHttpstatus(HttpStatus.OK);
+		when(OIDCUtil.updateGroupPolicies(any(), any(), any(), any(), any())).thenReturn(response);
+
+		ResponseEntity<String> responseEntity = azureServicePrincipalAccountsService.addGroupToAzureServiceAccount(token,
+				azureSvcAccGroup, userDetails);
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
+
+    @Test
+    public void testAssociateAppRoleToAzureSvcAccSuccssfully() {
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully associated with Azure Service Principal\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AzureServiceAccountApprole azureServiceAccountApprole = new AzureServiceAccountApprole("svc_vault_test2", "role1", "rotate");
+
+        String [] policies = {"o_azuresvcacc_svc_vault_test2"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_azuresvcacc_testsvcname\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        ResponseEntity<String> responseEntityActual =  azureServicePrincipalAccountsService.associateApproletoAzureServiceAccount(userDetails, token, azureServiceAccountApprole);
+
+        assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void testAssociateAppRoleToAzureAccFailedInvalidAccess() {
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AzureServiceAccountApprole azureServiceAccountApprole = new AzureServiceAccountApprole("svc_vault_test2", "role1", "write");
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        ResponseEntity<String> responseEntityActual =  azureServicePrincipalAccountsService.associateApproletoAzureServiceAccount(userDetails, token, azureServiceAccountApprole);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void testAssociateAppRoleToAzureAccFailedInvalidAppRole() {
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Azure Service Principal\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AzureServiceAccountApprole azureServiceAccountApprole = new AzureServiceAccountApprole("svc_vault_test2", "azure_master_approle", "read");
+        ResponseEntity<String> responseEntityActual =  azureServicePrincipalAccountsService.associateApproletoAzureServiceAccount(userDetails, token, azureServiceAccountApprole);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void testAssociateAppRoleToAzureAccFailedNoPermission() {
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to add Approle to this azure service principal\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AzureServiceAccountApprole azureServiceAccountApprole = new AzureServiceAccountApprole("svc_vault_test2", "role1", "rotate");
+
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(null);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_azuresvcacc_testsvcname\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        ResponseEntity<String> responseEntityActual =  azureServicePrincipalAccountsService.associateApproletoAzureServiceAccount(userDetails, token, azureServiceAccountApprole);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void testAssociateAppRoleToAzureAccFailedNoAppRole() {
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AzureServiceAccountApprole azureServiceAccountApprole = new AzureServiceAccountApprole("svc_vault_test2", "role1", "rotate");
+        String [] policies = {"o_azuresvcacc_svc_vault_test2"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response appRoleResponse = getMockResponse(HttpStatus.FORBIDDEN, true, "{\"data\": {\"policies\":\"w_azuresvcacc_testsvcname\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        ResponseEntity<String> responseEntityActual =  azureServicePrincipalAccountsService.associateApproletoAzureServiceAccount(userDetails, token, azureServiceAccountApprole);
+
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void testAssociateAppRoleToAzureSvcAccConfigureApproleFailed() {
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add Approle to the Azure Service Principal\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AzureServiceAccountApprole azureServiceAccountApprole = new AzureServiceAccountApprole("svc_vault_test2", "role1", "rotate");
+
+        String [] policies = {"o_azuresvcacc_svc_vault_test2"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_azuresvcacc_testsvcname\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.FORBIDDEN, true, "");
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        ResponseEntity<String> responseEntityActual =  azureServicePrincipalAccountsService.associateApproletoAzureServiceAccount(userDetails, token, azureServiceAccountApprole);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void testAssociateAppRoleToAzureSvcAccMetaDataUpdateFailed() {
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Please try again\"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AzureServiceAccountApprole azureServiceAccountApprole = new AzureServiceAccountApprole("svc_vault_test2", "role1", "rotate");
+
+        String [] policies = {"o_azuresvcacc_svc_vault_test2"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_azuresvcacc_testsvcname\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.FORBIDDEN, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        ResponseEntity<String> responseEntityActual =  azureServicePrincipalAccountsService.associateApproletoAzureServiceAccount(userDetails, token, azureServiceAccountApprole);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void testAssociateAppRoleToAzureSvcAccMetaDataRevertFailed() {
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Approle configuration failed. Contact Admin \"]}");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AzureServiceAccountApprole azureServiceAccountApprole = new AzureServiceAccountApprole("svc_vault_test2", "role1", "rotate");
+
+        String [] policies = {"o_azuresvcacc_svc_vault_test2"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_azuresvcacc_testsvcname\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
+        Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse);
+        Response updateMetadataResponse = getMockResponse(HttpStatus.FORBIDDEN, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(),Mockito.anyString())).thenReturn(updateMetadataResponse);
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        ResponseEntity<String> responseEntityActual =  azureServicePrincipalAccountsService.associateApproletoAzureServiceAccount(userDetails, token, azureServiceAccountApprole);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+    }
 }
