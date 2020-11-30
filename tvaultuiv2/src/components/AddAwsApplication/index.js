@@ -79,7 +79,12 @@ const extraCss = css`
 const RadioWrapper = styled.div``;
 
 const AddAwsApplication = (props) => {
-  const { handleSaveClick, handleCancelClick, isSvcAccount } = props;
+  const {
+    handleSaveClick,
+    handleCancelClick,
+    isSvcAccount,
+    isCertificate,
+  } = props;
   const [awsAuthenticationType, setAwsAuthenticationType] = useState('ec2');
   const [roleName, setRoleName] = useState('');
   const [iamPrincipalArn, setIamPrincipalArn] = useState('');
@@ -372,6 +377,8 @@ const AddAwsApplication = (props) => {
             menu={
               isSvcAccount
                 ? ['read', 'reset', 'deny']
+                : isCertificate
+                ? ['read', 'deny']
                 : ['read', 'write', 'deny']
             }
             handleChange={(e) => setRadioValue(e.target.value)}
@@ -402,9 +409,11 @@ AddAwsApplication.propTypes = {
   handleCancelClick: PropTypes.func.isRequired,
   handleSaveClick: PropTypes.func.isRequired,
   isSvcAccount: PropTypes.bool,
+  isCertificate: PropTypes.bool,
 };
 
 AddAwsApplication.defaultProps = {
   isSvcAccount: false,
+  isCertificate: false,
 };
 export default AddAwsApplication;

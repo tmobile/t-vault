@@ -1,3 +1,5 @@
+/* eslint-disable no-nested-ternary */
+
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { InputLabel, Typography } from '@material-ui/core';
@@ -81,6 +83,7 @@ const EditAwsApplication = (props) => {
     awsName,
     access,
     isSvcAccount,
+    isCertificate,
   } = props;
   const [radioValue, setRadioValue] = useState('read');
   const [value, setValue] = useState('');
@@ -121,6 +124,8 @@ const EditAwsApplication = (props) => {
             menu={
               isSvcAccount
                 ? ['read', 'reset', 'deny']
+                : isCertificate
+                ? ['read', 'deny']
                 : ['read', 'write', 'deny']
             }
             handleChange={(e) => setRadioValue(e.target.value)}
@@ -155,10 +160,12 @@ EditAwsApplication.propTypes = {
   access: PropTypes.string.isRequired,
   awsName: PropTypes.string.isRequired,
   isSvcAccount: PropTypes.bool,
+  isCertificate: PropTypes.bool,
 };
 
 EditAwsApplication.defaultProps = {
   isSvcAccount: false,
+  isCertificate: false,
 };
 
 export default EditAwsApplication;
