@@ -1,6 +1,7 @@
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { debounce } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
@@ -17,6 +18,7 @@ import TextFieldSelect from '../../../../components/FormFields/TextFieldSelect';
 import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
 import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import removeIcon from '../../../../assets/close.svg';
+import magentaRemoveIcon from '../../../../assets/close-magenta.svg';
 import mediaBreakpoints from '../../../../breakpoints';
 import SnackbarComponent from '../../../../components/Snackbar';
 import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
@@ -27,11 +29,14 @@ import SwitchComponent from '../../../../components/FormFields/SwitchComponent';
 import RadioButtonComponent from '../../../../components/FormFields/RadioButton';
 import CertificateHeader from '../components/CertificateHeader';
 import configData from '../../../../config/config';
+import { validateEmail } from '../../../../services/helper-function';
 import {
   GlobalModalWrapper,
   RequiredCircle,
   RequiredText,
+  InstructionText,
 } from '../../../../styles/GlobalStyles';
+import AutoCompleteComponent from '../../../../components/FormFields/AutoComplete';
 
 const { small } = mediaBreakpoints;
 
@@ -63,8 +68,9 @@ const PreviewWrap = styled.div`
 `;
 
 const InputFieldLabelWrapper = styled.div`
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   position: ${(props) => (props.postion ? 'relative' : '')};
+  width: ${(props) => (props.width ? 'calc(100% - 13rem)' : '')};
   .MuiSelect-icon {
     top: auto;
     color: ${(props) => props.theme.customColor.primary.color};
@@ -180,11 +186,58 @@ const IncludeDnsWrap = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 1rem;
+  margin-top: 2rem;
   label {
     margin-bottom: 0rem;
   }
   > span {
     margin-right: 1rem;
+  }
+`;
+
+const NotificationEmailsWrap = styled.div``;
+
+const FetchingWrap = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+  span {
+    margin-right: 2rem;
+  }
+`;
+
+const NotificationEmailListWrap = styled.div`
+  background-color: #fff;
+  color: #000;
+  text-transform: capitalize;
+  padding: 0 1.5rem;
+  margin-bottom: 2rem;
+`;
+
+const EmailList = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const Email = styled.p`
+  margin: 0.5rem 0;
+`;
+
+const NotificationAutoWrap = styled.div`
+  display: flex;
+`;
+
+const autoLoaderStyle = css`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: red;
+`;
+
+const AddEmailButton = styled.div`
+  margin-left: 1rem;
+  .MuiButton-containedSizeSmall {
+    height: 5rem !important;
   }
 `;
 
@@ -230,11 +283,21 @@ const CreateCertificates = (props) => {
   const [dnsError, setDnsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [errorDnsMessage, setErrorDnsMessage] = useState('');
+  const [emailErrorMsg, setEmailErrorMsg] = useState('');
   const [certNameError, setCertNameError] = useState(false);
   const [responseDesc, setResponseDesc] = useState('');
   const [responseTitle, setResponseTitle] = useState('');
+  const [autoLoader, setAutoLoader] = useState(false);
   const [allApplication, setAllApplication] = useState([]);
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
+  const [searchNotificationsEmail, setSearchNotificationsEmail] = useState(
+    false
+  );
+  const [notificationEmailList, setNotificationEmailList] = useState([]);
+  const [isValidEmail, setIsValidEmail] = useState(false);
+  const [options, setOptions] = useState([]);
+  const [notifyEmail, setNotifyEmail] = useState('');
+  const [emailError, setEmailError] = useState(false);
   const [isDns, setIsDns] = useState(false);
   const isMobileScreen = useMediaQuery(small);
   const history = useHistory();
@@ -251,6 +314,20 @@ const CreateCertificates = (props) => {
     }
     setResponseType(null);
   };
+  useEffect(() => {
+    if (notifyEmail?.length > 2) {
+      if (!autoLoader) {
+        if (options.length === 0 || !options.includes(notifyEmail)) {
+          setIsValidEmail(false);
+          setEmailErrorMsg(
+            'Please enter a valid email address or not available!'
+          );
+        } else {
+          setIsValidEmail(true);
+        }
+      }
+    }
+  }, [notifyEmail, autoLoader, options]);
 
   useEffect(() => {
     if (allApplication?.length > 0) {
@@ -282,13 +359,21 @@ const CreateCertificates = (props) => {
       applicationName === '' ||
       dnsError ||
       certNameError ||
-      ownerEmail === 'N/A'
+      ownerEmail === 'N/A' ||
+      notificationEmailList.length === 0
     ) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [certName, applicationName, certNameError, dnsError, ownerEmail]);
+  }, [
+    certName,
+    applicationName,
+    certNameError,
+    dnsError,
+    ownerEmail,
+    notificationEmailList,
+  ]);
 
   const InputValidation = (text) => {
     if (text) {
@@ -361,6 +446,11 @@ const CreateCertificates = (props) => {
     setDnsArray([...array]);
   };
 
+  const onRemoveEmailsClicked = (email) => {
+    const array = notificationEmailList.filter((item) => item !== email);
+    setNotificationEmailList([...array]);
+  };
+
   const onPreviewClicked = () => {
     setShowPreview(true);
   };
@@ -369,6 +459,7 @@ const CreateCertificates = (props) => {
     const obj = allApplication.find((item) => item.appName === applicationName);
     const dnsList = [];
     dnsArray.map((item) => dnsList.push(item.replace('.t-mobile.com', '')));
+
     if (obj) {
       const payload = {
         appName: obj.appID,
@@ -377,7 +468,9 @@ const CreateCertificates = (props) => {
         certType: certificateType.toLowerCase(),
         certificateName: certName,
         dnsList,
+        notificationEmail: notificationEmailList.toString(),
       };
+      console.log('payload', payload);
       setResponseType(0);
       apiService
         .createCertificate(payload)
@@ -401,6 +494,33 @@ const CreateCertificates = (props) => {
     }
   };
 
+  const onChangeApplicationName = (appName) => {
+    setApplicationName(appName);
+    setNotificationEmailList([]);
+    const selectedApp = allApplication.find((item) => appName === item.appName);
+    setSearchNotificationsEmail(true);
+    apiService
+      .getNotificationEmails(selectedApp?.appID)
+      .then((res) => {
+        if (res?.data?.spec) {
+          if (res.data.spec.projectLeadEmail) {
+            setNotificationEmailList((prev) => [
+              ...prev,
+              res.data.spec.projectLeadEmail,
+            ]);
+          }
+          setNotificationEmailList((prev) => [...prev, ownerEmail]);
+          if (res.data.spec.opsContactEmail) {
+            setNotificationEmailList((prev) => [
+              ...prev,
+              res.data.spec.opsContactEmail,
+            ]);
+          }
+        }
+        setSearchNotificationsEmail(false);
+      })
+      .catch((err) => console.log('err', err.response));
+  };
   const handleCloseConfirmationModal = () => {
     setOpenConfirmationModal(false);
     handleClose();
@@ -408,6 +528,67 @@ const CreateCertificates = (props) => {
 
   const errorHandleClose = () => {
     setOpenConfirmationModal(false);
+  };
+  const onSelected = (e, val) => {
+    setNotifyEmail(val);
+    setEmailError(false);
+  };
+  const callSearchApi = useCallback(
+    debounce(
+      (value) => {
+        setAutoLoader(true);
+        apiService
+          .getOwnerTransferEmail(value)
+          .then((res) => {
+            setOptions([]);
+            const array = [];
+            setAutoLoader(false);
+            if (res?.data?.data?.values?.length > 0) {
+              res.data.data.values.map((item) => {
+                if (item.userEmail) {
+                  return array.push(item.userEmail);
+                }
+                return null;
+              });
+              setOptions([...array]);
+            }
+          })
+          .catch(() => setAutoLoader(false));
+      },
+      1000,
+      true
+    ),
+    []
+  );
+
+  const onNotifyEmailChange = (e) => {
+    if (e) {
+      setNotifyEmail(e.target.value);
+      if (e.target.value && e.target.value?.length > 2) {
+        callSearchApi(e.target.value);
+        if (validateEmail(notifyEmail)) {
+          setEmailError(false);
+        } else {
+          setEmailError(true);
+          setEmailErrorMsg(
+            'Please enter a valid email address or not available!'
+          );
+        }
+      }
+    }
+  };
+
+  const onAddEmailClicked = () => {
+    const obj = notificationEmailList.find(
+      (item) => item.toLowerCase() === notifyEmail.toLowerCase()
+    );
+    if (!obj) {
+      setNotificationEmailList((prev) => [...prev, notifyEmail]);
+      setNotifyEmail('');
+    } else {
+      setEmailError(true);
+      setEmailErrorMsg('Duplicate Email!');
+    }
   };
 
   return (
@@ -537,7 +718,9 @@ const CreateCertificates = (props) => {
                       menu={[...allApplication.map((item) => item.appName)]}
                       value={applicationName}
                       classes={classes}
-                      handleChange={(e) => setApplicationName(e.target.value)}
+                      handleChange={(e) =>
+                        onChangeApplicationName(e.target.value)
+                      }
                       filledText="Select application name"
                     />
                     <FieldInstruction>
@@ -545,6 +728,87 @@ const CreateCertificates = (props) => {
                       permission to be granted later.
                     </FieldInstruction>
                   </InputFieldLabelWrapper>
+                  <NotificationEmailsWrap>
+                    {applicationName === '' && (
+                      <FieldInstruction>
+                        Select application name and add/update notification
+                        emails.
+                      </FieldInstruction>
+                    )}
+                    {applicationName && !searchNotificationsEmail && (
+                      <InputLabel>
+                        Notification Emails
+                        <RequiredCircle margin="1.3rem" />
+                      </InputLabel>
+                    )}
+                    {searchNotificationsEmail && (
+                      <FetchingWrap>
+                        <span>Fetching notification list...</span>
+                        <LoaderSpinner />
+                      </FetchingWrap>
+                    )}
+                    {!searchNotificationsEmail &&
+                      notificationEmailList.length > 0 && (
+                        <NotificationEmailListWrap>
+                          {notificationEmailList.map((item) => {
+                            return (
+                              <EmailList>
+                                <Email>{item}</Email>
+                                <RemoveIcon
+                                  src={magentaRemoveIcon}
+                                  alt="remove"
+                                  onClick={() => onRemoveEmailsClicked(item)}
+                                />
+                              </EmailList>
+                            );
+                          })}
+                        </NotificationEmailListWrap>
+                      )}
+                  </NotificationEmailsWrap>
+                  {applicationName && !searchNotificationsEmail && (
+                    <NotificationAutoWrap>
+                      <InputFieldLabelWrapper postion width>
+                        <AutoCompleteComponent
+                          options={options}
+                          classes={classes}
+                          searchValue={notifyEmail}
+                          icon="search"
+                          name="notifyEmail"
+                          fullWidth
+                          onSelected={(e, val) => onSelected(e, val)}
+                          onChange={(e) => onNotifyEmailChange(e)}
+                          placeholder="Email address- Enter min 3 characters"
+                          error={
+                            notifyEmail?.length > 2 &&
+                            (emailError || !isValidEmail)
+                          }
+                          helperText={
+                            notifyEmail?.length > 2 &&
+                            (emailError || !isValidEmail)
+                              ? emailErrorMsg
+                              : ''
+                          }
+                        />
+                        <InstructionText>
+                          Search the T-Mobile system by email.
+                        </InstructionText>
+                        {autoLoader && (
+                          <LoaderSpinner customStyle={autoLoaderStyle} />
+                        )}
+                      </InputFieldLabelWrapper>
+                      <AddEmailButton>
+                        <ButtonComponent
+                          label="Add Email"
+                          color="secondary"
+                          disabled={
+                            emailError || !isValidEmail || notifyEmail === ''
+                          }
+                          onClick={() => onAddEmailClicked()}
+                          width="12rem"
+                        />
+                      </AddEmailButton>
+                    </NotificationAutoWrap>
+                  )}
                   <IncludeDnsWrap>
                     <SwitchComponent
                       checked={isDns}

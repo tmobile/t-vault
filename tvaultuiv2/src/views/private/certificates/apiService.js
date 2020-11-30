@@ -53,6 +53,9 @@ const onPrivateDownload = (payload) =>
 const onReleasecertificate = (name, type, reason) =>
   api.post(`/sslcert/unlink/${name}/${type}/${reason}`);
 
+const getNotificationEmails = (appId) =>
+  api.get(`/serviceaccounts/cwm/appdetails/appname?appName=${appId}`);
+
 export default {
   getAllAdminCertInternal,
   getAllNonAdminCertInternal,
@@ -82,4 +85,5 @@ export default {
   deleteAwsRole,
   addAppRolePermission,
   deleteAppRolePermission,
+  getNotificationEmails,
 };
