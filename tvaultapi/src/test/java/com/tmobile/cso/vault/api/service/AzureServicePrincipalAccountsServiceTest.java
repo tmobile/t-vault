@@ -2332,4 +2332,93 @@ public class AzureServicePrincipalAccountsServiceTest {
 		ResponseEntity<String> actualResponse = azureServicePrincipalAccountsService.rotateSecret(token, azureServicePrincipalRotateRequest);
 		assertEquals(expectedResponse, actualResponse);
 	}
+	
+	@Test
+	public void testRemoveGroupFromAzureSvcAccSuccessfully() {
+		token = userDetails.getClientToken();
+		AzureServiceAccountGroup azureSvcAccGroup = new AzureServiceAccountGroup("testaccount", "group1", "rotate");
+		userDetails = getMockUser(false);
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
+				.body("{\"messages\":[\"Group is successfully removed from Azure Service Principal\"]}");
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+		String[] policies = { "o_azuresvcacc_testaccount" };
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+		Response groupResp = getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+		when(reqProcessor.process("/auth/ldap/groups", "{\"groupname\":\"group1\"}", token)).thenReturn(groupResp);
+		ObjectMapper objMapper = new ObjectMapper();
+		String responseJson = groupResp.getResponse();
+		try {
+			List<String> resList = new ArrayList<>();
+			resList.add("default");
+			resList.add("w_shared_mysafe01");
+			resList.add("w_shared_mysafe02");
+			when(ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson)).thenReturn(resList);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		when(ControllerUtil.configureLDAPGroup(any(), any(), any())).thenReturn(responseNoContent);
+		when(ControllerUtil.updateMetadata(any(), eq(token))).thenReturn(responseNoContent);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+
+		ResponseEntity<String> responseEntity = azureServicePrincipalAccountsService.removeGroupFromAzureServiceAccount(token, azureSvcAccGroup, userDetails);
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
+
+	@Test
+	public void testRemoveGroupFromAzureSvcAccOidcSuccessfully() {
+		userDetails = getMockUser(false);
+		token = userDetails.getClientToken();
+		AzureServiceAccountGroup azureSvcAccGroup = new AzureServiceAccountGroup("testaccount", "group1", "rotate");
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK)
+				.body("{\"messages\":[\"Group is successfully removed from Azure Service Principal\"]}");
+		Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+		String[] policies = { "o_azuresvcacc_testaccount" };
+		when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+		Response groupResp = getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+		when(reqProcessor.process("/auth/ldap/groups", "{\"groupname\":\"group1\"}", token)).thenReturn(groupResp);
+		ObjectMapper objMapper = new ObjectMapper();
+		String responseJson = groupResp.getResponse();
+		try {
+			List<String> resList = new ArrayList<>();
+			resList.add("default");
+			resList.add("w_shared_mysafe01");
+			resList.add("w_shared_mysafe02");
+			when(ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson)).thenReturn(resList);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		when(ControllerUtil.configureLDAPGroup(any(), any(), any())).thenReturn(responseNoContent);
+		when(ControllerUtil.updateMetadata(any(), eq(token))).thenReturn(responseNoContent);
+		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,
+				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+
+		ReflectionTestUtils.setField(azureServicePrincipalAccountsService, "vaultAuthMethod", "oidc");
+		List<String> policie = new ArrayList<>();
+		policie.add("default");
+		policie.add("w_shared_mysafe02");
+		policie.add("r_shared_mysafe01");
+		List<String> currentpolicies = new ArrayList<>();
+		currentpolicies.add("default");
+		currentpolicies.add("w_shared_mysafe01");
+		currentpolicies.add("w_shared_mysafe02");
+		OIDCGroup oidcGroup = new OIDCGroup("123-123-123", currentpolicies);
+		when(OIDCUtil.getIdentityGroupDetails(any(), any())).thenReturn(oidcGroup);
+
+		Response response1 = new Response();
+		response1.setHttpstatus(HttpStatus.NO_CONTENT);
+		when(OIDCUtil.updateGroupPolicies(any(), any(), any(), any(), any())).thenReturn(response1);
+
+		ResponseEntity<String> responseEntity = azureServicePrincipalAccountsService.removeGroupFromAzureServiceAccount(token,
+				azureSvcAccGroup, userDetails);
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+		assertEquals(responseEntityExpected, responseEntity);
+	}
 }

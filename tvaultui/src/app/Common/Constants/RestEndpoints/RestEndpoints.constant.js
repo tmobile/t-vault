@@ -568,7 +568,11 @@ readTextFile("../apiUrls.json");
             name: 'detachAwsRoleFromAzureSvcacc',
             url: '/v2/azureserviceaccounts/role',
             method: 'DELETE'
-        }
+        },{
+            name: 'deleteGroupPermissionFromAzureSvcacc',
+            url: '/v2/azureserviceaccounts/group',
+            method: 'DELETE'
+        }     
     ]
     });
 })( angular.module( 'vault.constants.RestEndpoints', []));

@@ -3405,4 +3405,236 @@ public class AzureServicePrincipalAccountsService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove AWS Role from this Azure service account\"]}");
 		}
 	}
+	
+	/**
+     * Remove Group from IAM Service Account
+     *
+     * @param token
+     * @param azureServiceAccountGroup
+     * @param userDetails
+     * @return
+     */
+    public ResponseEntity<String> removeGroupFromAzureServiceAccount(String token, AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails) {
+		OIDCGroup oidcGroup = new OIDCGroup();
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG)
+				.put(LogMessage.MESSAGE, "Trying to remove Group from Azure Service Account")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+        if (!userDetails.isAdmin()) {
+            token = tokenUtils.getSelfServiceToken();
+        }
+
+        if (!isAzureSvcaccPermissionInputValid(azureServiceAccountGroup.getAccess())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+		}
+		if (azureServiceAccountGroup.getAccess().equalsIgnoreCase(AzureServiceAccountConstants.AZURE_ROTATE_MSG_STRING)) {
+			azureServiceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
+		}
+
+        String azureSvcAccountName =  azureServiceAccountGroup.getAzureSvcAccName();
+
+		boolean isAuthorized = isAuthorizedToAddPermissionInAzureSvcAcc(userDetails, azureSvcAccountName, false);
+		if (isAuthorized) {
+			// Only Sudo policy can be added (as part of onbord) before activation.
+			if (!isAzureSvcaccActivated(token, userDetails, azureSvcAccountName)
+					&& !TVaultConstants.SUDO_POLICY.equals(azureServiceAccountGroup.getAccess())) {
+				log.error(
+						JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG)
+								.put(LogMessage.MESSAGE, String.format("Failed to remove group permission to Azure Service principal. [%s] is not activated.", azureSvcAccountName))
+								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+						"{\"errors\":[\"Failed to remove group permission. Azure Service Principal is not activated. Please activate this service principal and try again.\"]}");
+			}
+
+            Response groupResp = new Response();
+			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+				groupResp = reqProcessor.process("/auth/ldap/groups", "{\"groupname\":\"" + azureServiceAccountGroup.getGroupname() + "\"}", token);
+			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				// call read api with groupname
+				oidcGroup = oidcUtil.getIdentityGroupDetails(azureServiceAccountGroup.getGroupname(), token);
+				if (oidcGroup != null) {
+					groupResp.setHttpstatus(HttpStatus.OK);
+					groupResp.setResponse(oidcGroup.getPolicies().toString());
+				} else {
+					groupResp.setHttpstatus(HttpStatus.BAD_REQUEST);
+				}
+			}
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
+                    put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", groupResp.getHttpstatus())).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+
+            return removePoliciesAndUpdateMetadataForAzurevcAcc(token, azureServiceAccountGroup, userDetails, oidcGroup,
+					azureSvcAccountName, groupResp);
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove groups from this Azure service principal\"]}");
+        }
+
+    }
+	
+	 /**
+		 * Method to update policies for remove group from IAM service account.
+		 * @param token
+		 * @param azureServiceAccountGroup
+		 * @param userDetails
+		 * @param oidcGroup
+		 * @param azureSvcAccountName
+		 * @param groupResp
+		 * @return
+		 */
+		private ResponseEntity<String> removePoliciesAndUpdateMetadataForAzurevcAcc(String token,
+				AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
+				String azureSvcAccountName, Response groupResp) {
+			String readPolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
+			String writePolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
+			String denyPolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
+			String sudoPolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
+
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+			        put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
+			        put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
+			        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			        build()));
+
+			String responseJson="";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+
+			if(groupResp != null && HttpStatus.OK.equals(groupResp.getHttpstatus())){
+			    responseJson = groupResp.getResponse();
+			    try {
+					ObjectMapper objMapper = new ObjectMapper();
+					// OIDC Changes
+					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
+						currentpolicies.addAll(oidcGroup.getPolicies());
+					}
+			    } catch (IOException e) {
+			        log.error(e);
+			        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+			                put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
+			                put(LogMessage.MESSAGE, "Exception while creating currentpolicies or groups").
+			                put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
+			                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			                build()));
+			    }
+
+			    policies.addAll(currentpolicies);
+				policies.remove(readPolicy);
+				policies.remove(writePolicy);
+				policies.remove(denyPolicy);
+			}
+			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+			Response ldapConfigresponse = new Response();
+			// OIDC Changes
+			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+				ldapConfigresponse = ControllerUtil.configureLDAPGroup(azureServiceAccountGroup.getGroupname(), policiesString, token);
+			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				ldapConfigresponse = oidcUtil.updateGroupPolicies(token, azureServiceAccountGroup.getGroupname(), policies, currentpolicies,
+						oidcGroup != null ? oidcGroup.getId() : null);
+				oidcUtil.renewUserToken(userDetails.getClientToken());
+			}
+			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
+				return updateMetadataForRemoveGroupFromAzureSvcAcc(token, azureServiceAccountGroup, userDetails, oidcGroup,
+						currentpolicies, currentpoliciesString);
+			}
+			else {
+			    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove the group from the Azure Service Principal\"]}");
+			}
+		}
+		
+		/**
+		 * Method to update metadata and revert group permission if metadata update failed.
+		 *
+		 * @param token
+		 * @param azureServiceAccountGroup
+		 * @param userDetails
+		 * @param oidcGroup
+		 * @param currentpolicies
+		 * @param currentpoliciesString
+		 * @return
+		 */
+		private ResponseEntity<String> updateMetadataForRemoveGroupFromAzureSvcAcc(String token,
+				AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
+				List<String> currentpolicies, String currentpoliciesString) {
+			String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(azureServiceAccountGroup.getAzureSvcAccName()).toString();
+			Map<String,String> params = new HashMap<>();
+			params.put("type", "groups");
+			params.put("name",azureServiceAccountGroup.getGroupname());
+			params.put("path",path);
+			params.put("access","delete");
+			Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+			if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
+						put(LogMessage.MESSAGE, "Group configuration Success.").
+						put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully removed from Azure Service Principal\"]}");
+			}else {
+				return revertGroupPermissionForAzureSvcAcc(token, azureServiceAccountGroup, userDetails, oidcGroup,
+						currentpolicies, currentpoliciesString, metadataResponse);
+			}
+		}
+		
+		/**
+		 * Method to revert group permission for IAM service account
+		 *
+		 * @param token
+		 * @param azureServiceAccountGroup
+		 * @param userDetails
+		 * @param oidcGroup
+		 * @param currentpolicies
+		 * @param currentpoliciesString
+		 * @param metadataResponse
+		 * @return
+		 */
+		private ResponseEntity<String> revertGroupPermissionForAzureSvcAcc(String token,
+				AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
+				List<String> currentpolicies, String currentpoliciesString, Response metadataResponse) {
+			Response configGroupResponse = new Response();
+			// OIDC Changes
+			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+				configGroupResponse = ControllerUtil.configureLDAPGroup(azureServiceAccountGroup.getGroupname(), currentpoliciesString, token);
+			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				configGroupResponse = oidcUtil.updateGroupPolicies(token, azureServiceAccountGroup.getGroupname(), currentpolicies,
+						currentpolicies, oidcGroup != null ? oidcGroup.getId() : null);
+				oidcUtil.renewUserToken(userDetails.getClientToken());
+			}
+			if(configGroupResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
+						put(LogMessage.MESSAGE, "Reverting, group policy update success").
+						put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+						put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed. Please try again\"]}");
+			}else{
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
+						put(LogMessage.MESSAGE, "Reverting group policy update failed").
+						put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+						put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed. Contact Admin \"]}");
+			}
+		}
 }
