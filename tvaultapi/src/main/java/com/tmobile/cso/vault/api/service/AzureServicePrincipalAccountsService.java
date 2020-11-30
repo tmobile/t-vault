@@ -3407,7 +3407,7 @@ public class AzureServicePrincipalAccountsService {
 	}
 	
 	/**
-     * Remove Group from IAM Service Account
+     * Remove Group from Azure Service Account
      *
      * @param token
      * @param azureServiceAccountGroup
@@ -3481,7 +3481,7 @@ public class AzureServicePrincipalAccountsService {
     }
 	
 	 /**
-		 * Method to update policies for remove group from IAM service account.
+		 * Method to update policies for remove group from Azure service account.
 		 * @param token
 		 * @param azureServiceAccountGroup
 		 * @param userDetails
@@ -3592,7 +3592,7 @@ public class AzureServicePrincipalAccountsService {
 		}
 		
 		/**
-		 * Method to revert group permission for IAM service account
+		 * Method to revert group permission for Azure service account
 		 *
 		 * @param token
 		 * @param azureServiceAccountGroup
