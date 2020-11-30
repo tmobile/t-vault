@@ -1114,7 +1114,7 @@ public class  IAMServiceAccountsService {
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
 			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, iamServiceAccountUser.getUsername(),
-					userDetails);
+					userDetails, true);
 			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -1710,7 +1710,7 @@ public class  IAMServiceAccountsService {
 			userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + iamServiceAccountUser.getUsername() + "\"}", token);
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
-			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, iamServiceAccountUser.getUsername(), userDetails);
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, iamServiceAccountUser.getUsername(), userDetails, true);
 			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -3255,7 +3255,7 @@ public class  IAMServiceAccountsService {
 				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 					// OIDC implementation changes
 					ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName,
-							null);
+							null, true);
 					if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 						if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()

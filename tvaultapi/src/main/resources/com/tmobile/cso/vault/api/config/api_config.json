@@ -1239,7 +1239,7 @@
 		],
 		"outparams": ["data/keys"]
 	},
-    {"#":"**** Listing all Azure Service Prinicipal Folders*****",
+    {"#":"**** Listing all Azure Service Principal Folders*****",
     	"apiEndPoint":"/azure/list",
     	"vaultEndPoint":"/<path>?list=true",
     	"method":"GET",
@@ -1248,7 +1248,7 @@
         ],
          "outparams":["data/keys"]
     },
-    {"#":"Getting Azure service Prinicipal Info",
+    {"#":"Getting Azure service Principal Info",
 
     	"apiEndPoint":"/azuresvcacct",
     	"vaultEndPoint":"/<path>",

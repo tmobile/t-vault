@@ -431,7 +431,7 @@ public class OIDCUtil {
 	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<OIDCEntityResponse> oidcFetchEntityDetails(String token, String username, UserDetails userDetails) {
+	public ResponseEntity<OIDCEntityResponse> oidcFetchEntityDetails(String token, String username, UserDetails userDetails, boolean isPolicyUpdate) {
 		String mountAccessor = fetchMountAccessorForOidc(token);
 		if (!StringUtils.isEmpty(mountAccessor)) {
 			// Get user details from GSM
@@ -492,7 +492,7 @@ public class OIDCUtil {
 
 			// if permission adding to current user, then take token policies also.
 			List<String> policiesFromToken;
-            if (userDetails != null && username.equalsIgnoreCase(userDetails.getUsername())) {
+            if (userDetails != null && username.equalsIgnoreCase(userDetails.getUsername()) && !isPolicyUpdate) {
 				// Get policies from token. This will have all the policies from user and group except the user polices updated to the entity.
 				policiesFromToken = tokenLookUp(userDetails.getClientToken());
 				combinedPolicyList.addAll(policiesFromToken);

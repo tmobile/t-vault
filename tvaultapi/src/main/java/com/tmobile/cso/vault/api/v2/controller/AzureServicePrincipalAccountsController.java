@@ -26,28 +26,27 @@ import com.tmobile.cso.vault.api.model.AzureServiceAccountAWSRole;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountGroup;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountOffboardRequest;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountUser;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountGroup;
 import com.tmobile.cso.vault.api.model.UserDetails;
-import com.tmobile.cso.vault.api.service.AzureServicePrinicipalAccountsService;
+import com.tmobile.cso.vault.api.service.AzureServicePrincipalAccountsService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 @RestController
 @CrossOrigin
-@Api( description = "Manage Azure Service Prinicipal and Secrets", position = 21)
-public class AzureServicePrinicipalAccountsController {
+@Api( description = "Manage Azure Service Principal and Secrets", position = 21)
+public class AzureServicePrincipalAccountsController {
 	
 	private static final String USER_DETAILS_STRING="UserDetails";
 	
 	@Autowired
-	private AzureServicePrinicipalAccountsService azureServicePrinicipalAccountsService;
+	private AzureServicePrincipalAccountsService azureServicePrincipalAccountsService;
 	
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.onboardAzureServiceAccount.value}", notes = "${AzureServicePrinicipalAccountsController.onboardAzureServiceAccount.notes}")
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.onboardAzureServiceAccount.value}", notes = "${AzureServicePrincipalAccountsController.onboardAzureServiceAccount.notes}")
 	@PostMapping(value="/v2/azureserviceaccounts/onboard", produces="application/json")
 	public ResponseEntity<String> onboardAzureServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid AzureServiceAccount azureServiceAccount ){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return azureServicePrinicipalAccountsService.onboardAzureServiceAccount(token, azureServiceAccount, userDetails);
+		return azureServicePrincipalAccountsService.onboardAzureServiceAccount(token, azureServiceAccount, userDetails);
 	}
 	
 	/**
@@ -56,11 +55,11 @@ public class AzureServicePrinicipalAccountsController {
 	 * @param token
 	 * @return
 	 */
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.getAzureServicePrinicipalList.value}", notes = "${AzureServicePrinicipalAccountsController.getAzureServicePrinicipalList.notes}",hidden = false)
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.getAzureServicePrincipalList.value}", notes = "${AzureServicePrincipalAccountsController.getAzureServicePrincipalList.notes}",hidden = false)
 	@GetMapping (value="/v2/azureserviceaccounts/list",produces="application/json")
-	public ResponseEntity<String> getAzureServicePrinicipalList(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
+	public ResponseEntity<String> getAzureServicePrincipalList(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return azureServicePrinicipalAccountsService.getAzureServicePrinicipalList(userDetails);
+		return azureServicePrincipalAccountsService.getAzureServicePrincipalList(userDetails);
 	}
 	
 	/**
@@ -71,11 +70,11 @@ public class AzureServicePrinicipalAccountsController {
 	 * @return
 	 * @throws IOException 
 	 */
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.readFolders.value}", notes = "${AzureServicePrinicipalAccountsController.readFolders.notes}", hidden = true)
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.readFolders.value}", notes = "${AzureServicePrincipalAccountsController.readFolders.notes}", hidden = true)
 	@GetMapping(value = "/v2/azureserviceaccounts/folders/secrets", produces = "application/json")
 	public ResponseEntity<String> readFolders(@RequestHeader(value = "vault-token") String token,
 			@RequestParam("path") String path) throws IOException {
-		return azureServicePrinicipalAccountsService.readFolders(token, path);
+		return azureServicePrincipalAccountsService.readFolders(token, path);
 	}
 	
 	/**
@@ -86,12 +85,12 @@ public class AzureServicePrinicipalAccountsController {
 	 * @param folderName
 	 * @return
 	 */
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.getIAMServiceAccountSecretKey.value}", notes = "${AzureServicePrinicipalAccountsController.getIAMServiceAccountSecretKey.notes}", hidden = true)
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.getIAMServiceAccountSecretKey.value}", notes = "${AzureServicePrincipalAccountsController.getIAMServiceAccountSecretKey.notes}", hidden = true)
 	@GetMapping(value = "/v2/azureserviceaccounts/secrets/{azure_svc_name}/{folderName}", produces = "application/json")
 	public ResponseEntity<String> getAzureServiceAccountSecretKey(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("azure_svc_name") String azureServiceAccountName,
 			@PathVariable("folderName") String folderName) {
-		return azureServicePrinicipalAccountsService.getAzureServiceAccountSecretKey(token, azureServiceAccountName, folderName);
+		return azureServicePrincipalAccountsService.getAzureServiceAccountSecretKey(token, azureServiceAccountName, folderName);
 	}
 	
 	/**
@@ -102,12 +101,12 @@ public class AzureServicePrinicipalAccountsController {
 	 * @return
 	 * @throws IOException 
 	 */
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.readSecret.value}", notes = "${AzureServicePrinicipalAccountsController.readSecret.notes}", hidden = false)
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.readSecret.value}", notes = "${AzureServicePrincipalAccountsController.readSecret.notes}", hidden = false)
 	@GetMapping(value = "/v2/azureserviceaccounts/secret/{azure_svc_name}/{secretKey}", produces = "application/json")
 	public ResponseEntity<String> readSecret(@RequestHeader(value = "vault-token") String token,
 			@PathVariable("azure_svc_name") String azureSvcName,
 			@PathVariable("secretKey") String secretKey) throws IOException {
-		return azureServicePrinicipalAccountsService.readSecret(token, azureSvcName, secretKey);
+		return azureServicePrincipalAccountsService.readSecret(token, azureSvcName, secretKey);
 	}
 	/**
 	 * Offboard Azure service account.
@@ -116,11 +115,11 @@ public class AzureServicePrinicipalAccountsController {
 	 * @param azureServiceAccountOffboardRequest
 	 * @return
 	 */
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.offboardAzureServiceAccount.value}", notes = "${AzureServicePrinicipalAccountsController.offboardAzureServiceAccount.notes}")
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.offboardAzureServiceAccount.value}", notes = "${AzureServicePrincipalAccountsController.offboardAzureServiceAccount.notes}")
 	@PostMapping(value="/v2/azureserviceaccounts/offboard", produces="application/json")
 	public ResponseEntity<String> offboardAzureServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AzureServiceAccountOffboardRequest azureServiceAccountOffboardRequest ){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return azureServicePrinicipalAccountsService.offboardAzureServiceAccount(token, azureServiceAccountOffboardRequest, userDetails);
+		return azureServicePrincipalAccountsService.offboardAzureServiceAccount(token, azureServiceAccountOffboardRequest, userDetails);
 	}
 	/**
 	 * Gets the list of azure service principal onboarded
@@ -128,11 +127,11 @@ public class AzureServicePrinicipalAccountsController {
 	 * @param token
 	 * @return
 	 */
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.getOnboardedAsureServicePrincipal.value}", notes = "${AzureServicePrinicipalAccountsController.getOnboardedAsureServicePrincipal.notes}",hidden = false)
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.getOnboardedAsureServicePrincipal.value}", notes = "${AzureServicePrincipalAccountsController.getOnboardedAsureServicePrincipal.notes}",hidden = false)
 	@GetMapping(value="/v2/azureserviceaccounts", produces="application/json")
 	public ResponseEntity<String> getOnboardedIAMServiceAccounts(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return azureServicePrinicipalAccountsService.getOnboardedAzureServiceAccounts(token, userDetails);
+		return azureServicePrincipalAccountsService.getOnboardedAzureServiceAccounts(token, userDetails);
 	}
 
 	/**
@@ -141,10 +140,10 @@ public class AzureServicePrinicipalAccountsController {
 	 * @return
 	 */
 	@PostMapping(value="/v2/azureserviceaccounts/user",produces="application/json")
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.addUserToAzureServicePrincipal.value}", notes = "${AzureServicePrinicipalAccountsController.addUserToAzureServicePrincipal.notes}")
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.addUserToAzureServicePrincipal.value}", notes = "${AzureServicePrincipalAccountsController.addUserToAzureServicePrincipal.notes}")
 	public ResponseEntity<String> addUserToAzureServicePrincipal(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid AzureServiceAccountUser azureServiceAccountUser){
 	   UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-	   return azureServicePrinicipalAccountsService.addUserToAzureServiceAccount(token, userDetails, azureServiceAccountUser, false);
+	   return azureServicePrincipalAccountsService.addUserToAzureServiceAccount(token, userDetails, azureServiceAccountUser, false);
 	}
 	/**
 	 * Removes permission for a user from the Azure service account
@@ -153,11 +152,11 @@ public class AzureServicePrinicipalAccountsController {
 	 * @param azureServiceAccountUser
 	 * @return
 	 */
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.removeUserFromAzureServiceAccount.value}", notes = "${AzureServicePrinicipalAccountsController.removeUserFromAzureServiceAccount.notes}")
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.removeUserFromAzureServiceAccount.value}", notes = "${AzureServicePrincipalAccountsController.removeUserFromAzureServiceAccount.notes}")
 	@DeleteMapping(value="/v2/azureserviceaccounts/user", produces="application/json")
 	public ResponseEntity<String> removeUserFromAzureServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody AzureServiceAccountUser azureServiceAccountUser ){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return azureServicePrinicipalAccountsService.removeUserFromAzureServiceAccount(token, azureServiceAccountUser, userDetails);
+		return azureServicePrincipalAccountsService.removeUserFromAzureServiceAccount(token, azureServiceAccountUser, userDetails);
 	}
 	/**
 	 * Method to create an aws app role
@@ -165,11 +164,11 @@ public class AzureServicePrinicipalAccountsController {
 	 * @param awsLoginRole
 	 * @return
 	 */
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.createAWSRole.value}", notes = "${AzureServicePrinicipalAccountsController.createAWSRole.notes}")
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.createAWSRole.value}", notes = "${AzureServicePrincipalAccountsController.createAWSRole.notes}")
 	@PostMapping(value="/v2/azureserviceaccounts/aws/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> createAWSRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole) throws TVaultValidationException {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return azureServicePrinicipalAccountsService.createAWSRole(userDetails, token, awsLoginRole);
+		return azureServicePrincipalAccountsService.createAWSRole(userDetails, token, awsLoginRole);
 	}
 
 	/**
@@ -178,11 +177,11 @@ public class AzureServicePrinicipalAccountsController {
 	 * @param awsiamRole
 	 * @return
 	 */
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.createIamRole.value}", notes = "${AzureServicePrinicipalAccountsController.createIamRole.notes}")
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.createIamRole.value}", notes = "${AzureServicePrincipalAccountsController.createIamRole.notes}")
 	@PostMapping(value="/v2/azureserviceaccounts/aws/iam/role",produces="application/json")
 	public ResponseEntity<String> createIAMRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSIAMRole awsiamRole) throws TVaultValidationException{
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return azureServicePrinicipalAccountsService.createIAMRole(userDetails, token, awsiamRole);
+		return azureServicePrincipalAccountsService.createIAMRole(userDetails, token, awsiamRole);
 	}
 
 	/**
@@ -192,13 +191,13 @@ public class AzureServicePrinicipalAccountsController {
 	 * @param azureServiceAccountAWSRole
 	 * @return
 	 */
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.addAwsRoleToAzureSvcacc.value}", notes = "${AzureServicePrinicipalAccountsController.addAwsRoleToAzureSvcacc.notes}")
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.addAwsRoleToAzureSvcacc.value}", notes = "${AzureServicePrincipalAccountsController.addAwsRoleToAzureSvcacc.notes}")
 	@PostMapping(value = "/v2/azureserviceaccounts/role", produces = "application/json")
 	public ResponseEntity<String> addAwsRoleToAzureSvcacc(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,
 			@Valid @RequestBody AzureServiceAccountAWSRole azureServiceAccountAWSRole) {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return azureServicePrinicipalAccountsService.addAwsRoleToAzureSvcacc(userDetails, token, azureServiceAccountAWSRole);
+		return azureServicePrincipalAccountsService.addAwsRoleToAzureSvcacc(userDetails, token, azureServiceAccountAWSRole);
 	}
 
 	/**
@@ -208,11 +207,11 @@ public class AzureServicePrinicipalAccountsController {
 	 * @param azureSvcName
 	 * @return
 	 */
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.getAzureServicePrincipalDetail.value}", notes = "${AzureServicePrinicipalAccountsController.getAzureServicePrincipalDetail.notes}", hidden = true)
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.getAzureServicePrincipalDetail.value}", notes = "${AzureServicePrincipalAccountsController.getAzureServicePrincipalDetail.notes}", hidden = true)
 	@GetMapping(value = "/v2/azureserviceaccounts/{azure_svc_name}", produces = "application/json")
 	public ResponseEntity<String> getAzureServicePrincipalDetail(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token, @PathVariable("azure_svc_name") String azureSvcName){
-		return azureServicePrinicipalAccountsService.getAzureServicePrincipalDetail(token, azureSvcName);
+		return azureServicePrincipalAccountsService.getAzureServicePrincipalDetail(token, azureSvcName);
 	}
 	/**
 	 * Remove AWS role from Azure Service Account
@@ -227,7 +226,7 @@ public class AzureServicePrinicipalAccountsController {
 			@RequestHeader(value = "vault-token") String token,
 			@Valid @RequestBody AzureServiceAccountAWSRole azureServiceAccountAWSRole) {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, azureServiceAccountAWSRole);
+		return azureServicePrincipalAccountsService.removeAwsRoleFromAzureSvcacc(userDetails, token, azureServiceAccountAWSRole);
 	}
 
 	/**
@@ -238,36 +237,36 @@ public class AzureServicePrinicipalAccountsController {
 	 * @return
 	 */
 	@PostMapping(value="/v2/azureserviceaccounts/group",produces="application/json")
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.addGroupToAzureServiceAccount.value}", notes = "${AzureServicePrinicipalAccountsController.addGroupToAzureServiceAccount.notes}")
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.addGroupToAzureServiceAccount.value}", notes = "${AzureServicePrincipalAccountsController.addGroupToAzureServiceAccount.notes}")
 	public ResponseEntity<String> addGroupToAzureServiceAccount(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid AzureServiceAccountGroup azureServiceAccountGroup){
 	   UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-	   return azureServicePrinicipalAccountsService.addGroupToAzureServiceAccount(token, azureServiceAccountGroup, userDetails);
+	   return azureServicePrincipalAccountsService.addGroupToAzureServiceAccount(token, azureServiceAccountGroup, userDetails);
 	}
 
 	/**
 	 * Activate Azure Service Principal.
 	 * @param request
 	 * @param token
-	 * @param servicePrinicipalName
+	 * @param servicePrincipalName
 	 * @return
 	 */
-	@PostMapping(value="/v2/azureserviceaccounts/activateAzureServicePrinicipal",produces="application/json")
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.activateAzureServicePrinicipal.value}", notes = "${AzureServicePrinicipalAccountsController.activateAzureServicePrinicipal.notes}")
-	public ResponseEntity<String> activateAzureServicePrinicipal(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("servicePrinicipalName") String servicePrinicipalName){
+	@PostMapping(value="/v2/azureserviceaccounts/activateAzureServicePrincipal",produces="application/json")
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.activateAzureServicePrincipal.value}", notes = "${AzureServicePrincipalAccountsController.activateAzureServicePrincipal.notes}")
+	public ResponseEntity<String> activateAzureServicePrincipal(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("servicePrincipalName") String servicePrincipalName){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return azureServicePrinicipalAccountsService.activateAzureServicePrinicipal(token, userDetails, servicePrinicipalName);
+		return azureServicePrincipalAccountsService.activateAzureServicePrincipal(token, userDetails, servicePrincipalName);
 	}
 
 	/**
 	 * Rotate Azure Service Principal secret by secretKeyId.
 	 * @param request
 	 * @param token
-	 * @param azureServicePrinicipalRotateRequest
+	 * @param azureServicePrincipalRotateRequest
 	 * @return
 	 */
 	@PostMapping(value="/v2/azureserviceaccounts/rotate",produces="application/json")
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.rotateSecret.value}", notes = "${AzureServicePrinicipalAccountsController.rotateSecret.notes}")
-	public ResponseEntity<String> rotateSecret(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest){
-		return azureServicePrinicipalAccountsService.rotateSecret(token, azureServicePrinicipalRotateRequest);
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.rotateSecret.value}", notes = "${AzureServicePrincipalAccountsController.rotateSecret.notes}")
+	public ResponseEntity<String> rotateSecret(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody @Valid AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest){
+		return azureServicePrincipalAccountsService.rotateSecret(token, azureServicePrincipalRotateRequest);
 	}
 }

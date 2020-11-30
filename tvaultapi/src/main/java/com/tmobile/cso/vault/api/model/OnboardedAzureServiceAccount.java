@@ -14,18 +14,18 @@ public class OnboardedAzureServiceAccount implements Serializable{
 	private static final long serialVersionUID = 21049416320987295L;
 
 	@NotNull
-	private String servicePrinicipalName;
+	private String servicePrincipalName;
 
 	@NotNull
 	@Pattern(regexp = "^$|^[a-z0-9_-]+$", message = "Ownerntid can have alphabets, numbers, _ and - characters only")
 	private String ownerNtid;
 
-	public String getServicePrinicipalName() {
-		return servicePrinicipalName;
+	public String getServicePrincipalName() {
+		return servicePrincipalName;
 	}
 
-	public void setServicePrinicipalName(String servicePrinicipalName) {
-		this.servicePrinicipalName = servicePrinicipalName;
+	public void setServicePrincipalName(String servicePrincipalName) {
+		this.servicePrincipalName = servicePrincipalName;
 	}
 
 	public String getOwnerNtid() {
@@ -38,18 +38,18 @@ public class OnboardedAzureServiceAccount implements Serializable{
 
 	@Override
 	public String toString() {
-		return "OnboardedAzureServiceAccount [servicePrinicipalName=" + servicePrinicipalName + ", ownerNtid="
+		return "OnboardedAzureServiceAccount [servicePrincipalName=" + servicePrincipalName + ", ownerNtid="
 				+ ownerNtid + "]";
 	}
 
 	/**
 	 * 
-	 * @param servicePrinicipalName
+	 * @param servicePrincipalName
 	 * @param ownerNtid
 	 */
-	public OnboardedAzureServiceAccount(String servicePrinicipalName, String ownerNtid) {
+	public OnboardedAzureServiceAccount(String servicePrincipalName, String ownerNtid) {
 		super();
-		this.servicePrinicipalName = servicePrinicipalName;
+		this.servicePrincipalName = servicePrincipalName;
 		this.ownerNtid = ownerNtid;
 	}
 

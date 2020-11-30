@@ -197,11 +197,11 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                           .common-form-row.col-lg-4.col-md-4.col-sm-4.col-xs-4
                             .details-input-group(uib-tooltip="Azure Service Principal Client ID" tooltip-popup-delay="600")
                                 .common-form-label Azure Service Principal Client ID
-                                input.form-control.input-box-style(ng-model="azureSvcacc.svcPrinicipalClientId" name="svcPrinicipalClientId" ng-disabled="true")
+                                input.form-control.input-box-style(ng-model="azureSvcacc.svcPrincipalClientId" name="svcPrincipalClientId" ng-disabled="true")
                           .common-form-row.col-lg-4.col-md-4.col-sm-4.col-xs-4
                             .details-input-group(uib-tooltip="AWS Account Name" tooltip-popup-delay="600")
                                 .common-form-label Azure Service Principal ID
-                                input.form-control.input-box-style(ng-model="azureSvcacc.svcPrinicipalId" name="svcPrinicipalId" ng-disabled="true")
+                                input.form-control.input-box-style(ng-model="azureSvcacc.svcPrincipalId" name="svcPrincipalId" ng-disabled="true")
                           .common-form-row.col-lg-4.col-md-4.col-sm-4.col-xs-4
                             .details-input-group(uib-tooltip="Account Created Date" tooltip-popup-delay="600")
                                 .common-form-label Created Date 
@@ -237,7 +237,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                             md-content(class="md-padding")
                                 .new-container.page-content-container
                                     div.svceditnotes You are in step 3 of 3 - Granting Permissions. Select users from the autocomplete field and assign Read/Rotate/Deny permissions as needed. Users with Rotate Permission can rotate the Azure Service Principal secret anytime. Users with Deny permission will not be able to Read/Rotate password.
-                                    div.svceditnotes Search users by user name (lastname, firstname) or by NTid.
+                                    div.svceditnotes Search users by user name (lastname, firstname) or by NTID.
                                     .row.change-safe
                                         .add-block.container.name.col-lg-6.col-md-6.col-sm-12.col-xs-12
                                             div.input-flex
@@ -358,7 +358,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                             loading-state(ng-if='isLoadingData')
                             md-content(class="md-padding")
                                 .new-container.page-content-container
-                                    div.svceditnotes You are in step 3 of 3 - Granting Permissions. Add AWS EC2 or IAM role here and assign Read/Reset/Deny permissions as needed. Roles with Reset Permission can reset the Azure Service Principal password anytime. Roles with Deny permission will not be able to Read/Reset password.
+                                    div.svceditnotes You are in step 3 of 3 - Granting Permissions. Add AWS EC2 or IAM role here and assign Read/Rotate/Deny permissions as needed. Roles with Rotate Permission can rotate the Azure Service Principal password anytime. Roles with Deny permission will not be able to Read/Rotate password.
                                     .row.change-safe
                                         .container.actions
                                             .function-text.right.link-style(ng-click="newAwsConfiguration('md')")

@@ -15,20 +15,20 @@ public class AzureServiceAccountSecret implements Serializable{
 	    private String secretText;
 	    private Long expiryDateEpoch;
 	    private String expiryDate;
-	    private String servicePrinicipalId;
+	    private String servicePrincipalId;
 		private String tenantId;
 
 	public AzureServiceAccountSecret() {
 		super();
 	}
 
-	public AzureServiceAccountSecret(String secretKeyId, String secretText, Long expiryDateEpoch, String expiryDate, String servicePrinicipalId, String tenantId) {
+	public AzureServiceAccountSecret(String secretKeyId, String secretText, Long expiryDateEpoch, String expiryDate, String servicePrincipalId, String tenantId) {
 		super();
 		this.secretKeyId = secretKeyId;
 		this.secretText = secretText;
 		this.expiryDateEpoch = expiryDateEpoch;
 		this.expiryDate = expiryDate;
-		this.servicePrinicipalId = servicePrinicipalId;
+		this.servicePrincipalId = servicePrincipalId;
 		this.tenantId = tenantId;
 	}
 
@@ -56,11 +56,11 @@ public class AzureServiceAccountSecret implements Serializable{
 		public void setExpiryDate(String expiryDate) {
 			this.expiryDate = expiryDate;
 		}	
-		public String getServicePrinicipalId() {
-			return servicePrinicipalId;
+		public String getServicePrincipalId() {
+			return servicePrincipalId;
 		}
-		public void setServicePrinicipalId(String servicePrinicipalId) {
-			this.servicePrinicipalId = servicePrinicipalId;
+		public void setServicePrincipalId(String servicePrincipalId) {
+			this.servicePrincipalId = servicePrincipalId;
 		}
 		public String getTenantId() {
 			return tenantId;
@@ -71,8 +71,8 @@ public class AzureServiceAccountSecret implements Serializable{
 		@Override
 		public String toString() {
 			return "AzureServiceAccountSecret [secretKeyId=" + secretKeyId + ", secretText=" + secretText
-					+ ", expiryDateEpoch=" + expiryDateEpoch + ", expiryDate=" + expiryDate + ", servicePrinicipalId="
-					+ servicePrinicipalId + ", tenantId=" + tenantId + "]";
+					+ ", expiryDateEpoch=" + expiryDateEpoch + ", expiryDate=" + expiryDate + ", servicePrincipalId="
+					+ servicePrincipalId + ", tenantId=" + tenantId + "]";
 		}
 		
 		

@@ -14,7 +14,7 @@ script(type='text/ng-template', id='rotatePopup.html')
   .top-lg-sep(ng-if="!isLoadingModalData")
     .top-lg-sep
         .common-header-label.text-center Confirmation
-    .top-lg-sep.notification-text Are you sure you want to rotate the secret for this Azure AccessKeyID?
+    .top-lg-sep.notification-text Are you sure you want to rotate the secret for this Azure SecretKeyId?
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
         button.common-btn.btn.btn-primary.btn-lg(ng-click="rotateAzureSecret(rotateSecretDetails)") ROTATE
@@ -24,8 +24,8 @@ script(type='text/ng-template', id='rotatePopup.html')
     .container-fluid-wrapper.curved
         .page-header-container.admin
             .header-inner-container
-                nav-bar(active-tab="azure-service-prinicipals" gotoPage="goToPage" nav-tags="adminNavTags")
-                .page-header-text AZURE SERVICE PRINICIPALS
+                nav-bar(active-tab="azure-service-principals" gotoPage="goToPage" nav-tags="adminNavTags")
+                .page-header-text AZURE SERVICE PRINCIPALS
         .page-content-container.admin
             .right.search-bar-container
                 .search-bar(ng-if="!viewPassword")
@@ -41,12 +41,12 @@ script(type='text/ng-template', id='rotatePopup.html')
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
                                     div.data-management-content
-                                        div.svcdescription(ng-show="svcaccOnboardedData.keys.length>0") Following are list of the Azure Service Prinicipals which you have read or rotate permission. Click the Azure Service Prinicipal to read or rotate password.
+                                        div.svcdescription(ng-show="svcaccOnboardedData.keys.length>0") Following are list of the Azure Service Principals which you have read or rotate permission. Click the Azure Service Principal to read or rotate password.
                                         .row.change-svc-table-container
                                             loading-state(ng-if='isLoadingData')
                                             md-content(class="md-padding md-content-wrapper")
                                                 .unavailable-text(ng-if='svcaccOnboardedData.keys.length==0')
-                                                    | No Azure Service Prinicipals Available
+                                                    | No Azure Service Principals Available
                                                 div.tiles-wrapper(img="'safe.png'" loading="isLoadingData")
                                                     .tiles-wrapper
                                                         .loader-wrapper(ng-show="loading" ng-cloak="")
@@ -72,7 +72,7 @@ script(type='text/ng-template', id='rotatePopup.html')
                                                 .glyphicon.glyphicon-chevron-left(ng-click="goToMyServiceAccounts()")
                                             div.left
                                                 span
-                                                    span {{azuresvcaccSecretData.servicePrinicipalName}}
+                                                    span {{azuresvcaccSecretData.servicePrincipalName}}
                             div.data-management-content
                                 text(ng-if="folderDisplay")
                                 text(ng-if="folderDisplay")
@@ -80,7 +80,7 @@ script(type='text/ng-template', id='rotatePopup.html')
                                     loading-state(ng-if='isLoadingData')
                                     .row.table-header.solid-header(ng-show="!isLoadingData && folderDisplay")
                                         .container.name.cell.col-lg-6.col-md-6.col-sm-6.col-xs-6.table-first-cell NAME 
-                                    .accordion-list-main.adjustment(ng-repeat="value in folderList.folders" ng-click="viewSecret(folderList.servicePrinicipalName, value)")
+                                    .accordion-list-main.adjustment(ng-repeat="value in folderList.folders" ng-click="viewSecret(folderList.servicePrincipalName, value)")
                                         .row.accordion-list-wrapper(ng-if="folderDisplay")
                                         .cell.pink-text.col-lg-4.col-md-4.col-sm-4.col-xs-3.column-value-wrapper.fits-contents(ng-if="folderDisplay")
                                                 span.icon.list-icon.folder.icon-folder.icon-folder-open 
@@ -99,16 +99,16 @@ script(type='text/ng-template', id='rotatePopup.html')
                                                 .glyphicon.glyphicon-chevron-left(ng-click="goToMyServiceAccounts()")
                                             div.left
                                                 span
-                                                    span {{azuresvcaccSecretData.servicePrinicipalName}}
+                                                    span {{azuresvcaccSecretData.servicePrincipalName}}
 
                             div.data-management-content
-                                text(ng-if="ifSecret && write && !folderDisplay") You have read and rotate permission in this Azure Service Prinicipal. Click the copy icon/view icon to get the secrets. Use the "Rotate secret" link to reset the Azure Service Prinicipal secret.
-                                text(ng-if="ifSecret && !write && !folderDisplay") You have read permission in this Azure Service Prinicipal. Click the copy icon/view icon to get the secret.
+                                text(ng-if="ifSecret && write && !folderDisplay") You have read and rotate permission in this Azure Service Principal. Click the copy icon/view icon to get the secrets. Use the "Rotate secret" link to reset the Azure Service Principal secret.
+                                text(ng-if="ifSecret && !write && !folderDisplay") You have read permission in this Azure Service Principal. Click the copy icon/view icon to get the secret.
                                 .row.change-svc-table-container
                                     loading-state(ng-if='isLoadingData')
                                     .row.table-header.solid-header(ng-show="!isLoadingData && !folderDisplay")
-                                        .container.name.cell.col-lg-3.col-md-3.col-sm-3.col-xs-3.table-first-cell ACCESS KEY
-                                        .container.name.cell.col-lg-3.col-md-3.col-sm-3.col-xs-3.table-first-cell SECRET KEY
+                                        .container.name.cell.col-lg-3.col-md-3.col-sm-3.col-xs-3.table-first-cell SECRET KEY ID
+                                        .container.name.cell.col-lg-3.col-md-3.col-sm-3.col-xs-3.table-first-cell SECRET TEXT
                                         .container.name.cell.col-lg-3.col-md-3.col-sm-3.col-xs-3.table-first-cell EXPIRY DATE
                                         .container.name.cell.col-lg-3.col-md-3.col-sm-3.col-xs-3 ACTION
                                     .accordion-list-main.adjustment(ng-if="!folderDisplay")

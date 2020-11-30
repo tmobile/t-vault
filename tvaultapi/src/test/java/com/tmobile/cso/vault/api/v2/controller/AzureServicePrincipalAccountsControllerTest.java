@@ -32,18 +32,18 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
-import com.tmobile.cso.vault.api.service.AzureServicePrinicipalAccountsService;
+import com.tmobile.cso.vault.api.service.AzureServicePrincipalAccountsService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-public class AzureServicePrinicipalAccountsControllerTest {
+public class AzureServicePrincipalAccountsControllerTest {
 	
 	
 	@InjectMocks
-	private AzureServicePrinicipalAccountsController azureServicePrinicipalAccountsController;
+	private AzureServicePrincipalAccountsController azureServicePrincipalAccountsController;
 	
 	@Mock
-	public AzureServicePrinicipalAccountsService azureServicePrinicipalAccountsService;
+	public AzureServicePrincipalAccountsService azureServicePrincipalAccountsService;
 	
 	private MockMvc mockMvc;
 	
@@ -65,7 +65,7 @@ public class AzureServicePrinicipalAccountsControllerTest {
 	@Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        this.mockMvc = MockMvcBuilders.standaloneSetup(azureServicePrinicipalAccountsController).build();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(azureServicePrincipalAccountsController).build();
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";  
         userDetails.setUsername("normaluser");
         userDetails.setAdmin(true);
@@ -79,7 +79,7 @@ public class AzureServicePrinicipalAccountsControllerTest {
 
 		String expected = "{\"messages\":[\"Successfully completed onboarding of IAM service account into TVault for password rotation.\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
-		when(azureServicePrinicipalAccountsService.onboardAzureServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any()))
+		when(azureServicePrincipalAccountsService.onboardAzureServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any()))
 				.thenReturn(responseEntityExpected);
 		String inputJson = getJSON(serviceAccount);
 		MvcResult result = mockMvc
@@ -94,9 +94,9 @@ public class AzureServicePrinicipalAccountsControllerTest {
 	
 	private AzureServiceAccount generateAzureServiceAccount(String servicePrincipalName) {
 		AzureServiceAccount azureServiceAccount = new AzureServiceAccount();
-		azureServiceAccount.setServicePrinicipalName(servicePrincipalName);
-		azureServiceAccount.setServicePrinicipalClientId("a987b078-a5a7-55re-8975-8945c545b76d");
-		azureServiceAccount.setServicePrinicipalId("a987b078-a5a7-55re-8975-8945c545b76d");
+		azureServiceAccount.setServicePrincipalName(servicePrincipalName);
+		azureServiceAccount.setServicePrincipalClientId("a987b078-a5a7-55re-8975-8945c545b76d");
+		azureServiceAccount.setServicePrincipalId("a987b078-a5a7-55re-8975-8945c545b76d");
 		azureServiceAccount.setOwnerNtid("testUser");
 		azureServiceAccount.setOwnerEmail("normaluser@testmail.com");
 		azureServiceAccount.setApplicationId("app1");
@@ -127,12 +127,12 @@ public class AzureServicePrinicipalAccountsControllerTest {
 	}
 	
 	@Test
-	public void test_getAzureServicePrinicipalList_successful() throws Exception {
+	public void test_getAzureServicePrincipalList_successful() throws Exception {
 		String responseJson = "{\"keys\":[{\"userName\":\"testiamsvcacc01\",\"metaDataName\":\"123456789012_testiamsvcacc01\",\"accountID\":\"123456789012\"},{\"userName\":\"test_iamsvcacc2\",\"metaDataName\":\"123456789045_test_iamsvcacc2\",\"accountID\":\"123456789045\"}]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 		String expected = responseEntityExpected.getBody();
 
-		when(azureServicePrinicipalAccountsService.getAzureServicePrinicipalList(userDetails))
+		when(azureServicePrincipalAccountsService.getAzureServicePrincipalList(userDetails))
 				.thenReturn(responseEntityExpected);
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/azureserviceaccounts/list")
 				.header(VAULT_TOKEN_STRING, token).header(CONTENT_TYPE_STRING, CONTENT_TYPE_VALUE_STRING)
@@ -147,7 +147,7 @@ public class AzureServicePrinicipalAccountsControllerTest {
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 		String expected = responseEntityExpected.getBody();
 
-		when(azureServicePrinicipalAccountsService.readFolders(token, "azuresvcacc/testiamsvcacc01"))
+		when(azureServicePrincipalAccountsService.readFolders(token, "azuresvcacc/testiamsvcacc01"))
 				.thenReturn(responseEntityExpected);
 
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get(
@@ -165,7 +165,7 @@ public class AzureServicePrinicipalAccountsControllerTest {
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 		String expected = responseEntityExpected.getBody();
 
-		when(azureServicePrinicipalAccountsService.getAzureServiceAccountSecretKey(token , "testiamsvcacc01", "secret_01"))
+		when(azureServicePrincipalAccountsService.getAzureServiceAccountSecretKey(token , "testiamsvcacc01", "secret_01"))
 				.thenReturn(responseEntityExpected);		
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/azureserviceaccounts/secrets/testiamsvcacc01/secret_01")
 				.header(VAULT_TOKEN_STRING, token).header(CONTENT_TYPE_STRING, CONTENT_TYPE_VALUE_STRING)
@@ -182,7 +182,7 @@ public class AzureServicePrinicipalAccountsControllerTest {
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 		String expected = responseEntityExpected.getBody();
 
-		when(azureServicePrinicipalAccountsService.readSecret(Mockito.any(), Mockito.any(), Mockito.any()))
+		when(azureServicePrincipalAccountsService.readSecret(Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn(responseEntityExpected);		
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/azureserviceaccounts/secret/testiamsvcacc01/1212zdasdssss")
 				.header(VAULT_TOKEN_STRING, token).header(CONTENT_TYPE_STRING, CONTENT_TYPE_VALUE_STRING)
@@ -198,7 +198,7 @@ public class AzureServicePrinicipalAccountsControllerTest {
 		AzureServiceAccountOffboardRequest azureServiceAccountOffboardRequest = new AzureServiceAccountOffboardRequest("testaccount");
 		String expected = "{\"messages\":[\"Successfully offboarded Azure service account (if existed) from T-Vault\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
-		when(azureServicePrinicipalAccountsService.offboardAzureServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any()))
+		when(azureServicePrincipalAccountsService.offboardAzureServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any()))
 				.thenReturn(responseEntityExpected);
 		String inputJson = getJSON(azureServiceAccountOffboardRequest);
 		MvcResult result = mockMvc
@@ -217,7 +217,7 @@ public class AzureServicePrinicipalAccountsControllerTest {
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 		String expected = responseEntityExpected.getBody();
 
-		when(azureServicePrinicipalAccountsService.getOnboardedAzureServiceAccounts(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any()))
+		when(azureServicePrincipalAccountsService.getOnboardedAzureServiceAccounts(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any()))
 				.thenReturn(responseEntityExpected);		
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/azureserviceaccounts")
 				.header(VAULT_TOKEN_STRING, token)
@@ -232,7 +232,7 @@ public class AzureServicePrinicipalAccountsControllerTest {
 
 		String expected = "{\"message\":[\"User is successfully Removed from Azure Service Account\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
-		when(azureServicePrinicipalAccountsService.removeUserFromAzureServiceAccount(Mockito.anyString(), Mockito.any(),
+		when(azureServicePrincipalAccountsService.removeUserFromAzureServiceAccount(Mockito.anyString(), Mockito.any(),
 				Mockito.any())).thenReturn(responseEntityExpected);
 		String inputJson = getJSON(iamSvcAccUser);
 		MvcResult result = mockMvc
@@ -253,7 +253,7 @@ public class AzureServicePrinicipalAccountsControllerTest {
 		String inputJson = new ObjectMapper().writeValueAsString(serviceAccountAWSRole);
 		String responseJson = "{\"messages\":[\"AWS Role created \"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-		when(azureServicePrinicipalAccountsService.createAWSRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
+		when(azureServicePrincipalAccountsService.createAWSRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
 				Mockito.any(AWSLoginRole.class))).thenReturn(responseEntityExpected);
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/v2/azureserviceaccounts/aws/role").header(VAULT_TOKEN_STRING, token)
@@ -268,7 +268,7 @@ public class AzureServicePrinicipalAccountsControllerTest {
         String inputJson =new ObjectMapper().writeValueAsString(serviceAccountAWSRole);
 		String responseJson = "{\"messages\":[\"AWS Role created \"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-		when(azureServicePrinicipalAccountsService.createIAMRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any()))
+		when(azureServicePrincipalAccountsService.createIAMRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any()))
 				.thenReturn(responseEntityExpected);
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/v2/azureserviceaccounts/aws/iam/role")
@@ -290,7 +290,7 @@ public class AzureServicePrinicipalAccountsControllerTest {
 		String responseJson = "{\"messages\":[\"AWS Role successfully associated with Azure Service Account\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-		when(azureServicePrinicipalAccountsService.addAwsRoleToAzureSvcacc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
+		when(azureServicePrincipalAccountsService.addAwsRoleToAzureSvcacc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
 				Mockito.any(AzureServiceAccountAWSRole.class))).thenReturn(responseEntityExpected);
 		
 		
@@ -306,7 +306,7 @@ public class AzureServicePrinicipalAccountsControllerTest {
 		String inputJson = getJSON(azureSvcAccGroup);
 		String responseJson = "{\"messages\":[\"Group is successfully associated with Azure Service Principal\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-		when(azureServicePrinicipalAccountsService.addGroupToAzureServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any()))
+		when(azureServicePrincipalAccountsService.addGroupToAzureServiceAccount(Mockito.anyString(), Mockito.any(), Mockito.any()))
 				.thenReturn(responseEntityExpected);
 		MvcResult result = mockMvc
 				.perform(MockMvcRequestBuilders.post("/v2/azureserviceaccounts/group")
@@ -318,13 +318,13 @@ public class AzureServicePrinicipalAccountsControllerTest {
 	}
 
 	@Test
-	public void test_activateAzureServicePrinicipal() throws Exception {
+	public void test_activateAzureServicePrincipal() throws Exception {
 
 		String responseJson = "{\"messages\":[\"Azure Service Principal activated successfully\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-		when(azureServicePrinicipalAccountsService.activateAzureServicePrinicipal(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), eq(userDetails), Mockito.any())).thenReturn(responseEntityExpected);
+		when(azureServicePrincipalAccountsService.activateAzureServicePrincipal(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), eq(userDetails), Mockito.any())).thenReturn(responseEntityExpected);
 
-		mockMvc.perform(MockMvcRequestBuilders.post("/v2/azureserviceaccounts/activateAzureServicePrinicipal?servicePrinicipalName=testaureserviceprincipal").requestAttr("UserDetails", userDetails)
+		mockMvc.perform(MockMvcRequestBuilders.post("/v2/azureserviceaccounts/activateAzureServicePrincipal?servicePrincipalName=testaureserviceprincipal").requestAttr("UserDetails", userDetails)
 				.header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
 				.header("Content-Type", "application/json;charset=UTF-8"))
 				.andExpect(status().isOk())
@@ -333,11 +333,11 @@ public class AzureServicePrinicipalAccountsControllerTest {
 
 	@Test
 	public void test_rotateSecret() throws Exception {
-		AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest = new AzureServicePrinicipalRotateRequest("testaureserviceprincipal", "testsecretkeyid", "12345678-1234-1234-1234-123456789098", "12345678-1234-1234-97c8-123456789098");
-		String inputJson = getJSON(azureServicePrinicipalRotateRequest);
+		AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest("testaureserviceprincipal", "testsecretkeyid", "12345678-1234-1234-1234-123456789098", "12345678-1234-1234-97c8-123456789098");
+		String inputJson = getJSON(azureServicePrincipalRotateRequest);
 		String responseJson = "{\"messages\":[\"Azure Service Principal secret rotated successfully\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-		when(azureServicePrinicipalAccountsService.rotateSecret(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AzureServicePrinicipalRotateRequest.class))).thenReturn(responseEntityExpected);
+		when(azureServicePrincipalAccountsService.rotateSecret(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AzureServicePrincipalRotateRequest.class))).thenReturn(responseEntityExpected);
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/v2/azureserviceaccounts/rotate").requestAttr("UserDetails", userDetails)
 				.header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -358,7 +358,7 @@ public class AzureServicePrinicipalAccountsControllerTest {
 		String responseJson = "{\"messages\":[\"AWS Role successfully removed from Azure Service Account\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-		when(azureServicePrinicipalAccountsService.removeAwsRoleFromAzureSvcacc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
+		when(azureServicePrincipalAccountsService.removeAwsRoleFromAzureSvcacc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
 				Mockito.any(AzureServiceAccountAWSRole.class))).thenReturn(responseEntityExpected);
 		
 		

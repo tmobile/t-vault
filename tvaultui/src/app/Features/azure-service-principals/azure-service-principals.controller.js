@@ -19,7 +19,7 @@
 
 'use strict';
 (function(app){
-    app.controller('AzureServicePrinicipalsCtrl', function($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService, RestEndpoints, CopyToClipboard, AppConstant){
+    app.controller('AzureServicePrincipalsCtrl', function($scope, $rootScope, Modal, fetchData, $http, $window, $state, SessionStore, AdminSafesManagement, ModifyUrl, UtilityService, Notifications, safesService, RestEndpoints, CopyToClipboard, AppConstant){
 
         $scope.isLoadingData = false;       // Variable to set the loader on
         $scope.adminNavTags = safesService.getSafesNavTags();
@@ -105,7 +105,7 @@
         $scope.viewFolders = function (path) {
             $scope.isLoadingData = true;
             $scope.folderList = {};
-            $scope.azuresvcaccSecretData = {"servicePrinicipalName":""};
+            $scope.azuresvcaccSecretData = {"servicePrincipalName":""};
             var url = RestEndpoints.baseURL + '/v2/azureserviceaccounts/folders/secrets?path=' + 'azuresvcacc/' + path;
             return $http({
                 method: 'GET',
@@ -118,14 +118,14 @@
                     $scope.viewPassword = true;
                     $scope.isLoadingData = false;
                     $scope.folderList = response.data;
-                    $scope.azuresvcaccSecretData.servicePrinicipalName = response.data.servicePrinicipalName;
+                    $scope.azuresvcaccSecretData.servicePrincipalName = response.data.servicePrincipalName;
                 }).catch(function (catchError) {
                     console.error(catchError);
 
                     $scope.isLoadingData = false;
                     $scope.viewPassword = false;
                     if (catchError.status == 403 || catchError.status == "403") {
-                        var errorMsg = "Access Denied: No permission to read or reset secret for Azure service prinicipal";
+                        var errorMsg = "Access Denied: No permission to read or reset secret for Azure service principal";
                         $scope.errorMessage = errorMsg;
                     }
                     else {
@@ -152,7 +152,7 @@
                     if (getPermission(azuresvcaccname) == "write") {
                         $scope.write = true;
                     }
-                    $scope.azuresvcaccSecretData.servicePrinicipalName = azuresvcaccname + '/' + folderName;
+                    $scope.azuresvcaccSecretData.servicePrincipalName = azuresvcaccname + '/' + folderName;
                     $scope.folderDisplay = false;
                 }
                 else {
@@ -184,7 +184,7 @@
         }
 
         $scope.rotateAzureSecret = function(rotateSecretDetails) {
-            var folderName = $scope.azuresvcaccSecretData.servicePrinicipalName.split("/")[1];
+            var folderName = $scope.azuresvcaccSecretData.servicePrincipalName.split("/")[1];
             if (folderName != '') {
                  $scope.isLoadingData = true;
                  Modal.close();
@@ -216,15 +216,15 @@
 
         $scope.rotatePasswordPopup = function(azuresvcaccSecretData) {
             $scope.fetchDataError = false;
-            var servicePrinicipalName = azuresvcaccSecretData.servicePrinicipalName.split("/")[0];
-            if (servicePrinicipalName != undefined) {
+            var servicePrincipalName = azuresvcaccSecretData.servicePrincipalName.split("/")[0];
+            if (servicePrincipalName != undefined) {
                 $scope.rotateSecretDetails = {
-                    azureSvcAccName: servicePrinicipalName,
+                    azureSvcAccName: servicePrincipalName,
                     secretKeyId: azuresvcaccSecretData.secretKeyId,
-                    servicePrinicipalId: azuresvcaccSecretData.servicePrinicipalId,
+                    servicePrincipalId: azuresvcaccSecretData.servicePrincipalId,
                     tenantId: azuresvcaccSecretData.tenantId
                 };
-                Modal.createModal('md', 'rotatePopup.html', 'AzureServicePrinicipalsCtrl', $scope);
+                Modal.createModal('md', 'rotatePopup.html', 'AzureServicePrincipalsCtrl', $scope);
             }
             else {
                 $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage('ERROR_GENERAL');
@@ -259,7 +259,7 @@
             pagesShown = pagesShown + 1;
         };
         $scope.error = function (size) {
-            Modal.createModal(size, 'error.html', 'AzureServicePrinicipalsCtrl', $scope);
+            Modal.createModal(size, 'error.html', 'AzureServicePrincipalsCtrl', $scope);
         };
 
         $rootScope.close = function () {
@@ -267,7 +267,7 @@
         };
         init();
     });
-})(angular.module('vault.features.AzureServicePrinicipalsCtrl',[
+})(angular.module('vault.features.AzureServicePrincipalsCtrl',[
     'vault.services.fetchData',
     'vault.services.ModifyUrl',
     'vault.services.Notifications',

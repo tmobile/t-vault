@@ -216,7 +216,7 @@
             if ($rootScope.lastVisited == "change-iam-service-account") {
                 $scope.selectedIndex = 3;
             }
-            if ($rootScope.lastVisited == "change-azure-service-prinicipals") {
+            if ($rootScope.lastVisited == "change-azure-service-principals") {
                 $scope.selectedIndex = 4;
             }
             if ($rootScope.lastVisited == "change-certificate") {
@@ -845,7 +845,7 @@
             var obj = "azuresvcaccData";
             var fullObj = {};
             fullObj[obj] = { "userId": userId };
-            $state.go('change-azure-service-prinicipals', fullObj);
+            $state.go('change-azure-service-principals', fullObj);
         }
 
         $scope.offboardSvcaccPopUp = function (svcaccname) {
@@ -858,19 +858,16 @@
                 Modal.close();
                 $scope.isLoadingData = true;
                 $scope.isOffboardingDecommitioned = false;
-                //var queryParameters = svcaccUserId;
-                var queryParameters = "serviceAccountName=" + svcaccUserId + "&excludeOnboarded=false";
-                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccInfo', queryParameters);
-                //var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccOnboardInfo', queryParameters);
-                //AdminSafesManagement.getSvcaccOnboardInfo(null, updatedUrlOfEndPoint).then(
-                AdminSafesManagement.getSvcaccInfo(null, updatedUrlOfEndPoint).then(
+                var queryParameters = "path=ad/roles/"+svcaccUserId;
+                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccMetadata', queryParameters);
+                AdminSafesManagement.getSvcaccMetadata(null, updatedUrlOfEndPoint).then(
                     function (response) {
                         if (UtilityService.ifAPIRequestSuccessful(response)) {
                             try {
-                                if (response.data.data.values.length > 0) {
-                                    var object = response.data.data.values[0];
+                                if (response.data.data) {
+                                    var managedBy = response.data.data.managedBy;
                                     var offboardPayload = {
-                                        "owner": object.managedBy.userName,
+                                        "owner": managedBy,
                                         "name": svcaccUserId
                                     }
                                     AdminSafesManagement.offboardSvcacc(offboardPayload, '').then(

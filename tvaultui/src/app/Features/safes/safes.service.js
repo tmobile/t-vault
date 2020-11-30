@@ -187,7 +187,7 @@
                 show: true
             },{
                 displayName: 'AZURE SERVICE PRINCIPALS',
-                navigationName: 'azure-service-prinicipals',
+                navigationName: 'azure-service-principals',
                 addComma: false,
                 show: true
             }, {

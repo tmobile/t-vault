@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 import com.tmobile.cso.vault.api.common.IAMServiceAccountConstants;
 import com.tmobile.cso.vault.api.model.*;
-import org.apache.catalina.User;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -72,7 +71,7 @@ import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import com.tmobile.cso.vault.api.utils.TokenUtils;
 
 @Component
-public class AzureServicePrinicipalAccountsService {
+public class AzureServicePrincipalAccountsService {
 	
 	@Autowired
 	private RequestProcessor reqProcessor;
@@ -118,7 +117,7 @@ public class AzureServicePrinicipalAccountsService {
 	
 	private static final String[] ACCESS_PERMISSIONS = { "read", "rotate", "deny", "sudo" };
 	
-	private static Logger log = LogManager.getLogger(AzureServicePrinicipalAccountsService.class);
+	private static Logger log = LogManager.getLogger(AzureServicePrincipalAccountsService.class);
 
 	
 	
@@ -143,9 +142,9 @@ public class AzureServicePrinicipalAccountsService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 					"{\"errors\":[\"Access denied. Not authorized to perform onboarding for Azure service accounts.\"]}");
 		}
-		azureServiceAccount.setServicePrinicipalName(azureServiceAccount.getServicePrinicipalName().toLowerCase());
+		azureServiceAccount.setServicePrincipalName(azureServiceAccount.getServicePrincipalName().toLowerCase());
 		List<String> onboardedList = getOnboardedAzureServiceAccountList(token);
-		String azureSvcAccName = azureServiceAccount.getServicePrinicipalName();
+		String azureSvcAccName = azureServiceAccount.getServicePrincipalName();
 		if (onboardedList.contains(azureSvcAccName)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -322,10 +321,10 @@ public class AzureServicePrinicipalAccountsService {
 
 		AzureServiceAccountMetadataDetails azureServiceAccountMetadataDetails = new AzureServiceAccountMetadataDetails();
 		List<AzureSecretsMetadata> azureSecretsMetadatas = new ArrayList<>();
-		azureServiceAccountMetadataDetails.setServicePrinicipalName(azureServiceAccount.getServicePrinicipalName());
-		azureServiceAccountMetadataDetails.setServicePrinicipalId(azureServiceAccount.getServicePrinicipalId());
+		azureServiceAccountMetadataDetails.setServicePrincipalName(azureServiceAccount.getServicePrincipalName());
+		azureServiceAccountMetadataDetails.setServicePrincipalId(azureServiceAccount.getServicePrincipalId());
 		azureServiceAccountMetadataDetails
-				.setServicePrinicipalClientId(azureServiceAccount.getServicePrinicipalClientId());
+				.setServicePrincipalClientId(azureServiceAccount.getServicePrincipalClientId());
 		azureServiceAccountMetadataDetails.setApplicationId(azureServiceAccount.getApplicationId());
 		azureServiceAccountMetadataDetails.setApplicationName(azureServiceAccount.getApplicationName());
 		azureServiceAccountMetadataDetails.setApplicationTag(azureServiceAccount.getApplicationTag());
@@ -369,7 +368,7 @@ public class AzureServicePrinicipalAccountsService {
 					.put(LogMessage.ACTION, "createAzureSvcAccMetadata")
 					.put(LogMessage.MESSAGE,
 							String.format("Successfully created metadata for the Azure Service Account [%s]",
-									azureServiceAccountMetadataDetails.getServicePrinicipalName()))
+									azureServiceAccountMetadataDetails.getServicePrincipalName()))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.OK)
 					.body("{\"messages\":[\"Successfully created Metadata for the Azure Service Account\"]}");
@@ -551,7 +550,7 @@ public class AzureServicePrinicipalAccountsService {
 		deleteAzureServiceAccountPolicies(tokenUtils.getSelfServiceToken(), azureSvcAccName);
 		//Deleting the Azure service account metadata
 		OnboardedAzureServiceAccount azureSvcAccToRevert = new OnboardedAzureServiceAccount(
-				azureServiceAccount.getServicePrinicipalName(), azureServiceAccount.getOwnerNtid());
+				azureServiceAccount.getServicePrincipalName(), azureServiceAccount.getOwnerNtid());
 		ResponseEntity<String> azureMetaDataDeletionResponse = deleteAzureSvcAccount(tokenUtils.getSelfServiceToken(), azureSvcAccToRevert);
 		if (azureMetaDataDeletionResponse != null
 				&& HttpStatus.OK.equals(azureMetaDataDeletionResponse.getStatusCode())) {
@@ -611,7 +610,7 @@ public class AzureServicePrinicipalAccountsService {
 	 * @return
 	 */
 	private ResponseEntity<String> deleteAzureSvcAccount(String token, OnboardedAzureServiceAccount azureServiceAccount) {
-		String azureSvcAccName = azureServiceAccount.getServicePrinicipalName();
+		String azureSvcAccName = azureServiceAccount.getServicePrincipalName();
 		String azureSvcAccPath = AzureServiceAccountConstants.AZURE_SVCC_ACC_META_PATH + azureSvcAccName;
 		Response onboardingResponse = reqProcessor.process("/delete", "{\"path\":\"" + azureSvcAccPath + "\"}", token);
 
@@ -651,7 +650,7 @@ public class AzureServicePrinicipalAccountsService {
 				.put(LogMessage.MESSAGE, String.format("Trying to add sudo permission for the service account [%s] to " +
 						"the user {%s]", azureSvcAccName, azureServiceAccount.getOwnerNtid()))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-		AzureServiceAccountUser azureServiceAccountUser = new AzureServiceAccountUser(azureServiceAccount.getServicePrinicipalName(),
+		AzureServiceAccountUser azureServiceAccountUser = new AzureServiceAccountUser(azureServiceAccount.getServicePrincipalName(),
 				azureServiceAccount.getOwnerNtid(), TVaultConstants.SUDO_POLICY);
 		//Add sudo permisson to the Azure service account owner
 		ResponseEntity<String> addUserToAzureSvcAccResponse = addUserToAzureServiceAccount(token, userDetails,
@@ -866,7 +865,7 @@ public class AzureServicePrinicipalAccountsService {
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
 			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, azureServiceAccountUser.getUsername(),
-					userDetails);
+					userDetails, true);
 			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -1141,12 +1140,12 @@ public class AzureServicePrinicipalAccountsService {
 	
 	
 	/*
-	 * getAzureServicePrinicipalList
+	 * getAzureServicePrincipalList
 	 * @param userDetails
 	 * @param token
 	 * @return
 	 */
-	public ResponseEntity<String> getAzureServicePrinicipalList(UserDetails userDetails) {
+	public ResponseEntity<String> getAzureServicePrincipalList(UserDetails userDetails) {
 		oidcUtil.renewUserToken(userDetails.getClientToken());
 		String token = userDetails.getClientToken();
 		if (!userDetails.isAdmin()) {
@@ -1238,7 +1237,7 @@ public class AzureServicePrinicipalAccountsService {
 	}
 	
 	/**
-	 * Read Folder details for a given Azure service prinicipal
+	 * Read Folder details for a given Azure service principal
 	 *
 	 * @param token
 	 * @param path
@@ -1260,7 +1259,7 @@ public class AzureServicePrinicipalAccountsService {
 			azureServiceAccountNode.setPath(path);
 			String separator = "/";
 			int sepPos = path.indexOf(separator);
-			azureServiceAccountNode.setServicePrinicipalName(path.substring(sepPos + separator.length()));
+			azureServiceAccountNode.setServicePrincipalName(path.substring(sepPos + separator.length()));
 			response.setSuccess(true);
 			response.setHttpstatus(HttpStatus.OK);
 			String res = objMapper.writeValueAsString(azureServiceAccountNode);
@@ -1308,7 +1307,7 @@ public class AzureServicePrinicipalAccountsService {
 			return ResponseEntity.status(HttpStatus.OK).body(data.toString());
 		}
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-				.body("{\"errors\":[\"No Azure Service Prinicipal with " + azureSvcaccName + ".\"]}");
+				.body("{\"errors\":[\"No Azure Service Principal with " + azureSvcaccName + ".\"]}");
 
 	}
 	
@@ -1527,7 +1526,7 @@ public class AzureServicePrinicipalAccountsService {
 				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 					// OIDC implementation changes
 					ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName,
-							null);
+							null, true);
 					if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 						if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
@@ -1807,7 +1806,7 @@ public class AzureServicePrinicipalAccountsService {
 	 * @return
 	 */
 	private ResponseEntity<String> deleteAzureSvcAccountSecrets(String token, OnboardedAzureServiceAccount azureServiceAccount) {
-		String azureSvcAccName = azureServiceAccount.getServicePrinicipalName();
+		String azureSvcAccName = azureServiceAccount.getServicePrincipalName();
 		String azureSvcAccPath = AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + azureSvcAccName;
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -1817,7 +1816,7 @@ public class AzureServicePrinicipalAccountsService {
 						"account [%s].", azureSvcAccName))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
-		boolean secretDeleteStatus = deleteAzureSvcAccountSecretFolders(token, azureServiceAccount.getServicePrinicipalName());
+		boolean secretDeleteStatus = deleteAzureSvcAccountSecretFolders(token, azureServiceAccount.getServicePrincipalName());
 		if (secretDeleteStatus) {
 			Response onboardingResponse = reqProcessor.process("/delete", "{\"path\":\"" + azureSvcAccPath + "\"}", token);
 
@@ -2127,7 +2126,7 @@ public class AzureServicePrinicipalAccountsService {
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
 			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token,
-					azureServiceAccountUser.getUsername(), userDetails);
+					azureServiceAccountUser.getUsername(), userDetails, true);
 			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 					log.error(
@@ -2868,59 +2867,59 @@ public class AzureServicePrinicipalAccountsService {
 	 * Activate Azure Service Principal.
 	 * @param token
 	 * @param userDetails
-	 * @param servicePrinicipalName
+	 * @param servicePrincipalName
 	 * @return
 	 */
-	public ResponseEntity<String> activateAzureServicePrinicipal(String token, UserDetails userDetails, String servicePrinicipalName) {
+	public ResponseEntity<String> activateAzureServicePrincipal(String token, UserDetails userDetails, String servicePrincipalName) {
 
-		servicePrinicipalName = servicePrinicipalName.toLowerCase();
-		String servicePrinicipalId;
+		servicePrincipalName = servicePrincipalName.toLowerCase();
+		String servicePrincipalId;
 		String tenantId;
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
-				put(LogMessage.MESSAGE, String.format ("Trying to activate Azure Service Principal [%s]", servicePrinicipalName)).
+				put(LogMessage.MESSAGE, String.format ("Trying to activate Azure Service Principal [%s]", servicePrincipalName)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 
 		boolean isAuthorized = true;
 		if (userDetails != null) {
-			isAuthorized = isAuthorizedToAddPermissionInAzureSvcAcc(userDetails, servicePrinicipalName, false);
+			isAuthorized = isAuthorizedToAddPermissionInAzureSvcAcc(userDetails, servicePrincipalName, false);
 		}
 		if (isAuthorized) {
-			if (isAzureSvcaccActivated(token, userDetails, servicePrinicipalName)) {
+			if (isAzureSvcaccActivated(token, userDetails, servicePrincipalName)) {
 				log.error(
 						JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 								.put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION)
-								.put(LogMessage.MESSAGE, String.format("Failed to activate Azure Service Principal. [%s] is already activated", servicePrinicipalName))
+								.put(LogMessage.MESSAGE, String.format("Failed to activate Azure Service Principal. [%s] is already activated", servicePrincipalName))
 								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 								.build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 						"{\"errors\":[\"Azure Service Principal is already activated. You can now grant permissions from Permissions menu\"]}");
 			}
 
-			JsonObject azureMetadataJson = getAzureMetadata(token, servicePrinicipalName);
+			JsonObject azureMetadataJson = getAzureMetadata(token, servicePrincipalName);
 
 			if (null!= azureMetadataJson && azureMetadataJson.has("secret")) {
 				if (!azureMetadataJson.get("secret").isJsonNull()) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
-							put(LogMessage.MESSAGE, String.format ("Trying to rotate secret for the Azure Service Principal [%s]", servicePrinicipalName)).
+							put(LogMessage.MESSAGE, String.format ("Trying to rotate secret for the Azure Service Principal [%s]", servicePrincipalName)).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
 
 					JsonArray svcSecretArray = null;
 					try {
 						svcSecretArray = azureMetadataJson.get("secret").getAsJsonArray();
-						servicePrinicipalId = azureMetadataJson.get("servicePrinicipalId").getAsString();
+						servicePrincipalId = azureMetadataJson.get("servicePrincipalId").getAsString();
 						tenantId = azureMetadataJson.get("tenantId").getAsString();
 					} catch (IllegalStateException e) {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 								put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
-								put(LogMessage.MESSAGE, String.format ("Failed to activate Azure Service Principal. Invalid metadata for [%s].", servicePrinicipalName)).
+								put(LogMessage.MESSAGE, String.format ("Failed to activate Azure Service Principal. Invalid metadata for [%s].", servicePrincipalName)).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 								build()));
 						return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to activate Azure Service Principal. Invalid metadata.\"]}");
@@ -2937,40 +2936,40 @@ public class AzureServicePrinicipalAccountsService {
 								log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 										put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
-										put(LogMessage.MESSAGE, String.format ("Trying to rotate secret for the Azure Service Principal [%s] secret key id: [%s]", servicePrinicipalName, secretKeyId)).
+										put(LogMessage.MESSAGE, String.format ("Trying to rotate secret for the Azure Service Principal [%s] secret key id: [%s]", servicePrincipalName, secretKeyId)).
 										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 										build()));
 								// Rotate IAM service account secret for each secret key id in metadata
-								if (rotateAzureServicePrincipalSecret(token, servicePrinicipalName, secretKeyId, servicePrinicipalId, tenantId, i+1)) {
+								if (rotateAzureServicePrincipalSecret(token, servicePrincipalName, secretKeyId, servicePrincipalId, tenantId, i+1)) {
 									secretSaveCount++;
 								}
 							}
 						}
 						if (secretSaveCount == svcSecretArray.size()) {
 							// Update status to activated.
-							Response metadataUpdateResponse = azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrinicipalName);
+							Response metadataUpdateResponse = azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipalName);
 							if(metadataUpdateResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataUpdateResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataUpdateResponse.getHttpstatus()))){
 								log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 										put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
-										put(LogMessage.MESSAGE, String.format("Metadata updated Successfully for Azure Service Principal [%s].", servicePrinicipalName)).
+										put(LogMessage.MESSAGE, String.format("Metadata updated Successfully for Azure Service Principal [%s].", servicePrincipalName)).
 										put(LogMessage.STATUS, metadataUpdateResponse.getHttpstatus().toString()).
 										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 										build()));
 								// Add rotate permission for owner
-								String ownerNTId = getOwnerNTIdFromMetadata(token, servicePrinicipalName );
+								String ownerNTId = getOwnerNTIdFromMetadata(token, servicePrincipalName );
 								if (StringUtils.isEmpty(ownerNTId)) {
 									log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 											put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 											put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
-											put(LogMessage.MESSAGE, String.format("Failed to add rotate permission for owner for Azure Service Principal [%s]. Owner NT id not found in metadata", servicePrinicipalName)).
+											put(LogMessage.MESSAGE, String.format("Failed to add rotate permission for owner for Azure Service Principal [%s]. Owner NT id not found in metadata", servicePrincipalName)).
 											put(LogMessage.STATUS, HttpStatus.BAD_REQUEST.toString()).
 											put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 											build()));
-									return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Failed to activate Azure Service Prinicipal. Azure secrets are rotated and saved in T-Vault. However failed to add permission to owner. Owner info not found in Metadata.\"]}");
+									return ResponseEntity.status(HttpStatus.OK).body("{\"errors\":[\"Failed to activate Azure Service Principal. Azure secrets are rotated and saved in T-Vault. However failed to add permission to owner. Owner info not found in Metadata.\"]}");
 								}
 
-								AzureServiceAccountUser azureServiceAccountUser = new AzureServiceAccountUser(servicePrinicipalName,
+								AzureServiceAccountUser azureServiceAccountUser = new AzureServiceAccountUser(servicePrincipalName,
 										ownerNTId, AzureServiceAccountConstants.AZURE_ROTATE_MSG_STRING);
 
 								ResponseEntity<String> addUserToIAMSvcAccResponse = addUserToAzureServiceAccount(token, userDetails, azureServiceAccountUser, false);
@@ -2978,7 +2977,7 @@ public class AzureServicePrinicipalAccountsService {
 									log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 											put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 											put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
-											put(LogMessage.MESSAGE, String.format ("Azure Service Principal [%s] activated successfully", servicePrinicipalName)).
+											put(LogMessage.MESSAGE, String.format ("Azure Service Principal [%s] activated successfully", servicePrincipalName)).
 											put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 											build()));
 									return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Azure Service Principal activated successfully\"]}");
@@ -2987,7 +2986,7 @@ public class AzureServicePrinicipalAccountsService {
 								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 										put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
-										put(LogMessage.MESSAGE, String.format("Failed to add rotate permission to owner as part of Azure Service Principal activation for [%s].", servicePrinicipalName)).
+										put(LogMessage.MESSAGE, String.format("Failed to add rotate permission to owner as part of Azure Service Principal activation for [%s].", servicePrincipalName)).
 										put(LogMessage.STATUS, addUserToIAMSvcAccResponse!=null?addUserToIAMSvcAccResponse.getStatusCode().toString():HttpStatus.BAD_REQUEST.toString()).
 										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 										build()));
@@ -2999,7 +2998,7 @@ public class AzureServicePrinicipalAccountsService {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 								put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
-								put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] activated successfully", servicePrinicipalName)).
+								put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] activated successfully", servicePrincipalName)).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 								build()));
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate Azure Service Principal. Failed to rotate secrets for one or more SecretKeyIds.\"]}");
@@ -3008,7 +3007,7 @@ public class AzureServicePrinicipalAccountsService {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
-						put(LogMessage.MESSAGE, String.format ("Failed to activate activate Azure Service Principal. Invalid metadata for [%s].", servicePrinicipalName)).
+						put(LogMessage.MESSAGE, String.format ("Failed to activate activate Azure Service Principal. Invalid metadata for [%s].", servicePrincipalName)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to activate Azure Service Principal. Invalid metadata.\"]}");
@@ -3017,7 +3016,7 @@ public class AzureServicePrinicipalAccountsService {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
-						put(LogMessage.MESSAGE, String.format ("SecretKey information not found in metadata for Azure Service Principal [%s]", servicePrinicipalName)).
+						put(LogMessage.MESSAGE, String.format ("SecretKey information not found in metadata for Azure Service Principal [%s]", servicePrincipalName)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"SecretKey information not found in metadata for this Azure Service Principal\"]}");
@@ -3025,7 +3024,7 @@ public class AzureServicePrinicipalAccountsService {
 
 		}
 		else{
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: No permission to activate this Azure Service Prinicipal\"]}");
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: No permission to activate this Azure Service Principal\"]}");
 		}
 	}
 
@@ -3033,42 +3032,42 @@ public class AzureServicePrinicipalAccountsService {
 	/**
 	 * Rotate Azure Service Principal secret by secretKeyId.
 	 * @param token
-	 * @param azureServicePrinicipalRotateRequest
+	 * @param azureServicePrincipalRotateRequest
 	 * @return
 	 */
-	public ResponseEntity<String> rotateSecret(String token, AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest) {
+	public ResponseEntity<String> rotateSecret(String token, AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest) {
 		boolean rotationStatus = false;
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_ACTION).
 				put(LogMessage.MESSAGE, String.format ("Trying to rotate secret for the Azure Service Principal [%s] " +
-								"secret key id: [%s]", azureServicePrinicipalRotateRequest.getAzureSvcAccName(),
-						azureServicePrinicipalRotateRequest.getSecretKeyId())).
+								"secret key id: [%s]", azureServicePrincipalRotateRequest.getAzureSvcAccName(),
+						azureServicePrincipalRotateRequest.getSecretKeyId())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 
-		String secretKeyId = azureServicePrinicipalRotateRequest.getSecretKeyId();
-		String servicePrinicipalName = azureServicePrinicipalRotateRequest.getAzureSvcAccName().toLowerCase();
+		String secretKeyId = azureServicePrincipalRotateRequest.getSecretKeyId();
+		String servicePrincipalName = azureServicePrincipalRotateRequest.getAzureSvcAccName().toLowerCase();
 
-		if (!hasResetPermissionForAzureServicePrincipal(token, servicePrinicipalName)) {
+		if (!hasResetPermissionForAzureServicePrincipal(token, servicePrincipalName)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, IAMServiceAccountConstants.ROTATE_IAM_SVCACC_TITLE).
-					put(LogMessage.MESSAGE, String.format("Access denited. No permisison to rotate Azure Service Principal secret for [%s].", servicePrinicipalName)).
+					put(LogMessage.MESSAGE, String.format("Access denited. No permisison to rotate Azure Service Principal secret for [%s].", servicePrincipalName)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: No permission to rotate secret for this Azure Service Principal.\"]}");
 		}
 
 		// Get metadata to check the secretkeyid
-		JsonObject azureMetadataJson = getAzureMetadata(token, servicePrinicipalName);
+		JsonObject azureMetadataJson = getAzureMetadata(token, servicePrincipalName);
 
 		if (null!= azureMetadataJson && azureMetadataJson.has("secret")) {
 			if (!azureMetadataJson.get("secret").isJsonNull()) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, IAMServiceAccountConstants.ROTATE_IAM_SVCACC_TITLE).
-						put(LogMessage.MESSAGE, String.format("Trying to rotate secret for the Azure Service Principal [%s]", servicePrinicipalName)).
+						put(LogMessage.MESSAGE, String.format("Trying to rotate secret for the Azure Service Principal [%s]", servicePrincipalName)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 
@@ -3079,7 +3078,7 @@ public class AzureServicePrinicipalAccountsService {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, IAMServiceAccountConstants.ROTATE_IAM_SVCACC_TITLE).
-							put(LogMessage.MESSAGE, String.format("Failed to rotate Azure Service Principal. Invalid metadata for [%s].", servicePrinicipalName)).
+							put(LogMessage.MESSAGE, String.format("Failed to rotate Azure Service Principal. Invalid metadata for [%s].", servicePrincipalName)).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
 					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to rotate secret for Azure Service Principal. Invalid metadata.\"]}");
@@ -3099,14 +3098,14 @@ public class AzureServicePrinicipalAccountsService {
 											.put(LogMessage.MESSAGE,
 													String.format(
 															"Trying to rotate secret for the Azure Service Principal [%s] secret key id: [%s]",
-															servicePrinicipalName, secretKeyId))
+															servicePrincipalName, secretKeyId))
 											.put(LogMessage.APIURL,
 													ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 											.build()));
 							// Rotate Azure Service Principal secret for each secret key id in metadata
-							rotationStatus = rotateAzureServicePrincipalSecret(token, servicePrinicipalName,
-									secretKeyId, azureServicePrinicipalRotateRequest.getServicePrinicipalId(),
-									azureServicePrinicipalRotateRequest.getTenantId(), i+1);
+							rotationStatus = rotateAzureServicePrincipalSecret(token, servicePrincipalName,
+									secretKeyId, azureServicePrincipalRotateRequest.getServicePrincipalId(),
+									azureServicePrincipalRotateRequest.getTenantId(), i+1);
 							break;
 						}
 					}
@@ -3122,8 +3121,8 @@ public class AzureServicePrinicipalAccountsService {
 									String.format(
 											"Failed to rotate secret for SecretkeyId [%s] for Azure Service Principal "
 													+ "[%s]",
-											azureServicePrinicipalRotateRequest.getSecretKeyId(),
-											azureServicePrinicipalRotateRequest.getAzureSvcAccName()))
+											azureServicePrincipalRotateRequest.getSecretKeyId(),
+											azureServicePrincipalRotateRequest.getAzureSvcAccName()))
 							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 							.build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Secret Key information not found in metadata for this Azure Service Principal\"]}");
@@ -3134,8 +3133,8 @@ public class AzureServicePrinicipalAccountsService {
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, IAMServiceAccountConstants.ROTATE_IAM_SVCACC_TITLE).
 					put(LogMessage.MESSAGE, String.format ("Azure Service Principal [%s] rotated successfully for " +
-									"SecretKeyId [%s]", azureServicePrinicipalRotateRequest.getAzureSvcAccName(),
-							azureServicePrinicipalRotateRequest.getSecretKeyId())).
+									"SecretKeyId [%s]", azureServicePrincipalRotateRequest.getAzureSvcAccName(),
+							azureServicePrincipalRotateRequest.getSecretKeyId())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Azure Service Principal secret rotated successfully\"]}");
@@ -3144,8 +3143,8 @@ public class AzureServicePrinicipalAccountsService {
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, IAMServiceAccountConstants.ROTATE_IAM_SVCACC_TITLE).
 				put(LogMessage.MESSAGE, String.format ("Failed to rotate secret for SecretkeyId [%s] for Azure Service Principal " +
-								"[%s]", azureServicePrinicipalRotateRequest.getSecretKeyId(),
-						azureServicePrinicipalRotateRequest.getAzureSvcAccName())).
+								"[%s]", azureServicePrincipalRotateRequest.getSecretKeyId(),
+						azureServicePrincipalRotateRequest.getAzureSvcAccName())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to rotate secret for Azure Service Principal\"]}");
@@ -3154,11 +3153,11 @@ public class AzureServicePrinicipalAccountsService {
 	/**
 	 * Method to check if the user/approle has reset permission.
 	 * @param token
-	 * @param servicePrinicipalName
+	 * @param servicePrincipalName
 	 * @return
 	 */
-	private boolean hasResetPermissionForAzureServicePrincipal(String token, String servicePrinicipalName) {
-		String resetPermission = "w_"+ AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX + servicePrinicipalName;
+	private boolean hasResetPermissionForAzureServicePrincipal(String token, String servicePrincipalName) {
+		String resetPermission = "w_"+ AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX + servicePrincipalName;
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<String> currentPolicies = new ArrayList<>();
 		List<String> identityPolicies = new ArrayList<>();
@@ -3196,11 +3195,11 @@ public class AzureServicePrinicipalAccountsService {
 	/**
 	 * To get owner NT id from metadata for Azure Service Principal.
 	 * @param token
-	 * @param servicePrinicipalName
+	 * @param servicePrincipalName
 	 * @return
 	 */
-	private String getOwnerNTIdFromMetadata(String token, String servicePrinicipalName) {
-		JsonObject getAzureMetadata = getAzureMetadata(token, servicePrinicipalName);
+	private String getOwnerNTIdFromMetadata(String token, String servicePrincipalName) {
+		JsonObject getAzureMetadata = getAzureMetadata(token, servicePrincipalName);
 		if (null != getAzureMetadata && getAzureMetadata.has(AzureServiceAccountConstants.OWNER_NT_ID)) {
 			return getAzureMetadata.get(AzureServiceAccountConstants.OWNER_NT_ID).getAsString();
 		}
@@ -3210,19 +3209,19 @@ public class AzureServicePrinicipalAccountsService {
 	/**
 	 * Rotate secret for a secretKeyID in an Azure Service Principal.
 	 * @param token
-	 * @param servicePrinicipalName
+	 * @param servicePrincipalName
 	 * @param secretKeyId
-	 * @param servicePrinicipalId
+	 * @param servicePrincipalId
 	 * @param tenantId
 	 * @param secretKeyIndex
 	 * @return
 	 */
-	private boolean rotateAzureServicePrincipalSecret(String token, String servicePrinicipalName, String secretKeyId, String servicePrinicipalId, String tenantId, int secretKeyIndex) {
-		AzureServicePrinicipalRotateRequest azureServicePrinicipalRotateRequest  = new AzureServicePrinicipalRotateRequest(servicePrinicipalName, secretKeyId, servicePrinicipalId, tenantId);
+	private boolean rotateAzureServicePrincipalSecret(String token, String servicePrincipalName, String secretKeyId, String servicePrincipalId, String tenantId, int secretKeyIndex) {
+		AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest(servicePrincipalName, secretKeyId, servicePrincipalId, tenantId);
 
 		// @TODO: This is a mock response. This needs to be change to call the actual api (below commented) once the Azure secret api is live.
-		AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(azureServicePrinicipalRotateRequest);
-		//AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecret(azureServicePrinicipalRotateRequest);
+		AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(azureServicePrincipalRotateRequest);
+		//AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecret(azureServicePrincipalRotateRequest);
 
 
 		if (null != azureServiceAccountSecret) {
@@ -3230,20 +3229,20 @@ public class AzureServicePrinicipalAccountsService {
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
 					put(LogMessage.MESSAGE, String.format ("Azure Service Principal [%s] rotated successfully for " +
-									"Secret key id [%s]", servicePrinicipalName,
+									"Secret key id [%s]", servicePrincipalName,
 							secretKeyId)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			// Save secret in iamavcacc mount
-			String path = AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + servicePrinicipalName + "/" + AzureServiceAccountConstants.AZURE_SP_SECRET_FOLDER_PREFIX + (secretKeyIndex);
-			if (azureServiceAccountUtils.writeAzureSPSecret(token, path, servicePrinicipalName, azureServiceAccountSecret)) {
+			String path = AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + servicePrincipalName + "/" + AzureServiceAccountConstants.AZURE_SP_SECRET_FOLDER_PREFIX + (secretKeyIndex);
+			if (azureServiceAccountUtils.writeAzureSPSecret(token, path, servicePrincipalName, azureServiceAccountSecret)) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
 						put(LogMessage.MESSAGE, "Secret saved to Azure Service Principal mount").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
-				Response metadataUdpateResponse = azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(token, servicePrinicipalName, secretKeyId, azureServiceAccountSecret);
+				Response metadataUdpateResponse = azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(token, servicePrincipalName, secretKeyId, azureServiceAccountSecret);
 				if (null != metadataUdpateResponse && HttpStatus.NO_CONTENT.equals(metadataUdpateResponse.getHttpstatus())) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).

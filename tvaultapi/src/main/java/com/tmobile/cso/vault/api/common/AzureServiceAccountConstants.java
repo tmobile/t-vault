@@ -46,7 +46,7 @@ public class AzureServiceAccountConstants {
 	
 	public static final String OWNER_NT_ID = "owner_ntid";
 
-	public static final String ACTIVATE_ACTION = "activateAzureServicePrinicipal";
+	public static final String ACTIVATE_ACTION = "activateAzureServicePrincipal";
 	public static final String AZURE_SP_ROTATE_SECRET_ACTION = "rotateAzureServicePrincipalSecret";
 	public static final String AZURE_SP_ROTATE_ACTION = "rotateSecret";
 	public static final String SECRET_KEY_ID = "secretKeyId";
