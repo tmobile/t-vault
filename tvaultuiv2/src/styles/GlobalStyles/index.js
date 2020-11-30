@@ -181,4 +181,5 @@ export const GlobalModalWrapper = styled.section`
     margin: 0;
     height: fit-content;
   }
+  ${(props) => (props.extraCss ? props.extraCss : '')}
 `;

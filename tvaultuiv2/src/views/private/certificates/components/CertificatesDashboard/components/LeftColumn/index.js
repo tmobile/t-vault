@@ -96,6 +96,7 @@ const LeftColumn = (props) => {
     onDeleteCertificateClicked,
     onTransferOwnerClicked,
     onEditListItemClicked,
+    onReleaseClicked,
     history,
   } = props;
 
@@ -166,9 +167,11 @@ const LeftColumn = (props) => {
                     }
                     admin
                     isTransferOwner
+                    isCertificate
                     onTransferOwnerClicked={() =>
                       onTransferOwnerClicked(certificate)
                     }
+                    onReleaseClicked={() => onReleaseClicked(certificate)}
                   />
                 </PopperWrap>
               ) : null}
@@ -180,9 +183,11 @@ const LeftColumn = (props) => {
                     }
                     onEditClicked={() => onEditListItemClicked(certificate)}
                     admin
+                    isCertificate
                     onTransferOwnerClicked={() =>
                       onTransferOwnerClicked(certificate)
                     }
+                    onReleaseClicked={() => onReleaseClicked(certificate)}
                   />
                 </EditDeletePopperWrap>
               )}
@@ -201,6 +206,7 @@ LeftColumn.propTypes = {
   onEditListItemClicked: PropTypes.func.isRequired,
   onLinkClicked: PropTypes.func.isRequired,
   isTabAndMobileScreen: PropTypes.bool.isRequired,
+  onReleaseClicked: PropTypes.func.isRequired,
   history: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 

@@ -42,7 +42,10 @@ const EditDeletePopper = (props) => {
     onEditClicked,
     admin,
     onTransferOwnerClicked,
+    isCertificate,
+    onReleaseClicked,
   } = props;
+
   return (
     <div>
       <FolderIconWrap>
@@ -56,6 +59,11 @@ const EditDeletePopper = (props) => {
             horizontal: 'right',
           }}
         >
+          {isCertificate && (
+            <PopperItem onClick={onReleaseClicked}>
+              <span>Release</span>
+            </PopperItem>
+          )}
           {admin && (
             <PopperItem onClick={onTransferOwnerClicked}>
               <SyncAltIcon style={{ fill: '#fff' }} />
@@ -82,11 +90,15 @@ EditDeletePopper.propTypes = {
   onEditClicked: PropTypes.func.isRequired,
   onDeleteClicked: PropTypes.func.isRequired,
   admin: PropTypes.bool,
+  isCertificate: PropTypes.bool,
   onTransferOwnerClicked: PropTypes.func,
+  onReleaseClicked: PropTypes.func,
 };
 EditDeletePopper.defaultProps = {
   admin: false,
+  isCertificate: false,
   onTransferOwnerClicked: () => {},
+  onReleaseClicked: () => {},
 };
 
 export default EditDeletePopper;

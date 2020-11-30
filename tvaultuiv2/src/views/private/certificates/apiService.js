@@ -40,6 +40,9 @@ const onDownloadCertificate = (name, format, certType) =>
 const onPrivateDownload = (payload) =>
   api.post('/sslcert/certificates/download', payload);
 
+const onReleasecertificate = (name, type, reason) =>
+  api.post(`/sslcert/unlink/${name}/${type}/${reason}`);
+
 export default {
   getAllAdminCertInternal,
   getAllNonAdminCertInternal,
@@ -63,4 +66,5 @@ export default {
   transferOwner,
   onDownloadCertificate,
   onPrivateDownload,
+  onReleasecertificate,
 };

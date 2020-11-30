@@ -38,6 +38,8 @@ import {
   ListContent,
 } from '../../../../../styles/GlobalStyles/listingStyle';
 import configData from '../../../../../config/config';
+import CertificateRelease from '../CertificateRelease';
+import SnackbarComponent from '../../../../../components/Snackbar';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -166,10 +168,13 @@ const CertificatesDashboard = () => {
   const [deleteResponse, setDeleteResponse] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
   const [deleteConfirmClicked, setDeleteConfirmClicked] = useState(false);
+  const [openReleaseModal, setOpenReleaseModal] = useState(false);
   const [deleteModalDetail, setDeleteModalDetail] = useState({
     title: '',
     description: '',
   });
+  const [responseType, setResponseType] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
   const classes = useStyles();
   const history = useHistory();
   const location = useLocation();
@@ -503,6 +508,7 @@ const CertificatesDashboard = () => {
    */
   const onCloseAllModal = (actionPerform) => {
     setOpenTransferModal(false);
+    setOpenReleaseModal(false);
     setCertificateData({});
     if (actionPerform) {
       setResponse({ status: 'loading' });
@@ -591,6 +597,45 @@ const CertificatesDashboard = () => {
       });
   };
 
+  /**
+   * @function onReleaseClicked
+   * @description function to open released modal when released certificate is clicked.
+   */
+
+  const onReleaseClicked = (data) => {
+    setOpenReleaseModal(true);
+    setCertificateData(data);
+  };
+
+  /**
+   * @function onReleaseSubmitClicked
+   * @description function to call an api when release submit is clicked
+   */
+  const onReleaseSubmitClicked = (data) => {
+    setResponse({ status: 'loading' });
+    setOpenReleaseModal(false);
+    apiService
+      .onReleasecertificate(data.name, data.type, data.reason)
+      .then(() => {
+        setResponseType(1);
+        onCloseAllModal(true);
+      })
+      .catch((e) => {
+        if (e.response.data.errors && e.response.data.errors[0]) {
+          setToastMessage(e.response.data.errors[0]);
+        }
+        setResponseType(-1);
+        setResponse({ status: 'success' });
+      });
+  };
+
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
+  };
+
   const renderList = () => {
     return (
       <LeftColumn
@@ -598,6 +643,7 @@ const CertificatesDashboard = () => {
         onEditListItemClicked={(cert) => onEditListItemClicked(cert)}
         onDeleteCertificateClicked={(cert) => onDeleteCertificateClicked(cert)}
         onTransferOwnerClicked={(cert) => onTransferOwnerClicked(cert)}
+        onReleaseClicked={(cert) => onReleaseClicked(cert)}
         isTabAndMobileScreen={isTabAndMobileScreen}
         history={history}
         certificateList={certificateList}
@@ -613,6 +659,14 @@ const CertificatesDashboard = () => {
               certificateData={certificateData}
               open={openTransferModal}
               onCloseModal={(action) => onCloseAllModal(action)}
+            />
+          )}
+          {openReleaseModal && (
+            <CertificateRelease
+              certificateData={certificateData}
+              open={openReleaseModal}
+              onCloseModal={(action) => onCloseAllModal(action)}
+              onReleaseSubmitClicked={(data) => onReleaseSubmitClicked(data)}
             />
           )}
           {openDeleteConfirmation && (
@@ -796,6 +850,22 @@ const CertificatesDashboard = () => {
             />
           </Switch>
         </SectionPreview>
+        {responseType === -1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message={toastMessage || 'Something went wrong!'}
+          />
+        )}
+        {responseType === 1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message="Certifcate Released Successfully!"
+          />
+        )}
       </>
     </ComponentError>
   );
