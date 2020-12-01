@@ -7,17 +7,10 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import certIcon from '../../../../../../../assets/cert-icon.svg';
 import { TitleFour } from '../../../../../../../styles/GlobalStyles';
 import CertificateListItem from '../../../CertificateListItem';
-import EditAndDeletePopup from '../../../../../../../components/EditAndDeletePopup';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import EditDeletePopper from '../../../../../service-accounts/components/EditDeletePopper';
 
-const PopperWrap = styled.div`
-  position: absolute;
-  right: 4%;
-  z-index: 1;
-  max-width: 18rem;
-  display: none;
-`;
+const EditDeletePopperWrap = styled.div``;
 
 const CertificateStatus = styled.div`
   display: flex;
@@ -42,19 +35,12 @@ const ListFolderWrap = styled(Link)`
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
     color: #fff;
-    ${PopperWrap} {
-      display: block;
-    }
-    ${CertificateStatus} {
-      display: none;
-    }
   }
 `;
 const StatusActionWrapper = styled.div`
   display: flex;
   align-items: center;
 `;
-const EditDeletePopperWrap = styled.div``;
 
 const BorderLine = styled.div`
   border-bottom: 0.1rem solid #1d212c;
@@ -92,7 +78,6 @@ const LeftColumn = (props) => {
   const {
     certificateList,
     onLinkClicked,
-    isTabAndMobileScreen,
     onDeleteCertificateClicked,
     onTransferOwnerClicked,
     onEditListItemClicked,
@@ -156,26 +141,7 @@ const LeftColumn = (props) => {
                   <StatusIcon status={certificate.requestStatus} />
                 </CertificateStatus>
               )}
-              {certificate.applicationName && !isTabAndMobileScreen ? (
-                <PopperWrap onClick={(e) => onActionClicked(e)}>
-                  <EditAndDeletePopup
-                    onDeletListItemClicked={() =>
-                      onDeleteCertificateClicked(certificate)
-                    }
-                    onEditListItemClicked={() =>
-                      onEditListItemClicked(certificate)
-                    }
-                    admin
-                    isTransferOwner
-                    isCertificate
-                    onTransferOwnerClicked={() =>
-                      onTransferOwnerClicked(certificate)
-                    }
-                    onReleaseClicked={() => onReleaseClicked(certificate)}
-                  />
-                </PopperWrap>
-              ) : null}
-              {isTabAndMobileScreen && certificate.applicationName && (
+              {certificate.applicationName && (
                 <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
                   <EditDeletePopper
                     onDeleteClicked={() =>
@@ -205,7 +171,6 @@ LeftColumn.propTypes = {
   onDeleteCertificateClicked: PropTypes.func.isRequired,
   onEditListItemClicked: PropTypes.func.isRequired,
   onLinkClicked: PropTypes.func.isRequired,
-  isTabAndMobileScreen: PropTypes.bool.isRequired,
   onReleaseClicked: PropTypes.func.isRequired,
   history: PropTypes.objectOf(PropTypes.any).isRequired,
 };

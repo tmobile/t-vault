@@ -24,8 +24,6 @@ const Icon = styled('div')`
   }
 `;
 
-const ReleaseWrap = styled.div``;
-
 const TransferOwnerWrap = styled.div`
   display: flex;
   align-items: center;
@@ -46,16 +44,11 @@ const PsudoPopper = (props) => {
     admin,
     onTransferOwnerClicked,
     isTransferOwner,
-    isCertificate,
-    onReleaseClicked,
   } = props;
 
   return (
     <ComponentError>
       <IconWrap>
-        {isCertificate && (
-          <ReleaseWrap onClick={onReleaseClicked}>Release</ReleaseWrap>
-        )}
         {admin && isTransferOwner && (
           <TransferOwnerWrap onClick={onTransferOwnerClicked}>
             <SyncAltIcon style={{ fill: '#fff' }} />
@@ -78,19 +71,15 @@ PsudoPopper.propTypes = {
   onDeletListItemClicked: PropTypes.func,
   onEditListItemClicked: PropTypes.func,
   onTransferOwnerClicked: PropTypes.func,
-  onReleaseClicked: PropTypes.func,
   admin: PropTypes.bool,
   isTransferOwner: PropTypes.bool,
-  isCertificate: PropTypes.bool,
 };
 
 PsudoPopper.defaultProps = {
   onDeletListItemClicked: () => {},
   onEditListItemClicked: () => {},
   onTransferOwnerClicked: () => {},
-  onReleaseClicked: () => {},
   admin: true,
-  isCertificate: false,
   isTransferOwner: false,
 };
 
