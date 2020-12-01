@@ -1,7 +1,6 @@
 /* eslint-disable react/jsx-indent */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable no-nested-ternary */
-
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
@@ -12,10 +11,11 @@ import ButtonComponent from '../../../../../../../components/FormFields/ActionBu
 import PermissionsList from '../../../../../../../components/PermissionsList';
 import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
-import AddAppRole from '../../../../../../../components/AddAppRole';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../../../components/Error';
+import AddAwsApplicationModal from '../../../../../../../components/AddAwsApplicationModal';
+import EditAwsApplication from '../../../../../../../components/EditAwsApplication';
 import Strings from '../../../../../../../resources';
 import { checkAccess } from '../../../../../../../services/helper-function';
 
@@ -47,63 +47,63 @@ const customStyle = css`
 const noDataStyle = css`
   width: 42%;
   ${belowLarge} {
-    width: 70%;
+    width: 75%;
   }
   ${small} {
     width: 100%;
   }
 `;
 
-const AppRoles = (props) => {
+const AwsApplications = (props) => {
   const {
     certificateMetaData,
     refresh,
-    onNewAppRoleChange,
-    newAppRole,
+    onNewAwsChange,
+    newAwsApplication,
     updateToastMessage,
     responseStatus,
   } = props;
 
-  const [response, setResponse] = useState({ status: 'loading' });
-  const [editRole, setEditRole] = useState('');
+  const [editAws, setEditAws] = useState('');
   const [editAccess, setEditAccess] = useState('');
-  const [editClicked, setEditClicked] = useState(false);
+  const [response, setResponse] = useState({ status: 'loading' });
 
   const isMobileScreen = useMediaQuery(small);
 
-  //  account meta data is available.
+  // on svc account meta data is available.
   useEffect(() => {
     setResponse({ status: responseStatus });
   }, [responseStatus]);
 
-  // When add app role button is clicked.
+  // When add group button is clicked.
   useEffect(() => {
-    if (newAppRole) {
+    if (newAwsApplication) {
       setResponse({ status: 'add' });
     }
-  }, [newAppRole]);
+  }, [newAwsApplication]);
 
   const constructPayload = (role, access) => {
     const data = {
       access: checkAccess(access),
       certType: certificateMetaData?.certType,
-      approleName: role,
       certificateName: certificateMetaData?.certificateName,
+      rolename: role,
     };
     return data;
   };
 
   /**
    * @function onDeleteClick
-   * @description function to delete the app role from the svc account app role list.
-   * @param {role} string app role name.
-   * @param {access} string permission of the app role.
+   * @description function to delete the aws configuration from the svc account aws
+   * application list.
+   * @param {role} string role of the aws configuration.
+   * @param {access} string permission of the aws configuration.
    */
   const onDeleteClick = (role, access) => {
     setResponse({ status: 'loading' });
     const payload = constructPayload(role, access);
     apiService
-      .deleteAppRolePermission(payload)
+      .deleteAwsRole(payload)
       .then(async (res) => {
         if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
@@ -121,15 +121,16 @@ const AppRoles = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the app rolr to the svc account app role list.
+   * @description function to save the aws configuration role to the svc account
+   * aws application list.
    * @param {data} object payload to call api.
    */
-  const onSaveClicked = (data) => {
-    setResponse({ status: 'loading' });
+  const onSaveClicked = (role, access) => {
+    const payload = constructPayload(role, access);
     return apiService
-      .addAppRolePermission(data)
+      .addAwsRole(payload)
       .then(async (res) => {
-        if (res?.data?.messages && res.data?.messages[0]) {
+        if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
           await refresh();
@@ -145,31 +146,48 @@ const AppRoles = (props) => {
 
   /**
    * @function onSubmit
-   * @description function structure the payload when save/edit is clicked and call save api.
-   * @param {role} string role name.
-   * @param {access} string permission given to the app role.
+   * @description function to save the aws configuration  to the svc account
+   * aws application list and then call the save of role to aws application list.
+   * @param {data} object payload to call api.
    */
-  const onSubmit = async (role, access) => {
-    const payload = constructPayload(role, access);
-    await onSaveClicked(payload);
-    onNewAppRoleChange();
+  const onSubmit = (data, access) => {
+    setResponse({ status: 'loading' });
+    onNewAwsChange();
+    let url = '';
+    if (data.auth_type === 'iam') {
+      url = '/serviceaccounts/aws/iam/role';
+    } else {
+      url = '/serviceaccounts/aws/role';
+    }
+    apiService
+      .addAwsPermission(url, data)
+      .then(async (res) => {
+        updateToastMessage(1, res.data?.messages[0]);
+        await onSaveClicked(data.role, access);
+      })
+      .catch((err) => {
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          updateToastMessage(-1, err.response.data.errors[0]);
+        }
+        setResponse({ status: 'success' });
+      });
   };
 
   /**
    * @function onEditSaveClicked
-   * @description function to edit the existing app role.
-   * @param {role} string app role name to edit.
-   * @param {access} string permission given to the app role.
+   * @description function to edit the existing aws configuration.
+   * @param {role} string aws configuration name to edit.
+   * @param {access} string permission given to the aws configuration.
    */
-  const onEditSaveClicked = (role, access) => {
+  const onEditSaveClicked = (awsName, access) => {
     setResponse({ status: 'loading' });
-    const payload = constructPayload(role, access);
+    const payload = constructPayload(awsName, access);
     apiService
-      .deleteAppRolePermission(payload)
-      .then(async (res) => {
+      .deleteAwsRole(payload)
+      .then((res) => {
         if (res) {
           setResponse({ status: 'loading' });
-          await onSubmit(role, access);
+          onSaveClicked(awsName, access);
         }
       })
       .catch((err) => {
@@ -181,29 +199,29 @@ const AppRoles = (props) => {
   };
 
   /**
+   * @function onCancelClicked
+   * @description function when cancel of add aws configuration and
+   * aws configuration  is called.
+   */
+  const onCancelClicked = () => {
+    setResponse({ status: 'success' });
+    onNewAwsChange();
+  };
+
+  /**
    * @function onEditClick
-   * @description function to edit the existing app role.
-   * @param {key} key role name of  the permission.
-   * @param {value} value permission given to the app role.
+   * @description function to edit the existing aws configuration.
+   * @param {key} key aws configuration name of  the permission.
+   * @param {value} value permission given to the aws configuration.
    */
   const onEditClick = (key, value) => {
-    setEditClicked(true);
     if (value === 'write') {
       setEditAccess('reset');
     } else {
       setEditAccess(value);
     }
-    setEditRole(key);
+    setEditAws(key);
     setResponse({ status: 'edit' });
-  };
-
-  /**
-   * @function onCancelClicked
-   * @description function when cancel of add app role and edit app role is called.
-   */
-  const onCancelClicked = () => {
-    setResponse({ status: 'success' });
-    onNewAppRoleChange();
   };
 
   return (
@@ -213,39 +231,41 @@ const AppRoles = (props) => {
           <LoaderSpinner customStyle={customStyle} />
         )}
         {response.status === 'add' && (
-          <AddAppRole
-            handleSaveClick={(role, access) => onSubmit(role, access)}
-            handleCancelClick={() => onCancelClicked()}
+          <AddAwsApplicationModal
+            open
+            handleSaveClick={(data, access) => onSubmit(data, access)}
+            handleCancelClick={onCancelClicked}
+            handleModalClose={() => onCancelClicked()}
             isCertificate
           />
         )}
         {response.status === 'edit' && (
-          <AddAppRole
-            handleSaveClick={(role, access) => onEditSaveClicked(role, access)}
-            handleCancelClick={() => onCancelClicked()}
+          <EditAwsApplication
+            handleSaveClick={(awsName, access) =>
+              onEditSaveClicked(awsName, access)
+            }
+            handleCancelClick={onCancelClicked}
+            awsName={editAws}
             access={editAccess}
-            editClicked={editClicked}
-            role={editRole}
             isCertificate
           />
         )}
-
-        {certificateMetaData && (
+        {certificateMetaData && response.status === 'success' && (
           <>
-            {certificateMetaData['app-roles'] &&
-              Object.keys(certificateMetaData['app-roles']).length > 0 && (
+            {certificateMetaData['aws-roles'] &&
+              Object.keys(certificateMetaData['aws-roles']).length > 0 && (
                 <PermissionsList
-                  list={certificateMetaData['app-roles']}
+                  list={certificateMetaData['aws-roles']}
                   onEditClick={(key, value) => onEditClick(key, value)}
                   onDeleteClick={(key, value) => onDeleteClick(key, value)}
                 />
               )}
-            {(!certificateMetaData['app-roles'] ||
-              Object.keys(certificateMetaData['app-roles']).length === 0) && (
+            {(!certificateMetaData['aws-roles'] ||
+              Object.keys(certificateMetaData['aws-roles']).length === 0) && (
               <NoDataWrapper>
                 <NoData
                   imageSrc={noPermissionsIcon}
-                  description={Strings.Resources.noAppRolePermissionFound}
+                  description={Strings.Resources.noAwsPermissionFound}
                   actionButton={
                     // eslint-disable-next-line react/jsx-wrap-multilines
                     <ButtonComponent
@@ -271,12 +291,12 @@ const AppRoles = (props) => {
   );
 };
 
-AppRoles.propTypes = {
+AwsApplications.propTypes = {
   certificateMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   refresh: PropTypes.func.isRequired,
-  newAppRole: PropTypes.bool.isRequired,
-  onNewAppRoleChange: PropTypes.func.isRequired,
+  newAwsApplication: PropTypes.bool.isRequired,
+  onNewAwsChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   responseStatus: PropTypes.string.isRequired,
 };
-export default AppRoles;
+export default AwsApplications;
