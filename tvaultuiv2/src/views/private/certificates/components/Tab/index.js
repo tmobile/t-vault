@@ -195,7 +195,10 @@ const CertificateSelectionTabs = (props) => {
 
   useEffect(() => {
     if (Object.keys(certificateDetail).length > 0) {
-      if (!certificateDetail?.applicationName) {
+      if (
+        !certificateDetail?.applicationName &&
+        !certificateDetail.isOnboardCert
+      ) {
         fetchCertificateDetail();
       } else if (
         certificateDetail.certificateStatus === 'Revoked' ||

@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
@@ -213,16 +214,19 @@ const CertificatesDashboard = () => {
     }
     const internalCertificates = await apiService.getInternalCertificates();
     const externalCertificates = await apiService.getExternalCertificates();
+    const onboardCertificates = await apiService.getOnboardCertificates();
     const allApiResponse = Promise.all([
       allCertInternal,
       internalCertificates,
       externalCertificates,
+      onboardCertificates,
     ]);
     allApiResponse
       .then((result) => {
         const allCertArray = [];
         const internalCertArray = [];
         const externalCertArray = [];
+        const onboardCertArray = [];
         if (configData.AUTH_TYPE === 'oidc') {
           if (result && result[0]?.data?.data?.keys) {
             result[0].data.data.keys.map((item) => {
@@ -259,8 +263,22 @@ const CertificatesDashboard = () => {
             return null;
           });
         }
-        setCertificateList([...internalCertArray, ...externalCertArray]);
-        setAllCertList([...internalCertArray, ...externalCertArray]);
+        if (result && result[3].data) {
+          result[3].data.map((ele) => {
+            ele.isOnboardCert = true;
+            return onboardCertArray.push(ele);
+          });
+        }
+        setCertificateList([
+          ...internalCertArray,
+          ...externalCertArray,
+          ...onboardCertArray,
+        ]);
+        setAllCertList([
+          ...internalCertArray,
+          ...externalCertArray,
+          ...onboardCertArray,
+        ]);
         setResponse({ status: 'success' });
       })
       .catch(() => {

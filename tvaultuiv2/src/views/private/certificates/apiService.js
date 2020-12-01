@@ -10,6 +10,7 @@ const getExternalCertificates = () =>
   api.get('/sslcert?certificateName=&certType=external');
 const deleteCertificate = (name, certType) =>
   api.delete(`/certificates/${name}/${certType}`);
+const getOnboardCertificates = () => api.get('/sslcert/pendingcertificates');
 
 const getCertificateDetail = (url) => api.get(url);
 
@@ -88,4 +89,5 @@ export default {
   deleteAppRolePermission,
   getNotificationEmails,
   getNonAdminAppNameList,
+  getOnboardCertificates,
 };

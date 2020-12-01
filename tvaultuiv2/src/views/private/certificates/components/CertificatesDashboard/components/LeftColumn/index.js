@@ -74,6 +74,17 @@ const extraCss = css`
   }
 `;
 
+const OnboardButton = styled.button`
+  width: 8.3rem;
+  height: 2.6rem;
+  padding: 0.5rem 1.2rem;
+  border: solid 0.1rem #c70369;
+  color: #c70369;
+  font-size: 1.4rem;
+  background-color: transparent;
+  cursor: pointer;
+`;
+
 const LeftColumn = (props) => {
   const {
     certificateList,
@@ -125,7 +136,7 @@ const LeftColumn = (props) => {
             />
             <BorderLine />
             <StatusActionWrapper>
-              {certificate.certificateStatus && (
+              {certificate.certificateStatus && !certificate.isOnboardCert && (
                 <CertificateStatus>
                   <TitleFour extraCss={extraCss}>
                     {certificate.certificateStatus}
@@ -133,15 +144,17 @@ const LeftColumn = (props) => {
                   <StatusIcon status={certificate.certificateStatus} />
                 </CertificateStatus>
               )}
-              {!certificate.certificateStatus && certificate.requestStatus && (
-                <CertificateStatus>
-                  <TitleFour extraCss={extraCss}>
-                    {certificate.requestStatus}
-                  </TitleFour>
-                  <StatusIcon status={certificate.requestStatus} />
-                </CertificateStatus>
-              )}
-              {certificate.applicationName && (
+              {!certificate.certificateStatus &&
+                certificate.requestStatus &&
+                !certificate.isOnboardCert && (
+                  <CertificateStatus>
+                    <TitleFour extraCss={extraCss}>
+                      {certificate.requestStatus}
+                    </TitleFour>
+                    <StatusIcon status={certificate.requestStatus} />
+                  </CertificateStatus>
+                )}
+              {certificate.applicationName && !certificate.isOnboardCert && (
                 <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
                   <EditDeletePopper
                     onDeleteClicked={() =>
@@ -156,6 +169,9 @@ const LeftColumn = (props) => {
                     onReleaseClicked={() => onReleaseClicked(certificate)}
                   />
                 </EditDeletePopperWrap>
+              )}
+              {certificate.isOnboardCert && (
+                <OnboardButton>Onboard</OnboardButton>
               )}
             </StatusActionWrapper>
           </ListFolderWrap>

@@ -12,7 +12,7 @@ const Certificates = (props) => {
   const [, dispatch] = useStateValue();
 
   useEffect(() => {
-    if (!localStorage.getItem('admin')) {
+    if (!JSON.parse(localStorage.getItem('isAdmin'))) {
       apiService
         .getNonAdminAppNameList()
         .then((res) => {
@@ -22,7 +22,7 @@ const Certificates = (props) => {
         })
         .catch((err) => console.log('err', err));
     }
-  });
+  }, []);
 
   useEffect(() => {
     apiService
