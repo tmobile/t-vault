@@ -228,7 +228,7 @@ const useStyles = makeStyles((theme) => ({
   },
   dropdownStyle: {
     backgroundColor: '#fff',
-    height: '20rem',
+    maxHeight: '20rem',
   },
   modal: {
     display: 'flex',
@@ -324,12 +324,22 @@ const CreateCertificates = (props) => {
         setOwnerEmail(state.userEmail);
       }
       if (state.applicationNameList?.length > 0) {
-        console.log(
-          'object',
-          localStorage.getItem('selfServiceAppNames'),
-          typeof localStorage.getItem('selfServiceAppNames')
-        );
-        setAllApplication([...state.applicationNameList]);
+        if (!JSON.parse(localStorage.getItem('isAdmin'))) {
+          const stringVal = localStorage.getItem('selfServiceAppNames');
+          const selfserviceAppName = stringVal?.split(',');
+          const array = [];
+          if (selfserviceAppName.length > 0) {
+            selfserviceAppName.map((item) => {
+              const obj = state.applicationNameList.find(
+                (ele) => item === ele.appID
+              );
+              return array.push(obj);
+            });
+            setAllApplication([...array]);
+          }
+        } else {
+          setAllApplication([...state.applicationNameList]);
+        }
       } else if (state.applicationNameList === 'error') {
         setResponseType(-1);
         setToastMessage('Error occured while fetching the application name!');
