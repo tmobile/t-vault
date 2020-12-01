@@ -1071,7 +1071,7 @@ public class  ServiceAccountsService {
 				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "users");
-				params.put("name",serviceAccountUser.getUsername());
+				params.put("name",userName);
 				params.put("path",path);
 				params.put("access",access);
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
