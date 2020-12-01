@@ -459,7 +459,7 @@
                             };
                             break;
                         case 'AppRolePermission':
-                            apiCallFunction = AdminSafesManagement.detachAppRolePermissionFromIAMSvcacc;
+                            apiCallFunction = AdminSafesManagement.detachAppRolePermissionFromAzureSvcacc;
                             reqObjtobeSent = {
                                 "iamSvcAccName": svcaccname,
                                 "approlename": key,
@@ -1115,8 +1115,8 @@
                             reqObjtobeSent = $scope.awsConfPopupObj
                             break;    
                         case 'AppRolePermission':
-                            apiCallFunction = AdminSafesManagement.addAppRolePermissionForIAMSvcacc;
-                            reqObjtobeSent = { "iamSvcAccName": azureSvcaccName, "approlename": key, "access": permission.toLowerCase(), "awsAccountId":$scope.svcacc.awsAccId};
+                            apiCallFunction = AdminSafesManagement.addAppRolePermissionForAzureSvcacc;
+                            reqObjtobeSent = { "azureSvcAccName": azureSvcaccName, "approlename": key, "access": permission.toLowerCase()};
                             break;    
                     }
                     apiCallFunction(reqObjtobeSent, updatedUrlOfEndPoint).then(function (response) {
@@ -1194,7 +1194,7 @@
 
 
         //APPROLE FUNCTION:
-        $scope.addApproleToSafe = function (size) {
+        $scope.addApproleToAzureSvcAcc = function (size) {
             // To reset the aws configuration details object to create a new one
             $scope.editingApprolePermission = {"status": false};
             $scope.approleConfPopupObj = {
@@ -1242,7 +1242,6 @@
             Modal.createModal(size, 'changeSafePopup.html', 'ChangeAzureServicePrincipalsCtrl', $scope);
         };
 
-        /* TODO: What is open, functon name should be more descriptive */
         $scope.openApprole = function (size) {
             Modal.createModal(size, 'appRolePopup.html', 'ChangeAzureServicePrincipalsCtrl', $scope);
         };
