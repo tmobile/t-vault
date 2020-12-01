@@ -576,6 +576,10 @@ readTextFile("../apiUrls.json");
             name: 'addAppRolePermissionForAzureSvcacc',
             url: '/v2/azureserviceaccounts/approle',
             method: 'POST'
+        },{
+            name: 'detachAppRolePermissionFromAzureSvcacc',
+            url: '/v2/azureserviceaccounts/approle',
+            method: 'DELETE'
         }
     ]
     });

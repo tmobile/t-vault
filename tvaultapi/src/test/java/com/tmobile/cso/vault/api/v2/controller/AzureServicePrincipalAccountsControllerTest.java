@@ -409,6 +409,24 @@ public class AzureServicePrincipalAccountsControllerTest {
 		assertEquals(responseJson, actual);
 	}
 
+	
+	@Test
+	public void testremoveApproleFromAzureSvcAccSuccess() throws Exception {
+		AzureServiceAccountApprole azureSvcAccGroup = new AzureServiceAccountApprole("testaccount", "group1", "write");
+		String inputJson = getJSON(azureSvcAccGroup);
+		String responseJson = "{\"messages\":[\"Approle is successfully associated with Azure Service Principal\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+		when(azureServicePrincipalAccountsService.removeApproleFromAzureSvcAcc(Mockito.any(), Mockito.anyString(), Mockito.any()))
+				.thenReturn(responseEntityExpected);
+		MvcResult result = mockMvc
+				.perform(MockMvcRequestBuilders.delete("/v2/azureserviceaccounts/approle")
+						.requestAttr(USER_DETAILS_STRING, userDetails).header(VAULT_TOKEN_STRING, token)
+						.header(CONTENT_TYPE_STRING, CONTENT_TYPE_VALUE_STRING).content(inputJson))
+				.andExpect(status().isOk()).andReturn();
+		String actual = result.getResponse().getContentAsString();
+		assertEquals(responseJson, actual);
+	}
+
 	@Test
 	public void testAddUserToAzureSvcAccSuccess() throws Exception {
 		AzureServiceAccountUser azureServiceAccountUser = new AzureServiceAccountUser("svc_vault_test2", "testuser1", "read");
