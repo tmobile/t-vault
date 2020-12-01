@@ -2135,6 +2135,7 @@ public class SSLCertificateMockServiceTest {
         sSLCertificateRequest.setCertificateName("certificatename");
         sSLCertificateRequest.setAppName("xyz");
         sSLCertificateRequest.setCertOwnerEmailId("testing@mail.com");
+        sSLCertificateRequest.setNotificationEmail("testing@mail.com");
         sSLCertificateRequest.setCertOwnerNtid("testuser2");
         sSLCertificateRequest.setCertType("internal");
         sSLCertificateRequest.setTargetSystem(targetSystem);

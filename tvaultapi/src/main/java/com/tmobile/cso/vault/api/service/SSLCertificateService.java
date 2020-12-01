@@ -409,7 +409,7 @@ public class SSLCertificateService {
 		if (StringUtils.isEmpty(sslCertificateRequest.getCertOwnerEmailId())) {
 			isvalid = false;
 			DirectoryUser directoryUser = getUserDetails(sslCertificateRequest.getCertOwnerNtid());
-			if (Objects.nonNull(directoryUser)) {
+			if (!ObjectUtils.isEmpty(directoryUser)) {
 				sslCertificateRequest.setCertOwnerEmailId(directoryUser.getUserEmail());
 				isvalid = true;
 			}
@@ -1566,10 +1566,7 @@ public class SSLCertificateService {
         sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
         sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
         sslCertificateMetadataDetails.setContainerId(containerId);
-        String notifEmailstringArrayvalues =   sslCertificateRequest.getNotificationEmail().toLowerCase();
-        String [] arraystrValues=notifEmailstringArrayvalues.split(",");
-        String notifEmailList  = new HashSet<String>(Arrays.asList(arraystrValues)).toString();
-        sslCertificateMetadataDetails.setNotificationEmails(notifEmailList);
+        sslCertificateMetadataDetails.setNotificationEmails(sslCertificateRequest.getNotificationEmail());
 
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -1590,10 +1587,7 @@ public class SSLCertificateService {
                 sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
                 sslCertificateMetadataDetails.setRequestStatus(SSLCertificateConstants.REQUEST_PENDING_APPROVAL);
                 sslCertificateMetadataDetails.setActionId(actionId);
-                String notifEmailstringArrayvalues =   sslCertificateRequest.getNotificationEmail().toLowerCase();
-                String [] arraystrValues=notifEmailstringArrayvalues.split(",");
-                String notifEmailList  = new HashSet<String>(Arrays.asList(arraystrValues)).toString();
-                sslCertificateMetadataDetails.setNotificationEmails(notifEmailList);
+                sslCertificateMetadataDetails.setNotificationEmails(sslCertificateRequest.getNotificationEmail());
             }
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -1667,25 +1661,22 @@ public class SSLCertificateService {
      * @param sslCertificateRequest
      * @return
      */
-    private boolean validateCertNotificationEmail(SSLCertificateRequest sslCertificateRequest) {
-    	boolean isValid=true;
-    	if(sslCertificateRequest.getNotificationEmail()!=null) {
-    		String[] notifEmailLst;
-    		notifEmailLst =   sslCertificateRequest.getNotificationEmail().split(",");
-            for(int i=0; i<notifEmailLst.length;i++) {
-        if (notifEmailLst[i].contains(" ") || 
-        		(notifEmailLst[i].endsWith(certificateNameTailText)) ||
-        		(!notifEmailLst[i].toLowerCase().endsWith("@t-mobile.com")) ||
-                (notifEmailLst[i].contains(".-")) || 
-                (notifEmailLst[i].contains("-.")) || 
-                (notifEmailLst[i].contains("..")) || 
-                (notifEmailLst[i].endsWith("."))) {
-            return isValid=false;
-        }
-            }
-    	}
-	return isValid;
-}
+	private boolean validateCertNotificationEmail(SSLCertificateRequest sslCertificateRequest) {
+		boolean isValid = true;
+		if (sslCertificateRequest.getNotificationEmail() != null) {
+			String[] notifEmailLst;
+			notifEmailLst = sslCertificateRequest.getNotificationEmail().split(",");
+			for (int i = 0; i < notifEmailLst.length; i++) {
+				if (notifEmailLst[i].contains(" ") || (notifEmailLst[i].endsWith(certificateNameTailText))
+						|| (!notifEmailLst[i].toLowerCase().endsWith("@t-mobile.com"))
+						|| (notifEmailLst[i].contains(".-")) || (notifEmailLst[i].contains("-."))
+						|| (notifEmailLst[i].contains("..")) || (notifEmailLst[i].endsWith("."))) {
+					isValid = false;
+				}
+			}
+		}
+		return isValid;
+	}
 	/**
      * Validate input data
      * @param sslCertificateRequest
@@ -1698,7 +1689,7 @@ public class SSLCertificateService {
 	            sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
 	            (!sslCertificateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)) 
 	            || (!validateDNSNames(sslCertificateRequest))|| 
-	             (!validateCertNotificationEmail(sslCertificateRequest))){
+	             (!validateNotificationEmailsForOnboard(sslCertificateRequest.getNotificationEmail()))){
 	        isValid= false;
 	    }
 	    return isValid;
@@ -8983,7 +8974,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			SSLCertificateOnboardRequest sslCertificateRequest) throws Exception {
 		if (ObjectUtils.isEmpty(sslCertificateRequest)
 				|| !isValidInputs(sslCertificateRequest.getCertificateName(), sslCertificateRequest.getCertType())
-				|| (!validateNotificationEmailsForOnboard(sslCertificateRequest))
+				|| (!validateNotificationEmailsForOnboard(sslCertificateRequest.getNotificationEmail()))
 				|| (StringUtils.isEmpty(sslCertificateRequest.getNotificationEmail()))) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -9140,10 +9131,10 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	 * @param sslCertificateRequest
 	 * @return
 	 */
-	private boolean validateNotificationEmailsForOnboard(SSLCertificateOnboardRequest sslCertificateRequest) {
+	private boolean validateNotificationEmailsForOnboard(String notificationEmail) {
 		boolean isValidNotificationEmail = true;
 		String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";		
-		for (String notifyEmail: sslCertificateRequest.getNotificationEmail().split(",")) {
+		for (String notifyEmail: notificationEmail.split(",")) {
 			if((!Pattern.matches(regex, notifyEmail)) && (!notifyEmail.endsWith(certificateNameTailText))) {
 				isValidNotificationEmail = false;
 			}
