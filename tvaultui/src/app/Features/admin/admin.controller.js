@@ -1733,7 +1733,6 @@
                         $scope.applicationNameSelectMsg = "";
                         var i = 0;
                         $scope.notificationEmails.forEach(function (email) {
-                            addNotificationEmailCertString(email.email);
                             var id = "notificationemail"+ (i++);
                             angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
                         });
@@ -1846,6 +1845,10 @@
                 var multiSanDns = [];
                 $scope.multiSan.forEach(function (dns) {
                     multiSanDns.push(dns.name);
+                });
+                $scope.certObj.certDetails.notificationEmails = "";
+                $scope.notificationEmails.forEach(function (email) {
+                    addNotificationEmailCertString(email.email);
                 });
                 var reqObjtobeSent =  { 
                     "appName": $scope.appNameTagValue,
@@ -2834,13 +2837,11 @@
         }
 
         var addNotificationEmailCertString = function(email) {
-            if ($scope.certObj.certDetails.notificationEmails != "" && $scope.certObj.certDetails.notificationEmails != undefined) {
-                    $scope.certObj.certDetails.notificationEmails =    $scope.certObj.certDetails.notificationEmails + "," + email;
-                }
-                else{
-                    $scope.certObj.certDetails.notificationEmails= email;
-                 }
+            if ($scope.certObj.certDetails.notificationEmails != "") {
+                $scope.certObj.certDetails.notificationEmails = $scope.certObj.certDetails.notificationEmails + ",";
             }
+            $scope.certObj.certDetails.notificationEmails = $scope.certObj.certDetails.notificationEmails + email;
+        }
         $scope.onboardCert = function() {
             try{
                 Modal.close('');
