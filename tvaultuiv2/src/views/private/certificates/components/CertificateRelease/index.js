@@ -11,6 +11,7 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import mediaBreakpoints from '../../../../../breakpoints';
 import {
   GlobalModalWrapper,
+  InstructionText,
   RequiredCircle,
 } from '../../../../../styles/GlobalStyles';
 
@@ -24,6 +25,23 @@ const HeaderWrapper = styled.h3`
 
 const InputFieldLabelWrapper = styled.div`
   margin-bottom: 3rem;
+  margin-top: 4rem;
+`;
+const EachValueWrap = styled.div`
+  display: flex;
+  font-size: 1.4rem;
+  margin: 0.5rem 0;
+  p {
+    margin: 0;
+  }
+`;
+const Label = styled.p`
+  color: ${(props) => props.theme.customColor.label.color};
+  margin-right: 0.5rem !important;
+`;
+
+const Value = styled.p`
+  text-transform: capitalize;
 `;
 
 const CancelSaveWrapper = styled.div`
@@ -113,25 +131,15 @@ const CertificateRelease = (props) => {
         >
           <Fade in={open}>
             <GlobalModalWrapper extraCss={extraCss}>
-              <HeaderWrapper>Release Detail</HeaderWrapper>
-              <InputFieldLabelWrapper>
-                <InputLabel>Certificate Name</InputLabel>
-                <TextFieldComponent
-                  fullWidth
-                  name="certName"
-                  readOnly
-                  value={certificateData.certificateName}
-                />
-              </InputFieldLabelWrapper>
-              <InputFieldLabelWrapper>
-                <InputLabel>Certificate Type</InputLabel>
-                <TextFieldComponent
-                  fullWidth
-                  name="certType"
-                  readOnly
-                  value={certificateData.certType}
-                />
-              </InputFieldLabelWrapper>
+              <HeaderWrapper>Release Details</HeaderWrapper>
+              <EachValueWrap>
+                <Label>Certificate Name:</Label>
+                <Value>{certificateData.certificateName}</Value>
+              </EachValueWrap>
+              <EachValueWrap>
+                <Label>Certificate Type:</Label>
+                <Value>{certificateData.certType}</Value>
+              </EachValueWrap>
               <InputFieldLabelWrapper>
                 <InputLabel>
                   Reason Release
@@ -141,8 +149,13 @@ const CertificateRelease = (props) => {
                   fullWidth
                   name="reason"
                   value={reason}
+                  placeholder="Start typing here...."
                   onChange={(e) => setReason(e.target.value)}
                 />
+                <InstructionText>
+                  Why do you need to remove this item for the system? This will
+                  help us improve T-Vault.
+                </InstructionText>
               </InputFieldLabelWrapper>
               <CancelSaveWrapper>
                 <CancelButton>
