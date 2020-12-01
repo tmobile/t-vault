@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
@@ -51,6 +52,8 @@ public class SSLCertificateOnboardRequest implements Serializable {
 
 	@NotBlank
 	@Email
+	@Size(min = 1, message = "Certificate owner email can not be null or empty")
+	@Pattern(regexp = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$", message = "Certificate owner email is not valid")
 	private String certOwnerEmailId;
 	
 	@NotBlank

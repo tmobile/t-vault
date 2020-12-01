@@ -199,7 +199,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                 .common-form-label Azure Service Principal Client ID
                                 input.form-control.input-box-style(ng-model="azureSvcacc.svcPrincipalClientId" name="svcPrincipalClientId" ng-disabled="true")
                           .common-form-row.col-lg-4.col-md-4.col-sm-4.col-xs-4
-                            .details-input-group(uib-tooltip="AWS Account Name" tooltip-popup-delay="600")
+                            .details-input-group(uib-tooltip="Azure Service Principal ID" tooltip-popup-delay="600")
                                 .common-form-label Azure Service Principal ID
                                 input.form-control.input-box-style(ng-model="azureSvcacc.svcPrincipalId" name="svcPrincipalId" ng-disabled="true")
                           .common-form-row.col-lg-4.col-md-4.col-sm-4.col-xs-4
@@ -404,7 +404,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
 
                                     .row.change-safe
                                         .container.actions
-                                            .function-text.right.link-style(ng-click="addApproleToSafe('md')")
+                                            .function-text.right.link-style(ng-click="addApproleToAzureSvcAcc('md')")
                                                 .add-icon-container.action-icon-wrapper.static
                                                     .rotate.glyphicon.glyphicon-remove-circle
                                                 .text ADD APPROLE TO AZURE SERVICE PRINCIPAL

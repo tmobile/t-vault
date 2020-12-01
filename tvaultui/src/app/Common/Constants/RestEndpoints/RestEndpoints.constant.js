@@ -572,7 +572,11 @@ readTextFile("../apiUrls.json");
             name: 'deleteGroupPermissionFromAzureSvcacc',
             url: '/v2/azureserviceaccounts/group',
             method: 'DELETE'
-        }     
+        },{
+            name: 'addAppRolePermissionForAzureSvcacc',
+            url: '/v2/azureserviceaccounts/approle',
+            method: 'POST'
+        }
     ]
     });
 })( angular.module( 'vault.constants.RestEndpoints', []));
