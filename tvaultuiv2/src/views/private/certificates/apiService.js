@@ -1,5 +1,6 @@
 import api from '../../../services';
 
+const getNonAdminAppNameList = () => api.get('/sslcert/grouplist');
 const getAllAdminCertInternal = () => api.get('/sslcert/certificates/internal');
 const getAllNonAdminCertInternal = () => api.get('/sslcert/list/internal');
 const getAllNonAdminCertExternal = () => api.get('/sslcert/list/external');
@@ -9,6 +10,7 @@ const getExternalCertificates = () =>
   api.get('/sslcert?certificateName=&certType=external');
 const deleteCertificate = (name, certType) =>
   api.delete(`/certificates/${name}/${certType}`);
+const getOnboardCertificates = () => api.get('/sslcert/pendingcertificates');
 
 const getCertificateDetail = (url) => api.get(url);
 
@@ -50,6 +52,12 @@ const onDownloadCertificate = (name, format, certType) =>
 const onPrivateDownload = (payload) =>
   api.post('/sslcert/certificates/download', payload);
 
+const onReleasecertificate = (name, type, reason) =>
+  api.post(`/sslcert/unlink/${name}/${type}/${reason}`);
+
+const getNotificationEmails = (appId) =>
+  api.get(`/serviceaccounts/cwm/appdetails/appname?appName=${appId}`);
+
 export default {
   getAllAdminCertInternal,
   getAllNonAdminCertInternal,
@@ -73,9 +81,13 @@ export default {
   transferOwner,
   onDownloadCertificate,
   onPrivateDownload,
+  onReleasecertificate,
   addAwsPermission,
   addAwsRole,
   deleteAwsRole,
   addAppRolePermission,
   deleteAppRolePermission,
+  getNotificationEmails,
+  getNonAdminAppNameList,
+  getOnboardCertificates,
 };
