@@ -524,7 +524,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                             .change-list-table-data.row
                                                 .unavailable-text(ng-show="!isLoadingData && appRoleData.keys.length==0")
                                                     .container.name No AppRoles Available
-                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in appRoleData.keys")
+                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in appRoleData.keys | filter:searchValue")
                                                     .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3(title="{{value}}") {{value}}
                                                     .container.radio-inputs.col-lg-7.col-md-7.col-sm-7.col-xs-7
                                                         .down.view
