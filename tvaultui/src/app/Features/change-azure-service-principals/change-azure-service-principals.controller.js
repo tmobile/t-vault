@@ -455,16 +455,15 @@
                             reqObjtobeSent = {
                                 "azureSvcAccName": svcaccname,
                                 "rolename": key,
-                                "access": permission
+                                "access": permission.toLowerCase()
                             };
                             break;
                         case 'AppRolePermission':
                             apiCallFunction = AdminSafesManagement.detachAppRolePermissionFromAzureSvcacc;
                             reqObjtobeSent = {
-                                "iamSvcAccName": svcaccname,
+                                "azureSvcAccName": svcaccname,
                                 "approlename": key,
-                                "access": permission,
-                                "awsAccountId": awsAccountId
+                                "access": permission.toLowerCase()
                             };
                             break;
                     }
@@ -1085,7 +1084,7 @@
                             break;
                         case 'groups' :
                             apiCallFunction = AdminSafesManagement.addGroupPermissionForAzureSvcacc;
-                            reqObjtobeSent = {"azureSvcAccName": azureSvcaccName, "groupname": key, "access": permission.toLowerCase()};
+                            reqObjtobeSent = {"azureSvcAccName": azureSvcaccName, "groupname": key, "access": permission.toLowerCase() };
                             break;
                         case 'AWSPermission':
                             apiCallFunction = AdminSafesManagement.addAWSPermissionForAzureSvcacc;

@@ -582,6 +582,11 @@
                 return ServiceEndpoint.addAppRolePermissionForAzureSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
+            }, 
+            detachAppRolePermissionFromAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.detachAppRolePermissionFromAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
             },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){

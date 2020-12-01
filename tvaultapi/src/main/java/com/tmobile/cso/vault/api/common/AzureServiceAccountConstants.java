@@ -31,6 +31,7 @@ public class AzureServiceAccountConstants {
 	public static final String REMOVE_GROUP_FROM_AZURESVCACC_MSG = "Remove Group from Azure Service Principal";
 	public static final String ADD_APPROLE_TO_AZURESVCACC_MSG = "Add Approle to Azure Service Principal";
 
+	public static final String REMOVE_APPROLE_TO_AZURESVCACC_MSG = "Remove Approle from Azure Service Principal";
 
 	
 	public static final String USERNAME_PARAM_STRING = "{\"username\":\"";
