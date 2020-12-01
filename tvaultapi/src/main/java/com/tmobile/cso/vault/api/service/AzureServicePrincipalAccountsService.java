@@ -2954,7 +2954,7 @@ public class AzureServicePrincipalAccountsService {
 										put(LogMessage.MESSAGE, String.format ("Trying to rotate secret for the Azure Service Principal [%s] secret key id: [%s]", servicePrincipalName, secretKeyId)).
 										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 										build()));
-								// Rotate IAM service account secret for each secret key id in metadata
+								// Rotate Azure service account secret for each secret key id in metadata
 								if (rotateAzureServicePrincipalSecret(token, servicePrincipalName, secretKeyId, servicePrincipalId, tenantId, i+1)) {
 									secretSaveCount++;
 								}
@@ -2987,8 +2987,8 @@ public class AzureServicePrincipalAccountsService {
 								AzureServiceAccountUser azureServiceAccountUser = new AzureServiceAccountUser(servicePrincipalName,
 										ownerNTId, AzureServiceAccountConstants.AZURE_ROTATE_MSG_STRING);
 
-								ResponseEntity<String> addUserToIAMSvcAccResponse = addUserToAzureServiceAccount(token, userDetails, azureServiceAccountUser, false);
-								if (HttpStatus.OK.equals(addUserToIAMSvcAccResponse.getStatusCode())) {
+								ResponseEntity<String> addUserToAzureSvcAccResponse = addUserToAzureServiceAccount(token, userDetails, azureServiceAccountUser, false);
+								if (HttpStatus.OK.equals(addUserToAzureSvcAccResponse.getStatusCode())) {
 									log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 											put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 											put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
@@ -3002,7 +3002,7 @@ public class AzureServicePrincipalAccountsService {
 										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 										put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
 										put(LogMessage.MESSAGE, String.format("Failed to add rotate permission to owner as part of Azure Service Principal activation for [%s].", servicePrincipalName)).
-										put(LogMessage.STATUS, addUserToIAMSvcAccResponse!=null?addUserToIAMSvcAccResponse.getStatusCode().toString():HttpStatus.BAD_REQUEST.toString()).
+										put(LogMessage.STATUS, addUserToAzureSvcAccResponse!=null?addUserToAzureSvcAccResponse.getStatusCode().toString():HttpStatus.BAD_REQUEST.toString()).
 										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 										build()));
 								return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate Azure Service Principal. Azure secrets are rotated and saved in T-Vault. However owner permission update failed.\"]}");
@@ -3248,7 +3248,7 @@ public class AzureServicePrincipalAccountsService {
 							secretKeyId)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-			// Save secret in iamavcacc mount
+			// Save secret in azuresvcacc mount
 			String path = AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + servicePrincipalName + "/" + AzureServiceAccountConstants.AZURE_SP_SECRET_FOLDER_PREFIX + (secretKeyIndex);
 			if (azureServiceAccountUtils.writeAzureSPSecret(token, path, servicePrincipalName, azureServiceAccountSecret)) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -3874,6 +3874,168 @@ public class AzureServicePrincipalAccountsService {
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body("{\"errors\":[\"Approle configuration failed. Contact Admin \"]}");
-		}
 	}
+}
+	
+	/**
+	 * Remove approle from Azure service account
+	 *
+	 * @param userDetails
+	 * @param token
+	 * @param azureServiceAccountApprole
+	 * @return
+	 */
+	public ResponseEntity<String> removeApproleFromAzureSvcAcc(UserDetails userDetails, String token,
+			AzureServiceAccountApprole azureServiceAccountApprole) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_APPROLE_TO_AZURESVCACC_MSG)
+				.put(LogMessage.MESSAGE,
+						String.format("Trying to remove approle from Azure Service Account [%s]",
+								azureServiceAccountApprole.getApprolename()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		if (!userDetails.isAdmin()) {
+			token = tokenUtils.getSelfServiceToken();
+		}
+		String approleName = azureServiceAccountApprole.getApprolename();
+		String azureSvcaccName = azureServiceAccountApprole.getAzureSvcAccName();
+		String access = azureServiceAccountApprole.getAccess();
+		approleName = (approleName != null) ? approleName.toLowerCase() : approleName;
+		access = (access != null) ? access.toLowerCase() : access;
+
+		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(azureServiceAccountApprole.getApprolename())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+					"{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
+		}
+		if (!isAzureSvcaccPermissionInputValid(access)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+		}
+
+		boolean isAuthorized = hasAddOrRemovePermission(userDetails, azureSvcaccName, token);
+
+		if (isAuthorized) {
+			String readPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
+					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcaccName).toString();
+			String writePolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
+					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcaccName).toString();
+			String denyPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
+					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcaccName).toString();
+			String ownerPolicy = new StringBuffer()
+					.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+					.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcaccName).toString();
+
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_APPROLE_TO_AZURESVCACC_MSG)
+					.put(LogMessage.MESSAGE,
+							String.format("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]",
+									readPolicy, writePolicy, denyPolicy, ownerPolicy))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			Response roleResponse = reqProcessor.process("/auth/approle/role/read",
+					"{\"role_name\":\"" + approleName + "\"}", token);
+			String responseJson = "";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+			if (HttpStatus.OK.equals(roleResponse.getHttpstatus())) {
+				responseJson = roleResponse.getResponse();
+				ObjectMapper objMapper = new ObjectMapper();
+				try {
+					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+					if (null != policiesArry) {
+						for (JsonNode policyNode : policiesArry) {
+							currentpolicies.add(policyNode.asText());
+						}
+					}
+				} catch (IOException e) {
+					log.error(e);
+				}
+				policies.addAll(currentpolicies);
+				policies.remove(readPolicy);
+				policies.remove(writePolicy);
+				policies.remove(denyPolicy);
+			}
+				String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+				String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+				log.info(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_APPROLE_TO_AZURESVCACC_MSG)
+						.put(LogMessage.MESSAGE,
+								"Remove approle from Azure Service account -  policy :" + policiesString
+										+ " is being configured")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+				// Update the policy for approle
+				Response approleControllerResp = appRoleService.configureApprole(approleName, policiesString, token);
+				if (approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)
+						|| approleControllerResp.getHttpstatus().equals(HttpStatus.OK)) {
+					String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH)
+							.append(azureSvcaccName).toString();
+					Map<String, String> params = new HashMap<String, String>();
+					params.put("type", "app-roles");
+					params.put("name", approleName);
+					params.put("path", path);
+					params.put("access", "delete");
+					Response metadataResponse = ControllerUtil.updateMetadata(params, token);
+					if (metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())
+							|| HttpStatus.OK.equals(metadataResponse.getHttpstatus()))) {
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_APPROLE_TO_AZURESVCACC_MSG)
+								.put(LogMessage.MESSAGE, "Approle is successfully removed from Azure Service Account")
+								.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
+								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+						return ResponseEntity.status(HttpStatus.OK).body(
+								"{\"messages\":[\"Approle is successfully removed from Azure Service Account\"]}");
+					}
+					approleControllerResp = appRoleService.configureApprole(approleName, currentpoliciesString, token);
+					if (approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+						log.error(
+								JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+										.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+										.put(LogMessage.ACTION,
+												AzureServiceAccountConstants.REMOVE_APPROLE_TO_AZURESVCACC_MSG)
+										.put(LogMessage.MESSAGE, "Reverting, approle policy update success")
+										.put(LogMessage.RESPONSE,
+												(null != metadataResponse) ? metadataResponse.getResponse()
+														: TVaultConstants.EMPTY)
+										.put(LogMessage.STATUS,
+												(null != metadataResponse) ? metadataResponse.getHttpstatus().toString()
+														: TVaultConstants.EMPTY)
+										.put(LogMessage.APIURL,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+										.build()));
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+								.body("{\"errors\":[\"Approle configuration failed. Please try again\"]}");
+					} else {
+						log.error(
+								JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+										.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+										.put(LogMessage.ACTION,
+												AzureServiceAccountConstants.REMOVE_APPROLE_TO_AZURESVCACC_MSG)
+										.put(LogMessage.MESSAGE, "Reverting approle policy update failed")
+										.put(LogMessage.RESPONSE,
+												(null != metadataResponse) ? metadataResponse.getResponse()
+														: TVaultConstants.EMPTY)
+										.put(LogMessage.STATUS,
+												(null != metadataResponse) ? metadataResponse.getHttpstatus().toString()
+														: TVaultConstants.EMPTY)
+										.put(LogMessage.APIURL,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+										.build()));
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+								.body("{\"errors\":[\"Approle configuration failed. Contact Admin \"]}");
+					}
+				} else {
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+							.body("{\"errors\":[\"Failed to remove approle from the Service Account\"]}");
+				}
+			} else {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("{\"errors\":[\"Access denied: No permission to remove approle from Service Account\"]}");
+			}
+		}
 }

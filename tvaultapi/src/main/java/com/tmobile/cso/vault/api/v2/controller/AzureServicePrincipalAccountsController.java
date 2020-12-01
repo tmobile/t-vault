@@ -317,4 +317,21 @@ public class AzureServicePrincipalAccountsController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return azureServicePrincipalAccountsService.associateApproletoAzureServiceAccount(userDetails, token, azureServiceAccountApprole);
 	}
+	
+	/**
+	 * Remove approle from Azure Service Principal
+	 *
+	 * @param request
+	 * @param token
+	 * @param azureServiceAccountApprole
+	 * @return
+	 */
+	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.removeApproleFromAzureSvcAcc.value}", notes = "${AzureServicePrinicipalAccountsController.removeApproleFromAzureSvcAcc.notes}")
+	@DeleteMapping(value = "/v2/azureserviceaccounts/approle", consumes = "application/json", produces = "application/json")
+	public ResponseEntity<String> removeApproleFromAzureSvcAcc(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token,
+			@Valid @RequestBody AzureServiceAccountApprole azureServiceAccountApprole) {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return azureServicePrincipalAccountsService.removeApproleFromAzureSvcAcc(userDetails, token, azureServiceAccountApprole);
+	}
 }
