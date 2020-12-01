@@ -7,10 +7,10 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 import PermissionsTabs from '../../../../../components/PermissionTabs';
 import TabPanel from '../../../../../components/TabPanel';
 import { TabWrapper } from '../../../../../styles/GlobalStyles';
-import Users from './components/users';
-import Groups from './components/groups';
-import AppRoles from './components/appRoles';
-import AwsApplications from './components/awsApplications';
+import Users from './components/Users';
+import Groups from './components/Groups';
+import AppRoles from './components/AppRoles';
+import AwsApplications from './components/AwsApplications';
 
 const PermissionTabsWrapper = styled('div')`
   height: calc(100% - 3.7rem);
