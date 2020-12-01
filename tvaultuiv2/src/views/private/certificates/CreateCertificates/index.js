@@ -324,6 +324,11 @@ const CreateCertificates = (props) => {
         setOwnerEmail(state.userEmail);
       }
       if (state.applicationNameList?.length > 0) {
+        console.log(
+          'object',
+          localStorage.getItem('selfServiceAppNames'),
+          typeof localStorage.getItem('selfServiceAppNames')
+        );
         setAllApplication([...state.applicationNameList]);
       } else if (state.applicationNameList === 'error') {
         setResponseType(-1);

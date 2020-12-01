@@ -1,5 +1,6 @@
 import api from '../../../services';
 
+const getNonAdminAppNameList = () => api.get('/sslcert/grouplist');
 const getAllAdminCertInternal = () => api.get('/sslcert/certificates/internal');
 const getAllNonAdminCertInternal = () => api.get('/sslcert/list/internal');
 const getAllNonAdminCertExternal = () => api.get('/sslcert/list/external');
@@ -86,4 +87,5 @@ export default {
   addAppRolePermission,
   deleteAppRolePermission,
   getNotificationEmails,
+  getNonAdminAppNameList,
 };
