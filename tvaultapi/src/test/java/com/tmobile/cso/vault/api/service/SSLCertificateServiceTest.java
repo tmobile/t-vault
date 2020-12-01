@@ -2091,6 +2091,7 @@ public class SSLCertificateServiceTest {
         sSLCertificateRequest.setCertType("internal");
         sSLCertificateRequest.setTargetSystem(targetSystem);
         sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
+        sSLCertificateRequest.setNotificationEmail("testing@mail.com");
         return sSLCertificateRequest;
     }
 
