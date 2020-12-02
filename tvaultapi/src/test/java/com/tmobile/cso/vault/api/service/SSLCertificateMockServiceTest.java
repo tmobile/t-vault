@@ -3197,7 +3197,7 @@ public class SSLCertificateMockServiceTest {
     @Test
     public void testAssociateAppRoleToCertificateFailedIfNoRoleExists() {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either Approle doesn't exists or you don't have enough permission to add this approle to Certificate\"]}");
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         userDetails = getMockUser(true);
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();

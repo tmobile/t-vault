@@ -267,8 +267,7 @@ public class SSLCertificateAWSRoleService {
 							String.format("AWS role [%s] does not exist. Please create the role and try again",
 									roleName))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"AWS role '" + roleName
-					+ "' does not exist. Please create the role and try again!\"]}");
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exist or you don't have enough permission to add this AWS role to Certificate\"]}");
 		}
 
 		Response awsRoleConfigresponse = null;
@@ -468,7 +467,7 @@ public class SSLCertificateAWSRoleService {
 					.put(LogMessage.MESSAGE, String.format("AWS role [%s] does not exist", roleName))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-					.body("{\"errors\":[\"AWS Role doesn't exist\"]}");
+					.body("{\"errors\":[\"Either AWS role doesn't exist or you don't have enough permission to remove this AWS role from Certificate\"]}");
 		}
 
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");

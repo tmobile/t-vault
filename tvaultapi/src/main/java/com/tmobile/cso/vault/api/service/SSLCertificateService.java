@@ -3844,9 +3844,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         String certificateName = certificateApprole.getCertificateName().toLowerCase();
         String access = certificateApprole.getAccess().toLowerCase();
         String certType = certificateApprole.getCertType().toLowerCase();
-//        if (approleName.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Certificate\"]}");
-//        }
+
 		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(approleName)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 					"{\"errors\":[\"Access denied: no permission to associate this AppRole to any Certificate\"]}");
@@ -3986,7 +3984,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 
-		    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
+		    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either Approle doesn't exists or you don't have enough permission to add this approle to Certificate\"]}");
 		}
 
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
@@ -8594,7 +8592,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 
-		    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
+		    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either Approle doesn't exists or you don't have enough permission to remove this approle from Certificate\"]}");
 		}
 
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");

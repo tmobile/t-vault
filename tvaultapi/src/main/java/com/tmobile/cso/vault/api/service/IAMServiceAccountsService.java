@@ -2327,7 +2327,7 @@ public class  IAMServiceAccountsService {
 				policies.add(policy);
 			} else {
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-						.body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
+						.body("{\"errors\":[\"Either Approle doesn't exists or you dont have enough permission to add this approle to IAM Service Account\"]}");
 			}
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
@@ -2523,6 +2523,10 @@ public class  IAMServiceAccountsService {
 				policies.remove(readPolicy);
 				policies.remove(writePolicy);
 				policies.remove(denyPolicy);
+			}
+			else {
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+						.body("{\"errors\":[\"Either Approle doesn't exists or you don't have enough permission to remove this approle from IAM Service Account\"]}");
 			}
 
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
@@ -3773,7 +3777,7 @@ public class  IAMServiceAccountsService {
 				policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 				currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 			} else{
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"AWS role '"+roleName+"' does not exist. Please create the role and try again!\"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"AWS role doesn't exist you don't have enough permission to add this AWS role to IAM Service account!\"]}");
 			}
 			Response awsRoleConfigresponse = null;
 			if (TVaultConstants.IAM.equals(authType)) {
@@ -3915,7 +3919,7 @@ public class  IAMServiceAccountsService {
 				policies.remove(writePolicy);
 				policies.remove(denyPolicy);
 			} else{
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"AppRole doesn't exist\"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exist or you don't have enough permission to remove this AWS role from IAM Service account\"]}");
 			}
 
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
