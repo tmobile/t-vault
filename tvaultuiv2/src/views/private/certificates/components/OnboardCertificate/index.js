@@ -196,6 +196,7 @@ const useStyles = makeStyles((theme) => ({
   },
   dropdownStyle: {
     backgroundColor: '#fff',
+    maxHeight: '20rem',
   },
   modal: {
     display: 'flex',
