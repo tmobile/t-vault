@@ -1,5 +1,6 @@
 import api from '../../../services';
 
+const getNonAdminAppNameList = () => api.get('/sslcert/grouplist');
 const getAllAdminCertInternal = () => api.get('/sslcert/certificates/internal');
 const getAllNonAdminCertInternal = () => api.get('/sslcert/list/internal');
 const getAllNonAdminCertExternal = () => api.get('/sslcert/list/external');
@@ -9,6 +10,7 @@ const getExternalCertificates = () =>
   api.get('/sslcert?certificateName=&certType=external');
 const deleteCertificate = (name, certType) =>
   api.delete(`/certificates/${name}/${certType}`);
+const getOnboardCertificates = () => api.get('/sslcert/pendingcertificates');
 
 const getCertificateDetail = (url) => api.get(url);
 
@@ -18,6 +20,16 @@ const deleteCertificateUser = (payload) => api.delete('/sslcert/user', payload);
 const addCertificateGroup = (payload) => api.post('/sslcert/group', payload);
 const deleteCertificateGroup = (payload) =>
   api.delete('/sslcert/group', payload);
+
+// Api Calls for aws application
+const addAwsPermission = (url, payload) => api.post(url, payload);
+const addAwsRole = (payload) => api.post('/sslcert/aws', payload);
+const deleteAwsRole = (payload) => api.delete('/sslcert/aws', payload);
+
+// Api call for app roles permission
+const addAppRolePermission = (payload) => api.post('/sslcert/approle', payload);
+const deleteAppRolePermission = (payload) =>
+  api.delete('/sslcert/approle', payload);
 
 const getApplicationName = () => api.get('/serviceaccounts/cwm/approles');
 const getOwnerEmail = (corpId) => api.get(`/ldap/corpusers?CorpId=${corpId}`);
@@ -39,6 +51,12 @@ const onDownloadCertificate = (name, format, certType) =>
   api.get(`/sslcert/certificates/${name}/${format}/${certType}`);
 const onPrivateDownload = (payload) =>
   api.post('/sslcert/certificates/download', payload);
+
+const onReleasecertificate = (name, type, reason) =>
+  api.post(`/sslcert/unlink/${name}/${type}/${reason}`);
+
+const getNotificationEmails = (appId) =>
+  api.get(`/serviceaccounts/cwm/appdetails/appname?appName=${appId}`);
 
 export default {
   getAllAdminCertInternal,
@@ -63,4 +81,13 @@ export default {
   transferOwner,
   onDownloadCertificate,
   onPrivateDownload,
+  onReleasecertificate,
+  addAwsPermission,
+  addAwsRole,
+  deleteAwsRole,
+  addAppRolePermission,
+  deleteAppRolePermission,
+  getNotificationEmails,
+  getNonAdminAppNameList,
+  getOnboardCertificates,
 };

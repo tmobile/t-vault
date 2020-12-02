@@ -7,17 +7,10 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import certIcon from '../../../../../../../assets/cert-icon.svg';
 import { TitleFour } from '../../../../../../../styles/GlobalStyles';
 import CertificateListItem from '../../../CertificateListItem';
-import EditAndDeletePopup from '../../../../../../../components/EditAndDeletePopup';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import EditDeletePopper from '../../../../../service-accounts/components/EditDeletePopper';
 
-const PopperWrap = styled.div`
-  position: absolute;
-  right: 4%;
-  z-index: 1;
-  max-width: 18rem;
-  display: none;
-`;
+const EditDeletePopperWrap = styled.div``;
 
 const CertificateStatus = styled.div`
   display: flex;
@@ -42,19 +35,12 @@ const ListFolderWrap = styled(Link)`
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
     color: #fff;
-    ${PopperWrap} {
-      display: block;
-    }
-    ${CertificateStatus} {
-      display: none;
-    }
   }
 `;
 const StatusActionWrapper = styled.div`
   display: flex;
   align-items: center;
 `;
-const EditDeletePopperWrap = styled.div``;
 
 const BorderLine = styled.div`
   border-bottom: 0.1rem solid #1d212c;
@@ -88,14 +74,25 @@ const extraCss = css`
   }
 `;
 
+const OnboardButton = styled.button`
+  width: 8.3rem;
+  height: 2.6rem;
+  padding: 0.5rem 1.2rem;
+  border: solid 0.1rem #c70369;
+  color: #c70369;
+  font-size: 1.4rem;
+  background-color: transparent;
+  cursor: pointer;
+`;
+
 const LeftColumn = (props) => {
   const {
     certificateList,
     onLinkClicked,
-    isTabAndMobileScreen,
     onDeleteCertificateClicked,
     onTransferOwnerClicked,
     onEditListItemClicked,
+    onReleaseClicked,
     history,
   } = props;
 
@@ -139,7 +136,7 @@ const LeftColumn = (props) => {
             />
             <BorderLine />
             <StatusActionWrapper>
-              {certificate.certificateStatus && (
+              {certificate.certificateStatus && !certificate.isOnboardCert && (
                 <CertificateStatus>
                   <TitleFour extraCss={extraCss}>
                     {certificate.certificateStatus}
@@ -147,32 +144,17 @@ const LeftColumn = (props) => {
                   <StatusIcon status={certificate.certificateStatus} />
                 </CertificateStatus>
               )}
-              {!certificate.certificateStatus && certificate.requestStatus && (
-                <CertificateStatus>
-                  <TitleFour extraCss={extraCss}>
-                    {certificate.requestStatus}
-                  </TitleFour>
-                  <StatusIcon status={certificate.requestStatus} />
-                </CertificateStatus>
-              )}
-              {certificate.applicationName && !isTabAndMobileScreen ? (
-                <PopperWrap onClick={(e) => onActionClicked(e)}>
-                  <EditAndDeletePopup
-                    onDeletListItemClicked={() =>
-                      onDeleteCertificateClicked(certificate)
-                    }
-                    onEditListItemClicked={() =>
-                      onEditListItemClicked(certificate)
-                    }
-                    admin
-                    isTransferOwner
-                    onTransferOwnerClicked={() =>
-                      onTransferOwnerClicked(certificate)
-                    }
-                  />
-                </PopperWrap>
-              ) : null}
-              {isTabAndMobileScreen && certificate.applicationName && (
+              {!certificate.certificateStatus &&
+                certificate.requestStatus &&
+                !certificate.isOnboardCert && (
+                  <CertificateStatus>
+                    <TitleFour extraCss={extraCss}>
+                      {certificate.requestStatus}
+                    </TitleFour>
+                    <StatusIcon status={certificate.requestStatus} />
+                  </CertificateStatus>
+                )}
+              {certificate.applicationName && !certificate.isOnboardCert && (
                 <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
                   <EditDeletePopper
                     onDeleteClicked={() =>
@@ -180,11 +162,16 @@ const LeftColumn = (props) => {
                     }
                     onEditClicked={() => onEditListItemClicked(certificate)}
                     admin
+                    isCertificate
                     onTransferOwnerClicked={() =>
                       onTransferOwnerClicked(certificate)
                     }
+                    onReleaseClicked={() => onReleaseClicked(certificate)}
                   />
                 </EditDeletePopperWrap>
+              )}
+              {certificate.isOnboardCert && (
+                <OnboardButton>Onboard</OnboardButton>
               )}
             </StatusActionWrapper>
           </ListFolderWrap>
@@ -200,7 +187,7 @@ LeftColumn.propTypes = {
   onDeleteCertificateClicked: PropTypes.func.isRequired,
   onEditListItemClicked: PropTypes.func.isRequired,
   onLinkClicked: PropTypes.func.isRequired,
-  isTabAndMobileScreen: PropTypes.bool.isRequired,
+  onReleaseClicked: PropTypes.func.isRequired,
   history: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 

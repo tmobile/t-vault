@@ -25,7 +25,7 @@ const Value = styled.p`
 `;
 const DnsName = styled.p`
   text-decoration: underline;
-  padding: 1rem 0;
+  padding: 0.5rem 0;
   font-size: 1.8rem;
 `;
 
@@ -64,6 +64,7 @@ const PreviewCertificate = (props) => {
     isEditCertificate,
     container,
     owner,
+    notificationEmails,
   } = props;
   const [dnsNames, setDnsNames] = useState([]);
   useEffect(() => {
@@ -100,6 +101,14 @@ const PreviewCertificate = (props) => {
           <Label>Aplication Name:</Label>
           <Value>{applicationName || 'N/A'}</Value>
         </EachDetail>
+        {notificationEmails?.length > 0 && (
+          <EachDetail>
+            <Label>Notification Emails:</Label>
+            {notificationEmails?.map((item) => {
+              return <DnsName key={item}>{item}</DnsName>;
+            })}
+          </EachDetail>
+        )}
         <EachDetail>
           <Label>Dns:</Label>
           {dnsNames?.length > 0 ? (
@@ -175,6 +184,7 @@ PreviewCertificate.propTypes = {
   responseType: PropTypes.number,
   isEditCertificate: PropTypes.bool,
   container: PropTypes.string,
+  notificationEmails: PropTypes.arrayOf(PropTypes.any),
   owner: PropTypes.string,
 };
 
@@ -185,6 +195,7 @@ PreviewCertificate.defaultProps = {
   applicationName: 'N/A',
   certName: 'N/A',
   dns: [],
+  notificationEmails: [],
   handleClose: () => {},
   onCreateClicked: () => {},
   onEditClicked: () => {},

@@ -362,9 +362,9 @@ const LoginPage = () => {
 
   const checkAdmin = (value) => {
     if (value === 'yes') {
-      sessionStorage.setItem('isAdmin', true);
+      localStorage.setItem('isAdmin', true);
     } else {
-      sessionStorage.setItem('isAdmin', false);
+      localStorage.setItem('isAdmin', false);
     }
   };
 
@@ -374,11 +374,11 @@ const LoginPage = () => {
       .then((res) => {
         if (res.data.data.values && res.data.data.values[0]) {
           if (res.data.data.values[0].userEmail) {
-            sessionStorage.setItem(
+            localStorage.setItem(
               'owner',
               res.data.data.values[0].userEmail.toLowerCase()
             );
-            sessionStorage.setItem(
+            localStorage.setItem(
               'displayName',
               res.data.data.values[0].displayName.toLowerCase()
             );
@@ -397,7 +397,7 @@ const LoginPage = () => {
       .getUserName()
       .then(async (res) => {
         if (res.data && res.data.data?.username) {
-          sessionStorage.setItem(
+          localStorage.setItem(
             'username',
             res.data.data.username.toLowerCase()
           );
@@ -412,7 +412,7 @@ const LoginPage = () => {
   };
 
   useEffect(() => {
-    sessionStorage.clear();
+    localStorage.clear();
     if (urlParams?.code && urlParams?.state) {
       setResponse({ status: 'loading' });
       axios
@@ -422,7 +422,7 @@ const LoginPage = () => {
         .then(async (res) => {
           if (res?.data) {
             setResponse({ status: 'loading' });
-            sessionStorage.setItem('token', res.data.client_token);
+            localStorage.setItem('token', res.data.client_token);
             checkAdmin(res?.data?.admin);
             await getLoggedInUserName();
             await renewToken();
@@ -467,10 +467,10 @@ const LoginPage = () => {
       .post(`${configUrl.baseUrl}/auth/ldap/login`, payload)
       .then(async (res) => {
         if (res?.data) {
-          sessionStorage.setItem('token', res.data.client_token);
+          localStorage.setItem('token', res.data.client_token);
           checkAdmin(res?.data?.admin);
-          sessionStorage.setItem('access', JSON.stringify(res.data.access));
-          sessionStorage.setItem('username', payload.username.toLowerCase());
+          localStorage.setItem('access', JSON.stringify(res.data.access));
+          localStorage.setItem('username', payload.username.toLowerCase());
           await getOwnerAllDetails(payload.username.toLowerCase());
           window.location = '/safes';
         }
@@ -491,10 +491,10 @@ const LoginPage = () => {
         const val = res.data.split('response=');
         const data = val[1].split(', adminPolicies');
         const responseData = JSON.parse(data[0]);
-        sessionStorage.setItem('token', responseData?.client_token);
+        localStorage.setItem('token', responseData?.client_token);
         checkAdmin(responseData?.admin);
-        sessionStorage.setItem('access', JSON.stringify(responseData?.access));
-        sessionStorage.setItem('username', payload.username.toLowerCase());
+        localStorage.setItem('access', JSON.stringify(responseData?.access));
+        localStorage.setItem('username', payload.username.toLowerCase());
         await getOwnerAllDetails(payload.username.toLowerCase());
         window.location = '/safes';
       })

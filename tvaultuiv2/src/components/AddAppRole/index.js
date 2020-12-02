@@ -1,3 +1,5 @@
+/* eslint-disable no-nested-ternary */
+
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { InputLabel, Typography } from '@material-ui/core';
@@ -121,6 +123,7 @@ const AddAppRole = (props) => {
     role,
     access,
     isSvcAccount,
+    isCertificate,
   } = props;
   const [radioValue, setRadioValue] = useState('read');
   const [selectedValue, setSelectedValue] = useState('');
@@ -201,6 +204,8 @@ const AddAppRole = (props) => {
             menu={
               isSvcAccount
                 ? ['read', 'reset', 'deny']
+                : isCertificate
+                ? ['read', 'deny']
                 : ['read', 'write', 'deny']
             }
             handleChange={(e) => setRadioValue(e.target.value)}
@@ -236,6 +241,7 @@ AddAppRole.propTypes = {
   role: PropTypes.string,
   access: PropTypes.string,
   isSvcAccount: PropTypes.bool,
+  isCertificate: PropTypes.bool,
 };
 
 AddAppRole.defaultProps = {
@@ -243,6 +249,7 @@ AddAppRole.defaultProps = {
   role: '',
   editClicked: false,
   isSvcAccount: false,
+  isCertificate: false,
 };
 
 export default AddAppRole;

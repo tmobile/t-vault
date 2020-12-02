@@ -1,10 +1,10 @@
 const initilaState = {
   message: 'Welcome',
-  username: sessionStorage.getItem('username'),
-  isAdmin: sessionStorage.getItem('isAdmin'),
-  userEmail: sessionStorage.getItem('owner'),
+  username: localStorage.getItem('username'),
+  isAdmin: JSON.parse(localStorage.getItem('isAdmin')),
+  userEmail: localStorage.getItem('owner'),
   appRoleList: [],
-  iamServiceAccountList:[]
+  iamServiceAccountList: [],
 };
 
 export default initilaState;
