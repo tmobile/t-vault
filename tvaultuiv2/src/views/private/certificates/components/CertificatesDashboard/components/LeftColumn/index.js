@@ -83,6 +83,9 @@ const OnboardButton = styled.button`
   font-size: 1.4rem;
   background-color: transparent;
   cursor: pointer;
+  :focus {
+    outline: none;
+  }
 `;
 
 const LeftColumn = (props) => {
@@ -93,6 +96,7 @@ const LeftColumn = (props) => {
     onTransferOwnerClicked,
     onEditListItemClicked,
     onReleaseClicked,
+    onOnboardClicked,
     history,
   } = props;
 
@@ -171,7 +175,9 @@ const LeftColumn = (props) => {
                 </EditDeletePopperWrap>
               )}
               {certificate.isOnboardCert && (
-                <OnboardButton>Onboard</OnboardButton>
+                <OnboardButton onClick={() => onOnboardClicked(certificate)}>
+                  Onboard
+                </OnboardButton>
               )}
             </StatusActionWrapper>
           </ListFolderWrap>
@@ -188,7 +194,12 @@ LeftColumn.propTypes = {
   onEditListItemClicked: PropTypes.func.isRequired,
   onLinkClicked: PropTypes.func.isRequired,
   onReleaseClicked: PropTypes.func.isRequired,
+  onOnboardClicked: PropTypes.func,
   history: PropTypes.objectOf(PropTypes.any).isRequired,
+};
+
+LeftColumn.defaultProps = {
+  onOnboardClicked: () => {},
 };
 
 export default LeftColumn;
