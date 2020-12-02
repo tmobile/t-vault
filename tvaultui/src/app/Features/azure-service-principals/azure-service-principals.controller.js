@@ -125,7 +125,7 @@
                     $scope.isLoadingData = false;
                     $scope.viewPassword = false;
                     if (catchError.status == 403 || catchError.status == "403") {
-                        var errorMsg = "Access Denied: No permission to read or reset secret for Azure service principal";
+                        var errorMsg = "Access Denied: No permission to read or rotate secret for Azure service principal";
                         $scope.errorMessage = errorMsg;
                     }
                     else {

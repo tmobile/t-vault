@@ -116,12 +116,12 @@ script(type='text/ng-template', id='rotatePopup.html')
                                             .cell.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                                 img.list-icon.folder(src="assets/icons/safe.svg") 
                                                 input.form-control.input-box-style.au-textarea.input-disabled-text-wrapper.folder-row-secret-wrapper(rows="1" ng-disabled="true" ng-value="azuresvcaccSecretData.secretKeyId")
-                                                .list-icon.icon-content_copy.vertical-sub-align(ng-click="copyToClipboard($event, azuresvcaccSecretData.secretKeyId, 'COPY_ACCESSKEY_TO_CLIPBOARD')" uib-tooltip="Copy accessKeyId to clipboard")
+                                                .list-icon.icon-content_copy.vertical-sub-align(ng-click="copyToClipboard($event, azuresvcaccSecretData.secretKeyId, 'COPY_SECRETKEY_TO_CLIPBOARD')" uib-tooltip="Copy secretKeyId to clipboard")
                                         .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3.cell 
                                             .cell.col-lg-12.col-md-12.col-sm-12.col-xs-12  
                                                 input.form-control.input-box-style.au-textarea.input-disabled-text-wrapper.folder-row-secret-wrapper(rows="1" au-display="{{!showPassword}}" ng-disabled="true" ng-value="azuresvcaccSecretData.secretText.replace(anyRegex, '\u00B7')")
                                                 input.form-control.input-box-style.au-textarea.input-disabled-text-wrapper.folder-row-secret-wrapper(rows="1" au-display="{{showPassword}}" ng-disabled="true" ng-value="azuresvcaccSecretData.secretText")
-                                                .list-icon.icon-content_copy.vertical-sub-align(ng-if="ifSecret" ng-click="copyToClipboard($event, azuresvcaccSecretData.secretText, 'COPY_TO_CLIPBOARD')" uib-tooltip="Copy password to clipboard")
+                                                .list-icon.icon-content_copy.vertical-sub-align(ng-if="ifSecret" ng-click="copyToClipboard($event, azuresvcaccSecretData.secretText, 'COPY_SECRETTEXT_TO_CLIPBOARD')" uib-tooltip="Copy password to clipboard")
                                                 .list-icon.icon-views.vertical-sub-align(ng-mousedown="showPassword = true;" ng-mouseup="showPassword = false" uib-tooltip="View secret")
                                         .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3.cell 
                                             .cell.col-lg-12.col-md-12.col-sm-12.col-xs-12  

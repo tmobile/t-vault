@@ -326,7 +326,7 @@ public class AzureServicePrincipalAccountsController {
 	 * @param azureServiceAccountApprole
 	 * @return
 	 */
-	@ApiOperation(value = "${AzureServicePrinicipalAccountsController.removeApproleFromAzureSvcAcc.value}", notes = "${AzureServicePrinicipalAccountsController.removeApproleFromAzureSvcAcc.notes}")
+	@ApiOperation(value = "${AzureServicePrincipalAccountsController.removeApproleFromAzureSvcAcc.value}", notes = "${AzureServicePrincipalAccountsController.removeApproleFromAzureSvcAcc.notes}")
 	@DeleteMapping(value = "/v2/azureserviceaccounts/approle", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<String> removeApproleFromAzureSvcAcc(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,
