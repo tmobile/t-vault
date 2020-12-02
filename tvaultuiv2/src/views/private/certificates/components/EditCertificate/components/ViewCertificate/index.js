@@ -9,6 +9,7 @@ import leftArrowIcon from '../../../../../../../assets/left-arrow.svg';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import CertificateHeader from '../../../CertificateHeader';
 import { GlobalModalWrapper } from '../../../../../../../styles/GlobalStyles';
+import EditableEmails from '../EditableEmails';
 
 const { small } = mediaBreakpoints;
 
@@ -96,6 +97,7 @@ const ViewCertificate = (props) => {
             owner={certificateData.certOwnerEmailId}
             isEditCertificate
           />
+          <EditableEmails certificateData={certificateData} />
           <EachDetail>
             <Label>Status:</Label>
             <Value>{certificateData.certificateStatus}</Value>
