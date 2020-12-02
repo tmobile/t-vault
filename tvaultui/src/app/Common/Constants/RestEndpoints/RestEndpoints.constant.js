@@ -460,10 +460,6 @@ readTextFile("../apiUrls.json");
             name: 'addUserPermissionForIAMSvcacc',
             url: '/v2/iamserviceaccounts/user',
             method: 'POST'
-        }, {
-            name: 'updateCertificate',
-            url: '/v2/sslcert',
-            method: 'PUT' 
         }
     ]
     });
