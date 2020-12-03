@@ -58,6 +58,9 @@ const onReleasecertificate = (name, type, reason) =>
 const getNotificationEmails = (appId) =>
   api.get(`/serviceaccounts/cwm/appdetails/appname?appName=${appId}`);
 
+const onOnboardcertificate = (payload) =>
+  api.post('/sslcert/onboardSSLcertificate', payload);
+
 export default {
   getAllAdminCertInternal,
   getAllNonAdminCertInternal,
@@ -90,4 +93,5 @@ export default {
   getNotificationEmails,
   getNonAdminAppNameList,
   getOnboardCertificates,
+  onOnboardcertificate,
 };

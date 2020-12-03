@@ -1,8 +1,9 @@
 /* eslint-disable react/jsx-curly-newline */
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 import { Link } from 'react-router-dom';
+import { ClickAwayListener } from '@material-ui/core';
 import mediaBreakpoints from '../../../../../../../breakpoints';
 import certIcon from '../../../../../../../assets/cert-icon.svg';
 import { TitleFour } from '../../../../../../../styles/GlobalStyles';
@@ -10,10 +11,18 @@ import CertificateListItem from '../../../CertificateListItem';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import EditDeletePopper from '../../../../../service-accounts/components/EditDeletePopper';
 
-const EditDeletePopperWrap = styled.div``;
+const EditDeletePopperWrap = styled.div`
+  display: ${(props) =>
+    props.certificate === props.selectedCert ? 'block' : 'none'};
+`;
+
+const CertificateListItemWrap = styled.div`
+  opacity: ${(props) => (props.isOnboardCert ? '0.5' : '1')};
+`;
 
 const CertificateStatus = styled.div`
-  display: flex;
+  display: ${(props) =>
+    props.certificate === props.selectedCert ? 'none' : 'flex'};
   align-items: center;
   justify-content: flex-end;
 `;
@@ -34,7 +43,16 @@ const ListFolderWrap = styled(Link)`
   }
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
-    color: #fff;
+    color: ${(props) =>
+      props.certificate === props.selectedCert ? '#fff' : ''};
+    ${EditDeletePopperWrap} {
+      display: ${(props) =>
+        props.certificate === props.selectedCert ? 'block' : 'none'};
+    }
+    ${CertificateStatus} {
+      display: ${(props) =>
+        props.certificate === props.selectedCert ? 'none' : 'flex'};
+    }
   }
 `;
 const StatusActionWrapper = styled.div`
@@ -83,6 +101,9 @@ const OnboardButton = styled.button`
   font-size: 1.4rem;
   background-color: transparent;
   cursor: pointer;
+  :focus {
+    outline: none;
+  }
 `;
 
 const LeftColumn = (props) => {
@@ -93,18 +114,33 @@ const LeftColumn = (props) => {
     onTransferOwnerClicked,
     onEditListItemClicked,
     onReleaseClicked,
+    onOnboardClicked,
     history,
   } = props;
-
+  const [selectedCert, setSelectedCert] = useState('');
+  const [count, setCount] = useState(0);
   /**
    * @function onActionClicked
    * @description function to prevent default click.
    * @param {object} e event
    */
-  const onActionClicked = (e) => {
+  const onActionClicked = (e, cert) => {
+    if (count === 0) {
+      setCount(1);
+      setSelectedCert(cert);
+    } else {
+      setSelectedCert('');
+      setCount(0);
+    }
     e.stopPropagation();
     e.preventDefault();
   };
+
+  const handleClickAway = () => {
+    setCount(0);
+    setSelectedCert(0);
+  };
+
   return (
     <ComponentError>
       <>
@@ -123,21 +159,26 @@ const LeftColumn = (props) => {
                 : 'false'
             }
           >
-            <CertificateListItem
-              title={certificate.certificateName}
-              certType={certificate.certType}
-              createDate={
-                certificate.createDate
-                  ? new Date(certificate.createDate).toLocaleDateString()
-                  : ''
-              }
-              icon={certIcon}
-              showActions={false}
-            />
+            <CertificateListItemWrap isOnboardCert={certificate.isOnboardCert}>
+              <CertificateListItem
+                title={certificate.certificateName}
+                certType={certificate.certType}
+                createDate={
+                  certificate.createDate
+                    ? new Date(certificate.createDate).toLocaleDateString()
+                    : ''
+                }
+                icon={certIcon}
+                showActions={false}
+              />
+            </CertificateListItemWrap>
             <BorderLine />
             <StatusActionWrapper>
               {certificate.certificateStatus && !certificate.isOnboardCert && (
-                <CertificateStatus>
+                <CertificateStatus
+                  certificate={certificate}
+                  selectedCert={selectedCert}
+                >
                   <TitleFour extraCss={extraCss}>
                     {certificate.certificateStatus}
                   </TitleFour>
@@ -147,7 +188,10 @@ const LeftColumn = (props) => {
               {!certificate.certificateStatus &&
                 certificate.requestStatus &&
                 !certificate.isOnboardCert && (
-                  <CertificateStatus>
+                  <CertificateStatus
+                    certificate={certificate}
+                    selectedCert={selectedCert}
+                  >
                     <TitleFour extraCss={extraCss}>
                       {certificate.requestStatus}
                     </TitleFour>
@@ -155,23 +199,31 @@ const LeftColumn = (props) => {
                   </CertificateStatus>
                 )}
               {certificate.applicationName && !certificate.isOnboardCert && (
-                <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
-                  <EditDeletePopper
-                    onDeleteClicked={() =>
-                      onDeleteCertificateClicked(certificate)
-                    }
-                    onEditClicked={() => onEditListItemClicked(certificate)}
-                    admin
-                    isCertificate
-                    onTransferOwnerClicked={() =>
-                      onTransferOwnerClicked(certificate)
-                    }
-                    onReleaseClicked={() => onReleaseClicked(certificate)}
-                  />
+                <EditDeletePopperWrap
+                  onClick={(e) => onActionClicked(e, certificate)}
+                  certificate={certificate}
+                  selectedCert={selectedCert}
+                >
+                  <ClickAwayListener onClickAway={handleClickAway}>
+                    <EditDeletePopper
+                      onDeleteClicked={() =>
+                        onDeleteCertificateClicked(certificate)
+                      }
+                      onEditClicked={() => onEditListItemClicked(certificate)}
+                      admin
+                      isCertificate
+                      onTransferOwnerClicked={() =>
+                        onTransferOwnerClicked(certificate)
+                      }
+                      onReleaseClicked={() => onReleaseClicked(certificate)}
+                    />
+                  </ClickAwayListener>
                 </EditDeletePopperWrap>
               )}
               {certificate.isOnboardCert && (
-                <OnboardButton>Onboard</OnboardButton>
+                <OnboardButton onClick={() => onOnboardClicked(certificate)}>
+                  Onboard
+                </OnboardButton>
               )}
             </StatusActionWrapper>
           </ListFolderWrap>
@@ -188,7 +240,12 @@ LeftColumn.propTypes = {
   onEditListItemClicked: PropTypes.func.isRequired,
   onLinkClicked: PropTypes.func.isRequired,
   onReleaseClicked: PropTypes.func.isRequired,
+  onOnboardClicked: PropTypes.func,
   history: PropTypes.objectOf(PropTypes.any).isRequired,
+};
+
+LeftColumn.defaultProps = {
+  onOnboardClicked: () => {},
 };
 
 export default LeftColumn;
