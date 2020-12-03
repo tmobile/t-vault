@@ -49,7 +49,7 @@ const EditDeletePopper = (props) => {
     isCertificate,
     onReleaseClicked,
   } = props;
-  console.log('admin', admin);
+
   return (
     <div>
       <FolderIconWrap>
