@@ -63,7 +63,7 @@ const EditDeletePopper = (props) => {
             horizontal: 'right',
           }}
         >
-          {isCertificate && (
+          {isCertificate && JSON.parse(localStorage.getItem('isAdmin')) && (
             <PopperItem onClick={onReleaseClicked}>
               <IconRelease />
               <span>Release</span>
