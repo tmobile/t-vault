@@ -152,7 +152,7 @@ public class SDBControllerV2 {
 	@PostMapping(value="/v2/sdb/user",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addUsertoSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return safesService.addUserToSafe(token, safeUser, userDetails);
+		return safesService.addUserToSafe(token, safeUser, userDetails, false);
 	}
 
 	/**

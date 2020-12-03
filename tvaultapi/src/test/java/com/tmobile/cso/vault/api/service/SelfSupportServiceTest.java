@@ -247,7 +247,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");
 
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
-        when(safesService.addUserToSafe(token, safeUser, userDetails)).thenReturn(response);
+        when(safesService.addUserToSafe(token, safeUser, userDetails, false)).thenReturn(response);
 
         ResponseEntity<String> responseEntity = selfSupportService.addUserToSafe(userDetails, token, safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -265,7 +265,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"User is successfully associated \"]}");
 
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
-        when(safesService.addUserToSafe(token, safeUser, userDetails)).thenReturn(response);
+        when(safesService.addUserToSafe(token, safeUser, userDetails, false)).thenReturn(response);
 
         ResponseEntity<String> responseEntity = selfSupportService.addUserToSafe(userDetails, token, safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -283,7 +283,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to add users to this safe\"]}");
 
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(false);
-        when(safesService.addUserToSafe(token, safeUser, userDetails)).thenReturn(response);
+        when(safesService.addUserToSafe(token, safeUser, userDetails, false)).thenReturn(response);
 
         ResponseEntity<String> responseEntity = selfSupportService.addUserToSafe(userDetails, token, safeUser);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());

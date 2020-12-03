@@ -645,7 +645,7 @@ public class  SafesService {
 	 * @param safeUser
 	 * @return
 	 */
-	public ResponseEntity<String> addUserToSafe(String token, SafeUser safeUser, UserDetails userDetails) {
+	public ResponseEntity<String> addUserToSafe(String token, SafeUser safeUser, UserDetails userDetails, boolean isPartOfCreation) {
 		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -671,7 +671,7 @@ public class  SafesService {
 		userName = (userName !=null) ? userName.toLowerCase() : userName;
 		access = (access != null) ? access.toLowerCase(): access;
 		boolean isAuthorized = true;
-		if (userDetails != null) {
+		if (userDetails != null && !isPartOfCreation) {
 			isAuthorized = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
 		}
 
