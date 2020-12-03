@@ -131,7 +131,7 @@ public class  SelfSupportService {
 				safeUser.setAccess(TVaultConstants.SUDO_POLICY);
 				safeUser.setPath(safe.getPath());
 				safeUser.setUsername(userDetails.getUsername());
-				safesService.addUserToSafe(token, safeUser, null);
+				safesService.addUserToSafe(token, safeUser, userDetails, true);
 			}
 			return safe_creation_response;
 		}
@@ -174,10 +174,10 @@ public class  SelfSupportService {
 		boolean canAddUser = safeUtils.canAddOrRemoveUser(userDetails, safeUser, TVaultConstants.ADD_USER);
 		if (canAddUser) {
 			if (userDetails.isAdmin()) {
-				return safesService.addUserToSafe(userDetails.getClientToken(), safeUser, userDetails);
+				return safesService.addUserToSafe(userDetails.getClientToken(), safeUser, userDetails, false);
 			}
 			else {
-				return safesService.addUserToSafe(userDetails.getSelfSupportToken(), safeUser, userDetails);
+				return safesService.addUserToSafe(userDetails.getSelfSupportToken(), safeUser, userDetails, false);
 			}
 		}
 		else {
