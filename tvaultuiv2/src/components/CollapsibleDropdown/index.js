@@ -71,7 +71,7 @@ CollapseDropdown.propTypes = {
   setIsAutoExpand: PropTypes.func,
   isAutoExpand: PropTypes.bool,
   collapseStyles: PropTypes.string,
-  titleCss: PropTypes.string,
+  titleCss: PropTypes.objectOf(PropTypes.object),
   extraCss: PropTypes.string,
 };
 CollapseDropdown.defaultProps = {
@@ -82,7 +82,7 @@ CollapseDropdown.defaultProps = {
   isAutoExpand: false,
   collapseStyles: '',
   titleLess: 'View Less',
-  titleCss: '',
+  titleCss: {},
   extraCss: '',
 };
 export default CollapseDropdown;
