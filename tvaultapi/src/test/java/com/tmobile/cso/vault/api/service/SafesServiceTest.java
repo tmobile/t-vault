@@ -573,7 +573,7 @@ public class SafesServiceTest {
         when(ControllerUtil.areSafeUserInputsValid(safeUser)).thenReturn(false);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
         
-        ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null, false);
+        ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails, false);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1873,6 +1873,8 @@ public class SafesServiceTest {
 	          SafeUser safeUser = new SafeUser(path, "testuser1","write");
 	          UserDetails userDetails = new UserDetails();
 	          userDetails.setUsername("testuser1");
+	          userDetails.setAccess("write");
+	          userDetails.setEmail("test@t-mobile.com");
 	          
 	          Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
 	          Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
@@ -1902,7 +1904,7 @@ public class SafesServiceTest {
 	          when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 	          when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
 
-	          ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null, false);
+	          ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails, false);
 	          assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 	          assertEquals(responseEntityExpected, responseEntity);
 	      }
