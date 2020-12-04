@@ -96,6 +96,12 @@ public class  AWSAuthService {
 	 * @return
 	 */
 	public ResponseEntity<String> createRole(String token, AWSLoginRole awsLoginRole, UserDetails userDetails) throws TVaultValidationException{
+		logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "Create AWS role").
+				put(LogMessage.MESSAGE, String.format("Trying to create AWS Role [%s]", awsLoginRole.getRole())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		if (!ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)) {
 			//return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
 			throw new TVaultValidationException("Invalid inputs for the given aws login type");
@@ -128,6 +134,12 @@ public class  AWSAuthService {
 			if(ControllerUtil.createMetadata(metadataJson, token)) {
 				response = ControllerUtil.updateMetaDataOnConfigChanges(roleName, "roles", currentPolicies, latestPolicies, token);
 				if(HttpStatus.OK.equals(response.getHttpstatus())) {
+					logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "Creating AWS role").
+							put(LogMessage.MESSAGE, String.format("AWS Role [%s] created successfuylly by [%s]", awsLoginRole.getRole(),userDetails.getUsername())).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
 				}
 				else {
