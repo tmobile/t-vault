@@ -140,7 +140,7 @@ const LeftColumn = (props) => {
     setCount(0);
     setSelectedCert(0);
   };
-  console.log('object', certificateList);
+
   return (
     <ComponentError>
       <>

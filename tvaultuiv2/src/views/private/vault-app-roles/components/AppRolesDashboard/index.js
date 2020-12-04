@@ -219,7 +219,7 @@ const AppRolesDashboard = () => {
             return appRolesArr.push(appObj);
           });
         }
-
+        setListItemDetails({});
         setAppRoleList([...appRolesArr]);
         dispatch({ type: 'UPDATE_APP_ROLE_LIST', payload: [...appRolesArr] });
       })
@@ -289,14 +289,19 @@ const AppRolesDashboard = () => {
 
   useEffect(() => {
     if (appRoleList?.length > 0) {
-      appRoleList.map((item) => {
-        if (history.location.pathname === `/vault-app-roles/${item.name}`) {
-          return setListItemDetails(item);
+      const val = location.pathname.split('/');
+      const roleName = val[val.length - 1];
+      if (roleName !== 'create-vault-app-role') {
+        const obj = appRoleList.find((role) => role.name === roleName);
+        if (obj) {
+          setListItemDetails({ ...obj });
+        } else {
+          setListItemDetails(appRoleList[0]);
+          history.push(`/vault-app-roles/${appRoleList[0].name}`);
         }
-        return null;
-      });
+      }
     }
-  }, [appRoleList, listItemDetails, history]);
+  }, [appRoleList, location, history]);
 
   // Infine scroll load more data
   const loadMoreData = () => {};
@@ -333,25 +338,6 @@ const AppRolesDashboard = () => {
   };
 
   /**
-   * @function onDeleteRouteToNextAppRole
-   * @description function is called after deletion is successfull
-   * based on that the next approle  is selected,
-   */
-  const onDeleteRouteToNextAppRole = () => {
-    const val = location.pathname.split('/');
-    const routeName = val.slice(-1)[0];
-    if (appRoleList.length > 0) {
-      const obj = appRoleList.find((item) => item === routeName);
-      if (!obj) {
-        setListItemDetails(appRoleList[0]);
-        history.push(`/vault-app-roles/${appRoleList[0].name}`);
-      }
-    } else {
-      setListItemDetails({});
-      history.push(`/vault-app-roles`);
-    }
-  };
-  /**
    * @function onAppRoleDelete
    * @description delete app role
    */
@@ -362,7 +348,6 @@ const AppRolesDashboard = () => {
       .deleteAppRole(deleteAppRoleName)
       .then(async (res) => {
         setStatus({ status: 'success', message: res?.data?.messages[0] });
-        onDeleteRouteToNextAppRole();
         await fetchData();
       })
       .catch((err) => {

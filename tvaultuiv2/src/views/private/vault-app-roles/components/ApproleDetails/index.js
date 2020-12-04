@@ -368,12 +368,14 @@ const AppRoleDetails = (props) => {
               {...a11yProps(0)}
             />
           </Tabs>
-          <NamedButton
-            label="+Create SecretId"
-            onClick={createSecretId}
-            customStyle={customBtnStyles}
-            // iconSrc={addFolderPlus}
-          />
+          {appRoleDetail.name && (
+            <NamedButton
+              label="+Create SecretId"
+              onClick={createSecretId}
+              customStyle={customBtnStyles}
+              // iconSrc={addFolderPlus}
+            />
+          )}
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
