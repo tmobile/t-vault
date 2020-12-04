@@ -1726,24 +1726,37 @@
             }
 
             $scope.deleteNotificationEmail = function (id) {
-                var notificationEmailElement = angular.element( document.querySelector( '#'+id ) );
-                notificationEmailElement.remove();
                 var index = id.substring(3);
                 $scope.notificationEmailstr = "";
                 $scope.selectedNotificationEmails = [];
+                var deletedEmail = "";
                 for (var i=0;i<$scope.notificationEmails.length;i++) {
                     if ($scope.notificationEmails[i]!=undefined && id != $scope.notificationEmails[i].id) {
-                        $scope.selectedNotificationEmails.push($scope.notificationEmails[i]);
+                        var notifyId="dns"+$scope.selectedNotificationEmails.length;
+                        $scope.selectedNotificationEmails.push({ "id": notifyId, "email":$scope.notificationEmails[i].email});
                         if($scope.selectedNotificationEmails.length==1){
                         	$scope.notificationEmailstr=$scope.notificationEmails[i].email;
                         }else{
                         	$scope.notificationEmailstr=$scope.notificationEmailstr+","+$scope.notificationEmails[i].email;
                         }
                     }
+                    if (id == $scope.notificationEmails[i].id) {
+                        deletedEmail = $scope.notificationEmails[i].email;
+                    }
                 }
                 $scope.notificationEmails = $scope.selectedNotificationEmails;
                 $scope.certificate.notificationEmails = $scope.notificationEmailstr;
+                angular.element('#notificationEmailList').html("");
+                var j = 0;
+                $scope.notificationEmails.forEach(function (email) {
+                    var id = "dns"+ (j++);
+                    angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+                });
                 $scope.isNotificationEmailSelected = false;
+                if($scope.notificationEmail.email != "" && deletedEmail.toLowerCase() == $scope.notificationEmail.email.toLowerCase()) {
+                    $scope.notificationEmailErrorMessage = '';
+                    $scope.isNotificationEmailSelected = true;
+                }
             }
 
 
