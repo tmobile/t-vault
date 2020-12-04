@@ -1682,7 +1682,7 @@ public class  SafesService {
 				policiesString = StringUtils.join(policies, ",");
 				currentpoliciesString = StringUtils.join(currentpolicies, ",");
 			}else{
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure it as first step\"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exists or you don't have enough permission to add this AWS role to Safe\"]}");
 			}
 			Response ldapConfigresponse = null;
 			if (TVaultConstants.IAM.equals(auth_type)) {
@@ -2166,10 +2166,7 @@ public class  SafesService {
 		if(!ControllerUtil.areSafeAppRoleInputsValid(requestMap)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
-//		if (safeAppRoleAccess.getRole_name().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any safe\"]}");
-//		}
-		
+
 		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(safeAppRoleAccess.getRole_name())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any safe\"]}");
@@ -2217,7 +2214,7 @@ public class  SafesService {
 				policies.remove("d_"+policyPostfix);
 
 			} else {
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either Approle doesn't exists or you don't have enough permission to add this approle to Safe\"]}");
 			}
 			if("".equals(policy)){
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
@@ -2386,6 +2383,9 @@ public class  SafesService {
 				policies.remove("r_"+policyPostfix);
 				policies.remove("w_"+policyPostfix);
 				policies.remove("d_"+policyPostfix);
+			}
+			else {
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either Approle doesn't exists or you don't have enough permission to remove this approle from Safe\"]}");
 			}
 
 			String policiesString = StringUtils.join(policies, ",");
