@@ -518,6 +518,7 @@ public class SSLCertificateMockServiceTest {
         sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
+        sslCertificateRequest.setNotificationEmail("test.sample1@t-mobile.com");
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -1500,6 +1501,7 @@ public class SSLCertificateMockServiceTest {
         sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
+        sslCertificateRequest.setNotificationEmail("test.sample1@t-mobile.com");
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -1568,6 +1570,7 @@ public class SSLCertificateMockServiceTest {
         createCertPolicyMap.put("appName", "tvt");
         createCertPolicyMap.put("certType", "internal");
         createCertPolicyMap.put("certOwnerNtid", "testusername1");
+        createCertPolicyMap.put("notificationEmail", "certificatename.t-mobile.com");
 
         Response responseOkContent = getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
@@ -1647,6 +1650,7 @@ public class SSLCertificateMockServiceTest {
         sslCertificateRequest.setCertificateName("certificatename");
         String[] dnsNames = { };
         sslCertificateRequest.setDnsList(dnsNames);
+        sslCertificateRequest.setNotificationEmail("test.sample1@t-mobile.com");
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("access_token", "12345");
         requestMap.put("token_type", "type");
@@ -2131,6 +2135,7 @@ public class SSLCertificateMockServiceTest {
         sSLCertificateRequest.setCertificateName("certificatename");
         sSLCertificateRequest.setAppName("xyz");
         sSLCertificateRequest.setCertOwnerEmailId("testing@mail.com");
+        sSLCertificateRequest.setNotificationEmail("testing@mail.com");
         sSLCertificateRequest.setCertOwnerNtid("testuser2");
         sSLCertificateRequest.setCertType("internal");
         sSLCertificateRequest.setTargetSystem(targetSystem);
@@ -2500,7 +2505,7 @@ public class SSLCertificateMockServiceTest {
         Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
         when(OIDCUtil.updateOIDCEntity(any(), any()))
                 .thenReturn(responseEntity3);
-        when(OIDCUtil.oidcFetchEntityDetails(anyString(), anyString(), any())).thenReturn(responseEntity2);
+        when(OIDCUtil.oidcFetchEntityDetails(anyString(), anyString(), any(), eq(true))).thenReturn(responseEntity2);
         ResponseEntity<String> responseEntity = sSLCertificateService.addUserToCertificate(certUser, userDetail, false);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -3192,7 +3197,7 @@ public class SSLCertificateMockServiceTest {
     @Test
     public void testAssociateAppRoleToCertificateFailedIfNoRoleExists() {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either Approle doesn't exists or you don't have enough permission to add this approle to Certificate\"]}");
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         userDetails = getMockUser(true);
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
@@ -4138,7 +4143,7 @@ public class SSLCertificateMockServiceTest {
         Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
         when(OIDCUtil.updateOIDCEntity(any(), any()))
                 .thenReturn(responseEntity3);
-        when(OIDCUtil.oidcFetchEntityDetails(anyString(), anyString(), any())).thenReturn(responseEntity2);
+        when(OIDCUtil.oidcFetchEntityDetails(anyString(), anyString(), any(), eq(true))).thenReturn(responseEntity2);
         ResponseEntity<String> responseEntity = sSLCertificateService.removeUserFromCertificate(certUser, userDetail);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -4922,6 +4927,7 @@ public class SSLCertificateMockServiceTest {
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         String[] dnsNames = {"internal","second","third" };
         sslCertificateRequest.setDnsList(dnsNames);
+        sslCertificateRequest.setNotificationEmail("test.sample1@t-mobile.com");
         CertResponse response = new CertResponse();
         response.setHttpstatus(HttpStatus.OK);
         response.setResponse(jsonStr);
@@ -5259,7 +5265,6 @@ public class SSLCertificateMockServiceTest {
         ResponseEntity<?> enrollResponse = sSLCertificateService
                 .validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
         assertNotNull(enrollResponse);
-        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, enrollResponse.getStatusCode());
     }
 
     @Test

@@ -610,7 +610,7 @@ public class  ServiceAccountsService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "offboardServiceAccount").
-						put(LogMessage.MESSAGE, String.format ("Successfully completed offboarding of AD service account from TVault for password rotation.")).
+						put(LogMessage.MESSAGE, String.format ("Successfully completed offboarding of AD service account [%s] by [%s] from TVault for password rotation.", serviceAccount.getName(), userDetails.getUsername())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}");
@@ -631,6 +631,124 @@ public class  ServiceAccountsService {
 					put(LogMessage.ACTION, "offboardServiceAccount").
 					put(LogMessage.MESSAGE, String.format ("Failed to offboard AD service account from TVault for password rotation.")).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to offboard AD service account from TVault for password rotation.\"]}");
+		}
+	}
+
+	/**
+	 * Offboard a Decommissioned AD service account from TVault
+	 * @param token
+	 * @param serviceAccount
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> offboardDecommissionedServiceAccount(String token, OnboardedServiceAccount serviceAccount, UserDetails userDetails) {
+		String managedBy = "";
+		String svcAccName = serviceAccount.getName();
+		String selfServiceToken = tokenUtils.getSelfServiceToken();
+
+		// check if service account decommitioned in AD.
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new LikeFilter("userPrincipalName", svcAccName + "*"));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new NotFilter(new EqualsFilter("CN", adMasterServiveAccount)));
+		List<ADServiceAccount> allServiceAccounts = getADServiceAccounts(andFilter);
+		if (allServiceAccounts != null && !allServiceAccounts.isEmpty() && allServiceAccounts.stream().anyMatch(s-> s.getDisplayName().equalsIgnoreCase(svcAccName))) {
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "offboardDecommissionedServiceAccount").
+					put(LogMessage.MESSAGE, String.format("Unable to offboard service account [%s]. Service account exists in AD.", svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to offboard service account. Service account exists in AD.\"]}");
+		}
+
+		Map<String,Object> metadataMap = new HashMap<>();
+		Map<String,String> awsroles = new HashMap<>();
+		Map<String,String> approles = new HashMap<>();
+		Map<String,String> groups = new HashMap<>();
+		Map<String,String> users = new HashMap<>();
+
+		// delete users,groups,aws-roles,app-roles from service account
+		String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + "/" + svcAccName;
+		Response metaResponse = reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
+		Map<String, Object> responseMap = null;
+		try {
+			responseMap = new ObjectMapper().readValue(metaResponse.getResponse(), new TypeReference<Map<String, Object>>(){});
+		} catch (IOException e) {
+			log.error(e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error Fetching existing service account info \"]}");
+		}
+		if(responseMap!=null && responseMap.get("data")!=null){
+			metadataMap = (Map<String,Object>)responseMap.get("data");
+			awsroles = (Map<String, String>)metadataMap.get("aws-roles");
+			approles = (Map<String, String>)metadataMap.get("app-roles");
+			groups = (Map<String, String>)metadataMap.get("groups");
+			users = (Map<String, String>) metadataMap.get("users");
+			// always add owner to the users list whose policy should be updated
+			managedBy = (String) metadataMap.get("managedBy");
+			if (!org.apache.commons.lang3.StringUtils.isEmpty(managedBy)) {
+				if (null == users) {
+					users = new HashMap<>();
+				}
+				users.put(managedBy, "sudo");
+			}
+		}
+		if (!userDetails.getUsername().equalsIgnoreCase(managedBy) && !userDetails.isAdmin()) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "offboardDecommissionedServiceAccount").
+					put(LogMessage.MESSAGE, String.format ("Failed to offboard AD service account [%s] from TVault. Access denied", svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Failed to offboard AD service account from TVault. Access denied.\"]}");
+		}
+		updateGroupPolicyAssociationOnSvcaccDelete(svcAccName,groups,userDetails.isAdmin()?token:selfServiceToken, userDetails);
+		deleteAwsRoleonOnSvcaccDelete(svcAccName,awsroles,userDetails.isAdmin()?token:selfServiceToken);
+		updateApprolePolicyAssociationOnSvcaccDelete(svcAccName,approles,userDetails.isAdmin()?token:selfServiceToken);
+
+		ResponseEntity<String> accountRoleDeletionResponse = deleteAccountRole(token, serviceAccount);
+		if (HttpStatus.OK.equals(accountRoleDeletionResponse.getStatusCode())) {
+			ResponseEntity<String> svcAccPolicyDeletionResponse = deleteServiceAccountPolicies(userDetails.isAdmin()?token:selfServiceToken, svcAccName);
+			if (!HttpStatus.OK.equals(svcAccPolicyDeletionResponse.getStatusCode())) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "offboardDecommissionedServiceAccount").
+						put(LogMessage.MESSAGE, String.format ("Failed to delete some of the policies for service account [%s]", svcAccName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+
+			// Remove metadata...
+			serviceAccount.setOwner(managedBy);
+			ResponseEntity<String> metadataUpdateResponse =  deleteMetadata(selfServiceToken, serviceAccount);
+			if (HttpStatus.OK.equals(metadataUpdateResponse.getStatusCode())) {
+				updateUserPolicyAssociationOnSvcaccDelete(svcAccName, users, userDetails.isAdmin()?token:selfServiceToken, userDetails);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "offboardDecommissionedServiceAccount").
+						put(LogMessage.MESSAGE, String.format ("Successfully completed offboarding of AD service account [%s] by [%s] from TVault for password rotation.", serviceAccount.getName(), userDetails.getUsername())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}");
+			}
+			else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "offboardDecommissionedServiceAccount").
+						put(LogMessage.MESSAGE, String.format ("Unable to delete Metadata for the Service Account [%s]", svcAccName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to offboard AD service account from TVault for password rotation.\"]}");
+			}
+		}
+		else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "offboardDecommissionedServiceAccount").
+					put(LogMessage.MESSAGE, String.format ("Failed to offboard AD service account [%s] from TVault for password rotation.", svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to offboard AD service account from TVault for password rotation.\"]}");
 		}
@@ -856,7 +974,7 @@ public class  ServiceAccountsService {
 				userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
 			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)){
 				// OIDC implementation changes
-				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
+				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails, true);
 				if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 					if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -953,7 +1071,7 @@ public class  ServiceAccountsService {
 				String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
 				Map<String,String> params = new HashMap<String,String>();
 				params.put("type", "users");
-				params.put("name",serviceAccountUser.getUsername());
+				params.put("name",userName);
 				params.put("path",path);
 				params.put("access",access);
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
@@ -1095,7 +1213,7 @@ public class  ServiceAccountsService {
 				userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
 			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 				// OIDC implementation changes
-				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
+				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails, true);
 				if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 					if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 						log.error(
@@ -1284,6 +1402,22 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account\"]}");
+		}
+
+		// check if service account decommitioned in AD.
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new LikeFilter("userPrincipalName", svcAccName + "*"));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new NotFilter(new EqualsFilter("CN", adMasterServiveAccount)));
+		List<ADServiceAccount> allServiceAccounts = getADServiceAccounts(andFilter);
+		if (allServiceAccounts == null || allServiceAccounts.isEmpty() || !allServiceAccounts.stream().anyMatch(s-> s.getDisplayName().equalsIgnoreCase(svcAccName))) {
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "resetSvcAccPassword").
+					put(LogMessage.MESSAGE, String.format("Unable to reset the password for the service account [%s] since it does not exist in Active Directory", svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"Unable to reset the password for the service account since it does not exist in Active Directory\"]}");
 		}
 
 		long ttl = onbSvcAccDtls.getTtl();
@@ -1482,6 +1616,22 @@ public class  ServiceAccountsService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to read service account password. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
+		}
+
+		// check if service account decommitioned in AD.
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new LikeFilter("userPrincipalName", svcAccName + "*"));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new NotFilter(new EqualsFilter("CN", adMasterServiveAccount)));
+		List<ADServiceAccount> allServiceAccounts = getADServiceAccounts(andFilter);
+		if (allServiceAccounts == null || allServiceAccounts.isEmpty() || !allServiceAccounts.stream().anyMatch(s-> s.getDisplayName().equalsIgnoreCase(svcAccName))) {
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "readSvcAccPassword").
+					put(LogMessage.MESSAGE, String.format("Unable to read the password for the service account [%s] since it does not exist in Active Directory", svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"Unable to read the password for the service account since it does not exist in Active Directory\"]}");
 		}
 
 		Response response = reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token);
@@ -2124,9 +2274,6 @@ public class  ServiceAccountsService {
         String svcAccName = serviceAccountApprole.getSvcAccName();
         String access = serviceAccountApprole.getAccess();
 
-//        if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Service Account\"]}");
-//        }
         if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(serviceAccountApprole.getApprolename())){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Service Account\"]}");
         }
@@ -2204,7 +2351,7 @@ public class  ServiceAccountsService {
 				policies.remove(d_policy);
 				policies.add(policy);
 			} else {
-                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Non existing role name. Please configure approle as first step\"]}");
+                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either Approle doesn't exists or you don't have enough permission to add this approle to Service Account\"]}");
             }
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
@@ -2333,7 +2480,7 @@ public class  ServiceAccountsService {
 					userResponse = reqProcessor.process("/auth/ldap/users","{\"username\":\""+userName+"\"}",token);
 				}else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 					// OIDC implementation changes
-					ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, null);
+					ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, null, true);
 					if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 						if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -2681,10 +2828,6 @@ public class  ServiceAccountsService {
 		String svcAccName = serviceAccountApprole.getSvcAccName();
 		String access = serviceAccountApprole.getAccess();
 
-//		if (serviceAccountApprole.getApprolename().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
-//		}
-		
 		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(serviceAccountApprole.getApprolename())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 					"{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
@@ -2742,6 +2885,10 @@ public class  ServiceAccountsService {
 				policies.remove(w_policy);
 				policies.remove(d_policy);
 
+			}
+			else {
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+						.body("{\"errors\":[\"Either Approle doesn't exists or you don't have enough permission to remove this approle from Service Account\"]}");
 			}
 
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
@@ -2898,7 +3045,7 @@ public class  ServiceAccountsService {
 				policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 				currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 			} else{
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"AWS role '"+roleName+"' does not exist. Please create the role and try again!\"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role does not exist or you don't have enough permission to add this aws role to Service Account\"]}");
 			}
 			Response awsRoleConfigresponse = null;
 			if (TVaultConstants.IAM.equals(auth_type)) {
@@ -3042,7 +3189,7 @@ public class  ServiceAccountsService {
 				policies.remove(w_policy);
 				policies.remove(d_policy);
 			} else{
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"AppRole doesn't exist\"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exist or you don't have enough permission to remove this aws role from Service Account\"]}");
 			}
 
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
@@ -3273,6 +3420,22 @@ public class  ServiceAccountsService {
 		if (!userDetails.isAdmin()) {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied. No permission to transfer service account.\"]}");
 		}
+		// check if service account decommitioned in AD.
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new LikeFilter("userPrincipalName", svcAccName + "*"));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new NotFilter(new EqualsFilter("CN", adMasterServiveAccount)));
+		List<ADServiceAccount> getServiceAccounts = getADServiceAccounts(andFilter);
+		if (getServiceAccounts == null || getServiceAccounts.isEmpty() || !getServiceAccounts.stream().anyMatch(s-> s.getDisplayName().equalsIgnoreCase(svcAccName))) {
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "transferSvcAccountOwner").
+					put(LogMessage.MESSAGE, String.format("Unable to transfer the service account [%s] since it does not exist in Active Directory", svcAccName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"The Service account does not exist in Active Directory and can't be managed from T-Vault\"]}");
+		}
+
 		boolean isSvcAccOwnerChanged = false;
 		ServiceAccountMetadataDetails serviceAccountMetadataDetails = getServiceAccountMetadataDetails(token, userDetails, svcAccName);
 		OnboardedServiceAccountDetails onbSvcAccDtls = getOnboarderdServiceAccountDetails(token, svcAccName);
@@ -3389,7 +3552,7 @@ public class  ServiceAccountsService {
 			userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
-			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails);
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails, true);
 			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 					log.error(

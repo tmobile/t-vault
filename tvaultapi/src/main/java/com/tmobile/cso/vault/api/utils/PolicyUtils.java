@@ -19,7 +19,11 @@ package com.tmobile.cso.vault.api.utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
 import com.tmobile.cso.vault.api.model.UserDetails;
@@ -102,7 +106,7 @@ public class PolicyUtils {
 			userResponse = ControllerUtil.getReqProcessor().process("/auth/ldap/users","{\"username\":\""+username+"\"}",token);
 		}
 		else if(TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, username, userDetails);
+			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, username, userDetails, false);
 			userResponse.setHttpstatus(responseEntity.getStatusCode());
 			if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
 				policies = responseEntity.getBody().getPolicies().stream().toArray(String[] :: new);
@@ -141,5 +145,31 @@ public class PolicyUtils {
 		String certType="metadata/sslcerts";
 		policiesTobeChecked.addAll(getSudoPolicies(certType, certName));
 		return policiesTobeChecked;
+	}
+
+	/**
+	 * Convenient method to get identity policies as list from token lookup.
+	 * @param objMapper
+	 * @param policyJson
+	 * @return
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 */
+	public List<String> getIdentityPoliciesAsListFromTokenLookupJson(ObjectMapper objMapper, String policyJson) throws JsonProcessingException, IOException{
+		List<String> currentpolicies = new ArrayList<>();
+		JsonNode policiesNode = objMapper.readTree(policyJson).get("identity_policies");
+		if (null != policiesNode ) {
+			if (policiesNode.isContainerNode()) {
+				Iterator<JsonNode> elementsIterator = policiesNode.elements();
+				while (elementsIterator.hasNext()) {
+					JsonNode element = elementsIterator.next();
+					currentpolicies.add(element.asText());
+				}
+			}
+			else {
+				currentpolicies.add(policiesNode.asText());
+			}
+		}
+		return currentpolicies;
 	}
 }

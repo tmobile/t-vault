@@ -24,6 +24,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -50,7 +51,6 @@ public class SSLCertificateRequest implements Serializable {
 	@NotEmpty
 	private String appName;
 
-
 	@Email
 	@ApiModelProperty(hidden = true)
 	private String certOwnerEmailId;
@@ -64,6 +64,17 @@ public class SSLCertificateRequest implements Serializable {
 
 	@NotNull
 	private String[] dnsList;
+	
+	@NotBlank
+	private String notificationEmail;
+	
+
+	public String getNotificationEmail() {
+		return notificationEmail;
+	}
+	public void setNotificationEmail(String notificationEmail) {
+		this.notificationEmail = notificationEmail;
+	}
 	public String[] getDnsList() {
 		return dnsList;
 	}
@@ -141,6 +152,7 @@ public class SSLCertificateRequest implements Serializable {
 				", certType='" + certType + '\'' +
 				", certOwnerNtid='" + certOwnerNtid + '\'' +
 				", dnsList=" + Arrays.toString(dnsList) +
+				",notificationEmail='" + notificationEmail + '\'' +
 				'}';
 	}
 }

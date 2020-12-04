@@ -345,7 +345,7 @@ public class ControllerUtilTest {
 		Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 		when(oidcUtil.updateOIDCEntity(any(), any()))
 				.thenReturn(responseEntity3);
-		when(oidcUtil.oidcFetchEntityDetails(any(), any(), any())).thenReturn(responseEntity2);
+		when(oidcUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(responseEntity2);
         ControllerUtil.updateUserPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token, userDetails);
         assertTrue(true);
     }

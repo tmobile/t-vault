@@ -25,6 +25,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.ParseException;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
@@ -51,6 +53,9 @@ public class SSLCertificateControllerTest {
 
     @Mock
     private SSLCertificateRequest sSLCertificateRequest;
+
+	@Mock
+	private SSLCertificateOnboardRequest sslCertOnboardRequest;
     
     @Mock
     private SSLCertificateMetadataDetails sSLCertificateMetadataRequest;
@@ -63,6 +68,9 @@ public class SSLCertificateControllerTest {
     @Mock
     HttpServletRequest httpServletRequest;
     String token;
+    
+    @Mock
+    private CertificateUpdateRequest certificateUpdateRequest;
 
     @Before
     public void setUp() {
@@ -236,7 +244,24 @@ public class SSLCertificateControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseJson)));
     }
+    
+    @Test
+    public void testDeleteApproletoCertificate() throws Exception {
+    	CertificateApprole certificateApprole = new CertificateApprole("certificatename.t-mobile.com", "role1", "read", "internal");
 
+        String inputJson =new ObjectMapper().writeValueAsString(certificateApprole);
+        String responseJson = "{\"messages\":[\"Approle successfully deleted from Certificate\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+
+        when(sslCertificateService.deleteApproleFromCertificate(Mockito.any(CertificateApprole.class), eq(userDetails))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/v2/sslcert/approle").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
     UserDetails getMockUser(boolean isAdmin) {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = new UserDetails();
@@ -327,7 +352,7 @@ public class SSLCertificateControllerTest {
 	}
 
 	@Test
-	public void test_renewCertificate_Success() {
+	public void test_renewCertificate_Success() throws ParseException {
 		String certName = "test@t-mobile.com";		
 		String certficateType = "internal";
 		when(sslCertificateService.renewCertificate(certficateType, certName, userDetails, token))
@@ -517,4 +542,51 @@ public class SSLCertificateControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseJson)));
     }
+
+	@Test
+	public void testGetAllOnboardPendingCertificates() throws Exception {
+		String expected = "[{\"certificateId\": 83896,\"certificateStatus\": \"Active\",\"expiryDate\": \"2021-11-15T11:22:45-08:00\",\"createDate\": \"2020-11-15T11:22:45-08:00\",\"containerName\": \"VenafiBin_12345\",\"certificateName\": \"certtest-162020-int.t-mobile.com\",\"authority\": \"T-Mobile Issuing CA 01 - SHA2\",\"dnsNames\": [\"certtest-162020-int.t-mobile.com\"],\"certType\": \"internal\"},{\"certificateId\": 82726,\"certificateStatus\": \"Active\",\"expiryDate\": \"2021-11-03T12:38:27-07:00\",\"createDate\": \"2020-11-03T11:38:28-08:00\",\"containerName\": \"VenafiBin_12345\",\"certificateName\": \"tos-metro-qat-ext.dd-stg.kube.t-mobile.com\",\"authority\": \"Entrust CA\",\"dnsNames\": [\"tos-metro-qat-ext.dd-stg.kube.t-mobile.com\"],\"certType\": \"external\"}]";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
+		when(sslCertificateService.getAllOnboardPendingCertificates(Mockito.anyString(), Mockito.anyObject()))
+				.thenReturn(responseEntityExpected);
+		mockMvc.perform(MockMvcRequestBuilders.get("/v2/sslcert/pendingcertificates").header("vault-token", token)
+				.header("Content-Type", "application/json;charset=UTF-8").requestAttr("UserDetails", userDetails)
+				.content(expected)).andExpect(status().isOk()).andReturn();
+
+	}
+
+    @Test
+    public void testOnboardSSLCertificateSuccess() throws Exception {
+		sslCertOnboardRequest.setCertificateName("CertificateName.t-mobile.com");
+		sslCertOnboardRequest.setAppName("tvt");
+		sslCertOnboardRequest.setCertType("internal");
+		sslCertOnboardRequest.setCertOwnerEmailId("test@test.com");
+		sslCertOnboardRequest.setCertOwnerNtid("testuser");
+
+        when(sslCertificateService.onboardSSLcertificate(userDetails, token, sslCertOnboardRequest)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
+        assertEquals(HttpStatus.OK, SslCertificateController.onboardSSLCertificate(httpServletRequest, token, sslCertOnboardRequest).getStatusCode());
+    }
+    
+    @Test
+    public void test_updateCertificate_success_Test() {
+
+        certificateUpdateRequest.setCertificateName("CertificateName");
+        certificateUpdateRequest.setCertType("internal");
+        certificateUpdateRequest.setProjectLeadEmail("user@test.com");
+
+        when(sslCertificateService.updateSSLCertificate(certificateUpdateRequest, userDetails, token)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
+        assertEquals(HttpStatus.OK, SslCertificateController.updateSSLCertificate(httpServletRequest, token, certificateUpdateRequest).getStatusCode());
+    }
+
+    @Test
+    public void test_releaseCertificate_success_Test() {
+        when(sslCertificateService.unLinkCertificate(userDetails,token,"test.t-mobile.com","internal","TEST")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
+        assertEquals(HttpStatus.OK,
+                SslCertificateController.unlinkCertificate(httpServletRequest,token,"test.t-mobile.com","internal",
+                        "TEST").getStatusCode());
+    }
+
 }

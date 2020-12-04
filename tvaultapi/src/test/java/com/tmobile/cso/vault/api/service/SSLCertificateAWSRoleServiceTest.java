@@ -578,7 +578,7 @@ public class SSLCertificateAWSRoleServiceTest {
     @Test
 	public void testRemoveAWSRoleFromSSLRoleNotExists() throws Exception {
 		SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"AWS Role doesn't exist\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exist or you don't have enough permission to remove this AWS role from Certificate\"]}");
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         userDetails = getMockUser(false);
         CertificateAWSRoleRequest certificateAWSRoleRequest = new CertificateAWSRoleRequest("certificatename.t-mobile.com", "role1", "internal");

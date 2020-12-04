@@ -192,6 +192,10 @@ readTextFile("../apiUrls.json");
             name: 'detachAppRolePermission',
             url: '/v2/ss/sdb/approle',
             method: 'DELETE'
+        },{ /* To remove the approle permission for certificate*/
+            name: 'deleteAppRolePermission',
+            url: '/v2/sslcert/approle',
+            method: 'DELETE'
         },{
             name: 'getApproles',
             url: '/v2/ss/approle',
@@ -303,6 +307,10 @@ readTextFile("../apiUrls.json");
         },{
             name: 'offboardSvcacc',
             url: '/v2/serviceaccounts/offboard',
+            method: 'POST'
+        },{
+            name: 'offboardDecommissionedServiceAccount',
+            url: '/v2/serviceaccounts/offboarddecommissioned',
             method: 'POST'
         },{
             name: 'getApprolesFromCwm',
@@ -457,6 +465,14 @@ readTextFile("../apiUrls.json");
             url: '/v2/iamserviceaccount/rotate',
             method: 'POST'
         },{
+            name: 'activateAzureServicePrincipal',
+            url: '/v2/azureserviceaccounts/activateAzureServicePrincipal?',
+            method: 'POST'
+        },{
+            name: 'rotateAzureSecret',
+            url: '/v2/azureserviceaccounts/rotate',
+            method: 'POST'
+        },{
             name: 'addUserPermissionForIAMSvcacc',
             url: '/v2/iamserviceaccounts/user',
             method: 'POST'
@@ -475,6 +491,94 @@ readTextFile("../apiUrls.json");
         },{
             name: 'detachAWSPermissionFromCertificate',
             url: '/v2/sslcert/aws',
+            method: 'DELETE'
+        },{
+            name: 'createAwsRoleIAMSvcacc',
+            url: '/v2/iamserviceaccounts/aws/role',
+            method: 'POST'
+        },{
+            name: 'createAwsIAMRoleIAMSvcacc',
+            url: '/v2/iamserviceaccounts/aws/iam/role',
+            method: 'POST'
+        },{
+            name: 'addAWSPermissionForIAMSvcacc',
+            url: '/v2/iamserviceaccounts/role',
+            method: 'POST'
+        },{
+            name: 'detachAWSPermissionFromIAMSvcacc',
+            url: '/v2/iamserviceaccounts/role',
+            method: 'DELETE'
+        },{
+            name: 'getApplicationDetails',
+            url: '/v2/serviceaccounts/cwm/appdetails/appname?',
+            method: 'GET'
+        },{
+            name: 'unclaimCert',
+            url: '/v2/sslcert/unlink/{certificate_name}/{certificate_type}',
+            method: 'POST'
+        },{
+            name: 'getAllOnboardPendingCertificates',
+            url: '/v2/sslcert/pendingcertificates',
+            method: 'GET'
+        },{
+            name: 'onboardSslCertificates',
+            url: '/v2/sslcert/onboardSSLcertificate',
+            method: 'POST'
+        },{
+            name: 'getSecretForAzureSvcacc',
+            url: '/v2/azureserviceaccounts/secrets/{azure_svc_name}/{folderName}',
+            method: 'GET'
+        }, {
+            name: 'updateCertificate',
+            url: '/v2/sslcert',
+            method: 'PUT' 
+        }, {
+            name: 'getOnboardedAzureServiceAccounts',
+            url: '/v2/azureserviceaccounts',
+            method: 'GET' 
+        },{
+            name: 'getAzureSvcaccOnboardInfo',
+            url: '/v2/azureserviceaccounts/',
+            method: 'GET'
+        },{
+            name: 'addUserPermissionForAzureSvcacc',
+            url: '/v2/azureserviceaccounts/user',
+            method: 'POST'
+        },{
+            name: 'deleteUserPermissionFromAzureSvcacc',
+            url: '/v2/azureserviceaccounts/user',
+            method: 'DELETE'
+        },{
+            name: 'addAWSPermissionForAzureSvcacc',
+            url: '/v2/azureserviceaccounts/role',
+            method: 'POST'
+        },{
+            name: 'createAwsRoleAzureSvcacc',
+            url: '/v2/azureserviceaccounts/aws/role',
+            method: 'POST'
+        },{
+            name: 'createAwsIAMRoleAzureSvcacc',
+            url: '/v2/azureserviceaccounts/aws/iam/role',
+            method: 'POST'
+        },{
+            name: 'addGroupPermissionForAzureSvcacc',
+            url: '/v2/azureserviceaccounts/group',
+            method: 'POST'
+        },{
+            name: 'detachAwsRoleFromAzureSvcacc',
+            url: '/v2/azureserviceaccounts/role',
+            method: 'DELETE'
+        },{
+            name: 'deleteGroupPermissionFromAzureSvcacc',
+            url: '/v2/azureserviceaccounts/group',
+            method: 'DELETE'
+        },{
+            name: 'addAppRolePermissionForAzureSvcacc',
+            url: '/v2/azureserviceaccounts/approle',
+            method: 'POST'
+        },{
+            name: 'detachAppRolePermissionFromAzureSvcacc',
+            url: '/v2/azureserviceaccounts/approle',
             method: 'DELETE'
         }
     ]

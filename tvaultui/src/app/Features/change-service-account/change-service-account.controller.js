@@ -42,6 +42,8 @@
         $scope.userAutoCompleteEnabled = false;
         $scope.groupAutoCompleteEnabled = false;
         $scope.disableAddBtn = true;
+        $scope.svcaccToOffboard = '';
+        $scope.isOffboarding = false;
         $scope.awsConfPopupObj = {
             "auth_type":"",
             "role": "",
@@ -973,7 +975,7 @@
                         var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccOnboardInfo', svcaccId);
                         AdminSafesManagement.getSvcaccOnboardInfo(null, updatedUrlOfEndPoint).then(
                             function (onboardResponse) {
-                                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                if (UtilityService.ifAPIRequestSuccessful(onboardResponse)) {
                                     var onboardInfo = onboardResponse.data;
                                     if ($rootScope.showDetails !== true) {
                                         document.getElementById('addUser').value = '';
@@ -1028,6 +1030,11 @@
                                             getMetadata(svcaccId);
                                             getWorkloadDetails();
                                         }
+                                        else {
+                                            $scope.isLoadingData = false;
+                                            $scope.isOffboarding = true;
+                                            $scope.openSvcDecommissionedMessage(svcaccId);
+                                        }
                                     }
                                     catch (e) {
                                         console.log(e);
@@ -1042,11 +1049,18 @@
                                 }
                             },
                             function (error) {
-                                  console.log(error);
+                                console.log(error);
                                 $scope.isLoadingData = false;
-                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                                $scope.error('md');
-                            })                        
+                                if (error.status == 404 || error.status == "404") {
+                                    $scope.isLoadingData = false;
+                                    $scope.isOffboarding = true;
+                                    $scope.openSvcDecommissionedMessage(svcaccId);
+                                }
+                                else {
+                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                    $scope.error('md');
+                                }
+                            })
                     }
                     else {
                         $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
@@ -1264,6 +1278,8 @@
             $scope.applicationName = '';
             $scope.isApplicationsLoading = true;
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
+            $scope.svcaccToOffboard = '';
+            $scope.isOffboarding = false;
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');
             }
@@ -1719,6 +1735,95 @@
             $rootScope.showDetails = false;
             $rootScope.activeDetailsTab = 'permissions';
         }
+
+        $scope.openSvcDecommissionedMessage = function (svcaccname) {
+            $scope.svcaccToOffboard = svcaccname;
+            Modal.createModal('md', 'decommissionMessagePopup.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
+        $scope.offboardNow = function (svcaccUserId) {
+            $scope.isOffboarding = true;
+            if (svcaccUserId != '') {
+                Modal.close();
+                $scope.isLoadingData = true;
+                var queryParameters = "path=ad/roles/"+svcaccUserId;
+                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccMetadata', queryParameters);
+                AdminSafesManagement.getSvcaccMetadata(null, updatedUrlOfEndPoint).then(function (response) {
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        try {
+                            if (response.data.data) {
+                                var managedBy = response.data.data.managedBy;
+                                console.log(managedBy);
+                                var offboardPayload = {
+                                    "owner": managedBy,
+                                    "name": svcaccUserId
+                                }
+                                AdminSafesManagement.offboardDecommissionedServiceAccount(offboardPayload, '').then(
+                                    function (response) {
+                                        if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                            $scope.svcaccToOffboard = '';
+                                            $scope.isLoadingData = false;
+                                            Modal.createModal('md', 'offboardWarning.html', 'ChangeServiceAccountCtrl', $scope);
+                                        }
+                                        else {
+                                            $scope.svcaccToOffboard = '';
+                                            $scope.isOffboarding = false;
+                                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                            $scope.error('md');
+                                            $state.go('admin');
+                                            return;
+                                        }
+                                    },
+                                    function (error) {
+                                        // Error handling function
+                                        console.log(error);
+                                        $scope.svcaccToOffboard = '';
+                                        $scope.isOffboarding = false;
+                                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                        $scope.error('md');
+                                        $state.go('admin');
+                                        return;
+                                    });
+                            }
+                        } catch (e) {
+                            console.log(e);
+                            $scope.svcaccToOffboard = '';
+                            $scope.isOffboarding = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
+                            $scope.error('md');
+                            $state.go('admin');
+                            return;
+                        }
+                    }
+                    else {
+                        $scope.svcaccToOffboard = '';
+                        $scope.isOffboarding = false;
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                        $scope.error('md');
+                        $state.go('admin');
+                        return;
+                    }
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.svcaccToOffboard = '';
+                    $scope.isOffboarding = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                    $state.go('admin');
+                    return;
+                });
+            }
+        }
+
+        $scope.cancelOffboard = function () {
+            Modal.close('close');
+            $scope.isLoadingData = false;
+            $scope.isOffboarding = false;
+            $state.go('admin');
+            return;
+        };
 
         $scope.init();
 

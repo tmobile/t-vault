@@ -197,6 +197,9 @@ public class CertificateUtils {
 		if (null != dataNode.get("certOwnerEmailId")) {
 			certificate.setCertOwnerEmailId(dataNode.get("certOwnerEmailId").asText());
 		}
+		if (null != dataNode.get("notificationEmail")) {
+			certificate.setNotificationEmails(dataNode.get("notificationEmail").asText());
+		}
 
 		if (null != dataNode.get("createDate")) {
 			certificate.setCreateDate(dataNode.get("createDate").asText());

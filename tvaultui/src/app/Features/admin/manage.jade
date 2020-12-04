@@ -11,6 +11,18 @@ script(type='text/ng-template', id='deleteSafePopup.html')
         button.common-btn.btn.btn-primary.btn-lg(ng-click="deleteSafe(safeToDelete)") DELETE
       .clearfix
         button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+
+script(type='text/ng-template', id='renewExternalCertPopup.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text {{ renewExternalConfirmMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+       .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
+
+
 script(type='text/ng-template', id='renewCertPopup.html')
   loading-state(ng-if="isLoadingModalData")
   .top-lg-sep(ng-if="!isLoadingModalData")
@@ -245,7 +257,32 @@ script(type='text/ng-template', id='certificatePopup.html')
                         .col-lg-3.col-md-3.col-sm-3.col-xs-3
                           button.common-btn.dns-add-btn(ng-click="addDns(multiSanDnsName)" ng-disabled="dnsInvalid") Add DNS
                       div.form-control.input-box-style.dns-list(id="dnslist")
-
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group(ng-if="!appNameSelected")
+                      .certificate-form-label {{ applicationNameSelectMsg==""?"Select application name and add/update notification emails": applicationNameSelectMsg}}
+                    .details-input-group(ng-show="appNameSelected")
+                      .certificate-form-label(uib-tooltip="Notification emails list") Notification emails*
+                      div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="notificationEmails.length>0")
+                      div.dns-wrapper.addNotificationEmailCert
+                        .col-lg-9.col-md-9.col-sm-9.col-xs-9
+                          .cert-input-group.cert-suffix
+                            input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmailForNotification($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
+                            div.loader.svcaccid.notification-email-loader(ng-if='isUserSearchLoading && isNotificationEmailSearch && $scope.certObj.certDetails.notificationEmail.length > 2')
+                                div.ball-spin-fade-loader
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                            div.input-cross.svcaccid.notification-email-loader(ng-if='!isUserSearchLoading && !isOwnerEmailSearch && notificationEmail.email.length > 2' ng-click="clearNotificationEmail()")
+                                div.delete-title(ng-click="clearNotificationEmailmessage()")
+                                    img.delete-icon(src="../../assets/images/delete.png")
+                          div.key-acceptance-info() {{ notificationEmailErrorMessage }}
+                        .col-lg-3.col-md-3.col-sm-3.col-xs-3
+                          button.common-btn.dns-add-btn(ng-click="addNotificationEmailCert(notificationEmail)" ng-disabled="!isNotificationEmailSelected") Add Email
             .common-form.modal-inner-wrapper.aws(ng-show='isCertificateManagePreview')  
               .common-form-row
                 .cert-conf.clearfix
@@ -265,6 +302,10 @@ script(type='text/ng-template', id='certificatePopup.html')
                     .details-input-group
                       .certificate-form-label Application Name :
                       .cert-preview-details {{ certificateDetails.applicationName }}
+                      .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Notification Emails:
+                      .cert-preview-details(ng-if="notificationEmails.length>0" ng-repeat="email in notificationEmails") {{ email.email }}
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Owner Email ID :
@@ -483,7 +524,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                             .change-list-table-data.row
                                                 .unavailable-text(ng-show="!isLoadingData && appRoleData.keys.length==0")
                                                     .container.name No AppRoles Available
-                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in appRoleData.keys")
+                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in appRoleData.keys | filter:searchValue")
                                                     .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3(title="{{value}}") {{value}}
                                                     .container.radio-inputs.col-lg-7.col-md-7.col-sm-7.col-xs-7
                                                         .down.view
@@ -583,6 +624,44 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                     button.show-more-btn VIEW MORE
                                                     span
                                                         img(src="assets/icons/front-arrow.svg")
+                    md-tab(label="Azure Service Principals" md-on-select="tabChangeForAdmin()" ng-if="enableAzureSvcacc")
+                        md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
+                            .new-container.page-content-container
+                                .md-content-inner-wrapper
+                                    div.svcnotes T-Vault can be used to manage to read and rotate the secrets of service principals in Azure Active Directory. In order to self-service your service principals in Azure Active Directory there is a three-step process to onboard the account into T-Vault.
+                                      span.svc-collapse-link(ng-click="collapseNoteAzure()") >>
+                                    div.svccollapsible(uib-collapse="isCollapsedAzure")
+                                      div.svcdescription 
+                                      div.svcdescription
+                                        text.weighted Step 1: On-Boarding:
+                                        text This step brings the AAD service principals into T-Vault so that the secrets can be read or rotated through T-Vault. This is a one-time operation.
+                                      div.svcdescription
+                                        text.weighted Step 2: Service Principal Activation:
+                                        text The AAD service principal owner will Activate (rotate) the account password once after on-boarding the account into T-Vault. This process ensures that the secrets in T-Vault and Azure Active Directory are in sync.
+                                      div.svcdescription
+                                        text.weighted Step 3: Granting Permissions:
+                                        text When an AAD service principal is activated in T-Vault, the service principal owner can grant specific permissions to other users and groups allowing others to read and/or rotate the secrets for the AAD service principal as well through T-Vault.
+                                    div.svcdescription(ng-show="!isLoadingData && azureSvcaccOnboardedData.keys.length>0") The following are list of AAD service principals managed by T-Vault. You can click View/Edit link to either activate the AAD service principal or grant permissions for users and groups.
+                                    div.data-management-content
+                                        .row.change-safe-table-container(ng-if='true')
+                                            loading-state(ng-if='isLoadingData')
+                                            .row.change-data.header.solid-header(ng-show="!isLoadingData && azureSvcaccOnboardedData.keys.length>0")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="AZURE SERVICE PRINCIPAL NAME") ACCOUNT NAME
+                                                .container.name.cell.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION     
+                                            .change-list-table-data.row
+                                                .unavailable-text(ng-show="!isLoadingData && azureSvcaccOnboardedData.keys.length==0")
+                                                    .container.name No Azure Service Accounts enabled.
+                                                .row.change-data.item(ng-show="!isLoadingData"  ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in azureSvcaccOnboardedData.keys | filter:searchValue | limitTo: azurepaginationLimit()")
+                                                    .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value}}") {{value}}
+                                                    .container.radio-inputs.cell.col-lg-4.col-md-.col-sm-4.col-xs-4
+                                                        .down.view
+                                                            .list-icon(ng-show="!isLoadingData && azureSvcaccOnboardedData.keys.length>0" ng-click = "editOnboardedAzureSvcacc(value, 'md')" uib-tooltip="View/Edit Service Account password rotation configuration")  View/Edit
+                                            .pagination-wrapper(ng-show='hasMoreAzureItemsToShow()')
+                                                .pagination-count(ng-if="numOfAzureSvcaccs>0") Displaying {{azurecurrentshown}} of {{numOfAzureSvcaccs}}
+                                                .pagination-button-wrapper(ng-click='showMoreAzureItems()')
+                                                    button.show-more-btn VIEW MORE
+                                                    span
+                                                        img(src="assets/icons/front-arrow.svg")
                     md-tab(label="Certificates" md-on-select="tabChangeForAdminCert()" )
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                             .md-content-inner-wrapper
@@ -631,32 +710,32 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                       .container.name No Certificates Available
                                               .row.change-data.header.solid-header.removeborder(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length!=0)")
                                                   .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-3 CERTIFICATE
-                                                  .container.name.action.col-lg-3.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
-                                                  .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 STATUS
-                                                  .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
+                                                  .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
+                                                  .container.name.col-lg-1.col-md-2.col-sm-2.col-xs-2 STATUS
+                                                  .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
                                                   div.create-certificate-link(ng-show="!isAppNamesLoading" )
                                                     .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
                                                       .action-icon-wrapper.static
                                                           .rotate.glyphicon.glyphicon-remove-circle
                                                       .create-link.middle-block.hide-in-mobile
                                                           .text CREATE NEW CERTIFICATE     
-                                                  .row.change-data.header.solid-header                                                                                             
-                                                  .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter: {certificateName:searchValue} | limitTo: certpaginationLimit()")
-                                                      .container.name.col-lg-3.col-md-3.col-sm-2.col-xs-2(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
-                                                      .container.name.col-lg-3.col-md-2.col-sm-1.col-xs-2(title="{{ getCertExpirationDate(value) }}") {{ getCertExpirationDate(value) }}
-                                                      .container.radio-inputs.col-lg-1.col-md-2.col-sm-2.col-xs-2
-                                                          .down.view
-                                                              .list-icon(ng-if="value.certificateStatus=='Active'")
-                                                                label.active-cert {{ value.certificateStatus}}
-                                                              .list-icon(ng-if="value.certificateStatus=='Revoked'")
-                                                                label.revoked-cert {{ value.certificateStatus}}  
-                                                              .list-icon(ng-if="value.certificateStatus=='Expired'")
-                                                                label.expired-cert {{ value.certificateStatus}}
-                                                      .container.radio-inputs.col-lg-5.col-md-6.col-sm-6.col-xs-6
-                                                          .down.view
-                                                              .list-icon(ng-click="goToAddPermissions(value)")  View/Edit                                                           
-                                                          .down.view
-                                                              .list-icon(ng-click="transferCertPopup(value)") Transfer Owner     
+                                              .row.change-data.header.solid-header
+                                              .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter: {certificateName:searchValue} | limitTo: certpaginationLimit()")
+                                                  .container.name.col-lg-3.col-md-3.col-sm-2.col-xs-2(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
+                                                  .container.name.col-lg-3.col-md-2.col-sm-1.col-xs-2(title="{{ getCertExpirationDate(value) }}") {{ getCertExpirationDate(value) }}
+                                                  .container.name.col-lg-1.col-md-2.col-sm-2.col-xs-2
+                                                      .down.view
+                                                          .list-icon(ng-if="value.certificateStatus=='Active'")
+                                                            label.active-cert {{ value.certificateStatus}}
+                                                          .list-icon(ng-if="value.certificateStatus=='Revoked'")
+                                                            label.revoked-cert {{ value.certificateStatus}}
+                                                          .list-icon(ng-if="value.certificateStatus=='Expired'")
+                                                            label.expired-cert {{ value.certificateStatus}}
+                                                  .container.name.col-lg-5.col-md-6.col-sm-6.col-xs-6
+                                                      .down.view
+                                                          .list-icon(ng-click="goToAddPermissions(value)")  View/Edit
+                                                      .down.view
+                                                          .list-icon(ng-click="transferCertPopup(value)") Transfer Owner
                                               .pagination-wrapper(ng-show='hasMoreCertsToShow()')
                                                   .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshown}} of {{numOfCertificates}}
                                                   .pagination-button-wrapper(ng-click='showMoreCertItems()')
@@ -674,37 +753,37 @@ script(type='text/ng-template', id='manageSecretId.html')
                                               .change-list-table-data.row
                                                   .unavailable-text(ng-show="!isLoadingData && finalFilterCertResults.length==0")
                                                       .container.name No Certificates Available                                              
-                                              .row.change-data.header.solid-header(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length != '0')")
+                                              .row.change-data.header.solid-header.removeborder(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length != '0')")
                                                   .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-3 CERTIFICATE
-                                                  .container.name.action.col-lg-3.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
-                                                  .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 STATUS                                                  
-                                                  .container.name.action.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
+                                                  .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
+                                                  .container.name.col-lg-1.col-md-2.col-sm-2.col-xs-2 STATUS
+                                                  .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
                                                   div.create-certificate-link(ng-show="!isAppNamesLoading" )
                                                     .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
                                                       .action-icon-wrapper.static
                                                           .rotate.glyphicon.glyphicon-remove-circle
                                                       .create-link.middle-block.hide-in-mobile
                                                           .text CREATE NEW CERTIFICATE                                                                                                
-                                                  .row.change-data.header.solid-header
-                                                  .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter: {certificateName:searchValue} | limitTo: certpaginationLimit()")
-                                                      .container.name.col-lg-3.col-md-3.col-sm-2.col-xs-2(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}                                                      
-                                                      .container.name.col-lg-3.col-md-2.col-sm-1.col-xs-2(title="{{ getCertExpirationDate(value) }}") {{ getCertExpirationDate(value) }}
-                                                      .container.radio-inputs.col-lg-1.col-md-2.col-sm-2.col-xs-2
-                                                          .down.view
-                                                              .list-icon(ng-if="value.certificateStatus=='Active'")
-                                                                label.active-cert {{ value.certificateStatus}}
-                                                              .list-icon(ng-if="value.certificateStatus=='Revoked'")
-                                                                label.revoked-cert {{ value.certificateStatus}}  
-                                                              .list-icon(ng-if="value.certificateStatus=='Expired'")
-                                                                label.expired-cert {{ value.certificateStatus}}
-                                                      .container.radio-inputs.col-lg-5.col-md-6.col-sm-6.col-xs-6                                                      
-                                                          .down.view
-                                                              .list-icon(ng-click="goToAddPermissions(value)")  View/Edit                                                           
-                                                          .down.view
-                                                              .list-icon(ng-click="transferCertPopup(value)") Transfer Owner                                                            
-                                              .pagination-wrapper(ng-show='hasMoreCertsToShow()')
-                                                  .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshown}} of {{numOfCertificates}}
-                                                  .pagination-button-wrapper(ng-click='showMoreCertItems()')
+                                              .row.change-data.header.solid-header
+                                              .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter: {certificateName:searchValue} | limitTo: certpaginationLimitExt()")
+                                                  .container.name.col-lg-3.col-md-3.col-sm-2.col-xs-2(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
+                                                  .container.name.col-lg-3.col-md-2.col-sm-1.col-xs-2(title="{{ getCertExpirationDate(value) }}") {{ getCertExpirationDate(value) }}
+                                                  .container.name.col-lg-1.col-md-2.col-sm-2.col-xs-2
+                                                      .down.view
+                                                          .list-icon(ng-if="value.certificateStatus=='Active'")
+                                                            label.active-cert {{ value.certificateStatus}}
+                                                          .list-icon(ng-if="value.certificateStatus=='Revoked'")
+                                                            label.revoked-cert {{ value.certificateStatus}}
+                                                          .list-icon(ng-if="value.certificateStatus=='Expired'")
+                                                            label.expired-cert {{ value.certificateStatus}}
+                                                  .container.name.col-lg-5.col-md-6.col-sm-6.col-xs-6
+                                                      .down.view
+                                                          .list-icon(ng-click="goToAddPermissions(value)")  View/Edit
+                                                      .down.view
+                                                          .list-icon(ng-click="transferCertPopup(value)") Transfer Owner
+                                              .pagination-wrapper(ng-show='hasMoreCertsToShowExt()')
+                                                  .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshownExt}} of {{numOfCertificates}}
+                                                  .pagination-button-wrapper(ng-click='showMoreCertItemsExt()')
                                                       button.show-more-btn VIEW MORE
                                                       span
                                                           img(src="assets/icons/front-arrow.svg")

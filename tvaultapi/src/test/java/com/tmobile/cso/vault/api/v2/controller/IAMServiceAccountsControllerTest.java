@@ -49,7 +49,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 
 import com.tmobile.cso.vault.api.service.IAMServiceAccountsService;
-import com.tmobile.cso.vault.api.utils.JSONUtil;
+
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -387,6 +387,89 @@ public class IAMServiceAccountsControllerTest {
 		String actual = result.getResponse().getContentAsString();
 		assertEquals(expected, actual);
 	}
+	
+	
 
+	@Test
+	public void test_createIAMRole() throws Exception {
+        IAMServiceAccountAWSRole serviceAccountAWSRole = new IAMServiceAccountAWSRole("testsvcname", "role1", "read", "1234568990");
+
+        String inputJson =new ObjectMapper().writeValueAsString(serviceAccountAWSRole);
+		String responseJson = "{\"messages\":[\"AWS Role created \"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+		when(iamServiceAccountsService.createIAMRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any()))
+				.thenReturn(responseEntityExpected);
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/v2/iamserviceaccounts/aws/iam/role")
+				.requestAttr("UserDetails", userDetails).header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+				.header("Content-Type", "application/json;charset=UTF-8").content(inputJson)).andExpect(status().isOk())
+				.andExpect(content().string(containsString(responseJson)));
+
+	}
+	
+	@Test
+	public void test_associateAWSroletoIAMSvcAcc() throws Exception {
+		IAMServiceAccountAWSRole serviceAccountApprole = new IAMServiceAccountAWSRole();
+
+		serviceAccountApprole.setAccess("read");
+		serviceAccountApprole.setAwsAccountId("1234567890");
+		serviceAccountApprole.setIamSvcAccName("testaccount");
+		serviceAccountApprole.setRolename("role1");
+
+		String inputJson = new ObjectMapper().writeValueAsString(serviceAccountApprole);
+		String responseJson = "{\"messages\":[\"AWS Role successfully associated with IAM Service Account\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+
+		when(iamServiceAccountsService.addAwsRoleToIAMSvcacc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
+				Mockito.any(IAMServiceAccountAWSRole.class))).thenReturn(responseEntityExpected);
+		
+		
+		mockMvc.perform(MockMvcRequestBuilders.post("/v2/iamserviceaccounts/role")
+				.requestAttr("UserDetails", userDetails).header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+				.header("Content-Type", "application/json;charset=UTF-8").content(inputJson)).andExpect(status().isOk())
+				.andExpect(content().string(containsString(responseJson)));
+	}
+
+	@Test
+	public void test_removeAWSRoleFromIAMSvcacc() throws Exception {
+		IAMServiceAccountAWSRole serviceAccountApprole = new IAMServiceAccountAWSRole();
+		
+		serviceAccountApprole.setAccess("read");
+		serviceAccountApprole.setAwsAccountId("1234567890");
+		serviceAccountApprole.setIamSvcAccName("testaccount");
+		serviceAccountApprole.setRolename("role1");
+
+		String inputJson = new ObjectMapper().writeValueAsString(serviceAccountApprole);
+		String responseJson = "{\"messages\":[\"AWS Role is successfully removed from IAM Service Account\"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+
+		when(iamServiceAccountsService.removeAWSRoleFromIAMSvcacc(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
+				Mockito.any(IAMServiceAccountAWSRole.class))).thenReturn(responseEntityExpected);
+
+		 mockMvc
+				.perform(MockMvcRequestBuilders.delete("/v2/iamserviceaccounts/role").header(VAULT_TOKEN_STRING, token)
+						.header(CONTENT_TYPE_STRING, CONTENT_TYPE_VALUE_STRING)
+						.requestAttr(USER_DETAILS_STRING, userDetails).content(inputJson))
+				.andExpect(status().isOk()).andReturn();
+	}
+
+	@Test
+	public void test_createRole() throws Exception {
+		IAMServiceAccountAWSRole serviceAccountAWSRole = new IAMServiceAccountAWSRole("testsvcname", "role1", "read",
+				"1234568990");
+
+		String inputJson = new ObjectMapper().writeValueAsString(serviceAccountAWSRole);
+		String responseJson = "{\"messages\":[\"AWS Role created \"]}";
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+		when(iamServiceAccountsService.createAWSRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),
+				Mockito.any(AWSLoginRole.class))).thenReturn(responseEntityExpected);
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/v2/iamserviceaccounts/aws/role").header(VAULT_TOKEN_STRING, token)
+				.header(CONTENT_TYPE_STRING, CONTENT_TYPE_VALUE_STRING).requestAttr(USER_DETAILS_STRING, userDetails)
+				.content(inputJson)).andExpect(status().isOk()).andReturn();
+	}
+	
+	
+	
 
 }

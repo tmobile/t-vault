@@ -111,6 +111,7 @@
             addComma: false,
             show: true
         }];
+        $scope.isUserEmailSelected = false;
 
         var clearInputPermissionData = function () {
             $scope.inputValue = {
@@ -227,6 +228,7 @@
             lastContent = '';
             $scope.showNoMatchingResults = false;
             $scope.invalidEmail = false;
+            $scope.isUserEmailSelected = false;
         }
         // on navigation to details page check owner email field has value, if yes highlight box. 
         $scope.checkOwnerEmailHasValue = function(navigateToDetail) {
@@ -264,6 +266,7 @@
                     return;
                  }
              }
+             $scope.isUserEmailSelected = false;
              var newLetter = newVal[variableChanged];
              if (variableChanged != 'userName' && variableChanged != 'groupName') {
                newLetter = newLetter.replace(" ", "");
@@ -378,6 +381,7 @@
                         $scope.showNoMatchingResults = false;  
                         $scope.invalidEmail = false;                
                         $scope.disableAddBtn = false;
+                        $scope.isUserEmailSelected = true;
                         $(id).trigger('change');
                         $(id).blur();                     
                         $scope.$apply();
@@ -718,9 +722,8 @@
         $rootScope.goToPermissions = function () {
             $scope.invalidEmail = false;
             $scope.showNoMatchingResults = false;
-            var emailPattern = /^[a-zA-Z0-9_%+-]+[.]?[a-zA-Z0-9_%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
             var emailInput = document.getElementById('addOwnerEmail').value;
-            if (!emailPattern.test(emailInput)) {
+            if (emailInput =="" || emailInput == undefined) {
                 $scope.invalidEmail = true;
             } else {
                 $timeout(function () {
@@ -805,7 +808,7 @@
                                     }
 
                                     getUserDisplayNameDetails();
-                                   
+                                    $scope.isUserEmailSelected = true;
                                 }
                                 catch (e) {
                                     console.log(e);

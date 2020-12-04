@@ -176,8 +176,8 @@ script(type='text/ng-template', id='downloadPopup.html')
                                                                     .tile-label(uib-tooltip="{{item.certname}}") {{item.certname}}
                                                             li(ng-repeat="item in numOfTiles = ( certificatesDataExternal.keys | filter : { certname: searchValueCert } ).length")
                                             .pagination-wrapper(ng-show='hasMoreItemsToShow()')
-                                                .pagination-count(ng-if="numOfCertificatesExternal>0") Displaying {{currentshown}} of {{numOfCertificatesExternal}}
-                                                .pagination-button-wrapper(ng-click='showMoreItems()')
+                                                .pagination-count(ng-if="numOfCertificatesExternal>0") Displaying {{currentshownExt}} of {{numOfCertificatesExternal}}
+                                                .pagination-button-wrapper(ng-click='showMoreItemsExt()')
                                                     button.show-more-btn VIEW MORE
                                                     span
                                                         img(src="assets/icons/front-arrow.svg") 

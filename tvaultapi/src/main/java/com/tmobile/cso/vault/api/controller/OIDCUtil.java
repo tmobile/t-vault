@@ -431,13 +431,20 @@ public class OIDCUtil {
 	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<OIDCEntityResponse> oidcFetchEntityDetails(String token, String username, UserDetails userDetails) {
+	public ResponseEntity<OIDCEntityResponse> oidcFetchEntityDetails(String token, String username, UserDetails userDetails, boolean isPolicyUpdate) {
 		String mountAccessor = fetchMountAccessorForOidc(token);
 		if (!StringUtils.isEmpty(mountAccessor)) {
+			// Get user details from GSM
 			DirectoryUser directoryUser = directoryService.getUserDetailsByCorpId(username);
 
 			if (StringUtils.isEmpty(directoryUser.getUserEmail())) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new OIDCEntityResponse());
+				// Get user details from Corp domain (For sprint users)
+				if (userDetails.getEmail().contains(TVaultConstants.SPRINT_EMIAL_DOMAIN)) {
+					directoryUser = directoryService.getUserDetailsFromCorp(username);
+				}
+				if (StringUtils.isEmpty(directoryUser.getUserEmail())) {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new OIDCEntityResponse());
+				}
 			}
 			
 			String aliasName = directoryUser.getUserEmail();
@@ -485,7 +492,7 @@ public class OIDCUtil {
 
 			// if permission adding to current user, then take token policies also.
 			List<String> policiesFromToken;
-            if (userDetails != null && username.equalsIgnoreCase(userDetails.getUsername())) {
+            if (userDetails != null && username.equalsIgnoreCase(userDetails.getUsername()) && !isPolicyUpdate) {
 				// Get policies from token. This will have all the policies from user and group except the user polices updated to the entity.
 				policiesFromToken = tokenLookUp(userDetails.getClientToken());
 				combinedPolicyList.addAll(policiesFromToken);

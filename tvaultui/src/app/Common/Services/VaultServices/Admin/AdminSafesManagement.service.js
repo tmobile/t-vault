@@ -126,6 +126,10 @@
                 return ServiceEndpoint.detachAppRolePermission.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
+            },deleteAppRolePermissionFromCertificate: function(payload, url) {
+                return ServiceEndpoint.deleteAppRolePermission.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
             },
             getAWSConfigurationDetails: function(payload, url) {
                 return ServiceEndpoint.getAwsConfigurationDetails.makeRequest(payload, url).then(function(response) {
@@ -257,6 +261,11 @@
                     return response;
                 });
             },
+            offboardDecommissionedServiceAccount: function(payload, url) {
+                return ServiceEndpoint.offboardDecommissionedServiceAccount.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getSvcaccMetadata: function(payload, url) {
                 return ServiceEndpoint.getSvcaccMetadata.makeRequest(payload, url).then(function(response) {
                     return response;
@@ -362,6 +371,11 @@
                     return response;
                 });
             },
+            unclaimCert: function (payload, url) {
+                return ServiceEndpoint.unclaimCert.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             deleteCertificate: function (payload, url) {
                 return ServiceEndpoint.deleteCertificate.makeRequest(payload, url).then(function(response) {
                     return response;
@@ -441,6 +455,14 @@
                 return ServiceEndpoint.rotateIAMSvcaccSecret.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
+            },activateAzureServicePrincipal: function(payload, url) {
+                return ServiceEndpoint.activateAzureServicePrincipal.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },rotateAzureSecret: function(payload, url) {
+                return ServiceEndpoint.rotateAzureSecret.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
             },
             createAwsRoleCertificate: function(payload, url) {
                 return ServiceEndpoint.createAwsRoleCertificate.makeRequest(payload, url).then(function(response) {
@@ -459,6 +481,110 @@
             },
             detachAWSPermissionFromCertificate: function(payload, url) {
                 return ServiceEndpoint.detachAWSPermissionFromCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsRoleIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.createAwsRoleIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsIAMRoleIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.createAwsIAMRoleIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAWSPermissionForIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.addAWSPermissionForIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            detachAWSPermissionFromIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.detachAWSPermissionFromIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getApplicationDetails: function(payload, url) {
+                return ServiceEndpoint.getApplicationDetails.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getAllOnboardPendingCertificates: function(payload, url) {
+                return ServiceEndpoint.getAllOnboardPendingCertificates.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            onboardSslCertificates: function (payload, url) {
+                return ServiceEndpoint.onboardSslCertificates.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getSecretForAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.getSecretForAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            updateCertificate: function (payload, url) {
+                return ServiceEndpoint.updateCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getOnboardedAzureServiceAccounts: function (payload, url) {
+                return ServiceEndpoint.getOnboardedAzureServiceAccounts.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getAzureSvcaccOnboardInfo: function(payload, url) {
+                return ServiceEndpoint.getAzureSvcaccOnboardInfo.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addUserPermissionForAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.addUserPermissionForAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },deleteUserPermissionFromAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.deleteUserPermissionFromAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAWSPermissionForAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.addAWSPermissionForAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsRoleAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.createAwsRoleAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsIAMRoleAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.createAwsIAMRoleAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addGroupPermissionForAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.addGroupPermissionForAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            detachAwsRoleFromAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.detachAwsRoleFromAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteGroupPermissionFromAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.deleteGroupPermissionFromAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAppRolePermissionForAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.addAppRolePermissionForAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            }, 
+            detachAppRolePermissionFromAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.detachAppRolePermissionFromAzureSvcacc.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },
