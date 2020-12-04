@@ -72,7 +72,7 @@ const EditDeletePopper = (props) => {
           {admin && (
             <PopperItem onClick={onTransferOwnerClicked}>
               <SyncAltIcon style={{ fill: '#fff' }} />
-              <span>Transfer Owner</span>
+              <span>Transfer</span>
             </PopperItem>
           )}
           <PopperItem onClick={onEditClicked}>

@@ -51,6 +51,7 @@ const ViewMoreStyles = css`
 `;
 
 const CertificateHeader = () => {
+  console.log('ViewMoreStyles', typeof ViewMoreStyles);
   return (
     <ComponentError>
       <>

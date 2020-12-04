@@ -1,3 +1,4 @@
+/* eslint-disable react/forbid-prop-types */
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
@@ -71,7 +72,7 @@ ServiceAccountHelp.propTypes = {
   setIsAutoExpand: PropTypes.func,
   isAutoExpand: PropTypes.bool,
   collapseStyles: PropTypes.string,
-  titleCss: PropTypes.string,
+  titleCss: PropTypes.any,
   extraCss: PropTypes.string,
 };
 ServiceAccountHelp.defaultProps = {
@@ -82,7 +83,7 @@ ServiceAccountHelp.defaultProps = {
   isAutoExpand: false,
   collapseStyles: '',
   titleLess: 'View Less',
-  titleCss: '',
+  titleCss: {},
   extraCss: '',
 };
 export default ServiceAccountHelp;
