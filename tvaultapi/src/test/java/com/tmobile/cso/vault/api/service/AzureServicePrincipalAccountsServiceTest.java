@@ -1771,7 +1771,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 	}
 
 	@Test
-	public void test_activateAzureServicePrincipal_successfull() {
+	public void test_activateAzureServicePrincipal_successfull() throws IOException {
 
 		String servicePrincipal = "svc_vault_test5";
 		String token = "123123123123";
@@ -2011,7 +2011,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		    }
 
 	@Test
-	public void test_activateAzureServicePrincipal_failed_owner_association() {
+	public void test_activateAzureServicePrincipal_failed_owner_association() throws IOException {
 
 		String servicePrincipal = "svc_vault_test5";
 		String token = "123123123123";
@@ -2082,7 +2082,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 	}
 
 	@Test
-	public void test_activateAzureServicePrincipal_failed_add_user() {
+	public void test_activateAzureServicePrincipal_failed_add_user() throws IOException {
 
 		String servicePrincipal = "svc_vault_test5";
 		String token = "123123123123";
@@ -2144,7 +2144,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 	}
 
 	@Test
-	public void test_activateAzureServicePrincipal_failed_to_save_secret() {
+	public void test_activateAzureServicePrincipal_failed_to_save_secret() throws IOException {
 
 		String servicePrincipal = "svc_vault_test5";
 		String token = "123123123123";
@@ -2199,7 +2199,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 	}
 
 	@Test
-	public void test_activateAzureServicePrincipal_failed_metadata_update() {
+	public void test_activateAzureServicePrincipal_failed_metadata_update() throws IOException {
 
 		String servicePrincipal = "svc_vault_test5";
 		String token = "123123123123";
@@ -2244,7 +2244,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 	}
 
 	@Test
-	public void test_rotateSecret_successfull() {
+	public void test_rotateSecret_successfull() throws IOException {
 
 		String servicePrincipal = "svc_vault_test5";
 		String token = "123123123123";
@@ -2312,7 +2312,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 	}
 
 	@Test
-	public void test_rotateIAMServiceAccount_faile_to_rotate_secret() {
+	public void test_rotateIAMServiceAccount_faile_to_rotate_secret() throws IOException {
 
 		String servicePrincipal = "svc_vault_test5";
 		String token = "123123123123";
