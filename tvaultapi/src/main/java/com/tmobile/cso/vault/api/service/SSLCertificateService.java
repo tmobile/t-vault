@@ -7056,7 +7056,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
      * @param offset
      * @return
      */
-    public ResponseEntity<String> getAllCertificates(String token, String certName, Integer limit, Integer offset) {
+	public ResponseEntity<String> getAllCertificates(String token, String certName, Integer limit, Integer offset) {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, "getAllCertificates").
@@ -7068,24 +7068,42 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 
         Response response;
         String certListStr = "";
+        List<String> certNames = new ArrayList<String>();
+        List<String> certNamesExt = new ArrayList<String>();
 
         response = getMetadata(token, path);        
-        if (HttpStatus.OK.equals(response.getHttpstatus())) {
+       
             String pathStr= "";
             String endPoint = "";
             Response metadataResponse = new Response();
             JsonParser jsonParser = new JsonParser();
             JsonArray responseArray = new JsonArray();
-            JsonObject metadataJsonObj=new JsonObject();            
+            JsonObject metadataJsonObj=new JsonObject();    
+            if (HttpStatus.OK.equals(response.getHttpstatus())) {
             JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
             JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
-            List<String> certNames = geMatchCertificates(jsonArray,certName);            
+            certNames = geMatchCertificates(jsonArray,certName);            
+            }
             
             response = getMetadata(token, extPath);
+            if(HttpStatus.OK.equals(response.getHttpstatus())) {
             JsonObject jsonObjectExt = (JsonObject) jsonParser.parse(response.getResponse());
             JsonArray jsonArrayExt = jsonObjectExt.getAsJsonObject("data").getAsJsonArray("keys");
-            List<String> certNamesExt = geMatchCertificates(jsonArrayExt,certName);            
+            certNamesExt = geMatchCertificates(jsonArrayExt,certName);            
             certNames.addAll(certNamesExt);
+            }
+            
+            if (ObjectUtils.isEmpty(certNames)) {
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "getAllCertificates").
+                        put(LogMessage.MESSAGE, "Retrieved empty certificate list from metadata").
+                        put(LogMessage.STATUS, response.getHttpstatus().toString()).
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+                return ResponseEntity.status(HttpStatus.OK).body(certListStr);
+            }
+            else if(!ObjectUtils.isEmpty(certNames)){
             Collections.sort(certNames);
             
             if(limit == null) {
@@ -7094,6 +7112,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
             if (offset ==null) {
                 offset = 0;
             }
+            
 
             int maxVal = certNames.size()> (limit+offset)?limit+offset : certNames.size();
             for (int i = offset; i < maxVal; i++) {            	
@@ -7133,18 +7152,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
             return ResponseEntity.status(response.getHttpstatus()).body(certListStr);
-        }
-        else if (HttpStatus.NOT_FOUND.equals(response.getHttpstatus())) {
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                    put(LogMessage.ACTION, "getAllCertificates").
-                    put(LogMessage.MESSAGE, "Retrieved empty certificate list from metadata").
-                    put(LogMessage.STATUS, response.getHttpstatus().toString()).
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                    build()));
-            return ResponseEntity.status(HttpStatus.OK).body(certListStr);
-        }
-        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+            }     
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, "getAllCertificates").
                 put(LogMessage.MESSAGE, "Failed to get certificate list from metadata").
@@ -7153,7 +7162,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 build()));
 
         return ResponseEntity.status(response.getHttpstatus()).body(certListStr);
-    }   
+    }    
     /**
 	 * Method to validate the certificate name
 	 *
