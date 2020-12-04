@@ -99,9 +99,8 @@ public class AzureServiceAccountUtils {
      * To get response from rotate api.
      *
      * @return
-     * @throws IOException 
      */
-    public AzureServiceAccountSecret rotateAzureServicePrincipalSecret(AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest) throws IOException  {
+    public AzureServiceAccountSecret rotateAzureServicePrincipalSecret(AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest)  {
         String iamApproleToken = iamServiceAccountUtils.getIAMApproleToken();
         if (StringUtils.isEmpty(iamApproleToken)) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -162,12 +161,11 @@ public class AzureServiceAccountUtils {
 
         String output = "";
         StringBuffer jsonResponse = new StringBuffer();
-        BufferedReader br = null;
-        BufferedReader r = null;
+
         try {
             HttpResponse apiResponse = httpClient.execute(httpPut);
             if (apiResponse.getStatusLine().getStatusCode() != 200) {
-                r = new BufferedReader(new InputStreamReader(apiResponse.getEntity().getContent()));
+                BufferedReader r = new BufferedReader(new InputStreamReader(apiResponse.getEntity().getContent()));
                 StringBuilder total = new StringBuilder();
                 String line = null;
                 while ((line = r.readLine()) != null) {
@@ -182,7 +180,7 @@ public class AzureServiceAccountUtils {
                         build()));
                 return null;
             }
-             br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
+            BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
             while ((output = br.readLine()) != null) {
                 jsonResponse.append(output);
             }
@@ -213,13 +211,6 @@ public class AzureServiceAccountUtils {
                     put(LogMessage.MESSAGE, "Failed to parse Azure Service Principal Secret response").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
-        }finally {
-            if (br != null) {
-                br.close();
-            }
-            if (r != null) {
-                r.close();
-            }
         }
         return null;
     }
