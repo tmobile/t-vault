@@ -51,6 +51,7 @@ const ViewMoreStyles = css`
 `;
 
 const CertificateHeader = () => {
+  console.log('ViewMoreStyles', typeof ViewMoreStyles);
   return (
     <ComponentError>
       <>
@@ -61,7 +62,7 @@ const CertificateHeader = () => {
           </CertDesc>
         </IconDescriptionWrapper>
         <ServiceAccountHelp
-          titleMore="View More"
+          titleMore="How certificates work"
           titleLess="View Less"
           collapseStyles="background:none"
           titleCss={ViewMoreStyles}

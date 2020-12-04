@@ -41,6 +41,7 @@ import {
 import configData from '../../../../../config/config';
 import CertificateRelease from '../CertificateRelease';
 import SnackbarComponent from '../../../../../components/Snackbar';
+import OnboardCertificates from '../OnboardCertificate';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -176,6 +177,7 @@ const CertificatesDashboard = () => {
   });
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
+  const [openOnboardModal, setOpenOnboardModal] = useState(false);
   const classes = useStyles();
   const history = useHistory();
   const location = useLocation();
@@ -527,6 +529,7 @@ const CertificatesDashboard = () => {
   const onCloseAllModal = (actionPerform) => {
     setOpenTransferModal(false);
     setOpenReleaseModal(false);
+    setOpenOnboardModal(false);
     setCertificateData({});
     if (actionPerform) {
       setResponse({ status: 'loading' });
@@ -637,6 +640,40 @@ const CertificatesDashboard = () => {
       .then(() => {
         setResponseType(1);
         onCloseAllModal(true);
+        setToastMessage('Certificate released successfully!');
+      })
+      .catch((e) => {
+        if (e.response.data.errors && e.response.data.errors[0]) {
+          setToastMessage(e.response.data.errors[0]);
+        }
+        setResponseType(-1);
+        setResponse({ status: 'success' });
+      });
+  };
+
+  /**
+   * @function onOnboardClicked
+   * @description function to open released modal when released certificate is clicked.
+   */
+
+  const onOnboardClicked = (data) => {
+    setOpenOnboardModal(true);
+    setCertificateData(data);
+  };
+
+  /**
+   * @function onOboardCertClicked
+   * @description function to call an api when onboard submit is clicked
+   */
+  const onOboardCertClicked = (data) => {
+    setResponse({ status: 'loading' });
+    setOpenOnboardModal(false);
+    apiService
+      .onOnboardcertificate(data)
+      .then(() => {
+        setResponseType(1);
+        onCloseAllModal(true);
+        setToastMessage('SSL certificate onboarded successfully!');
       })
       .catch((e) => {
         if (e.response.data.errors && e.response.data.errors[0]) {
@@ -662,6 +699,7 @@ const CertificatesDashboard = () => {
         onDeleteCertificateClicked={(cert) => onDeleteCertificateClicked(cert)}
         onTransferOwnerClicked={(cert) => onTransferOwnerClicked(cert)}
         onReleaseClicked={(cert) => onReleaseClicked(cert)}
+        onOnboardClicked={(cert) => onOnboardClicked(cert)}
         isTabAndMobileScreen={isTabAndMobileScreen}
         history={history}
         certificateList={certificateList}
@@ -696,6 +734,14 @@ const CertificatesDashboard = () => {
               onCertificateDeleteConfirm={onCertificateDeleteConfirm}
               deleteResponse={deleteResponse}
               deleteModalDetail={deleteModalDetail}
+            />
+          )}
+          {openOnboardModal && (
+            <OnboardCertificates
+              certificateData={certificateData}
+              open={openOnboardModal}
+              onCloseModal={(action) => onCloseAllModal(action)}
+              onOboardCertClicked={(data) => onOboardCertClicked(data)}
             />
           )}
           <LeftColumnSection>
@@ -881,7 +927,7 @@ const CertificatesDashboard = () => {
           <SnackbarComponent
             open
             onClose={() => onToastClose()}
-            message="Certifcate Released Successfully!"
+            message={toastMessage}
           />
         )}
       </>
