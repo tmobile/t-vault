@@ -99,8 +99,9 @@ public class AzureServiceAccountUtils {
      * To get response from rotate api.
      *
      * @return
+     * @throws IOException 
      */
-    public AzureServiceAccountSecret rotateAzureServicePrincipalSecret(AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest)  {
+    public AzureServiceAccountSecret rotateAzureServicePrincipalSecret(AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest) throws IOException  {
         String iamApproleToken = iamServiceAccountUtils.getIAMApproleToken();
         if (StringUtils.isEmpty(iamApproleToken)) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -159,18 +160,21 @@ public class AzureServiceAccountUtils {
             return null;
         }
 
-        StringBuilder jsonResponse = new StringBuilder();
 
+        String output = "";
+        StringBuilder jsonResponse = new StringBuilder();
+        BufferedReader br = null;
+        BufferedReader r = null;
         try {
             HttpResponse apiResponse = httpClient.execute(httpPut);
             if (apiResponse.getStatusLine().getStatusCode() != 200) {
+
 				StringBuilder total = new StringBuilder();
 				readFailedResponseContent(apiResponse, total);
                 return null;
             }
 
             readResponseContent(jsonResponse, apiResponse, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION);
-
             AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret();
             JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
             if (!responseJson.isJsonNull()) {
@@ -198,6 +202,13 @@ public class AzureServiceAccountUtils {
                     put(LogMessage.MESSAGE, "Failed to parse Azure Service Principal Secret response").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
+        }finally {
+            if (br != null) {
+                br.close();
+            }
+            if (r != null) {
+                r.close();
+            }
         }
         return null;
     }
