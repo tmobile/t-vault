@@ -574,7 +574,7 @@ script(type='text/ng-template', id='certificateOnboardPopUp.html')
       .top-lg-sep.notification-text  {{ certificateOnboardMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
-        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="successCancel()") CLOSE
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="successCancelOnboardCert()") CLOSE
 
 script(type='text/ng-template', id='certificateOnboardFailedPopUp.html')
   loading-state(ng-if="isLoadingModalData")
@@ -928,7 +928,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                     md-tab(label="Certificates" md-on-select="tabChangeForAdminCert()" )
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                           .md-content-inner-wrapper
-                              div.certnotes How to get started and what to know
+                              div.certnotes(id='certificateStart') How to get started and what to know
                                 span.cert-collapse-link(ng-click="collapseNoteCert()") >>
                               div.certcollapsible(uib-collapse="isCollapsedCert")
                                   div.svcdescription
