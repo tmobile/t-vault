@@ -15,7 +15,7 @@ const Styles = (props) => ({
     zIndex: theme.zIndex.modal + 10,
     color: '#fff',
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
-
+    position: 'absolute',
     ...props.muiBackdropOverides,
   },
 });

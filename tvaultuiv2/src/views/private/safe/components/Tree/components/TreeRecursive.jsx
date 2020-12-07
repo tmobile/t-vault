@@ -2,7 +2,6 @@
 /* eslint-disable react/no-array-index-key */
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { makeStyles } from '@material-ui/core/styles';
 
 import CreateSecretButton from '../../CreateSecretButton';
 import { convertObjectToArray } from '../../../../../../services/helper-function';
@@ -13,11 +12,6 @@ import AddFolderModal from '../../AddFolderModal';
 import CreateSecretModal from '../../CreateSecretsModal';
 import BackdropLoader from '../../../../../../components/Loaders/BackdropLoader';
 
-const useStyles = makeStyles(() => ({
-  backdrop: {
-    position: 'absolute',
-  },
-}));
 const SecretsError = styled.div`
   display: flex;
   justify-content: center;
@@ -45,7 +39,6 @@ const TreeRecursive = (props) => {
     userHavePermission,
   } = props;
   const [currentNode, setCurrentNode] = useState('');
-  const classes = useStyles();
   // loop through the data
 
   let arr = [];
@@ -91,9 +84,7 @@ const TreeRecursive = (props) => {
           key={item.id}
           userHavePermission={userHavePermission}
         >
-          {status.status === 'loading' && (
-            <BackdropLoader classes={classes} color="secondary" />
-          )}
+          {status.status === 'loading' && <BackdropLoader color="secondary" />}
 
           {inputType?.type?.toLowerCase() === 'folder' &&
             inputType?.currentNode === item.value && (

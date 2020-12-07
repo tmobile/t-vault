@@ -168,6 +168,8 @@ const SelectionTabs = (props) => {
             message: 'Network Error',
           });
         });
+    } else {
+      setResponse({ status: 'success' });
     }
   }, [safeDetail]);
 

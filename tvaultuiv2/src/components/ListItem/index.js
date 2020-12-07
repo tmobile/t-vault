@@ -138,7 +138,7 @@ ListItem.propTypes = {
   flag: PropTypes.string,
   showActions: PropTypes.bool.isRequired,
   popperListItems: PropTypes.arrayOf(PropTypes.any),
-  listIconStyles: PropTypes.objectOf(PropTypes.object),
+  listIconStyles: PropTypes.objectOf(PropTypes.any),
 };
 ListItem.defaultProps = {
   subTitle: '',

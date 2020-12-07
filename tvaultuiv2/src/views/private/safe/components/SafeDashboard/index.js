@@ -3,7 +3,14 @@
 /* eslint-disable no-param-reassign */
 import React, { useState, useEffect, useCallback, lazy } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Link, Route, Switch, Redirect, useHistory } from 'react-router-dom';
+import {
+  Link,
+  Route,
+  Switch,
+  Redirect,
+  useHistory,
+  useLocation,
+} from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
@@ -206,6 +213,7 @@ const SafeDashboard = () => {
   const [safeClicked, setSafeClicked] = useState(false);
   const [allSafeList, setAllSafeList] = useState([]);
   const [goodToRoute, setGoodToRoute] = useState(false);
+  const location = useLocation();
   const [selectedSafeDetails, setSelectedSafeDetails] = useState({});
   const handleClose = () => {
     setOpenConfirmationModal(false);
@@ -325,15 +333,23 @@ const SafeDashboard = () => {
       { name: 'Shared Safes', count: safes?.shared?.length || 0 },
       { name: 'Application Safes', count: safes?.apps?.length || 0 },
     ]);
+  }, [allSafeList, safes]);
 
-    if (safeList && safeList.length) {
-      const activeSafeDetail = safeList.filter(
-        (item) =>
-          item?.name?.toLowerCase() === history.location.pathname.split('/')[2]
-      );
-      setSelectedSafeDetails(activeSafeDetail[0]);
+  useEffect(() => {
+    if (allSafeList.length > 0) {
+      const val = location.pathname.split('/');
+      const safeName = val[val.length - 1];
+      if (safeName !== 'create-safe' && safeName !== 'edit-safe') {
+        const obj = allSafeList.find((safe) => safe.name === safeName);
+        if (obj) {
+          setSelectedSafeDetails({ ...obj });
+        } else {
+          setSelectedSafeDetails(allSafeList[0]);
+          history.push(`/safes/${allSafeList[0].name}`);
+        }
+      }
     }
-  }, [allSafeList, safes, history.location.pathname, safeList]);
+  }, [allSafeList, location, history]);
 
   /**
    * @function onSearchChange
