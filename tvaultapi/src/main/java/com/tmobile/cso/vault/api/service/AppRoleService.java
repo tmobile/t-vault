@@ -39,6 +39,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
@@ -51,6 +52,7 @@ import com.tmobile.cso.vault.api.model.AppRoleMetadata;
 import com.tmobile.cso.vault.api.model.AppRoleMetadataDetails;
 import com.tmobile.cso.vault.api.model.AppRoleNameSecretId;
 import com.tmobile.cso.vault.api.model.AppRoleSecretData;
+import com.tmobile.cso.vault.api.model.CertificateApprole;
 import com.tmobile.cso.vault.api.model.SafeAppRoleAccess;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
@@ -80,10 +82,10 @@ public class  AppRoleService {
 	public ResponseEntity<String> createAppRole(String token, AppRole appRole, UserDetails userDetails){
 		String jsonStr = JSONUtil.getJSON(appRole);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				  put(LogMessage.ACTION, "Create AppRole").
 			      put(LogMessage.MESSAGE, String.format("Trying to create AppRole [%s]", jsonStr)).
-			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 			      build()));
 		if (!ControllerUtil.areAppRoleInputsValid(appRole)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values for AppRole creation\"]}");
@@ -109,11 +111,11 @@ public class  AppRoleService {
 				boolean appRoleUserMetaDataCreationStatus = ControllerUtil.createMetadata(appRoleUsermetadataJson, token);
 				if(appRoleMetaDataCreationStatus && appRoleUserMetaDataCreationStatus) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, "Create Approle").
 							put(LogMessage.MESSAGE, String.format ("Approle [%s] Created Successfully by [%s]",appRole.getRole_name(),userDetails.getUsername())).
 							put(LogMessage.STATUS, response.getHttpstatus().toString()).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AppRole created successfully\"]}");
 				}
@@ -127,12 +129,12 @@ public class  AppRoleService {
 				}
 			}
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					  put(LogMessage.ACTION, "Create AppRole").
 				      put(LogMessage.MESSAGE, "Creation of AppRole failed").
 				      put(LogMessage.RESPONSE, response.getResponse()).
 				      put(LogMessage.STATUS, response.getHttpstatus().toString()).
-				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
