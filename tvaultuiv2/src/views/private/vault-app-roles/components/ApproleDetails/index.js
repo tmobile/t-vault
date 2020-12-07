@@ -19,6 +19,7 @@ import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
+import Strings from '../../../../../resources';
 import { TitleThree } from '../../../../../styles/GlobalStyles';
 import { exportCSVFile } from '../../../../../services/helper-function';
 import NamedButton from '../../../../../components/NamedButton';
@@ -143,7 +144,7 @@ const AppRoleDetails = (props) => {
   const [value, setValue] = useState(0);
   const [status, setStatus] = useState({});
   const [secretIdsData, setSecretIdsData] = useState([]);
-  const [getResponseType, setGetResponseType] = useState(null);
+  const [responseType, setResponseType] = useState(null);
   const [createSecretIdModal, setCreateSecretIdModal] = useState(false);
   const [downloadSecretModal, setDownloadSecretModal] = useState(false);
   const [secretIdInfo, setSecretIdInfo] = useState({});
@@ -159,7 +160,7 @@ const AppRoleDetails = (props) => {
   const getSecrets = useCallback(() => {
     setStatus({ status: 'loading' });
     setSecretIdsData([]);
-    setGetResponseType(null);
+    setResponseType(null);
     apiService
       .getAccessors(appRoleDetail?.name)
       .then((res) => {
@@ -167,7 +168,7 @@ const AppRoleDetails = (props) => {
         if (res?.data) {
           setSecretIdsData(res.data.keys);
         }
-        setGetResponseType(1);
+        setResponseType(1);
       })
       .catch((err) => {
         setStatus({});
@@ -178,13 +179,15 @@ const AppRoleDetails = (props) => {
         ) {
           setStatus({ message: err.response.data.errors[0] });
         }
-        setGetResponseType(-1);
+        setResponseType(-1);
       });
   }, [appRoleDetail]);
 
   useEffect(() => {
-    if (appRoleDetail) {
+    if (Object.keys(appRoleDetail).length > 0) {
       getSecrets();
+    } else {
+      setResponseType(1);
     }
   }, [getSecrets, appRoleDetail]);
 
@@ -210,7 +213,7 @@ const AppRoleDetails = (props) => {
   };
   const onToastClose = () => {
     setStatus({});
-    setGetResponseType(null);
+    setResponseType(null);
   };
 
   /**
@@ -386,7 +389,7 @@ const AppRoleDetails = (props) => {
             <TitleThree extraCss="color:#5e627c">
               {`${secretIdsData?.length || 0} secretIds`}
             </TitleThree>
-            {getResponseType === 1 && (
+            {responseType === 1 && (
               <>
                 {secretIdsData?.length > 0 && (
                   <AppRoleSecrets
@@ -399,13 +402,18 @@ const AppRoleDetails = (props) => {
                     <NoSecretIdWrap>
                       <NoData
                         imageSrc={NoSecretsIcon}
-                        description="There are no secretIds to view here.Once you create a New Approle you’ll be able to add Secret IDs  to this app role here!"
+                        description={
+                          Object.keys(appRoleDetail).length === 0
+                            ? Strings.Resources.noAppRolesAvailable
+                            : 'There is no secret ID available to view.'
+                        }
                         actionButton={
                           // eslint-disable-next-line react/jsx-wrap-multilines
                           <ButtonComponent
                             label="Add"
                             icon="add"
                             color="secondary"
+                            disabled={Object.keys(appRoleDetail).length === 0}
                             onClick={() => createSecretId()}
                             width={isMobileScreen ? '44%' : ''}
                           />
@@ -418,7 +426,7 @@ const AppRoleDetails = (props) => {
                 )}
               </>
             )}
-            {getResponseType === -1 && (
+            {responseType === -1 && (
               <Error description="Error while fetching secretId's" />
             )}
           </TabPanel>

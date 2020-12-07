@@ -576,7 +576,7 @@ const AppRolesDashboard = () => {
                 path="/vault-app-roles"
                 render={(routerProps) => (
                   <ListItemDetail
-                    listItemDetails={appRoleList}
+                    listItemDetails={listItemDetails}
                     params={routerProps}
                     backToLists={backToAppRoles}
                     ListDetailHeaderBg={
@@ -587,6 +587,9 @@ const AppRolesDashboard = () => {
                         : sectionHeaderBg
                     }
                     description={introduction}
+                    renderContent={
+                      <AppRoleDetails appRoleDetail={listItemDetails} />
+                    }
                   />
                 )}
               />
