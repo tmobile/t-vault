@@ -178,6 +178,7 @@ const AppRoleSecrets = (props) => {
     setCheckedSecretIds([...tempChecks]);
     setCheckBoxClicked(true);
   };
+
   return (
     <ComponentError>
       <>

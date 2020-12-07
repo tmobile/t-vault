@@ -30,7 +30,7 @@ const StyledTree = styled.div`
   }
 `;
 const Tree = (props) => {
-  const { data } = props;
+  const { data, userHavePermission } = props;
   const [secretsFolder, setSecretsFolder] = useState([]);
   const [isAddInput, setIsAddInput] = useState(false);
   const [inputType, setInputType] = useState({});
@@ -327,6 +327,7 @@ const Tree = (props) => {
           onDeleteTreeItem={onDeleteTreeItem}
           secretprefilledData={secretprefilledData}
           setSecretprefilledData={setSecretprefilledData}
+          userHavePermission={userHavePermission}
         />
         {status.status === 'failed' ? (
           <SnackbarComponent
@@ -373,6 +374,7 @@ const Tree = (props) => {
 // props validation
 Tree.propTypes = {
   data: PropTypes.arrayOf(PropTypes.any),
+  userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 Tree.defaultProps = {

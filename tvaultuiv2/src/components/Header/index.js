@@ -122,10 +122,24 @@ const Header = (props) => {
   const [isLogin, setIsLogin] = useState(false);
   const [currentTab, setCurrentTab] = useState('Safes');
   const { location } = props;
+  const [navItems, setNavItems] = useState([]);
   const [userName, setUserName] = useState('User');
   const [state, setState] = useState({
     left: false,
   });
+
+  const generalNavItems = [
+    { label: 'Safes', path: 'safes' },
+    { label: 'Vault AppRoles', path: 'vault-app-roles' },
+    { label: 'Service Accounts', path: 'service-accounts' },
+    { label: 'Certificates', path: 'certificates' },
+    { label: 'IAM Service Accounts', path: 'iam-service-accounts' },
+  ];
+
+  const userPassNavItems = [
+    { label: 'Safes', path: 'safes' },
+    { label: 'Service Accounts', path: 'service-accounts' },
+  ];
 
   const toggleDrawer = (anchor, open) => (event) => {
     if (
@@ -137,13 +151,15 @@ const Header = (props) => {
     }
     setState({ ...state, [anchor]: open });
   };
-  const navItems = [
-    { label: 'Safes', path: 'safes' },
-    { label: 'Vault AppRoles', path: 'vault-app-roles' },
-    { label: 'Service Accounts', path: 'service-accounts' },
-    { label: 'Certificates', path: 'certificates' },
-    { label: 'IAM Service Accounts', path: 'iam-service-accounts' },
-  ];
+
+  useEffect(() => {
+    if (configData.AUTH_TYPE === 'userpass') {
+      setNavItems([...userPassNavItems]);
+    } else {
+      setNavItems([...generalNavItems]);
+    }
+    // eslint-disable-next-line
+  }, []);
 
   const hideSideMenu = (anchor, open) => {
     setState({ ...state, [anchor]: open });
@@ -151,7 +167,7 @@ const Header = (props) => {
 
   const checkToken = () => {
     const loggedIn = localStorage.getItem('token');
-    if (loggedIn) {
+    if (loggedIn !== null) {
       setIsLogin(true);
       const name = localStorage.getItem('displayName');
       if (name) {

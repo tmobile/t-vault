@@ -1,5 +1,6 @@
+/* eslint-disable no-inner-declarations */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 
@@ -7,7 +8,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import { useHistory } from 'react-router-dom';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import addFolderPlus from '../../../../../assets/folder-plus.svg';
 import NamedButton from '../../../../../components/NamedButton';
@@ -100,10 +100,15 @@ const SelectionTabs = (props) => {
   const [value, setValue] = useState(0);
   const [enabledAddFolder, setEnableAddFolder] = useState(false);
   const [secretsFolder, setSecretsFolder] = useState([]);
-  const [getResponse, setGetResponse] = useState(null);
-  const [status, setStatus] = useState({});
-
-  const history = useHistory();
+  const [safePermissionData, setSafePermissionData] = useState({});
+  const [permissionResponseType, setPermissionResponseType] = useState(null);
+  const [userHavePermission, setUserHavePermission] = useState({
+    permission: false,
+    type: '',
+  });
+  const [response, setResponse] = useState({ status: 'loading' });
+  const [toastResponse, setToastResponse] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -115,7 +120,7 @@ const SelectionTabs = (props) => {
     if (reason === 'clickaway') {
       return;
     }
-    setStatus({});
+    setToastResponse(null);
   };
 
   const addSecretsFolderList = (secretFolder) => {
@@ -126,70 +131,102 @@ const SelectionTabs = (props) => {
     folderObj.value = secretFolder.value;
     folderObj.type = secretFolder.type || 'folder';
     folderObj.children = [];
-    setStatus({ status: 'loading', message: 'loading...' });
+    setResponse({ status: 'loading', message: 'loading...' });
     apiService
       .addFolder(folderObj.id)
-      .then((res) => {
-        setStatus({ status: 'success', message: res.data.messages[0] });
+      .then(() => {
+        setResponse({ status: 'success' });
+        setToastResponse(1);
         tempFolders[0].children.push(folderObj);
         setSecretsFolder([...tempFolders]);
       })
       .catch((error) => {
-        setStatus({ status: 'failed', message: 'Secret addition failed' });
-        if (!error.toString().toLowerCase().includes('network')) {
-          if (error.response) {
-            setStatus({
-              status: 'failed',
-              message: error.response?.data.errors[0],
-            });
-            return;
-          }
+        setToastResponse(-1);
+        setResponse({ status: 'success' });
+        if (error?.response?.data?.errors && error.response.data.errors[0]) {
+          setToastMessage(error.response.data.errors[0]);
         }
-        if (error.toString().toLowerCase().includes('422')) {
-          setStatus({
-            status: 'failed',
-            message: 'Folder already exists',
-          });
-          return;
-        }
-        setStatus({
-          status: 'failed',
-          message: 'Network Error!',
-        });
       });
     setEnableAddFolder(false);
   };
 
-  useEffect(() => {
-    const safeObj = history?.location?.state?.safe;
-    if (safeDetail?.path || safeObj?.path) {
-      if (!safeDetail.manage || !safeObj?.manage) {
+  const getSecretDetails = useCallback(() => {
+    if (safeDetail?.path) {
+      setSecretsFolder([]);
+      if (!safeDetail.manage) {
         setValue(0);
       }
       apiService
-        .getSecret(safeDetail.path || safeObj?.path)
+        .getSecret(safeDetail.path)
         .then((res) => {
-          setStatus({});
-          setGetResponse(1);
+          setResponse({ status: 'success' });
           setSecretsFolder([res.data]);
         })
-        .catch((error) => {
-          setGetResponse(-1);
-          if (error.toString().toLowerCase().includes('403')) {
-            return;
-          }
-          if (!error.toString().toLowerCase().includes('network')) {
-            if (error.response) {
-              return;
-            }
-          }
-          setStatus({
+        .catch(() => {
+          setResponse({
             status: 'failed',
             message: 'Network Error',
           });
         });
+    } else {
+      setResponse({ status: 'success' });
     }
-  }, [safeDetail, history]);
+  }, [safeDetail]);
+
+  const fetchPermission = useCallback(() => {
+    setPermissionResponseType(0);
+    setSafePermissionData({});
+    setUserHavePermission({
+      permission: false,
+      type: '',
+    });
+    return apiService
+      .getSafeDetails(`${safeDetail.path}`)
+      .then((res) => {
+        let obj = {};
+        setPermissionResponseType(1);
+        if (res && res.data?.data) {
+          obj = res.data.data;
+          setSafePermissionData({ response: obj, error: '' });
+          if (res.data.data.users) {
+            Object.entries(res.data.data.users).map(([key, val]) => {
+              if (
+                key?.toLowerCase() ===
+                localStorage.getItem('username').toLowerCase()
+              ) {
+                return setUserHavePermission({
+                  permission: true,
+                  type: val?.toLowerCase(),
+                });
+              }
+              return null;
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        setPermissionResponseType(-1);
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          setSafePermissionData({
+            response: {},
+            error: err.response.data.errors[0],
+          });
+        }
+      });
+  }, [safeDetail]);
+
+  useEffect(() => {
+    setResponse({ status: 'loading', message: 'loading...' });
+    if (safeDetail?.manage) {
+      async function fetchData() {
+        await fetchPermission();
+        getSecretDetails();
+      }
+      fetchData();
+    } else {
+      getSecretDetails();
+    }
+  }, [safeDetail, fetchPermission, getSecretDetails]);
 
   return (
     <ComponentError>
@@ -220,7 +257,7 @@ const SelectionTabs = (props) => {
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
-            {enabledAddFolder ? (
+            {enabledAddFolder && (
               <AddFolderModal
                 openModal={enabledAddFolder}
                 setOpenModal={setEnableAddFolder}
@@ -229,36 +266,41 @@ const SelectionTabs = (props) => {
                 parentId={safeDetail.path}
                 handleCancelClick={() => setEnableAddFolder(false)}
               />
-            ) : (
-              <></>
             )}
             <Secrets
               secretsFolder={secretsFolder}
-              secretsStatus={status}
+              secretsStatus={response}
               safeDetail={safeDetail}
-              getResponse={getResponse}
+              userHavePermission={userHavePermission}
               setEnableAddFolder={setEnableAddFolder}
             />
           </TabPanel>
 
           <TabPanel value={value} index={1}>
-            <Permissions safeDetail={safeDetail} refresh={refresh} />
+            <Permissions
+              safeDetail={safeDetail}
+              refresh={refresh}
+              permissionResponseType={permissionResponseType}
+              safePermissionData={safePermissionData}
+              fetchPermission={() => fetchPermission()}
+            />
           </TabPanel>
-
-          <SnackbarComponent
-            open={status.status === 'failed'}
-            onClose={() => onToastClose()}
-            severity="error"
-            icon="error"
-            message={status.message || 'Something went wrong!'}
-          />
-          <SnackbarComponent
-            open={status.status === 'success'}
-            onClose={() => onToastClose()}
-            severity="success"
-            icon="checked"
-            message={status.message || 'Folder added successfully'}
-          />
+          {toastResponse === -1 && (
+            <SnackbarComponent
+              open
+              onClose={() => onToastClose()}
+              severity="error"
+              icon="error"
+              message={toastMessage || 'Something went wrong!'}
+            />
+          )}
+          {toastResponse === 1 && (
+            <SnackbarComponent
+              open
+              onClose={() => onToastClose()}
+              message={toastMessage || 'Folder added successfully'}
+            />
+          )}
         </TabContentsWrap>
       </div>
     </ComponentError>

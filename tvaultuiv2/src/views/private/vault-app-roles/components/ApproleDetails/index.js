@@ -19,6 +19,7 @@ import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
+import Strings from '../../../../../resources';
 import { TitleThree } from '../../../../../styles/GlobalStyles';
 import { exportCSVFile } from '../../../../../services/helper-function';
 import NamedButton from '../../../../../components/NamedButton';
@@ -57,7 +58,7 @@ const bgIconStyle = {
 };
 
 const noDataStyle = css`
-  width: 45%;
+  width: 65%;
   margin: 0 auto;
   ${mediaBreakpoints.small} {
     width: 100%;
@@ -142,8 +143,8 @@ const AppRoleDetails = (props) => {
   const classes = useStyles();
   const [value, setValue] = useState(0);
   const [status, setStatus] = useState({});
-  const [secretIdsData, setSecretIdsData] = useState(null);
-  const [getResponseType, setGetResponseType] = useState(null);
+  const [secretIdsData, setSecretIdsData] = useState([]);
+  const [responseType, setResponseType] = useState(null);
   const [createSecretIdModal, setCreateSecretIdModal] = useState(false);
   const [downloadSecretModal, setDownloadSecretModal] = useState(false);
   const [secretIdInfo, setSecretIdInfo] = useState({});
@@ -158,7 +159,8 @@ const AppRoleDetails = (props) => {
   // Function to get the secretIDs  of the given approle.
   const getSecrets = useCallback(() => {
     setStatus({ status: 'loading' });
-    setGetResponseType(null);
+    setSecretIdsData([]);
+    setResponseType(null);
     apiService
       .getAccessors(appRoleDetail?.name)
       .then((res) => {
@@ -166,7 +168,7 @@ const AppRoleDetails = (props) => {
         if (res?.data) {
           setSecretIdsData(res.data.keys);
         }
-        setGetResponseType(1);
+        setResponseType(1);
       })
       .catch((err) => {
         setStatus({});
@@ -177,13 +179,15 @@ const AppRoleDetails = (props) => {
         ) {
           setStatus({ message: err.response.data.errors[0] });
         }
-        setGetResponseType(-1);
+        setResponseType(-1);
       });
   }, [appRoleDetail]);
 
   useEffect(() => {
-    if (appRoleDetail) {
+    if (Object.keys(appRoleDetail).length > 0) {
       getSecrets();
+    } else {
+      setResponseType(1);
     }
   }, [getSecrets, appRoleDetail]);
 
@@ -209,7 +213,7 @@ const AppRoleDetails = (props) => {
   };
   const onToastClose = () => {
     setStatus({});
-    setGetResponseType(null);
+    setResponseType(null);
   };
 
   /**
@@ -368,51 +372,63 @@ const AppRoleDetails = (props) => {
               {...a11yProps(0)}
             />
           </Tabs>
-          <NamedButton
-            label="+Create SecretId"
-            onClick={createSecretId}
-            customStyle={customBtnStyles}
-            // iconSrc={addFolderPlus}
-          />
+          {appRoleDetail.name && (
+            <NamedButton
+              label="+Create SecretId"
+              onClick={createSecretId}
+              customStyle={customBtnStyles}
+              // iconSrc={addFolderPlus}
+            />
+          )}
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
             {status?.status === 'loading' && (
-              <BackdropLoader color="secondary" classes={classes} />
+              <BackdropLoader color="secondary" />
             )}
             <TitleThree extraCss="color:#5e627c">
               {`${secretIdsData?.length || 0} secretIds`}
             </TitleThree>
-            {getResponseType === 1 && secretIdsData?.length ? (
-              <AppRoleSecrets
-                secretIds={secretIdsData}
-                deleteSecretIds={OnDeleteSecretIds}
-              />
-            ) : getResponseType === 1 && secretIdsData?.length === 0 ? (
-              <NoDataWrapper>
-                {' '}
-                <NoSecretIdWrap>
-                  <NoData
-                    imageSrc={NoSecretsIcon}
-                    description="There are no secretIds to view here.Once you create a New Approle you’ll be able to add Secret IDs  to this app role here!"
-                    actionButton={
-                      // eslint-disable-next-line react/jsx-wrap-multilines
-                      <ButtonComponent
-                        label="Add"
-                        icon="add"
-                        color="secondary"
-                        onClick={() => createSecretId()}
-                        width={isMobileScreen ? '44%' : ''}
-                      />
-                    }
-                    bgIconStyle={bgIconStyle}
-                    customStyle={noDataStyle}
+            {responseType === 1 && (
+              <>
+                {secretIdsData?.length > 0 && (
+                  <AppRoleSecrets
+                    secretIds={secretIdsData}
+                    deleteSecretIds={OnDeleteSecretIds}
                   />
-                </NoSecretIdWrap>
-              </NoDataWrapper>
-            ) : getResponseType === -1 ? (
+                )}
+                {secretIdsData?.length === 0 && (
+                  <NoDataWrapper>
+                    <NoSecretIdWrap>
+                      <NoData
+                        imageSrc={NoSecretsIcon}
+                        description={
+                          Object.keys(appRoleDetail).length === 0
+                            ? Strings.Resources.noAppRolesAvailable
+                            : 'There is no secret ID available to view.'
+                        }
+                        actionButton={
+                          // eslint-disable-next-line react/jsx-wrap-multilines
+                          <ButtonComponent
+                            label="Add"
+                            icon="add"
+                            color="secondary"
+                            disabled={Object.keys(appRoleDetail).length === 0}
+                            onClick={() => createSecretId()}
+                            width={isMobileScreen ? '44%' : ''}
+                          />
+                        }
+                        bgIconStyle={bgIconStyle}
+                        customStyle={noDataStyle}
+                      />
+                    </NoSecretIdWrap>
+                  </NoDataWrapper>
+                )}
+              </>
+            )}
+            {responseType === -1 && (
               <Error description="Error while fetching secretId's" />
-            ) : null}
+            )}
           </TabPanel>
         </TabContentsWrap>
         {status.status === 'success' && (
@@ -436,7 +452,7 @@ const AppRoleDetails = (props) => {
   );
 };
 AppRoleDetails.propTypes = {
-  appRoleDetail: PropTypes.objectOf(PropTypes.object).isRequired,
+  appRoleDetail: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 AppRoleDetails.defaultProps = {};
 

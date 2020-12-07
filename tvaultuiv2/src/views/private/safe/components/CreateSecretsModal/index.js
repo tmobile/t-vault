@@ -81,7 +81,7 @@ CreateSecretModal.propTypes = {
   handleSecretSave: PropTypes.func,
   handleSecretCancel: PropTypes.func,
   parentId: PropTypes.string,
-  secretprefilledData: PropTypes.objectOf(PropTypes.object),
+  secretprefilledData: PropTypes.objectOf(PropTypes.any),
 };
 CreateSecretModal.defaultProps = {
   openModal: false,

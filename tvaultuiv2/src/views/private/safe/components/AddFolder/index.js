@@ -86,7 +86,7 @@ const AddFolder = (props) => {
     });
     if (isFolderExist) {
       setErrorMessage(
-        "Folder already exist's, You can't store secrets in folders having same name "
+        "Folder already exists, You can't store secrets in folders having same name "
       );
       setError(true);
     }
@@ -120,7 +120,7 @@ const AddFolder = (props) => {
             fullWidth
             error={error}
             helperText={
-              errorMessage && errorMessage.includes("Folder already exist's")
+              errorMessage && errorMessage.includes('Folder already exist')
                 ? errorMessage
                 : 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.'
             }

@@ -643,7 +643,7 @@ const CertificatesDashboard = () => {
         setToastMessage('Certificate released successfully!');
       })
       .catch((e) => {
-        if (e.response.data.errors && e.response.data.errors[0]) {
+        if (e?.response?.data?.errors && e?.response?.data?.errors[0]) {
           setToastMessage(e.response.data.errors[0]);
         }
         setResponseType(-1);
@@ -676,7 +676,7 @@ const CertificatesDashboard = () => {
         setToastMessage('SSL certificate onboarded successfully!');
       })
       .catch((e) => {
-        if (e.response.data.errors && e.response.data.errors[0]) {
+        if (e?.response?.data?.errors && e?.response?.data?.errors[0]) {
           setToastMessage(e.response.data.errors[0]);
         }
         setResponseType(-1);
