@@ -573,7 +573,7 @@ public class SafesServiceTest {
         when(ControllerUtil.areSafeUserInputsValid(safeUser)).thenReturn(false);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
         
-        ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
+        ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null, false);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1777,7 +1777,7 @@ public class SafesServiceTest {
 
             when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails, true)).thenReturn(responseEntity2);
 			when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
-			ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
+			ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails, false);
 			assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
 			assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1861,7 +1861,7 @@ public class SafesServiceTest {
 			when(OIDCUtil.updateOIDCEntity(any(), any()))
 					.thenReturn(responseEntity3);
               when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails, true)).thenReturn(responseEntity2);
-     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
+     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails, false);
      assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
      assertEquals(responseEntityExpected, responseEntity);
  }
@@ -1902,7 +1902,7 @@ public class SafesServiceTest {
 	          when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 	          when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
 
-	          ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
+	          ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null, false);
 	          assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 	          assertEquals(responseEntityExpected, responseEntity);
 	      }
@@ -1998,7 +1998,7 @@ public class SafesServiceTest {
 					.thenReturn(responseEntity3);
 			when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails, true)).thenReturn(responseEntity2);
      
-     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
+     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails, false);
      assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
      assertEquals(responseEntityExpected, responseEntity);
  }
@@ -2090,7 +2090,7 @@ public class SafesServiceTest {
 			Response responseEntity3 = getMockResponse(HttpStatus.BAD_REQUEST, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 		when(OIDCUtil.updateOIDCEntity(any(), any())).thenReturn(responseEntity3);
      when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails, true)).thenReturn(responseEntity2);
-     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
+     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails, false);
      assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
  }
 }

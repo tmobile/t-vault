@@ -216,7 +216,7 @@ public class SDBControllerV2Test {
         String inputJson =new ObjectMapper().writeValueAsString(safeUser);
         String responseJson = "{\"messages\":[\"User is successfully associated \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-        when(safesService.addUserToSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), eq(null))).thenReturn(responseEntityExpected);
+        when(safesService.addUserToSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), eq(null), eq(false))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/sdb/user")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
