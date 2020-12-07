@@ -128,12 +128,12 @@ public class IAMServiceAccountUtils {
 
         StringBuilder jsonResponse = new StringBuilder();
 
+        BufferedReader br = null;
         try {
             HttpResponse apiResponse = httpClient.execute(httpPost);
             if (apiResponse.getStatusLine().getStatusCode() != 200) {
                 return null;
             }
-
             readResponseContent(jsonResponse, apiResponse, "getIAMApproleToken");
             String iamPortalToken = null;
             JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
@@ -153,6 +153,14 @@ public class IAMServiceAccountUtils {
                     put(LogMessage.MESSAGE, "Failed to parse Approle login response").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
+        }finally {
+        	if(br!=null) {
+        		try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+        	}
         }
         return null;
     }
@@ -243,15 +251,16 @@ public class IAMServiceAccountUtils {
 
         StringBuilder jsonResponse = new StringBuilder();
 
+        BufferedReader r = null;
+        BufferedReader br = null;
         try {
             HttpResponse apiResponse = httpClient.execute(httpPut);
             if (apiResponse.getStatusLine().getStatusCode() != 200) {
                 readFailedResponseForIAMSecret(apiResponse);
+
                 return null;
             }
-
             readResponseContent(jsonResponse, apiResponse, "rotateIAMSecret");
-
             IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret();
             JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
             if (!responseJson.isJsonNull()) {
@@ -277,6 +286,21 @@ public class IAMServiceAccountUtils {
                     put(LogMessage.MESSAGE, "Failed to parse IAM Secret response").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
+        }finally {
+        	if(r!=null) {
+        		try {
+					r.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+        	}
+        	if(br!=null) {
+        		try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+        	}
         }
         return null;
     }
