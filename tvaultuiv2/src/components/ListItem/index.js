@@ -6,7 +6,6 @@ import Avatar from '@material-ui/core/Avatar';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 import { TitleOne } from '../../styles/GlobalStyles';
 import ListItemIcon from '../../assets/icon_safes.svg';
-import { customColor } from '../../theme';
 import PopperElement from '../Popper';
 
 const FolderWrap = styled('div')`
@@ -60,7 +59,7 @@ const PopperItem = styled.div`
     margin-right: 0.75rem;
   }
   :hover {
-    background: ${customColor.magenta};
+    background: ${(props) => props.theme.gradients.list || 'none'};
   }
 `;
 const LabelWrap = styled.div`

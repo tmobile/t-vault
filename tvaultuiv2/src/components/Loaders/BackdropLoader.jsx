@@ -29,7 +29,7 @@ const BackdropLoader = (props) => {
 };
 BackdropLoader.propTypes = {
   color: PropTypes.string,
-  classes: PropTypes.objectOf(PropTypes.object),
+  classes: PropTypes.objectOf(PropTypes.any),
 };
 BackdropLoader.defaultProps = {
   color: 'secondary',

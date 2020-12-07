@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import SyncAltIcon from '@material-ui/icons/SyncAlt';
 import { IconDeleteActive, IconEdit } from '../../../../../assets/SvgIcons';
 import PopperElement from '../../../../../components/Popper';
-import { customColor } from '../../../../../theme';
 
 const FolderIconWrap = styled('div')`
   display: flex;
@@ -32,7 +31,7 @@ const PopperItem = styled.div`
     margin-right: 0.75rem;
   }
   :hover {
-    background: ${customColor.magenta};
+    background: ${(props) => props.theme.gradients.list || 'none'};
   }
 `;
 
