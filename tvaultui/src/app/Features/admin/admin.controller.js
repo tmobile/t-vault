@@ -1707,8 +1707,9 @@
         }
         
         $scope.appNameSelect = function(){
+            $scope.appNameSelected =false;
+            $scope.notificationEmailErrorMessage = '';
             $scope.certObj.certDetails.notificationEmails="";
-            $scope.appNameSelected = false;
             $scope.selectedNotificationEmails = [];
             $scope.notificationEmails = [];
             clearNotificationEmails();
