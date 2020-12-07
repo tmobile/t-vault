@@ -152,6 +152,7 @@ const SelectionTabs = (props) => {
 
   const getSecretDetails = useCallback(() => {
     if (safeDetail?.path) {
+      setSecretsFolder([]);
       if (!safeDetail.manage) {
         setValue(0);
       }

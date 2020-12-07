@@ -565,6 +565,7 @@ const OnboardCertificates = (props) => {
                   handleClose={() => onCloseModal()}
                   onEditClicked={() => setShowPreviewData(false)}
                   onCreateClicked={() => onCreateClicked()}
+                  onboard
                 />
               </PreviewWrap>
               <OnboardFormWrap showPreviewData={showPreviewData}>
