@@ -1903,7 +1903,6 @@
 
         $scope.successCancel = function () {
             Modal.close('');
-            $scope.selectedTab = 0;
             if($scope.selectedTab == 1){
               	 getCertificates("", null, null,"external");
             }else{
@@ -2335,16 +2334,30 @@
             }
 
             $scope.deleteDns = function (id) {
-                var dnsElement = angular.element( document.querySelector( '#'+id ) );
-                dnsElement.remove();
                 var index = id.substring(3);
                 $scope.selectedMultiSan = [];
+                var deletedDns = "";
                 for (var i=0;i<$scope.multiSan.length;i++) {
                     if (index != $scope.multiSan[i].id) {
-                        $scope.selectedMultiSan.push($scope.multiSan[i]);
+                        var dnsId = $scope.selectedMultiSan.length;
+                        $scope.selectedMultiSan.push({ "id": dnsId, "name":$scope.multiSan[i].name});
+                    }
+                    if (index == $scope.multiSan[i].id) {
+                        deletedDns = $scope.multiSan[i].name;
                     }
                 }
                 $scope.multiSan = $scope.selectedMultiSan;
+                angular.element('#dnslist').html("");
+                var j = 0;
+                $scope.multiSan.forEach(function (multiSanDnsName) {
+                    var id = "dns"+ (j++);
+                    angular.element('#dnslist').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-8 col-md-8 col-sm-8 col-xs-8 ng-binding dns-name">'+multiSanDnsName.name+'</div><div class="container radio-inputs col-lg-4 col-md-4 col-sm-4 col-xs-4 dns-delete"><div class="down"><div ng-click="deleteDns(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+                });
+
+                if($scope.multiSanDnsName.name != "" && deletedDns.toLowerCase() == $scope.multiSanDnsName.name.toLowerCase()) {
+                    $scope.certDnsErrorMessage = '';
+                    $scope.dnsInvalid = false;
+                }
             }
             
             $scope.AddorRemoveDNS= function (id) {
@@ -2641,38 +2654,66 @@
         }
 
         $scope.deleteNotificationEmail = function (id) {
-            var notificationEmailElement = angular.element( document.querySelector( '#'+id ) );
-            notificationEmailElement.remove();
             var index = id.substring(17);
             $scope.selectedNotificationEmails = [];
+            var deletedEmail = "";
             for (var i=0;i<$scope.notificationEmails.length;i++) {
                 if (index != $scope.notificationEmails[i].id) {
-                    $scope.selectedNotificationEmails.push($scope.notificationEmails[i]);
+                    var notifyId = $scope.selectedNotificationEmails.length;
+                    $scope.selectedNotificationEmails.push({ "id": notifyId, "email":$scope.notificationEmails[i].email});
+                }
+                if (index == $scope.notificationEmails[i].id) {
+                    deletedEmail = $scope.notificationEmails[i].email;
                 }
             }
+
             $scope.notificationEmails = $scope.selectedNotificationEmails;
+            angular.element('#notificationEmailList').html("");
+            var j = 0;
+            $scope.notificationEmails.forEach(function (email) {
+                var id = "notificationemail"+ (j++);
+                angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+            });
             $scope.isNotificationEmailSelected = false;
+            if($scope.notificationEmail.email != "" && deletedEmail.toLowerCase() == $scope.notificationEmail.email.toLowerCase()) {
+                $scope.notificationEmailErrorMessage = '';
+                $scope.isNotificationEmailSelected = true;
+            }
         }
 
-        $scope.deleteOnboardNotificationEmail = function (id) {
-            var notificationEmailElement = angular.element( document.querySelector( '#'+id ) );
-            notificationEmailElement.remove();
-            var index = id.substring(3);
+        $scope.deleteOnboardNotificationEmail = function (emailId) {
+            var index = emailId.substring(3);
             $scope.selectedNotificationEmails = [];
+            var deletedEmail = "";
             for (var i=0;i<$scope.notificationEmails.length;i++) {
                 if (index != $scope.notificationEmails[i].id) {
-                    $scope.selectedNotificationEmails.push($scope.notificationEmails[i]);
+                    var notifyId = $scope.selectedNotificationEmails.length;
+                    $scope.selectedNotificationEmails.push({ "id": notifyId, "email":$scope.notificationEmails[i].email});
+                }
+                if (index == $scope.notificationEmails[i].id) {
+                    deletedEmail = $scope.notificationEmails[i].email;
                 }
             }
             $scope.notificationEmails = $scope.selectedNotificationEmails;
+            angular.element('#notificationEmailList').html("");
+            var j = 0;
+            $scope.notificationEmails.forEach(function (email) {
+                var id = "dns"+ (j++);
+                angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteOnboardNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+            });
             $scope.isNotificationEmailSelected = false;
+            if($scope.notificationEmail.email != "" && deletedEmail.toLowerCase() == $scope.notificationEmail.email.toLowerCase()) {
+                $scope.notificationEmailErrorMessage = '';
+                $scope.isNotificationEmailSelected = true;
+            }
         }
 
         $scope.clearOnboardOwnerEmail = function () {
             $scope.selectedNotificationEmails = [];
             for (var i=0;i<$scope.notificationEmails.length;i++) {
                 if ($scope.certificateToOnboard.ownerEmail !=="" && $scope.certificateToOnboard.ownerEmail.toLowerCase() !== $scope.notificationEmails[i].email.toLowerCase()) {
-                    $scope.selectedNotificationEmails.push($scope.notificationEmails[i]);
+                    var notifyId = $scope.selectedNotificationEmails.length;
+                    $scope.selectedNotificationEmails.push({ "id": notifyId, "email":$scope.notificationEmails[i].email});
                 }
             }
             $scope.notificationEmails = $scope.selectedNotificationEmails;
@@ -2848,7 +2889,7 @@
                 var sslcertType = 'PRIVATE_SINGLE_SAN';
                 $scope.appNameTagValue=$scope.certObj.certDetails.applicationName;
                 $scope.certObj.sslcertType = sslcertType;
-                var multiSanDns = [];
+                var multiSanDnsOnboard = [];
                 $scope.certificateToOnboard.notificationEmails = "";
                 $scope.notificationEmails.forEach(function (email) {
                     addNotificationEmailString(email.email);
@@ -2860,7 +2901,7 @@
                     "certOwnerEmailId":$scope.certificateToOnboard.ownerEmail,
                     "certOwnerNTId":$scope.certificateToOnboard.ownerNtId,
                     "notificationEmail": $scope.certificateToOnboard.notificationEmails,
-                    "dnsList": multiSanDns
+                    "dnsList": multiSanDnsOnboard
                 }
                 $scope.certificateOnboardMessage = '';
                 var url = '';
@@ -2952,6 +2993,13 @@
                 angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteOnboardNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
             });
         }
+
+        $scope.successCancelOnboardCert = function () {
+            Modal.close('');
+            $scope.selectedTab = 0;
+            getCertificates("", null, null,"internal");
+            $window.scrollTo(0, angular.element(document.getElementById('certificateStart'))[0].offsetTop);
+        };
 
         $scope.offboardDecommissionedSvcacc = function (svcaccUserId) {
             if (svcaccUserId != '') {

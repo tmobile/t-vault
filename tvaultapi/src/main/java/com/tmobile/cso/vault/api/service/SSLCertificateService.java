@@ -1566,7 +1566,9 @@ public class SSLCertificateService {
         sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
         sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
         sslCertificateMetadataDetails.setContainerId(containerId);
-        sslCertificateMetadataDetails.setNotificationEmails(sslCertificateRequest.getNotificationEmail());
+		String[] notifEmailLst = sslCertificateRequest.getNotificationEmail().split(",");
+		notifEmailLst = Arrays.stream(notifEmailLst).map(String::toLowerCase).distinct().toArray(String[]::new);
+		sslCertificateMetadataDetails.setNotificationEmails(String.join(",", notifEmailLst));
 
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -1587,7 +1589,9 @@ public class SSLCertificateService {
                 sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
                 sslCertificateMetadataDetails.setRequestStatus(SSLCertificateConstants.REQUEST_PENDING_APPROVAL);
                 sslCertificateMetadataDetails.setActionId(actionId);
-                sslCertificateMetadataDetails.setNotificationEmails(sslCertificateRequest.getNotificationEmail());
+				String[] notifEmailLst = sslCertificateRequest.getNotificationEmail().split(",");
+				notifEmailLst = Arrays.stream(notifEmailLst).map(String::toLowerCase).distinct().toArray(String[]::new);
+				sslCertificateMetadataDetails.setNotificationEmails(String.join(",", notifEmailLst));
             }
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -1596,7 +1600,6 @@ public class SSLCertificateService {
                             sslCertificateMetadataDetails.getCertificateName())).
                     build()));
         }
-
 
         SSLCertMetadata sslCertMetadata = new SSLCertMetadata(certMetadataPath, sslCertificateMetadataDetails);
         String jsonStr = JSONUtil.getJSON(sslCertMetadata);
@@ -9532,9 +9535,9 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 				sslCertificateMetadataDetails.setApplicationOwnerEmailId(appOwnerEmail);
 				sslCertificateMetadataDetails.setApplicationTag(applicationTag);
 				sslCertificateMetadataDetails.setApplicationName(applicationName);
-
-				sslCertificateMetadataDetails.setNotificationEmails(notificationEmails);
-
+				String[] notifEmailLst = notificationEmails.split(",");
+				notifEmailLst = Arrays.stream(notifEmailLst).map(String::toLowerCase).distinct().toArray(String[]::new);
+				sslCertificateMetadataDetails.setNotificationEmails(String.join(",", notifEmailLst));
 			}
 		}
 	}
@@ -9556,8 +9559,8 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
     			&& (certificateUpdateRequest.getProjectLeadEmail()!=null ? validateCertficateEmail(certificateUpdateRequest.getProjectLeadEmail() ):true)) {
     		isValidData = true;
     		if(certificateUpdateRequest.getNotificationEmail()!=null) {
-    			notifEmailLst =   certificateUpdateRequest.getNotificationEmail().split(",");
-    			notifEmailLst = new HashSet<String>(Arrays.asList(notifEmailLst)).toArray(new String[0]);
+				notifEmailLst = certificateUpdateRequest.getNotificationEmail().split(",");
+				notifEmailLst = Arrays.stream(notifEmailLst).map(String::toLowerCase).distinct().toArray(String[]::new);
     			for(int i=0; i<notifEmailLst.length;i++) {
     				if(validateCertficateEmail(notifEmailLst[i] )) {
     					count++;
