@@ -853,7 +853,7 @@ public class  SafesService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, "Add User to SDB").
-						put(LogMessage.MESSAGE, String.format ("Trying to update metadata [%s]", params)).
+						put(LogMessage.MESSAGE, String.format ("Trying to update metadata [%s]", params.toString())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
@@ -1182,16 +1182,16 @@ public class  SafesService {
 		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		String jsonstr = JSONUtil.getJSON(safeUser);
 		String removingAccess=safeUser.getAccess();
-		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				  put(LogMessage.ACTION, "Remove User from SDB").
-			      put(LogMessage.MESSAGE, String.format ("Trying to remove user from SDB [%s]]", safeUser.getPath())).
-			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-			      build()));
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String> requestMap = null;
 		try {
 			requestMap = objMapper.readValue(jsonstr, new TypeReference<Map<String,String>>() {});
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					  put(LogMessage.ACTION, "Remove User from SDB").
+				      put(LogMessage.MESSAGE, String.format ("Trying to remove user from SDB [%s]]", safeUser.getPath())).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				      build()));
 		} catch (IOException e) {
 			log.error(e);
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
