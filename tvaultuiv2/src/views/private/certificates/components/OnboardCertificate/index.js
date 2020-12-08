@@ -128,7 +128,9 @@ const AutoInputFieldLabelWrapper = styled.div`
 
 const EndingBox = styled.div`
   background-color: ${(props) =>
-    props.theme.customColor.primary.backgroundColor};
+    props.applicationName === ''
+      ? 'rgba(0, 0, 0, 0.12)'
+      : props.theme.customColor.primary.backgroundColor};
   color: ${(props) => props.theme.customColor.primary.color};
   width: ${(props) => props.width};
   display: flex;
@@ -618,13 +620,7 @@ const OnboardCertificates = (props) => {
                   </FieldInstruction>
                 </InputFieldLabelWrapper>
                 <NotificationEmailsWrap>
-                  {applicationName === '' && (
-                    <FieldInstruction>
-                      Select application name and add/update notification
-                      emails.
-                    </FieldInstruction>
-                  )}
-                  {applicationName && !searchNotificationsEmail && (
+                  {!searchNotificationsEmail && (
                     <InputLabel>
                       Add Emails to Notify
                       <RequiredCircle margin="1.3rem" />
@@ -637,13 +633,14 @@ const OnboardCertificates = (props) => {
                     </FetchingWrap>
                   )}
                 </NotificationEmailsWrap>
-                {applicationName && !searchNotificationsEmail && (
+                {!searchNotificationsEmail && (
                   <NotificationAutoWrap>
                     <AutoInputFieldLabelWrapper>
                       <AutoCompleteComponent
                         options={notifyOptions}
                         classes={classes}
                         searchValue={notifyEmail}
+                        disabled={applicationName === ''}
                         icon="search"
                         name="notifyEmail"
                         onSelected={(e, val) => onNotifyEmailSelected(e, val)}
@@ -664,7 +661,7 @@ const OnboardCertificates = (props) => {
                       {notifyAutoLoader && (
                         <LoaderSpinner customStyle={notifyAutoLoaderStyle} />
                       )}
-                      <EndingBox width="4rem">
+                      <EndingBox width="4rem" applicationName={applicationName}>
                         <ReturnIcon onClick={() => onAddEmailClicked()}>
                           <KeyboardReturnIcon />
                         </ReturnIcon>

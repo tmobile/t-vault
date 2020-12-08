@@ -410,10 +410,12 @@ const CertificatesDashboard = () => {
     const externalArray = allCertList?.filter(
       (item) => item?.certType === 'external'
     );
+    const onboardArray = allCertList?.filter((item) => item.isOnboardCert);
     setMenu([
       { name: 'All Certificates', count: allCertList?.length || 0 },
       { name: 'Internal Certificates', count: internalArray?.length || 0 },
       { name: 'External Certificates', count: externalArray?.length || 0 },
+      { name: 'Onboard Certificates', count: onboardArray?.length || 0 },
     ]);
   }, [allCertList]);
 
@@ -467,9 +469,14 @@ const CertificatesDashboard = () => {
    */
   const onSelectChange = (value) => {
     setCertificateType(value);
-    if (value !== 'All Certificates') {
+    if (value !== 'All Certificates' && value !== 'Onboard Certificates') {
       const filterArray = allCertList.filter((cert) =>
         value.toLowerCase().includes(cert.certType)
+      );
+      setCertificateList([...filterArray]);
+    } else if (value === 'Onboard Certificates') {
+      const filterArray = allCertList.filter(
+        (cert) => cert.isOnboardCert === true
       );
       setCertificateList([...filterArray]);
     } else {
@@ -485,7 +492,9 @@ const CertificatesDashboard = () => {
   const onSearchChange = (value) => {
     if (value !== '') {
       const searchArray = allCertList.filter((item) =>
-        item.certificateName.includes(value?.toLowerCase())
+        String(item?.certificateName?.toLowerCase()).startsWith(
+          value?.toLowerCase()
+        )
       );
       setCertificateList([...searchArray]);
     } else {
@@ -497,7 +506,9 @@ const CertificatesDashboard = () => {
   useEffect(() => {
     if (certificateType !== 'All Certificates' && inputSearchValue) {
       const array = certificateList.filter((cert) =>
-        cert.certificateName.includes(inputSearchValue?.toLowerCase)
+        String(cert?.certificateName?.toLowerCase()).startsWith(
+          inputSearchValue?.toLowerCase()
+        )
       );
       setCertificateList([...array]);
     } else if (certificateType === 'All Certificates' && inputSearchValue) {
