@@ -360,7 +360,9 @@ const SafeDashboard = () => {
     setInputSearchValue(value);
     if (value !== '') {
       const array = allSafeList?.filter((item) => {
-        return String(item.name).startsWith(value);
+        return String(item?.name?.toLowerCase()).startsWith(
+          value?.toLowerCase()
+        );
       });
       setSafeList([...array]);
     } else {
@@ -391,7 +393,9 @@ const SafeDashboard = () => {
       const array = allSafeList.filter(
         (item) =>
           item.path.split('/')[0] === obj.path &&
-          String(item.name).startsWith(inputSearchValue)
+          String(item?.name?.toLowerCase()).startsWith(
+            inputSearchValue?.toLowerCase()
+          )
       );
       setSafeList([...array]);
     } else if (safeType === 'All Safes' && inputSearchValue) {

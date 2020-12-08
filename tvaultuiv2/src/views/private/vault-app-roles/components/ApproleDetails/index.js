@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useState, useEffect, useCallback } from 'react';
@@ -45,13 +46,8 @@ const NoDataWrapper = styled.div`
   justify-content: center;
   align-items: center;
   color: #5e627c;
-  span {
-    margin: 0 0.4rem;
-    color: #fff;
-    font-weight: bold;
-    text-transform: uppercase;
-  }
 `;
+
 const bgIconStyle = {
   width: '16rem',
   height: '16rem',
@@ -68,14 +64,7 @@ const noDataStyle = css`
 const NoSecretIdWrap = styled.div`
   width: 100%;
 `;
-// const customLoaderStyle = css`
-//   position: absolute;
-//   left: 50%;
-//   top: 50%;
-//   transform: translate(-50%, -50%);
-//   color: red;
-//   z-index: 1;
-// `;
+
 const customBtnStyles = css`
   padding: 0.2rem 1rem;
   border-radius: 0.5rem;
@@ -408,15 +397,17 @@ const AppRoleDetails = (props) => {
                             : 'There is no secret ID available to view.'
                         }
                         actionButton={
-                          // eslint-disable-next-line react/jsx-wrap-multilines
-                          <ButtonComponent
-                            label="Add"
-                            icon="add"
-                            color="secondary"
-                            disabled={Object.keys(appRoleDetail).length === 0}
-                            onClick={() => createSecretId()}
-                            width={isMobileScreen ? '44%' : ''}
-                          />
+                          <>
+                            {Object.keys(appRoleDetail).length !== 0 && (
+                              <ButtonComponent
+                                label="add"
+                                icon="add"
+                                color="secondary"
+                                onClick={() => createSecretId()}
+                                width={isMobileScreen ? '44%' : ''}
+                              />
+                            )}
+                          </>
                         }
                         bgIconStyle={bgIconStyle}
                         customStyle={noDataStyle}

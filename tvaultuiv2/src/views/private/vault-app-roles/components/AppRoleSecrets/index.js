@@ -27,7 +27,6 @@ const SecretsList = styled.div`
   margin-top: 0.5rem;
   justify-content: space-between;
   align-items: center;
-  background-color: ${BackgroundColor.listBg};
   padding: 1.2rem 0 0;
   height: calc(100% - 3.8rem);
   overflow: auto;
