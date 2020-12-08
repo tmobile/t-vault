@@ -293,7 +293,10 @@ const AppRolesDashboard = () => {
     if (appRoleList?.length > 0) {
       const val = location.pathname.split('/');
       const roleName = val[val.length - 1];
-      if (roleName !== 'create-vault-app-role') {
+      if (
+        roleName !== 'create-vault-app-role' &&
+        roleName !== 'edit-vault-app-role'
+      ) {
         const obj = appRoleList.find((role) => role.name === roleName);
         if (obj) {
           setListItemDetails({ ...obj });

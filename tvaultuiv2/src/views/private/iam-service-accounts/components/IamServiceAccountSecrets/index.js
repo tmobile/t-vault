@@ -15,7 +15,7 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import apiService from '../../apiService';
 import lock from '../../../../../assets/icon_lock.svg';
 import refreshIcon from '../../../../../assets/refresh-ccw.svg';
-import accessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
+import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
@@ -413,7 +413,7 @@ const IamServiceAccountSecrets = (props) => {
             ))
           : null}
 
-        {!isIamSvcAccountActive && (
+        {!isIamSvcAccountActive && accountDetail?.name && (
           <UserList>
             <LabelWrap>
               <ReportProblemOutlinedIcon />
@@ -438,12 +438,12 @@ const IamServiceAccountSecrets = (props) => {
             }
           />
         )}
-        {response.status === 'no-permission' && (
+        {!accountDetail?.name && (
           <AccessDeniedWrap>
-            <AccessDeniedIcon src={accessDeniedLogo} alt="accessDeniedLogo" />
+            <AccessDeniedIcon src={NoSecretsIcon} alt="accessDeniedLogo" />
             <NoPermission>
-              Access denied: no permission to read the password details for the{' '}
-              <span>{accountDetail.name}</span> service account.
+              Once you onboard a <span>Service Account</span> you’ll be able to
+              view <span>Secret</span> all here!
             </NoPermission>
           </AccessDeniedWrap>
         )}
