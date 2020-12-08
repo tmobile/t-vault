@@ -1189,7 +1189,7 @@ public class  SafesService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					  put(LogMessage.ACTION, "Remove User from SDB").
-				      put(LogMessage.MESSAGE, String.format ("Trying to remove user from SDB [%s]]", safeUser.getPath())).
+				      put(LogMessage.MESSAGE, String.format ("Trying to remove user from SDB [%s]", safeUser.getPath())).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				      build()));
 		} catch (IOException e) {
@@ -1661,12 +1661,6 @@ public class  SafesService {
 	 * @return
 	 */
 	public ResponseEntity<String> addAwsRoleToSafe(String token, AWSRole awsRole) {
-		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION, "Add AwsRole to SDB").
-				put(LogMessage.MESSAGE, String.format ("Trying to Add AwsRole [%s] to Safe [%s]", awsRole.getRole(),awsRole.getPath())).
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-				build()));
 		String jsonstr = JSONUtil.getJSON(awsRole);
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String> requestMap = null;
@@ -1678,6 +1672,12 @@ public class  SafesService {
 		if(!ControllerUtil.areAWSRoleInputsValid(requestMap)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "Add AwsRole to SDB").
+				put(LogMessage.MESSAGE, String.format ("Trying to Add AwsRole [%s] to Safe [%s]", awsRole.getRole(),awsRole.getPath())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		String role = (String)requestMap.get("role");
 		String path = (String)requestMap.get("path");
 		String access = (String)requestMap.get("access");
