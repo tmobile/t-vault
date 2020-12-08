@@ -23,6 +23,9 @@ const ListItemAvatarWrap = styled.div`
     height: 3.9rem;
     border-radius: 0;
   }
+  .MuiAvatar-img {
+    width: auto;
+  }
   display: flex;
   align-items: center;
 `;

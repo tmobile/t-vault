@@ -47,6 +47,8 @@ const Resources = {
     'Suggestions for improvements and features are welcome, please reach out to T-Vault@T-Mobile.com if you have any to share. For more information on how to manage certificates please go <a href="https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/">here</a>.',
   iamServiceAccountDesc:
     'IAM Service Accounts can only be modified in AWS/IAM. You can only view the details of this IAM Service Account and rotate the associaed secret within T-vault. The associated secret needs to be rotated to active the account, ',
+  noAppRolesAvailable:
+    'Once you create a <strong>New Approle</strong> you’ll be able to add <strong>Secret</strong> to view them all here!',
 };
 
 export default { Resources };

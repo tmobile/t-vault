@@ -1,9 +1,8 @@
- /* eslint-disable react/jsx-curly-newline */
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { makeStyles } from '@material-ui/core/styles';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import ReportProblemOutlinedIcon from '@material-ui/icons/ReportProblemOutlined';
 import PropTypes from 'prop-types';
@@ -110,11 +109,6 @@ const NoPermission = styled.div`
   }
 `;
 
-const useStyles = makeStyles(() => ({
-  backdrop: {
-    position: 'absolute',
-  },
-}));
 const IamServiceAccountSecrets = (props) => {
   const {
     accountDetail,
@@ -134,7 +128,6 @@ const IamServiceAccountSecrets = (props) => {
   const [writePermission, setWritePermission] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const [state] = useStateValue();
-  const loaderStyles = useStyles();
   /**
    * @function handleClose
    * @description function to handle opening and closing of confirmation modal.
@@ -347,9 +340,7 @@ const IamServiceAccountSecrets = (props) => {
           }
         />
         {(response.status === 'loading' ||
-          status.status === 'secrets-loading') && (
-          <BackdropLoader classes={loaderStyles} />
-        )}
+          status.status === 'secrets-loading') && <BackdropLoader />}
         {accountSecretData?.folders?.length && !accountSecretError
           ? accountSecretData?.folders.map((secret) => (
               // eslint-disable-next-line react/jsx-indent

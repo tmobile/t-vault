@@ -9,7 +9,7 @@ import certIcon from '../../../../../../../assets/cert-icon.svg';
 import { TitleFour } from '../../../../../../../styles/GlobalStyles';
 import CertificateListItem from '../../../CertificateListItem';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
-import EditDeletePopper from '../../../../../service-accounts/components/EditDeletePopper';
+import EditDeletePopper from '../../../EditDeletePopper';
 
 const EditDeletePopperWrap = styled.div`
   display: ${(props) =>
@@ -198,28 +198,32 @@ const LeftColumn = (props) => {
                     <StatusIcon status={certificate.requestStatus} />
                   </CertificateStatus>
                 )}
-              {certificate.applicationName && !certificate.isOnboardCert && (
-                <EditDeletePopperWrap
-                  onClick={(e) => onActionClicked(e, certificate)}
-                  certificate={certificate}
-                  selectedCert={selectedCert}
-                >
-                  <ClickAwayListener onClickAway={handleClickAway}>
-                    <EditDeletePopper
-                      onDeleteClicked={() =>
-                        onDeleteCertificateClicked(certificate)
-                      }
-                      onEditClicked={() => onEditListItemClicked(certificate)}
-                      admin
-                      isCertificate
-                      onTransferOwnerClicked={() =>
-                        onTransferOwnerClicked(certificate)
-                      }
-                      onReleaseClicked={() => onReleaseClicked(certificate)}
-                    />
-                  </ClickAwayListener>
-                </EditDeletePopperWrap>
-              )}
+              {!certificate.isOnboardCert &&
+                (certificate.applicationName ||
+                  JSON.parse(localStorage.getItem('isAdmin'))) && (
+                  <EditDeletePopperWrap
+                    onClick={(e) => onActionClicked(e, certificate)}
+                    certificate={certificate}
+                    selectedCert={selectedCert}
+                  >
+                    <ClickAwayListener onClickAway={handleClickAway}>
+                      <EditDeletePopper
+                        onDeleteClicked={() =>
+                          onDeleteCertificateClicked(certificate)
+                        }
+                        onEditClicked={() => onEditListItemClicked(certificate)}
+                        outsideTvault={
+                          !certificate.applicationName &&
+                          !certificate.isOnboardCert
+                        }
+                        onTransferOwnerClicked={() =>
+                          onTransferOwnerClicked(certificate)
+                        }
+                        onReleaseClicked={() => onReleaseClicked(certificate)}
+                      />
+                    </ClickAwayListener>
+                  </EditDeletePopperWrap>
+                )}
               {certificate.isOnboardCert && (
                 <OnboardButton onClick={() => onOnboardClicked(certificate)}>
                   Onboard

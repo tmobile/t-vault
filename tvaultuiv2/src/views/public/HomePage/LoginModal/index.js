@@ -87,6 +87,16 @@ const LoginModal = (props) => {
     }
   }, [userName, password]);
 
+  const clearInputField = () => {
+    setUserName('');
+    setPassword('');
+  };
+
+  const handleModalClose = () => {
+    clearInputField();
+    handleClose();
+  };
+
   return (
     <ComponentError>
       <Modal
@@ -94,7 +104,7 @@ const LoginModal = (props) => {
         aria-describedby="transition-modal-description"
         className={classes.modal}
         open={open}
-        onClose={handleClose}
+        onClose={handleModalClose}
         closeAfterTransition
         BackdropComponent={Backdrop}
         BackdropProps={{
@@ -140,14 +150,17 @@ const LoginModal = (props) => {
                 <ButtonComponent
                   label="Cancel"
                   color="primary"
-                  onClick={() => handleClose()}
+                  onClick={() => handleModalClose()}
                 />
               </CancelButton>
               <ButtonComponent
                 label="Sign In"
                 color="secondary"
                 disabled={disabledSave}
-                onClick={() => onSignInClicked(userName, password)}
+                onClick={() => {
+                  onSignInClicked(userName, password);
+                  clearInputField();
+                }}
               />
             </CancelSaveWrapper>
           </ModalWrapper>

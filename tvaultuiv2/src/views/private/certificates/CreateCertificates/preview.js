@@ -65,6 +65,7 @@ const PreviewCertificate = (props) => {
     container,
     owner,
     notificationEmails,
+    onboard,
   } = props;
   const [dnsNames, setDnsNames] = useState([]);
   useEffect(() => {
@@ -158,8 +159,8 @@ const PreviewCertificate = (props) => {
               />
             </CancelButton>
             <ButtonComponent
-              label="Create"
-              icon="add"
+              label={onboard ? 'Onboard' : 'Create'}
+              icon={onboard ? '' : 'add'}
               color="secondary"
               disabled={responseType === 0}
               onClick={() => onCreateClicked()}
@@ -186,6 +187,7 @@ PreviewCertificate.propTypes = {
   container: PropTypes.string,
   notificationEmails: PropTypes.arrayOf(PropTypes.any),
   owner: PropTypes.string,
+  onboard: PropTypes.bool,
 };
 
 PreviewCertificate.defaultProps = {
@@ -202,6 +204,7 @@ PreviewCertificate.defaultProps = {
   isMobileScreen: false,
   responseType: null,
   isEditCertificate: false,
+  onboard: false,
 };
 
 export default PreviewCertificate;

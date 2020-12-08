@@ -303,7 +303,7 @@ const OnboardCertificates = (props) => {
           const stringVal = localStorage.getItem('selfServiceAppNames');
           const selfserviceAppName = stringVal?.split(',');
           const array = [];
-          if (selfserviceAppName.length > 0) {
+          if (selfserviceAppName?.length > 0) {
             selfserviceAppName.map((item) => {
               const obj = state.applicationNameList.find(
                 (ele) => item === ele.appID
@@ -565,6 +565,7 @@ const OnboardCertificates = (props) => {
                   handleClose={() => onCloseModal()}
                   onEditClicked={() => setShowPreviewData(false)}
                   onCreateClicked={() => onCreateClicked()}
+                  onboard
                 />
               </PreviewWrap>
               <OnboardFormWrap showPreviewData={showPreviewData}>

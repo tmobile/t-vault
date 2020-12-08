@@ -34,7 +34,7 @@ const PopperItem = styled.div`
     margin-right: 0.75rem;
   }
   :hover {
-    background: ${customColor.magenta};
+    background: ${(props) => props.theme.gradients.list || 'none'};
   }
 `;
 const Download = (props) => {

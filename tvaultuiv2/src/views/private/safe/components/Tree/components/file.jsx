@@ -48,6 +48,7 @@ const FolderIconWrap = styled('div')`
   margin: 0 1em;
   display: flex;
   align-items: center;
+  cursor: pointer;
   .MuiSvgIcon-root {
     width: 2.4rem;
     height: 2.4rem;
@@ -86,6 +87,7 @@ const File = (props) => {
     type,
     setIsAddInput,
     setInputType,
+    userHavePermission,
   } = props;
   const [viewSecretValue, setViewSecretValue] = useState(false);
 
@@ -137,25 +139,29 @@ const File = (props) => {
                 <img alt="refersh-ic" src={IconRefreshCC} />
                 <span>{viewSecretValue ? 'Hide secret' : 'View Secret'}</span>
               </PopperItem>
-              <PopperItem onClick={() => editNode()}>
-                <IconEdit />
-                <span>Edit</span>
-              </PopperItem>
-              <PopperItem
-                onClick={
-                  () =>
-                    deleteNode({
-                      id,
-                      type,
-                      key: Object.keys(secret)[0],
-                      parentId,
-                    })
-                  // eslint-disable-next-line react/jsx-curly-newline
-                }
-              >
-                <IconDeleteActive />
-                <span>Delete</span>
-              </PopperItem>
+              {userHavePermission?.type === 'write' && (
+                <PopperItem onClick={() => editNode()}>
+                  <IconEdit />
+                  <span>Edit</span>
+                </PopperItem>
+              )}
+              {userHavePermission?.type === 'write' && (
+                <PopperItem
+                  onClick={
+                    () =>
+                      deleteNode({
+                        id,
+                        type,
+                        key: Object.keys(secret)[0],
+                        parentId,
+                      })
+                    // eslint-disable-next-line react/jsx-curly-newline
+                  }
+                >
+                  <IconDeleteActive />
+                  <span>Delete</span>
+                </PopperItem>
+              )}
             </PopperElement>
           </FolderIconWrap>
         </StyledFile>
@@ -164,7 +170,7 @@ const File = (props) => {
   );
 };
 File.propTypes = {
-  secret: PropTypes.objectOf(PropTypes.object),
+  secret: PropTypes.objectOf(PropTypes.any),
   id: PropTypes.string,
   onDeleteTreeItem: PropTypes.func,
   parentId: PropTypes.string,
@@ -172,6 +178,7 @@ File.propTypes = {
   setIsAddInput: PropTypes.func,
   setInputType: PropTypes.func,
   setSecretprefilledData: PropTypes.func,
+  userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 File.defaultProps = {
   onDeleteTreeItem: () => {},
