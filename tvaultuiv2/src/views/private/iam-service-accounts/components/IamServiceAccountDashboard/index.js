@@ -4,7 +4,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import InfiniteScroll from 'react-infinite-scroller';
 import { Link, Route, Switch, useHistory, Redirect } from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -27,8 +26,7 @@ import apiService from '../../apiService';
 import Strings from '../../../../../resources';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
 import AccountSelectionTabs from '../IamSvcAccountTabs';
-
-// const OnBoardForm = lazy(() => import('../../OnBoardForm'));
+import { ListContent } from '../../../../../styles/GlobalStyles/listingStyle';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -63,13 +61,6 @@ const ColumnHeader = styled('div')`
   padding: 0.5em;
   justify-content: space-between;
   border-bottom: 0.1rem solid #1d212c;
-`;
-const StyledInfiniteScroll = styled(InfiniteScroll)`
-  width: 100%;
-  max-height: 61vh;
-  ${mediaBreakpoints.small} {
-    max-height: 78vh;
-  }
 `;
 
 const ListContainer = styled.div`
@@ -179,8 +170,6 @@ const IamServiceAccountDashboard = () => {
     false
   );
   const [listItemDetails, setListItemDetails] = useState({});
-  const [moreData] = useState(false);
-  const [isLoading] = useState(false);
   const [iamServiceAccountList, setIamServiceAccountList] = useState([]);
   const [status, setStatus] = useState({});
   const [getResponse, setGetResponse] = useState(null);
@@ -201,12 +190,9 @@ const IamServiceAccountDashboard = () => {
 
   const [state, dispatch] = useStateValue();
 
-  let scrollParentRef = null;
-  // const classes = useStyles();
   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
-  //   const location = useLocation();
 
   const introduction = Strings.Resources.iamServiceAccountDesc;
 
@@ -216,6 +202,7 @@ const IamServiceAccountDashboard = () => {
    */
   const fetchData = useCallback(async () => {
     setStatus({ status: 'loading', message: 'Loading...' });
+    setListItemDetails({});
     setInputSearchValue('');
     const serviceList = await apiService.getIamServiceAccountList();
     const iamServiceAccounts = await apiService.getIamServiceAccounts();
@@ -279,7 +266,9 @@ const IamServiceAccountDashboard = () => {
     setInputSearchValue(value);
     if (value !== '') {
       const array = state?.iamServiceAccountList?.filter((item) => {
-        return String(item.name).startsWith(value);
+        return String(item?.name?.toLowerCase()).startsWith(
+          value?.toLowerCase()
+        );
       });
       setIamServiceAccountList([...array]);
     } else {
@@ -403,9 +392,6 @@ const IamServiceAccountDashboard = () => {
     }
   }, [iamServiceAccountList, listItemDetails, history]);
 
-  // Infine scroll load more data
-  const loadMoreData = () => {};
-
   // toast close handler
   const onToastClose = () => {
     setStatus({});
@@ -495,25 +481,8 @@ const IamServiceAccountDashboard = () => {
             {getResponse === 1 && (
               <>
                 {iamServiceAccountList && iamServiceAccountList.length > 0 ? (
-                  <ListContainer
-                    // eslint-disable-next-line no-return-assign
-                    ref={(ref) => (scrollParentRef = ref)}
-                  >
-                    <StyledInfiniteScroll
-                      pageStart={0}
-                      loadMore={() => {
-                        loadMoreData();
-                      }}
-                      hasMore={moreData}
-                      threshold={100}
-                      loader={
-                        !isLoading ? <div key={0}>Loading...</div> : <></>
-                      }
-                      useWindow={false}
-                      getScrollParent={() => scrollParentRef}
-                    >
-                      {renderList()}
-                    </StyledInfiniteScroll>
+                  <ListContainer>
+                    <ListContent>{renderList()}</ListContent>
                   </ListContainer>
                 ) : (
                   iamServiceAccountList?.length === 0 &&
@@ -593,6 +562,20 @@ const IamServiceAccountDashboard = () => {
                     backToLists={backToIamServiceAccounts}
                     ListDetailHeaderBg={sectionHeaderBg}
                     description={introduction}
+                    renderContent={
+                      <AccountSelectionTabs
+                        accountDetail={listItemDetails}
+                        refresh={() => fetchData()}
+                        fetchPermission={fetchPermission}
+                        getSecrets={getSecrets}
+                        status={status}
+                        accountMetaData={accountMetaData}
+                        accountSecretData={accountSecretData}
+                        accountSecretError={accountSecretError}
+                        disabledPermission={disabledPermission}
+                        isIamSvcAccountActive={isIamSvcAccountActive}
+                      />
+                    }
                   />
                 )}
               />

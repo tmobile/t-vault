@@ -107,8 +107,10 @@ const AccountSelectionTabs = (props) => {
   useEffect(() => {
     if (accountDetail?.name) {
       fetchPermission();
+      if (isIamSvcAccountActive) {
+        getSecrets();
+      }
     }
-    if (accountDetail?.name && isIamSvcAccountActive) getSecrets();
   }, [accountDetail, fetchPermission, getSecrets, isIamSvcAccountActive]);
 
   return (
@@ -123,7 +125,7 @@ const AccountSelectionTabs = (props) => {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            {!disabledPermission && (
+            {accountDetail?.name && (
               <Tab
                 label="Permissions"
                 {...a11yProps(1)}
@@ -165,14 +167,15 @@ AccountSelectionTabs.propTypes = {
   fetchPermission: PropTypes.func.isRequired,
   getSecrets: PropTypes.func.isRequired,
   isIamSvcAccountActive: PropTypes.bool.isRequired,
-  accountMetaData: PropTypes.objectOf(PropTypes.object).isRequired,
-  accountSecretData: PropTypes.objectOf(PropTypes.object),
+  accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
+  accountSecretData: PropTypes.objectOf(PropTypes.any),
   accountSecretError: PropTypes.string.isRequired,
   disabledPermission: PropTypes.bool.isRequired,
   status: PropTypes.objectOf(PropTypes.object).isRequired,
 };
 AccountSelectionTabs.defaultProps = {
   accountDetail: {},
+  accountSecretData: {},
 };
 
 export default AccountSelectionTabs;

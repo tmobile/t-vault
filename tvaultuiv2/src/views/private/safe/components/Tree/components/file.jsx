@@ -108,6 +108,8 @@ const File = (props) => {
     });
     if (secret) {
       setSecretprefilledData(secret);
+    } else {
+      setSecretprefilledData({});
     }
   };
 

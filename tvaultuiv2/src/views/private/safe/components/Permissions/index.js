@@ -20,10 +20,6 @@ const PermissionTabsWrapper = styled('div')`
 
 const customStyle = css`
   height: 100%;
-  transform: translate(-50%, -50%);
-  position: absolute;
-  left: 50%;
-  top: 50%;
 `;
 
 const Permissions = (props) => {

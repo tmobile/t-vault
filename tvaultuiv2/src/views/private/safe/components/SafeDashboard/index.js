@@ -342,13 +342,16 @@ const SafeDashboard = () => {
       if (safeName !== 'create-safe' && safeName !== 'edit-safe') {
         const obj = allSafeList.find((safe) => safe.name === safeName);
         if (obj) {
-          setSelectedSafeDetails({ ...obj });
+          if (selectedSafeDetails.name !== obj.name) {
+            setSelectedSafeDetails({ ...obj });
+          }
         } else {
           setSelectedSafeDetails(allSafeList[0]);
           history.push(`/safes/${allSafeList[0].name}`);
         }
       }
     }
+    // eslint-disable-next-line
   }, [allSafeList, location, history]);
 
   /**
@@ -360,7 +363,9 @@ const SafeDashboard = () => {
     setInputSearchValue(value);
     if (value !== '') {
       const array = allSafeList?.filter((item) => {
-        return String(item.name).startsWith(value);
+        return String(item?.name?.toLowerCase()).startsWith(
+          value?.toLowerCase()
+        );
       });
       setSafeList([...array]);
     } else {
@@ -391,7 +396,9 @@ const SafeDashboard = () => {
       const array = allSafeList.filter(
         (item) =>
           item.path.split('/')[0] === obj.path &&
-          String(item.name).startsWith(inputSearchValue)
+          String(item?.name?.toLowerCase()).startsWith(
+            inputSearchValue?.toLowerCase()
+          )
       );
       setSafeList([...array]);
     } else if (safeType === 'All Safes' && inputSearchValue) {
