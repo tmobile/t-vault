@@ -96,16 +96,16 @@ public class  AWSAuthService {
 	 * @return
 	 */
 	public ResponseEntity<String> createRole(String token, AWSLoginRole awsLoginRole, UserDetails userDetails) throws TVaultValidationException{
+		if (!ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)) {
+			//return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
+			throw new TVaultValidationException("Invalid inputs for the given aws login type");
+		}
 		logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "Create AWS role").
 				put(LogMessage.MESSAGE, String.format("Trying to create AWS Role [%s]", awsLoginRole.getRole())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		if (!ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)) {
-			//return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
-			throw new TVaultValidationException("Invalid inputs for the given aws login type");
-		}
 		String jsonStr = JSONUtil.getJSON(awsLoginRole);
 		ObjectMapper objMapper = new ObjectMapper();
 		String currentPolicies = "";

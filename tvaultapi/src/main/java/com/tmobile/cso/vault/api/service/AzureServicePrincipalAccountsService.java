@@ -3280,6 +3280,9 @@ public class AzureServicePrincipalAccountsService {
 				put(LogMessage.MESSAGE, String.format ("Trying to remove AWS Role from Azure service principal [%s]", azureServiceAccountAWSRole.getRolename())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
+		if (!userDetails.isAdmin()) {
+			token = tokenUtils.getSelfServiceToken();
+		}
 		if(!isAzureSvcaccPermissionInputValid(azureServiceAccountAWSRole.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
 		}
