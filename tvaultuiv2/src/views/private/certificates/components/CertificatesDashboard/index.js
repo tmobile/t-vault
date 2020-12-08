@@ -163,7 +163,7 @@ const CertificatesDashboard = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [allCertList, setAllCertList] = useState([]);
   const [certificateClicked, setCertificateClicked] = useState(false);
-  const [ListItemDetails, setListItemDetails] = useState({});
+  const [listItemDetails, setListItemDetails] = useState({});
   const [certificateData, setCertificateData] = useState({});
   const [openTransferModal, setOpenTransferModal] = useState(false);
   const [openDeleteConfirmation, setOpenDeleteConfirmation] = useState(false);
@@ -453,13 +453,16 @@ const CertificatesDashboard = () => {
           (cert) => cert.certificateName === certName
         );
         if (obj) {
-          setListItemDetails({ ...obj });
+          if (listItemDetails.certificateName !== obj.certificateName) {
+            setListItemDetails({ ...obj });
+          }
         } else {
           setListItemDetails(allCertList[0]);
           history.push(`/certificates/${allCertList[0].certificateName}`);
         }
       }
     }
+    // eslint-disable-next-line
   }, [allCertList, location, history]);
 
   /**
@@ -870,10 +873,10 @@ const CertificatesDashboard = () => {
                         ? sectionMobHeaderBg
                         : sectionHeaderBg
                     }
-                    name={ListItemDetails.certificateName}
+                    name={listItemDetails.certificateName}
                     renderContent={
                       <CertificatesReviewDetails
-                        certificateDetail={ListItemDetails}
+                        certificateDetail={listItemDetails}
                       />
                     }
                   />
@@ -890,8 +893,8 @@ const CertificatesDashboard = () => {
                         ? sectionMobHeaderBg
                         : sectionHeaderBg
                     }
-                    owner={ListItemDetails.certOwnerEmailId}
-                    container={ListItemDetails.containerName}
+                    owner={listItemDetails.certOwnerEmailId}
+                    container={listItemDetails.containerName}
                     renderContent={
                       <CertificatesReviewDetails
                         certificateList={certificateList}

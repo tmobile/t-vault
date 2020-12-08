@@ -203,6 +203,7 @@ const AppRolesDashboard = () => {
    * @description function call all the manage and safe api.
    */
   const fetchData = useCallback(async () => {
+    setListItemDetails({});
     setStatus({ status: 'loading', message: 'Loading...' });
     apiService
       .getAppRole()
@@ -219,7 +220,6 @@ const AppRolesDashboard = () => {
             return appRolesArr.push(appObj);
           });
         }
-        setListItemDetails({});
         setAppRoleList([...appRolesArr]);
         dispatch({ type: 'UPDATE_APP_ROLE_LIST', payload: [...appRolesArr] });
       })
@@ -299,13 +299,16 @@ const AppRolesDashboard = () => {
       ) {
         const obj = appRoleList.find((role) => role.name === roleName);
         if (obj) {
-          setListItemDetails({ ...obj });
+          if (listItemDetails.name !== obj.name) {
+            setListItemDetails({ ...obj });
+          }
         } else {
           setListItemDetails(appRoleList[0]);
           history.push(`/vault-app-roles/${appRoleList[0].name}`);
         }
       }
     }
+    // eslint-disable-next-line
   }, [appRoleList, location, history]);
 
   // Infine scroll load more data

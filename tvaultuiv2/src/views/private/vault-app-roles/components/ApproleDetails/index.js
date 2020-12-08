@@ -196,17 +196,18 @@ const AppRoleDetails = (props) => {
       accessorIds: [...ids],
       role_name: appRoleDetail?.name,
     };
+    setResponseType(null);
     apiService
       .deleteSecretIds(payload)
       .then(async (res) => {
+        setResponseType(1);
         setStatus({ status: 'success', message: res?.data?.messages[0] });
         await getSecrets();
       })
-      .catch();
+      .catch(() => setResponseType(-1));
   };
   const onToastClose = () => {
     setStatus({});
-    setResponseType(null);
   };
 
   /**
@@ -224,6 +225,7 @@ const AppRoleDetails = (props) => {
   const onCreateSecretId = () => {
     setStatus({ status: 'loading', message: 'loading' });
     setCreateSecretIdModal(false);
+    setResponseType(null);
     apiService
       .createSecretId(appRoleDetail?.name)
       .then(async (res) => {

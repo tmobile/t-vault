@@ -214,6 +214,7 @@ const ServiceAccountDashboard = () => {
   const fetchData = useCallback(async () => {
     setStatus({ status: 'loading', message: 'Loading...' });
     setInputSearchValue('');
+    setListItemDetails({});
     let serviceList = [];
     if (configData.AUTH_TYPE === 'oidc') {
       serviceList = await apiService.getServiceAccountList();
@@ -345,17 +346,27 @@ const ServiceAccountDashboard = () => {
       setServiceAccountClicked(false);
     }
   };
-
   useEffect(() => {
-    if (allServiceAccountList?.length > 0) {
-      allServiceAccountList.map((item) => {
-        if (history.location.pathname === `/service-accounts/${item.name}`) {
-          return setListItemDetails(item);
+    if (allServiceAccountList.length > 0) {
+      const val = location.pathname.split('/');
+      const svcName = val[val.length - 1];
+      if (
+        svcName !== 'onboard-service-accounts' &&
+        svcName !== 'edit-service-accounts'
+      ) {
+        const obj = allServiceAccountList.find((svc) => svc.name === svcName);
+        if (obj) {
+          if (listItemDetails.name !== obj.name) {
+            setListItemDetails({ ...obj });
+          }
+        } else {
+          setListItemDetails(allServiceAccountList[0]);
+          history.push(`/service-accounts/${allServiceAccountList[0].name}`);
         }
-        return null;
-      });
+      }
     }
-  }, [allServiceAccountList, listItemDetails, history]);
+    // eslint-disable-next-line
+  }, [allServiceAccountList, location, history]);
 
   // toast close handler
   const onToastClose = () => {
@@ -437,33 +448,12 @@ const ServiceAccountDashboard = () => {
   };
 
   /**
-   * @function onDeleteRouteToNextSvcAccount
-   * @description function is called after deletion is successfull
-   * based on that the next svc account is selected,
-   */
-  const onDeleteRouteToNextSvcAccount = () => {
-    const val = location.pathname.split('/');
-    const routeName = val.slice(-1)[0];
-    if (serviceAccountList.length > 0) {
-      const obj = serviceAccountList.find((item) => item.name === routeName);
-      if (!obj) {
-        setListItemDetails(serviceAccountList[0]);
-        history.push(`/service-accounts/${serviceAccountList[0].name}`);
-      }
-    } else {
-      setListItemDetails({});
-      history.push(`/service-accounts`);
-    }
-  };
-
-  /**
    * @function handleSuccessfullConfirmation
    * @description function to handle the deletion successfull modal.
    */
   const handleSuccessfullConfirmation = () => {
     setOffBoardSvcAccountConfirmation(false);
     setOffBoardSuccessfull(false);
-    onDeleteRouteToNextSvcAccount();
   };
 
   /**

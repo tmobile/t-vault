@@ -342,13 +342,16 @@ const SafeDashboard = () => {
       if (safeName !== 'create-safe' && safeName !== 'edit-safe') {
         const obj = allSafeList.find((safe) => safe.name === safeName);
         if (obj) {
-          setSelectedSafeDetails({ ...obj });
+          if (selectedSafeDetails.name !== obj.name) {
+            setSelectedSafeDetails({ ...obj });
+          }
         } else {
           setSelectedSafeDetails(allSafeList[0]);
           history.push(`/safes/${allSafeList[0].name}`);
         }
       }
     }
+    // eslint-disable-next-line
   }, [allSafeList, location, history]);
 
   /**
