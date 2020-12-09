@@ -198,28 +198,26 @@ const LeftColumn = (props) => {
                     <StatusIcon status={certificate.requestStatus} />
                   </CertificateStatus>
                 )}
-              {!certificate.isOnboardCert &&
-                (certificate.applicationName ||
-                  JSON.parse(localStorage.getItem('isAdmin'))) && (
-                  <EditDeletePopperWrap
-                    onClick={(e) => onActionClicked(e, certificate)}
-                    certificate={certificate}
-                    selectedCert={selectedCert}
-                  >
-                    <ClickAwayListener onClickAway={handleClickAway}>
-                      <EditDeletePopper
-                        onDeleteClicked={() =>
-                          onDeleteCertificateClicked(certificate)
-                        }
-                        onEditClicked={() => onEditListItemClicked(certificate)}
-                        onTransferOwnerClicked={() =>
-                          onTransferOwnerClicked(certificate)
-                        }
-                        onReleaseClicked={() => onReleaseClicked(certificate)}
-                      />
-                    </ClickAwayListener>
-                  </EditDeletePopperWrap>
-                )}
+              {!certificate.isOnboardCert && certificate.applicationName && (
+                <EditDeletePopperWrap
+                  onClick={(e) => onActionClicked(e, certificate)}
+                  certificate={certificate}
+                  selectedCert={selectedCert}
+                >
+                  <ClickAwayListener onClickAway={handleClickAway}>
+                    <EditDeletePopper
+                      onDeleteClicked={() =>
+                        onDeleteCertificateClicked(certificate)
+                      }
+                      onEditClicked={() => onEditListItemClicked(certificate)}
+                      onTransferOwnerClicked={() =>
+                        onTransferOwnerClicked(certificate)
+                      }
+                      onReleaseClicked={() => onReleaseClicked(certificate)}
+                    />
+                  </ClickAwayListener>
+                </EditDeletePopperWrap>
+              )}
               {certificate.isOnboardCert && (
                 <OnboardButton onClick={() => onOnboardClicked(certificate)}>
                   Onboard
