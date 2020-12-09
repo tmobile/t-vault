@@ -282,10 +282,8 @@ public class OIDCUtil {
 						build()));
 				return null;
 			}
-			BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-			while ((output = br.readLine()) != null) {
-				jsonResponse.append(output);
-			}
+			readResponseContent(jsonResponse, apiResponse, "getSSOToken");
+
 			JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
 			if (!responseJson.isJsonNull() && responseJson.has("access_token")) {
 				accessToken = responseJson.get("access_token").getAsString();
@@ -300,6 +298,27 @@ public class OIDCUtil {
 					build()));
 		}
 		return null;
+	}
+
+	/**
+	 * Method to read the response content
+	 * @param jsonResponse
+	 * @param apiResponse
+	 */
+	private void readResponseContent(StringBuilder jsonResponse, HttpResponse apiResponse, String actionMsg) {
+		String output = "";
+		try(BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())))) {
+			while ((output = br.readLine()) != null) {
+				jsonResponse.append(output);
+			}
+		}catch(Exception ex) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		            put(LogMessage.ACTION, actionMsg).
+		            put(LogMessage.MESSAGE, "Failed to read the response").
+		            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		            build()));
+		}
 	}
 
 	/**
@@ -336,10 +355,8 @@ public class OIDCUtil {
 			if (apiResponse.getStatusLine().getStatusCode() != 200) {
 				return null;
 			}
-			BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-			while ((output = br.readLine()) != null) {
-				jsonResponse.append(output);
-			}
+
+			readResponseContent(jsonResponse, apiResponse, "getGroupObjectResponse");
 
 			JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
 			if (responseJson != null && responseJson.has("value")) {
@@ -583,12 +600,12 @@ public class OIDCUtil {
      */
     public void renewUserToken(String token) {
         Response renewResponse = reqProcessor.process("/auth/tvault/renew", "{}", token);
-        if (HttpStatus.OK.equals(renewResponse.getHttpstatus())) {
+        if (renewResponse != null && HttpStatus.OK.equals(renewResponse.getHttpstatus())) {
             log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, "Add Group to SDB").
                     put(LogMessage.MESSAGE, "Successfully renewd user token after group policy update").
-                    put(LogMessage.STATUS, (null != renewResponse) ? renewResponse.getHttpstatus().toString() : TVaultConstants.EMPTY).
+                    put(LogMessage.STATUS, renewResponse.getHttpstatus().toString()).
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
         } else {
@@ -712,10 +729,8 @@ public class OIDCUtil {
 		try {
 			HttpResponse apiResponse = httpClient.execute(getRequest);
 			if (apiResponse.getStatusLine().getStatusCode() == 200) {
-				BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-				while ((output = br.readLine()) != null) {
-					jsonResponse.append(output);
-				}
+
+				readResponseContent(jsonResponse, apiResponse, "getGroupsFromAAD");
 
 				JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
 				if (responseJson != null && responseJson.has("value")) {
@@ -832,12 +847,9 @@ public class OIDCUtil {
 	 * @throws IOException
 	 */
 	private String parseAndGetIdFromAADResponse(String userId, JsonParser jsonParser, StringBuilder jsonResponse,
-			HttpResponse apiResponse) throws IOException {
-		String output = "";
-		BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-		while ((output = br.readLine()) != null) {
-			jsonResponse.append(output);
-		}
+			HttpResponse apiResponse) {
+
+		readResponseContent(jsonResponse, apiResponse, SSLCertificateConstants.GET_ID_USER_STRING);
 
 		JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
 		if (responseJson != null && responseJson.has("id")) {
@@ -875,10 +887,9 @@ public class OIDCUtil {
 		try {
 			HttpResponse apiResponse = httpClient.execute(getRequest);
 			if (apiResponse.getStatusLine().getStatusCode() == 200) {
-				BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-				while ((output = br.readLine()) != null) {
-					jsonResponse.append(output);
-				}
+
+				readResponseContent(jsonResponse, apiResponse, SSLCertificateConstants.GET_SELF_SERVICE_GROUPS_STRING);
+
 				JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
 				if (responseJson != null && responseJson.has("value")) {
 					JsonArray vaulesArray = responseJson.get("value").getAsJsonArray();
@@ -1041,12 +1052,8 @@ public class OIDCUtil {
 	 * @throws IOException
 	 */
 	private AADUserObject parseAndGetUserObjFromAADResponse(JsonParser jsonParser, StringBuilder jsonResponse,
-												HttpResponse apiResponse) throws IOException {
-		String output = "";
-		BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-		while ((output = br.readLine()) != null) {
-			jsonResponse.append(output);
-		}
+												HttpResponse apiResponse) {
+		readResponseContent(jsonResponse, apiResponse, "getAzureUserObject");
 
 		AADUserObject aadUserObject = new AADUserObject();
 		JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
