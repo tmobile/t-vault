@@ -18,6 +18,7 @@ import mediaBreakpoints from '../../../../breakpoints';
 import SnackbarComponent from '../../../../components/Snackbar';
 import AutoCompleteComponent from '../../../../components/FormFields/AutoComplete';
 import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
+import BackdropLoader from '../../../../components/Loaders/BackdropLoader';
 import { validateEmail } from '../../../../services/helper-function';
 import apiService from '../apiService';
 import {
@@ -409,7 +410,7 @@ const CreateModal = (props) => {
       >
         <Fade in={open}>
           <GlobalModalWrapper>
-            {responseType === 0 && <LoaderSpinner customStyle={loaderStyle} />}
+            {responseType === 0 && <BackdropLoader customStyle={loaderStyle} />}
             <HeaderWrapper>
               <LeftIcon
                 src={leftArrowIcon}
