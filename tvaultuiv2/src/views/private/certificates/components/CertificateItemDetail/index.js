@@ -50,6 +50,7 @@ const BackButton = styled.div`
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
+    text-transform: capitalize;
     font-size: 1.8rem;
     font-weight: bold;
   }
@@ -75,6 +76,7 @@ const ListTitle = styled('h5')`
   margin: 1rem 0 1.2rem;
   text-overflow: ellipsis;
   overflow: hidden;
+  text-transform: capitalize;
   word-break: break-all;
   width: 100%;
   text-overflow: ellipsis;
