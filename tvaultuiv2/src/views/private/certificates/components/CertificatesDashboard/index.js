@@ -386,6 +386,7 @@ const CertificatesDashboard = () => {
    */
   useEffect(() => {
     setResponse({ status: 'loading' });
+    setInputSearchValue('');
     if (admin) {
       fetchAdminData().catch((err) => {
         if (err?.response?.data?.errors && err.response.data.errors[0]) {
@@ -497,7 +498,7 @@ const CertificatesDashboard = () => {
     if (value !== '') {
       const searchArray = allCertList.filter((item) =>
         String(item?.certificateName?.toLowerCase()).startsWith(
-          value?.toLowerCase()
+          value?.toLowerCase().trim()
         )
       );
       setCertificateList([...searchArray]);
@@ -511,7 +512,7 @@ const CertificatesDashboard = () => {
     if (certificateType !== 'All Certificates' && inputSearchValue) {
       const array = certificateList.filter((cert) =>
         String(cert?.certificateName?.toLowerCase()).startsWith(
-          inputSearchValue?.toLowerCase()
+          inputSearchValue?.toLowerCase().trim()
         )
       );
       setCertificateList([...array]);

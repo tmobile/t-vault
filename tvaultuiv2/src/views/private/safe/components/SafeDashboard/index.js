@@ -358,7 +358,7 @@ const SafeDashboard = () => {
     if (value !== '') {
       const array = allSafeList?.filter((item) => {
         return String(item?.name?.toLowerCase()).startsWith(
-          value?.toLowerCase()
+          value?.toLowerCase().trim()
         );
       });
       setSafeList([...array]);
@@ -391,7 +391,7 @@ const SafeDashboard = () => {
         (item) =>
           item.path.split('/')[0] === obj.path &&
           String(item?.name?.toLowerCase()).startsWith(
-            inputSearchValue?.toLowerCase()
+            inputSearchValue?.toLowerCase().trim()
           )
       );
       setSafeList([...array]);

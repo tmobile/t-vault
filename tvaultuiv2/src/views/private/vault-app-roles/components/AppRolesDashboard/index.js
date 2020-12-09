@@ -204,6 +204,7 @@ const AppRolesDashboard = () => {
    */
   const fetchData = useCallback(async () => {
     setListItemDetails({});
+    setInputSearchValue('');
     setStatus({ status: 'loading', message: 'Loading...' });
     apiService
       .getAppRole()
@@ -247,7 +248,7 @@ const AppRolesDashboard = () => {
     if (value !== '') {
       const array = state?.appRoleList?.filter((item) => {
         return String(item?.name?.toLowerCase()).startsWith(
-          value?.toLowerCase()
+          value?.toLowerCase().trim()
         );
       });
       setAppRoleList([...array]);
