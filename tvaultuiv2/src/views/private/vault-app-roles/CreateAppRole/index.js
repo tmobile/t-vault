@@ -311,6 +311,10 @@ const CreateAppRole = (props) => {
     onChange(e);
   };
 
+  const splitString = (val) => {
+    return val.split('_').slice('2').join('_');
+  };
+
   useEffect(() => {
     if (
       history.location.pathname === '/vault-app-roles/edit-vault-app-role' &&
@@ -324,6 +328,16 @@ const CreateAppRole = (props) => {
         .then((res) => {
           setResponseType(null);
           if (res?.data?.data) {
+            const array = [];
+            if (
+              res?.data?.data?.token_policies &&
+              res?.data?.data?.token_policies?.length > 0
+            ) {
+              res.data.data.token_policies.map((item) => {
+                const str = splitString(item);
+                return array.push(str);
+              });
+            }
             dispatch({
               type: 'UPDATE_FORM_FIELDS',
               payload: {
@@ -333,7 +347,7 @@ const CreateAppRole = (props) => {
                 sectetIdNumUses: res.data.data.secret_id_num_uses,
                 tokenNumUses: res.data.data.token_num_uses,
                 secretIdTtl: res.data.data.secret_id_ttl,
-                tokenPolicies: res.data.data.token_policies.join(','),
+                tokenPolicies: array.join(','),
               },
             });
           }
@@ -460,8 +474,8 @@ const CreateAppRole = (props) => {
             <IconDescriptionWrapper>
               <SafeIcon src={ApproleIcon} alt="app-role-icon" />
               <TitleThree lineHeight="1.8rem" extraCss={extraCss} color="#ccc">
-                Approles’s operate a lot like safes, but they put the aplication
-                at the logical unit for sharing.
+                Approles’s operate a lot like safes, but they put the
+                application at the logical unit for sharing.
               </TitleThree>
             </IconDescriptionWrapper>
             <CreateSafeForm>
@@ -574,7 +588,7 @@ const CreateAppRole = (props) => {
                 <InputFieldLabelWrapper>
                   <InputLabelWrap>
                     <InputLabel>
-                      Sec ID Number Uses
+                      Secret ID Number Uses
                       <RequiredCircle margin="0.5rem" />
                     </InputLabel>
 

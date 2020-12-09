@@ -212,10 +212,6 @@ const LeftColumn = (props) => {
                           onDeleteCertificateClicked(certificate)
                         }
                         onEditClicked={() => onEditListItemClicked(certificate)}
-                        outsideTvault={
-                          !certificate.applicationName &&
-                          !certificate.isOnboardCert
-                        }
                         onTransferOwnerClicked={() =>
                           onTransferOwnerClicked(certificate)
                         }

@@ -473,8 +473,9 @@ const CertificatesDashboard = () => {
   const onSelectChange = (value) => {
     setCertificateType(value);
     if (value !== 'All Certificates' && value !== 'Onboard Certificates') {
-      const filterArray = allCertList.filter((cert) =>
-        value.toLowerCase().includes(cert.certType)
+      const filterArray = allCertList.filter(
+        (cert) =>
+          value.toLowerCase().includes(cert.certType) && !cert.isOnboardCert
       );
       setCertificateList([...filterArray]);
     } else if (value === 'Onboard Certificates') {

@@ -719,7 +719,7 @@ const CreateCertificates = (props) => {
                   </InputFieldLabelWrapper>
                   <InputFieldLabelWrapper>
                     <InputLabel>
-                      Aplication Name
+                      Application Name
                       <RequiredCircle margin="1.3rem" />
                     </InputLabel>
                     <TextFieldSelect
@@ -731,10 +731,6 @@ const CreateCertificates = (props) => {
                       }
                       filledText="Select application name"
                     />
-                    <FieldInstruction>
-                      Please provide the AD group for which read or reset
-                      permission to be granted later.
-                    </FieldInstruction>
                   </InputFieldLabelWrapper>
                   <IncludeDnsWrap>
                     <SwitchComponent

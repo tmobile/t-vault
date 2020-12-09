@@ -99,7 +99,7 @@ const PreviewCertificate = (props) => {
           <Value>{certName || 'N/A'}</Value>
         </EachDetail>
         <EachDetail>
-          <Label>Aplication Name:</Label>
+          <Label>Application Name:</Label>
           <Value>{applicationName || 'N/A'}</Value>
         </EachDetail>
         {notificationEmails?.length > 0 && (

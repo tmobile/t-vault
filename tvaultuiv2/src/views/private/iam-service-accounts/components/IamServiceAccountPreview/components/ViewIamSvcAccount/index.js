@@ -144,6 +144,7 @@ const ViewIamSvcAccountDetails = (props) => {
   const onCancelViewDetails = (val) => {
     setViewDetails(val);
   };
+
   return (
     <ComponentError>
       <ModalWrapper>
@@ -234,7 +235,7 @@ const ViewIamSvcAccountDetails = (props) => {
             <Value>{iamSvcAccountData?.createdDate}</Value>
           </EachDetail>
           <EachDetail>
-            <Label>Aplication Name</Label>
+            <Label>Application Name</Label>
             <Value>{iamSvcAccountData?.application_name}</Value>
           </EachDetail>
         </PreviewWrap>
@@ -271,6 +272,7 @@ ViewIamSvcAccountDetails.propTypes = {
   isMobileScreen: PropTypes.bool,
   isRotateSecret: PropTypes.func,
   isActivateIamSvcAcc: PropTypes.func,
+  setViewDetails: PropTypes.func,
 };
 
 ViewIamSvcAccountDetails.defaultProps = {
@@ -278,6 +280,7 @@ ViewIamSvcAccountDetails.defaultProps = {
   isMobileScreen: false,
   isRotateSecret: () => {},
   isActivateIamSvcAcc: () => {},
+  setViewDetails: () => {},
 };
 
 export default ViewIamSvcAccountDetails;

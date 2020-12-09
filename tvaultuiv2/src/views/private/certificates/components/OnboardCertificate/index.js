@@ -95,13 +95,6 @@ const CancelButton = styled.div`
   }
 `;
 
-const FieldInstruction = styled.p`
-  color: ${(props) => props.theme.customColor.label.color};
-  font-size: 1.3rem;
-  margin-top: ${(props) => (props.marginTop ? props.marginTop : '0')};
-  margin-bottom: 0;
-`;
-
 const NotificationEmailsWrap = styled.div``;
 
 const FetchingWrap = styled.div`
@@ -602,7 +595,7 @@ const OnboardCertificates = (props) => {
                 </InputFieldLabelWrapper>
                 <InputFieldLabelWrapper>
                   <InputLabel>
-                    Aplication Name
+                    Application Name
                     <RequiredCircle margin="1.3rem" />
                   </InputLabel>
                   <TextFieldSelect
@@ -614,10 +607,6 @@ const OnboardCertificates = (props) => {
                     }
                     filledText="Select application name"
                   />
-                  <FieldInstruction marginTop="1.2rem">
-                    Please provide the AD group for which read or reset
-                    permission to be granted later.
-                  </FieldInstruction>
                 </InputFieldLabelWrapper>
                 <NotificationEmailsWrap>
                   {!searchNotificationsEmail && (
