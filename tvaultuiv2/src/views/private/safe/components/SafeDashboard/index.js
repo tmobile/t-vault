@@ -118,7 +118,7 @@ const SafeFolderWrap = styled(Link)`
   padding: 1.2rem 1.8rem 1.2rem 3.8rem;
   background-image: ${(props) =>
     props.active === 'true' ? props.theme.gradients.list : 'none'};
-  color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
+  color: ${(props) => (props.active === 'true' ? '#fff' : '#4a4a4a')};
   ${mediaBreakpoints.belowLarge} {
     padding: 2rem 1.1rem;
   }
