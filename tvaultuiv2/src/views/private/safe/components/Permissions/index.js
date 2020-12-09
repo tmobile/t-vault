@@ -125,7 +125,6 @@ const Permissions = (props) => {
                   safeDetail={safeDetail}
                   newPermission={newPermission}
                   onNewPermissionChange={() => setNewUser(false)}
-                  fetchPermission={fetchPermission}
                   safeData={safeData}
                   refresh={refresh}
                   updateToastMessage={(response, message) =>
