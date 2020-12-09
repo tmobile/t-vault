@@ -1753,7 +1753,7 @@
                     angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
                 });
                 $scope.isNotificationEmailSelected = false;
-                if($scope.notificationEmail.email != "" && deletedEmail.toLowerCase() == $scope.notificationEmail.email.toLowerCase()) {
+                if($scope.notificationEmail && $scope.notificationEmail.email != "" && deletedEmail.toLowerCase() == $scope.notificationEmail.email.toLowerCase()) {
                     $scope.notificationEmailErrorMessage = '';
                     $scope.isNotificationEmailSelected = true;
                 }
