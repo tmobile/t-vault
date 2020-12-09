@@ -34,7 +34,6 @@ import com.tmobile.cso.vault.api.model.IAMServiceAccountSecret;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -108,7 +107,6 @@ public class IAMServiceAccountUtils {
 
         HttpPost httpPost = new HttpPost(authIAMAuthApi);
 
-        List<NameValuePair> params = new ArrayList<>();
         String inputJson = JSONUtil.getJSON(appRoleIdSecretId);
         StringEntity entity;
         try {
@@ -128,18 +126,15 @@ public class IAMServiceAccountUtils {
             return null;
         }
 
-        String output = "";
-        StringBuffer jsonResponse = new StringBuffer();
+        StringBuilder jsonResponse = new StringBuilder();
 
         try {
             HttpResponse apiResponse = httpClient.execute(httpPost);
             if (apiResponse.getStatusLine().getStatusCode() != 200) {
                 return null;
             }
-            BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-            while ((output = br.readLine()) != null) {
-                jsonResponse.append(output);
-            }
+
+            readResponseContent(jsonResponse, apiResponse, "getIAMApproleToken");
             String iamPortalToken = null;
             JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
             if (!responseJson.isJsonNull()) {
@@ -153,14 +148,35 @@ public class IAMServiceAccountUtils {
             return iamPortalToken;
         } catch (IOException e) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, "getIAMApproleToken").
                     put(LogMessage.MESSAGE, "Failed to parse Approle login response").
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
         }
         return null;
     }
+
+	/**
+	 * Method to read the response content
+	 * @param jsonResponse
+	 * @param apiResponse
+	 */
+	private void readResponseContent(StringBuilder jsonResponse, HttpResponse apiResponse, String actionMsg) {
+		String output = "";
+		try(BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())))) {
+		    while ((output = br.readLine()) != null) {
+		        jsonResponse.append(output);
+		    }
+		}catch(Exception ex) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		            put(LogMessage.ACTION, actionMsg).
+		            put(LogMessage.MESSAGE, "Failed to read the response").
+		            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		            build()));
+		}
+	}
     /**
      * To get response from Workload endpoint
      *
@@ -225,31 +241,17 @@ public class IAMServiceAccountUtils {
             return null;
         }
 
-        String output = "";
-        StringBuffer jsonResponse = new StringBuffer();
+        StringBuilder jsonResponse = new StringBuilder();
 
         try {
             HttpResponse apiResponse = httpClient.execute(httpPut);
             if (apiResponse.getStatusLine().getStatusCode() != 200) {
-                BufferedReader r = new BufferedReader(new InputStreamReader(apiResponse.getEntity().getContent()));
-                StringBuilder total = new StringBuilder();
-                String line = null;
-                while ((line = r.readLine()) != null) {
-                    total.append(line);
-                }
-                r.close();
-                log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                        put(LogMessage.ACTION, "rotateIAMSecret").
-                        put(LogMessage.MESSAGE, "Failed to build StringEntity:"+total.toString()).
-                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                        build()));
+                readFailedResponseForIAMSecret(apiResponse);
                 return null;
             }
-            BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-            while ((output = br.readLine()) != null) {
-                jsonResponse.append(output);
-            }
+
+            readResponseContent(jsonResponse, apiResponse, "rotateIAMSecret");
+
             IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret();
             JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
             if (!responseJson.isJsonNull()) {
@@ -270,14 +272,42 @@ public class IAMServiceAccountUtils {
             return iamServiceAccountSecret;
         } catch (IOException e) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, "rotateIAMSecret").
                     put(LogMessage.MESSAGE, "Failed to parse IAM Secret response").
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
         }
         return null;
     }
+
+	/**
+	 * Method to read the failed response
+	 * @param apiResponse
+	 * @throws IOException
+	 */
+	private void readFailedResponseForIAMSecret(HttpResponse apiResponse) throws IOException {
+		StringBuilder total = new StringBuilder();
+		try(BufferedReader r = new BufferedReader(new InputStreamReader(apiResponse.getEntity().getContent()))) {
+			String line = null;
+			while ((line = r.readLine()) != null) {
+			    total.append(line);
+			}
+		}catch(Exception ex) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+			        put(LogMessage.ACTION, "rotateIAMSecret").
+			        put(LogMessage.MESSAGE, "Failed to read the response - StringEntity:"+total.toString()).
+			        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			        build()));
+		}
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		        put(LogMessage.ACTION, "rotateIAMSecret").
+		        put(LogMessage.MESSAGE, "Failed to build StringEntity:"+total.toString()).
+		        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		        build()));
+	}
 
     /**
      * To save IAM Service Account Secret for a single AccesKeyId.

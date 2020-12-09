@@ -348,7 +348,7 @@ public class  IAMServiceAccountsService {
 	private void sendMailToIAMSvcAccOwner(IAMServiceAccount iamServiceAccount, String iamSvcAccName) {
 		// send email notification to IAM service account owner
 		DirectoryUser directoryUser = getUserDetails(iamServiceAccount.getOwnerNtid());
-		if (!ObjectUtils.isEmpty(directoryUser)) {
+		if (directoryUser != null && !ObjectUtils.isEmpty(directoryUser)) {
 			String from = supportEmail;
 			List<String> to = new ArrayList<>();
 			to.add(iamServiceAccount.getOwnerEmail());
