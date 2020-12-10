@@ -664,7 +664,7 @@ const SafeDashboard = () => {
                 render={(routerProps) => (
                   <SafeDetails
                     resetClicked={() => onResetClicked()}
-                    detailData={safeList}
+                    detailData={selectedSafeDetails}
                     params={routerProps}
                     refresh={fetchData}
                     renderContent={
@@ -680,7 +680,7 @@ const SafeDashboard = () => {
                 path="/"
                 render={(routerProps) => (
                   <SafeDetails
-                    detailData={safeList}
+                    detailData={selectedSafeDetails}
                     params={routerProps}
                     resetClicked={() => onResetClicked()}
                     refresh={fetchData}
