@@ -137,7 +137,7 @@ public class  AWSAuthService {
 					logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, "Creating AWS role").
-							put(LogMessage.MESSAGE, String.format("AWS Role [%s] created successfuylly by [%s]", awsLoginRole.getRole(),userDetails.getUsername())).
+							put(LogMessage.MESSAGE, String.format("AWS Role [%s] created successfully by [%s]", awsLoginRole.getRole(),userDetails.getUsername())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
@@ -397,6 +397,12 @@ public class  AWSAuthService {
 		String awsConfigJson ="";
 		try {
 			awsConfigJson = objMapper.writeValueAsString(configureRoleMap);
+			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "configureAWSIAMRole").
+					put(LogMessage.MESSAGE, String.format("AWS EC2 Role [%s] successfully associated with Azure Service Account with policies [%s].",roleName,policies)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
 		} catch (JsonProcessingException e) {
 			logger.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).

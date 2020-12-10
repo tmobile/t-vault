@@ -1574,7 +1574,7 @@ public class  SafesService {
 					if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-								put(LogMessage.ACTION, "Remove Group to SDB").
+								put(LogMessage.ACTION, "Remove Group from SDB").
 								put(LogMessage.MESSAGE, String.format ("Group [%s] is successfully removed from Safe [%s]", safeGroup.getGroupname(),safeGroup.getPath())).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 								build()));
@@ -2493,7 +2493,7 @@ public class  SafesService {
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 								put(LogMessage.ACTION, "Remove AppRole from SDB").
-								put(LogMessage.MESSAGE, String.format ("remove AppRole [%s] from Safe",jsonstr)).
+								put(LogMessage.MESSAGE, String.format ("AppRole [%s] is successfully removed from Safe [%s]",role,path)).
 								put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 								build()));

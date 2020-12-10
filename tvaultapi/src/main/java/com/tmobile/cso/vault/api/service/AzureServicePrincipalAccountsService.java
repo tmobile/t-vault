@@ -204,6 +204,14 @@ public class AzureServicePrincipalAccountsService {
 					azureSvcAccName);
 			if (azureSvcAccCreationStatus) {
 				sendMailToAzureSvcAccOwner(azureServiceAccount, azureSvcAccName);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SVCACC_CREATION_TITLE)
+						.put(LogMessage.MESSAGE,
+								String.format("Successfully onboarded the Azure Service Account [%s] with owner [%s]",
+										azureServiceAccount.getServicePrincipalName(),azureServiceAccount.getOwnerEmail()))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+						.build()));
 				return ResponseEntity.status(HttpStatus.OK)
 						.body("{\"messages\":[\"Successfully completed onboarding of Azure service account\"]}");
 			}
@@ -1067,7 +1075,7 @@ public class AzureServicePrincipalAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 							.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_USER_TO_AZURESVCACC_MSG)
-							.put(LogMessage.MESSAGE, String.format("User [%s] is successfully associated with Azure Service Account - [%s]", azureServiceAccountUser.getUsername(), azureServiceAccountUser.getAzureSvcAccName()))
+							.put(LogMessage.MESSAGE, String.format("User [%s] is successfully associated to Azure Service Account [%s] with policy [%s].", azureServiceAccountUser.getUsername(), azureServiceAccountUser.getAzureSvcAccName(),azureServiceAccountUser.getAccess()))
 							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 							.build()));
 			return ResponseEntity.status(HttpStatus.OK)
@@ -1478,6 +1486,12 @@ public class AzureServicePrincipalAccountsService {
 			// Remove metadata...
 			ResponseEntity<String> metadataResponse = deleteAzureSvcAccount(token, azureSvcAccToOffboard);
 			if(HttpStatus.OK.equals(metadataResponse.getStatusCode())){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, "offboarding Azure service account")
+						.put(LogMessage.MESSAGE, String.format("Successfully offboarded Azure service account [%s] from T-Vault", azureSvcName))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+						.build()));
 				return ResponseEntity.status(HttpStatus.OK).body(
 						"{\"messages\":[\"Successfully offboarded Azure service account (if existed) from T-Vault\"]}");
 			}else{
@@ -2111,6 +2125,12 @@ public class AzureServicePrincipalAccountsService {
 		String path = AzureServiceAccountConstants.AZURE_SVCC_ACC_META_PATH + azureSvcName;
 		Response response = reqProcessor.process("/azuresvcacct", "{\"path\":\"" + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
+					put(LogMessage.MESSAGE,  String.format ("Azure Service account [%s] detatils fetched successfully.",azureSvcName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
 			JsonObject data = populateMetaData(response);
 			return ResponseEntity.status(HttpStatus.OK).body(data.toString());
 		}
@@ -2331,8 +2351,9 @@ public class AzureServicePrincipalAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
-					.put(LogMessage.MESSAGE, "User is successfully Removed from Azure Service Account")
-					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+					.put(LogMessage.MESSAGE, String.format("User [%s] is successfully Removed from Azure Service Account [%s].",azureServiceAccountUser.getUsername(), azureServiceAccountUser.getAzureSvcAccName()))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+					.build()));
 			return ResponseEntity.status(HttpStatus.OK)
 					.body("{\"messages\":[\"Successfully removed user from the Azure Service Account\"]}");
 		} else {
@@ -2536,7 +2557,7 @@ public class AzureServicePrincipalAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
-							put(LogMessage.MESSAGE, "AWS Role configuration Success.").
+							put(LogMessage.MESSAGE, String.format("AWS Role [%s] successfully associated to Azure Service Account [%s] with policy [%s].",azureServiceAccountAWSRole.getRolename(),azureServiceAccountAWSRole.getAzureSvcAccName(),azureServiceAccountAWSRole.getAccess())).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -2810,9 +2831,10 @@ public class AzureServicePrincipalAccountsService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 						.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_GROUP_TO_AZURESVCACC_MSG)
-						.put(LogMessage.MESSAGE, "Group configuration Success.")
+						.put(LogMessage.MESSAGE, String.format("Group [%s] is successfully configured to Azure Service Account [%s] with policy [%s].",azureServiceAccountGroup.getGroupname(),azureServiceAccountGroup.getAzureSvcAccName(),azureServiceAccountGroup.getAccess()))
 						.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
-						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+						.build()));
 				return ResponseEntity.status(HttpStatus.OK)
 						.body("{\"messages\":[\"Group is successfully associated with Azure Service Principal\"]}");
 			} else {
@@ -2992,7 +3014,7 @@ public class AzureServicePrincipalAccountsService {
 									log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 											put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 											put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
-											put(LogMessage.MESSAGE, String.format ("Azure Service Principal [%s] activated successfully", servicePrincipalName)).
+											put(LogMessage.MESSAGE, String.format ("Azure Service Principal [%s] activated successfully.", servicePrincipalName)).
 											put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 											build()));
 									return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Azure Service Principal activated successfully\"]}");
@@ -3381,8 +3403,8 @@ public class AzureServicePrincipalAccountsService {
 				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
-							put(LogMessage.MESSAGE, "AWS Role configuration Success.").
+							put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_AWS_ROLE_AZURE_MSG).
+							put(LogMessage.MESSAGE, String.format("AWS Role [%s] successfully removed from Azure Service Account [%s].",azureServiceAccountAWSRole.getRolename(),azureServiceAccountAWSRole.getAzureSvcAccName())).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -3599,7 +3621,7 @@ public class AzureServicePrincipalAccountsService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
-						put(LogMessage.MESSAGE, "Group configuration Success.").
+						put(LogMessage.MESSAGE,  String.format("Group [%s] is successfully removed from Azure Service Principal [%s].",azureServiceAccountGroup.getGroupname(),azureServiceAccountGroup.getAzureSvcAccName())).
 						put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -3846,7 +3868,7 @@ public class AzureServicePrincipalAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_APPROLE_TO_AZURESVCACC_MSG)
-					.put(LogMessage.MESSAGE, "Approle successfully associated with Azure Service Principal")
+					.put(LogMessage.MESSAGE, String.format("Approle [%s] successfully associated to Azure Service Principal [%s] with policy [%s].",azureServiceAccountApprole.getApprolename(),azureServiceAccountApprole.getAzureSvcAccName(),azureServiceAccountApprole.getAccess()))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 					.build()));
 
@@ -3991,7 +4013,7 @@ public class AzureServicePrincipalAccountsService {
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 								.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_APPROLE_TO_AZURESVCACC_MSG)
-								.put(LogMessage.MESSAGE, "Approle is successfully removed from Azure Service Account")
+								.put(LogMessage.MESSAGE, String.format("Approle [%s] is successfully removed from Azure Service Account [%s].",azureServiceAccountApprole.getApprolename(),azureServiceAccountApprole.getAzureSvcAccName()))
 								.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 								.build()));
