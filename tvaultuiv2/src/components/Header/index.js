@@ -166,16 +166,14 @@ const Header = (props) => {
   };
 
   const checkToken = () => {
-    const loggedIn = localStorage.getItem('token');
-    if (loggedIn !== null) {
-      setIsLogin(true);
-      const name = localStorage.getItem('displayName');
-      if (name) {
-        const str = name?.split(',');
-        setUserName(`${str[1]} ${str[0]}` || 'User');
-      }
-    } else {
+    if (window.location.pathname === '/') {
       setIsLogin(false);
+    } else {
+      setIsLogin(true);
+    }
+    const name = localStorage.getItem('displayName');
+    if (name !== null) {
+      setUserName(`${name}` || 'User');
     }
   };
 

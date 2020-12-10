@@ -95,13 +95,6 @@ const CancelButton = styled.div`
   }
 `;
 
-const FieldInstruction = styled.p`
-  color: ${(props) => props.theme.customColor.label.color};
-  font-size: 1.3rem;
-  margin-top: ${(props) => (props.marginTop ? props.marginTop : '0')};
-  margin-bottom: 0;
-`;
-
 const NotificationEmailsWrap = styled.div``;
 
 const FetchingWrap = styled.div`
@@ -128,7 +121,9 @@ const AutoInputFieldLabelWrapper = styled.div`
 
 const EndingBox = styled.div`
   background-color: ${(props) =>
-    props.theme.customColor.primary.backgroundColor};
+    props.applicationName === false
+      ? 'rgba(0, 0, 0, 0.12)'
+      : props.theme.customColor.primary.backgroundColor};
   color: ${(props) => props.theme.customColor.primary.color};
   width: ${(props) => props.width};
   display: flex;
@@ -250,7 +245,9 @@ const OnboardCertificates = (props) => {
       if (!autoLoader) {
         if (
           options.length === 0 ||
-          !options.find((item) => item.userEmail === owner)
+          !options.find(
+            (item) => item?.userEmail?.toLowerCase() === owner.toLowerCase()
+          )
         ) {
           setIsValidEmail(false);
         } else {
@@ -450,6 +447,12 @@ const OnboardCertificates = (props) => {
           ) {
             array.push(res.data.spec.opsContactEmail.toLowerCase());
           }
+          const obj = array.find(
+            (item) => item.toLowerCase() === owner.toLowerCase()
+          );
+          if (owner !== '' && !obj) {
+            array.push(owner);
+          }
           setNotificationEmailList([...array]);
         }
         setSearchNotificationsEmail(false);
@@ -600,7 +603,7 @@ const OnboardCertificates = (props) => {
                 </InputFieldLabelWrapper>
                 <InputFieldLabelWrapper>
                   <InputLabel>
-                    Aplication Name
+                    Application Name
                     <RequiredCircle margin="1.3rem" />
                   </InputLabel>
                   <TextFieldSelect
@@ -612,19 +615,9 @@ const OnboardCertificates = (props) => {
                     }
                     filledText="Select application name"
                   />
-                  <FieldInstruction marginTop="1.2rem">
-                    Please provide the AD group for which read or reset
-                    permission to be granted later.
-                  </FieldInstruction>
                 </InputFieldLabelWrapper>
                 <NotificationEmailsWrap>
-                  {applicationName === '' && (
-                    <FieldInstruction>
-                      Select application name and add/update notification
-                      emails.
-                    </FieldInstruction>
-                  )}
-                  {applicationName && !searchNotificationsEmail && (
+                  {!searchNotificationsEmail && (
                     <InputLabel>
                       Add Emails to Notify
                       <RequiredCircle margin="1.3rem" />
@@ -637,13 +630,17 @@ const OnboardCertificates = (props) => {
                     </FetchingWrap>
                   )}
                 </NotificationEmailsWrap>
-                {applicationName && !searchNotificationsEmail && (
+                {!searchNotificationsEmail && (
                   <NotificationAutoWrap>
                     <AutoInputFieldLabelWrapper>
                       <AutoCompleteComponent
                         options={notifyOptions}
                         classes={classes}
                         searchValue={notifyEmail}
+                        disabled={
+                          applicationName === '' &&
+                          notificationEmailList.length === 0
+                        }
                         icon="search"
                         name="notifyEmail"
                         onSelected={(e, val) => onNotifyEmailSelected(e, val)}
@@ -664,7 +661,13 @@ const OnboardCertificates = (props) => {
                       {notifyAutoLoader && (
                         <LoaderSpinner customStyle={notifyAutoLoaderStyle} />
                       )}
-                      <EndingBox width="4rem">
+                      <EndingBox
+                        width="4rem"
+                        applicationName={
+                          notificationEmailList.length > 0 ||
+                          applicationName !== ''
+                        }
+                      >
                         <ReturnIcon onClick={() => onAddEmailClicked()}>
                           <KeyboardReturnIcon />
                         </ReturnIcon>
@@ -673,8 +676,8 @@ const OnboardCertificates = (props) => {
                   </NotificationAutoWrap>
                 )}
                 {!searchNotificationsEmail &&
-                  notificationEmailList.length > 0 &&
-                  applicationName !== '' && (
+                  (notificationEmailList.length > 0 ||
+                    applicationName !== '') && (
                     <ArrayList>
                       {notificationEmailList.map((item) => {
                         return (

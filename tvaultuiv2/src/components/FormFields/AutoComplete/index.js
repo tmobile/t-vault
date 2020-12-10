@@ -48,6 +48,7 @@ const AutoCompleteComponent = (props) => {
     name,
     helperText,
     onKeyDown,
+    disabled,
   } = props;
 
   return (
@@ -58,6 +59,7 @@ const AutoCompleteComponent = (props) => {
       forcePopupIcon={false}
       className={classes || ''}
       onChange={onSelected}
+      disabled={disabled}
       inputValue={searchValue}
       onInputChange={(e) => onChange(e)}
       renderInput={(params) => (
@@ -99,6 +101,7 @@ AutoCompleteComponent.propTypes = {
   error: PropTypes.bool,
   name: PropTypes.string,
   onKeyDown: PropTypes.func,
+  disabled: PropTypes.bool,
 };
 
 AutoCompleteComponent.defaultProps = {
@@ -111,6 +114,7 @@ AutoCompleteComponent.defaultProps = {
   error: false,
   onInputBlur: () => {},
   onKeyDown: () => {},
+  disabled: false,
 };
 
 setIcon.propTypes = {

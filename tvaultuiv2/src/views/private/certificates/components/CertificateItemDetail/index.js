@@ -25,7 +25,7 @@ const ColumnHeader = styled('div')`
   height: 17.1rem;
   padding: 2rem;
   .list-title-wrap {
-    width: 60%;
+    width: 75%;
     z-index: 2;
     ${mediaBreakpoints.small} {
       width: 70%;

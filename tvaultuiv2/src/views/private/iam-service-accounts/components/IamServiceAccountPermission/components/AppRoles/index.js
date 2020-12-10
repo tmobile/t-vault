@@ -91,7 +91,7 @@ const AppRoles = (props) => {
 
   const constructPayload = (role, access) => {
     const data = {
-      access: checkAccess(access,"iamsvcaccount"),
+      access: checkAccess(access, 'iamsvcaccount'),
       approlename: role,
       awsAccountId: accountDetail.iamAccountId,
       iamSvcAccName: accountDetail.name,

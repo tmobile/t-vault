@@ -13,6 +13,7 @@ import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import apiService from '../../apiService';
 import lock from '../../../../../assets/icon_lock.svg';
+import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
@@ -270,7 +271,7 @@ const ServiceAccountSecrets = (props) => {
                 {writePermission && (
                   <PopperItem onClick={() => onResetClicked()}>
                     <img alt="refersh-ic" src={IconRefreshCC} />
-                    <span>Rotate Secret</span>
+                    <span>Reset Secret</span>
                   </PopperItem>
                 )}
                 <CopyToClipboard
@@ -289,13 +290,26 @@ const ServiceAccountSecrets = (props) => {
         {response.status === 'error' && (
           <Error description={accountSecretError || 'Something went wrong!'} />
         )}
-        {response.status === 'no-permission' && (
+        {(response.status === 'no-permission' ||
+          response.status === 'no-data') && (
           <AccessDeniedWrap>
-            <AccessDeniedIcon src={accessDeniedLogo} alt="accessDeniedLogo" />
-            <NoPermission>
-              Access denied: no permission to read the password details for the{' '}
-              <span>{accountDetail.name}</span> service account.
-            </NoPermission>
+            <AccessDeniedIcon
+              src={
+                response.status === 'no-data' ? NoSecretsIcon : accessDeniedLogo
+              }
+              alt="accessDeniedLogo"
+            />
+            {response.status === 'no-data' ? (
+              <NoPermission>
+                Once you onboard a <span>Service Account</span> you’ll be able
+                to view <span>Secret</span> all here!
+              </NoPermission>
+            ) : (
+              <NoPermission>
+                Access denied: no permission to read the password details for
+                the <span>{accountDetail.name}</span> service account.
+              </NoPermission>
+            )}
           </AccessDeniedWrap>
         )}
         {responseType === 1 && (

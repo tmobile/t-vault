@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useState, useEffect, useCallback } from 'react';
@@ -17,7 +18,7 @@ import NoData from '../../../../../components/NoData';
 import Error from '../../../../../components/Error';
 import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
 import SnackbarComponent from '../../../../../components/Snackbar';
-import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
+import Loader from '../../../../../components/Loaders/LoaderSpinner';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import Strings from '../../../../../resources';
 import { TitleThree } from '../../../../../styles/GlobalStyles';
@@ -45,13 +46,8 @@ const NoDataWrapper = styled.div`
   justify-content: center;
   align-items: center;
   color: #5e627c;
-  span {
-    margin: 0 0.4rem;
-    color: #fff;
-    font-weight: bold;
-    text-transform: uppercase;
-  }
 `;
+
 const bgIconStyle = {
   width: '16rem',
   height: '16rem',
@@ -68,18 +64,15 @@ const noDataStyle = css`
 const NoSecretIdWrap = styled.div`
   width: 100%;
 `;
-// const customLoaderStyle = css`
-//   position: absolute;
-//   left: 50%;
-//   top: 50%;
-//   transform: translate(-50%, -50%);
-//   color: red;
-//   z-index: 1;
-// `;
+
 const customBtnStyles = css`
   padding: 0.2rem 1rem;
   border-radius: 0.5rem;
   color: ${(props) => props.theme.customColor.magenta || '#e20074'} !important;
+`;
+
+const customStyle = css`
+  height: 100%;
 `;
 const TabPanel = (props) => {
   const { children, value, index } = props;
@@ -203,17 +196,18 @@ const AppRoleDetails = (props) => {
       accessorIds: [...ids],
       role_name: appRoleDetail?.name,
     };
+    setResponseType(null);
     apiService
       .deleteSecretIds(payload)
       .then(async (res) => {
+        setResponseType(1);
         setStatus({ status: 'success', message: res?.data?.messages[0] });
         await getSecrets();
       })
-      .catch();
+      .catch(() => setResponseType(-1));
   };
   const onToastClose = () => {
     setStatus({});
-    setResponseType(null);
   };
 
   /**
@@ -231,6 +225,7 @@ const AppRoleDetails = (props) => {
   const onCreateSecretId = () => {
     setStatus({ status: 'loading', message: 'loading' });
     setCreateSecretIdModal(false);
+    setResponseType(null);
     apiService
       .createSecretId(appRoleDetail?.name)
       .then(async (res) => {
@@ -339,7 +334,6 @@ const AppRoleDetails = (props) => {
           title="Save the Secret ID and Accessor ID"
           description={`<p><strong>Secret Id</strong> -${secretIdInfo?.secret_id}</br><strong>Accessor Id</strong>-${secretIdInfo?.secret_id_accessor}</br></br>Please click on "Download" to download the Secret ID and Accessor ID</p>`}
           cancelButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
               label="Close"
               color="primary"
@@ -348,7 +342,6 @@ const AppRoleDetails = (props) => {
             />
           }
           confirmButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
               label="Download"
               color="secondary"
@@ -384,13 +377,13 @@ const AppRoleDetails = (props) => {
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
             {status?.status === 'loading' && (
-              <BackdropLoader color="secondary" />
+              <Loader customStyle={customStyle} />
             )}
-            <TitleThree extraCss="color:#5e627c">
-              {`${secretIdsData?.length || 0} secretIds`}
-            </TitleThree>
             {responseType === 1 && (
               <>
+                <TitleThree extraCss="color:#5e627c">
+                  {`${secretIdsData?.length || 0} secretIds`}
+                </TitleThree>
                 {secretIdsData?.length > 0 && (
                   <AppRoleSecrets
                     secretIds={secretIdsData}
@@ -408,15 +401,17 @@ const AppRoleDetails = (props) => {
                             : 'There is no secret ID available to view.'
                         }
                         actionButton={
-                          // eslint-disable-next-line react/jsx-wrap-multilines
-                          <ButtonComponent
-                            label="Add"
-                            icon="add"
-                            color="secondary"
-                            disabled={Object.keys(appRoleDetail).length === 0}
-                            onClick={() => createSecretId()}
-                            width={isMobileScreen ? '44%' : ''}
-                          />
+                          <>
+                            {Object.keys(appRoleDetail).length !== 0 && (
+                              <ButtonComponent
+                                label="add"
+                                icon="add"
+                                color="secondary"
+                                onClick={() => createSecretId()}
+                                width={isMobileScreen ? '44%' : ''}
+                              />
+                            )}
+                          </>
                         }
                         bgIconStyle={bgIconStyle}
                         customStyle={noDataStyle}

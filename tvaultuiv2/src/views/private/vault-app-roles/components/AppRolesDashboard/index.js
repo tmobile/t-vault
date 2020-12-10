@@ -203,6 +203,8 @@ const AppRolesDashboard = () => {
    * @description function call all the manage and safe api.
    */
   const fetchData = useCallback(async () => {
+    setListItemDetails({});
+    setInputSearchValue('');
     setStatus({ status: 'loading', message: 'Loading...' });
     apiService
       .getAppRole()
@@ -219,7 +221,6 @@ const AppRolesDashboard = () => {
             return appRolesArr.push(appObj);
           });
         }
-        setListItemDetails({});
         setAppRoleList([...appRolesArr]);
         dispatch({ type: 'UPDATE_APP_ROLE_LIST', payload: [...appRolesArr] });
       })
@@ -246,7 +247,9 @@ const AppRolesDashboard = () => {
     setInputSearchValue(value);
     if (value !== '') {
       const array = state?.appRoleList?.filter((item) => {
-        return String(item.name).startsWith(value);
+        return String(item?.name?.toLowerCase()).startsWith(
+          value?.toLowerCase().trim()
+        );
       });
       setAppRoleList([...array]);
     } else {
@@ -291,16 +294,22 @@ const AppRolesDashboard = () => {
     if (appRoleList?.length > 0) {
       const val = location.pathname.split('/');
       const roleName = val[val.length - 1];
-      if (roleName !== 'create-vault-app-role') {
+      if (
+        roleName !== 'create-vault-app-role' &&
+        roleName !== 'edit-vault-app-role'
+      ) {
         const obj = appRoleList.find((role) => role.name === roleName);
         if (obj) {
-          setListItemDetails({ ...obj });
+          if (listItemDetails.name !== obj.name) {
+            setListItemDetails({ ...obj });
+          }
         } else {
           setListItemDetails(appRoleList[0]);
           history.push(`/vault-app-roles/${appRoleList[0].name}`);
         }
       }
     }
+    // eslint-disable-next-line
   }, [appRoleList, location, history]);
 
   // Infine scroll load more data

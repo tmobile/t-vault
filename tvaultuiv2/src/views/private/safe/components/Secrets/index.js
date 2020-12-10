@@ -137,6 +137,7 @@ const Secrets = (props) => {
                               label="add"
                               icon="add"
                               color="secondary"
+                              disabled={userHavePermission.type !== 'write'}
                               width={isMobileScreen ? '100%' : '9.4rem'}
                               onClick={() => setEnableAddFolder(true)}
                             />

@@ -163,7 +163,7 @@ const CertificatesDashboard = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [allCertList, setAllCertList] = useState([]);
   const [certificateClicked, setCertificateClicked] = useState(false);
-  const [ListItemDetails, setListItemDetails] = useState({});
+  const [listItemDetails, setListItemDetails] = useState({});
   const [certificateData, setCertificateData] = useState({});
   const [openTransferModal, setOpenTransferModal] = useState(false);
   const [openDeleteConfirmation, setOpenDeleteConfirmation] = useState(false);
@@ -386,6 +386,7 @@ const CertificatesDashboard = () => {
    */
   useEffect(() => {
     setResponse({ status: 'loading' });
+    setInputSearchValue('');
     if (admin) {
       fetchAdminData().catch((err) => {
         if (err?.response?.data?.errors && err.response.data.errors[0]) {
@@ -410,10 +411,12 @@ const CertificatesDashboard = () => {
     const externalArray = allCertList?.filter(
       (item) => item?.certType === 'external'
     );
+    const onboardArray = allCertList?.filter((item) => item.isOnboardCert);
     setMenu([
       { name: 'All Certificates', count: allCertList?.length || 0 },
       { name: 'Internal Certificates', count: internalArray?.length || 0 },
       { name: 'External Certificates', count: externalArray?.length || 0 },
+      { name: 'Onboard Certificates', count: onboardArray?.length || 0 },
     ]);
   }, [allCertList]);
 
@@ -451,13 +454,16 @@ const CertificatesDashboard = () => {
           (cert) => cert.certificateName === certName
         );
         if (obj) {
-          setListItemDetails({ ...obj });
+          if (listItemDetails.certificateName !== obj.certificateName) {
+            setListItemDetails({ ...obj });
+          }
         } else {
           setListItemDetails(allCertList[0]);
           history.push(`/certificates/${allCertList[0].certificateName}`);
         }
       }
     }
+    // eslint-disable-next-line
   }, [allCertList, location, history]);
 
   /**
@@ -467,9 +473,15 @@ const CertificatesDashboard = () => {
    */
   const onSelectChange = (value) => {
     setCertificateType(value);
-    if (value !== 'All Certificates') {
-      const filterArray = allCertList.filter((cert) =>
-        value.toLowerCase().includes(cert.certType)
+    if (value !== 'All Certificates' && value !== 'Onboard Certificates') {
+      const filterArray = allCertList.filter(
+        (cert) =>
+          value.toLowerCase().includes(cert.certType) && !cert.isOnboardCert
+      );
+      setCertificateList([...filterArray]);
+    } else if (value === 'Onboard Certificates') {
+      const filterArray = allCertList.filter(
+        (cert) => cert.isOnboardCert === true
       );
       setCertificateList([...filterArray]);
     } else {
@@ -485,7 +497,9 @@ const CertificatesDashboard = () => {
   const onSearchChange = (value) => {
     if (value !== '') {
       const searchArray = allCertList.filter((item) =>
-        item.certificateName.includes(value)
+        String(item?.certificateName?.toLowerCase()).startsWith(
+          value?.toLowerCase().trim()
+        )
       );
       setCertificateList([...searchArray]);
     } else {
@@ -497,7 +511,9 @@ const CertificatesDashboard = () => {
   useEffect(() => {
     if (certificateType !== 'All Certificates' && inputSearchValue) {
       const array = certificateList.filter((cert) =>
-        cert.certificateName.includes(inputSearchValue)
+        String(cert?.certificateName?.toLowerCase()).startsWith(
+          inputSearchValue?.toLowerCase().trim()
+        )
       );
       setCertificateList([...array]);
     } else if (certificateType === 'All Certificates' && inputSearchValue) {
@@ -859,10 +875,10 @@ const CertificatesDashboard = () => {
                         ? sectionMobHeaderBg
                         : sectionHeaderBg
                     }
-                    name={ListItemDetails.certificateName}
+                    name={listItemDetails.certificateName}
                     renderContent={
                       <CertificatesReviewDetails
-                        certificateDetail={ListItemDetails}
+                        certificateDetail={listItemDetails}
                       />
                     }
                   />
@@ -879,8 +895,8 @@ const CertificatesDashboard = () => {
                         ? sectionMobHeaderBg
                         : sectionHeaderBg
                     }
-                    owner={ListItemDetails.certOwnerEmailId}
-                    container={ListItemDetails.containerName}
+                    owner={listItemDetails.certOwnerEmailId}
+                    container={listItemDetails.containerName}
                     renderContent={
                       <CertificatesReviewDetails
                         certificateList={certificateList}

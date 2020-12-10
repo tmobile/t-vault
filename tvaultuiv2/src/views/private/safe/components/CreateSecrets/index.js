@@ -80,15 +80,33 @@ const CreateSecret = (props) => {
   const [keyId, setKeyId] = useState('');
   const [keyErrorMessage, setKeyErrorMessage] = useState(null);
   const [valueErrorMessage, setValueErrorMessage] = useState(null);
-
+  const [diabledCreate, setDiabledCreate] = useState(true);
   // screen resolution handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
   // prefetch input data if any(i.e while editing)
   useEffect(() => {
-    setKeyId(Object.keys(secretprefilledData)[0]);
-    setSecret(Object.values(secretprefilledData)[0]);
+    if (Object.keys(secretprefilledData).length > 0) {
+      setKeyId(Object.keys(secretprefilledData)[0]);
+      setSecret(Object.values(secretprefilledData)[0]);
+    }
   }, [secretprefilledData]);
+
+  useEffect(() => {
+    if (
+      keyId === '' ||
+      secret === '' ||
+      keyErrorMessage ||
+      valueErrorMessage ||
+      (Object.keys(secretprefilledData).length > 0 &&
+        Object.keys(secretprefilledData)[0] === keyId &&
+        Object.values(secretprefilledData)[0] === secret)
+    ) {
+      setDiabledCreate(true);
+    } else {
+      setDiabledCreate(false);
+    }
+  }, [keyId, secret, valueErrorMessage, keyErrorMessage, secretprefilledData]);
 
   const handleValidation = (value, type) => {
     if (type === 'key') {
@@ -176,9 +194,7 @@ const CreateSecret = (props) => {
               icon={Object.keys(secretprefilledData).length === 0 ? 'add' : ''}
               color="secondary"
               width={isMobileScreen ? '100%' : ''}
-              disabled={
-                !secret || !keyId || valueErrorMessage || keyErrorMessage
-              }
+              disabled={diabledCreate}
               onClick={() =>
                 handleSecretSave({
                   key: keyId.toLowerCase(),

@@ -1,6 +1,6 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable react/no-array-index-key */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
 import CreateSecretButton from '../../CreateSecretButton';
@@ -39,8 +39,13 @@ const TreeRecursive = (props) => {
     userHavePermission,
   } = props;
   const [currentNode, setCurrentNode] = useState('');
+  const [secretEditData, setsecretEditData] = useState({});
   // loop through the data
-
+  useEffect(() => {
+    if (Object.keys(secretprefilledData).length > 0) {
+      setsecretEditData(secretprefilledData);
+    }
+  }, [secretprefilledData]);
   let arr = [];
   // eslint-disable-next-line consistent-return
   return data.map((item) => {
@@ -101,11 +106,17 @@ const TreeRecursive = (props) => {
             inputType?.currentNode === item.value && (
               <CreateSecretModal
                 openModal={isAddInput}
-                secretprefilledData={secretprefilledData}
+                secretprefilledData={secretEditData}
                 setOpenModal={setIsAddInput}
                 parentId={item.id}
-                handleSecretCancel={handleCancelClick}
-                handleSecretSave={(secret) => saveFolder(secret, item.value)}
+                handleSecretCancel={() => {
+                  handleCancelClick();
+                  setsecretEditData({});
+                }}
+                handleSecretSave={(secret) => {
+                  saveFolder(secret, item.value);
+                  setsecretEditData({});
+                }}
               />
             )}
           {Array.isArray(item.children) ? (

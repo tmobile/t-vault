@@ -159,11 +159,14 @@ const AccountSelectionTabs = (props) => {
 
   useEffect(() => {
     setResponse({ status: 'loading' });
-    setSecretResStatus({ status: ' loading' });
+    setSecretResStatus({ status: 'loading' });
     setHasSvcAccountAcitve(false);
     if (accountDetail?.name) {
       fetchPermission();
       getSecrets();
+    } else {
+      setDisabledPermission(true);
+      setSecretResStatus({ status: 'no-data' });
     }
   }, [accountDetail, fetchPermission, getSecrets]);
 

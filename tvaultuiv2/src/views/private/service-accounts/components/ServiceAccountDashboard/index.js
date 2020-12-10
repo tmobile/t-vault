@@ -25,7 +25,6 @@ import svcIcon from '../../../../../assets/icon-service-account.svg';
 import mobSvcIcon from '../../../../../assets/mob-svcbg.png';
 import tabSvcIcon from '../../../../../assets/tab-svcbg.png';
 import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
-import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ListItemDetail from '../../../../../components/ListItemDetail';
 import EditDeletePopper from '../EditDeletePopper';
@@ -42,7 +41,7 @@ import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import TransferConfirmationModal from './components/TransferConfirmationModal';
 import {
   ListContainer,
-  StyledInfiniteScroll,
+  ListContent,
 } from '../../../../../styles/GlobalStyles/listingStyle';
 import configData from '../../../../../config/config';
 
@@ -188,8 +187,6 @@ const ServiceAccountDashboard = () => {
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [serviceAccountClicked, setServiceAccountClicked] = useState(false);
   const [listItemDetails, setListItemDetails] = useState({});
-  const [moreData] = useState(false);
-  const [isLoading] = useState(false);
   const [serviceAccountList, setServiceAccountList] = useState([]);
   const [toast, setToast] = useState(null);
   const [status, setStatus] = useState({});
@@ -201,8 +198,6 @@ const ServiceAccountDashboard = () => {
     setOffBoardSvcAccountConfirmation,
   ] = useState(false);
   const [state, dispatch] = useStateValue();
-  let scrollParentRef = null;
-  // const classes = useStyles();
   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
@@ -219,6 +214,7 @@ const ServiceAccountDashboard = () => {
   const fetchData = useCallback(async () => {
     setStatus({ status: 'loading', message: 'Loading...' });
     setInputSearchValue('');
+    setListItemDetails({});
     let serviceList = [];
     if (configData.AUTH_TYPE === 'oidc') {
       serviceList = await apiService.getServiceAccountList();
@@ -308,7 +304,9 @@ const ServiceAccountDashboard = () => {
     setInputSearchValue(value);
     if (value !== '') {
       const array = state?.serviceAccountList?.filter((item) => {
-        return String(item.name).startsWith(value);
+        return String(item?.name?.toLowerCase()).startsWith(
+          value?.toLowerCase().trim()
+        );
       });
       setServiceAccountList([...array]);
     } else {
@@ -348,20 +346,27 @@ const ServiceAccountDashboard = () => {
       setServiceAccountClicked(false);
     }
   };
-
   useEffect(() => {
-    if (allServiceAccountList?.length > 0) {
-      allServiceAccountList.map((item) => {
-        if (history.location.pathname === `/service-accounts/${item.name}`) {
-          return setListItemDetails(item);
+    if (allServiceAccountList.length > 0) {
+      const val = location.pathname.split('/');
+      const svcName = val[val.length - 1];
+      if (
+        svcName !== 'onboard-service-accounts' &&
+        svcName !== 'edit-service-accounts'
+      ) {
+        const obj = allServiceAccountList.find((svc) => svc.name === svcName);
+        if (obj) {
+          if (listItemDetails.name !== obj.name) {
+            setListItemDetails({ ...obj });
+          }
+        } else {
+          setListItemDetails(allServiceAccountList[0]);
+          history.push(`/service-accounts/${allServiceAccountList[0].name}`);
         }
-        return null;
-      });
+      }
     }
-  }, [allServiceAccountList, listItemDetails, history]);
-
-  // Infine scroll load more data
-  const loadMoreData = () => {};
+    // eslint-disable-next-line
+  }, [allServiceAccountList, location, history]);
 
   // toast close handler
   const onToastClose = () => {
@@ -443,33 +448,12 @@ const ServiceAccountDashboard = () => {
   };
 
   /**
-   * @function onDeleteRouteToNextSvcAccount
-   * @description function is called after deletion is successfull
-   * based on that the next svc account is selected,
-   */
-  const onDeleteRouteToNextSvcAccount = () => {
-    const val = location.pathname.split('/');
-    const routeName = val.slice(-1)[0];
-    if (serviceAccountList.length > 0) {
-      const obj = serviceAccountList.find((item) => item.name === routeName);
-      if (!obj) {
-        setListItemDetails(serviceAccountList[0]);
-        history.push(`/service-accounts/${serviceAccountList[0].name}`);
-      }
-    } else {
-      setListItemDetails({});
-      history.push(`/service-accounts`);
-    }
-  };
-
-  /**
    * @function handleSuccessfullConfirmation
    * @description function to handle the deletion successfull modal.
    */
   const handleSuccessfullConfirmation = () => {
     setOffBoardSvcAccountConfirmation(false);
     setOffBoardSuccessfull(false);
-    onDeleteRouteToNextSvcAccount();
   };
 
   /**
@@ -514,10 +498,6 @@ const ServiceAccountDashboard = () => {
       .catch(() => {
         setToast(-1);
       });
-  };
-
-  const showOnBoardForm = () => {
-    setServiceAccountClicked(true);
   };
 
   const renderList = () => {
@@ -618,31 +598,13 @@ const ServiceAccountDashboard = () => {
             {status.status === 'success' && (
               <>
                 {serviceAccountList && serviceAccountList.length > 0 ? (
-                  <ListContainer
-                    // eslint-disable-next-line no-return-assign
-                    ref={(ref) => (scrollParentRef = ref)}
-                  >
-                    <StyledInfiniteScroll
-                      pageStart={0}
-                      loadMore={() => {
-                        loadMoreData();
-                      }}
-                      hasMore={moreData}
-                      threshold={100}
-                      loader={
-                        !isLoading ? <div key={0}>Loading...</div> : <></>
-                      }
-                      useWindow={false}
-                      getScrollParent={() => scrollParentRef}
-                    >
-                      {renderList()}
-                    </StyledInfiniteScroll>
+                  <ListContainer>
+                    <ListContent>{renderList()}</ListContent>
                   </ListContainer>
                 ) : (
                   serviceAccountList?.length === 0 &&
                   status.status === 'success' && (
                     <>
-                      {' '}
                       {inputSearchValue ? (
                         <NoDataWrapper>
                           No service account found with name:
@@ -650,21 +612,18 @@ const ServiceAccountDashboard = () => {
                         </NoDataWrapper>
                       ) : (
                         <NoDataWrapper>
-                          {' '}
                           <NoListWrap>
                             <NoData
                               imageSrc={NoSafesIcon}
                               description="No service accounts are associated with you yet!, If you are a admin please onboard a service account to get started!"
                               actionButton={
-                                // eslint-disable-next-line react/jsx-wrap-multilines
                                 admin ? (
-                                  <ButtonComponent
+                                  <FloatingActionButtonComponent
+                                    href="/service-accounts/onboard-service-accounts"
                                     color="secondary"
                                     icon="add"
-                                    label="Onboard Account"
-                                    onClick={() => showOnBoardForm()}
-                                    // classes={classes}
-                                    href="/service-accounts/onboard-service-accounts"
+                                    tooltipTitle="Onboard New Service Account"
+                                    tooltipPos="left"
                                   />
                                 ) : (
                                   <></>
@@ -748,6 +707,12 @@ const ServiceAccountDashboard = () => {
                         : sectionHeaderBg
                     }
                     description={introduction}
+                    renderContent={
+                      <AccountSelectionTabs
+                        accountDetail={listItemDetails}
+                        refresh={() => fetchData()}
+                      />
+                    }
                   />
                 )}
               />
