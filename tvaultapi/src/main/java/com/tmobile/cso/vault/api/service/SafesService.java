@@ -82,6 +82,8 @@ public class  SafesService {
 	private OIDCUtil oidcUtil;
 	
 	private static Logger log = LogManager.getLogger(SafesService.class);
+	private static final String METADATA = "metadata/";
+	private static final String INVALID_PATH = "Invalid Path";
 
 	/**
 	 * Get Folders
@@ -92,7 +94,7 @@ public class  SafesService {
 	public ResponseEntity<String> getFolders( String token, String path){
 		String _path = "";
 		if(TVaultConstants.APPS.equals(path)||TVaultConstants.SHARED.equals(path)||TVaultConstants.USERS.equals(path)){
-			_path = "metadata/"+path;
+			_path = METADATA+path;
 		}else{
 			_path = path;
 		}
@@ -119,7 +121,7 @@ public class  SafesService {
 	 * @return
 	 */
 	public ResponseEntity<String> getInfo(String token, String path){
-		String _path = "metadata/"+path;
+		String _path = METADATA+path;
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Get Info").
@@ -152,7 +154,7 @@ public class  SafesService {
 			String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Create Folder").
+					put(LogMessage.ACTION, "CreateFolder").
 					put(LogMessage.MESSAGE, String.format ("Trying to Create folder [%s]", path)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
@@ -176,7 +178,7 @@ public class  SafesService {
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Create Folder").
 					put(LogMessage.MESSAGE, "Create Folder failed").
-					put(LogMessage.RESPONSE, "Invalid Path").
+					put(LogMessage.RESPONSE, INVALID_PATH).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
@@ -226,7 +228,7 @@ public class  SafesService {
 				 * Store the metadata. Create policies if folders are created under the mount points
 				 * 
 				 */
-				String _path = "metadata/"+path;
+				String _path = METADATA+path;
 				rqstParams.put("path",_path);
 
 				String metadataJson = 	ControllerUtil.convetToJson(rqstParams);
@@ -283,8 +285,9 @@ public class  SafesService {
 						
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								put(LogMessage.ACTION, "Create SDB").
+								put(LogMessage.ACTION, "CreateSDB").
 								put(LogMessage.MESSAGE, String.format ("SDB [%s] Created successfully by [%s]",safe.getSafeBasicDetails().getName(),safe.getSafeBasicDetails().getOwner())).
+
 								put(LogMessage.STATUS, response.getHttpstatus().toString()).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
@@ -294,6 +297,7 @@ public class  SafesService {
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								put(LogMessage.ACTION, "Create SDB").
 								put(LogMessage.MESSAGE, String.format ("SDB [%s] Created successfully by [%s]",safe.getSafeBasicDetails().getName(),safe.getSafeBasicDetails().getOwner())).
+
 								put(LogMessage.STATUS, response.getHttpstatus().toString()).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
@@ -313,7 +317,7 @@ public class  SafesService {
 				else {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "Create SDB").
+							put(LogMessage.ACTION, "CreateSafe").
 							put(LogMessage.MESSAGE, String.format ("SDB [%s] Created successfully by [%s] and [%s]",safe.getSafeBasicDetails().getName(),safe.getSafeBasicDetails().getOwner(),safe.getSafeBasicDetails().getOwnerid())).
 							put(LogMessage.STATUS, response.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
@@ -323,7 +327,7 @@ public class  SafesService {
 			}else{
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "Create SDB").
+						put(LogMessage.ACTION, "CreateSafe").
 						put(LogMessage.MESSAGE, "SDB Create completed").
 						put(LogMessage.STATUS, response.getHttpstatus().toString()).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
@@ -333,9 +337,9 @@ public class  SafesService {
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Create SDB").
+					put(LogMessage.ACTION, "Create Safe").
 					put(LogMessage.MESSAGE, "SDB Creation failed").
-					put(LogMessage.RESPONSE, "Invalid Path").
+					put(LogMessage.RESPONSE, INVALID_PATH).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -351,7 +355,7 @@ public class  SafesService {
 		if (path != null && path.endsWith("/")) {
 			path = path.substring(0, path.length()-1);
 		}
-		String _path = "metadata/"+path;
+		String _path = METADATA+path;
 		if( TVaultConstants.APPS.equals(path)||TVaultConstants.SHARED.equals(path)||TVaultConstants.USERS.equals(path)){
 			Response response = reqProcessor.process("/sdb/list","{\"path\":\""+_path+"\"}",token);
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -385,7 +389,7 @@ public class  SafesService {
 		String path = safe.getPath();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "Delete SDB").
+				put(LogMessage.ACTION, "DeleteSDB").
 				put(LogMessage.MESSAGE, String.format ("Trying to Delete SDB [%s]", path)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
@@ -399,8 +403,8 @@ public class  SafesService {
 			}else{
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "Delete SDB").
-						put(LogMessage.MESSAGE, "SDB Deletion completed").
+						put(LogMessage.ACTION, "DeleteSDB").
+						put(LogMessage.MESSAGE, "SDB Deletion is completed").
 						put(LogMessage.STATUS, response.getHttpstatus().toString()).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
@@ -412,7 +416,7 @@ public class  SafesService {
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "Delete SDB").
+						put(LogMessage.ACTION, "Delete  SDB").
 						put(LogMessage.MESSAGE, "SDB Deletion completed").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
@@ -432,7 +436,7 @@ public class  SafesService {
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Delete SDB").
 					put(LogMessage.MESSAGE, "SDB Deletion failed").
-					put(LogMessage.RESPONSE, "Invalid Path").
+					put(LogMessage.RESPONSE, INVALID_PATH).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -451,14 +455,14 @@ public class  SafesService {
 		Map<String, Object> requestParams = ControllerUtil.parseJson(JSONUtil.getJSON(safe));
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "Update SDB").
+				put(LogMessage.ACTION, "UpdateSDB").
 				put(LogMessage.MESSAGE, String.format ("Trying to Update SDB ")).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if (!ControllerUtil.areSDBInputsValidForUpdate(requestParams)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Update SDB").
+					put(LogMessage.ACTION, "UpdateSDB").
 					put(LogMessage.MESSAGE, String.format ("Invalid input values ")).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
@@ -487,8 +491,8 @@ public class  SafesService {
 		}
 
 		String safePath = ControllerUtil.generateSafePath(safeName, safeType);
-		String _path = "metadata/"+safeType+"/"+safeNameFromPath; //Path as passed 
-		String _safePath = "metadata/"+safeType+"/"+safeName; // Path created from given safename and type
+		String _path = METADATA+safeType+"/"+safeNameFromPath; //Path as passed 
+		String _safePath = METADATA+safeType+"/"+safeName; // Path created from given safename and type
 		String pathToBeUpdated = _path;
 		
 		if(ControllerUtil.isValidSafePath(path) || ControllerUtil.isValidSafePath(safePath)){
@@ -547,7 +551,7 @@ public class  SafesService {
 			}else{
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "Update SDB").
+						put(LogMessage.ACTION, "Updates SDB").
 						put(LogMessage.MESSAGE, "SDB Update completed").
 						put(LogMessage.RESPONSE, response.getResponse()).
 						put(LogMessage.STATUS, response.getHttpstatus().toString()).
@@ -558,9 +562,9 @@ public class  SafesService {
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Update SDB").
+					put(LogMessage.ACTION, "Updates SDB").
 					put(LogMessage.MESSAGE, "SDB Update failed").
-					put(LogMessage.RESPONSE, "Invalid Path").
+					put(LogMessage.RESPONSE, INVALID_PATH).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -608,7 +612,7 @@ public class  SafesService {
 	 */
 	private ResponseEntity<String> deleteSafeTree(String token, Safe safe, UserDetails userDetails) {
 		String path = safe.getPath();
-		String _path = "metadata/"+path;
+		String _path = METADATA+path;
 
 		// Get Safe metadataInfo
 		Response response = reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
@@ -1945,7 +1949,7 @@ public class  SafesService {
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					  put(LogMessage.ACTION, "Delete AWS Role from SDB").
 				      put(LogMessage.MESSAGE, "Delete AWS Role from SDB failed").
-				      put(LogMessage.RESPONSE, "Invalid Path").
+				      put(LogMessage.RESPONSE, INVALID_PATH).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -1999,7 +2003,7 @@ public class  SafesService {
 				reqProcessor.process("/access/delete","{\"accessid\":\""+d_policy+"\"}",token);
 				reqProcessor.process("/access/delete","{\"accessid\":\""+s_policy+"\"}",token);
 
-				String _path = "metadata/"+path;
+				String _path = METADATA+path;
 
 				// Get SDB metadataInfo
 				response = reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token);
@@ -2069,7 +2073,7 @@ public class  SafesService {
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Delete Folder").
 					put(LogMessage.MESSAGE, "SDB Folder Deletion failed").
-					put(LogMessage.RESPONSE, "Invalid Path").
+					put(LogMessage.RESPONSE, INVALID_PATH).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -2161,7 +2165,7 @@ public class  SafesService {
 	public ResponseEntity<String> getFoldersRecursively(String token, String path) {
 		String _path = "";
 		if( TVaultConstants.APPS.equals(path)||TVaultConstants.SHARED.equals(path)||TVaultConstants.USERS.equals(path)){
-			_path = "metadata/"+path;
+			_path = METADATA+path;
 		}else{
 			_path = path;
 		}
@@ -2215,7 +2219,7 @@ public class  SafesService {
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "createNestedfolder").
 					put(LogMessage.MESSAGE, "createNestedfolder completed").
-					put(LogMessage.RESPONSE, "Invalid Path").
+					put(LogMessage.RESPONSE, INVALID_PATH).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
@@ -2409,7 +2413,7 @@ public class  SafesService {
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "Associate AppRole to SDB").
 					put(LogMessage.MESSAGE, "Association of AppRole to SDB failed").
-					put(LogMessage.RESPONSE, "Invalid Path").
+					put(LogMessage.RESPONSE, INVALID_PATH).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Approle :" + approle + " failed to be associated with SDB.. Invalid Path specified\"]}");
@@ -2557,7 +2561,7 @@ public class  SafesService {
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "Remove Approle from SDB").
 					put(LogMessage.MESSAGE, "Remove Approle from SDB failed").
-					put(LogMessage.RESPONSE, "Invalid Path").
+					put(LogMessage.RESPONSE, INVALID_PATH).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");

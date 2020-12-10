@@ -115,6 +115,7 @@ public final class ControllerUtil {
 	private static IAMPortalCred iamPortalCred = null;
 	
 	private static OIDCUtil oidcUtil;
+	private static final String ERROR_STRING= "{\"errors\":[\"Unexpected error :\"";
 
 	@PostConstruct
 	private void initStatic () {
@@ -153,7 +154,7 @@ public final class ControllerUtil {
 	public static void recursivedeletesdb(String jsonstr,String token,  Response responseVO){
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, "recursivedeletesdb").
+				put(LogMessage.ACTION, TVaultConstants.RECURSIVE_DELETE_SDB).
 				put(LogMessage.MESSAGE, String.format ("Trying recursive delete...")).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
@@ -165,13 +166,13 @@ public final class ControllerUtil {
 			log.error(e);
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "recursivedeletesdb").
+					put(LogMessage.ACTION, TVaultConstants.RECURSIVE_DELETE_SDB).
 					put(LogMessage.MESSAGE, String.format ("recursivedeletesdb failed for [%s]", e.getMessage())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			responseVO.setSuccess(false);
 			responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
-			responseVO.setResponse("{\"errors\":[\"Unexpected error :"+e.getMessage() +"\"]}");
+			responseVO.setResponse(ERROR_STRING+e.getMessage() +"\"]}");
 		}
 		
 		Response lisresp = reqProcessor.process("/sdb/list",jsonstr,token);
@@ -193,13 +194,13 @@ public final class ControllerUtil {
 				log.error(e);
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "recursivedeletesdb").
+						put(LogMessage.ACTION, TVaultConstants.RECURSIVE_DELETE_SDB).
 						put(LogMessage.MESSAGE, String.format ("recursivedeletesdb failed for [%s]", e.getMessage())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 				responseVO.setSuccess(false);
 				responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
-				responseVO.setResponse("{\"errors\":[\"Unexpected error :"+e.getMessage() +"\"]}");
+				responseVO.setResponse(ERROR_STRING+e.getMessage() +"\"]}");
 			}
 			recursivedeletesdb ("{\"path\":\""+path+"\"}" ,token,responseVO);
 		}
@@ -227,7 +228,7 @@ public final class ControllerUtil {
 					build()));
 			responseVO.setSuccess(false);
 			responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
-			responseVO.setResponse("{\"errors\":[\"Unexpected error :"+e.getMessage() +"\"]}");
+			responseVO.setResponse(ERROR_STRING+e.getMessage() +"\"]}");
 		}
 		return path;
 	}
@@ -297,7 +298,7 @@ public final class ControllerUtil {
 							build()));
 					responseVO.setSuccess(false);
 					responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
-					responseVO.setResponse("{\"errors\":[\"Unexpected error :"+e.getMessage() +"\"]}");
+					responseVO.setResponse(ERROR_STRING+e.getMessage() +"\"]}");
 				}
 			}
 			else {
@@ -390,7 +391,7 @@ public final class ControllerUtil {
 							build()));
 					responseVO.setSuccess(false);
 					responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
-					responseVO.setResponse("{\"errors\":[\"Unexpected error :"+e.getMessage() +"\"]}");
+					responseVO.setResponse(ERROR_STRING+e.getMessage() +"\"]}");
 				}
 			}
 			else {
