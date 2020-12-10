@@ -179,16 +179,63 @@ const AzureDashboard = () => {
   const [listItemDetails, setListItemDetails] = useState({});
   const [azureList, setAzureList] = useState([]);
   const [toastResponse, setToastResponse] = useState(null);
-  const [response, setResponse] = useState({ status: 'success' });
-  //   const [state, dispatch] = useStateValue();
+  const [response, setResponse] = useState({ status: 'loading' });
+  const [allAzureList, setAllAzureList] = useState([]);
   //   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
   const history = useHistory();
   //   const location = useLocation();
-  //   const admin = Boolean(state.isAdmin);
-
   const introduction = Strings.Resources.azurePrincipal;
+  /**
+   * @function fetchData
+   * @description function call all the manage and azure principal api.
+   */
+  const fetchData = useCallback(async () => {
+    setResponse({ status: 'loading' });
+    setInputSearchValue('');
+    setListItemDetails({});
+    const manageAzureService = await apiService.getManageAzureService();
+    const azureServiceList = await apiService.getAzureServiceList();
+    const allApiResponse = Promise.all([manageAzureService, azureServiceList]);
+    allApiResponse
+      .then((result) => {
+        setAzureList([]);
+        setAllAzureList([]);
+        setResponse({ status: 'success' });
+      })
+      .catch(() => {
+        setResponse({ status: 'failed' });
+      });
+  }, []);
+
+  /**
+   * @description On component load call fetchData function.
+   */
+  useEffect(() => {
+    fetchData().catch(() => {
+      setResponse({ status: 'failed' });
+    });
+  }, [fetchData]);
+
+  /**
+   * @function onSearchChange
+   * @description function to search azure principal.
+   * @param {string} value searched input value.
+   */
+  const onSearchChange = (value) => {
+    setInputSearchValue(value);
+    if (value !== '') {
+      const array = allAzureList?.filter((item) => {
+        return String(item?.name?.toLowerCase()).startsWith(
+          value?.toLowerCase().trim()
+        );
+      });
+      setAzureList([...array]);
+    } else {
+      setAzureList([...allAzureList]);
+    }
+  };
 
   const renderList = () => {
     return azureList.map((account) => (
@@ -232,44 +279,42 @@ const AzureDashboard = () => {
                   fullWidth
                   value={inputSearchValue || ''}
                   color="secondary"
+                  onChange={(e) => onSearchChange(e?.target?.value)}
                 />
               </SearchWrap>
             </ColumnHeader>
             {response.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
-            {response.status === 'failed' && !azureList?.length && (
+            {response.status === 'failed' && (
               <EmptyContentBox>
-                {' '}
                 <Error description="Error while fetching azure accounts!" />
               </EmptyContentBox>
             )}
             {response.status === 'success' && (
               <>
-                {azureList && azureList.length > 0 ? (
+                {azureList.length > 0 ? (
                   <ListContainer>
                     <ListContent>{renderList()}</ListContent>
                   </ListContainer>
                 ) : (
-                  azureList?.length === 0 && (
-                    <>
-                      {inputSearchValue ? (
-                        <NoDataWrapper>
-                          No azure account found with name:
-                          <strong>{inputSearchValue}</strong>
-                        </NoDataWrapper>
-                      ) : (
-                        <NoDataWrapper>
-                          <NoListWrap>
-                            <NoData
-                              imageSrc={NoSafesIcon}
-                              description="No azure principal are associated with you yet."
-                            />
-                          </NoListWrap>
-                        </NoDataWrapper>
-                      )}
-                    </>
-                  )
+                  <>
+                    {inputSearchValue ? (
+                      <NoDataWrapper>
+                        No azure account found with name:
+                        <strong>{inputSearchValue}</strong>
+                      </NoDataWrapper>
+                    ) : (
+                      <NoDataWrapper>
+                        <NoListWrap>
+                          <NoData
+                            imageSrc={NoSafesIcon}
+                            description="No azure principal are associated with you yet."
+                          />
+                        </NoListWrap>
+                      </NoDataWrapper>
+                    )}
+                  </>
                 )}
               </>
             )}
