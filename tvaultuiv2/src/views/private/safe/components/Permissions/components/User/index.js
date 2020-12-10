@@ -57,7 +57,6 @@ const User = (props) => {
     newPermission,
     onNewPermissionChange,
     safeData,
-    fetchPermission,
     updateToastMessage,
     refresh,
   } = props;
@@ -96,9 +95,8 @@ const User = (props) => {
       .then(async (res) => {
         if (res && res.data?.Message) {
           updateToastMessage(1, res.data.Message);
-          setResponse({ status: '' });
-          await fetchPermission();
-          refresh();
+          setResponse({ status: 'loading' });
+          await refresh();
         }
       })
       .catch((err) => {
@@ -113,11 +111,9 @@ const User = (props) => {
     setResponse({ status: 'loading' });
     apiService
       .addUserPermission(data)
-      .then(async (res) => {
+      .then((res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
-          setResponse({ status: '' });
-          await fetchPermission();
         }
       })
       .catch((err) => {
@@ -135,7 +131,8 @@ const User = (props) => {
       username: user.toLowerCase(),
     };
     await onSaveClicked(value);
-    refresh();
+    setResponse({ status: 'loading' });
+    await refresh();
     onNewPermissionChange();
   };
 
@@ -183,7 +180,6 @@ const User = (props) => {
           <AddUser
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
-            refresh={refresh}
           />
         )}
         {response.status === 'edit' && (
@@ -192,7 +188,6 @@ const User = (props) => {
             handleCancelClick={onCancelClicked}
             username={editUser}
             access={editAccess}
-            refresh={refresh}
           />
         )}
         {response.status === 'success' && safeData && safeData.response && (
@@ -244,7 +239,6 @@ User.propTypes = {
   newPermission: PropTypes.bool.isRequired,
   onNewPermissionChange: PropTypes.func.isRequired,
   safeData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
 };

@@ -217,14 +217,20 @@ const SelectionTabs = (props) => {
 
   useEffect(() => {
     setResponse({ status: 'loading', message: 'loading...' });
-    if (safeDetail?.manage) {
-      async function fetchData() {
-        await fetchPermission();
+    if (Object.keys(safeDetail).length > 0) {
+      if (safeDetail?.manage) {
+        async function fetchData() {
+          await fetchPermission();
+          getSecretDetails();
+        }
+        fetchData();
+      } else {
         getSecretDetails();
+        setUserHavePermission({
+          permission: true,
+          type: safeDetail.access,
+        });
       }
-      fetchData();
-    } else {
-      getSecretDetails();
     }
   }, [safeDetail, fetchPermission, getSecretDetails]);
 
@@ -242,17 +248,13 @@ const SelectionTabs = (props) => {
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
             {safeDetail.manage && <Tab label="Permissions" {...a11yProps(1)} />}
           </Tabs>
-          {value === 0 && (
-            <>
-              {safeDetail?.access?.toLowerCase() === 'write' && (
-                <NamedButton
-                  label="Add Folder"
-                  onClick={addSecretsFolder}
-                  customStyle={customBtnStyles}
-                  iconSrc={addFolderPlus}
-                />
-              )}
-            </>
+          {value === 0 && userHavePermission.type === 'write' && (
+            <NamedButton
+              label="Add Folder"
+              onClick={addSecretsFolder}
+              customStyle={customBtnStyles}
+              iconSrc={addFolderPlus}
+            />
           )}
         </AppBar>
         <TabContentsWrap>
@@ -282,7 +284,7 @@ const SelectionTabs = (props) => {
               refresh={refresh}
               permissionResponseType={permissionResponseType}
               safePermissionData={safePermissionData}
-              fetchPermission={() => fetchPermission()}
+              fetchPermission={fetchPermission}
             />
           </TabPanel>
           {toastResponse === -1 && (

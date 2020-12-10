@@ -362,7 +362,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token && window.location.pathname === '/') {
+    if (token !== null && window.location.pathname === '/') {
       window.location = '/safes';
     }
   }, []);

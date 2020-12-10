@@ -18,6 +18,7 @@ import mediaBreakpoints from '../../../../breakpoints';
 import SnackbarComponent from '../../../../components/Snackbar';
 import AutoCompleteComponent from '../../../../components/FormFields/AutoComplete';
 import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
+import BackdropLoader from '../../../../components/Loaders/BackdropLoader';
 import { validateEmail } from '../../../../services/helper-function';
 import apiService from '../apiService';
 import {
@@ -346,15 +347,17 @@ const CreateModal = (props) => {
   );
   const onOwnerChange = (e) => {
     if (e) {
-      setOwner(e.target.value);
-      if (e.target.value !== '' && e.target.value.length > 2) {
+      setOwner(e?.target?.value);
+      if (e?.target?.value !== '' && e.target.value.length > 2) {
         callSearchApi(e.target.value);
       }
     }
   };
 
   const onSelected = (e, val) => {
-    setOwner(val);
+    if (val) {
+      setOwner(val);
+    }
   };
   const onToastClose = (reason) => {
     if (reason === 'clickaway') {
@@ -384,7 +387,7 @@ const CreateModal = (props) => {
   };
 
   const onInputBlur = (e) => {
-    if (e.target.name === 'owner') {
+    if (e?.target?.name === 'owner') {
       if (validateEmail(owner)) {
         setEmailError(false);
       } else {
@@ -409,7 +412,7 @@ const CreateModal = (props) => {
       >
         <Fade in={open}>
           <GlobalModalWrapper>
-            {responseType === 0 && <LoaderSpinner customStyle={loaderStyle} />}
+            {responseType === 0 && <BackdropLoader customStyle={loaderStyle} />}
             <HeaderWrapper>
               <LeftIcon
                 src={leftArrowIcon}

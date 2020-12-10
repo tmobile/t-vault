@@ -267,7 +267,7 @@ const IamServiceAccountDashboard = () => {
     if (value !== '') {
       const array = state?.iamServiceAccountList?.filter((item) => {
         return String(item?.name?.toLowerCase()).startsWith(
-          value?.toLowerCase()
+          value?.toLowerCase().trim()
         );
       });
       setIamServiceAccountList([...array]);

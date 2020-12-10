@@ -45,7 +45,6 @@ const EditDeletePopper = (props) => {
     onEditClicked,
     onTransferOwnerClicked,
     onReleaseClicked,
-    outsideTvault,
   } = props;
 
   return (
@@ -61,32 +60,24 @@ const EditDeletePopper = (props) => {
             horizontal: 'right',
           }}
         >
-          {outsideTvault && (
-            <>
-              {JSON.parse(localStorage.getItem('isAdmin')) && (
-                <PopperItem onClick={onReleaseClicked}>
-                  <IconRelease />
-                  <span>Release</span>
-                </PopperItem>
-              )}
-            </>
+          {JSON.parse(localStorage.getItem('isAdmin')) && (
+            <PopperItem onClick={onReleaseClicked}>
+              <IconRelease />
+              <span>Release</span>
+            </PopperItem>
           )}
-          {!outsideTvault && (
-            <>
-              <PopperItem onClick={onTransferOwnerClicked}>
-                <SyncAltIcon style={{ fill: '#fff' }} />
-                <span>Transfer</span>
-              </PopperItem>
-              <PopperItem onClick={onEditClicked}>
-                <IconEdit />
-                <span>Edit</span>
-              </PopperItem>
-              <PopperItem onClick={onDeleteClicked}>
-                <IconDeleteActive />
-                <span> Delete</span>
-              </PopperItem>
-            </>
-          )}
+          <PopperItem onClick={onTransferOwnerClicked}>
+            <SyncAltIcon style={{ fill: '#fff' }} />
+            <span>Transfer</span>
+          </PopperItem>
+          <PopperItem onClick={onEditClicked}>
+            <IconEdit />
+            <span>Edit</span>
+          </PopperItem>
+          <PopperItem onClick={onDeleteClicked}>
+            <IconDeleteActive />
+            <span> Delete</span>
+          </PopperItem>
         </PopperElement>
       </FolderIconWrap>
     </div>
@@ -98,7 +89,6 @@ EditDeletePopper.propTypes = {
   onDeleteClicked: PropTypes.func.isRequired,
   onTransferOwnerClicked: PropTypes.func,
   onReleaseClicked: PropTypes.func,
-  outsideTvault: PropTypes.bool.isRequired,
 };
 
 EditDeletePopper.defaultProps = {

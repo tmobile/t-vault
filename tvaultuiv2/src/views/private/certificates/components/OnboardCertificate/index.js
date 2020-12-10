@@ -95,13 +95,6 @@ const CancelButton = styled.div`
   }
 `;
 
-const FieldInstruction = styled.p`
-  color: ${(props) => props.theme.customColor.label.color};
-  font-size: 1.3rem;
-  margin-top: ${(props) => (props.marginTop ? props.marginTop : '0')};
-  margin-bottom: 0;
-`;
-
 const NotificationEmailsWrap = styled.div``;
 
 const FetchingWrap = styled.div`
@@ -128,7 +121,7 @@ const AutoInputFieldLabelWrapper = styled.div`
 
 const EndingBox = styled.div`
   background-color: ${(props) =>
-    props.applicationName === ''
+    props.applicationName === false
       ? 'rgba(0, 0, 0, 0.12)'
       : props.theme.customColor.primary.backgroundColor};
   color: ${(props) => props.theme.customColor.primary.color};
@@ -252,7 +245,9 @@ const OnboardCertificates = (props) => {
       if (!autoLoader) {
         if (
           options.length === 0 ||
-          !options.find((item) => item.userEmail === owner)
+          !options.find(
+            (item) => item?.userEmail?.toLowerCase() === owner.toLowerCase()
+          )
         ) {
           setIsValidEmail(false);
         } else {
@@ -452,6 +447,12 @@ const OnboardCertificates = (props) => {
           ) {
             array.push(res.data.spec.opsContactEmail.toLowerCase());
           }
+          const obj = array.find(
+            (item) => item.toLowerCase() === owner.toLowerCase()
+          );
+          if (owner !== '' && !obj) {
+            array.push(owner);
+          }
           setNotificationEmailList([...array]);
         }
         setSearchNotificationsEmail(false);
@@ -602,7 +603,7 @@ const OnboardCertificates = (props) => {
                 </InputFieldLabelWrapper>
                 <InputFieldLabelWrapper>
                   <InputLabel>
-                    Aplication Name
+                    Application Name
                     <RequiredCircle margin="1.3rem" />
                   </InputLabel>
                   <TextFieldSelect
@@ -614,10 +615,6 @@ const OnboardCertificates = (props) => {
                     }
                     filledText="Select application name"
                   />
-                  <FieldInstruction marginTop="1.2rem">
-                    Please provide the AD group for which read or reset
-                    permission to be granted later.
-                  </FieldInstruction>
                 </InputFieldLabelWrapper>
                 <NotificationEmailsWrap>
                   {!searchNotificationsEmail && (
@@ -640,7 +637,10 @@ const OnboardCertificates = (props) => {
                         options={notifyOptions}
                         classes={classes}
                         searchValue={notifyEmail}
-                        disabled={applicationName === ''}
+                        disabled={
+                          applicationName === '' &&
+                          notificationEmailList.length === 0
+                        }
                         icon="search"
                         name="notifyEmail"
                         onSelected={(e, val) => onNotifyEmailSelected(e, val)}
@@ -661,7 +661,13 @@ const OnboardCertificates = (props) => {
                       {notifyAutoLoader && (
                         <LoaderSpinner customStyle={notifyAutoLoaderStyle} />
                       )}
-                      <EndingBox width="4rem" applicationName={applicationName}>
+                      <EndingBox
+                        width="4rem"
+                        applicationName={
+                          notificationEmailList.length > 0 ||
+                          applicationName !== ''
+                        }
+                      >
                         <ReturnIcon onClick={() => onAddEmailClicked()}>
                           <KeyboardReturnIcon />
                         </ReturnIcon>
@@ -670,8 +676,8 @@ const OnboardCertificates = (props) => {
                   </NotificationAutoWrap>
                 )}
                 {!searchNotificationsEmail &&
-                  notificationEmailList.length > 0 &&
-                  applicationName !== '' && (
+                  (notificationEmailList.length > 0 ||
+                    applicationName !== '') && (
                     <ArrayList>
                       {notificationEmailList.map((item) => {
                         return (

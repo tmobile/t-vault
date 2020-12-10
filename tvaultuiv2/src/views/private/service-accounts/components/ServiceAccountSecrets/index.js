@@ -271,7 +271,7 @@ const ServiceAccountSecrets = (props) => {
                 {writePermission && (
                   <PopperItem onClick={() => onResetClicked()}>
                     <img alt="refersh-ic" src={IconRefreshCC} />
-                    <span>Rotate Secret</span>
+                    <span>Reset Secret</span>
                   </PopperItem>
                 )}
                 <CopyToClipboard
