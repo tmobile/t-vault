@@ -101,7 +101,7 @@ const Secrets = (props) => {
         {secretsStatus.status === 'failed' &&
           !secretsFolder[0]?.children?.length && (
             <EmptySecretBox>
-              <Error description="Error while fetching safes folders" />
+              <Error description="Sorry we were unable to retrieve those documents." />
             </EmptySecretBox>
           )}
         {secretsStatus.status === 'success' &&

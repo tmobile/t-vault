@@ -304,9 +304,7 @@ const ServiceAccountDashboard = () => {
     setInputSearchValue(value);
     if (value !== '') {
       const array = state?.serviceAccountList?.filter((item) => {
-        return String(item?.name?.toLowerCase()).startsWith(
-          value?.toLowerCase().trim()
-        );
+        return item?.name?.toLowerCase().includes(value?.toLowerCase().trim());
       });
       setServiceAccountList([...array]);
     } else {
