@@ -1,7 +1,7 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
-/* eslint-disable no-param-reassign */
 import React, { useState, useEffect, useCallback, lazy } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
@@ -188,8 +188,8 @@ const ServiceAccountDashboard = () => {
   const [serviceAccountClicked, setServiceAccountClicked] = useState(false);
   const [listItemDetails, setListItemDetails] = useState({});
   const [serviceAccountList, setServiceAccountList] = useState([]);
-  const [toast, setToast] = useState(null);
-  const [status, setStatus] = useState({});
+  const [toastResponse, setToastResponse] = useState(null);
+  const [response, setResponse] = useState({});
   const [deleteAccName, setDeleteAccName] = useState('');
   const [offBoardSuccessfull, setOffBoardSuccessfull] = useState(false);
   const [allServiceAccountList, setAllServiceAccountList] = useState([]);
@@ -212,7 +212,7 @@ const ServiceAccountDashboard = () => {
    * @description function call all the manage and safe api.
    */
   const fetchData = useCallback(async () => {
-    setStatus({ status: 'loading', message: 'Loading...' });
+    setResponse({ status: 'loading', message: 'Loading...' });
     setInputSearchValue('');
     setListItemDetails({});
     let serviceList = [];
@@ -222,11 +222,11 @@ const ServiceAccountDashboard = () => {
     const serviceAccounts = await apiService.getServiceAccounts();
     const allApiResponse = Promise.all([serviceList, serviceAccounts]);
     allApiResponse
-      .then((response) => {
+      .then((result) => {
         const listArray = [];
         if (configData.AUTH_TYPE === 'oidc') {
-          if (response[0] && response[0].data && response[0].data.svcacct) {
-            response[0].data.svcacct.map((item) => {
+          if (result[0] && result[0].data && result[0].data.svcacct) {
+            result[0].data.svcacct.map((item) => {
               const data = {
                 name: Object.keys(item)[0],
                 access: Object.values(item)[0],
@@ -254,14 +254,14 @@ const ServiceAccountDashboard = () => {
             });
           }
         }
-        if (response[1] && response[1]?.data?.keys) {
+        if (result[1] && result[1]?.data?.keys) {
           listArray.map((item) => {
-            if (!response[1].data.keys.includes(item.name)) {
+            if (!result[1].data.keys.includes(item.name)) {
               item.manage = false;
             }
             return null;
           });
-          response[1].data.keys.map((item) => {
+          result[1].data.keys.map((item) => {
             if (!listArray.some((list) => list.name === item)) {
               const data = {
                 name: item,
@@ -280,10 +280,10 @@ const ServiceAccountDashboard = () => {
             payload: [...listArray],
           });
         }
-        setStatus({ status: 'success', message: '' });
+        setResponse({ status: 'success', message: '' });
       })
       .catch(() => {
-        setStatus({ status: 'failed', message: 'failed' });
+        setResponse({ status: 'failed', message: 'failed' });
       });
   }, [admin, dispatch]);
 
@@ -292,7 +292,7 @@ const ServiceAccountDashboard = () => {
    */
   useEffect(() => {
     fetchData().catch(() => {
-      setStatus({ status: 'failed', message: 'failed' });
+      setResponse({ status: 'failed', message: 'failed' });
     });
   }, [fetchData]);
 
@@ -370,7 +370,7 @@ const ServiceAccountDashboard = () => {
 
   // toast close handler
   const onToastClose = () => {
-    setStatus({});
+    setToastResponse(null);
   };
 
   /**
@@ -414,7 +414,7 @@ const ServiceAccountDashboard = () => {
         setOffBoardSuccessfull(true);
       })
       .catch(() => {
-        setToast(-1);
+        setToastResponse(-1);
       });
   };
 
@@ -430,7 +430,7 @@ const ServiceAccountDashboard = () => {
    */
   const onServiceAccountOffBoard = () => {
     setOffBoardSvcAccountConfirmation(false);
-    setStatus({ status: 'loading' });
+    setResponse({ status: 'loading' });
     apiService
       .fetchServiceAccountDetails(deleteAccName)
       .then((res) => {
@@ -443,7 +443,7 @@ const ServiceAccountDashboard = () => {
         }
       })
       .catch(() => {
-        setToast(-1);
+        setToastResponse(-1);
       });
   };
 
@@ -483,7 +483,7 @@ const ServiceAccountDashboard = () => {
   };
 
   const onTranferConfirmationClicked = () => {
-    setStatus({ status: 'loading' });
+    setResponse({ status: 'loading' });
     setTransferSvcAccountConfirmation(false);
     apiService
       .transferOwner(transferName)
@@ -496,7 +496,7 @@ const ServiceAccountDashboard = () => {
         await fetchData();
       })
       .catch(() => {
-        setToast(-1);
+        setToastResponse(-1);
       });
   };
 
@@ -586,24 +586,22 @@ const ServiceAccountDashboard = () => {
                 />
               </SearchWrap>
             </ColumnHeader>
-            {status.status === 'loading' && (
+            {response.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
-            {status.status === 'failed' && !serviceAccountList?.length && (
+            {response.status === 'failed' && !serviceAccountList?.length && (
               <EmptyContentBox>
-                {' '}
                 <Error description="Error while fetching service accounts!" />
               </EmptyContentBox>
             )}
-            {status.status === 'success' && (
+            {response.status === 'success' && (
               <>
                 {serviceAccountList && serviceAccountList.length > 0 ? (
                   <ListContainer>
                     <ListContent>{renderList()}</ListContent>
                   </ListContainer>
                 ) : (
-                  serviceAccountList?.length === 0 &&
-                  status.status === 'success' && (
+                  serviceAccountList?.length === 0 && (
                     <>
                       {inputSearchValue ? (
                         <NoDataWrapper>
@@ -718,7 +716,7 @@ const ServiceAccountDashboard = () => {
               />
             </Switch>
           </RightColumnSection>
-          {toast === -1 && (
+          {toastResponse === -1 && (
             <SnackbarComponent
               open
               onClose={() => onToastClose()}
@@ -727,7 +725,7 @@ const ServiceAccountDashboard = () => {
               message="Something went wrong!"
             />
           )}
-          {toast === 1 && (
+          {toastResponse === 1 && (
             <SnackbarComponent
               open
               onClose={() => onToastClose()}
@@ -755,7 +753,5 @@ const ServiceAccountDashboard = () => {
     </ComponentError>
   );
 };
-ServiceAccountDashboard.propTypes = {};
-ServiceAccountDashboard.defaultProps = {};
 
 export default ServiceAccountDashboard;

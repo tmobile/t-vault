@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import FileCopyIcon from '@material-ui/icons/FileCopy';
 import ComponentError from '../../../../../../errorBoundaries/ComponentError/component-error';
 import {
   IconLock,
@@ -13,6 +15,7 @@ import {
   BackgroundColor,
 } from '../../../../../../styles/GlobalStyles';
 import PopperElement from '../../Popper';
+import SnackbarComponent from '../../../../../../components/Snackbar';
 
 const StyledFile = styled.div`
   background: ${BackgroundColor.secretBg};
@@ -90,6 +93,8 @@ const File = (props) => {
     userHavePermission,
   } = props;
   const [viewSecretValue, setViewSecretValue] = useState(false);
+  const [responseType, setResponseType] = useState(null);
+  const [secretArray, setSecretArray] = useState([]);
 
   const toggleSecretValue = (val) => {
     setViewSecretValue(val);
@@ -112,6 +117,26 @@ const File = (props) => {
       setSecretprefilledData({});
     }
   };
+
+  const onCopyClicked = () => {
+    setResponseType(1);
+  };
+
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
+  };
+
+  useEffect(() => {
+    if (secret && Object.keys(secret).length > 0) {
+      setSecretArray([
+        { name: 'Copy Key', value: Object.keys(secret)[0] },
+        { name: 'Copy Secret', value: Object.values(secret)[0] },
+      ]);
+    }
+  }, [secret]);
 
   return (
     <ComponentError>
@@ -141,6 +166,18 @@ const File = (props) => {
                 <img alt="refersh-ic" src={IconRefreshCC} />
                 <span>{viewSecretValue ? 'Hide secret' : 'View Secret'}</span>
               </PopperItem>
+              {secretArray?.length > 0 &&
+                secretArray.map((item) => (
+                  <CopyToClipboard
+                    text={item.value}
+                    onCopy={() => onCopyClicked()}
+                  >
+                    <PopperItem>
+                      <FileCopyIcon />
+                      <span>{item.name}</span>
+                    </PopperItem>
+                  </CopyToClipboard>
+                ))}
               {userHavePermission?.type === 'write' && (
                 <PopperItem onClick={() => editNode()}>
                   <IconEdit />
@@ -167,6 +204,13 @@ const File = (props) => {
             </PopperElement>
           </FolderIconWrap>
         </StyledFile>
+        {responseType === 1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message="Copied successfully!"
+          />
+        )}
       </FileWrap>
     </ComponentError>
   );

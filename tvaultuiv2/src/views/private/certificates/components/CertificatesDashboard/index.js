@@ -406,19 +406,25 @@ const CertificatesDashboard = () => {
 
   useEffect(() => {
     const internalArray = allCertList?.filter(
-      (item) => item?.certType === 'internal'
+      (item) => item?.certType === 'internal' && !item.isOnboardCert
     );
     const externalArray = allCertList?.filter(
-      (item) => item?.certType === 'external'
+      (item) => item?.certType === 'external' && !item.isOnboardCert
     );
-    const onboardArray = allCertList?.filter((item) => item.isOnboardCert);
-    setMenu([
+    const array = [
       { name: 'All Certificates', count: allCertList?.length || 0 },
       { name: 'Internal Certificates', count: internalArray?.length || 0 },
       { name: 'External Certificates', count: externalArray?.length || 0 },
-      { name: 'Onboard Certificates', count: onboardArray?.length || 0 },
-    ]);
-  }, [allCertList]);
+    ];
+    if (admin) {
+      const onboardArray = allCertList?.filter((item) => item.isOnboardCert);
+      array.push({
+        name: 'Onboard Certificates',
+        count: onboardArray?.length || 0,
+      });
+    }
+    setMenu([...array]);
+  }, [allCertList, admin]);
 
   /**
    * @function onLinkClicked

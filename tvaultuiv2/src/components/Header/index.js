@@ -254,7 +254,10 @@ const Header = (props) => {
             ) : (
               <ProfileIconWrap>
                 <EachLink
-                  href={configData.DOCS_LINK}
+                  href={`${configUrl.baseUrl.replace(
+                    '/vault/v2',
+                    ''
+                  )}/vault/swagger-ui.html`}
                   target="_blank"
                   rel="noopener noreferrer"
                   decoration="none"
