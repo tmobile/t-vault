@@ -119,7 +119,7 @@ public class TVaultConstants {
         EMAIL_TEMPLATE_IMAGE_IDS = Collections.synchronizedMap(new HashMap<String, String>());
         EMAIL_TEMPLATE_IMAGE_IDS.put("managetab", "templates/images/managetab.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("viewlink", "templates/images/viewlink.png");
-        EMAIL_TEMPLATE_IMAGE_IDS.put("update", "templates/images/update.png");
+        EMAIL_TEMPLATE_IMAGE_IDS.put(UPDATE, "templates/images/update.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("activate", "templates/images/activate.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("permission", "templates/images/permission.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("permissiontab", "templates/images/permissiontab.png");
@@ -163,7 +163,8 @@ public class TVaultConstants {
 
     public static final String IAM_SVC_PATH = "metadata/iamsvcacc/";
     public static final String IAM_SVC_ACC_PATH_PREFIX="iamsvcacc";
-    public static final String[] MASTER_APPROLES = { "selfservicesupportrole", "iamportal_master_approle", "azure_master_approle"};
+    public static final String[] MASTER_APPROLES = { SELF_SERVICE_APPROLE_NAME, "iamportal_master_approle", "azure_master_approle"};
     public static final String SPRINT_EMIAL_DOMAIN = "sprint.com";
     public static final String NULL_STRING = "null";
+    public static final String RECURSIVE_DELETE_SDB = "recursivedeletesdb";
 }

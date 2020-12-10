@@ -72,4 +72,7 @@ public final class IAMServiceAccountConstants {
 	
 	public static final String ACCESS_KEY_ID = "accessKeyId";
 	public static final String OWNER_NT_ID = "owner_ntid";
+	
+	public static final String ROTATE_IAM_SECRET = "rotateIAMSecret";
+	public static final String GET_IAMAPPROLE_TOKEN = "getIAMApproleToken";
 }

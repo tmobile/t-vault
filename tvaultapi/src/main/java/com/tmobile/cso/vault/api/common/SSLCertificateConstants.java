@@ -108,4 +108,27 @@ public final class SSLCertificateConstants {
     public static final String VENAFIBIN_CONTAINER="VenafiBin_12345";
     public static final String CERTIFICATE_TYPE_INTERNAL="Private Certificates";
 	public static final String CERTIFICATE_TYPE_EXTERNAL = "Public Certificates";
+	public static final String NCLM_DOWN_MSG = "NCLM services are down. Please try after some time.";
+	public static final String TEMPLATE_ID = "templateId";
+	public static final String ENTITY_ID = "entityid";
+	public static final String CERT_TYPE = "certType";
+	public static final String CERT_NAME = "certName";
+	public static final String CONTACT_LINK = "contactLink";
+	public static final String DNS_NAMES = "dnsNames";
+	public static final String APPROVED = "Approved";
+	public static final String CERT_OWNER_NTID = "certOwnerNtid";
+	public static final String CERT_OWNER_EMAILID = "certOwnerEmailId";
+	public static final String GENERATE_SSL_CERTIFICTAE = "generateSSLCertificate";
+	public static final String ACTION_ID = "actionId";
+	public static final String PRIVATE_SINGLE_SAN = "PRIVATE_SINGLE_SAN";
+	public static final String PUBLIC_SINGLE_SAN = "PUBLIC_SINGLE_SAN";
+	public static final String POPULATE_ONBOARD_METADATA ="populateSSLCertificateMetadataForOnboard";
+	public static final String ONBOARD = "onboard";
+	public static final String CERTIFICATE_UNAVAILABLE = "Certificate unavailable";
+	public static final String CERTIFICATE_ID = "certificateId";
+	public static final String CONTAINER_ID = "containerId";
+	public static final String CONTAINER_NAME = "containerName";
+	public static final String AWS_ROLES = "aws-roles";
+	public static final String COMMON_NAME = "commonname";
+	public static final String ONBOARD_SSL_CERTIFICATE = "onboardSSLcertificate";
 }
