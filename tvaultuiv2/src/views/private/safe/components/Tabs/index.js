@@ -217,20 +217,18 @@ const SelectionTabs = (props) => {
 
   useEffect(() => {
     setResponse({ status: 'loading', message: 'loading...' });
-    if (Object.keys(safeDetail).length > 0) {
-      if (safeDetail?.manage) {
-        async function fetchData() {
-          await fetchPermission();
-          getSecretDetails();
-        }
-        fetchData();
-      } else {
+    if (safeDetail?.manage) {
+      async function fetchData() {
+        await fetchPermission();
         getSecretDetails();
-        setUserHavePermission({
-          permission: true,
-          type: safeDetail.access,
-        });
       }
+      fetchData();
+    } else {
+      getSecretDetails();
+      setUserHavePermission({
+        permission: true,
+        type: safeDetail.access,
+      });
     }
   }, [safeDetail, fetchPermission, getSecretDetails]);
 

@@ -255,6 +255,7 @@ const IamServiceAccountDashboard = () => {
   useEffect(() => {
     fetchData().catch(() => {
       setStatus({ status: 'failed', message: 'failed' });
+      setGetResponse(-1);
     });
   }, [fetchData]);
 
@@ -471,7 +472,7 @@ const IamServiceAccountDashboard = () => {
             {status.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
-            {getResponse === -1 && !iamServiceAccountList?.length && (
+            {getResponse === -1 && (
               <EmptyContentBox>
                 {' '}
                 <Error description="Error while fetching service accounts!" />

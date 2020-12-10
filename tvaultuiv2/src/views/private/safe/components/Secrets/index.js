@@ -87,13 +87,14 @@ const Secrets = (props) => {
   return (
     <ComponentError>
       <SecretsContainer>
-        {userHavePermission.permission && (
-          <CountSpan color="#5e627c">
-            {`${
-              secretsFolder[0] ? secretsFolder[0]?.children?.length : 0
-            } Secrets`}
-          </CountSpan>
-        )}
+        {userHavePermission.permission &&
+          Object.keys(safeDetail).length > 0 && (
+            <CountSpan color="#5e627c">
+              {`${
+                secretsFolder[0] ? secretsFolder[0]?.children?.length : 0
+              } Secrets`}
+            </CountSpan>
+          )}
         {secretsStatus.status === 'loading' && (
           <LoaderSpinner customStyle={customStyle} />
         )}
