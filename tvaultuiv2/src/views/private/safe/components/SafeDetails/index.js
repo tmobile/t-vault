@@ -21,7 +21,7 @@ const Section = styled('section')`
 `;
 
 const SafeDetails = (props) => {
-  const { detailData, resetClicked, goodToRoute, renderContent } = props;
+  const { detailData, resetClicked, renderContent } = props;
   const [safe, setSafe] = useState({});
   // use history of page
   const history = useHistory();
@@ -35,17 +35,14 @@ const SafeDetails = (props) => {
   };
 
   useEffect(() => {
-    if (goodToRoute) {
-      if (detailData && detailData.length) {
-        const activeSafeDetail = detailData.filter(
-          (item) =>
-            item?.name?.toLowerCase() ===
-            history.location.pathname.split('/')[2]
-        );
-        setSafe(activeSafeDetail[0]);
-      }
+    if (detailData && detailData.length) {
+      const activeSafeDetail = detailData.filter(
+        (item) =>
+          item?.name?.toLowerCase() === history.location.pathname.split('/')[2]
+      );
+      setSafe(activeSafeDetail[0]);
     }
-  }, [location, goodToRoute, detailData, history.location.pathname]);
+  }, [location, detailData, history.location.pathname]);
 
   return (
     <ComponentError>
@@ -73,13 +70,11 @@ const SafeDetails = (props) => {
 SafeDetails.propTypes = {
   detailData: PropTypes.arrayOf(PropTypes.any),
   resetClicked: PropTypes.func,
-  goodToRoute: PropTypes.bool,
   renderContent: PropTypes.node,
 };
 SafeDetails.defaultProps = {
   detailData: [],
   resetClicked: () => {},
-  goodToRoute: false,
   renderContent: <div />,
 };
 

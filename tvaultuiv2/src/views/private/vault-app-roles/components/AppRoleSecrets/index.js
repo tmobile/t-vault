@@ -292,7 +292,7 @@ const AppRoleSecrets = (props) => {
 };
 
 AppRoleSecrets.propTypes = {
-  secretIds: PropTypes.arrayOf(PropTypes.array).isRequired,
+  secretIds: PropTypes.arrayOf(PropTypes.any).isRequired,
   deleteSecretIds: PropTypes.func,
 };
 
