@@ -406,7 +406,6 @@ const customTheme = createMuiTheme({
         height: '5rem',
         '&[class*="MuiFilledInput-root"]': {
           paddingTop: '0',
-         
         },
       },
       paper: {

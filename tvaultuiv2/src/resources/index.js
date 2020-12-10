@@ -49,6 +49,8 @@ const Resources = {
     'IAM Service Accounts can only be modified in AWS/IAM. You can only view the details of this IAM Service Account and rotate the associaed secret within T-vault. The associated secret needs to be rotated to active the account, ',
   noAppRolesAvailable:
     'Once you create a <strong>New Approle</strong> you’ll be able to add <strong>Secret</strong> to view them all here!',
+  azurePrincipal:
+    'T-Vault can be used to manage secrets of service principals in Azure Active Directory. In order to self-service your service principals in Azure Active Directory there is a three-step process to onboard the account into T-Vault.',
 };
 
 export default { Resources };
