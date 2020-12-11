@@ -456,9 +456,8 @@ public class OIDCUtil {
 
 			if (StringUtils.isEmpty(directoryUser.getUserEmail())) {
 				// Get user details from Corp domain (For sprint users)
-				if (userDetails.getEmail().contains(TVaultConstants.SPRINT_EMIAL_DOMAIN)) {
-					directoryUser = directoryService.getUserDetailsFromCorp(username);
-				}
+				directoryUser = directoryService.getUserDetailsFromCorp(username);
+
 				if (StringUtils.isEmpty(directoryUser.getUserEmail())) {
 					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new OIDCEntityResponse());
 				}
