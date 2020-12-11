@@ -299,4 +299,113 @@ public class DirectoryServiceTest {
         assertEquals(directoryUser, directoryUser2);
 
     }
+
+    @Test
+    public void test_searchByUPNInGsmAndCorp_successfully_from_GSM() {
+
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(users);
+
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(persons);
+        ResponseEntity<DirectoryObjects> responseEntity = directoryService.searchByUPNInGsmAndCorp("test_corpid");
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected.getBody().getData().getValues()[0], responseEntity.getBody().getData().getValues()[0]);
+    }
+
+    @Test
+    public void test_searchByUPNInGsmAndCorp_successfully_from_corp() {
+
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        List<DirectoryUser> personsEmpty = new ArrayList<>();
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(users);
+
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(personsEmpty);
+        when(adUserLdapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(persons);
+
+        ResponseEntity<DirectoryObjects> responseEntity = directoryService.searchByUPNInGsmAndCorp("test_corpid");
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected.getBody().getData().getValues()[0], responseEntity.getBody().getData().getValues()[0]);
+    }
+
+    @Test
+    public void test_getNtidForUser_successfully() {
+
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(users);
+
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(persons);
+        String ntId = directoryService.getNtidForUser("test_principal_name");
+
+        assertEquals("testuser", ntId);
+    }
+
+    @Test
+    public void test_getNtidForUser_successfully_corp() {
+
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        List<DirectoryUser> personsEmpty = new ArrayList<>();
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(users);
+
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(personsEmpty);
+        when(adUserLdapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(persons);
+
+        String ntId = directoryService.getNtidForUser("test_principal_name");
+
+        assertEquals("testuser", ntId);
+    }
+
 }
