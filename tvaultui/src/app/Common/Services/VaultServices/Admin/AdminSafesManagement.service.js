@@ -588,6 +588,16 @@
                     return response;
                 });
             },
+            transferSafe: function (payload, url) {
+                return ServiceEndpoint.transferSafe.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            searchByUPNInGsmAndCorp: function (payload, url) {
+                return ServiceEndpoint.searchByUPNInGsmAndCorp.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getTheRightErrorMessage : function(responseObject){
                 if(responseObject.status===500 || responseObject.statusText==='Internal Server Error'){
                     return ErrorMessage.ERROR_NETWORK;

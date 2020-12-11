@@ -469,4 +469,18 @@ public class SelfSupportController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.updateAppRole(token, appRole, userDetails);
 	}
+
+	/**
+	 * To transfer safe ownership.
+	 * @param request
+	 * @param token
+	 * @param safeTransferRequest
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.transferSafe.value}", notes = "${SelfSupportController.transferSafe.notes}")
+	@PostMapping(value="/v2/ss/transfersafe", consumes="application/json", produces="application/json")
+	public ResponseEntity<String> transferSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody SafeTransferRequest safeTransferRequest){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.transferSafe(token, safeTransferRequest, userDetails);
+	}
 }

@@ -369,4 +369,105 @@ public class  DirectoryService {
 			}
 		});
 	}
+
+	/**
+	 * Get Ntid for a user from email address.
+	 * @param email
+	 * @return
+	 */
+	public String getNtidForUser(String email) {
+		String ntid = null;
+		// Get NT id for given email from GSM
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "getNtidForUser").
+				put(LogMessage.MESSAGE, String.format("Trying to get NT id from GSM for [%s]", email)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		ResponseEntity<DirectoryObjects> directoryObjectsResponseEntity = searchByUPN(email);
+		if (directoryObjectsResponseEntity != null && HttpStatus.OK.equals(directoryObjectsResponseEntity.getStatusCode())) {
+			try {
+				Object[] adUser = directoryObjectsResponseEntity.getBody().getData().getValues();
+				if (adUser.length > 0) {
+					DirectoryUser directoryUser = (DirectoryUser) adUser[0];
+					ntid = directoryUser.getUserName().toLowerCase();
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "getNtidForUser").
+							put(LogMessage.MESSAGE, String.format("Owner id from GSM for [%s] is [%s]", email, ntid)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
+			} catch (NullPointerException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "getNtidForUser").
+						put(LogMessage.MESSAGE, "Failed to extract NTid from gsm response").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+		}
+
+		// Get NT id for given email from Corp if not found in GSM
+		if (org.apache.commons.lang3.StringUtils.isEmpty(ntid)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "getNtidForUser").
+					put(LogMessage.MESSAGE, String.format("Trying to get NT id from corp AD for [%s]", email)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			directoryObjectsResponseEntity = searchByEmailInCorp(email);
+			if (directoryObjectsResponseEntity != null && HttpStatus.OK.equals(directoryObjectsResponseEntity.getStatusCode())) {
+				try {
+					Object[] adUser = directoryObjectsResponseEntity.getBody().getData().getValues();
+					if (adUser.length > 0) {
+						DirectoryUser directoryUser = (DirectoryUser) adUser[0];
+						ntid = directoryUser.getUserName().toLowerCase();
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+								put(LogMessage.ACTION, "getNtidForUser").
+								put(LogMessage.MESSAGE, String.format("Owner id from Corp AD for [%s] is [%s]", email, ntid)).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+								build()));
+					}
+				} catch (NullPointerException e) {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "getNtidForUser5").
+							put(LogMessage.MESSAGE, "Failed to extract NTid from corp response").
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
+			}
+		}
+		return ntid;
+	}
+
+	/**
+	 * To search email in GSM or Corp
+	 * @param UserPrincipalName
+	 * @return
+	 */
+	public ResponseEntity<DirectoryObjects> searchByUPNInGsmAndCorp(String UserPrincipalName) {
+
+		AndFilter andFilter = new AndFilter();
+		andFilter.and(new LikeFilter("userPrincipalName", UserPrincipalName+"*"));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
+
+		List<DirectoryUser> allPersons = getAllPersons(andFilter);
+
+		if(CollectionUtils.isEmpty(allPersons)){
+			andFilter = new AndFilter();
+			andFilter.and(new LikeFilter("mail", UserPrincipalName+"*"));
+			andFilter.and(new EqualsFilter("objectClass", "user"));
+
+			allPersons = getAllPersonsFromCorp(andFilter);
+		}
+
+		DirectoryObjects users = new DirectoryObjects();
+		DirectoryObjectsList usersList = new DirectoryObjectsList();
+		usersList.setValues(allPersons.toArray(new DirectoryUser[allPersons.size()]));
+		users.setData(usersList);
+		return ResponseEntity.status(HttpStatus.OK).body(users);
+	}
 }

@@ -580,6 +580,14 @@ readTextFile("../apiUrls.json");
             name: 'detachAppRolePermissionFromAzureSvcacc',
             url: '/v2/azureserviceaccounts/approle',
             method: 'DELETE'
+        },{
+            name: 'transferSafe',
+            url: '/v2/ss/transfersafe',
+            method: 'POST'
+        },{
+            name: 'searchByUPNInGsmAndCorp',
+            url: '/v2/tmo/users?UserPrincipalName=',
+            method: 'GET'
         }
     ]
     });
