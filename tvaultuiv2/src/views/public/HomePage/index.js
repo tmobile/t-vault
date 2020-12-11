@@ -360,13 +360,6 @@ const LoginPage = () => {
   const { search } = useLocation();
   const urlParams = queryString.parse(search);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token !== null && window.location.pathname === '/') {
-      window.location = '/safes';
-    }
-  }, []);
-
   const checkAdmin = (value) => {
     if (value === 'yes') {
       localStorage.setItem('isAdmin', true);
