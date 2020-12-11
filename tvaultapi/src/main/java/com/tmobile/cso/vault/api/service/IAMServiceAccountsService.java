@@ -348,7 +348,7 @@ public class  IAMServiceAccountsService {
 	private void sendMailToIAMSvcAccOwner(IAMServiceAccount iamServiceAccount, String iamSvcAccName) {
 		// send email notification to IAM service account owner
 		DirectoryUser directoryUser = getUserDetails(iamServiceAccount.getOwnerNtid());
-		if (directoryUser != null && !ObjectUtils.isEmpty(directoryUser)) {
+		if (directoryUser != null) {
 			String from = supportEmail;
 			List<String> to = new ArrayList<>();
 			to.add(iamServiceAccount.getOwnerEmail());
@@ -394,11 +394,11 @@ public class  IAMServiceAccountsService {
 		DirectoryUser directoryUser = null;
 		for (int i = 0; i < usersList.getValues().length; i++) {
 			directoryUser = (DirectoryUser) usersList.getValues()[i];
-			if (directoryUser.getUserName().equalsIgnoreCase(userName)) {
+			if (directoryUser != null && directoryUser.getUserName().equalsIgnoreCase(userName)) {
 				break;
 			}
 		}
-		if (!ObjectUtils.isEmpty(directoryUser)) {
+		if (directoryUser != null) {
 			String[] displayName = directoryUser.getDisplayName().split(",");
 			if (displayName.length > 1) {
 				directoryUser.setDisplayName(displayName[1] + "  " + displayName[0]);
@@ -855,7 +855,7 @@ public class  IAMServiceAccountsService {
 				// OIDC Changes
 				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && oidcGroup != null) {
 					currentpolicies.addAll(oidcGroup.getPolicies());
 				}
 			} catch (IOException e) {
@@ -2037,7 +2037,7 @@ public class  IAMServiceAccountsService {
 				// OIDC Changes
 				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && oidcGroup != null) {
 					currentpolicies.addAll(oidcGroup.getPolicies());
 				}
 		    } catch (IOException e) {
@@ -3423,7 +3423,7 @@ public class  IAMServiceAccountsService {
 						// OIDC Changes
 						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 							currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && oidcGroup != null) {
 							currentpolicies.addAll(oidcGroup.getPolicies());
 						}
 					} catch (IOException e) {
@@ -3451,7 +3451,7 @@ public class  IAMServiceAccountsService {
 					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 						ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
 					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup.getId());
+						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup != null ? oidcGroup.getId() : null);
 						oidcUtil.renewUserToken(userDetails.getClientToken());
 					}
 				}

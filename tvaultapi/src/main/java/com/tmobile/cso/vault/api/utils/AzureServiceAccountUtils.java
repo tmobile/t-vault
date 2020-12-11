@@ -159,15 +159,14 @@ public class AzureServiceAccountUtils {
             return null;
         }
 
-        String output = "";
-        StringBuffer jsonResponse = new StringBuffer();
+        StringBuilder jsonResponse = new StringBuilder();
 
         try {
             HttpResponse apiResponse = httpClient.execute(httpPut);
             if (apiResponse.getStatusLine().getStatusCode() != 200) {
-                BufferedReader r = new BufferedReader(new InputStreamReader(apiResponse.getEntity().getContent()));
-                StringBuilder total = new StringBuilder();
-                String line = null;
+				StringBuilder total = new StringBuilder();
+				BufferedReader r = new BufferedReader(new InputStreamReader(apiResponse.getEntity().getContent()));
+				String line = null;
                 while ((line = r.readLine()) != null) {
                     total.append(line);
                 }
@@ -180,10 +179,9 @@ public class AzureServiceAccountUtils {
                         build()));
                 return null;
             }
-            BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-            while ((output = br.readLine()) != null) {
-                jsonResponse.append(output);
-            }
+
+            readResponseContent(jsonResponse, apiResponse, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION);
+
             AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret();
             JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
             if (!responseJson.isJsonNull()) {
@@ -413,4 +411,25 @@ public class AzureServiceAccountUtils {
         }
         return null;
     }
+
+	/**
+	 * Method to read the response content
+	 * @param jsonResponse
+	 * @param apiResponse
+	 */
+	private void readResponseContent(StringBuilder jsonResponse, HttpResponse apiResponse, String actionMsg) {
+		String output = "";
+		try(BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())))) {
+			while ((output = br.readLine()) != null) {
+				jsonResponse.append(output);
+			}
+		}catch(Exception ex) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		            put(LogMessage.ACTION, actionMsg).
+		            put(LogMessage.MESSAGE, "Failed to read the response").
+		            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		            build()));
+		}
+	}
 }

@@ -501,7 +501,7 @@ public class AzureServicePrincipalAccountsService {
 	private void sendMailToAzureSvcAccOwner(AzureServiceAccount azureServiceAccount, String azureSvcAccName) {
 		// send email notification to Azure service account owner
 		DirectoryUser directoryUser = getUserDetails(azureServiceAccount.getOwnerNtid());
-		if (!ObjectUtils.isEmpty(directoryUser)) {
+		if (directoryUser != null) {
 			String from = supportEmail;
 			List<String> to = new ArrayList<>();
 			to.add(azureServiceAccount.getOwnerEmail());
@@ -551,7 +551,7 @@ public class AzureServicePrincipalAccountsService {
 				break;
 			}
 		}
-		if (!ObjectUtils.isEmpty(directoryUser)) {
+		if (directoryUser != null) {
 			String[] displayName = directoryUser.getDisplayName().split(",");
 			if (displayName.length > 1) {
 				directoryUser.setDisplayName(displayName[1] + "  " + displayName[0]);
@@ -1719,7 +1719,7 @@ public class AzureServicePrincipalAccountsService {
 						// OIDC Changes
 						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 							currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && oidcGroup != null) {
 							currentpolicies.addAll(oidcGroup.getPolicies());
 						}
 					} catch (IOException e) {
@@ -1747,7 +1747,7 @@ public class AzureServicePrincipalAccountsService {
 					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 						ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
 					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup.getId());
+						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup != null ? oidcGroup.getId() : null);
 						oidcUtil.renewUserToken(userDetails.getClientToken());
 					}
 				}
@@ -2750,7 +2750,7 @@ public class AzureServicePrincipalAccountsService {
 				// OIDC Changes
 				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && oidcGroup != null) {
 					currentpolicies.addAll(oidcGroup.getPolicies());
 				}
 			} catch (IOException e) {
@@ -3557,7 +3557,7 @@ public class AzureServicePrincipalAccountsService {
 					// OIDC Changes
 					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
+					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && oidcGroup != null) {
 						currentpolicies.addAll(oidcGroup.getPolicies());
 					}
 			    } catch (IOException e) {

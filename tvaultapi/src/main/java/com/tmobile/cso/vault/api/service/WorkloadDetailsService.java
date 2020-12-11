@@ -205,7 +205,7 @@ public class WorkloadDetailsService {
 
 	public ResponseEntity<String> getWorkloadDetailsByAppName(String appName){
 		JsonObject response = getApiResponse(workloadEndpoint + "/" + appName);
-		if(Objects.isNull(response)){
+		if(null == response){
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "Getting Application Details by app name ").
@@ -214,7 +214,8 @@ public class WorkloadDetailsService {
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Application name doesn't " +
 					"exist\"]}");
+		}else {
+			return ResponseEntity.status(HttpStatus.OK).body(response.toString());
 		}
-		return ResponseEntity.status(HttpStatus.OK).body(response.toString());
 	}
 }
