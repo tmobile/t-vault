@@ -12,6 +12,7 @@ import ServiceAccountSecrets from '../ServiceAccountSecrets';
 import ServiceAccountPermission from '../ServiceAccountPermission';
 import { useStateValue } from '../../../../../contexts/globalState';
 import apiService from '../../apiService';
+import { getEachUsersDetails } from '../../../../../services/helper-function';
 // styled components goes here
 
 const TabPanelWrap = styled.div`
@@ -88,6 +89,7 @@ const AccountSelectionTabs = (props) => {
   const [accountSecretError, setAccountSecretError] = useState('');
   const [hasSvcAccountAcitve, setHasSvcAccountAcitve] = useState(false);
   const [disabledPermission, setDisabledPermission] = useState(false);
+  const [userDetails, setUserDetails] = useState([]);
   const [secretResStatus, setSecretResStatus] = useState({ status: 'loading' });
   const [accountMetaData, setAccountMetaData] = useState({
     response: {},
@@ -131,7 +133,7 @@ const AccountSelectionTabs = (props) => {
     setResponse({ status: 'loading' });
     return apiService
       .updateMetaPath(accountDetail.name)
-      .then((res) => {
+      .then(async (res) => {
         if (res.data && res.data.data) {
           setResponse({ status: 'success' });
           if (
@@ -142,6 +144,12 @@ const AccountSelectionTabs = (props) => {
             if (res.data.data.initialPasswordReset) {
               setHasSvcAccountAcitve(true);
               setAccountMetaData({ response: { ...res.data.data }, error: '' });
+              const eachUsersDetails = await getEachUsersDetails(
+                res.data.data.users
+              );
+              if (eachUsersDetails !== null) {
+                setUserDetails([...eachUsersDetails]);
+              }
             } else {
               setHasSvcAccountAcitve(false);
             }
@@ -209,6 +217,7 @@ const AccountSelectionTabs = (props) => {
               parentStatus={response.status}
               refresh={refresh}
               fetchPermission={fetchPermission}
+              userDetails={userDetails}
             />
           </TabPanel>
         </TabContentsWrap>

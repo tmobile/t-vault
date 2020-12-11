@@ -1,8 +1,4 @@
 import api from '../../../services';
-import { mockApi } from '../../../services/helper-function';
-
-const fetchSafe = (data) => mockApi(data);
-const searchUser = (data) => mockApi(data);
 
 const getSafes = () => api.get('/ss/sdb/safes');
 const deleteSafe = (path) => api.delete(`/ss/sdb/delete?path=${path}`);
@@ -17,8 +13,9 @@ const getOwnerEmail = (owner) =>
   api.get(`/ldap/users?UserPrincipalName=${owner}`);
 
 const addUserPermission = (payload) => api.post('/ss/sdb/user', payload);
+const getUsersDetails = (name) => api.get(`/ldap/getusersdetail/${name}`);
 const deleteUserPermission = (payload) => api.delete('/ss/sdb/user', payload);
-const getUserName = (user) => api.get(`/ldap/corpusers?CorpId=${user}`);
+const getUserName = (user) => api.get(`/ldap/ntusers?displayName=${user}`);
 
 const getGroupsName = (group) => api.get(`/azure/groups?name=${group}`);
 const deleteGroup = (payload) => api.delete('/ss/sdb/group', payload);
@@ -41,8 +38,6 @@ const getSecret = (params) =>
   api.get(`/safes/folders/secrets?path=${params}&fetchOption=all`);
 
 export default {
-  fetchSafe,
-  searchUser,
   getSafes,
   deleteSafe,
   getManageUsersList,
@@ -69,4 +64,5 @@ export default {
   getExistingAppRole,
   addAppRole,
   editAwsApplication,
+  getUsersDetails,
 };

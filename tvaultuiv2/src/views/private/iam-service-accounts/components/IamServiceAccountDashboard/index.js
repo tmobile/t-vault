@@ -27,6 +27,7 @@ import Strings from '../../../../../resources';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
 import AccountSelectionTabs from '../IamSvcAccountTabs';
 import { ListContent } from '../../../../../styles/GlobalStyles/listingStyle';
+import { getEachUsersDetails } from '../../../../../services/helper-function';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -187,6 +188,7 @@ const IamServiceAccountDashboard = () => {
     response: {},
     error: '',
   });
+  const [userDetails, setUserDetails] = useState([]);
 
   const [state, dispatch] = useStateValue();
 
@@ -367,6 +369,10 @@ const IamServiceAccountDashboard = () => {
         ) {
           setDisabledPermission(false);
           setAccountMetaData({ response: res.data, error: '' });
+          const eachUsersDetails = await getEachUsersDetails(res.data.users);
+          if (eachUsersDetails !== null) {
+            setUserDetails([...eachUsersDetails]);
+          }
         }
       }
     } catch (err) {
@@ -547,6 +553,7 @@ const IamServiceAccountDashboard = () => {
                         accountSecretError={accountSecretError}
                         disabledPermission={disabledPermission}
                         isIamSvcAccountActive={isIamSvcAccountActive}
+                        userDetails={userDetails}
                       />
                     }
                   />
@@ -573,6 +580,7 @@ const IamServiceAccountDashboard = () => {
                         accountSecretError={accountSecretError}
                         disabledPermission={disabledPermission}
                         isIamSvcAccountActive={isIamSvcAccountActive}
+                        userDetails={userDetails}
                       />
                     }
                   />

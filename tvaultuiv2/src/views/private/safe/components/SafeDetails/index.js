@@ -61,12 +61,12 @@ const SafeDetails = (props) => {
   );
 };
 SafeDetails.propTypes = {
-  detailData: PropTypes.arrayOf(PropTypes.any),
+  detailData: PropTypes.objectOf(PropTypes.any),
   resetClicked: PropTypes.func,
   renderContent: PropTypes.node,
 };
 SafeDetails.defaultProps = {
-  detailData: [],
+  detailData: {},
   resetClicked: () => {},
   renderContent: <div />,
 };
