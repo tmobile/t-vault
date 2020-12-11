@@ -81,4 +81,11 @@ public class DirectoryServiceControllerV2 {
 														@RequestParam(name="email", defaultValue="") String email ){
 		return directoryService.searchByEmailInCorp(email);
 	}
+
+	@ApiOperation(value = "${DirectoryServiceControllerV2.searchByUPNInGsmAndCorp.value}", notes = "${DirectoryServiceControllerV2.searchByUPNInGsmAndCorp.notes}", hidden=true)
+	@GetMapping(value="/v2/tmo/users",produces="application/json")
+	public ResponseEntity<DirectoryObjects> searchByUPNInGsmAndCorp(@ApiParam(name="UserPrincipalName", defaultValue="")
+														@RequestParam(name="UserPrincipalName", defaultValue="") String userPrincipalName ){
+		return directoryService.searchByUPNInGsmAndCorp(userPrincipalName);
+	}
 }
