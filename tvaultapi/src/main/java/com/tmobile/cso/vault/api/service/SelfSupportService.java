@@ -1050,6 +1050,9 @@ public class  SelfSupportService {
 		String path = safeUser.getPath();
 		if (ControllerUtil.isValidSafePath(path)) {
 			String s_policy = "s_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
+			String r_policy = "r_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
+			String w_policy = "w_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
+			String d_policy = "d_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
 
 			Response userResponse = new Response();
 			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
@@ -1118,6 +1121,18 @@ public class  SelfSupportService {
 
 				}
 				if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+					// Updating metadata only when there is no read/write/deny permission exists to current owner
+					if (currentpolicies.contains(r_policy) || currentpolicies.contains(w_policy) || currentpolicies.contains(d_policy)) {
+						log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, "removeSudoUserFromSafe")
+								.put(LogMessage.MESSAGE, String.format("Successfully removed user[%s] from [%s]. No metadata update is required as metadata is updated with read/write/deny permission", safeUser.getUsername(), safeUser.getPath()))
+								.put(LogMessage.APIURL,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+						return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");
+					}
 					Map<String, String> params = new HashMap<String, String>();
 					params.put("type", "users");
 					params.put("name", userName);
