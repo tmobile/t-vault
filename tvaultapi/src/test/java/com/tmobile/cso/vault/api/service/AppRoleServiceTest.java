@@ -595,7 +595,7 @@ public class AppRoleServiceTest {
         String appRoleId = "approle1";
         Response response =getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response response403 =getMockResponse(HttpStatus.UNAUTHORIZED, true, "");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to remove the role\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Either role doesn't exist or you don't have enough permission to remove this role from Safe\"]}");
         AppRole appRole = new AppRole();
         appRole.setRole_name(appRoleId);
         String jsonStr = "{\"role_name\":\"approle1\",\"policies\":null,\"bind_secret_id\":false,\"secret_id_num_uses\":null,\"secret_id_ttl\":null,\"token_num_uses\":null,\"token_ttl\":null,\"token_max_ttl\":null}";
@@ -610,7 +610,7 @@ public class AppRoleServiceTest {
         responseMap.put("data", data);
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
-        Response permissionResponse =getMockResponse(HttpStatus.UNAUTHORIZED, true, "Access denied: no permission to remove the role");
+        Response permissionResponse =getMockResponse(HttpStatus.UNAUTHORIZED, true, "Either role doesn't exist or you don't have enough permission to remove this role from Safe");
         when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
