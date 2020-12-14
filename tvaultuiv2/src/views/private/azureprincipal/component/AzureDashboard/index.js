@@ -5,6 +5,7 @@
 /* eslint-disable no-param-reassign */
 import React, { useState, useEffect, useCallback, lazy } from 'react';
 import styled, { css } from 'styled-components';
+import VisibilityIcon from '@material-ui/icons/Visibility';
 import { makeStyles } from '@material-ui/core/styles';
 import {
   Link,
@@ -22,7 +23,7 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
 import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
-import svcIcon from '../../../../../assets/icon-service-account.svg';
+import azureIcon from '../../../../../assets/azure-icon.svg';
 import mobSvcIcon from '../../../../../assets/mob-svcbg.png';
 import tabSvcIcon from '../../../../../assets/tab-svcbg.png';
 import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
@@ -43,6 +44,8 @@ import {
   ListContent,
 } from '../../../../../styles/GlobalStyles/listingStyle';
 import configData from '../../../../../config/config';
+import AzureListItem from '../AzureListItem';
+import ViewAzure from '../ViewAzure';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -135,6 +138,8 @@ const SearchWrap = styled.div`
   width: 100%;
 `;
 
+const ViewIcon = styled.div``;
+
 const MobileViewForListDetailPage = css`
   position: fixed;
   display: flex;
@@ -181,6 +186,8 @@ const AzureDashboard = () => {
   const [toastResponse, setToastResponse] = useState(null);
   const [response, setResponse] = useState({ status: 'loading' });
   const [allAzureList, setAllAzureList] = useState([]);
+  const [openViewAzureModal, setOpenViewAzureModal] = useState(false);
+  const [viewAzureData, setViewAzureData] = useState({});
   //   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
@@ -200,7 +207,13 @@ const AzureDashboard = () => {
     const allApiResponse = Promise.all([manageAzureService, azureServiceList]);
     allApiResponse
       .then((result) => {
-        setAzureList([]);
+        const manageArray = [];
+        if (result[0] && result[0].data.keys) {
+          result[0].data.keys.map((item) => {
+            return manageArray.push({ name: item });
+          });
+        }
+        setAzureList([...manageArray]);
         setAllAzureList([]);
         setResponse({ status: 'success' });
       })
@@ -237,34 +250,59 @@ const AzureDashboard = () => {
     }
   };
 
+  /**
+   * @function onActionClicked
+   * @description function to prevent default click.
+   * @param {object} e event
+   */
+  const onActionClicked = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
+  const onViewClicked = (azure) => {
+    setOpenViewAzureModal(true);
+    setViewAzureData(azure);
+  };
+
+  const onCloseViewAzureModal = (action) => {
+    if (action) {
+      fetchData();
+    }
+    setOpenViewAzureModal(false);
+    setViewAzureData({});
+  };
+
   const renderList = () => {
-    return azureList.map((account) => (
+    return azureList.map((azure) => (
       <ListFolderWrap
-        key={account.name}
-        to={{
-          pathname: `/azure-principal/${account.name}`,
-          state: { data: account },
-        }}
-        active={
-          history.location.pathname === `/azure-principal/${account.name}`
-        }
+        key={azure.name}
+        to={`/azure-principal/${azure.name}`}
+        active={history.location.pathname === `/azure-principal/${azure.name}`}
       >
-        {/* <ListItem
-          title={account.name}
-          subTitle={account.date}
-          flag={account.type}
-          icon={svcIcon}
-          showActions={false}
-          listIconStyles={listIconStyles}
-        />
-        <BorderLine /> */}
+        <AzureListItem title={azure.name} icon={azureIcon} />
+        <BorderLine />
+        {azure.name && !isMobileScreen ? (
+          <PopperWrap onClick={(e) => onActionClicked(e)}>
+            <ViewIcon onClick={() => onViewClicked(azure)}>
+              <VisibilityIcon />
+            </ViewIcon>
+          </PopperWrap>
+        ) : null}
       </ListFolderWrap>
     ));
   };
   return (
     <ComponentError>
       <>
-        <SectionPreview title="service-account-section">
+        <SectionPreview title="azure-account-section">
+          {openViewAzureModal && (
+            <ViewAzure
+              open={openViewAzureModal}
+              viewAzureData={viewAzureData}
+              onCloseViewAzureModal={(action) => onCloseViewAzureModal(action)}
+            />
+          )}
           <LeftColumnSection isAccountDetailsOpen={serviceAccountClicked}>
             <ColumnHeader>
               <div style={{ margin: '0 1rem' }}>
