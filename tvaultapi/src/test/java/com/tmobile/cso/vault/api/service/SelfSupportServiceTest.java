@@ -1971,6 +1971,29 @@ public class SelfSupportServiceTest {
     }
 
     @Test
+    public void test_transferSafe_failed_duplicate_owner() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        String newOwnerEmail = "test.user@company.com";
+        String newOwnerNtid = "normaluser";
+        String currentOwnerNtid = "normaluser";
+        String path = "users/safe1";
+        SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
+
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
+        when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
+
+        when(directoryService.getNtidForUser(newOwnerEmail)).thenReturn(newOwnerNtid);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"New owner email id should not be same as current owner email id\"]}");
+        ResponseEntity<String> responseEntity = selfSupportService.transferSafe(token, safeTransferRequest, userDetails);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
     public void test_transferSafe_failed_to_read_metadata() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
