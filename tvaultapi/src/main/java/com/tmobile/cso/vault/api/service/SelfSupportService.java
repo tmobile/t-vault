@@ -927,6 +927,15 @@ public class  SelfSupportService {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid email provided for new owner\"]}");
 			}
 
+			if (newOwnerNtid.equalsIgnoreCase(currentOwnerNtid)) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "transferSafe").
+						put(LogMessage.MESSAGE, String.format("New owner email id [%s] should not be same as current owner email id [%s]", newOwnerEmail, currentOwnerNtid)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"New owner email id should not be same as current owner email id\"]}");
+			}
 
 			boolean hasCurrentOwner = true;
 			if (StringUtils.isEmpty(currentOwnerNtid) || TVaultConstants.NULL_STRING.equalsIgnoreCase(currentOwnerNtid) || currentOwnerNtid.equalsIgnoreCase(TVaultConstants.APPROLE)) {
