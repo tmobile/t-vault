@@ -2163,7 +2163,7 @@ public final class ControllerUtil {
 			return response;
 		}
 		response.setHttpstatus(HttpStatus.UNAUTHORIZED);
-		response.setResponse("Access denied: no permission to remove the role");
+		response.setResponse("Either role doesn't exist or you don't have enough permission to remove this role from Safe");
 		response.setSuccess(false);
 		return response;
 	}

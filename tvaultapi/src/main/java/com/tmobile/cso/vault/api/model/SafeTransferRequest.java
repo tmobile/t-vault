@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.model;
 
 import org.hibernate.validator.constraints.NotBlank;
 
+import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 
 public class SafeTransferRequest implements Serializable{
@@ -30,6 +31,7 @@ public class SafeTransferRequest implements Serializable{
 	@NotBlank
 	private String safeType;
 	@NotBlank
+	@Pattern(regexp = "^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$", message = "New Owner Email is not valid")
 	private String newOwnerEmail;
 
 	public SafeTransferRequest() {
