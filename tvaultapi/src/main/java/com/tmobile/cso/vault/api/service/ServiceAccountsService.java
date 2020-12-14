@@ -3189,7 +3189,7 @@ public class  ServiceAccountsService {
 				policies.remove(w_policy);
 				policies.remove(d_policy);
 			} else{
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exist or you don't have enough permission to remove this aws role from Service Account\"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exist or you don't have enough permission to remove this AWS role from AD Service Account\"]}");
 			}
 
 			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
