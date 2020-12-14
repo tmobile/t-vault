@@ -134,7 +134,7 @@ public class AzureServicePrincipalAccountsController {
 	 */
 	@ApiOperation(value = "${AzureServicePrincipalAccountsController.offboardAzureServiceAccount.value}", notes = "${AzureServicePrincipalAccountsController.offboardAzureServiceAccount.notes}")
 	@PostMapping(value="/v2/azureserviceaccounts/offboard", produces="application/json")
-	public ResponseEntity<String> offboardAzureServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AzureServiceAccountOffboardRequest azureServiceAccountOffboardRequest ){
+	public ResponseEntity<String> offboardAzureServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody AzureServiceAccountOffboardRequest azureServiceAccountOffboardRequest ){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return azureServicePrincipalAccountsService.offboardAzureServiceAccount(token, azureServiceAccountOffboardRequest, userDetails);
 	}
