@@ -165,18 +165,7 @@ public class AzureServiceAccountUtils {
             HttpResponse apiResponse = httpClient.execute(httpPut);
             if (apiResponse.getStatusLine().getStatusCode() != 200) {
 				StringBuilder total = new StringBuilder();
-				BufferedReader r = new BufferedReader(new InputStreamReader(apiResponse.getEntity().getContent()));
-				String line = null;
-                while ((line = r.readLine()) != null) {
-                    total.append(line);
-                }
-                r.close();
-                log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                        put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
-                        put(LogMessage.MESSAGE, "Failed to build StringEntity:"+total.toString()).
-                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                        build()));
+				readFailedResponseContent(apiResponse, total);
                 return null;
             }
 
@@ -212,6 +201,34 @@ public class AzureServiceAccountUtils {
         }
         return null;
     }
+
+	/**
+	 * Method to read response
+	 * @param apiResponse
+	 * @param total
+	 */
+	private void readFailedResponseContent(HttpResponse apiResponse, StringBuilder total) {		
+		try(BufferedReader r = new BufferedReader(new InputStreamReader(apiResponse.getEntity().getContent()))) {
+			String line = null;
+			while ((line = r.readLine()) != null) {
+			    total.append(line);
+			}
+
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+			        put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
+			        put(LogMessage.MESSAGE, "Failed to build StringEntity:"+total.toString()).
+			        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			        build()));
+		}catch(IOException ex) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+			        put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
+			        put(LogMessage.MESSAGE, "Failed to read response").
+			        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			        build()));
+		}
+	}
 
     /**
      * To save Azure Service Principal Secret for a single SecretKeyId.
