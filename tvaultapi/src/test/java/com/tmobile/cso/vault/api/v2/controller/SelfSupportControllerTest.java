@@ -687,4 +687,24 @@ public class SelfSupportControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseJson)));
     }
+
+    @Test
+    public void testUpdateAppRoleSuccess() throws Exception {
+
+        String[] policies = {"default"};
+        AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0,0,0);
+
+        String inputJson =new ObjectMapper().writeValueAsString(appRole);
+        String responseMessage = "{\"messages\":[\"AppRole updated successfully \"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.updateAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AppRole.class), eq(userDetails))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/v2/ss/approle").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseMessage)));
+    }
 }

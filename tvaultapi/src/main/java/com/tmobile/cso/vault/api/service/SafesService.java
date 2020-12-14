@@ -2582,7 +2582,12 @@ public class  SafesService {
 			}
 			return false;
 		} catch (TVaultValidationException e) {
-			e.printStackTrace();
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "Check valid safe").
+					put(LogMessage.MESSAGE, "isValidSafe checking faild").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
 			return false;
 		}
 

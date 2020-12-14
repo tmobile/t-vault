@@ -1059,7 +1059,7 @@ public final class ControllerUtil {
 						//OIDC Changes
 						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 							currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && oidcGroup != null) {
 							currentpolicies.addAll(oidcGroup.getPolicies());
 						}
 					} catch (IOException e) {
@@ -1085,7 +1085,7 @@ public final class ControllerUtil {
 					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 						ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
 					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup.getId());
+						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup != null ? oidcGroup.getId() : null);
 						oidcUtil.renewUserToken(userDetails.getClientToken());
 					}
 					
@@ -1135,7 +1135,7 @@ public final class ControllerUtil {
 					try {
 						JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
 						for(JsonNode policyNode : policiesArry){
-							currentpolicies =	(currentpolicies == "" ) ? currentpolicies+policyNode.asText():currentpolicies+","+policyNode.asText();
+							currentpolicies =	(currentpolicies.equals("") ) ? currentpolicies+policyNode.asText():currentpolicies+","+policyNode.asText();
 						}
 					} catch (IOException e) {
 						log.error(e);
@@ -1798,8 +1798,10 @@ public final class ControllerUtil {
 			for (Object key : map.keySet()) {
 				secretKey = (String) key;
 				secretValue = (String) map.get(key);
-			    break;
-			  }
+				if(secretKey != null) {
+					break;
+				}
+			 }
 			return secretKey;
 		} catch (JsonParseException e) {
 			return secretKey;
@@ -2851,7 +2853,7 @@ public final class ControllerUtil {
 						Set<String> keys = permissionMap.keySet();
 						String key = keys.stream().findFirst().orElse("");
 
-						if (key !="" && !filteredPermissions.containsKey(key)) {
+						if (!key.equals("") && !filteredPermissions.containsKey(key)) {
 							filteredPermissions.put(key, permissionMap.get(key));
 							Map<String,String> permission = Collections.synchronizedMap(new HashMap());
 							permission.put(key, permissionMap.get(key));
@@ -2881,7 +2883,7 @@ public final class ControllerUtil {
 					Set<String> keys = permissionMap.keySet();
 					String key = keys.stream().findFirst().orElse("");
 
-					if (key !="" && !filteredPermissions.containsKey(key)) {
+					if (!key.equals("") && !filteredPermissions.containsKey(key)) {
 						filteredPermissions.put(key, permissionMap.get(key));
 						Map<String,String> permission = Collections.synchronizedMap(new HashMap());
 						permission.put(key, permissionMap.get(key));
