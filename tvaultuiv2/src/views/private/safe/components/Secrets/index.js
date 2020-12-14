@@ -87,20 +87,21 @@ const Secrets = (props) => {
   return (
     <ComponentError>
       <SecretsContainer>
-        {userHavePermission.permission && (
-          <CountSpan color="#5e627c">
-            {`${
-              secretsFolder[0] ? secretsFolder[0]?.children?.length : 0
-            } Secrets`}
-          </CountSpan>
-        )}
+        {userHavePermission.permission &&
+          Object.keys(safeDetail).length > 0 && (
+            <CountSpan color="#5e627c">
+              {`${
+                secretsFolder[0] ? secretsFolder[0]?.children?.length : 0
+              } Secrets`}
+            </CountSpan>
+          )}
         {secretsStatus.status === 'loading' && (
           <LoaderSpinner customStyle={customStyle} />
         )}
         {secretsStatus.status === 'failed' &&
           !secretsFolder[0]?.children?.length && (
             <EmptySecretBox>
-              <Error description="Error while fetching safes folders" />
+              <Error description="Sorry we were unable to retrieve those documents." />
             </EmptySecretBox>
           )}
         {secretsStatus.status === 'success' &&

@@ -29,6 +29,7 @@ const Permissions = (props) => {
     fetchPermission,
     safePermissionData,
     permissionResponseType,
+    userDetails,
   } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
@@ -54,8 +55,8 @@ const Permissions = (props) => {
     if (safeData?.response && Object.keys(safeData.response).length !== 0) {
       setCount(0);
       if (value === 0) {
-        if (safeData.response.users) {
-          setCount(Object.keys(safeData.response.users).length);
+        if (userDetails) {
+          setCount(userDetails.length);
         }
       } else if (value === 1) {
         if (safeData.response.groups) {
@@ -71,7 +72,7 @@ const Permissions = (props) => {
         }
       }
     }
-  }, [value, safeData]);
+  }, [value, safeData, userDetails]);
 
   const onAddLabelBtnClicked = () => {
     Object.keys(initialObject).map((item) => {
@@ -123,6 +124,7 @@ const Permissions = (props) => {
               <TabPanel value={value} index={0}>
                 <User
                   safeDetail={safeDetail}
+                  userDetails={userDetails}
                   newPermission={newPermission}
                   onNewPermissionChange={() => setNewUser(false)}
                   safeData={safeData}
@@ -198,6 +200,7 @@ Permissions.propTypes = {
   fetchPermission: PropTypes.func.isRequired,
   safePermissionData: PropTypes.objectOf(PropTypes.any).isRequired,
   permissionResponseType: PropTypes.number,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
 Permissions.defaultProps = {

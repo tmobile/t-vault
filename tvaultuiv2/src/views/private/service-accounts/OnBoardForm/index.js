@@ -759,7 +759,7 @@ const OnBoardForm = (props) => {
                   {history?.location?.pathname.includes(
                     '/edit-service-accounts'
                   )
-                    ? 'Edit Create Safe'
+                    ? 'Edit Service Account'
                     : 'Onboard Service Account'}
                 </Typography>
               </HeaderWrapper>

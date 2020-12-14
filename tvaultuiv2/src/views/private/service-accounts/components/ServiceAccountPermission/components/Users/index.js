@@ -11,9 +11,9 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import PermissionsList from '../../../../../../../components/PermissionsList';
 import Strings from '../../../../../../../resources';
 import { checkAccess } from '../../../../../../../services/helper-function';
+import UserPermissionsList from '../../../../../../../components/UserPermissionsList';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -60,6 +60,7 @@ const Users = (props) => {
     accountMetaData,
     updateToastMessage,
     refresh,
+    userDetails,
   } = props;
 
   const [editUser, setEditUser] = useState('');
@@ -242,16 +243,19 @@ const Users = (props) => {
           accountMetaData &&
           accountMetaData.response && (
             <>
-              {Object.keys(accountMetaData.response?.users).length > 0 && (
-                <PermissionsList
-                  list={accountMetaData.response.users}
-                  isSvcAccount
-                  onEditClick={(key, value) => onEditClick(key, value)}
-                  onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                />
-              )}
+              {Object.keys(accountMetaData.response?.users).length > 0 &&
+                userDetails.length > 0 && (
+                  <UserPermissionsList
+                    list={accountMetaData.response.users}
+                    isSvcAccount
+                    onEditClick={(key, value) => onEditClick(key, value)}
+                    onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                    userDetails={userDetails}
+                  />
+                )}
               {(!accountMetaData.response.users ||
-                Object.keys(accountMetaData.response.users).length === 0) && (
+                Object.keys(accountMetaData.response.users).length === 0 ||
+                userDetails.length === 0) && (
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
@@ -285,5 +289,6 @@ Users.propTypes = {
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 export default Users;

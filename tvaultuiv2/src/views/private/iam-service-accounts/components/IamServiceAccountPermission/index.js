@@ -47,6 +47,7 @@ const IamServiceAccountPermission = (props) => {
     parentStatus,
     fetchPermission,
     isIamSvcAccountActive,
+    userDetails,
   } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
@@ -79,8 +80,8 @@ const IamServiceAccountPermission = (props) => {
     ) {
       setCount(0);
       if (value === 0) {
-        if (accountMetaData.response.users) {
-          setCount(Object.keys(accountMetaData.response.users).length);
+        if (userDetails) {
+          setCount(userDetails.length);
         }
       } else if (value === 1) {
         if (accountMetaData.response.groups) {
@@ -96,7 +97,7 @@ const IamServiceAccountPermission = (props) => {
         }
       }
     }
-  }, [value, accountMetaData]);
+  }, [value, accountMetaData, userDetails]);
 
   const onAddLabelBtnClicked = () => {
     Object.keys(initialObject).map((item) => {
@@ -155,6 +156,7 @@ const IamServiceAccountPermission = (props) => {
                       updateToastMessage={(res, message) =>
                         updateToastMessage(res, message)
                       }
+                      userDetails={userDetails}
                     />
                   </TabPanel>
                   <TabPanel value={value} index={1}>
@@ -230,6 +232,7 @@ IamServiceAccountPermission.propTypes = {
   parentStatus: PropTypes.string.isRequired,
   fetchPermission: PropTypes.func,
   isIamSvcAccountActive: PropTypes.bool.isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
 IamServiceAccountPermission.defaultProps = {

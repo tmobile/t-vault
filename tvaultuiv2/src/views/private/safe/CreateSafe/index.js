@@ -444,8 +444,9 @@ const CreateModal = (props) => {
                 </LabelRequired>
                 <TextFieldComponent
                   value={name}
-                  placeholder="Save Name- Enter min 3 characters"
+                  placeholder="Safe Name- Enter min 3 characters"
                   fullWidth
+                  characterLimit={50}
                   readOnly={!!editSafe}
                   name="name"
                   onChange={(e) => onSafeNameChange(e.target.value)}

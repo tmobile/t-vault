@@ -498,6 +498,7 @@ const CreateAppRole = (props) => {
                   placeholder="Role_name"
                   fullWidth
                   readOnly={!!editApprole}
+                  characterLimit={50}
                   name="roleName"
                   onChange={(e) => onRoleNameChange(e)}
                   error={appRoleError}

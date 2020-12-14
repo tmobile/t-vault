@@ -11,8 +11,8 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import PermissionsList from '../../../../../../../components/PermissionsList';
 import Error from '../../../../../../../components/Error';
+import UserPermissionsList from '../../../../../../../components/UserPermissionsList';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -59,6 +59,7 @@ const User = (props) => {
     safeData,
     updateToastMessage,
     refresh,
+    userDetails,
   } = props;
 
   const [editUser, setEditUser] = useState('');
@@ -190,20 +191,18 @@ const User = (props) => {
             access={editAccess}
           />
         )}
-        {response.status === 'success' && safeData && safeData.response && (
+        {response.status === 'success' && safeData?.response?.users && (
           <>
-            {safeData.response?.users &&
-              Object.keys(safeData.response?.users).length > 0 && (
-                <PermissionsList
+            {userDetails?.length > 0 &&
+              Object.keys(safeData.response.users).length > 0 && (
+                <UserPermissionsList
                   list={safeData.response.users}
                   onEditClick={(key, value) => onEditClick(key, value)}
                   onDeleteClick={(key) => onDeleteClick(key)}
+                  userDetails={userDetails}
                 />
               )}
-            {(safeData.response.users === null ||
-              !safeData.response.users ||
-              (safeData.response.users &&
-                Object.keys(safeData.response.users).length === 0)) && (
+            {(!safeData.response.users || userDetails?.length === 0) && (
               <NoDataWrapper>
                 <NoData
                   imageSrc={noPermissionsIcon}
@@ -241,5 +240,6 @@ User.propTypes = {
   safeData: PropTypes.objectOf(PropTypes.any).isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 export default User;

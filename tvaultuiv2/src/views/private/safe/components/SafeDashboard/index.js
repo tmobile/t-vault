@@ -246,6 +246,7 @@ const SafeDashboard = () => {
    * @description function call all the manage and safe api.
    */
   const fetchData = useCallback(async () => {
+    setSafeType('All Safes');
     setResponse({ status: 'loading', message: 'Loading...' });
     setInputSearchValue('');
     let safesApiResponse = [];
@@ -357,9 +358,7 @@ const SafeDashboard = () => {
     setInputSearchValue(value);
     if (value !== '') {
       const array = allSafeList?.filter((item) => {
-        return String(item?.name?.toLowerCase()).startsWith(
-          value?.toLowerCase().trim()
-        );
+        return item?.name?.toLowerCase().includes(value?.toLowerCase().trim());
       });
       setSafeList([...array]);
     } else {
@@ -390,9 +389,9 @@ const SafeDashboard = () => {
       const array = allSafeList.filter(
         (item) =>
           item.path.split('/')[0] === obj.path &&
-          String(item?.name?.toLowerCase()).startsWith(
-            inputSearchValue?.toLowerCase().trim()
-          )
+          item?.name
+            ?.toLowerCase()
+            .includes(inputSearchValue?.toLowerCase().trim())
       );
       setSafeList([...array]);
     } else if (safeType === 'All Safes' && inputSearchValue) {
@@ -665,7 +664,7 @@ const SafeDashboard = () => {
                 render={(routerProps) => (
                   <SafeDetails
                     resetClicked={() => onResetClicked()}
-                    detailData={safeList}
+                    detailData={selectedSafeDetails}
                     params={routerProps}
                     refresh={fetchData}
                     renderContent={
@@ -681,7 +680,7 @@ const SafeDashboard = () => {
                 path="/"
                 render={(routerProps) => (
                   <SafeDetails
-                    detailData={safeList}
+                    detailData={selectedSafeDetails}
                     params={routerProps}
                     resetClicked={() => onResetClicked()}
                     refresh={fetchData}

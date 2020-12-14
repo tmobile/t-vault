@@ -1,7 +1,10 @@
+/* eslint-disable import/no-cycle */
 /* eslint-disable guard-for-in */
 /* eslint-disable array-callback-return */
 /* eslint-disable consistent-return */
 // eslint-disable-next-line import/prefer-default-export
+
+import apiService from '../views/private/safe/apiService';
 
 const FileDownload = require('js-file-download');
 
@@ -247,4 +250,25 @@ export const addLeadingZeros = (value) => {
     val = `0${value}`;
   }
   return val;
+};
+
+export const getEachUsersDetails = (data) => {
+  if (Object.keys(data).length > 0) {
+    const userNameArray = [];
+    Object.keys(data).map((item) => {
+      return userNameArray.push(item);
+    });
+    return apiService
+      .getUsersDetails(userNameArray?.join())
+      .then((res) => {
+        if (res.data.data.values) {
+          return res.data.data.values;
+        }
+        return null;
+      })
+      .catch(() => {
+        return null;
+      });
+  }
+  return null;
 };
