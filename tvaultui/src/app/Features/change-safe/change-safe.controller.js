@@ -1357,22 +1357,9 @@
 
         $scope.transferSafeConfirmation =  function() {
             $scope.isAdmin = JSON.parse(SessionStore.getItem("isAdmin"));
-            var safeType = "users";
-            switch ($scope.safe.type) {
-                case "Application Safe":
-                    safeType = 'apps';
-                    break;
-                case "User Safe":
-                    safeType = 'users';
-                    break;
-                case "Shared Safe":
-                default:
-                    safeType = 'shared';
-                    break;
-            }
             $scope.tansferSafe = {
                 safeName: $scope.safe.name,
-                safeType: safeType,
+                safeType: $scope.safe.type,
                 currentOwner: $scope.safe.owner,
                 newOwnerEmail: ""
             }
@@ -1480,10 +1467,23 @@
             Modal.close('close');
             $scope.isLoadingData = true;
             $scope.isTransferInProgress = true;
+            var safeType = "users";
+            switch ($scope.tansferSafe.safeType) {
+                case "Application Safe":
+                    safeType = 'apps';
+                    break;
+                case "User Safe":
+                    safeType = 'users';
+                    break;
+                case "Shared Safe":
+                default:
+                    safeType = 'shared';
+                    break;
+            }
             var transferRequest = {
                 newOwnerEmail: $scope.tansferSafe.newOwnerEmail,
                 safeName: $scope.tansferSafe.safeName,
-                safeType: $scope.tansferSafe.safeType
+                safeType: safeType
             }
             AdminSafesManagement.transferSafe(transferRequest, null).then(function (response) {
                 $scope.isLoadingData = false;
