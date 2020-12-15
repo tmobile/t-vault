@@ -39,6 +39,8 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.AzureServiceAccountConstants;
+import com.tmobile.cso.vault.api.common.IAMServiceAccountConstants;
 import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
@@ -954,6 +956,163 @@ public class  AppRoleService {
 		if (HttpStatus.INTERNAL_SERVER_ERROR.equals(permissionResponse.getHttpstatus()) || HttpStatus.UNAUTHORIZED.equals(permissionResponse.getHttpstatus())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+permissionResponse.getResponse()+"\"]}");
 		}
+		
+		Response roleResponse = reqProcessor.process("/auth/approle/role/read","{\"role_name\":\""+appRole.getRole_name()+"\"}",token);
+		String responseJson="";
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+		if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
+			responseJson = roleResponse.getResponse();
+			ObjectMapper objMapper = new ObjectMapper();
+			try {
+				JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+				if (null != policiesArry) {
+					for(JsonNode policyNode : policiesArry){
+						currentpolicies.add(policyNode.asText());
+					}
+				}
+			} catch (IOException e) {
+				log.error(e);
+			}
+			policies.addAll(currentpolicies);
+		}
+		for(String policy :policies) {
+			String[] parts = policy.split("_");
+			String accessPrtefix = parts[0]; 
+			String type = parts[1]; 
+			String name = parts[2];
+			
+			//Internal Certificate
+			if(policy.startsWith("r_cert_") || policy.startsWith("w_cert_") || policy.startsWith("d_cert_") || policy.startsWith("o_cert_") ) {
+				String certificatePath = SSLCertificateConstants.SSL_CERT_PATH_VALUE + name;
+				Map<String,String> params = new HashMap<>();
+				params.put("type", "app-roles");
+				params.put("name",appRole.getRole_name());
+				params.put("path",certificatePath);
+				params.put("access","delete");
+				Response metadataResponse = ControllerUtil.updateMetadata(params, token);
+				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+							put(LogMessage.MESSAGE, String.format("Approle [%s] successfully deleted from Internal Certificate [%s]", appRole.getRole_name(), certificatePath)).
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
+			}
+			//External Certificate
+			if(policy.startsWith("r_externalcerts_") || policy.startsWith("w_externalcerts_") || policy.startsWith("d_externalcerts_") || policy.startsWith("o_externalcerts_") ) {
+				String certificatePath = SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT + name;
+				Map<String,String> params = new HashMap<>();
+				params.put("type", "app-roles");
+				params.put("name",appRole.getRole_name());
+				params.put("path",certificatePath);
+				params.put("access","delete");
+				Response metadataResponse = ControllerUtil.updateMetadata(params, token);
+				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+							put(LogMessage.MESSAGE, String.format("Approle [%s] successfully deleted from  External Certificate [%s]", appRole.getRole_name(), certificatePath)).
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
+			}
+			
+		//SAFE
+			if(policy.startsWith("r_users_") || policy.startsWith("w_users_") || policy.startsWith("d_users_") ||policy.startsWith("r_shared_") || policy.startsWith("w_shared_") || policy.startsWith("d_shared_") ||policy.startsWith("r_application_") || policy.startsWith("w_application_") || policy.startsWith("d_application_")){
+				String safePath = type + "/" + name;
+				Map<String,String> params = new HashMap<>();
+				params.put("type", "app-roles");
+				params.put("name",appRole.getRole_name());
+				params.put("path",safePath);
+				params.put("access","delete");
+				Response metadataResponse = ControllerUtil.updateMetadata(params, token);
+				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+						put(LogMessage.MESSAGE, String.format("Approle [%s] successfully deleted from safe [%s]", appRole.getRole_name(), safePath)).
+						put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				
+			}
+		}
+			//IAM Service Account
+			if(policy.startsWith("r_iamsvcacc_") || policy.startsWith("w_iamsvcacc_") || policy.startsWith("d_iamsvcacc_") || policy.startsWith("o_iamsvcacc_") ) {
+				String[] names = policy.split("_");
+				String name1 = parts[2]; 
+				String name2 = parts[3]; 
+				String name3 = parts[4];
+				String name4 = parts[5];
+				String IAMpath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH +name1+ "_"+name2+ "_"+name3+ "_"+name4;
+				Map<String,String> params = new HashMap<>();
+				params.put("type", "app-roles");
+				params.put("name",appRole.getRole_name());
+				params.put("path",IAMpath);
+				params.put("access","delete");
+				Response metadataResponse = ControllerUtil.updateMetadata(params, token);
+				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+							put(LogMessage.MESSAGE, String.format("Approle [%s] successfully deleted from IAM Service Account [%s]", appRole.getRole_name(), IAMpath)).
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
+			}
+			//AD Service Account
+			if(policy.startsWith("r_svcacct_") || policy.startsWith("w_svcacct_") || policy.startsWith("d_svcacct_") || policy.startsWith("o_svcacct_") ) {
+				String[] names = policy.split("_");
+				String name1 = parts[2]; 
+				String name2 = parts[3]; 
+				String name3 = parts[4];
+				String serviceAccountPath = TVaultConstants.SVC_ACC_ROLES_PATH + name1+"_"+name2+"_"+name3;
+				Map<String,String> params = new HashMap<>();
+				params.put("type", "app-roles");
+				params.put("name",appRole.getRole_name());
+				params.put("path",serviceAccountPath);
+				params.put("access","delete");
+				Response metadataResponse = ControllerUtil.updateMetadata(params, token);
+				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+							put(LogMessage.MESSAGE, String.format("Approle [%s] successfully deleted from Service Account [%s]", appRole.getRole_name(), serviceAccountPath)).
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
+			}
+			//Azure Service Account
+			if(policy.startsWith("r_azuresvcacc_") || policy.startsWith("w_azuresvcacc_") || policy.startsWith("d_azuresvcacc_") || policy.startsWith("o_azuresvcacc_") ) {
+				String[] names = policy.split("_");
+				String name1 = parts[2]; 
+				String name2 = parts[3]; 
+				String name3 = parts[4];
+				String azureServiceAccountPath = AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + name1+"_"+name2+"_"+name3;
+				Map<String,String> params = new HashMap<>();
+				params.put("type", "app-roles");
+				params.put("name",appRole.getRole_name());
+				params.put("path",azureServiceAccountPath);
+				params.put("access","delete");
+				Response metadataResponse = ControllerUtil.updateMetadata(params, token);
+				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
+							put(LogMessage.MESSAGE, String.format("Approle [%s] successfully deleted from Azure Service Account [%s]", appRole.getRole_name(), azureServiceAccountPath)).
+							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
+			}
+			
+		}
 		String jsonStr = JSONUtil.getJSON(appRole);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -962,6 +1121,7 @@ public class  AppRoleService {
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		AppRoleMetadata appRoleMetadata = readAppRoleMetadata(token, appRole.getRole_name());
+		
 		String approleCreatedBy = userDetails.getUsername();
 		if ( appRoleMetadata.getAppRoleMetadataDetails() != null) {
 			approleCreatedBy = appRoleMetadata.getAppRoleMetadataDetails().getCreatedBy();
