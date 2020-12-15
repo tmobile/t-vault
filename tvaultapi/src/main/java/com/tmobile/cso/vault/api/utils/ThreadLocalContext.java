@@ -32,7 +32,7 @@ public class ThreadLocalContext {
         CURRENT.set(map);
     }
 
-	public void unloadCurrentMap() {
+	public static void unloadCurrentMap() {
 		CURRENT.remove();
 	}
 }
