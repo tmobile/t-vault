@@ -14,6 +14,7 @@ import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner
 import Strings from '../../../../../../../resources';
 import { checkAccess } from '../../../../../../../services/helper-function';
 import UserPermissionsList from '../../../../../../../components/UserPermissionsList';
+import Error from '../../../../../../../components/Error';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -54,13 +55,13 @@ const noDataStyle = css`
 
 const Users = (props) => {
   const {
-    accountDetail,
     newPermission,
     onNewPermissionChange,
-    accountMetaData,
+    azureMetaData,
     updateToastMessage,
     refresh,
     userDetails,
+    responseStatus,
   } = props;
 
   const [editUser, setEditUser] = useState('');
@@ -68,16 +69,10 @@ const Users = (props) => {
   const [response, setResponse] = useState({ status: 'loading' });
   const isMobileScreen = useMediaQuery(small);
 
-  // on iam svc account meta data is available.
+  // on azure svc account meta data is available.
   useEffect(() => {
-    if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
-      if (Object.keys(accountMetaData?.response).length !== 0) {
-        setResponse({ status: 'success' });
-      }
-    } else {
-      setResponse({ status: '' });
-    }
-  }, [accountMetaData]);
+    setResponse(responseStatus);
+  }, [responseStatus]);
 
   // When add permission button is clicked.
   useEffect(() => {
@@ -88,7 +83,7 @@ const Users = (props) => {
 
   /**
    * @function onDeleteClick
-   * @description function to delete the user from the iam svc account users list.
+   * @description function to delete the user from the azure svc account users list.
    * @param {username} string username of the user.
    * @param {access} string permission of the user.
    */
@@ -96,8 +91,7 @@ const Users = (props) => {
     setResponse({ status: 'loading' });
     const payload = {
       access: checkAccess(access, 'iamsvcaccount'),
-      awsAccountId: `${accountDetail.iamAccountId}`,
-      iamSvcAccName: accountDetail.name,
+      azureSvcAccName: azureMetaData.servicePrincipalName,
       username,
     };
     apiService
@@ -105,8 +99,8 @@ const Users = (props) => {
       .then(async (res) => {
         if (res && res.data?.messages && res.data.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
-          setResponse({ status: '' });
           await refresh();
+          setResponse({ status: 'success' });
         }
       })
       .catch((err) => {
@@ -119,7 +113,7 @@ const Users = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the user to the iam svc account users list.
+   * @description function to save the user to the azure svc account users list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {
@@ -129,7 +123,7 @@ const Users = (props) => {
       .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
-          setResponse({ status: '' });
+          setResponse({ status: 'success' });
           await refresh();
         }
       })
@@ -150,9 +144,8 @@ const Users = (props) => {
   const onSubmit = async (username, access) => {
     const value = {
       access: checkAccess(access, 'iamsvcaccount'),
-      awsAccountId: `${accountDetail.iamAccountId}`,
-      username: username.toLowerCase(),
-      iamSvcAccName: `${accountDetail.name}`,
+      azureSvcAccName: azureMetaData.servicePrincipalName,
+      username,
     };
     try {
       await onSaveClicked(value);
@@ -173,9 +166,8 @@ const Users = (props) => {
     setResponse({ status: 'loading' });
     const payload = {
       access: checkAccess(access, 'iamsvcaccount'),
-      awsAccountId: `${accountDetail.iamAccountId}`,
-      username: username.toLowerCase(),
-      iamSvcAccName: `${accountDetail.name}`,
+      azureSvcAccName: azureMetaData.servicePrincipalName,
+      username,
     };
     apiService
       .deleteUserPermission(payload)
@@ -242,54 +234,57 @@ const Users = (props) => {
             isIamAzureSvcAccount
           />
         )}
-        {response.status === 'success' &&
-          accountMetaData &&
-          accountMetaData.response && (
-            <>
-              {Object.keys(accountMetaData.response?.users).length > 0 &&
-                userDetails?.length > 0 && (
-                  <UserPermissionsList
-                    list={accountMetaData.response.users}
-                    isIamAzureSvcAccount
-                    onEditClick={(key, value) => onEditClick(key, value)}
-                    onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                    userDetails={userDetails}
-                  />
-                )}
-              {(!accountMetaData.response.users ||
-                userDetails.length === 0 ||
-                Object.keys(accountMetaData.response.users).length === 0) && (
-                <NoDataWrapper>
-                  <NoData
-                    imageSrc={noPermissionsIcon}
-                    description={Strings.Resources.noUsersPermissionFound}
-                    actionButton={
-                      // eslint-disable-next-line react/jsx-wrap-multilines
-                      <ButtonComponent
-                        label="add"
-                        icon="add"
-                        color="secondary"
-                        onClick={() => setResponse({ status: 'add' })}
-                        width={isMobileScreen ? '100%' : '9.4rem'}
-                      />
-                    }
-                    bgIconStyle={bgIconStyle}
-                    customStyle={noDataStyle}
-                  />
-                </NoDataWrapper>
+        {response.status === 'success' && azureMetaData && (
+          <>
+            {Object.keys(azureMetaData?.users).length > 0 &&
+              userDetails?.length > 0 && (
+                <UserPermissionsList
+                  list={azureMetaData.users}
+                  isIamAzureSvcAccount
+                  onEditClick={(key, value) => onEditClick(key, value)}
+                  onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                  userDetails={userDetails}
+                />
               )}
-            </>
-          )}
+            {(!azureMetaData.users ||
+              userDetails.length === 0 ||
+              Object.keys(azureMetaData.users).length === 0) && (
+              <NoDataWrapper>
+                <NoData
+                  imageSrc={noPermissionsIcon}
+                  description={Strings.Resources.noUsersPermissionFound}
+                  actionButton={
+                    // eslint-disable-next-line react/jsx-wrap-multilines
+                    <ButtonComponent
+                      label="add"
+                      icon="add"
+                      color="secondary"
+                      onClick={() => setResponse({ status: 'add' })}
+                      width={isMobileScreen ? '100%' : '9.4rem'}
+                    />
+                  }
+                  bgIconStyle={bgIconStyle}
+                  customStyle={noDataStyle}
+                />
+              </NoDataWrapper>
+            )}
+          </>
+        )}
+        {response.status === 'error' && (
+          <Error
+            description={responseStatus.message || 'Something went wrong!'}
+          />
+        )}
       </>
     </ComponentError>
   );
 };
 
 Users.propTypes = {
-  accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
+  responseStatus: PropTypes.objectOf(PropTypes.any).isRequired,
   newPermission: PropTypes.bool.isRequired,
   onNewPermissionChange: PropTypes.func.isRequired,
-  accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
+  azureMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
   userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,

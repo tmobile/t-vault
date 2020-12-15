@@ -13,6 +13,7 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import apiService from '../../apiService';
 import AzureSecrets from '../AzureSecrets';
 import AzurePermission from '../AzurePermission';
+import { getEachUsersDetails } from '../../../../../services/helper-function';
 
 const TabPanelWrap = styled.div`
   position: relative;
@@ -90,7 +91,12 @@ const AzureSelectionTabs = (props) => {
   const [azureSecretData, setAzureSecretData] = useState({});
   const [hasPermission, setHasPermission] = useState(false);
   const [azureMetaData, setAzureMetaData] = useState({});
+  const [userDetails, setUserDetails] = useState([]);
   const [secretResponse, setSecretResponse] = useState({
+    status: '',
+    message: '',
+  });
+  const [permissionResponse, setPermissionResponse] = useState({
     status: '',
     message: '',
   });
@@ -99,8 +105,15 @@ const AzureSelectionTabs = (props) => {
     setValue(newValue);
   };
 
+  const getEachUser = async (data) => {
+    const eachUsersDetails = await getEachUsersDetails(data);
+    if (eachUsersDetails !== null) {
+      setUserDetails([...eachUsersDetails]);
+    }
+  };
+
   const getAzureServiceAllDetails = useCallback(() => {
-    setSecretResponse({ status: 'loading' });
+    setPermissionResponse({ status: 'loading' });
     return apiService
       .getAzureserviceDetails(`${azureDetail.name}`)
       .then((res) => {
@@ -111,13 +124,22 @@ const AzureSelectionTabs = (props) => {
             localStorage.getItem('username').toLowerCase()
         ) {
           setHasPermission(true);
+          getEachUser(res.data.users);
+          setPermissionResponse({ status: 'success' });
         } else {
           setHasPermission(false);
           setValue(0);
         }
       })
-      .catch(() => {
-        setSecretResponse({ status: 'error' });
+      .catch((err) => {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+          setPermissionResponse({
+            status: 'error',
+            message: err?.response?.data?.errors[0],
+          });
+        } else {
+          setPermissionResponse({ status: 'error' });
+        }
       });
   }, [azureDetail]);
 
@@ -151,11 +173,10 @@ const AzureSelectionTabs = (props) => {
 
   useEffect(() => {
     if (Object.keys(azureDetail).length > 0) {
-      async function fetchData() {
-        await getAzureServiceAllDetails();
-        getAzureDataSecrets();
+      if (azureDetail.isManagable) {
+        getAzureServiceAllDetails();
       }
-      fetchData();
+      getAzureDataSecrets();
     }
   }, [getAzureDataSecrets, azureDetail, getAzureServiceAllDetails]);
 
@@ -183,7 +204,12 @@ const AzureSelectionTabs = (props) => {
             />
           </TabPanel>
           <TabPanel value={value} index={1}>
-            <AzurePermission azureMetaData={azureMetaData} />
+            <AzurePermission
+              azureMetaData={azureMetaData}
+              userDetails={userDetails}
+              refresh={() => getAzureServiceAllDetails()}
+              permissionResponse={permissionResponse}
+            />
           </TabPanel>
         </TabContentsWrap>
       </div>

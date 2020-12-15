@@ -1,5 +1,6 @@
 /* eslint-disable react/jsx-indent */
 /* eslint-disable react/jsx-curly-newline */
+/* eslint-disable no-nested-ternary */
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
@@ -55,12 +56,12 @@ const noDataStyle = css`
 
 const AwsApplications = (props) => {
   const {
-    accountDetail,
-    accountMetaData,
-    fetchPermission,
+    azureMetaData,
+    refresh,
     onNewAwsChange,
     newAwsApplication,
     updateToastMessage,
+    responseStatus,
   } = props;
 
   const [editAws, setEditAws] = useState('');
@@ -69,18 +70,10 @@ const AwsApplications = (props) => {
 
   const isMobileScreen = useMediaQuery(small);
 
-  // on iam svc account meta data is available.
+  // on azure svc account meta data is available.
   useEffect(() => {
-    if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
-      if (Object.keys(accountMetaData?.response).length !== 0) {
-        setResponse({ status: 'success' });
-      } else if (accountMetaData.error !== '') {
-        setResponse({ status: 'error' });
-      }
-    } else {
-      setResponse({ status: 'success' });
-    }
-  }, [accountMetaData]);
+    setResponse(responseStatus);
+  }, [responseStatus]);
 
   // When add group button is clicked.
   useEffect(() => {
@@ -89,19 +82,18 @@ const AwsApplications = (props) => {
     }
   }, [newAwsApplication]);
 
-  const constructPayload = (role, access) => {
+  const constructPayload = (rolename, access) => {
     const data = {
       access: checkAccess(access, 'iamsvcaccount'),
-      awsAccountId: accountDetail.iamAccountId,
-      rolename: role,
-      iamSvcAccName: accountDetail.name,
+      azureSvcAccName: azureMetaData.servicePrincipalName,
+      rolename,
     };
     return data;
   };
 
   /**
    * @function onDeleteClick
-   * @description function to delete the aws configuration from the iam svc account aws
+   * @description function to delete the aws configuration from the azure svc account aws
    * application list.
    * @param {role} string role of the aws configuration.
    * @param {access} string permission of the aws configuration.
@@ -114,8 +106,8 @@ const AwsApplications = (props) => {
       .then(async (res) => {
         if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
-          setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
+          setResponse({ status: 'success' });
         }
       })
       .catch((err) => {
@@ -128,7 +120,7 @@ const AwsApplications = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the aws configuration role to the iam svc account
+   * @description function to save the aws configuration role to the azure svc account
    * aws application list.
    * @param {data} object payload to call api.
    */
@@ -139,8 +131,8 @@ const AwsApplications = (props) => {
       .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
-          setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
+          setResponse({ status: 'success' });
         }
       })
       .catch((err) => {
@@ -153,7 +145,7 @@ const AwsApplications = (props) => {
 
   /**
    * @function onSubmit
-   * @description function to save the aws configuration  to the iam svc account
+   * @description function to save the aws configuration  to the azure svc account
    * aws application list and then call the save of role to aws application list.
    * @param {data} object payload to call api.
    */
@@ -162,9 +154,9 @@ const AwsApplications = (props) => {
     onNewAwsChange();
     let url = '';
     if (data.auth_type === 'iam') {
-      url = '/serviceaccounts/aws/iam/role';
+      url = '/azureserviceaccounts/aws/iam/role';
     } else {
-      url = '/serviceaccounts/aws/role';
+      url = '/azureserviceaccounts/aws/role';
     }
     apiService
       .addAwsPermission(url, data)
@@ -243,7 +235,6 @@ const AwsApplications = (props) => {
             handleSaveClick={(data, access) => onSubmit(data, access)}
             handleCancelClick={onCancelClicked}
             handleModalClose={() => onCancelClicked()}
-            isIamAzureSvcAccount
           />
         )}
         {response.status === 'edit' && (
@@ -254,50 +245,45 @@ const AwsApplications = (props) => {
             handleCancelClick={onCancelClicked}
             awsName={editAws}
             access={editAccess}
-            isIamAzureSvcAccount
           />
         )}
-        {accountMetaData &&
-          accountMetaData.response &&
-          response.status === 'success' && (
-            <>
-              {accountMetaData.response['aws-roles'] &&
-                Object.keys(accountMetaData.response['aws-roles']).length >
-                  0 && (
-                  <PermissionsList
-                    list={accountMetaData.response['aws-roles']}
-                    onEditClick={(key, value) => onEditClick(key, value)}
-                    onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                    isIamAzureSvcAccount
-                  />
-                )}
-              {(!accountMetaData.response['aws-roles'] ||
-                Object.keys(accountMetaData.response['aws-roles']).length ===
-                  0) && (
-                <NoDataWrapper>
-                  <NoData
-                    imageSrc={noPermissionsIcon}
-                    description={Strings.Resources.noAwsPermissionFound}
-                    actionButton={
-                      // eslint-disable-next-line react/jsx-wrap-multilines
-                      <ButtonComponent
-                        label="add"
-                        icon="add"
-                        color="secondary"
-                        onClick={() => setResponse({ status: 'add' })}
-                        width={isMobileScreen ? '100%' : '9.4rem'}
-                      />
-                    }
-                    bgIconStyle={bgIconStyle}
-                    customStyle={noDataStyle}
-                  />
-                </NoDataWrapper>
+        {azureMetaData && response.status === 'success' && (
+          <>
+            {azureMetaData['aws-roles'] &&
+              Object.keys(azureMetaData['aws-roles']).length > 0 && (
+                <PermissionsList
+                  list={azureMetaData['aws-roles']}
+                  onEditClick={(key, value) => onEditClick(key, value)}
+                  onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                  isIamAzureSvcAccount
+                />
               )}
-            </>
-          )}
+            {(!azureMetaData['aws-roles'] ||
+              Object.keys(azureMetaData['aws-roles']).length === 0) && (
+              <NoDataWrapper>
+                <NoData
+                  imageSrc={noPermissionsIcon}
+                  description={Strings.Resources.noAwsPermissionFound}
+                  actionButton={
+                    // eslint-disable-next-line react/jsx-wrap-multilines
+                    <ButtonComponent
+                      label="add"
+                      icon="add"
+                      color="secondary"
+                      onClick={() => setResponse({ status: 'add' })}
+                      width={isMobileScreen ? '100%' : '9.4rem'}
+                    />
+                  }
+                  bgIconStyle={bgIconStyle}
+                  customStyle={noDataStyle}
+                />
+              </NoDataWrapper>
+            )}
+          </>
+        )}
         {response.status === 'error' && (
           <Error
-            description={accountMetaData.error || 'Something went wrong!'}
+            description={responseStatus.message || 'Something went wrong!'}
           />
         )}
       </>
@@ -306,11 +292,11 @@ const AwsApplications = (props) => {
 };
 
 AwsApplications.propTypes = {
-  accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
-  accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
+  azureMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
+  refresh: PropTypes.func.isRequired,
   newAwsApplication: PropTypes.bool.isRequired,
   onNewAwsChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  responseStatus: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 export default AwsApplications;

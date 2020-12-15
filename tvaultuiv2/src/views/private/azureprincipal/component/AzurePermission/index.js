@@ -7,10 +7,10 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 import PermissionsTabs from '../../../../../components/PermissionTabs';
 import TabPanel from '../../../../../components/TabPanel';
 import { TabWrapper } from '../../../../../styles/GlobalStyles';
-// import Users from './components/Users';
-// import Groups from './components/Groups';
-// import AppRoles from './components/AppRoles';
-// import AwsApplications from './components/AwsApplications';
+import Users from './component/Users';
+import Groups from './component/Groups';
+import AppRoles from './component/AppRoles';
+import AwsApplications from './component/AwsApplications';
 
 const PermissionTabsWrapper = styled('div')`
   height: calc(100% - 3.7rem);
@@ -18,15 +18,15 @@ const PermissionTabsWrapper = styled('div')`
 `;
 
 const AzurePermission = (props) => {
-  const { azureMetaData } = props;
+  const { azureMetaData, userDetails, refresh, permissionResponse } = props;
   const [value, setValue] = useState(0);
-  const [, setNewUser] = useState(false);
-  const [, setNewGroup] = useState(false);
-  const [, setNewAwsApplication] = useState(false);
-  const [, setNewAppRole] = useState(false);
+  const [newPermission, setNewUser] = useState(false);
+  const [newGroup, setNewGroup] = useState(false);
+  const [newAwsApplication, setNewAwsApplication] = useState(false);
+  const [newAppRole, setNewAppRole] = useState(false);
   const [count, setCount] = useState(0);
   const [toastResponse, setToastResponse] = useState(null);
-  const [toastMessage] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
 
   const initialObject = {
     0: { label: 'users', addBtnCallback: () => setNewUser(true) },
@@ -42,9 +42,9 @@ const AzurePermission = (props) => {
     if (azureMetaData && Object.keys(azureMetaData).length !== 0) {
       setCount(0);
       if (value === 0) {
-        // if (azureMetaData) {
-        //   setCount(userDetails.length - 1);
-        // }
+        if (userDetails) {
+          setCount(userDetails.length);
+        }
       } else if (value === 1) {
         if (azureMetaData.groups) {
           setCount(Object.keys(azureMetaData.groups).length);
@@ -59,7 +59,7 @@ const AzurePermission = (props) => {
         }
       }
     }
-  }, [value, azureMetaData]);
+  }, [value, azureMetaData, userDetails]);
 
   const onAddLabelBtnClicked = () => {
     Object.keys(initialObject).map((item) => {
@@ -77,10 +77,10 @@ const AzurePermission = (props) => {
     setToastResponse(null);
   };
 
-  //   const updateToastMessage = (res, message) => {
-  //     setToastResponse(res);
-  //     setToastMessage(message);
-  //   };
+  const updateToastMessage = (res, message) => {
+    setToastResponse(res);
+    setToastMessage(message);
+  };
 
   const onTabChange = (newValue) => {
     setValue(newValue);
@@ -98,61 +98,53 @@ const AzurePermission = (props) => {
           />
           <PermissionTabsWrapper>
             <TabPanel value={value} index={0}>
-              users
-              {/* <Users
-                certificateMetaData={certificateMetaData}
-                refresh={fetchDetail}
-                responseStatus={responseStatus}
-                username={username}
+              <Users
                 newPermission={newPermission}
                 onNewPermissionChange={() => setNewUser(false)}
+                azureMetaData={azureMetaData}
+                refresh={refresh}
                 updateToastMessage={(res, message) =>
                   updateToastMessage(res, message)
                 }
                 userDetails={userDetails}
-              /> */}
+                responseStatus={permissionResponse}
+              />
             </TabPanel>
             <TabPanel value={value} index={1}>
-              groups
-              {/* <Groups
-                certificateMetaData={certificateMetaData}
-                refresh={fetchDetail}
-                responseStatus={responseStatus}
-                username={username}
+              <Groups
+                azureMetaData={azureMetaData}
+                refresh={refresh}
                 newGroup={newGroup}
                 onNewGroupChange={() => setNewGroup(false)}
                 updateToastMessage={(res, message) =>
                   updateToastMessage(res, message)
                 }
-              /> */}
+                responseStatus={permissionResponse}
+              />
             </TabPanel>
             <TabPanel value={value} index={2}>
-              aws
-              {/* <AwsApplications
-                certificateMetaData={certificateMetaData}
-                refresh={fetchDetail}
-                responseStatus={responseStatus}
-                username={username}
+              <AwsApplications
+                azureMetaData={azureMetaData}
+                refresh={refresh}
                 newAwsApplication={newAwsApplication}
                 onNewAwsChange={() => setNewAwsApplication(false)}
                 updateToastMessage={(res, message) =>
                   updateToastMessage(res, message)
                 }
-              /> */}
+                responseStatus={permissionResponse}
+              />
             </TabPanel>
             <TabPanel value={value} index={3}>
-              approles
-              {/* <AppRoles
-                certificateMetaData={certificateMetaData}
-                refresh={fetchDetail}
-                username={username}
-                responseStatus={responseStatus}
+              <AppRoles
+                azureMetaData={azureMetaData}
+                refresh={refresh}
                 newAppRole={newAppRole}
                 onNewAppRoleChange={() => setNewAppRole(false)}
                 updateToastMessage={(res, message) =>
                   updateToastMessage(res, message)
                 }
-              /> */}
+                responseStatus={permissionResponse}
+              />
             </TabPanel>
           </PermissionTabsWrapper>
           {toastResponse === -1 && (
@@ -179,6 +171,13 @@ const AzurePermission = (props) => {
 
 AzurePermission.propTypes = {
   azureMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any),
+  refresh: PropTypes.func.isRequired,
+  permissionResponse: PropTypes.objectOf(PropTypes.any).isRequired,
+};
+
+AzurePermission.defaultProps = {
+  userDetails: [],
 };
 
 export default AzurePermission;

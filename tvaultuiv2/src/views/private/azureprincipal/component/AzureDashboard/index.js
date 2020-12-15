@@ -1,3 +1,6 @@
+/* eslint-disable array-callback-return */
+/* eslint-disable consistent-return */
+/* eslint-disable prefer-destructuring */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-curly-newline */
@@ -46,6 +49,7 @@ import {
 import configData from '../../../../../config/config';
 import AzureListItem from '../AzureListItem';
 import ViewAzure from '../ViewAzure';
+import AzureSelectionTabs from '../AzureSelectionTabs';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -192,8 +196,9 @@ const AzureDashboard = () => {
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
   const history = useHistory();
-  //   const location = useLocation();
+  const location = useLocation();
   const introduction = Strings.Resources.azurePrincipal;
+
   /**
    * @function fetchData
    * @description function call all the manage and azure principal api.
@@ -208,13 +213,34 @@ const AzureDashboard = () => {
     allApiResponse
       .then((result) => {
         const manageArray = [];
-        if (result[0] && result[0].data.keys) {
+        if (result[0] && result[0].data?.keys?.length > 0) {
           result[0].data.keys.map((item) => {
-            return manageArray.push({ name: item });
+            return manageArray.push({
+              access: 'N/A',
+              name: item,
+              isManagable: true,
+            });
+          });
+        }
+        if (result[1] && result[1].data?.azuresvcacc?.length > 0) {
+          result[1].data.azuresvcacc.map((item) => {
+            const obj = manageArray.find(
+              (ele) =>
+                ele.name.toLowerCase() === Object.keys(item)[0].toLowerCase()
+            );
+            if (obj) {
+              obj.access = Object.values(item)[0];
+            } else {
+              return manageArray.push({
+                access: Object.values(item)[0],
+                name: Object.keys(item)[0],
+                isManagable: false,
+              });
+            }
           });
         }
         setAzureList([...manageArray]);
-        setAllAzureList([]);
+        setAllAzureList([...manageArray]);
         setResponse({ status: 'success' });
       })
       .catch(() => {
@@ -230,6 +256,20 @@ const AzureDashboard = () => {
       setResponse({ status: 'failed' });
     });
   }, [fetchData]);
+
+  useEffect(() => {
+    if (allAzureList.length > 0) {
+      const val = location.pathname.split('/');
+      const azureName = val[val.length - 1];
+      const obj = allAzureList.find((azure) => azure.name === azureName);
+      if (obj) {
+        setListItemDetails({ ...obj });
+      } else {
+        setListItemDetails(allAzureList[0]);
+        history.push(`/azure-principal/${allAzureList[0].name}`);
+      }
+    }
+  }, [allAzureList, location, history]);
 
   /**
    * @function onSearchChange
@@ -387,7 +427,9 @@ const AzureDashboard = () => {
                         : sectionHeaderBg
                     }
                     description={introduction}
-                    renderContent={<div />}
+                    renderContent={
+                      <AzureSelectionTabs azureDetail={listItemDetails} />
+                    }
                   />
                 )}
               />
@@ -406,7 +448,9 @@ const AzureDashboard = () => {
                         : sectionHeaderBg
                     }
                     description={introduction}
-                    renderContent={<div />}
+                    renderContent={
+                      <AzureSelectionTabs azureDetail={listItemDetails} />
+                    }
                   />
                 )}
               />

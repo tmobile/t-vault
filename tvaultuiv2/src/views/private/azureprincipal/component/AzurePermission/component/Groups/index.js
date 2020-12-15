@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../../../components/NoData';
+import Error from '../../../../../../../components/Error';
 import ButtonComponent from '../../../../../../../components/FormFields/ActionButton';
 import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
@@ -14,6 +15,7 @@ import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import PermissionsList from '../../../../../../../components/PermissionsList';
 import Strings from '../../../../../../../resources';
+import { checkAccess } from '../../../../../../../services/helper-function';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -54,7 +56,7 @@ const noDataStyle = css`
 
 const Groups = (props) => {
   const {
-    certificateMetaData,
+    azureMetaData,
     newGroup,
     onNewGroupChange,
     updateToastMessage,
@@ -67,9 +69,9 @@ const Groups = (props) => {
   const [response, setResponse] = useState({ status: 'loading' });
   const isMobileScreen = useMediaQuery(small);
 
-  // on certificate meta data is available.
+  // on azure svc account meta data is available.
   useEffect(() => {
-    setResponse({ status: responseStatus });
+    setResponse(responseStatus);
   }, [responseStatus]);
 
   // When add permission button is clicked.
@@ -81,9 +83,8 @@ const Groups = (props) => {
 
   const constructPayload = (groupname, access) => {
     const data = {
-      access,
-      certType: certificateMetaData.certType,
-      certificateName: certificateMetaData.certificateName,
+      access: checkAccess(access, 'iamsvcaccount'),
+      azureSvcAccName: azureMetaData.servicePrincipalName,
       groupname,
     };
     return data;
@@ -91,7 +92,7 @@ const Groups = (props) => {
 
   /**
    * @function onDeleteClick
-   * @description function to delete the group from the certificate groups list.
+   * @description function to delete the group from the azure svc account groups list.
    * @param {groupname} string groupname of the group.
    * @param {access} string permission of the group.
    */
@@ -99,12 +100,12 @@ const Groups = (props) => {
     setResponse({ status: 'loading' });
     const payload = constructPayload(groupname, access);
     apiService
-      .deleteCertificateGroup(payload)
+      .deleteGroupPermission(payload)
       .then(async (res) => {
         if (res && res.data?.messages && res.data.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
-          setResponse({ status: '' });
           await refresh();
+          setResponse({ status: 'success' });
         }
       })
       .catch((err) => {
@@ -117,18 +118,18 @@ const Groups = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the group to the certificate groups list.
+   * @description function to save the group to the azure svc account groups list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {
     setResponse({ status: 'loading' });
     apiService
-      .addCertificateGroup(data)
+      .addGroupPermission(data)
       .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
-          setResponse({ status: '' });
           await refresh();
+          setResponse({ status: 'success' });
         }
       })
       .catch((err) => {
@@ -166,7 +167,7 @@ const Groups = (props) => {
     setResponse({ status: 'loading' });
     const payload = constructPayload(groupname, access);
     apiService
-      .deleteCertificateGroup(payload)
+      .deleteGroupPermission(payload)
       .then(async (res) => {
         if (res) {
           setResponse({ status: 'loading' });
@@ -197,7 +198,11 @@ const Groups = (props) => {
    * @param {value} value permission given to the group.
    */
   const onEditClick = (key, value) => {
-    setEditAccess(value);
+    if (value === 'write') {
+      setEditAccess('rotate');
+    } else {
+      setEditAccess(value);
+    }
     setEditGroup(key);
     setResponse({ status: 'edit' });
   };
@@ -212,7 +217,6 @@ const Groups = (props) => {
           <AddGroup
             handleSaveClick={(group, access) => onSubmit(group, access)}
             handleCancelClick={onCancelClicked}
-            isCertificate
           />
         )}
         {response.status === 'edit' && (
@@ -223,21 +227,21 @@ const Groups = (props) => {
             handleCancelClick={onCancelClicked}
             groupname={editGroup}
             access={editAccess}
-            isCertificate
           />
         )}
         {response.status === 'success' && (
           <>
-            {certificateMetaData.groups &&
-              Object.keys(certificateMetaData.groups).length > 0 && (
+            {azureMetaData.groups &&
+              Object.keys(azureMetaData.groups).length > 0 && (
                 <PermissionsList
-                  list={certificateMetaData.groups}
+                  list={azureMetaData.groups}
                   onEditClick={(key, value) => onEditClick(key, value)}
                   onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                  isIamAzureSvcAccount
                 />
               )}
-            {(!certificateMetaData.groups ||
-              Object.keys(certificateMetaData.groups).length === 0) && (
+            {(!azureMetaData.groups ||
+              Object.keys(azureMetaData.groups).length === 0) && (
               <NoDataWrapper>
                 <NoData
                   imageSrc={noPermissionsIcon}
@@ -259,16 +263,21 @@ const Groups = (props) => {
             )}
           </>
         )}
+        {response.status === 'error' && (
+          <Error
+            description={responseStatus.message || 'Something went wrong!'}
+          />
+        )}
       </>
     </ComponentError>
   );
 };
 
 Groups.propTypes = {
-  responseStatus: PropTypes.string.isRequired,
+  responseStatus: PropTypes.objectOf(PropTypes.any).isRequired,
   newGroup: PropTypes.bool.isRequired,
   onNewGroupChange: PropTypes.func.isRequired,
-  certificateMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
+  azureMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
 };

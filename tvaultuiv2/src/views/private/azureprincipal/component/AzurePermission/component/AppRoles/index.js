@@ -1,5 +1,7 @@
 /* eslint-disable react/jsx-indent */
 /* eslint-disable react/jsx-curly-newline */
+/* eslint-disable no-nested-ternary */
+
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
@@ -54,12 +56,12 @@ const noDataStyle = css`
 
 const AppRoles = (props) => {
   const {
-    accountDetail,
-    accountMetaData,
-    fetchPermission,
+    azureMetaData,
+    refresh,
     onNewAppRoleChange,
     newAppRole,
     updateToastMessage,
+    responseStatus,
   } = props;
 
   const [response, setResponse] = useState({ status: 'loading' });
@@ -69,18 +71,10 @@ const AppRoles = (props) => {
 
   const isMobileScreen = useMediaQuery(small);
 
-  // on iam svc account meta data is available.
+  // azure account meta data is available.
   useEffect(() => {
-    if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
-      if (Object.keys(accountMetaData?.response).length !== 0) {
-        setResponse({ status: 'success' });
-      } else if (accountMetaData.error !== '') {
-        setResponse({ status: 'error' });
-      }
-    } else {
-      setResponse({ status: '' });
-    }
-  }, [accountMetaData]);
+    setResponse(responseStatus);
+  }, [responseStatus]);
 
   // When add app role button is clicked.
   useEffect(() => {
@@ -89,19 +83,18 @@ const AppRoles = (props) => {
     }
   }, [newAppRole]);
 
-  const constructPayload = (role, access) => {
+  const constructPayload = (approlename, access) => {
     const data = {
       access: checkAccess(access, 'iamsvcaccount'),
-      approlename: role,
-      awsAccountId: accountDetail.iamAccountId,
-      iamSvcAccName: accountDetail.name,
+      approlename,
+      azureSvcAccName: azureMetaData.servicePrincipalName,
     };
     return data;
   };
 
   /**
    * @function onDeleteClick
-   * @description function to delete the app role from the iam svc account app role list.
+   * @description function to delete the app role from the azure svc account app role list.
    * @param {role} string app role name.
    * @param {access} string permission of the app role.
    */
@@ -113,8 +106,8 @@ const AppRoles = (props) => {
       .then(async (res) => {
         if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
-          setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
+          setResponse({ status: 'success' });
         }
       })
       .catch((err) => {
@@ -127,7 +120,7 @@ const AppRoles = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the app rolr to the iam svc account app role list.
+   * @description function to save the app rolr to the azure svc account app role list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {
@@ -137,8 +130,8 @@ const AppRoles = (props) => {
       .then(async (res) => {
         if (res?.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data?.messages[0]);
-          setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
+          setResponse({ status: 'success' });
         }
       })
       .catch((err) => {
@@ -222,7 +215,6 @@ const AppRoles = (props) => {
           <AddAppRole
             handleSaveClick={(role, access) => onSubmit(role, access)}
             handleCancelClick={() => onCancelClicked()}
-            isIamAzureSvcAccount
           />
         )}
         {response.status === 'edit' && (
@@ -232,51 +224,46 @@ const AppRoles = (props) => {
             access={editAccess}
             editClicked={editClicked}
             role={editRole}
-            isIamAzureSvcAccount
           />
         )}
 
-        {accountMetaData &&
-          accountMetaData.response &&
-          response.status === 'success' && (
-            <>
-              {accountMetaData.response['app-roles'] &&
-                Object.keys(accountMetaData.response['app-roles']).length >
-                  0 && (
-                  <PermissionsList
-                    list={accountMetaData.response['app-roles']}
-                    onEditClick={(key, value) => onEditClick(key, value)}
-                    onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                    isIamAzureSvcAccount
-                  />
-                )}
-              {(!accountMetaData.response['app-roles'] ||
-                Object.keys(accountMetaData.response['app-roles']).length ===
-                  0) && (
-                <NoDataWrapper>
-                  <NoData
-                    imageSrc={noPermissionsIcon}
-                    description={Strings.Resources.noAppRolePermissionFound}
-                    actionButton={
-                      // eslint-disable-next-line react/jsx-wrap-multilines
-                      <ButtonComponent
-                        label="add"
-                        icon="add"
-                        color="secondary"
-                        onClick={() => setResponse({ status: 'add' })}
-                        width={isMobileScreen ? '100%' : '9.4rem'}
-                      />
-                    }
-                    bgIconStyle={bgIconStyle}
-                    customStyle={noDataStyle}
-                  />
-                </NoDataWrapper>
+        {azureMetaData && response.status === 'success' && (
+          <>
+            {azureMetaData['app-roles'] &&
+              Object.keys(azureMetaData['app-roles']).length > 0 && (
+                <PermissionsList
+                  list={azureMetaData['app-roles']}
+                  onEditClick={(key, value) => onEditClick(key, value)}
+                  onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                  isIamAzureSvcAccount
+                />
               )}
-            </>
-          )}
+            {(!azureMetaData['app-roles'] ||
+              Object.keys(azureMetaData['app-roles']).length === 0) && (
+              <NoDataWrapper>
+                <NoData
+                  imageSrc={noPermissionsIcon}
+                  description={Strings.Resources.noAppRolePermissionFound}
+                  actionButton={
+                    // eslint-disable-next-line react/jsx-wrap-multilines
+                    <ButtonComponent
+                      label="add"
+                      icon="add"
+                      color="secondary"
+                      onClick={() => setResponse({ status: 'add' })}
+                      width={isMobileScreen ? '100%' : '9.4rem'}
+                    />
+                  }
+                  bgIconStyle={bgIconStyle}
+                  customStyle={noDataStyle}
+                />
+              </NoDataWrapper>
+            )}
+          </>
+        )}
         {response.status === 'error' && (
           <Error
-            description={accountMetaData.error || 'Something went wrong!'}
+            description={responseStatus.message || 'Something went wrong!'}
           />
         )}
       </>
@@ -285,11 +272,11 @@ const AppRoles = (props) => {
 };
 
 AppRoles.propTypes = {
-  accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
-  accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
+  azureMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
+  refresh: PropTypes.func.isRequired,
   newAppRole: PropTypes.bool.isRequired,
   onNewAppRoleChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  responseStatus: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 export default AppRoles;
