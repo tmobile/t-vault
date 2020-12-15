@@ -394,7 +394,7 @@ public class  ServiceAccountsService {
 						Map<String, String> mailTemplateVariables = new Hashtable<>();
 						mailTemplateVariables.put("name", managerDetails.get(0).getDisplayName());
 						mailTemplateVariables.put("svcAccName", svcAccName);
-						if (serviceAccount.getAdGroup() != null && serviceAccount.getAdGroup() != "") {
+						if (serviceAccount.getAdGroup() != null && !serviceAccount.getAdGroup().equals("")) {
 							groupContent = String.format(mailAdGroupContent, serviceAccount.getAdGroup());
 						}
 						mailTemplateVariables.put("groupContent", groupContent);
@@ -2635,7 +2635,7 @@ public class  ServiceAccountsService {
 						//OIDC Changes
 						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 							currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && oidcGroup != null) {
 							currentpolicies.addAll(oidcGroup.getPolicies());
 						}
 					} catch (IOException e) {
@@ -2661,7 +2661,7 @@ public class  ServiceAccountsService {
 					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 						ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
 					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup.getId());
+						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup != null ? oidcGroup.getId() : null);
 						oidcUtil.renewUserToken(userDetails.getClientToken());
 					}
 				}

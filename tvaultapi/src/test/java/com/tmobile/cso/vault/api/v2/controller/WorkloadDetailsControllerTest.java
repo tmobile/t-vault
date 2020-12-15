@@ -25,6 +25,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 public class WorkloadDetailsControllerTest {
@@ -41,6 +43,9 @@ public class WorkloadDetailsControllerTest {
 
     @Mock
     UserDetails userDetails;
+
+    @Mock
+    HttpServletRequest httpServletRequest;
 
     String token;
 
@@ -74,8 +79,8 @@ public class WorkloadDetailsControllerTest {
     @Test
     public void test_getWorkloadDetailsByAPIName(){
         String responseMessage = "[{\"appName\":\"app1\",\"appTag\":\"app1\",\"appID\":\"app\"},{\"appName\":\"app2\",\"appTag\":\"app2\",\"appID\":\"ap2\"}]";
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
         when(workloadDetailsService.getWorkloadDetailsByAppName(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(responseMessage));
-        assertEquals(workloadDetailsService.getWorkloadDetailsByAppName(anyString()),responseEntityExpected);
+        when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
+        assertEquals(HttpStatus.OK, workloadDetailsController.getWorkloadDetailsByAPIName(httpServletRequest, token, "tvt").getStatusCode());
     }
 }

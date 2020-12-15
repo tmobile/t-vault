@@ -142,7 +142,7 @@ public class  SelfSupportService {
 	 * @return
 	 */
 	private boolean isSafeValid(Safe safe) {
-		return safe != null && safe.getPath() != null && safe.getPath() != "";
+		return safe != null && safe.getPath() != null && !safe.getPath().equals("");
 	}
 
 	/**
