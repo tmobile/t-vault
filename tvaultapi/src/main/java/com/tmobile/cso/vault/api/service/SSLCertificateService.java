@@ -3057,9 +3057,9 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			boolean sslMetaDataUpdationStatus;
 			metaDataParams.put("certificateStatus", "Revoked");
 			if (userDetails.isAdmin()) {
-				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaDataOnPath(metaDataPath, metaDataParams, token);
 			} else {
-				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams,
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaDataOnPath(metaDataPath, metaDataParams,
 						userDetails.getSelfSupportToken());
 			}
 
@@ -4716,9 +4716,9 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					object.get("certificateStatus").getAsString());
 			}
 			if (userDetails.isAdmin()) {
-				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaDataOnPath(metaDataPath, metaDataParams, token);
 			} else {
-				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams,
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaDataOnPath(metaDataPath, metaDataParams,
 						userDetails.getSelfSupportToken());
 			}
 			}
@@ -5654,15 +5654,16 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		
 		try {
 		if (userDetails.isAdmin()) {
-			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, authToken);
+
+			sslMetaDataUpdationStatus = ControllerUtil.updateMetaDataOnPath(metaDataPath, metaDataParams, authToken);
 			if(dataObject!=null) {
-			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(permissionMetaDataPath, dataMetaDataParams, authToken);
+			sslMetaDataUpdationStatus = ControllerUtil.updateMetaDataOnPath(permissionMetaDataPath, dataMetaDataParams, authToken);
 			}
 		} else {
-			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams,
+			sslMetaDataUpdationStatus = ControllerUtil.updateMetaDataOnPath(metaDataPath, metaDataParams,
 					userDetails.getSelfSupportToken());	
 			if(dataObject!=null) {
-				sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(permissionMetaDataPath, dataMetaDataParams, userDetails.getSelfSupportToken());
+				sslMetaDataUpdationStatus = ControllerUtil.updateMetaDataOnPath(permissionMetaDataPath, dataMetaDataParams, userDetails.getSelfSupportToken());
 				}
 		}
 		if (sslMetaDataUpdationStatus) {
@@ -6279,7 +6280,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	 */
 	private ResponseEntity<String> updateCertificateMetadata(String certificatePath, String authToken,
 			Map<String, String> metaDataParams) throws JsonProcessingException {
-		boolean sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(certificatePath, metaDataParams, authToken);
+		boolean sslMetaDataUpdationStatus = ControllerUtil.updateMetaDataOnPath(certificatePath, metaDataParams, authToken);
 		if(sslMetaDataUpdationStatus) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -9673,10 +9674,10 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			}
 		try {
 		if (userDetails.isAdmin()) {
-			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams, token);
+			sslMetaDataUpdationStatus = ControllerUtil.updateMetaDataOnPath(metaDataPath, metaDataParams, token);
 
 		} else {
-			sslMetaDataUpdationStatus = ControllerUtil.updateMetaData(metaDataPath, metaDataParams,
+			sslMetaDataUpdationStatus = ControllerUtil.updateMetaDataOnPath(metaDataPath, metaDataParams,
 					userDetails.getSelfSupportToken());	
 
 		}

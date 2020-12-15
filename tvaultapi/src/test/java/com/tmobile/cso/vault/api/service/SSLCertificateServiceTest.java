@@ -2243,7 +2243,7 @@ public class SSLCertificateServiceTest {
         revocationResponse.setSuccess(true);
         when(reqProcessor.processCert(eq("/certificates/revocationrequest"), anyObject(), anyString(), anyString())).thenReturn(revocationResponse);
 
-        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+        when(ControllerUtil.updateMetaDataOnPath(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         when(certificateUtils.getCertificateMetaData(token, "testCert.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.getCertificateMetaData(token, "testCert.t-mobile.com", "external")).thenReturn(certificateMetadata);
@@ -2314,7 +2314,7 @@ public class SSLCertificateServiceTest {
         revocationResponse.setSuccess(true);
         when(reqProcessor.processCert(eq("/certificates/revocationrequest"), anyObject(), anyString(), anyString())).thenReturn(revocationResponse);
 
-        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+        when(ControllerUtil.updateMetaDataOnPath(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
         when(certificateUtils.getCertificateMetaData(token, "testCert.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.getCertificateMetaData(token, "testCert.t-mobile.com", "external")).thenReturn(certificateMetadata);
@@ -2376,7 +2376,7 @@ public class SSLCertificateServiceTest {
         revocationResponse.setSuccess(true);
         when(reqProcessor.processCert(eq("/certificates/revocationrequest"), anyObject(), anyString(), anyString())).thenReturn(revocationResponse);
 
-        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+        when(ControllerUtil.updateMetaDataOnPath(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> revocResponse =
                 sSLCertificateService.issueRevocationRequest(certficateType,certficateName, userDetails, token, revocationRequest);
@@ -4205,7 +4205,7 @@ public class SSLCertificateServiceTest {
         findCertResponse.setSuccess(true);
         when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(findCertResponse);
 
-        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+        when(ControllerUtil.updateMetaDataOnPath(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> renewCertResponse =
                 sSLCertificateService.renewCertificate(certficateType,certficateName, userDetails, token);
@@ -4268,7 +4268,7 @@ public class SSLCertificateServiceTest {
         findCertResponse.setSuccess(true);
         when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(findCertResponse);
 
-        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+        when(ControllerUtil.updateMetaDataOnPath(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> renewCertResponse =
                 sSLCertificateService.renewCertificate(certficateType, certficateName, userDetails, token);
@@ -4331,7 +4331,7 @@ public class SSLCertificateServiceTest {
         findCertResponse.setSuccess(true);
         when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(findCertResponse);
 
-        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+        when(ControllerUtil.updateMetaDataOnPath(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> renewCertResponse =
                 sSLCertificateService.renewCertificate(certficateType, certficateName, userDetails, token);
@@ -4398,7 +4398,7 @@ public class SSLCertificateServiceTest {
         findCertResponse.setSuccess(true);
         when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(findCertResponse);
 
-        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+        when(ControllerUtil.updateMetaDataOnPath(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         ResponseEntity<?> revocResponse =
                 sSLCertificateService.issueRevocationRequest(certficateType, certficateName, userDetails, token, revocationRequest);
@@ -5008,7 +5008,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(certResponse);
 
         
-        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+        when(ControllerUtil.updateMetaDataOnPath(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
         
@@ -5075,7 +5075,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(certResponse);
 
 
-        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+        when(ControllerUtil.updateMetaDataOnPath(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
         when(reqProcessor.process(eq("/auth/userpass/read"),anyObject(), anyString())).thenReturn(userResponse);
 
@@ -5148,7 +5148,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(certResponse);
 
         
-        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+        when(ControllerUtil.updateMetaDataOnPath(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
         DirectoryObjects obj =new DirectoryObjects();
         DirectoryObjectsList objList = new DirectoryObjectsList();
         DirectoryUser user = new DirectoryUser();
@@ -5209,7 +5209,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString())).thenReturn(certResponse);
 
         
-        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+        when(ControllerUtil.updateMetaDataOnPath(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
         DirectoryObjects obj =new DirectoryObjects();
         DirectoryObjectsList objList = new DirectoryObjectsList();
         DirectoryUser user = new DirectoryUser();
@@ -5442,7 +5442,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.process(eq("/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
 		String certType = "external";
 		String certName = "certificatename.t-mobile.com";
-		when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
+		when(ControllerUtil.updateMetaDataOnPath(any(), any(), eq(token))).thenReturn(true);
 		when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
 		ResponseEntity<?> enrollResponse = sSLCertificateService
 				.validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
@@ -5524,7 +5524,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.process(eq("/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
         String certType = "external";
         String certName = "certificatename.t-mobile.com";
-        when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
+        when(ControllerUtil.updateMetaDataOnPath(any(), any(), eq(token))).thenReturn(true);
         certificateMetadata.setRequestStatus(SSLCertificateConstants.RENEW_PENDING);
         when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
         ResponseEntity<?> enrollResponse = sSLCertificateService
@@ -5612,7 +5612,7 @@ public class SSLCertificateServiceTest {
 
         String certType = "external";
         String certName = "certificatename.t-mobile.com";
-        when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
+        when(ControllerUtil.updateMetaDataOnPath(any(), any(), eq(token))).thenReturn(true);
         when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
         String metadatajson =  "{\"path\":{\"sslcerts/certtest.int.delete01.t-mobile.com\":{\"policy\":\"sudo\"}," +
                 "\"metadata/sslcerts/certtest.int.delete01.t-mobile.com\":{\"policy\":\"write\"}}}";
@@ -5693,7 +5693,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.process("/delete", pathjson, "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(metadataDeleteResponse);
         String certType = "external";
         String certName = "certificatename.t-mobile.com";
-        when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
+        when(ControllerUtil.updateMetaDataOnPath(any(), any(), eq(token))).thenReturn(true);
         when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
         ResponseEntity<?> enrollResponse = sSLCertificateService
                 .validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
@@ -5775,7 +5775,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.process("/delete", pathjson1, "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(metadataDeleteResponse1);
         String certType = "external";
         String certName = "certificatename.t-mobile.com";
-        when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
+        when(ControllerUtil.updateMetaDataOnPath(any(), any(), eq(token))).thenReturn(true);
         when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
         ResponseEntity<?> enrollResponse = sSLCertificateService
                 .validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
@@ -5980,7 +5980,7 @@ public class SSLCertificateServiceTest {
 
 		String certType = "external";
 		String certName = "certificatename.t-mobile.com";
-		when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
+		when(ControllerUtil.updateMetaDataOnPath(any(), any(), eq(token))).thenReturn(true);
 		when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
 		ResponseEntity<?> enrollResponse = sSLCertificateService
 				.validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
@@ -6056,7 +6056,7 @@ public class SSLCertificateServiceTest {
 
 		String certType = "external";
 		String certName = "certificatename.t-mobile.com";
-		when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(false);
+		when(ControllerUtil.updateMetaDataOnPath(any(), any(), eq(token))).thenReturn(false);
 		when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
 		ResponseEntity<?> enrollResponse = sSLCertificateService
 				.validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
@@ -6137,7 +6137,7 @@ public class SSLCertificateServiceTest {
 
 		String certType = "internal";
 		String certName = "certificatename.t-mobile.com";
-		when(ControllerUtil.updateMetaData(any(), any(), eq(token))).thenReturn(true);
+		when(ControllerUtil.updateMetaDataOnPath(any(), any(), eq(token))).thenReturn(true);
 		when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
 		
 		CertResponse unassignCertResponse = new CertResponse();
@@ -7588,7 +7588,7 @@ public class SSLCertificateServiceTest {
 	        certResponse.setSuccess(true);
 
 	        
-	        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+	        when(ControllerUtil.updateMetaDataOnPath(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
 	        when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
 	        
@@ -7632,7 +7632,7 @@ public class SSLCertificateServiceTest {
 	        certResponse.setSuccess(true);
 
 	        
-	        when(ControllerUtil.updateMetaData(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
+	        when(ControllerUtil.updateMetaDataOnPath(anyString(), anyMap(), anyString())).thenReturn(Boolean.TRUE);
 
 	        when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
 	        
