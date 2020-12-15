@@ -162,9 +162,9 @@ const AwsApplications = (props) => {
     onNewAwsChange();
     let url = '';
     if (data.auth_type === 'iam') {
-      url = '/serviceaccounts/aws/iam/role';
+      url = '/iamserviceaccounts/aws/iam/role';
     } else {
-      url = '/serviceaccounts/aws/role';
+      url = '/iamserviceaccounts/aws/role';
     }
     apiService
       .addAwsPermission(url, data)

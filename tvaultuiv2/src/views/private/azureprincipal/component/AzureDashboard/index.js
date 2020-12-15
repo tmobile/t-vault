@@ -32,7 +32,6 @@ import tabSvcIcon from '../../../../../assets/tab-svcbg.png';
 import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ListItemDetail from '../../../../../components/ListItemDetail';
-// import EditDeletePopper from '../EditDeletePopper';
 import ListItem from '../../../../../components/ListItem';
 import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 import Error from '../../../../../components/Error';
@@ -59,7 +58,6 @@ const ColumnSection = styled('section')`
 const RightColumnSection = styled(ColumnSection)`
   width: 59.23%;
   padding: 0;
-  // background: linear-gradient(to top, #151820, #2c3040);
   ${mediaBreakpoints.small} {
     width: 100%;
     ${(props) => props.mobileViewStyles}
@@ -107,8 +105,8 @@ const ListFolderWrap = styled(Link)`
   padding: 1.2rem 1.8rem 1.2rem 3.8rem;
   cursor: pointer;
   background-image: ${(props) =>
-    props.active ? props.theme.gradients.list : 'none'};
-  color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
+    props.active === 'true' ? props.theme.gradients.list : 'none'};
+  color: ${(props) => (props.active === 'true' ? '#fff' : '#4a4a4a')};
   ${mediaBreakpoints.belowLarge} {
     padding: 2rem 1.1rem;
   }
@@ -176,23 +174,15 @@ const ListHeader = css`
 
 const EditDeletePopperWrap = styled.div``;
 
-const iconStyles = makeStyles(() => ({
-  root: {
-    width: '100%',
-  },
-}));
-
 const AzureDashboard = () => {
   const [inputSearchValue, setInputSearchValue] = useState('');
-  const [serviceAccountClicked, setServiceAccountClicked] = useState(false);
+  const [azureAccountClicked, setAzureAccountClicked] = useState(false);
   const [listItemDetails, setListItemDetails] = useState({});
   const [azureList, setAzureList] = useState([]);
-  const [toastResponse, setToastResponse] = useState(null);
   const [response, setResponse] = useState({ status: 'loading' });
   const [allAzureList, setAllAzureList] = useState([]);
   const [openViewAzureModal, setOpenViewAzureModal] = useState(false);
   const [viewAzureData, setViewAzureData] = useState({});
-  //   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
   const history = useHistory();
@@ -305,6 +295,18 @@ const AzureDashboard = () => {
     setViewAzureData(azure);
   };
 
+  /**
+   * @function onLinkClicked
+   * @description function to check if mobile screen the make safeClicked true
+   * based on that value display left and right side.
+   */
+  const onLinkClicked = (item) => {
+    if (isMobileScreen) {
+      setListItemDetails(item);
+      setAzureAccountClicked(true);
+    }
+  };
+
   const onCloseViewAzureModal = (action) => {
     if (action) {
       fetchData();
@@ -318,17 +320,29 @@ const AzureDashboard = () => {
       <ListFolderWrap
         key={azure.name}
         to={`/azure-principal/${azure.name}`}
-        active={history.location.pathname === `/azure-principal/${azure.name}`}
+        onClick={() => onLinkClicked(azure)}
+        active={
+          history.location.pathname === `/azure-principal/${azure.name}`
+            ? 'true'
+            : 'false'
+        }
       >
         <AzureListItem title={azure.name} icon={azureIcon} />
         <BorderLine />
-        {azure.isManagable && !isMobileScreen ? (
+        {azure.isManagable && !isMobileScreen && (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <ViewIcon onClick={() => onViewClicked(azure)}>
               <VisibilityIcon />
             </ViewIcon>
           </PopperWrap>
-        ) : null}
+        )}
+        {azure.isManagable && isMobileScreen && (
+          <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
+            <ViewIcon onClick={() => onViewClicked(azure)}>
+              <VisibilityIcon />
+            </ViewIcon>
+          </EditDeletePopperWrap>
+        )}
       </ListFolderWrap>
     ));
   };
@@ -343,7 +357,7 @@ const AzureDashboard = () => {
               onCloseViewAzureModal={(action) => onCloseViewAzureModal(action)}
             />
           )}
-          <LeftColumnSection isAccountDetailsOpen={serviceAccountClicked}>
+          <LeftColumnSection isAccountDetailsOpen={azureAccountClicked}>
             <ColumnHeader>
               <div style={{ margin: '0 1rem' }}>
                 <TitleOne extraCss={ListHeader}>
@@ -399,7 +413,7 @@ const AzureDashboard = () => {
           </LeftColumnSection>
           <RightColumnSection
             mobileViewStyles={isMobileScreen ? MobileViewForListDetailPage : ''}
-            isAccountDetailsOpen={serviceAccountClicked}
+            isAccountDetailsOpen={azureAccountClicked}
           >
             <Switch>
               {azureList[0]?.name && (
@@ -418,7 +432,7 @@ const AzureDashboard = () => {
                   <ListItemDetail
                     listItemDetails={listItemDetails}
                     params={routerProps}
-                    backToLists={() => {}}
+                    backToLists={() => setAzureAccountClicked(false)}
                     ListDetailHeaderBg={
                       isTabScreen
                         ? tabSvcIcon
@@ -439,7 +453,7 @@ const AzureDashboard = () => {
                   <ListItemDetail
                     listItemDetails={listItemDetails}
                     params={routerProps}
-                    backToLists={() => {}}
+                    backToLists={() => setAzureAccountClicked(false)}
                     ListDetailHeaderBg={
                       isTabScreen
                         ? tabSvcIcon
@@ -456,22 +470,6 @@ const AzureDashboard = () => {
               />
             </Switch>
           </RightColumnSection>
-          {toastResponse === -1 && (
-            <SnackbarComponent
-              open
-              onClose={() => {}}
-              severity="error"
-              icon="error"
-              message="Something went wrong!"
-            />
-          )}
-          {toastResponse === 1 && (
-            <SnackbarComponent
-              open
-              onClose={() => {}}
-              message="Service account off-boarded successfully!"
-            />
-          )}
         </SectionPreview>
       </>
     </ComponentError>
