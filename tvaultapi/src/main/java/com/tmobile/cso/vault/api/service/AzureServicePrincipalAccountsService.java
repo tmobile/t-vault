@@ -2536,7 +2536,7 @@ public class AzureServicePrincipalAccountsService {
 				policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 				currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 			} else{
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exists or you don't have enough permission to add this aws role to Azure Service Principal\"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exists or you don't have enough permission to add this AWS role to Azure Service Principal\"]}");
 			}
 			Response awsRoleConfigresponse = null;
 			if (TVaultConstants.IAM.equals(authType)) {
@@ -3383,7 +3383,7 @@ public class AzureServicePrincipalAccountsService {
     				currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 				}
 			} else{
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exists or you don't have enough permission to remove this aws role from Azure Service Principal\"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exists or you don't have enough permission to remove this AWS role from Azure Service Principal\"]}");
 			}
 			Response awsRoleConfigresponse = null;
 			if (TVaultConstants.IAM.equals(authType)) {
