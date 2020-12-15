@@ -68,7 +68,7 @@ const Groups = (props) => {
 
   const isMobileScreen = useMediaQuery(small);
 
-  // on svc account meta data is available.
+  // on iam svc account meta data is available.
   useEffect(() => {
     if (
       accountMetaData?.response &&
@@ -93,7 +93,7 @@ const Groups = (props) => {
 
   /**
    * @function onDeleteClick
-   * @description function to delete the group from the svc account group list.
+   * @description function to delete the group from the iam svc account group list.
    * @param {username} string groupname of the group.
    * @param {access} string permission of the group.
    */
@@ -124,7 +124,7 @@ const Groups = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the group to the svc account groups list.
+   * @description function to save the group to the iam svc account groups list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {
@@ -210,7 +210,7 @@ const Groups = (props) => {
    */
   const onEditClick = (key, value) => {
     if (value === 'write') {
-      setEditAccess('reset');
+      setEditAccess('rotate');
     } else {
       setEditAccess(value);
     }
@@ -228,7 +228,7 @@ const Groups = (props) => {
           <AddGroup
             handleSaveClick={(group, access) => onSubmit(group, access)}
             handleCancelClick={onCancelClicked}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
 
@@ -240,7 +240,7 @@ const Groups = (props) => {
             handleCancelClick={onCancelClicked}
             groupname={editGroup}
             access={editAccess}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
         {accountMetaData &&
@@ -253,7 +253,7 @@ const Groups = (props) => {
                     list={accountMetaData.response.groups}
                     onEditClick={(key, value) => onEditClick(key, value)}
                     onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                    isIamSvcAccount
+                    isIamAzureSvcAccount
                   />
                 )}
               {(!accountMetaData.response.groups ||

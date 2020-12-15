@@ -17,10 +17,10 @@ const Container = styled('div')`
   ${(props) => props.extraCss}
 `;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   container: {
     display: 'flex',
-    margin: theme.spacing(1),
+    margin: '8px 0',
   },
 }));
 

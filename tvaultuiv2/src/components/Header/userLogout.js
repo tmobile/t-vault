@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Popper from '@material-ui/core/Popper';
 import Fade from '@material-ui/core/Fade';
@@ -37,6 +37,8 @@ const Logout = styled.div`
   cursor: pointer;
 `;
 
+const AdminLabel = styled.div``;
+
 const useStyles = makeStyles((theme) => ({
   root: {
     zIndex: '2000',
@@ -50,7 +52,8 @@ const useStyles = makeStyles((theme) => ({
 const UserLogout = (props) => {
   const { userName, checkToken } = props;
   const classes = useStyles();
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
   const history = useHistory();
 
   const handleClick = (event) => {
@@ -68,13 +71,21 @@ const UserLogout = (props) => {
 
   const open = Boolean(anchorEl);
   const id = open ? 'transitions-popper' : undefined;
-
+  useEffect(() => {
+    const admin = localStorage.getItem('isAdmin');
+    if (admin) {
+      setIsAdmin(JSON.parse(admin));
+    }
+  }, []);
   return (
     <>
       <UserWrap aria-describedby={id} onClick={handleClick}>
         <UserIcon src={userIcon} alt="usericon" />
-        <UserName>{userName}</UserName>
-        <VectorIcon src={vectorIcon} alt="vectoricon" />
+        <div>
+          <UserName>{userName}</UserName>
+          <VectorIcon src={vectorIcon} alt="vectoricon" />
+          <div>{isAdmin ? <AdminLabel>Admin</AdminLabel> : <></>}</div>
+        </div>
       </UserWrap>
       <Popper
         id={id}

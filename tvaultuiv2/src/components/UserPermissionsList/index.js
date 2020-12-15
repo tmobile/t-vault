@@ -56,7 +56,7 @@ const UserPermissionsList = (props) => {
     list,
     onDeleteClick,
     isSvcAccount,
-    isIamSvcAccount,
+    isIamAzureSvcAccount,
     userDetails,
   } = props;
   // get logged in user info
@@ -79,7 +79,7 @@ const UserPermissionsList = (props) => {
           key={key}
           inActitveStyles={
             state[0]?.username?.toLowerCase() === key?.toLowerCase() &&
-            isIamSvcAccount
+            isIamAzureSvcAccount
               ? 'pointer-events:none;opacity:0.5'
               : ''
           }
@@ -91,8 +91,8 @@ const UserPermissionsList = (props) => {
               <TitleFour extraCss={permissionStyles}>
                 {isSvcAccount && value === 'write'
                   ? 'reset'
-                  : isIamSvcAccount && value === 'write'
-                  ? 'Rotate'
+                  : isIamAzureSvcAccount && value === 'write'
+                  ? 'rotate'
                   : value}
               </TitleFour>
             </Details>
@@ -112,12 +112,12 @@ UserPermissionsList.propTypes = {
   list: PropTypes.objectOf(PropTypes.any).isRequired,
   userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
   isSvcAccount: PropTypes.bool,
-  isIamSvcAccount: PropTypes.bool,
+  isIamAzureSvcAccount: PropTypes.bool,
 };
 
 UserPermissionsList.defaultProps = {
   isSvcAccount: false,
-  isIamSvcAccount: false,
+  isIamAzureSvcAccount: false,
 };
 
 export default UserPermissionsList;

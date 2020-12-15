@@ -49,6 +49,16 @@ const Resources = {
     'IAM Service Accounts can only be modified in AWS/IAM. You can only view the details of this IAM Service Account and rotate the associated secret within T-vault. The associated secret needs to be rotated to active the account.',
   noAppRolesAvailable:
     'Once you create a <strong>New Approle</strong> you’ll be able to add <strong>Secret</strong> to view them all here!',
+  azurePrincipal:
+    'T-Vault can be used to manage secrets of service principals in Azure Active Directory. In order to self-service your service principals in Azure Active Directory there is a three-step process to onboard the account into T-Vault.',
+  azureGuide1:
+    '<strong>On-Boarding:</strong>This step brings the AAD service principals into T-Vault so that the secrets can be read or rotated through T-Vault. This is a one-time operation.',
+  azureGuide2:
+    '<strong>Service Principal Activation:</strong>The AAD service principal owner will Activate (rotate) the account password once after on-boarding the account into T-Vault. This process ensures that the secrets in T-Vault and Azure Active Directory are in sync.',
+  azureGuide3:
+    '<strong>Granting Permissions:</strong>When an AAD service principal is activated in T-Vault, the service principal owner can grant specific permissions to other users and groups allowing others to read and/or rotate the secrets for the AAD service principal as well through T-Vault.',
+  azureActivateConfirmation:
+    'During the activation, <strong>the password of the Azure service principal will be rotated</strong> to ensure Azure and T-Vault are in sync. If you want to continue with activation now please click the "ACTIVATE" button below and make sure to update any services depending on the service principal with its new password.',
 };
 
 export default { Resources };

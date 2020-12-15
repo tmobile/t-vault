@@ -17,6 +17,7 @@ const VaultAppRoles = lazy(() => import('./private/vault-app-roles'));
 const Certificates = lazy(() => import('./private/certificates'));
 const ServiceAccounts = lazy(() => import('./private/service-accounts'));
 const IamServiceAccounts = lazy(() => import('./private/iam-service-accounts'));
+const AzurePrincipal = lazy(() => import('./private/azureprincipal'));
 
 const LoaderWrap = styled('div')`
   height: 100vh;
@@ -176,6 +177,14 @@ const PrivateRoutes = () => {
             render={(routeProps) => (
               <Wrapper>
                 <Safe routeProps={routeProps} />
+              </Wrapper>
+            )}
+          />
+          <Route
+            path="/azure-principal"
+            render={(routeProps) => (
+              <Wrapper>
+                <AzurePrincipal routeProps={routeProps} />
               </Wrapper>
             )}
           />

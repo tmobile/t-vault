@@ -103,6 +103,7 @@ const AddUser = (props) => {
     access,
     isSvcAccount,
     isCertificate,
+    isIamAzureSvcAccount,
   } = props;
   const classes = useStyles();
   const [radioValue, setRadioValue] = useState('read');
@@ -111,6 +112,7 @@ const AddUser = (props) => {
   const [disabledSave, setDisabledSave] = useState(true);
   const [searchLoader, setSearchLoader] = useState(false);
   const [isValidUserName, setIsValidUserName] = useState(false);
+  const [radioArray, setRadioArray] = useState([]);
   const isMobileScreen = useMediaQuery(small);
 
   useEffect(() => {
@@ -202,6 +204,18 @@ const AddUser = (props) => {
     handleSaveClick(result[1].toLowerCase(), radioValue);
   };
 
+  useEffect(() => {
+    if (isIamAzureSvcAccount) {
+      setRadioArray(['read', 'rotate', 'deny']);
+    } else if (isCertificate) {
+      setRadioArray(['read', 'deny']);
+    } else if (isSvcAccount) {
+      setRadioArray(['read', 'reset', 'deny']);
+    } else {
+      setRadioArray(['read', 'write', 'deny']);
+    }
+  }, [isIamAzureSvcAccount, isSvcAccount, isCertificate]);
+
   return (
     <ComponentError>
       <PermissionWrapper>
@@ -252,13 +266,7 @@ const AddUser = (props) => {
         </InputWrapper>
         <RadioButtonWrapper>
           <RadioButtonComponent
-            menu={
-              isSvcAccount
-                ? ['read', 'reset', 'deny']
-                : isCertificate
-                ? ['read', 'deny']
-                : ['read', 'write', 'deny']
-            }
+            menu={radioArray}
             handleChange={(e) => handleChange(e)}
             value={radioValue}
           />
@@ -292,6 +300,7 @@ AddUser.propTypes = {
   access: PropTypes.string,
   isSvcAccount: PropTypes.bool,
   isCertificate: PropTypes.bool,
+  isIamAzureSvcAccount: PropTypes.bool,
 };
 
 AddUser.defaultProps = {
@@ -299,6 +308,7 @@ AddUser.defaultProps = {
   access: 'read',
   isSvcAccount: false,
   isCertificate: false,
+  isIamAzureSvcAccount: false,
 };
 
 export default AddUser;

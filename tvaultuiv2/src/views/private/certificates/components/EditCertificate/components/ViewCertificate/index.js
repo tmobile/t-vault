@@ -71,7 +71,7 @@ const Label = styled.p`
 
 const Value = styled.p`
   font-size: 1.8rem;
-  text-transform: capitalize;
+  text-transform: ${(props) => props.capitalize || ''};
 `;
 
 const EachDetail = styled.div`

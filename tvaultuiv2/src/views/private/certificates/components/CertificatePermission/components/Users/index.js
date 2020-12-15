@@ -68,7 +68,7 @@ const Users = (props) => {
   const [response, setResponse] = useState({ status: 'loading' });
   const isMobileScreen = useMediaQuery(small);
 
-  // on svc account meta data is available.
+  // on certificate meta data is available.
   useEffect(() => {
     setResponse({ status: responseStatus });
   }, [responseStatus]);
@@ -92,7 +92,7 @@ const Users = (props) => {
 
   /**
    * @function onDeleteClick
-   * @description function to delete the user from the svc account users list.
+   * @description function to delete the user from the certificate users list.
    * @param {username} string username of the user.
    * @param {access} string permission of the user.
    */
@@ -118,7 +118,7 @@ const Users = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the user to the svc account users list.
+   * @description function to save the user to the certificate users list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {

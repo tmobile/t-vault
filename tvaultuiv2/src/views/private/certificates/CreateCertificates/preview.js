@@ -21,10 +21,9 @@ const Label = styled.p`
 
 const Value = styled.p`
   font-size: 1.8rem;
-  text-transform: capitalize;
+  text-transform: ${(props) => props.capitalize || ''};
 `;
 const DnsName = styled.p`
-  text-decoration: underline;
   padding: 0.5rem 0;
   font-size: 1.8rem;
 `;
@@ -92,7 +91,7 @@ const PreviewCertificate = (props) => {
         </EachDetail>
         <EachDetail>
           <Label>Certificate Type:</Label>
-          <Value>{certificateType || 'N/A'}</Value>
+          <Value capitalize="capitalize">{certificateType || 'N/A'}</Value>
         </EachDetail>
         <EachDetail>
           <Label>Certificate Name:</Label>
