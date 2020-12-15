@@ -84,13 +84,7 @@ const UserLogout = (props) => {
         <div>
           <UserName>{userName}</UserName>
           <VectorIcon src={vectorIcon} alt="vectoricon" />
-          <div>
-            {isAdmin ? (
-              <AdminLabel>Admin</AdminLabel>
-            ) : (
-              <AdminLabel>NonAdmin</AdminLabel>
-            )}
-          </div>
+          <div>{isAdmin ? <AdminLabel>Admin</AdminLabel> : <></>}</div>
         </div>
       </UserWrap>
       <Popper
