@@ -23,7 +23,7 @@ const TabPanelWrap = styled.div`
 `;
 
 const TabContentsWrap = styled('div')`
-  height: calc(100% - 6rem);
+  height: calc(100% - 4.8rem);
 `;
 
 const TabPanel = (props) => {
@@ -62,7 +62,7 @@ const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
     padding: '0 2.1rem',
-    height: '100%',
+    height: 'calc(100% - 17.1rem)',
     display: 'flex',
     flexDirection: 'column',
     background: 'linear-gradient(to bottom,#151820,#2c3040)',

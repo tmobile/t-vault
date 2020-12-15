@@ -100,7 +100,6 @@ const Users = (props) => {
         if (res && res.data?.messages && res.data.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           await refresh();
-          setResponse({ status: 'success' });
         }
       })
       .catch((err) => {
@@ -123,7 +122,6 @@ const Users = (props) => {
       .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
-          setResponse({ status: 'success' });
           await refresh();
         }
       })
@@ -220,7 +218,6 @@ const Users = (props) => {
           <AddUser
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
-            refresh={refresh}
             isIamAzureSvcAccount
           />
         )}
@@ -230,7 +227,6 @@ const Users = (props) => {
             handleCancelClick={onCancelClicked}
             username={editUser}
             access={editAccess}
-            refresh={refresh}
             isIamAzureSvcAccount
           />
         )}

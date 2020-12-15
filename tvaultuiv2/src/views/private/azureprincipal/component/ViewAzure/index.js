@@ -80,7 +80,7 @@ const ViewMoreStyles = css`
   align-items: center;
   font-weight: 600;
   cursor: pointer;
-  margin-left: 4.5rem;
+  margin-left: 6.5rem;
 `;
 
 const Label = styled.p`
@@ -338,11 +338,11 @@ const ViewAzure = (props) => {
                   </EachDetail>
                   <EachDetail>
                     <Label>Owner (managedBy):</Label>
-                    <Value>{azureDetail.owner_email}</Value>
+                    <Value>{azureDetail.owner_ntid}</Value>
                   </EachDetail>
                   <EachDetail>
                     <Label>Owner Email:</Label>
-                    <Value>{azureDetail.servicePrincipalName}</Value>
+                    <Value>{azureDetail.owner_email}</Value>
                   </EachDetail>
                   <EachDetail>
                     <Label>Tenant ID:</Label>

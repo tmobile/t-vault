@@ -107,7 +107,6 @@ const AwsApplications = (props) => {
         if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           await refresh();
-          setResponse({ status: 'success' });
         }
       })
       .catch((err) => {
@@ -132,7 +131,6 @@ const AwsApplications = (props) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           await refresh();
-          setResponse({ status: 'success' });
         }
       })
       .catch((err) => {

@@ -322,7 +322,7 @@ const AzureDashboard = () => {
       >
         <AzureListItem title={azure.name} icon={azureIcon} />
         <BorderLine />
-        {azure.name && !isMobileScreen ? (
+        {azure.isManagable && !isMobileScreen ? (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <ViewIcon onClick={() => onViewClicked(azure)}>
               <VisibilityIcon />
