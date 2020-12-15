@@ -1,15 +1,8 @@
-/* eslint-disable array-callback-return */
-/* eslint-disable consistent-return */
-/* eslint-disable prefer-destructuring */
-/* eslint-disable no-unused-vars */
 /* eslint-disable no-nested-ternary */
-/* eslint-disable react/jsx-curly-newline */
-/* eslint-disable react/jsx-wrap-multilines */
-/* eslint-disable no-param-reassign */
-import React, { useState, useEffect, useCallback, lazy } from 'react';
+/* eslint-disable prefer-destructuring */
+import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import VisibilityIcon from '@material-ui/icons/Visibility';
-import { makeStyles } from '@material-ui/core/styles';
 import {
   Link,
   Route,
@@ -20,7 +13,6 @@ import {
 } from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { useStateValue } from '../../../../../contexts/globalState';
 import sectionHeaderBg from '../../../../../assets/svc_banner_img.png';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
@@ -29,13 +21,9 @@ import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
 import azureIcon from '../../../../../assets/azure-icon.svg';
 import mobSvcIcon from '../../../../../assets/mob-svcbg.png';
 import tabSvcIcon from '../../../../../assets/tab-svcbg.png';
-import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ListItemDetail from '../../../../../components/ListItemDetail';
-import ListItem from '../../../../../components/ListItem';
-import EditAndDeletePopup from '../../../../../components/EditAndDeletePopup';
 import Error from '../../../../../components/Error';
-import SnackbarComponent from '../../../../../components/Snackbar';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import apiService from '../../apiService';
 import Strings from '../../../../../resources';
@@ -45,7 +33,6 @@ import {
   ListContainer,
   ListContent,
 } from '../../../../../styles/GlobalStyles/listingStyle';
-import configData from '../../../../../config/config';
 import AzureListItem from '../AzureListItem';
 import ViewAzure from '../ViewAzure';
 import AzureSelectionTabs from '../AzureSelectionTabs';
@@ -128,12 +115,6 @@ const BorderLine = styled.div`
   width: 90%;
   position: absolute;
   bottom: 0;
-`;
-const FloatBtnWrapper = styled('div')`
-  position: absolute;
-  bottom: 1rem;
-  right: 2.5rem;
-  z-index: 1;
 `;
 
 const SearchWrap = styled.div`
@@ -221,12 +202,13 @@ const AzureDashboard = () => {
             if (obj) {
               obj.access = Object.values(item)[0];
             } else {
-              return manageArray.push({
+              manageArray.push({
                 access: Object.values(item)[0],
                 name: Object.keys(item)[0],
                 isManagable: false,
               });
             }
+            return null;
           });
         }
         setAzureList([...manageArray]);
@@ -297,7 +279,7 @@ const AzureDashboard = () => {
 
   /**
    * @function onLinkClicked
-   * @description function to check if mobile screen the make safeClicked true
+   * @description function to check if mobile screen the make azureClicked true
    * based on that value display left and right side.
    */
   const onLinkClicked = (item) => {
