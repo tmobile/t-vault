@@ -114,7 +114,7 @@ const AddGroup = (props) => {
   const [options, setOptions] = useState([]);
   const [disabledSave, setDisabledSave] = useState(true);
   const [searchLoader, setSearchLoader] = useState(false);
-  const [isValidGroupName, setIsValidGroupName] = useState(true);
+  const [isValidGroupName, setIsValidGroupName] = useState(false);
   const isMobileScreen = useMediaQuery(small);
 
   useEffect(() => {
@@ -137,12 +137,7 @@ const AddGroup = (props) => {
   useEffect(() => {
     if (configData.AD_GROUP_AUTOCOMPLETE) {
       if (groupname) {
-        if (
-          (groupname.toLowerCase() !== searchValue?.toLowerCase() &&
-            !isValidGroupName) ||
-          (groupname.toLowerCase() === searchValue?.toLowerCase() &&
-            access === radioValue)
-        ) {
+        if (access === radioValue) {
           setDisabledSave(true);
         } else {
           setDisabledSave(false);
@@ -152,12 +147,6 @@ const AddGroup = (props) => {
       } else {
         setDisabledSave(false);
       }
-    } else if (
-      (groupname.toLowerCase() === searchValue?.toLowerCase() &&
-        access === radioValue) ||
-      searchValue === ''
-    ) {
-      setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
@@ -195,15 +184,17 @@ const AddGroup = (props) => {
 
   const onSearchChange = (e) => {
     if (e) {
-      setSearchValue(e.target.value);
-      if (e.target.value !== '' && e.target.value?.length > 2) {
+      setSearchValue(e?.target?.value);
+      if (e.target?.value !== '' && e.target?.value?.length > 2) {
         callSearchApi(e.target.value);
       }
     }
   };
 
   const onSelected = (e, val) => {
-    setSearchValue(val);
+    if (val) {
+      setSearchValue(val);
+    }
   };
 
   return (
@@ -227,6 +218,7 @@ const AddGroup = (props) => {
                 options={options}
                 icon="search"
                 classes={classes}
+                disabled={!!(groupname && access)}
                 searchValue={searchValue}
                 onSelected={(e, val) => onSelected(e, val)}
                 onChange={(e) => onSearchChange(e)}

@@ -191,6 +191,7 @@ const AddAppRole = (props) => {
             menu={menu}
             value={selectedValue}
             classes={classes}
+            disabled={editClicked}
             readOnly={menu.length === 0 || editClicked}
             handleChange={(e) => setSelectedValue(e.target.value)}
             filledText="Select role name"

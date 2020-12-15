@@ -60,6 +60,7 @@ const Users = (props) => {
     responseStatus,
     refresh,
     username,
+    userDetails,
   } = props;
 
   const [editUser, setEditUser] = useState('');
@@ -230,15 +231,18 @@ const Users = (props) => {
           Object.keys(certificateMetaData).length > 0 && (
             <>
               {certificateMetaData.users &&
+                userDetails.length > 0 &&
                 Object.keys(certificateMetaData.users).length > 1 && (
                   <CertificatePermissionsList
                     list={certificateMetaData.users}
                     username={username}
                     onEditClick={(key, value) => onEditClick(key, value)}
                     onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                    userDetails={userDetails}
                   />
                 )}
               {(!certificateMetaData.users ||
+                userDetails.length === 0 ||
                 Object.keys(certificateMetaData.users).length === 1) && (
                 <NoDataWrapper>
                   <NoData
@@ -274,5 +278,6 @@ Users.propTypes = {
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
   username: PropTypes.string.isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 export default Users;

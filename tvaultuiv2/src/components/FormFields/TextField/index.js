@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-duplicate-props */
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -29,9 +30,8 @@ const StyleTextField = styled(TextField)`
   }
   .MuiFilledInput-multiline {
     height: auto;
-    padding: 1.5rem 1.5rem
+    padding: 1.5rem 1.5rem;
   }
-  
 `;
 
 const setIcon = (props) => {
@@ -59,6 +59,7 @@ const TextFieldComponent = (props) => {
     name,
     readOnly,
     onKeyDown,
+    characterLimit,
   } = props;
 
   return (
@@ -80,6 +81,7 @@ const TextFieldComponent = (props) => {
       onBlur={onInputBlur}
       onKeyDown={onKeyDown}
       autoComplete="off"
+      inputProps={{ maxLength: characterLimit }}
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
@@ -109,6 +111,7 @@ TextFieldComponent.propTypes = {
   name: PropTypes.string,
   readOnly: PropTypes.bool,
   onKeyDown: PropTypes.func,
+  characterLimit: PropTypes.number,
 };
 
 TextFieldComponent.defaultProps = {
@@ -127,6 +130,7 @@ TextFieldComponent.defaultProps = {
   readOnly: false,
   onChange: () => {},
   onKeyDown: () => {},
+  characterLimit: 1000,
 };
 
 setIcon.propTypes = {

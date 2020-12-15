@@ -14,7 +14,7 @@ import NamedButton from '../../../../../components/NamedButton';
 
 import Secrets from '../Secrets';
 import mediaBreakpoints from '../../../../../breakpoints';
-
+import { getEachUsersDetails } from '../../../../../services/helper-function';
 import Permissions from '../Permissions';
 import apiService from '../../apiService';
 import AddFolderModal from '../AddFolderModal';
@@ -107,6 +107,7 @@ const SelectionTabs = (props) => {
     type: '',
   });
   const [response, setResponse] = useState({ status: 'loading' });
+  const [userDetails, setUserDetails] = useState([]);
   const [toastResponse, setToastResponse] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
   const handleChange = (event, newValue) => {
@@ -182,13 +183,19 @@ const SelectionTabs = (props) => {
     });
     return apiService
       .getSafeDetails(`${safeDetail.path}`)
-      .then((res) => {
+      .then(async (res) => {
         let obj = {};
         setPermissionResponseType(1);
         if (res && res.data?.data) {
           obj = res.data.data;
           setSafePermissionData({ response: obj, error: '' });
           if (res.data.data.users) {
+            const eachUsersDetails = await getEachUsersDetails(
+              res.data.data.users
+            );
+            if (eachUsersDetails !== null) {
+              setUserDetails([...eachUsersDetails]);
+            }
             Object.entries(res.data.data.users).map(([key, val]) => {
               if (
                 key?.toLowerCase() ===
@@ -217,20 +224,18 @@ const SelectionTabs = (props) => {
 
   useEffect(() => {
     setResponse({ status: 'loading', message: 'loading...' });
-    if (Object.keys(safeDetail).length > 0) {
-      if (safeDetail?.manage) {
-        async function fetchData() {
-          await fetchPermission();
-          getSecretDetails();
-        }
-        fetchData();
-      } else {
+    if (safeDetail?.manage) {
+      async function fetchData() {
+        await fetchPermission();
         getSecretDetails();
-        setUserHavePermission({
-          permission: true,
-          type: safeDetail.access,
-        });
       }
+      fetchData();
+    } else {
+      getSecretDetails();
+      setUserHavePermission({
+        permission: true,
+        type: safeDetail.access,
+      });
     }
   }, [safeDetail, fetchPermission, getSecretDetails]);
 
@@ -285,6 +290,7 @@ const SelectionTabs = (props) => {
               permissionResponseType={permissionResponseType}
               safePermissionData={safePermissionData}
               fetchPermission={fetchPermission}
+              userDetails={userDetails}
             />
           </TabPanel>
           {toastResponse === -1 && (

@@ -247,9 +247,7 @@ const AppRolesDashboard = () => {
     setInputSearchValue(value);
     if (value !== '') {
       const array = state?.appRoleList?.filter((item) => {
-        return String(item?.name?.toLowerCase()).startsWith(
-          value?.toLowerCase().trim()
-        );
+        return item?.name?.toLowerCase().includes(value?.toLowerCase().trim());
       });
       setAppRoleList([...array]);
     } else {

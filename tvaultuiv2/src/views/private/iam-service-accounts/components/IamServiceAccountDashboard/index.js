@@ -27,6 +27,7 @@ import Strings from '../../../../../resources';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
 import AccountSelectionTabs from '../IamSvcAccountTabs';
 import { ListContent } from '../../../../../styles/GlobalStyles/listingStyle';
+import { getEachUsersDetails } from '../../../../../services/helper-function';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -187,6 +188,7 @@ const IamServiceAccountDashboard = () => {
     response: {},
     error: '',
   });
+  const [userDetails, setUserDetails] = useState([]);
 
   const [state, dispatch] = useStateValue();
 
@@ -255,6 +257,7 @@ const IamServiceAccountDashboard = () => {
   useEffect(() => {
     fetchData().catch(() => {
       setStatus({ status: 'failed', message: 'failed' });
+      setGetResponse(-1);
     });
   }, [fetchData]);
 
@@ -266,9 +269,7 @@ const IamServiceAccountDashboard = () => {
     setInputSearchValue(value);
     if (value !== '') {
       const array = state?.iamServiceAccountList?.filter((item) => {
-        return String(item?.name?.toLowerCase()).startsWith(
-          value?.toLowerCase().trim()
-        );
+        return item?.name?.toLowerCase().includes(value?.toLowerCase().trim());
       });
       setIamServiceAccountList([...array]);
     } else {
@@ -368,6 +369,10 @@ const IamServiceAccountDashboard = () => {
         ) {
           setDisabledPermission(false);
           setAccountMetaData({ response: res.data, error: '' });
+          const eachUsersDetails = await getEachUsersDetails(res.data.users);
+          if (eachUsersDetails !== null) {
+            setUserDetails([...eachUsersDetails]);
+          }
         }
       }
     } catch (err) {
@@ -471,7 +476,7 @@ const IamServiceAccountDashboard = () => {
             {status.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
-            {getResponse === -1 && !iamServiceAccountList?.length && (
+            {getResponse === -1 && (
               <EmptyContentBox>
                 {' '}
                 <Error description="Error while fetching service accounts!" />
@@ -548,6 +553,7 @@ const IamServiceAccountDashboard = () => {
                         accountSecretError={accountSecretError}
                         disabledPermission={disabledPermission}
                         isIamSvcAccountActive={isIamSvcAccountActive}
+                        userDetails={userDetails}
                       />
                     }
                   />
@@ -574,6 +580,7 @@ const IamServiceAccountDashboard = () => {
                         accountSecretError={accountSecretError}
                         disabledPermission={disabledPermission}
                         isIamSvcAccountActive={isIamSvcAccountActive}
+                        userDetails={userDetails}
                       />
                     }
                   />

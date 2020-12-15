@@ -202,14 +202,20 @@ const CertificatesDashboard = () => {
     }
   };
 
+  const clearData = () => {
+    setInputSearchValue('');
+    setCertificateType('All Certificates');
+    setResponse({ status: 'loading' });
+    setAllCertList([]);
+    setCertificateList([]);
+  };
+
   /**
    * @function fetchData
    * @description function call all certificates api.
    */
   const fetchAdminData = useCallback(async () => {
-    setResponse({ status: 'loading' });
-    setAllCertList([]);
-    setCertificateList([]);
+    clearData();
     let allCertInternal = [];
     if (configData.AUTH_TYPE === 'oidc') {
       allCertInternal = await apiService.getAllAdminCertInternal();
@@ -289,7 +295,7 @@ const CertificatesDashboard = () => {
   }, []);
 
   const fetchNonAdminData = useCallback(async () => {
-    setResponse({ status: 'loading' });
+    clearData();
     let allCertInternal = [];
     let allCertExternal = [];
     if (configData.AUTH_TYPE === 'oidc') {
@@ -386,7 +392,6 @@ const CertificatesDashboard = () => {
    */
   useEffect(() => {
     setResponse({ status: 'loading' });
-    setInputSearchValue('');
     if (admin) {
       fetchAdminData().catch((err) => {
         if (err?.response?.data?.errors && err.response.data.errors[0]) {
@@ -406,19 +411,25 @@ const CertificatesDashboard = () => {
 
   useEffect(() => {
     const internalArray = allCertList?.filter(
-      (item) => item?.certType === 'internal'
+      (item) => item?.certType === 'internal' && !item.isOnboardCert
     );
     const externalArray = allCertList?.filter(
-      (item) => item?.certType === 'external'
+      (item) => item?.certType === 'external' && !item.isOnboardCert
     );
-    const onboardArray = allCertList?.filter((item) => item.isOnboardCert);
-    setMenu([
+    const array = [
       { name: 'All Certificates', count: allCertList?.length || 0 },
       { name: 'Internal Certificates', count: internalArray?.length || 0 },
       { name: 'External Certificates', count: externalArray?.length || 0 },
-      { name: 'Onboard Certificates', count: onboardArray?.length || 0 },
-    ]);
-  }, [allCertList]);
+    ];
+    if (admin) {
+      const onboardArray = allCertList?.filter((item) => item.isOnboardCert);
+      array.push({
+        name: 'Onboard Certificates',
+        count: onboardArray?.length || 0,
+      });
+    }
+    setMenu([...array]);
+  }, [allCertList, admin]);
 
   /**
    * @function onLinkClicked
@@ -497,9 +508,9 @@ const CertificatesDashboard = () => {
   const onSearchChange = (value) => {
     if (value !== '') {
       const searchArray = allCertList.filter((item) =>
-        String(item?.certificateName?.toLowerCase()).startsWith(
-          value?.toLowerCase().trim()
-        )
+        item?.certificateName
+          ?.toLowerCase()
+          .includes(value?.toLowerCase().trim())
       );
       setCertificateList([...searchArray]);
     } else {
@@ -511,9 +522,7 @@ const CertificatesDashboard = () => {
   useEffect(() => {
     if (certificateType !== 'All Certificates' && inputSearchValue) {
       const array = certificateList.filter((cert) =>
-        String(cert?.certificateName?.toLowerCase()).startsWith(
-          inputSearchValue?.toLowerCase().trim()
-        )
+        cert?.certificateName?.includes(inputSearchValue?.toLowerCase().trim())
       );
       setCertificateList([...array]);
     } else if (certificateType === 'All Certificates' && inputSearchValue) {

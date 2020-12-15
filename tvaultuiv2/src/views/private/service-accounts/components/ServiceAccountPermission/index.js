@@ -43,6 +43,7 @@ const ServiceAccountPermission = (props) => {
     hasSvcAccountAcitve,
     parentStatus,
     fetchPermission,
+    userDetails,
   } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
@@ -75,8 +76,8 @@ const ServiceAccountPermission = (props) => {
     ) {
       setCount(0);
       if (value === 0) {
-        if (accountMetaData.response.users) {
-          setCount(Object.keys(accountMetaData.response.users).length);
+        if (userDetails) {
+          setCount(userDetails.length);
         }
       } else if (value === 1) {
         if (accountMetaData.response.groups) {
@@ -92,7 +93,7 @@ const ServiceAccountPermission = (props) => {
         }
       }
     }
-  }, [value, accountMetaData]);
+  }, [value, accountMetaData, userDetails]);
 
   const onAddLabelBtnClicked = () => {
     Object.keys(initialObject).map((item) => {
@@ -150,6 +151,7 @@ const ServiceAccountPermission = (props) => {
                         updateToastMessage={(res, message) =>
                           updateToastMessage(res, message)
                         }
+                        userDetails={userDetails}
                       />
                     </TabPanel>
                     <TabPanel value={value} index={1}>
@@ -224,6 +226,7 @@ ServiceAccountPermission.propTypes = {
   hasSvcAccountAcitve: PropTypes.bool,
   parentStatus: PropTypes.string.isRequired,
   fetchPermission: PropTypes.func,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
 ServiceAccountPermission.defaultProps = {

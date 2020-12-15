@@ -16,7 +16,7 @@ const activateIamServiceAccount = (svcName, iamAccountId) =>
 const rotateIamServiceAccountPassword = (payload) =>
   api.post(`/iamserviceaccount/rotate`, payload);
 
-//get password details
+// get password details
 
 const getIamSvcAccountSecrets = (svcName) =>
   api.get(`/iamserviceaccounts/folders/secrets?path=iamsvcacc/${svcName}`);
@@ -48,7 +48,7 @@ const addAppRolePermission = (payload) =>
 const deleteAppRolePermission = (payload) =>
   api.delete('/iamserviceaccounts/approle', payload);
 
-//get user details
+// get user details
 const getUserDetails = (user) =>
   api.get(`/ldap/getusersdetail/${user}
 `);

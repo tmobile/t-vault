@@ -18,7 +18,13 @@ const PermissionTabsWrapper = styled('div')`
 `;
 
 const CertificatePermission = (props) => {
-  const { certificateMetaData, responseStatus, fetchDetail, username } = props;
+  const {
+    certificateMetaData,
+    responseStatus,
+    fetchDetail,
+    username,
+    userDetails,
+  } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
   const [newGroup, setNewGroup] = useState(false);
@@ -42,8 +48,8 @@ const CertificatePermission = (props) => {
     if (certificateMetaData && Object.keys(certificateMetaData).length !== 0) {
       setCount(0);
       if (value === 0) {
-        if (certificateMetaData.users) {
-          setCount(Object.keys(certificateMetaData.users).length - 1);
+        if (userDetails) {
+          setCount(userDetails.length - 1);
         }
       } else if (value === 1) {
         if (certificateMetaData.groups) {
@@ -59,7 +65,7 @@ const CertificatePermission = (props) => {
         }
       }
     }
-  }, [value, certificateMetaData]);
+  }, [value, certificateMetaData, userDetails]);
 
   const onAddLabelBtnClicked = () => {
     Object.keys(initialObject).map((item) => {
@@ -109,6 +115,7 @@ const CertificatePermission = (props) => {
                 updateToastMessage={(res, message) =>
                   updateToastMessage(res, message)
                 }
+                userDetails={userDetails}
               />
             </TabPanel>
             <TabPanel value={value} index={1}>
@@ -178,6 +185,7 @@ CertificatePermission.propTypes = {
   fetchDetail: PropTypes.func.isRequired,
   responseStatus: PropTypes.string.isRequired,
   username: PropTypes.string.isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
 export default CertificatePermission;
