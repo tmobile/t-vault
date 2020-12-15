@@ -2551,7 +2551,7 @@ public final class ControllerUtil {
      * @return
      * @throws JsonProcessingException
      */
-    public static boolean updateMetaData(String path, Map<String,String> params,String token) throws JsonProcessingException {
+    public static boolean updateMetaDataOnPath(String path, Map<String,String> params,String token) throws JsonProcessingException {
 
     	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).

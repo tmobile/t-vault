@@ -1165,7 +1165,7 @@ public class ControllerUtilTest {
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(response);
 
-        Boolean isUpdated = ControllerUtil.updateMetaData(path, params, token);
+        Boolean isUpdated = ControllerUtil.updateMetaDataOnPath(path, params, token);
         assertEquals(Boolean.TRUE, isUpdated);
     }
     
@@ -1180,7 +1180,7 @@ public class ControllerUtilTest {
         Response response = getMockResponse(HttpStatus.BAD_REQUEST, false, "");
         when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(response);
 
-        Boolean isUpdated = ControllerUtil.updateMetaData(path, params, token);
+        Boolean isUpdated = ControllerUtil.updateMetaDataOnPath(path, params, token);
         assertEquals(Boolean.FALSE, isUpdated);
     }
 }
