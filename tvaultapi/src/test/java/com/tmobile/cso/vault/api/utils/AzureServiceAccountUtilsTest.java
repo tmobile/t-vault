@@ -20,12 +20,8 @@ package com.tmobile.cso.vault.api.utils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
-
-import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.model.AzureServiceAccountSecret;
 import com.tmobile.cso.vault.api.model.AzureServicePrincipalRotateRequest;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountRotateRequest;
-import com.tmobile.cso.vault.api.model.IAMServiceAccountSecret;
 import com.tmobile.cso.vault.api.model.SSCred;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
@@ -59,13 +55,10 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-
 import java.util.Date;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -77,7 +70,6 @@ import static org.mockito.Mockito.when;
 @PrepareForTest({ JSONUtil.class, ControllerUtil.class})
 @PowerMockIgnore({"javax.management.*"})
 public class AzureServiceAccountUtilsTest {
-
 	@Mock
     RequestProcessor reqProcessor;
 
@@ -215,7 +207,6 @@ public class AzureServiceAccountUtilsTest {
     
     @Test
     public void test_rotateAzureSecret_fail() throws IOException {
-
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String azureServiceAccountName = "svc_vault_test5";
         String awsAccountId = "1234567890";
@@ -226,20 +217,15 @@ public class AzureServiceAccountUtilsTest {
         when(ControllerUtil.getSscred()).thenReturn(new SSCred());
         when(ControllerUtil.getIamUsername()).thenReturn("M2UyNTA0MGYtODIwNS02ZWM2LTI4Y2ItOGYwZTQ1NDI1YjQ4");
         when(ControllerUtil.getIamPassword()).thenReturn("MWFjOGM1ZTgtZjE5Ny0yMTVlLTNmODUtZWIwMDc3ZmY3NmQw");
-
         when(httpUtils.getHttpClient()).thenReturn(httpClient);
         when(httpClient.execute(any())).thenReturn(httpResponse);
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
-
         when(statusLine.getStatusCode()).thenReturn(500);
         when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
-
         String responseString = "{\"accessKeyId\": \"testaccesskey\", \"userName\": \"svc_vault_test5\", \"accessKeySecret\": \"abcdefgh\", \"expiryDateEpoch\": \"1609754282000\"}";
-
         String responseStringToken = "{\"auth\": {\"client_token\": \""+token+"\"}}";
         when(mockHttpEntity.getContent()).thenAnswer(new Answer() {
             private int count = 0;
-
             public Object answer(InvocationOnMock invocation) {
                 if (count++ == 1)
                     return new ByteArrayInputStream(responseString.getBytes());
