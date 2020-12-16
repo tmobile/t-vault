@@ -42,12 +42,14 @@ import org.powermock.reflect.Whitebox;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
@@ -70,6 +72,7 @@ public class VaultAuthServiceTest {
 
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
         when(JSONUtil.getJSON(Mockito.any(ImmutableMap.class))).thenReturn("log");
+        ReflectionTestUtils.setField(vaultAuthService, "vaultAuthMethod", "userpass");
 
         Map<String, String> currentMap = new HashMap<>();
         currentMap.put("apiurl", "http://localhost:8080/vault/v2/sdb");
@@ -108,6 +111,57 @@ public class VaultAuthServiceTest {
         ResponseEntity<String> responseEntity = vaultAuthService.login(userLogin);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testLdapLoginSuccessfullyFor_internalcert() {
+
+        String jsonStr = "{  \"username\": \"safeadmin\",  \"password\": \"safeadmin\"}";
+        UserLogin userLogin = new UserLogin("safeadmin", "safeadmin");
+        String responseJson = "{  \"client_token\": \"8766fdhjSAtH2a4MdvMyzWid\",\"admin\": \"yes\",\"access\": {\"users\":[{\"safe1\":\"read\"}], \"svcacct\":[{\"svc1\":\"read\"}], \"cert\":[{\"cert1\":\"read\"}], \"externalcerts\":[{\"cert2\":\"read\"}]},\"policies\": [\"default\",\"safeadmin\"],\"lease_duration\": 1800000, \"feature\": {\"adpwdrotation\": \"true\", \"serviceaccount\":\"true\"}}";
+        Response response = getMockResponse(HttpStatus.OK, true, responseJson);
+        Map<String, Object> responseMap = null;
+        try {
+            responseMap = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Map<String,Object> access = (Map<String,Object>)responseMap.get("access");
+
+        ReflectionTestUtils.setField(vaultAuthService,"vaultAuthMethod", "ldap");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(responseJson);
+        when(JSONUtil.getJSON(userLogin)).thenReturn(jsonStr);
+        when(ControllerUtil.filterDuplicateSafePermissions(any())).thenReturn(access);
+        when(ControllerUtil.filterDuplicateSvcaccPermissions(any())).thenReturn(access);
+        when(reqProcessor.process("/auth/ldap/login",jsonStr,"")).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = vaultAuthService.login(userLogin);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testLdapLoginFailed() {
+
+        String jsonStr = "{  \"username\": \"safeadmin\",  \"password\": \"safeadmin\"}";
+        UserLogin userLogin = new UserLogin("safeadmin", "safeadmin");
+        String responseJson = "{  \"client_token\": \"8766fdhjSAtH2a4MdvMyzWid\",\"admin\": \"yes\",\"access\": {\"users\":[{\"safe1\":\"read\"}], \"svcacct\":[{\"svc1\":\"read\"}], \"cert\":[{\"cert1\":\"read\"}]},\"policies\": [\"default\",\"safeadmin\"],\"lease_duration\": 1800000, \"feature\": {\"adpwdrotation\": \"true\", \"serviceaccount\":\"true\"}}";
+        Response response = getMockResponse(HttpStatus.FORBIDDEN, true, responseJson);
+        Map<String, Object> responseMap = null;
+        try {
+            responseMap = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ReflectionTestUtils.setField(vaultAuthService,"vaultAuthMethod", "ldap");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseJson);
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(responseJson);
+        when(JSONUtil.getJSON(userLogin)).thenReturn(jsonStr);
+        when(reqProcessor.process("/auth/ldap/login",jsonStr,"")).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = vaultAuthService.login(userLogin);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
     }
 
     @Test
