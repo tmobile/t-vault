@@ -85,6 +85,8 @@ public class WorkloadDetailsServiceTest {
         mockStatic(JSONUtil.class);
         mockStatic(HttpClientBuilder.class);
         mockStatic(EntityUtils.class);
+        ReflectionTestUtils.setField(workloadDetailsService, "workloadEndpoint", "testendpoint");
+        ReflectionTestUtils.setField(workloadDetailsService, "workloadEndpointToken", "token12");
 
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
         when(JSONUtil.getJSON(any(ImmutableMap.class))).thenReturn("log");
@@ -183,6 +185,65 @@ public class WorkloadDetailsServiceTest {
         assertEquals(responseEntityExpected.getStatusCode(), responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
 
+    }
+    
+    
+    @Test
+    public void test_getWorkloadDetailsByAppName_success() throws Exception {
+        String appName = "appName";
+
+        String responseStr = "{\"items\": [{\"spec\": {\"id\": \"aac\",\"summary\": \"app1\"}}]}";
+        String workloadResponse = "[{\"appName\":\"Other\",\"appTag\":\"Other\",\"appID\":\"oth\"},{\"appName\":\"app1\",\"appTag\":\"aac\",\"appID\":\"aac\"}]";
+
+        ReflectionTestUtils.setField(workloadDetailsService, "workloadEndpoint", "http://appdetails.com");
+        when(ControllerUtil.getCwmToken()).thenReturn("dG9rZW4=");
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(any())).thenReturn(httpResponse);
+
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        InputStream inputStream = new ByteArrayInputStream(responseStr.getBytes());
+        when(mockHttpEntity.getContent()).thenReturn(inputStream);
+        when(JSONUtil.getJSON(anyList())).thenReturn(workloadResponse);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("[{\"appName\":\"Other\",\"appTag\":\"Other\",\"appID\":\"oth\"},{\"appName\":\"app1\",\"appTag\":\"aac\",\"appID\":\"aac\"}]");
+
+        ResponseEntity<String> responseEntityActual = workloadDetailsService.getWorkloadDetailsByAppName(appName);
+        assertEquals(responseEntityExpected.getStatusCode(), responseEntityActual.getStatusCode());
+    }
+    
+    @Test
+    public void test_getWorkloadDetailsByAppName_fail() throws Exception {
+        String appName = "appName";
+
+        String responseStr = "{\"items\": [{\"spec\": {\"id\": \"aac\",\"summary\": \"app1\"}}]}";
+        String workloadResponse = null;
+
+        ReflectionTestUtils.setField(workloadDetailsService, "workloadEndpoint", "http://appdetails.com");
+        when(ControllerUtil.getCwmToken()).thenReturn("dG9rZW4=");
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(any())).thenReturn(httpResponse);
+
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(500);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        InputStream inputStream = new ByteArrayInputStream(responseStr.getBytes());
+        when(mockHttpEntity.getContent()).thenReturn(inputStream);
+        when(JSONUtil.getJSON(anyList())).thenReturn(workloadResponse);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("[{\"appName\":\"Other\",\"appTag\":\"Other\",\"appID\":\"oth\"},{\"appName\":\"app1\",\"appTag\":\"aac\",\"appID\":\"aac\"}]");
+
+        ResponseEntity<String> responseEntityActual = workloadDetailsService.getWorkloadDetailsByAppName(appName);
+        assertEquals(responseEntityExpected.getStatusCode(), responseEntityActual.getStatusCode());
     }
 
 }

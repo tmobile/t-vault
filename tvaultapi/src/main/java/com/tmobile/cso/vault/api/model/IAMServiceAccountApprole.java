@@ -128,23 +128,23 @@ public class IAMServiceAccountApprole implements Serializable{
 		if (access == null) {
 			if (other.access != null)
 				return false;
-		} else if (!access.equals(other.access))
-			return false;
+		} 	else if (!access.equals(other.access))
+				return false;
 		if (approlename == null) {
 			if (other.approlename != null)
 				return false;
-		} else if (!approlename.equals(other.approlename))
-			return false;
+		} 	else if (!approlename.equals(other.approlename))
+				return false;
 		if (awsAccountId == null) {
 			if (other.awsAccountId != null)
 				return false;
-		} else if (!awsAccountId.equals(other.awsAccountId))
-			return false;
+		} 	else if (!awsAccountId.equals(other.awsAccountId))
+				return false;
 		if (iamSvcAccName == null) {
 			if (other.iamSvcAccName != null)
 				return false;
-		} else if (!iamSvcAccName.equals(other.iamSvcAccName))
-			return false;
+		} 	else if (!iamSvcAccName.equals(other.iamSvcAccName))
+				return false;
 		return true;
 	}
 }

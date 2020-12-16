@@ -63,18 +63,18 @@ public class IAMServiceAccountNode implements Serializable{
 		if (folders == null) {
 			if (other.folders != null)
 				return false;
-		} else if (!folders.equals(other.folders))
-			return false;
+		} 	else if (!folders.equals(other.folders))
+				return false;
 		if (iamsvcaccName == null) {
 			if (other.iamsvcaccName != null)
 				return false;
-		} else if (!iamsvcaccName.equals(other.iamsvcaccName))
-			return false;
+		} 	else if (!iamsvcaccName.equals(other.iamsvcaccName))
+				return false;
 		if (path == null) {
 			if (other.path != null)
 				return false;
-		} else if (!path.equals(other.path))
-			return false;
+		} 	else if (!path.equals(other.path))
+				return false;
 		return true;
 	}
 	
