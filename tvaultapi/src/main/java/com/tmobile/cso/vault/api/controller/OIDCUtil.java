@@ -271,7 +271,6 @@ public class OIDCUtil {
 		String output;
 		StringBuilder jsonResponse = new StringBuilder();
 
-		BufferedReader br = null;
 		try {
 			HttpResponse apiResponse = httpClient.execute(postRequest);
 			if (apiResponse.getStatusLine().getStatusCode() != 200) {
@@ -296,14 +295,6 @@ public class OIDCUtil {
 					put(LogMessage.MESSAGE, "Failed to parse SSO response").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-		}finally {
-			if(br!=null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
 		}
 		return null;
 	}
@@ -358,7 +349,6 @@ public class OIDCUtil {
 		String output = "";
 		StringBuilder jsonResponse = new StringBuilder();
 
-		BufferedReader br = null;
 		try {
 			HttpResponse apiResponse = httpClient.execute(getRequest);
 			if (apiResponse.getStatusLine().getStatusCode() != 200) {
@@ -399,14 +389,6 @@ public class OIDCUtil {
 					put(LogMessage.MESSAGE, "Failed to parse group object api response").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-		}finally {
-			if(br!=null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
 		}
 		return null;
 	}
@@ -740,7 +722,6 @@ public class OIDCUtil {
 		String output = "";
 		StringBuilder jsonResponse = new StringBuilder();
 
-		BufferedReader br = null;
 		try {
 			HttpResponse apiResponse = httpClient.execute(getRequest);
 			if (apiResponse.getStatusLine().getStatusCode() == 200) {
@@ -787,14 +768,6 @@ public class OIDCUtil {
 					put(LogMessage.MESSAGE, "Failed to parse AAD groups api response").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-		}finally {
-			if(br!=null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
 		}
 		return allGroups;
 	}
@@ -906,7 +879,6 @@ public class OIDCUtil {
 		String output = "";
 		StringBuilder jsonResponse = new StringBuilder();
 
-		BufferedReader br = null;
 		try {
 			HttpResponse apiResponse = httpClient.execute(getRequest);
 			if (apiResponse.getStatusLine().getStatusCode() == 200) {
@@ -951,14 +923,6 @@ public class OIDCUtil {
 					.put(LogMessage.ACTION, SSLCertificateConstants.GET_SELF_SERVICE_GROUPS_STRING)
 					.put(LogMessage.MESSAGE, "Failed to parse AAD groups api response")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-		}finally {
-			if(br!=null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
 		}
 		return allGroups;
 	}

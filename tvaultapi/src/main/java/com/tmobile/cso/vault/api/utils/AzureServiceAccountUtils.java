@@ -161,10 +161,7 @@ public class AzureServiceAccountUtils {
         }
 
 
-        String output = "";
-        StringBuilder jsonResponse = new StringBuilder();
-        BufferedReader br = null;
-        BufferedReader r = null;
+        StringBuilder jsonResponse = new StringBuilder();        
         try {
             HttpResponse apiResponse = httpClient.execute(httpPut);
             if (apiResponse.getStatusLine().getStatusCode() != 200) {
@@ -202,13 +199,6 @@ public class AzureServiceAccountUtils {
                     put(LogMessage.MESSAGE, "Failed to parse Azure Service Principal Secret response").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
-        }finally {
-            if (br != null) {
-                br.close();
-            }
-            if (r != null) {
-                r.close();
-            }
         }
         return null;
     }

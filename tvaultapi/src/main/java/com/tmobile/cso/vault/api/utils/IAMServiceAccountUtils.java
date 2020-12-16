@@ -72,7 +72,7 @@ public class IAMServiceAccountUtils {
     private RequestProcessor requestProcessor;
     
     private String contentType = "application/json";
-    private String path = "{\"path\":\"";
+    private String pathStr = "{\"path\":\"";
     private String data = "\",\"data\":";
     private String write = "/write";
 
@@ -133,7 +133,6 @@ public class IAMServiceAccountUtils {
 
         StringBuilder jsonResponse = new StringBuilder();
 
-        BufferedReader br = null;
         try {
             HttpResponse apiResponse = httpClient.execute(httpPost);
             if (apiResponse.getStatusLine().getStatusCode() != 200) {
@@ -159,14 +158,6 @@ public class IAMServiceAccountUtils {
                     put(LogMessage.MESSAGE, "Failed to parse Approle login response").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
-        }finally {
-        	if(br!=null) {
-        		try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-        	}
         }
         return null;
     }
@@ -255,10 +246,7 @@ public class IAMServiceAccountUtils {
             return null;
         }
 
-        StringBuilder jsonResponse = new StringBuilder();
-
-        BufferedReader r = null;
-        BufferedReader br = null;
+        StringBuilder jsonResponse = new StringBuilder();        
         try {
             HttpResponse apiResponse = httpClient.execute(httpPut);
             if (apiResponse.getStatusLine().getStatusCode() != 200) {
@@ -293,21 +281,6 @@ public class IAMServiceAccountUtils {
                     put(LogMessage.MESSAGE, "Failed to parse IAM Secret response").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
-        }finally {
-        	if(r!=null) {
-        		try {
-					r.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-        	}
-        	if(br!=null) {
-        		try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-        	}
         }
         return null;
     }
@@ -359,7 +332,7 @@ public class IAMServiceAccountUtils {
                     build()));
             return isSecretUpdated;
         }
-        String writeJson =  path+path+data+ secretJson +"}";
+        String writeJson =  pathStr+path+data+ secretJson +"}";
         Response response = requestProcessor.process(write, writeJson, token);
 
 
@@ -412,7 +385,7 @@ public class IAMServiceAccountUtils {
         path = "metadata/"+path;
 
         ObjectMapper objMapper = new ObjectMapper();
-        String pathjson =path+path+"\"}";
+        String pathjson =pathStr+path+"\"}";
         // Read info for the path
         Response metadataResponse = requestProcessor.process("/read",pathjson,token);
         Map<String,Object> _metadataMap = null;
@@ -448,7 +421,7 @@ public class IAMServiceAccountUtils {
                             build()));
                 }
 
-                String writeJson =  path+path+data+ metadataJson +"}";
+                String writeJson =  pathStr+path+data+ metadataJson +"}";
                 metadataResponse = requestProcessor.process(write,writeJson,token);
                 return metadataResponse;
             }
@@ -484,7 +457,7 @@ public class IAMServiceAccountUtils {
         path = "metadata/"+path;
 
         ObjectMapper objMapper = new ObjectMapper();
-        String pathjson =path+path+"\"}";
+        String pathjson =pathStr+path+"\"}";
         // Read info for the path
         Response metadataResponse = requestProcessor.process("/read",pathjson,token);
         Map<String,Object> _metadataMap = null;
@@ -532,7 +505,7 @@ public class IAMServiceAccountUtils {
                             build()));
                 }
 
-                String writeJson =  path+path+data+ metadataJson +"}";
+                String writeJson =  pathStr+path+data+ metadataJson +"}";
                 metadataResponse = requestProcessor.process(write,writeJson,token);
                 return metadataResponse;
             }
