@@ -21,8 +21,12 @@ const UserWrap = styled.div`
   }
 `;
 
-const UserName = styled.span`
-  text-transform: capitalize;
+const UserName = styled.div`
+  max-width: 10rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  margin-left: 0.3rem;
 `;
 
 const UserIcon = styled.img`
@@ -37,7 +41,10 @@ const Logout = styled.div`
   cursor: pointer;
 `;
 
-const AdminLabel = styled.div``;
+const AdminLabel = styled.div`
+  display: flex;
+  font-weight: bold;
+`;
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -81,11 +88,11 @@ const UserLogout = (props) => {
     <>
       <UserWrap aria-describedby={id} onClick={handleClick}>
         <UserIcon src={userIcon} alt="usericon" />
-        <div>
+        <AdminLabel>
+          {isAdmin && <>(Admin) </>}
           <UserName>{userName}</UserName>
-          <VectorIcon src={vectorIcon} alt="vectoricon" />
-          <div>{isAdmin ? <AdminLabel>Admin</AdminLabel> : <></>}</div>
-        </div>
+        </AdminLabel>
+        <VectorIcon src={vectorIcon} alt="vectoricon" />
       </UserWrap>
       <Popper
         id={id}

@@ -9,12 +9,12 @@ import VisibilityIcon from '@material-ui/icons/Visibility';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
+import ReportProblemOutlinedIcon from '@material-ui/icons/ReportProblemOutlined';
 import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 import Loader from '../../../../../components/Loaders/LoaderSpinner';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import apiService from '../../apiService';
 import lock from '../../../../../assets/icon_lock.svg';
-import AccessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
 import refreshIcon from '../../../../../assets/refresh-ccw.svg';
 import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
@@ -28,6 +28,7 @@ import PopperElement from '../../../../../components/Popper';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import Error from '../../../../../components/Error';
 import Folder from '../../../iam-service-accounts/components/Folder';
+import Strings from '../../../../../resources';
 
 const UserList = styled.div`
   display: flex;
@@ -108,8 +109,17 @@ const NoPermission = styled.div`
   }
 `;
 
+const LabelWrap = styled.div`
+  display: flex;
+  align-items: center;
+  padding-left: 2rem;
+  span {
+    margin-left: 1rem;
+  }
+`;
+
 const AzureSecrets = (props) => {
-  const { azureDetail, azureSecretData, secretResponse } = props;
+  const { azureDetail, azureSecretData, secretResponse, refresh } = props;
   const [response, setResponse] = useState({ status: '' });
   const [secretsData, setSecretsData] = useState({});
   const [showSecret, setShowSecret] = useState(false);
@@ -117,6 +127,11 @@ const AzureSecrets = (props) => {
   const [toastMessage, setToastMessage] = useState('');
   const [secretsDataLoader, setSecretsDataLoader] = useState(false);
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
+  const [modalDetail, setModalDetail] = useState({ title: '', desc: '' });
+  const [activateAction, setActivateAction] = useState({
+    action: false,
+    response: true,
+  });
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
   /**
@@ -162,6 +177,15 @@ const AzureSecrets = (props) => {
     setResponseType(1);
   };
 
+  const onRotateSecret = () => {
+    setOpenConfirmationModal(true);
+    setModalDetail({
+      title: 'Confirmation',
+      desc:
+        'Are you sure you want to rotate the secret for this Azure SecretKeyId?',
+    });
+  };
+
   const onRotateSecretConfirmedClicked = () => {
     setResponse({ status: 'loading' });
     setOpenConfirmationModal(false);
@@ -189,8 +213,48 @@ const AzureSecrets = (props) => {
       });
   };
 
-  const handleClose = () => {
+  const handleClose = async () => {
     setOpenConfirmationModal(false);
+    setModalDetail({ title: '', desc: '' });
+    if (activateAction.response) {
+      setResponse({ status: 'loading' });
+      await refresh();
+    }
+    setActivateAction({ action: false, response: false });
+  };
+
+  const activateServiceAccount = () => {
+    setOpenConfirmationModal(true);
+    setModalDetail({
+      title: 'Confirm Activation',
+      desc: Strings.Resources.azureActivateConfirmation,
+    });
+    setActivateAction({ action: true, response: false });
+  };
+
+  const onActivateConfirmedClicked = () => {
+    setResponse({ status: 'loading' });
+    setOpenConfirmationModal(false);
+    apiService
+      .activateAzureAccount(azureDetail.name)
+      .then(() => {
+        setResponse({ status: 'success' });
+        setActivateAction({ action: true, response: true });
+        setOpenConfirmationModal(true);
+        setModalDetail({
+          title: 'Activation Successful',
+          desc:
+            'Azure Service Principal has been activated. You may also want to assign permissions for other users or groups to view or modify this service account.',
+        });
+      })
+      .catch((err) => {
+        setResponse({ status: 'success' });
+        setActivateAction({ action: false, response: false });
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+          setToastMessage(err.response.data.errors[0]);
+        }
+        setResponseType(-1);
+      });
   };
 
   return (
@@ -199,8 +263,8 @@ const AzureSecrets = (props) => {
         <ConfirmationModal
           open={openConfirmationModal}
           handleClose={handleClose}
-          title="Confirmation"
-          description="Are you sure you want to rotate the secret for this Azure SecretKeyId?"
+          title={modalDetail.title}
+          description={modalDetail.desc}
           cancelButton={
             <ButtonComponent
               label="Cancel"
@@ -210,12 +274,18 @@ const AzureSecrets = (props) => {
             />
           }
           confirmButton={
-            <ButtonComponent
-              label="Rotate"
-              color="secondary"
-              onClick={() => onRotateSecretConfirmedClicked()}
-              width={isMobileScreen ? '100%' : '45%'}
-            />
+            !activateAction.response && (
+              <ButtonComponent
+                label={activateAction.action ? 'Activate' : 'Rotate'}
+                color="secondary"
+                onClick={() =>
+                  activateAction.action
+                    ? onActivateConfirmedClicked()
+                    : onRotateSecretConfirmedClicked()
+                }
+                width={isMobileScreen ? '100%' : '45%'}
+              />
+            )
           }
         />
         {response.status === 'loading' && <Loader customStyle={customStyle} />}
@@ -261,9 +331,7 @@ const AzureSecrets = (props) => {
                       </PopperItem>
 
                       {azureDetail.access === 'write' && (
-                        <PopperItem
-                          onClick={() => setOpenConfirmationModal(true)}
-                        >
+                        <PopperItem onClick={() => onRotateSecret()}>
                           <img alt="refersh-ic" src={refreshIcon} />
                           <span>Rotate Secret</span>
                         </PopperItem>
@@ -309,12 +377,18 @@ const AzureSecrets = (props) => {
           </AccessDeniedWrap>
         )}
         {response.status === 'inactive' && (
-          <AccessDeniedWrap>
-            <AccessDeniedIcon src={AccessDeniedLogo} alt="accessDeniedLogo" />
-            <NoPermission>
-              Please activate the azure service account!
-            </NoPermission>
-          </AccessDeniedWrap>
+          <UserList>
+            <LabelWrap>
+              <ReportProblemOutlinedIcon />
+              <Span>Rotate Secret to Activate</Span>
+            </LabelWrap>
+            <Secret type="password" viewSecret={showSecret}>
+              ****
+            </Secret>
+            <FolderIconWrap onClick={() => activateServiceAccount()}>
+              <Icon src={refreshIcon} alt="refresh" />
+            </FolderIconWrap>
+          </UserList>
         )}
         {responseType === 1 && (
           <SnackbarComponent
@@ -341,6 +415,7 @@ AzureSecrets.propTypes = {
   azureDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   azureSecretData: PropTypes.objectOf(PropTypes.any),
   secretResponse: PropTypes.objectOf(PropTypes.any).isRequired,
+  refresh: PropTypes.func.isRequired,
 };
 
 AzureSecrets.defaultProps = {
