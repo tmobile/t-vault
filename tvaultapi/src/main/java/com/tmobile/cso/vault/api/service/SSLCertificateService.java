@@ -291,8 +291,8 @@ public class SSLCertificateService {
     private static final String[] PERMISSIONS = {"read", "write", "deny", "sudo"};
     private static final String MESSAGES = "{\"messages\":[\"";
     private static final String ERRORS = "{\"errors\":[\"";
-    private static final String errorInavalid = "{\"errors\":[\"Invalid input values\"]}";
-    private static final String certNameRegex ="^\"+|\"+$";
+    private static final String ERRORINVALID = "{\"errors\":[\"Invalid input values\"]}";
+    private static final String CERTNAMEREGEX = "^\"+|\"+$";
 
     /**
      * Login using CertManager
@@ -431,13 +431,13 @@ public class SSLCertificateService {
         //Validate the input data
         boolean isValidData = validateInputData(sslCertificateRequest, userDetails);
 		if (!isValidData) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		} else {
 			String applicationName = getValidApplicationName(sslCertificateRequest);
 			if (applicationName!= null && !StringUtils.isEmpty(applicationName)) {
 				populateSSLCertificateRequest(sslCertificateRequest, applicationName);
 			} else {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 			}
 		}
 
@@ -2483,7 +2483,7 @@ public class SSLCertificateService {
 					.put(LogMessage.ACTION, "getServiceCertificate")
 					.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
     	}
     	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -2574,7 +2574,7 @@ public class SSLCertificateService {
 		} else {
 			int maxVal = certNames.size()> (limit+offset)?limit+offset : certNames.size();
 			for (int i = offset; i < maxVal; i++) {
-				endPoint = certNames.get(i).replaceAll(certNameRegex, "");
+				endPoint = certNames.get(i).replaceAll(CERTNAMEREGEX, "");
 				pathStr = path + "/" + endPoint;
 				response = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}", token);
 				if (HttpStatus.OK.equals(response.getHttpstatus())) {
@@ -2640,7 +2640,7 @@ public class SSLCertificateService {
 		JsonArray responseArray = new JsonArray();
 		int maxVal = certNames.size() > (limit + offset) ? limit + offset : certNames.size();
 		for (int i = 0; i < certNames.size(); i++) {
-			endPoint = certNames.get(i).replaceAll(certNameRegex, "");
+			endPoint = certNames.get(i).replaceAll(CERTNAMEREGEX, "");
 			pathStr = path + "/" + endPoint;
 			response = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}",
 					userDetails.getSelfSupportToken());
@@ -2714,7 +2714,7 @@ public class SSLCertificateService {
 					.put(LogMessage.ACTION, "GetTargetSystemList")	
 					.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)	
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));	
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);	
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);	
     	}	
         String getTargetSystemEndpoint = "/certmanager/findTargetSystem";	
         SSLCertType sslCertType = certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)?	
@@ -2949,7 +2949,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					.put(LogMessage.ACTION, "revokeCertificate")
 					.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		}
 
 		Map<String, String> metaDataParams = new HashMap<String, String>();
@@ -3180,7 +3180,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    					put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG).
    					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    					build()));
-   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
    		}
    		
    		String userName = certificateUser.getUsername().toLowerCase();
@@ -3579,7 +3579,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 	   					build()));
    			
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		}
    		if (!ObjectUtils.isEmpty(userDetails)) {
    			if (userDetails.isAdmin()) {
@@ -3843,7 +3843,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    					put(LogMessage.MESSAGE, "Invalid input values").
    					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    					build()));
-   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
         }
         
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -4546,7 +4546,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					.put(LogMessage.ACTION, "renewCertificate")
 					.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		}
 		String endPoint = certificateName;
 		String metaDataPath = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL))?
@@ -4934,7 +4934,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    					put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG).
    					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    					build()));
-   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
    		}
 		
 		String userName = certificateUser.getUsername().toLowerCase();
@@ -5209,7 +5209,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    					put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG).
    					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    					build()));
-   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
    		}
     	
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -5497,7 +5497,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					.put(LogMessage.ACTION, "getListOfCertificates")
 					.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
     	}
 		if (certificateType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
 			path = SSLCertificateConstants.SSL_CERT_PATH_VALUE;
@@ -5548,7 +5548,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					.put(LogMessage.ACTION, "transferCertificate")
 					.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		}
     	ResponseEntity<DirectoryObjects> userResponse = directoryService.searchByUPN(certOwnerEmailId);
     	if(userResponse.getStatusCode().equals(HttpStatus.OK)) {
@@ -5775,7 +5775,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					.put(LogMessage.ACTION, SSLCertificateConstants.VALIDATE_CERTIFICATE_DETAILS_MSG)
 					.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		}
 		if (!certType.equalsIgnoreCase("external")) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -5783,7 +5783,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					.put(LogMessage.ACTION, SSLCertificateConstants.VALIDATE_CERTIFICATE_DETAILS_MSG)
 					.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		}
 		String metaDataPath = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) ? SSLCertificateConstants.SSL_CERT_PATH
 				: SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
@@ -6577,7 +6577,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                         put(LogMessage.MESSAGE, "Invalid input values").
                         put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                         build()));
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
             }
 			String authToken = "";
 			// Get the token
@@ -6707,7 +6707,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					.put(LogMessage.ACTION, "deleteSSLCertificate")
 					.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		}
 		Map<String, String> metaDataParams = new HashMap<>();
 		String endPoint =certificateName;	
@@ -7143,7 +7143,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 
             int maxVal = certNames.size()> (limit+offset)?limit+offset : certNames.size();
             for (int i = offset; i < maxVal; i++) {            	
-                endPoint = certNames.get(i).replaceAll(certNameRegex, "");
+                endPoint = certNames.get(i).replaceAll(CERTNAMEREGEX, "");
                 if(certNamesExt.contains(certNames.get(i))) {  
                 	pathStr = extPath + TVaultConstants.PATH_DELIMITER + endPoint;                
                 }else{
@@ -7318,7 +7318,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					.put(LogMessage.ACTION, "checkCertificateStatus")	
 					.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)	
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));	
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);	
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);	
 		}	
 		String metaDataPath = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) ? SSLCertificateConstants.SSL_CERT_PATH	
 				: SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;	
@@ -7466,7 +7466,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    					put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG).
    					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    					build()));
-   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
    		}
     	
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -7534,7 +7534,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    					put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG).
    					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    					build()));
-   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
    		}
 		
 		String userName = certificateUser.getUsername().toLowerCase();
@@ -8388,7 +8388,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 								.put(LogMessage.ACTION, SSLCertificateConstants.ONBOARD_SSL_CERTIFICATE)
 								.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
 								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-						return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+						return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 					}
 			    	
 			    	if(isCertAvailableInMetadata(jsonObject, token)) {
@@ -8497,7 +8497,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    					put(LogMessage.MESSAGE, "Invalid input values").
    					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
    					build()));
-   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+   			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
         }
 
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -8829,7 +8829,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 				if (!ObjectUtils.isEmpty(jsonArray)) {
 					certNames = new ArrayList<>();
 					for (int i = 0; i < jsonArray.size(); i++) {
-						certNames.add(jsonArray.get(i).toString().replaceAll(certNameRegex, ""));
+						certNames.add(jsonArray.get(i).toString().replaceAll(CERTNAMEREGEX, ""));
 					}
 				}
 			}
@@ -9025,7 +9025,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, SSLCertificateConstants.ONBOARD_SSL_CERTIFICATE).put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		}
 
 		if (ObjectUtils.isEmpty(userDetails) || (!userDetails.isAdmin())) {
@@ -9610,7 +9610,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
     	}
     	Map<String, String> metaDataParams = new HashMap<String, String>();
 		if (!isValidData) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInavalid);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		} else {
 			String endPoint = certificateUpdateRequest.getCertificateName();
 			String metaDataPath = (certificateUpdateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.INTERNAL))?
