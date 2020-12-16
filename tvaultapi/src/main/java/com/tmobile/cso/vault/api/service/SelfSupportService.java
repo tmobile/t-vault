@@ -1165,7 +1165,7 @@ public class  SelfSupportService {
 										ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 								.put(LogMessage.ACTION, "removeSudoUserFromSafe")
 								.put(LogMessage.MESSAGE, "Meta data update failed")
-								.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
+								.put(LogMessage.STATUS, metadataResponse != null ? metadataResponse.getHttpstatus().toString() : "")
 								.put(LogMessage.APIURL,
 										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 								.build()));
