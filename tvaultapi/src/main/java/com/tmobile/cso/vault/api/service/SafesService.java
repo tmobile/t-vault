@@ -1848,6 +1848,47 @@ public class  SafesService {
 		String role = requestMap.get("role");
 		String path = requestMap.get("path");
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
+
+			// check of this role is associated to this safe
+			String _path = "metadata/" + path;
+			Response metadataReadResponse = reqProcessor.process("/read","{\"path\":\""+_path+"\"}",token);
+			Map<String, Object> responseMap = null;
+			if(HttpStatus.OK.equals(metadataReadResponse.getHttpstatus())) {
+				responseMap = ControllerUtil.parseJson(metadataReadResponse.getResponse());
+				if(responseMap.isEmpty()) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "Delete AWS Role from SDB").
+							put(LogMessage.MESSAGE, String.format ("Error Fetching existing safe info [%s]", awsRole.getPath())).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Error Fetching existing safe info. please check the path specified\"]}");
+				}
+			}
+			else {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "Delete AWS Role from SDB").
+						put(LogMessage.MESSAGE, String.format ("Error Fetching existing safe info [%s]", awsRole.getPath())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Error Fetching existing safe info. please check the path specified\"]}");
+			}
+
+			@SuppressWarnings("unchecked")
+			Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
+			Map<String,Object> awsroles = (Map<String,Object>)metadataMap.get(TVaultConstants.AWS_ROLES);
+
+			if (awsroles == null || !awsroles.containsKey(role)) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "Delete AWS Role from SDB").
+						put(LogMessage.MESSAGE, String.format ("AWS role [%s] is not associated to Safe [%s]", awsRole.getRole(),awsRole.getPath())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove AWS role from safe. AWS role association to safe not found\"]}");
+			}
+
 			if (!detachOnly) { // delete mode, delete aws role as part of detachment of role from SDB.
 				Response permissionResponse = ControllerUtil.canDeleteRole(awsRole.getRole(), token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH);
 				if (HttpStatus.INTERNAL_SERVER_ERROR.equals(permissionResponse.getHttpstatus()) || HttpStatus.UNAUTHORIZED.equals(permissionResponse.getHttpstatus())) {

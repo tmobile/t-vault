@@ -1297,6 +1297,18 @@ public class SafesServiceTest {
         when(ControllerUtil.canDeleteRole(awsRole.getRole(), token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH)).thenReturn(responseOk);
         Response deleteResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(deleteResponse);
+
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"aws-roles\": {\"iam\": \"write\"},\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+
         ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1324,6 +1336,18 @@ public class SafesServiceTest {
         when(ControllerUtil.canDeleteRole(awsRole.getRole(), token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH)).thenReturn(responseOk);
         Response deleteResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(deleteResponse);
+
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"aws-roles\": {\"iam\": \"write\"},\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+
         ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1347,6 +1371,18 @@ public class SafesServiceTest {
         UserDetails userDetails = getMockUser(false);
         Response responseOk = getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.canDeleteRole(awsRole.getRole(), token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH)).thenReturn(responseOk);
+
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"aws-roles\": {\"iam\": \"write\"},\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+
         ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1364,6 +1400,84 @@ public class SafesServiceTest {
         when(JSONUtil.getJSON(awsRole)).thenReturn(jsonStr);
         when(ControllerUtil.isValidSafePath(path)).thenReturn(false);
         UserDetails userDetails = getMockUser(false);
+        ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSafe_failed_404() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        AWSRole awsRole = new AWSRole(path,"iam","read");
+        String jsonStr = "{  \"access\": \"read\",  \"path\": \"shared/mysafe01\",  \"role\": \"iam\"}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove AWS role from safe. AWS role association to safe not found\"]}");
+
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+
+        when(JSONUtil.getJSON(awsRole)).thenReturn(jsonStr);
+        when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        UserDetails userDetails = getMockUser(false);
+
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+
+        ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSafe_failed_metadata_invalid() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        AWSRole awsRole = new AWSRole(path,"iam","read");
+        String jsonStr = "{  \"access\": \"read\",  \"path\": \"shared/mysafe01\",  \"role\": \"iam\"}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Error Fetching existing safe info. please check the path specified\"]}");
+
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+
+        when(JSONUtil.getJSON(awsRole)).thenReturn(jsonStr);
+        when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        UserDetails userDetails = getMockUser(false);
+
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(new HashMap<>());
+
+        ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSafe_failed_metadata_notFound() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        AWSRole awsRole = new AWSRole(path,"iam","read");
+        String jsonStr = "{  \"access\": \"read\",  \"path\": \"shared/mysafe01\",  \"role\": \"iam\"}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Error Fetching existing safe info. please check the path specified\"]}");
+
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(getMockResponse(HttpStatus.NOT_FOUND, true, ""));
+
+        when(JSONUtil.getJSON(awsRole)).thenReturn(jsonStr);
+        when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        UserDetails userDetails = getMockUser(false);
+
         ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
