@@ -71,10 +71,10 @@ public class IAMServiceAccountUtils {
     @Autowired
     private RequestProcessor requestProcessor;
     
-    private String contentType = "application/json";
-    private String pathStr = "{\"path\":\"";
-    private String data = "\",\"data\":";
-    private String write = "/write";
+    private static final String CONTENTTYPE = "application/json";
+    private static final String PATHSTR = "{\"path\":\"";
+    private static final String DATASTR = "\",\"data\":";
+    private static final String WRITESTR = "/write";
 
     /**
      * To get approle token fro IAM Portal approle.
@@ -117,8 +117,8 @@ public class IAMServiceAccountUtils {
         try {
             entity = new StringEntity(inputJson);
             httpPost.setEntity(entity);
-            httpPost.setHeader("Accept", contentType);
-            httpPost.setHeader("Content-type", contentType);
+            httpPost.setHeader("Accept", CONTENTTYPE);
+            httpPost.setHeader("Content-type", CONTENTTYPE);
             httpPost.setEntity(entity);
 
         } catch (UnsupportedEncodingException e) {
@@ -232,8 +232,8 @@ public class IAMServiceAccountUtils {
             entity = new StringEntity(inputJson);
             httpPut.setEntity(entity);
             httpPut.setHeader("Authorization", iamAuthToken);
-            httpPut.setHeader("Accept", contentType);
-            httpPut.setHeader("Content-type", contentType);
+            httpPut.setHeader("Accept", CONTENTTYPE);
+            httpPut.setHeader("Content-type", CONTENTTYPE);
             httpPut.setEntity(entity);
 
         } catch (UnsupportedEncodingException e) {
@@ -332,8 +332,8 @@ public class IAMServiceAccountUtils {
                     build()));
             return isSecretUpdated;
         }
-        String writeJson =  pathStr+path+data+ secretJson +"}";
-        Response response = requestProcessor.process(write, writeJson, token);
+        String writeJson =  PATHSTR+path+DATASTR+ secretJson +"}";
+        Response response = requestProcessor.process(WRITESTR, writeJson, token);
 
 
         if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
@@ -385,7 +385,7 @@ public class IAMServiceAccountUtils {
         path = "metadata/"+path;
 
         ObjectMapper objMapper = new ObjectMapper();
-        String pathjson =pathStr+path+"\"}";
+        String pathjson =PATHSTR+path+"\"}";
         // Read info for the path
         Response metadataResponse = requestProcessor.process("/read",pathjson,token);
         Map<String,Object> _metadataMap = null;
@@ -421,8 +421,8 @@ public class IAMServiceAccountUtils {
                             build()));
                 }
 
-                String writeJson =  pathStr+path+data+ metadataJson +"}";
-                metadataResponse = requestProcessor.process(write,writeJson,token);
+                String writeJson =  PATHSTR+path+DATASTR+ metadataJson +"}";
+                metadataResponse = requestProcessor.process(WRITESTR,writeJson,token);
                 return metadataResponse;
             }
             return metadataResponse;
@@ -457,7 +457,7 @@ public class IAMServiceAccountUtils {
         path = "metadata/"+path;
 
         ObjectMapper objMapper = new ObjectMapper();
-        String pathjson =pathStr+path+"\"}";
+        String pathjson =PATHSTR+path+"\"}";
         // Read info for the path
         Response metadataResponse = requestProcessor.process("/read",pathjson,token);
         Map<String,Object> _metadataMap = null;
@@ -505,8 +505,8 @@ public class IAMServiceAccountUtils {
                             build()));
                 }
 
-                String writeJson =  pathStr+path+data+ metadataJson +"}";
-                metadataResponse = requestProcessor.process(write,writeJson,token);
+                String writeJson =  PATHSTR+path+DATASTR+ metadataJson +"}";
+                metadataResponse = requestProcessor.process(WRITESTR,writeJson,token);
                 return metadataResponse;
             }
             return metadataResponse;
