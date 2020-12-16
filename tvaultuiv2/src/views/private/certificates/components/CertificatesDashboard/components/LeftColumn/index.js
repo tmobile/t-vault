@@ -110,7 +110,6 @@ const LeftColumn = (props) => {
   const {
     certificateList,
     onLinkClicked,
-    onDeleteCertificateClicked,
     onTransferOwnerClicked,
     onEditListItemClicked,
     onReleaseClicked,
@@ -206,9 +205,6 @@ const LeftColumn = (props) => {
                 >
                   <ClickAwayListener onClickAway={handleClickAway}>
                     <EditDeletePopper
-                      onDeleteClicked={() =>
-                        onDeleteCertificateClicked(certificate)
-                      }
                       onEditClicked={() => onEditListItemClicked(certificate)}
                       onTransferOwnerClicked={() =>
                         onTransferOwnerClicked(certificate)
@@ -234,7 +230,6 @@ const LeftColumn = (props) => {
 LeftColumn.propTypes = {
   certificateList: PropTypes.arrayOf(PropTypes.any).isRequired,
   onTransferOwnerClicked: PropTypes.func.isRequired,
-  onDeleteCertificateClicked: PropTypes.func.isRequired,
   onEditListItemClicked: PropTypes.func.isRequired,
   onLinkClicked: PropTypes.func.isRequired,
   onReleaseClicked: PropTypes.func.isRequired,

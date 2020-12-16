@@ -2,11 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import SyncAltIcon from '@material-ui/icons/SyncAlt';
-import {
-  IconDeleteActive,
-  IconEdit,
-  IconRelease,
-} from '../../../../../assets/SvgIcons';
+import { IconEdit, IconRelease } from '../../../../../assets/SvgIcons';
 import PopperElement from '../../../../../components/Popper';
 
 const FolderIconWrap = styled('div')`
@@ -40,12 +36,7 @@ const PopperItem = styled.div`
 `;
 
 const EditDeletePopper = (props) => {
-  const {
-    onDeleteClicked,
-    onEditClicked,
-    onTransferOwnerClicked,
-    onReleaseClicked,
-  } = props;
+  const { onEditClicked, onTransferOwnerClicked, onReleaseClicked } = props;
 
   return (
     <div>
@@ -74,10 +65,6 @@ const EditDeletePopper = (props) => {
             <IconEdit />
             <span>Edit</span>
           </PopperItem>
-          <PopperItem onClick={onDeleteClicked}>
-            <IconDeleteActive />
-            <span> Delete</span>
-          </PopperItem>
         </PopperElement>
       </FolderIconWrap>
     </div>
@@ -86,7 +73,6 @@ const EditDeletePopper = (props) => {
 
 EditDeletePopper.propTypes = {
   onEditClicked: PropTypes.func.isRequired,
-  onDeleteClicked: PropTypes.func.isRequired,
   onTransferOwnerClicked: PropTypes.func,
   onReleaseClicked: PropTypes.func,
 };

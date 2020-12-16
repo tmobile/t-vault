@@ -253,7 +253,7 @@ export const addLeadingZeros = (value) => {
 };
 
 export const getEachUsersDetails = (data) => {
-  if (Object.keys(data).length > 0) {
+  if (data && Object.keys(data).length > 0) {
     const userNameArray = [];
     Object.keys(data).map((item) => {
       return userNameArray.push(item);

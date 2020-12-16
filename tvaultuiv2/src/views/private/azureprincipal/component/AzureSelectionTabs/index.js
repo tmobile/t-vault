@@ -85,7 +85,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const AzureSelectionTabs = (props) => {
-  const { azureDetail } = props;
+  const { azureDetail, refresh } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
   const [azureSecretData, setAzureSecretData] = useState({});
@@ -201,6 +201,7 @@ const AzureSelectionTabs = (props) => {
               azureSecretData={azureSecretData}
               secretResponse={secretResponse}
               azureDetail={azureDetail}
+              refresh={refresh}
             />
           </TabPanel>
           <TabPanel value={value} index={1}>
@@ -219,6 +220,7 @@ const AzureSelectionTabs = (props) => {
 
 AzureSelectionTabs.propTypes = {
   azureDetail: PropTypes.objectOf(PropTypes.any),
+  refresh: PropTypes.func.isRequired,
 };
 AzureSelectionTabs.defaultProps = {
   azureDetail: {},

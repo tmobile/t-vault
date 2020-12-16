@@ -101,7 +101,8 @@ const EachLink = styled.a`
   font-size: 1.4rem;
   display: flex;
   align-items: center;
-  text-decoration: ${(props) => props.decoration};
+  font-weight: bold;
+  text-decoration: underline;
   svg {
     margin-right: 0.5rem;
   }
@@ -172,7 +173,7 @@ const Header = (props) => {
     } else {
       setIsLogin(true);
     }
-    const name = localStorage.getItem('displayName');
+    const name = localStorage.getItem('username');
     if (name !== null) {
       setUserName(`${name}` || 'User');
     }

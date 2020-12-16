@@ -39,17 +39,17 @@ const PopperItem = styled.div`
 `;
 const Download = (props) => {
   const { certificateMetaData, onDownloadChange } = props;
-  const [isPrivateKey, setIsPrivateKey] = useState(false);
+  const [typeOfDownload, setTypeOfDownload] = useState('');
   const [openDownloadModal, setOpenDownloadModal] = useState(false);
 
   const onPopperItemClicked = (val) => {
-    setIsPrivateKey(val);
+    setTypeOfDownload(val);
     setOpenDownloadModal(true);
   };
 
   const onCloseDownloadModal = () => {
     setOpenDownloadModal(false);
-    setIsPrivateKey(false);
+    setTypeOfDownload('');
   };
 
   const onPrivateDownloadClicked = (payload, type) => {
@@ -104,7 +104,7 @@ const Download = (props) => {
     <div>
       <DownloadModal
         onCloseDownloadModal={onCloseDownloadModal}
-        isPrivateKey={isPrivateKey}
+        typeOfDownload={typeOfDownload}
         openDownloadModal={openDownloadModal}
         onPemDerFormatClicked={(type) => onPemDerFormatClicked(type)}
         certificateMetaData={certificateMetaData}
@@ -131,10 +131,10 @@ const Download = (props) => {
               classes={classes}
             >
               <PoperItemWrap>
-                <PopperItem onClick={() => onPopperItemClicked(true)}>
+                <PopperItem onClick={() => onPopperItemClicked('private')}>
                   <span>Download certificate with private key</span>
                 </PopperItem>
-                <PopperItem onClick={() => onPopperItemClicked(false)}>
+                <PopperItem onClick={() => onPopperItemClicked('pem-der')}>
                   <span>Download certificate in PEM/DER format</span>
                 </PopperItem>
               </PoperItemWrap>

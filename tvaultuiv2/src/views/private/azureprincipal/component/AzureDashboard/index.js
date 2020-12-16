@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable prefer-destructuring */
 import React, { useState, useEffect, useCallback } from 'react';
@@ -424,7 +425,10 @@ const AzureDashboard = () => {
                     }
                     description={introduction}
                     renderContent={
-                      <AzureSelectionTabs azureDetail={listItemDetails} />
+                      <AzureSelectionTabs
+                        azureDetail={listItemDetails}
+                        refresh={() => fetchData()}
+                      />
                     }
                   />
                 )}
@@ -445,7 +449,10 @@ const AzureDashboard = () => {
                     }
                     description={introduction}
                     renderContent={
-                      <AzureSelectionTabs azureDetail={listItemDetails} />
+                      <AzureSelectionTabs
+                        azureDetail={listItemDetails}
+                        refresh={() => fetchData()}
+                      />
                     }
                   />
                 )}
