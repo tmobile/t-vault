@@ -159,68 +159,6 @@ public class  VaultAuthService {
 	}
 
 	/**
-	 * To filter the duplicate safe permissions
-	 * @param access
-	 * @return
-	 */
-	public Map<String,Object> filterDuplicateSafePermissions(Map<String,Object> access) {
-		if (!MapUtils.isEmpty(access)) {
-			String[] safeTypes = {TVaultConstants.USERS, TVaultConstants.SHARED, TVaultConstants.APPS};
-
-			for (String type: safeTypes) {
-				List<Map<String,String>> safePermissions = (List<Map<String,String>>)access.get(type);
-				if (safePermissions != null) {
-					//map to check duplicate permission
-					Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
-					List<Map<String,String>> updatedPermissionList = new ArrayList<>();
-					for (Map<String,String> permissionMap: safePermissions) {
-						Set<String> keys = permissionMap.keySet();
-						String key = keys.stream().findFirst().orElse("");
-
-						if (!TVaultConstants.EMPTY.equals(key) && !filteredPermissions.containsKey(key)) {
-							filteredPermissions.put(key, permissionMap.get(key));
-							Map<String,String> permission = Collections.synchronizedMap(new HashMap());
-							permission.put(key, permissionMap.get(key));
-							updatedPermissionList.add(permission);
-						}
-					}
-					access.put(type, updatedPermissionList);
-				}
-			}
-		}
-		return access;
-	}
-
-	/**
-	 * To filter the duplicate Service account permissions
-	 * @param access
-	 * @return
-	 */
-	public Map<String,Object> filterDuplicateSvcaccPermissions(Map<String,Object> access) {
-		if (!MapUtils.isEmpty(access)) {
-			List<Map<String,String>> svcaccPermissions = (List<Map<String,String>>)access.get(TVaultConstants.SVC_ACC_PATH_PREFIX);
-			if (svcaccPermissions != null) {
-				//map to check duplicate permission
-				Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
-				List<Map<String,String>> updatedPermissionList = new ArrayList<>();
-				for (Map<String,String> permissionMap: svcaccPermissions) {
-					Set<String> keys = permissionMap.keySet();
-					String key = keys.stream().findFirst().orElse("");
-
-					if (!TVaultConstants.EMPTY.equals(key) && !filteredPermissions.containsKey(key)) {
-						filteredPermissions.put(key, permissionMap.get(key));
-						Map<String,String> permission = Collections.synchronizedMap(new HashMap());
-						permission.put(key, permissionMap.get(key));
-						updatedPermissionList.add(permission);
-					}
-				}
-				access.put(TVaultConstants.SVC_ACC_PATH_PREFIX, updatedPermissionList);
-			}
-		}
-		return access;
-	}
-
-	/**
 	 * Logs a user in to TVault using ldap or userpass authentication methods
 	 * @param user
 	 * @return

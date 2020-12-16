@@ -413,7 +413,7 @@ public class SSLCertificateService {
 		if (StringUtils.isEmpty(sslCertificateRequest.getCertOwnerEmailId())) {
 			isvalid = false;
 			DirectoryUser directoryUser = getUserDetails(sslCertificateRequest.getCertOwnerNtid());
-			if (!ObjectUtils.isEmpty(directoryUser)) {
+			if (directoryUser != null && !ObjectUtils.isEmpty(directoryUser)) {
 				sslCertificateRequest.setCertOwnerEmailId(directoryUser.getUserEmail());
 				isvalid = true;
 			}
@@ -4899,7 +4899,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					notBeforeDate = validateString(jsonElement.get("NotBefore"));
 					certCreatedDate = notBeforeDate != null ? LocalDateTime.parse(notBeforeDate.substring(0, 19))
 							: null;
-					if (certCreatedDate != null && !ObjectUtils.isEmpty(createdDate)
+					if (certCreatedDate != null && createdDate != null && !ObjectUtils.isEmpty(createdDate)
 							&& (createdDate.isBefore(certCreatedDate) || createdDate.isEqual(certCreatedDate))) {
 						certificateData = new CertificateData();
 						certificateData
@@ -8332,9 +8332,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 								}
 								notBeforeDate = validateString(jsonElement.get("NotBefore"));
 								certCreatedDate = notBeforeDate != null ? LocalDateTime.parse(notBeforeDate.substring(0, 19)) : null;
-		                	if(!ObjectUtils.isEmpty(createdDate) && (createdDate.isBefore(certCreatedDate) || createdDate.isEqual(certCreatedDate))) {
-					        certificateData= new CertificateData();
+
+								if (createdDate != null && !ObjectUtils.isEmpty(createdDate)
+										&& (createdDate.isBefore(certCreatedDate)
+												|| createdDate.isEqual(certCreatedDate))) {
+									certificateData = new CertificateData();
 					        certificateData.setCertificateId(Integer.parseInt(jsonElement.get(SSLCertificateConstants.CERTIFICATE_ID).getAsString()));
+
 					        certificateData.setExpiryDate(validateString(jsonElement.get("NotAfter")));
 					        certificateData.setCreateDate(validateString(jsonElement.get("NotBefore")));
 					        certificateData.setContainerName(validateString(jsonElement.get(SSLCertificateConstants.CONTAINER_NAME)));
