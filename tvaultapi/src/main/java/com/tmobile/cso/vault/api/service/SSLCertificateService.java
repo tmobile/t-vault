@@ -527,7 +527,7 @@ public class SSLCertificateService {
                         if (targetSystemId == 0) {
                             enrollResponse.setResponse(SSLCertificateConstants.SSL_CREATE_EXCEPTION);
                             enrollResponse.setSuccess(Boolean.FALSE);
-                            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\" :[\"" + enrollResponse.getResponse() + "\"]}");
+                            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"" + enrollResponse.getResponse() + "\"]}");
                         }
                     }
 
@@ -6595,7 +6595,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 
             String permissionMetaDataPath = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) ?
                     SSLCertificateConstants.SSL_CERT_PATH_VALUE + '/' + certificateName : SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT + '/' + certificateName;
-            Response response = getCertificateDetailsByMatadataPath(metaDataPath, token);
+            Response response = getCertificateDetailsByMatadataPath(metaDataPath, authToken);
 
             JsonParser jsonParser = new JsonParser();
             JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
