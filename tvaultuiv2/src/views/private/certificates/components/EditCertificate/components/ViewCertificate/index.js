@@ -48,6 +48,7 @@ const CancelSaveWrapper = styled.div`
   justify-content: flex-end;
   ${small} {
     margin-top: 5.3rem;
+    flex-wrap: wrap;
   }
   button {
     ${small} {
@@ -59,8 +60,9 @@ const CancelSaveWrapper = styled.div`
 const CancelButton = styled.div`
   margin-right: 0.8rem;
   ${small} {
-    margin-right: 1rem;
+    margin-right: 0rem;
     width: 100%;
+    margin-bottom: 0.5rem;
   }
 `;
 const Label = styled.p`
@@ -186,6 +188,7 @@ const ViewCertificate = (props) => {
     onCloseModal,
     onCertRevokeClicked,
     onUpdateCertClicked,
+    onDeleteClicked,
   } = props;
   const [applicationOwner, setApplicationOwner] = useState('');
   const [options, setOptions] = useState([]);
@@ -697,6 +700,13 @@ const ViewCertificate = (props) => {
               onClick={() => onEditClicked()}
             />
           </CancelButton>
+          <CancelButton>
+            <ButtonComponent
+              label="Delete"
+              color="secondary"
+              onClick={() => onDeleteClicked()}
+            />
+          </CancelButton>
           {showRevokeRenewBtn && (
             <CancelButton>
               <ButtonComponent
@@ -742,6 +752,7 @@ ViewCertificate.propTypes = {
   showRevokeRenewBtn: PropTypes.bool,
   onCertRevokeClicked: PropTypes.func,
   onUpdateCertClicked: PropTypes.func,
+  onDeleteClicked: PropTypes.func,
 };
 
 ViewCertificate.defaultProps = {
@@ -750,6 +761,7 @@ ViewCertificate.defaultProps = {
   onCertRevokeClicked: () => {},
   certificateData: {},
   onUpdateCertClicked: () => {},
+  onDeleteClicked: () => {},
   showRevokeRenewBtn: false,
 };
 

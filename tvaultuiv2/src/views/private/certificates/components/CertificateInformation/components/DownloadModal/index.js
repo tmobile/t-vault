@@ -137,7 +137,7 @@ const useStyles = makeStyles((theme) => ({
 const DownloadModal = (props) => {
   const {
     onCloseDownloadModal,
-    isPrivateKey,
+    typeOfDownload,
     openDownloadModal,
     onPemDerFormatClicked,
     certificateMetaData,
@@ -194,7 +194,7 @@ const DownloadModal = (props) => {
         <Fade in={openDownloadModal}>
           <ModalWrapper>
             <Header>Download Certificate</Header>
-            {isPrivateKey && (
+            {typeOfDownload === 'private' && (
               <PrivateKeyWrap>
                 <Description>
                   Download certificate with private key.
@@ -253,7 +253,7 @@ const DownloadModal = (props) => {
                 </CancelSaveWrapper>
               </PrivateKeyWrap>
             )}
-            {!isPrivateKey && (
+            {typeOfDownload === 'pem-der' && (
               <>
                 <Description>
                   Download certificate in PEM or DER format.
@@ -293,7 +293,7 @@ const DownloadModal = (props) => {
 
 DownloadModal.propTypes = {
   onCloseDownloadModal: PropTypes.func.isRequired,
-  isPrivateKey: PropTypes.bool.isRequired,
+  typeOfDownload: PropTypes.string.isRequired,
   openDownloadModal: PropTypes.bool.isRequired,
   onPemDerFormatClicked: PropTypes.func.isRequired,
   onPrivateDownloadClicked: PropTypes.func.isRequired,
