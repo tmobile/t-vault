@@ -136,7 +136,7 @@ public class AzureServiceAccountUtilsTest {
         userDetails.setSelfSupportToken(token);
         return userDetails;
     }
-    
+
     @Test
     public void test_getTokenPoliciesAsListFromTokenLookupJson() throws IOException {
     	ObjectMapper mapper = new ObjectMapper();
@@ -148,7 +148,26 @@ public class AzureServiceAccountUtilsTest {
         resultpolicies.add("svc_cce_usertest2");
         assertEquals(resultpolicies, currentpolicies);
     }
-    
+
+    @Test
+    public void testGetTokenPoliciesAsListFromTokenLookupJsonSuccess() throws IOException {
+        List<String> expectedPolicies = new ArrayList<>();
+        expectedPolicies.add("default");
+        String policyJson = "{ \"policies\": [\"default\"]}";
+
+        List<String> currentpolicies = azureServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(new ObjectMapper(), policyJson);
+        assertEquals(expectedPolicies, currentpolicies);
+    }
+
+    @Test
+    public void testGetTokenPoliciesAsListFromTokenLookupJsonSuccessSinglePolicy() throws IOException {
+        List<String> expectedPolicies = new ArrayList<>();
+        expectedPolicies.add("default");
+        String policyJson = "{ \"policies\": \"default\"}";
+        List<String> currentpolicies = azureServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(new ObjectMapper(), policyJson);
+        assertEquals(expectedPolicies, currentpolicies);
+    }
+
     @Test
     public void test_rotateAzureServicePrincipalSecretMOCK() {
         AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret();
@@ -166,79 +185,7 @@ public class AzureServiceAccountUtilsTest {
         AzureServiceAccountSecret result = azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(azureServicePrincipalRotateRequest);
         assertEquals(result.getSecretKeyId(), azureServiceAccountSecret.getSecretKeyId());
     }
-    
-    @Test
-    public void test_rotateAzureSecret_success() throws IOException {
 
-        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String azureServiceAccountName = "svc_vault_test5";
-        String awsAccountId = "1234567890";
-        String accessKeyId = "testaccesskey";
-        String iamSecret = "abcdefgh";
-        String tenantId = "110";
-        when(iamUtils.getIAMApproleToken()).thenReturn("token");
-        when(ControllerUtil.getSscred()).thenReturn(new SSCred());
-        when(ControllerUtil.getIamUsername()).thenReturn("M2UyNTA0MGYtODIwNS02ZWM2LTI4Y2ItOGYwZTQ1NDI1YjQ4");
-        when(ControllerUtil.getIamPassword()).thenReturn("MWFjOGM1ZTgtZjE5Ny0yMTVlLTNmODUtZWIwMDc3ZmY3NmQw");
-
-        when(httpUtils.getHttpClient()).thenReturn(httpClient);
-        when(httpClient.execute(any())).thenReturn(httpResponse);
-        when(httpResponse.getStatusLine()).thenReturn(statusLine);
-        when(statusLine.getStatusCode()).thenReturn(200);
-        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
-
-        String responseString = "{\"accessKeyId\": \"testaccesskey\", \"userName\": \"svc_vault_test5\", \"accessKeySecret\": \"abcdefgh\", \"expiryDateEpoch\": \"1609754282000\"}";
-        String responseStringToken = "{\"auth\": {\"client_token\": \""+token+"\"}}";
-        when(mockHttpEntity.getContent()).thenAnswer(new Answer() {
-            private int count = 0;
-
-            public Object answer(InvocationOnMock invocation) {
-                if (count++ == 1)
-                    return new ByteArrayInputStream(responseString.getBytes());
-
-                return new ByteArrayInputStream(responseStringToken.getBytes());
-            }
-        });
-
-        AzureServiceAccountSecret expectedIamServiceAccountSecret = new AzureServiceAccountSecret();
-        AzureServicePrincipalRotateRequest azureServiceAccountRotateRequest = new AzureServicePrincipalRotateRequest(accessKeyId, azureServiceAccountName, awsAccountId, responseStringToken);
-        AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecret(azureServiceAccountRotateRequest);
-    }
-    
-    @Test
-    public void test_rotateAzureSecret_fail() throws IOException {
-        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String azureServiceAccountName = "svc_vault_test5";
-        String awsAccountId = "1234567890";
-        String accessKeyId = "testaccesskey";
-        String iamSecret = "abcdefgh";
-        String tenantId = "110";
-        when(iamUtils.getIAMApproleToken()).thenReturn("token");
-        when(ControllerUtil.getSscred()).thenReturn(new SSCred());
-        when(ControllerUtil.getIamUsername()).thenReturn("M2UyNTA0MGYtODIwNS02ZWM2LTI4Y2ItOGYwZTQ1NDI1YjQ4");
-        when(ControllerUtil.getIamPassword()).thenReturn("MWFjOGM1ZTgtZjE5Ny0yMTVlLTNmODUtZWIwMDc3ZmY3NmQw");
-        when(httpUtils.getHttpClient()).thenReturn(httpClient);
-        when(httpClient.execute(any())).thenReturn(httpResponse);
-        when(httpResponse.getStatusLine()).thenReturn(statusLine);
-        when(statusLine.getStatusCode()).thenReturn(500);
-        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
-        String responseString = "{\"accessKeyId\": \"testaccesskey\", \"userName\": \"svc_vault_test5\", \"accessKeySecret\": \"abcdefgh\", \"expiryDateEpoch\": \"1609754282000\"}";
-        String responseStringToken = "{\"auth\": {\"client_token\": \""+token+"\"}}";
-        when(mockHttpEntity.getContent()).thenAnswer(new Answer() {
-            private int count = 0;
-            public Object answer(InvocationOnMock invocation) {
-                if (count++ == 1)
-                    return new ByteArrayInputStream(responseString.getBytes());
-
-                return new ByteArrayInputStream(responseStringToken.getBytes());
-            }
-        });
-
-        AzureServiceAccountSecret expectedIamServiceAccountSecret = new AzureServiceAccountSecret();
-        AzureServicePrincipalRotateRequest azureServiceAccountRotateRequest = new AzureServicePrincipalRotateRequest(accessKeyId, azureServiceAccountName, awsAccountId, responseStringToken);
-        AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecret(azureServiceAccountRotateRequest);
-    }
-    
     @Test
     public void test_writeAzureSvcAccSecret_success() {
 
@@ -258,7 +205,7 @@ public class AzureServiceAccountUtilsTest {
         boolean actualStatus = azureServiceAccountUtils.writeAzureSPSecret(token, path, iamServiceAccountName, iamServiceAccountSecret);
         assertTrue(actualStatus);
     }
-    
+
     @Test
     public void test_updateActivatedStatusInMetadata_success() {
 
@@ -277,7 +224,7 @@ public class AzureServiceAccountUtilsTest {
         Response actualResponse = azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipalName);
         assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
     }
-    
+
     @Test
     public void updateAzureSPSecretKeyInfoInMetadata_success() {
 
@@ -304,5 +251,93 @@ public class AzureServiceAccountUtilsTest {
 
         Response actualResponse = azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(token, iamServiceAccountName, secretKeyId, azureServiceAccountSecret);
         assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void testWriteAzureSPSecretSuccess() {
+        String token = "123123123123";
+        String path = "metadata/azuresvcacc/svc_vault_test5";
+        String azureSvcAccName = "svc_vault_test5";
+        String secretKeyId = "testaccesskey";
+        String servicePrincipalId = "testservicePrincipalId";
+        String tenantId = "testtenantId";
+        String azureSecret = "abcdefgh";
+
+        AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret,  1609754282000L, "20201215", servicePrincipalId, tenantId);
+        Response responseData = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(reqProcessor.process(eq("/write"), Mockito.any(), eq(token))).thenReturn(responseData);
+        boolean actualStatus = azureServiceAccountUtils.writeAzureSPSecret(token, path, azureSvcAccName, azureServiceAccountSecret);
+        assertTrue(actualStatus);
+    }
+
+    @Test
+    public void testWriteAzureSPSecretFailed() {
+		String token = "123123123123";
+		String path = "metadata/azuresvcacc/svc_vault_test5";
+		String azureSvcAccName = "svc_vault_test5";
+        String secretKeyId = "testaccesskey";
+        String servicePrincipalId = "testservicePrincipalId";
+        String tenantId = "testtenantId";
+        String azureSecret = "abcdefgh";
+        AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret,  1609754282000L, "20201215", servicePrincipalId, tenantId);
+        Response responseData = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+        when(reqProcessor.process(eq("/write"), Mockito.any(), eq(token))).thenReturn(responseData);
+        boolean actualStatus = azureServiceAccountUtils.writeAzureSPSecret(token, path, azureSvcAccName, azureServiceAccountSecret);
+        assertFalse(actualStatus);
+    }
+
+    @Test
+    public void testUpdateAzureSPSecretKeyInfoInMetadataSuccess() {
+        String token = "123123123123";
+        String azureSvcAccName = "svc_vault_test5";
+        String secretKeyId = "testaccesskey";
+        String servicePrincipalId = "testservicePrincipalId";
+        String tenantId = "testtenantId";
+        String azureSecret = "abcdefgh";
+        Response responseData = getMockResponse(HttpStatus.OK, true, "{ \"data\": {\"secret\": [{\"secretKeyId\": \"testaccesskey\", \"expiryDuration\": 1609668443000}]}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(responseData);
+        Response response204 = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(reqProcessor.process(eq("/write"), Mockito.any(), eq(token))).thenReturn(response204);
+        AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret,  1609754282000L, "20201215", servicePrincipalId, tenantId);
+
+        Response actualResponse = azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(token, azureSvcAccName, secretKeyId, azureServiceAccountSecret);
+        assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void testUpdateAzureSPSecretKeyInfoInMetadataFailureNoMetadata() {
+		String token = "123123123123";
+		String azureSvcAccName = "svc_vault_test5";
+		String secretKeyId = "testaccesskey";
+		String servicePrincipalId = "testservicePrincipalId";
+		String tenantId = "testtenantId";
+		String azureSecret = "abcdefgh";
+        Response responseData = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(responseData);
+        AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret,  1609754282000L, "20201215", servicePrincipalId, tenantId);
+        Response actualResponse = azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(token, azureSvcAccName, secretKeyId, azureServiceAccountSecret);
+        assertNull(actualResponse);
+    }
+
+    @Test
+    public void testUpdateActivatedStatusInMetadataSuccess() {
+		String token = "123123123123";
+		String azureSvcAccName = "svc_vault_test5";
+        Response responseData = getMockResponse(HttpStatus.OK, true, "{ \"data\": { \"isActivated\": false}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(responseData);
+        Response response204 = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(reqProcessor.process(eq("/write"), Mockito.any(), eq(token))).thenReturn(response204);
+        Response actualResponse = azureServiceAccountUtils.updateActivatedStatusInMetadata(token, azureSvcAccName);
+        assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void testUpdateActivatedStatusInMetadataFailed() {
+		String token = "123123123123";
+		String azureSvcAccName = "svc_vault_test5";
+        Response responseData = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(responseData);
+        Response actualResponse = azureServiceAccountUtils.updateActivatedStatusInMetadata(token, azureSvcAccName);
+        assertNull(actualResponse);
     }
 }
