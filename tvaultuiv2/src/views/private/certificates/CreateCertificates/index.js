@@ -407,15 +407,17 @@ const CreateCertificates = (props) => {
   };
 
   const onAddDnsClicked = (e) => {
-    if (e.keyCode === 13) {
+    if (e.keyCode === 13 && e?.target?.value) {
       const val = `${e.target.value}.t-mobile.com`;
       checkDnsAlreadyIncluded(val);
     }
   };
 
   const onAddDnsKeyClicked = () => {
-    const val = `${dnsName}.t-mobile.com`;
-    checkDnsAlreadyIncluded(val);
+    if (dnsName) {
+      const val = `${dnsName}.t-mobile.com`;
+      checkDnsAlreadyIncluded(val);
+    }
   };
 
   const onDnsNameChange = (e) => {
@@ -581,7 +583,7 @@ const CreateCertificates = (props) => {
     const obj = notificationEmailList.find(
       (item) => item.toLowerCase() === notifyEmail.toLowerCase()
     );
-    if (!emailError && isValidEmail) {
+    if (!emailError && isValidEmail && notifyEmail !== '') {
       if (!obj) {
         setNotificationEmailList((prev) => [...prev, notifyEmail]);
         setNotifyEmail('');
