@@ -1805,7 +1805,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
 
 		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
-		//when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
 		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
 		when(azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipal)).thenReturn(responseNoContent);
@@ -2071,7 +2071,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
 
 		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
-		//when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
 		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
 		when(azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipal)).thenReturn(responseNoContent);
@@ -2116,7 +2116,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
 
 		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
-		//when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
 		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
 		when(azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipal)).thenReturn(responseNoContent);
@@ -2172,7 +2172,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 				azureMetaDataStr));
 
 		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(null);
-		//when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(null);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(null);
 
 
 		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to activate Azure Service Principal. Failed to rotate secrets for one or more SecretKeyIds.\"]}");
@@ -2233,7 +2233,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
 
 		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
-		//when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
 		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
 		when(azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipal)).thenReturn(getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, ""));
@@ -2274,7 +2274,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
 
 		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
-		//when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
 		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
 		when(azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipal)).thenReturn(responseNoContent);
@@ -2342,7 +2342,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
 
 		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(null);
-		//when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
 		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
 		when(azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipal)).thenReturn(responseNoContent);
