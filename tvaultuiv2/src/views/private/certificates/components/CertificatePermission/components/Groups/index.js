@@ -67,7 +67,7 @@ const Groups = (props) => {
   const [response, setResponse] = useState({ status: 'loading' });
   const isMobileScreen = useMediaQuery(small);
 
-  // on svc account meta data is available.
+  // on certificate meta data is available.
   useEffect(() => {
     setResponse({ status: responseStatus });
   }, [responseStatus]);
@@ -91,7 +91,7 @@ const Groups = (props) => {
 
   /**
    * @function onDeleteClick
-   * @description function to delete the group from the svc account groups list.
+   * @description function to delete the group from the certificate groups list.
    * @param {groupname} string groupname of the group.
    * @param {access} string permission of the group.
    */
@@ -117,7 +117,7 @@ const Groups = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the group to the svc account groups list.
+   * @description function to save the group to the certificate groups list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {

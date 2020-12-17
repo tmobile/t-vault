@@ -26,6 +26,7 @@ const RadioButtonComponent = (props) => {
   const capitalizeFirstWord = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
+
   return (
     <ComponentError>
       <RadioGroup

@@ -257,7 +257,7 @@ const CreateAppRole = (props) => {
       setNameAvailable(false);
       return;
     }
-    if (name.length < 3 || !name.match(/^[0-9a-zA-Z]*$/g)) {
+    if (name.length < 3 || !name.match(/^[A-Za-z0-9_]*?[a-z0-9]$/i)) {
       setApproleError({ error: true, type: 'invalid-role' });
       setNameAvailable(false);
       return;
@@ -536,6 +536,7 @@ const CreateAppRole = (props) => {
                     value={maxTokenTtl}
                     placeholder="Token Max TTL"
                     fullWidth
+                    type="number"
                     name="maxTokenTtl"
                     onChange={(e) => onMaxTokenChange(e)}
                     error={numberError}
@@ -569,6 +570,7 @@ const CreateAppRole = (props) => {
                     placeholder="Token_TTL"
                     fullWidth
                     name="tokenTtl"
+                    type="number"
                     onChange={(e) => onTokenTtlChange(e)}
                     error={numberError}
                     helperText={
@@ -601,6 +603,7 @@ const CreateAppRole = (props) => {
                     placeholder="secret_Id_Num_Uses"
                     fullWidth
                     name="sectetIdNumUses"
+                    type="number"
                     onChange={(e) => onSecretIdNumUseChange(e)}
                     error={numberError}
                     helperText={
@@ -632,6 +635,7 @@ const CreateAppRole = (props) => {
                     placeholder="token_num_uses"
                     fullWidth
                     name="tokenNumUses"
+                    type="number"
                     onChange={(e) => onTokenNumUseChange(e)}
                     error={numberError}
                     helperText={
@@ -663,6 +667,7 @@ const CreateAppRole = (props) => {
                     placeholder="secret_id_ttl"
                     fullWidth
                     name="secretIdTtl"
+                    type="number"
                     onChange={(e) => onSecretIdTtl(e)}
                     error={numberError}
                     helperText={

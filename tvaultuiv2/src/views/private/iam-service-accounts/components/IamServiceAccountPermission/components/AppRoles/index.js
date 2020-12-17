@@ -69,7 +69,7 @@ const AppRoles = (props) => {
 
   const isMobileScreen = useMediaQuery(small);
 
-  // on svc account meta data is available.
+  // on iam svc account meta data is available.
   useEffect(() => {
     if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
       if (Object.keys(accountMetaData?.response).length !== 0) {
@@ -101,7 +101,7 @@ const AppRoles = (props) => {
 
   /**
    * @function onDeleteClick
-   * @description function to delete the app role from the svc account app role list.
+   * @description function to delete the app role from the iam svc account app role list.
    * @param {role} string app role name.
    * @param {access} string permission of the app role.
    */
@@ -127,7 +127,7 @@ const AppRoles = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the app rolr to the svc account app role list.
+   * @description function to save the app rolr to the iam svc account app role list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {
@@ -195,7 +195,7 @@ const AppRoles = (props) => {
   const onEditClick = (key, value) => {
     setEditClicked(true);
     if (value === 'write') {
-      setEditAccess('reset');
+      setEditAccess('rotate');
     } else {
       setEditAccess(value);
     }
@@ -222,7 +222,7 @@ const AppRoles = (props) => {
           <AddAppRole
             handleSaveClick={(role, access) => onSubmit(role, access)}
             handleCancelClick={() => onCancelClicked()}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'edit' && (
@@ -232,7 +232,7 @@ const AppRoles = (props) => {
             access={editAccess}
             editClicked={editClicked}
             role={editRole}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
 
@@ -247,7 +247,7 @@ const AppRoles = (props) => {
                     list={accountMetaData.response['app-roles']}
                     onEditClick={(key, value) => onEditClick(key, value)}
                     onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                    isIamSvcAccount
+                    isIamAzureSvcAccount
                   />
                 )}
               {(!accountMetaData.response['app-roles'] ||

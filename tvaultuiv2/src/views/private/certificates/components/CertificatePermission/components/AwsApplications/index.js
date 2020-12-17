@@ -70,7 +70,7 @@ const AwsApplications = (props) => {
 
   const isMobileScreen = useMediaQuery(small);
 
-  // on svc account meta data is available.
+  // on certificate meta data is available.
   useEffect(() => {
     setResponse({ status: responseStatus });
   }, [responseStatus]);
@@ -94,7 +94,7 @@ const AwsApplications = (props) => {
 
   /**
    * @function onDeleteClick
-   * @description function to delete the aws configuration from the svc account aws
+   * @description function to delete the aws configuration from the certificate aws
    * application list.
    * @param {role} string role of the aws configuration.
    * @param {access} string permission of the aws configuration.
@@ -121,7 +121,7 @@ const AwsApplications = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the aws configuration role to the svc account
+   * @description function to save the aws configuration role to the certificate
    * aws application list.
    * @param {data} object payload to call api.
    */
@@ -146,7 +146,7 @@ const AwsApplications = (props) => {
 
   /**
    * @function onSubmit
-   * @description function to save the aws configuration  to the svc account
+   * @description function to save the aws configuration  to the certificate
    * aws application list and then call the save of role to aws application list.
    * @param {data} object payload to call api.
    */
@@ -155,9 +155,9 @@ const AwsApplications = (props) => {
     onNewAwsChange();
     let url = '';
     if (data.auth_type === 'iam') {
-      url = '/serviceaccounts/aws/iam/role';
+      url = '/sslcert/aws/iam/role';
     } else {
-      url = '/serviceaccounts/aws/role';
+      url = '/sslcert/aws/role';
     }
     apiService
       .addAwsPermission(url, data)

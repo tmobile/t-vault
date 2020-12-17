@@ -68,7 +68,7 @@ const Users = (props) => {
   const [response, setResponse] = useState({ status: 'loading' });
   const isMobileScreen = useMediaQuery(small);
 
-  // on svc account meta data is available.
+  // on iam svc account meta data is available.
   useEffect(() => {
     if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
       if (Object.keys(accountMetaData?.response).length !== 0) {
@@ -88,7 +88,7 @@ const Users = (props) => {
 
   /**
    * @function onDeleteClick
-   * @description function to delete the user from the svc account users list.
+   * @description function to delete the user from the iam svc account users list.
    * @param {username} string username of the user.
    * @param {access} string permission of the user.
    */
@@ -119,7 +119,7 @@ const Users = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the user to the svc account users list.
+   * @description function to save the user to the iam svc account users list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {
@@ -210,7 +210,7 @@ const Users = (props) => {
    */
   const onEditClick = (key, value) => {
     if (value === 'write') {
-      setEditAccess('reset');
+      setEditAccess('rotate');
     } else {
       setEditAccess(value);
     }
@@ -229,7 +229,7 @@ const Users = (props) => {
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
             refresh={refresh}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'edit' && (
@@ -239,7 +239,7 @@ const Users = (props) => {
             username={editUser}
             access={editAccess}
             refresh={refresh}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'success' &&
@@ -250,7 +250,7 @@ const Users = (props) => {
                 userDetails?.length > 0 && (
                   <UserPermissionsList
                     list={accountMetaData.response.users}
-                    isIamSvcAccount
+                    isIamAzureSvcAccount
                     onEditClick={(key, value) => onEditClick(key, value)}
                     onDeleteClick={(key, value) => onDeleteClick(key, value)}
                     userDetails={userDetails}

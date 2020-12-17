@@ -74,12 +74,11 @@ const HeaderCenter = styled.div`
 
 const NavLink = styled(Link)`
   text-decoration: none;
-  margin: 0 0.5rem;
-  padding: 2.5rem 2rem;
-
+  padding: 2.5rem 1rem;
+  font-size: 1.3rem;
   font-weight: bold;
   background: ${(props) =>
-    props.active === 'true' ? props.theme.gradients.nav : 'none'};
+    props.active === 'true' ? props.theme.gradients.list : 'none'};
   :hover {
     text-decoration: none;
   }
@@ -102,7 +101,8 @@ const EachLink = styled.a`
   font-size: 1.4rem;
   display: flex;
   align-items: center;
-  text-decoration: ${(props) => props.decoration};
+  font-weight: bold;
+  text-decoration: underline;
   svg {
     margin-right: 0.5rem;
   }
@@ -134,10 +134,12 @@ const Header = (props) => {
     { label: 'Service Accounts', path: 'service-accounts' },
     { label: 'Certificates', path: 'certificates' },
     { label: 'IAM Service Accounts', path: 'iam-service-accounts' },
+    { label: 'Azure Principal', path: 'azure-principal' },
   ];
 
   const userPassNavItems = [
     { label: 'Safes', path: 'safes' },
+    { label: 'Vault AppRoles', path: 'vault-app-roles' },
     { label: 'Service Accounts', path: 'service-accounts' },
   ];
 
@@ -171,7 +173,7 @@ const Header = (props) => {
     } else {
       setIsLogin(true);
     }
-    const name = localStorage.getItem('displayName');
+    const name = localStorage.getItem('username');
     if (name !== null) {
       setUserName(`${name}` || 'User');
     }

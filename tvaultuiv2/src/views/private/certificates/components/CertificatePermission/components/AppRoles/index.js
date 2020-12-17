@@ -71,7 +71,7 @@ const AppRoles = (props) => {
 
   const isMobileScreen = useMediaQuery(small);
 
-  //  account meta data is available.
+  //  certificate meta data is available.
   useEffect(() => {
     setResponse({ status: responseStatus });
   }, [responseStatus]);
@@ -95,7 +95,7 @@ const AppRoles = (props) => {
 
   /**
    * @function onDeleteClick
-   * @description function to delete the app role from the svc account app role list.
+   * @description function to delete the app role from the certificate app role list.
    * @param {role} string app role name.
    * @param {access} string permission of the app role.
    */
@@ -121,7 +121,7 @@ const AppRoles = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the app rolr to the svc account app role list.
+   * @description function to save the app rolr to the certificate app role list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {

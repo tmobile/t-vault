@@ -84,6 +84,7 @@ const AddAwsApplication = (props) => {
     handleCancelClick,
     isSvcAccount,
     isCertificate,
+    isIamAzureSvcAccount,
   } = props;
   const [awsAuthenticationType, setAwsAuthenticationType] = useState('ec2');
   const [roleName, setRoleName] = useState('');
@@ -94,6 +95,7 @@ const AddAwsApplication = (props) => {
   const [disabledSave, setDisabledSave] = useState(true);
   const [principalError, setPrincipalError] = useState(false);
   const [count, setCount] = useState(0);
+  const [radioArray, setRadioArray] = useState([]);
 
   const initialState = {
     vpcId: '',
@@ -211,6 +213,18 @@ const AddAwsApplication = (props) => {
       setPrincipalError(false);
     }
   };
+
+  useEffect(() => {
+    if (isIamAzureSvcAccount) {
+      setRadioArray(['read', 'rotate', 'deny']);
+    } else if (isCertificate) {
+      setRadioArray(['read', 'deny']);
+    } else if (isSvcAccount) {
+      setRadioArray(['read', 'reset', 'deny']);
+    } else {
+      setRadioArray(['read', 'write', 'deny']);
+    }
+  }, [isIamAzureSvcAccount, isSvcAccount, isCertificate]);
 
   return (
     <ComponentError>
@@ -374,13 +388,7 @@ const AddAwsApplication = (props) => {
             <RequiredCircle margin="0.5rem" />
           </InputLabel>
           <RadioButtonComponent
-            menu={
-              isSvcAccount
-                ? ['read', 'reset', 'deny']
-                : isCertificate
-                ? ['read', 'deny']
-                : ['read', 'write', 'deny']
-            }
+            menu={radioArray}
             handleChange={(e) => setRadioValue(e.target.value)}
             value={radioValue}
           />
@@ -410,10 +418,12 @@ AddAwsApplication.propTypes = {
   handleSaveClick: PropTypes.func.isRequired,
   isSvcAccount: PropTypes.bool,
   isCertificate: PropTypes.bool,
+  isIamAzureSvcAccount: PropTypes.bool,
 };
 
 AddAwsApplication.defaultProps = {
   isSvcAccount: false,
   isCertificate: false,
+  isIamAzureSvcAccount: false,
 };
 export default AddAwsApplication;

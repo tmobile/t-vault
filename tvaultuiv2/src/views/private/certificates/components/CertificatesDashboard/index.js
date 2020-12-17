@@ -29,7 +29,6 @@ import CertificateItemDetail from '../CertificateItemDetail';
 import apiService from '../../apiService';
 import EditCertificate from '../EditCertificate';
 import TransferCertificate from '../TransferCertificateOwner';
-import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import CreateCertificates from '../../CreateCertificates';
 import LeftColumn from './components/LeftColumn';
 import { useStateValue } from '../../../../../contexts/globalState';
@@ -166,15 +165,7 @@ const CertificatesDashboard = () => {
   const [listItemDetails, setListItemDetails] = useState({});
   const [certificateData, setCertificateData] = useState({});
   const [openTransferModal, setOpenTransferModal] = useState(false);
-  const [openDeleteConfirmation, setOpenDeleteConfirmation] = useState(false);
-  const [deleteResponse, setDeleteResponse] = useState(false);
-  const [deleteError, setDeleteError] = useState(false);
-  const [deleteConfirmClicked, setDeleteConfirmClicked] = useState(false);
   const [openReleaseModal, setOpenReleaseModal] = useState(false);
-  const [deleteModalDetail, setDeleteModalDetail] = useState({
-    title: '',
-    description: '',
-  });
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
   const [openOnboardModal, setOpenOnboardModal] = useState(false);
@@ -577,73 +568,6 @@ const CertificatesDashboard = () => {
   };
 
   /**
-   * @function onDeleteCertificateClicked
-   * @description function to open the delete modal.
-   * @param {object} data .
-   */
-  const onDeleteCertificateClicked = (data) => {
-    setCertificateData(data);
-    setOpenDeleteConfirmation(true);
-    setDeleteModalDetail({
-      title: 'Confirmation',
-      description: 'Are you sure you want to delete this certificate?',
-    });
-  };
-
-  /**
-   * @function handleDeleteConfirmationModalClose
-   * @description function to close the delete modal and if
-   * deletion completed successfully the call the api to fetch all certificates.
-   */
-  const handleDeleteConfirmationModalClose = () => {
-    setDeleteResponse(false);
-    setOpenDeleteConfirmation(false);
-    if (!deleteError && deleteConfirmClicked) {
-      setDeleteConfirmClicked(false);
-      onCloseAllModal(true);
-    }
-  };
-
-  /**
-   * @function onCertificateDeleteConfirm
-   * @description function to perform the delete of certificate.
-   */
-  const onCertificateDeleteConfirm = () => {
-    setResponse({ status: 'loading' });
-    setOpenDeleteConfirmation(false);
-    setDeleteConfirmClicked(true);
-    apiService
-      .deleteCertificate(
-        certificateData.certificateName,
-        `${certificateData.certType}`
-      )
-      .then((res) => {
-        if (res?.data?.messages && res.data.messages[0]) {
-          setDeleteModalDetail({
-            title: 'Successfull',
-            description: res.data.messages[0],
-          });
-        }
-        setOpenDeleteConfirmation(true);
-        setResponse({ status: 'success' });
-        setDeleteError(false);
-        setDeleteResponse(true);
-      })
-      .catch((err) => {
-        if (err?.response?.data?.errors && err.response.data.errors[0]) {
-          setDeleteModalDetail({
-            title: 'Error',
-            description: err.response.data.errors[0],
-          });
-        }
-        setDeleteError(true);
-        setOpenDeleteConfirmation(true);
-        setResponse({ status: 'success' });
-        setDeleteResponse(true);
-      });
-  };
-
-  /**
    * @function onReleaseClicked
    * @description function to open released modal when released certificate is clicked.
    */
@@ -721,7 +645,6 @@ const CertificatesDashboard = () => {
       <LeftColumn
         onLinkClicked={(cert) => onLinkClicked(cert)}
         onEditListItemClicked={(cert) => onEditListItemClicked(cert)}
-        onDeleteCertificateClicked={(cert) => onDeleteCertificateClicked(cert)}
         onTransferOwnerClicked={(cert) => onTransferOwnerClicked(cert)}
         onReleaseClicked={(cert) => onReleaseClicked(cert)}
         onOnboardClicked={(cert) => onOnboardClicked(cert)}
@@ -748,17 +671,6 @@ const CertificatesDashboard = () => {
               open={openReleaseModal}
               onCloseModal={(action) => onCloseAllModal(action)}
               onReleaseSubmitClicked={(data) => onReleaseSubmitClicked(data)}
-            />
-          )}
-          {openDeleteConfirmation && (
-            <DeletionConfirmationModal
-              openDeleteConfirmation={openDeleteConfirmation}
-              handleDeleteConfirmationModalClose={
-                handleDeleteConfirmationModalClose
-              }
-              onCertificateDeleteConfirm={onCertificateDeleteConfirm}
-              deleteResponse={deleteResponse}
-              deleteModalDetail={deleteModalDetail}
             />
           )}
           {openOnboardModal && (
