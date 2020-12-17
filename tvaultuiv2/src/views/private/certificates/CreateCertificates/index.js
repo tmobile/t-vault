@@ -473,7 +473,7 @@ const CreateCertificates = (props) => {
           setResponseType(null);
           if (res.data.messages && res.data.messages[0]) {
             setOpenConfirmationModal(true);
-            setResponseTitle('Successfull');
+            setResponseTitle('Successful');
             setResponseDesc(res.data.messages[0]);
             await refresh();
           }
