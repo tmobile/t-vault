@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { debounce } from 'lodash';
@@ -29,6 +30,7 @@ import {
   GlobalModalWrapper,
   RequiredWrap,
 } from '../../../../styles/GlobalStyles';
+import TransferSafeOwner from '../components/TransferSafeOwner';
 
 const { small } = mediaBreakpoints;
 
@@ -163,6 +165,7 @@ const CreateModal = (props) => {
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
   const [autoLoader, setAutoLoader] = useState(false);
+  const [openModal, setOpenModal] = useState({ status: 'edit' });
   const [options, setOptions] = useState([]);
   const isMobileScreen = useMediaQuery(small);
   const [helperText] = useState('');
@@ -214,8 +217,10 @@ const CreateModal = (props) => {
   const [menu] = useState(['Users Safe', 'Shared Safe', 'Application Safe']);
 
   const handleClose = () => {
-    setOpen(false);
-    history.goBack();
+    if (responseType !== 0) {
+      setOpen(false);
+      history.goBack();
+    }
   };
 
   useEffect(() => {
@@ -311,7 +316,7 @@ const CreateModal = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response && err.response.data?.errors[0]) {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setToastMessage(err.response.data.errors[0]);
         }
         setResponseType(-1);
@@ -396,6 +401,30 @@ const CreateModal = (props) => {
     }
   };
 
+  const onTransferCancelClicked = () => {
+    setOpenModal({ status: 'edit' });
+  };
+
+  const onTransferOwnerConfirmationClicked = (payload) => {
+    setResponseType(0);
+    apiService
+      .transferSafeOwner(payload)
+      .then(() => {
+        setResponseType(1);
+        setToastMessage('Safe Transfer successfully!');
+        setTimeout(() => {
+          setOpen(false);
+          history.goBack();
+        }, 1000);
+      })
+      .catch((err) => {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+          setToastMessage(err.response.data.errors[0]);
+        }
+        setResponseType(-1);
+      });
+  };
+
   return (
     <ComponentError>
       <Modal
@@ -413,125 +442,162 @@ const CreateModal = (props) => {
         <Fade in={open}>
           <GlobalModalWrapper>
             {responseType === 0 && <BackdropLoader customStyle={loaderStyle} />}
-            <HeaderWrapper>
-              <LeftIcon
-                src={leftArrowIcon}
-                alt="go-back"
-                onClick={() => handleClose()}
+            {openModal.status === 'edit' && (
+              <>
+                <HeaderWrapper>
+                  <LeftIcon
+                    src={leftArrowIcon}
+                    alt="go-back"
+                    onClick={() => handleClose()}
+                  />
+                  {editSafe ? (
+                    <Typography variant="h5">Edit Safe</Typography>
+                  ) : (
+                    <Typography variant="h5">Create Safe</Typography>
+                  )}
+                </HeaderWrapper>
+                <IconDescriptionWrapper>
+                  <SafeIcon src={safeIcon} alt="safe-icon" />
+                  <TitleThree
+                    lineHeight="1.8rem"
+                    extraCss={extraCss}
+                    color="#ccc"
+                  >
+                    A Safe is a logical unit to store the secrets. All the safes
+                    are created within Vault. You can control access only at the
+                    safe level. As a vault administrator you can manage safes
+                    but cannot view the content of the safe.
+                  </TitleThree>
+                </IconDescriptionWrapper>
+                <CreateSafeForm>
+                  <InputFieldLabelWrapper>
+                    <LabelRequired>
+                      <InputLabel>
+                        Safe Name
+                        <RequiredCircle margin="0.5rem" />
+                      </InputLabel>
+                      <RequiredWrap>
+                        <RequiredCircle />
+                        <RequiredText>Required</RequiredText>
+                      </RequiredWrap>
+                    </LabelRequired>
+                    <TextFieldComponent
+                      value={name}
+                      placeholder="Safe Name- Enter min 3 characters"
+                      fullWidth
+                      characterLimit={50}
+                      readOnly={!!editSafe}
+                      name="name"
+                      onChange={(e) => onSafeNameChange(e.target.value)}
+                      error={safeError}
+                      helperText={
+                        safeError
+                          ? 'Safe name can have alphabets, numbers, dot, hyphen and underscore only, and it should not start or end with any special characters!'
+                          : ''
+                      }
+                    />
+                  </InputFieldLabelWrapper>
+                  <InputFieldLabelWrapper postion>
+                    <InputLabel>
+                      Owner
+                      <RequiredCircle margin="0.5rem" />
+                    </InputLabel>
+                    <AutoCompleteComponent
+                      options={options}
+                      classes={classes}
+                      searchValue={owner}
+                      name="owner"
+                      onSelected={(e, val) => onSelected(e, val)}
+                      onChange={(e) => onOwnerChange(e)}
+                      placeholder="Email address- Enter min 3 characters"
+                      error={
+                        emailError ||
+                        (!isValidEmail && safeDetails.owner !== owner)
+                      }
+                      onInputBlur={(e) => onInputBlur(e)}
+                      helperText={
+                        (!isValidEmail && safeDetails.owner !== owner) ||
+                        emailError
+                          ? 'Please enter a valid email address or not available!'
+                          : ''
+                      }
+                    />
+                    {autoLoader && (
+                      <LoaderSpinner customStyle={autoLoaderStyle} />
+                    )}
+                  </InputFieldLabelWrapper>
+                  <InputFieldLabelWrapper>
+                    <InputLabel>
+                      Type of Safe
+                      <RequiredCircle margin="0.5rem" />
+                    </InputLabel>
+                    <SelectComponent
+                      menu={menu}
+                      value={safeType}
+                      classes={classes}
+                      readOnly={!!editSafe}
+                      onChange={(e) => setSafeType(e.target.value)}
+                      helperText={helperText}
+                    />
+                  </InputFieldLabelWrapper>
+                  <InputFieldLabelWrapper>
+                    <InputLabel>
+                      Description
+                      <RequiredCircle margin="0.5rem" />
+                    </InputLabel>
+                    <TextFieldComponent
+                      multiline
+                      value={description}
+                      fullWidth
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Add some details about this safe"
+                    />
+                    <FieldInstruction>
+                      Please add a minimum of 10 characters
+                    </FieldInstruction>
+                  </InputFieldLabelWrapper>
+                </CreateSafeForm>
+                <CancelSaveWrapper>
+                  <CancelButton>
+                    <ButtonComponent
+                      label="Cancel"
+                      color="primary"
+                      onClick={() => handleClose()}
+                      width={isMobileScreen ? '100%' : ''}
+                    />
+                  </CancelButton>
+                  {editSafe && (
+                    <CancelButton>
+                      <ButtonComponent
+                        label="Transfer"
+                        color="secondary"
+                        onClick={() => setOpenModal({ status: 'transfer' })}
+                        width={isMobileScreen ? '100%' : ''}
+                      />
+                    </CancelButton>
+                  )}
+                  <ButtonComponent
+                    label={!editSafe ? 'Create' : 'Edit'}
+                    color="secondary"
+                    icon={!editSafe ? 'add' : ''}
+                    disabled={disabledSave}
+                    onClick={() =>
+                      !editSafe ? onCreateSafes() : onEditSafes()
+                    }
+                    width={isMobileScreen ? '100%' : ''}
+                  />
+                </CancelSaveWrapper>
+              </>
+            )}
+            {openModal.status === 'transfer' && (
+              <TransferSafeOwner
+                onTransferCancelClicked={() => onTransferCancelClicked()}
+                transferData={safeDetails}
+                onTransferOwnerConfirmationClicked={(data) =>
+                  onTransferOwnerConfirmationClicked(data)
+                }
               />
-              <Typography variant="h5">Create Safe</Typography>
-            </HeaderWrapper>
-            <IconDescriptionWrapper>
-              <SafeIcon src={safeIcon} alt="safe-icon" />
-              <TitleThree lineHeight="1.8rem" extraCss={extraCss} color="#ccc">
-                A Safe is a logical unit to store the secrets. All the safes are
-                created within Vault. You can control access only at the safe
-                level. As a vault administrator you can manage safes but cannot
-                view the content of the safe.
-              </TitleThree>
-            </IconDescriptionWrapper>
-            <CreateSafeForm>
-              <InputFieldLabelWrapper>
-                <LabelRequired>
-                  <InputLabel>
-                    Safe Name
-                    <RequiredCircle margin="0.5rem" />
-                  </InputLabel>
-                  <RequiredWrap>
-                    <RequiredCircle />
-                    <RequiredText>Required</RequiredText>
-                  </RequiredWrap>
-                </LabelRequired>
-                <TextFieldComponent
-                  value={name}
-                  placeholder="Safe Name- Enter min 3 characters"
-                  fullWidth
-                  characterLimit={50}
-                  readOnly={!!editSafe}
-                  name="name"
-                  onChange={(e) => onSafeNameChange(e.target.value)}
-                  error={safeError}
-                  helperText={
-                    safeError
-                      ? 'Safe name can have alphabets, numbers, dot, hyphen and underscore only, and it should not start or end with any special characters!'
-                      : ''
-                  }
-                />
-              </InputFieldLabelWrapper>
-              <InputFieldLabelWrapper postion>
-                <InputLabel>
-                  Owner
-                  <RequiredCircle margin="0.5rem" />
-                </InputLabel>
-                <AutoCompleteComponent
-                  options={options}
-                  classes={classes}
-                  searchValue={owner}
-                  name="owner"
-                  onSelected={(e, val) => onSelected(e, val)}
-                  onChange={(e) => onOwnerChange(e)}
-                  placeholder="Email address- Enter min 3 characters"
-                  error={
-                    emailError || (!isValidEmail && safeDetails.owner !== owner)
-                  }
-                  onInputBlur={(e) => onInputBlur(e)}
-                  helperText={
-                    (!isValidEmail && safeDetails.owner !== owner) || emailError
-                      ? 'Please enter a valid email address or not available!'
-                      : ''
-                  }
-                />
-                {autoLoader && <LoaderSpinner customStyle={autoLoaderStyle} />}
-              </InputFieldLabelWrapper>
-              <InputFieldLabelWrapper>
-                <InputLabel>
-                  Type of Safe
-                  <RequiredCircle margin="0.5rem" />
-                </InputLabel>
-                <SelectComponent
-                  menu={menu}
-                  value={safeType}
-                  classes={classes}
-                  readOnly={!!editSafe}
-                  onChange={(e) => setSafeType(e.target.value)}
-                  helperText={helperText}
-                />
-              </InputFieldLabelWrapper>
-              <InputFieldLabelWrapper>
-                <InputLabel>
-                  Description
-                  <RequiredCircle margin="0.5rem" />
-                </InputLabel>
-                <TextFieldComponent
-                  multiline
-                  value={description}
-                  fullWidth
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Add some details about this safe"
-                />
-                <FieldInstruction>
-                  Please add a minimum of 10 characters
-                </FieldInstruction>
-              </InputFieldLabelWrapper>
-            </CreateSafeForm>
-            <CancelSaveWrapper>
-              <CancelButton>
-                <ButtonComponent
-                  label="Cancel"
-                  color="primary"
-                  onClick={() => handleClose()}
-                  width={isMobileScreen ? '100%' : ''}
-                />
-              </CancelButton>
-              <ButtonComponent
-                label={!editSafe ? 'Create' : 'Edit'}
-                color="secondary"
-                icon={!editSafe ? 'add' : ''}
-                disabled={disabledSave}
-                onClick={() => (!editSafe ? onCreateSafes() : onEditSafes())}
-                width={isMobileScreen ? '100%' : ''}
-              />
-            </CancelSaveWrapper>
+            )}
             {responseType === -1 && (
               <SnackbarComponent
                 open
