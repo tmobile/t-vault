@@ -35,7 +35,6 @@ import org.springframework.ldap.transaction.compensating.manager.TransactionAwar
 
 @Configuration
 @PropertySource("classpath:application.properties")
-@PropertySource("classpath:application1.properties")
 @ComponentScan(basePackages = {"com.tmobile.cso.vault.api.*"})
 @EnableLdapRepositories(basePackages = "com.tmobile.cso.vault.api.**")
 public class ServiceAccountsConfiguration {
