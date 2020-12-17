@@ -99,7 +99,7 @@ public class AzureServiceAccountUtils {
      * To get response from rotate api.
      *
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
     public AzureServiceAccountSecret rotateAzureServicePrincipalSecret(AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest) throws IOException  {
         String iamApproleToken = iamServiceAccountUtils.getIAMApproleToken();
@@ -161,7 +161,7 @@ public class AzureServiceAccountUtils {
         }
 
 
-        StringBuilder jsonResponse = new StringBuilder();        
+        StringBuilder jsonResponse = new StringBuilder();
         try {
             HttpResponse apiResponse = httpClient.execute(httpPut);
             if (apiResponse.getStatusLine().getStatusCode() != 200) {
@@ -208,7 +208,7 @@ public class AzureServiceAccountUtils {
 	 * @param apiResponse
 	 * @param total
 	 */
-	private void readFailedResponseContent(HttpResponse apiResponse, StringBuilder total) {		
+	private void readFailedResponseContent(HttpResponse apiResponse, StringBuilder total) {
 		try(BufferedReader r = new BufferedReader(new InputStreamReader(apiResponse.getEntity().getContent()))) {
 			String line = null;
 			while ((line = r.readLine()) != null) {
