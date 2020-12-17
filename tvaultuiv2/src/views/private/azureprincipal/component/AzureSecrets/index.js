@@ -159,6 +159,7 @@ const AzureSecrets = (props) => {
 
   useEffect(() => {
     if (
+      azureSecretData &&
       Object.keys(azureSecretData).length > 0 &&
       secretResponse.status !== 'error'
     ) {
