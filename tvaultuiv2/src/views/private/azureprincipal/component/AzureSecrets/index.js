@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import PropTypes from 'prop-types';
@@ -10,7 +10,6 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import ReportProblemOutlinedIcon from '@material-ui/icons/ReportProblemOutlined';
-import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 import Loader from '../../../../../components/Loaders/LoaderSpinner';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import apiService from '../../apiService';
@@ -27,7 +26,6 @@ import {
 import PopperElement from '../../../../../components/Popper';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import Error from '../../../../../components/Error';
-import Folder from '../../../iam-service-accounts/components/Folder';
 import Strings from '../../../../../resources';
 
 const UserList = styled.div`
@@ -125,12 +123,11 @@ const AzureSecrets = (props) => {
   const [showSecret, setShowSecret] = useState(false);
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
-  const [secretsDataLoader, setSecretsDataLoader] = useState(false);
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const [modalDetail, setModalDetail] = useState({ title: '', desc: '' });
   const [activateAction, setActivateAction] = useState({
     action: false,
-    response: true,
+    response: false,
   });
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
 
@@ -139,23 +136,37 @@ const AzureSecrets = (props) => {
    * @param {string} folderName
    * @description function to call the secret details api , which fetch the secrets details
    */
-  const onViewSecretDetails = (folderName) => {
-    setSecretsDataLoader(true);
+  const onViewSecretDetails = useCallback(() => {
     setSecretsData({});
-    apiService
-      .getSecretFolderData(`${azureDetail.name}/${folderName}`)
+    setResponse({ status: 'loading' });
+    setShowSecret(false);
+    return apiService
+      .getSecretFolderData(
+        `${azureSecretData?.servicePrincipalName}/${azureSecretData?.folders[0]}`
+      )
       .then((res) => {
-        setSecretsDataLoader(false);
         setSecretsData(res?.data);
+        setResponse({ status: 'success' });
       })
       .catch((err) => {
         if (err.response.data.errors && err.response.data.errors[0]) {
           setToastMessage(err.response.data.errors[0]);
         }
-        setSecretsDataLoader(false);
+        setResponse({ status: 'error' });
         setResponseType(-1);
       });
-  };
+  }, [azureSecretData]);
+
+  useEffect(() => {
+    if (
+      azureSecretData &&
+      Object.keys(azureSecretData).length > 0 &&
+      secretResponse.status !== 'error'
+    ) {
+      onViewSecretDetails();
+    }
+    // eslint-disable-next-line
+  }, [azureSecretData, onViewSecretDetails]);
 
   useEffect(() => {
     setResponse(secretResponse);
@@ -197,12 +208,12 @@ const AzureSecrets = (props) => {
     };
     apiService
       .rotateSecret(payload)
-      .then((res) => {
-        setResponse({ status: 'success' });
+      .then(async (res) => {
         setResponseType(1);
         if (res.data.messages && res.data.messages[0]) {
           setToastMessage(res.data.messages[0]);
         }
+        await onViewSecretDetails();
       })
       .catch((err) => {
         setResponse({ status: 'success' });
@@ -289,81 +300,66 @@ const AzureSecrets = (props) => {
           }
         />
         {response.status === 'loading' && <Loader customStyle={customStyle} />}
+        {response.status === 'success' && (
+          <>
+            {Object.keys(secretsData).length > 0 && (
+              <UserList>
+                <Icon src={lock} alt="lock" />
+                <Span>{secretsData.secretKeyId}</Span>
+                <Secret type="password" viewSecret={showSecret}>
+                  {secretsData.secretText}
+                </Secret>
 
-        {secretsDataLoader && <BackdropLoader />}
+                <FolderIconWrap>
+                  <PopperElement
+                    anchorOrigin={{
+                      vertical: 'bottom',
+                      horizontal: 'right',
+                    }}
+                    transformOrigin={{
+                      vertical: 'top',
+                      horizontal: 'right',
+                    }}
+                  >
+                    <PopperItem onClick={() => setShowSecret(!showSecret)}>
+                      {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      <span>{showSecret ? 'Hide Secret' : 'View Secret'}</span>
+                    </PopperItem>
 
-        {response.status === 'success' &&
-          azureSecretData?.folders?.length > 0 &&
-          azureSecretData?.folders.map((secret) => (
-            <Folder
-              key={secret}
-              labelValue={secret}
-              onClick={() => onViewSecretDetails(secret)}
-            >
-              {Object.keys(secretsData).length > 0 && !secretsDataLoader && (
-                <UserList>
-                  <Icon src={lock} alt="lock" />
-                  <Span>{secretsData.secretKeyId}</Span>
-                  <Secret type="password" viewSecret={showSecret}>
-                    {secretsData.secretText}
-                  </Secret>
-
-                  <FolderIconWrap>
-                    <PopperElement
-                      anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'right',
-                      }}
-                      transformOrigin={{
-                        vertical: 'top',
-                        horizontal: 'right',
-                      }}
-                    >
-                      <PopperItem onClick={() => setShowSecret(!showSecret)}>
-                        {showSecret ? (
-                          <VisibilityOffIcon />
-                        ) : (
-                          <VisibilityIcon />
-                        )}
-                        <span>
-                          {showSecret ? 'Hide Secret' : 'View Secret'}
-                        </span>
+                    {azureDetail.access === 'write' && (
+                      <PopperItem onClick={() => onRotateSecret()}>
+                        <img alt="refersh-ic" src={refreshIcon} />
+                        <span>Rotate Secret</span>
                       </PopperItem>
-
-                      {azureDetail.access === 'write' && (
-                        <PopperItem onClick={() => onRotateSecret()}>
-                          <img alt="refersh-ic" src={refreshIcon} />
-                          <span>Rotate Secret</span>
-                        </PopperItem>
-                      )}
-                      <CopyToClipboard
-                        text={secretsData.secretKeyId}
-                        onCopy={() =>
-                          onCopyClicked('Secret key is copied to clipboard!')
-                        }
-                      >
-                        <PopperItem>
-                          <FileCopyIcon />
-                          <span>Copy Secret Key</span>
-                        </PopperItem>
-                      </CopyToClipboard>
-                      <CopyToClipboard
-                        text={secretsData.secretText}
-                        onCopy={() =>
-                          onCopyClicked('Password is copied to clipboard!')
-                        }
-                      >
-                        <PopperItem>
-                          <FileCopyIcon />
-                          <span>Copy Password</span>
-                        </PopperItem>
-                      </CopyToClipboard>
-                    </PopperElement>
-                  </FolderIconWrap>
-                </UserList>
-              )}
-            </Folder>
-          ))}
+                    )}
+                    <CopyToClipboard
+                      text={secretsData.secretKeyId}
+                      onCopy={() =>
+                        onCopyClicked('Secret key is copied to clipboard!')
+                      }
+                    >
+                      <PopperItem>
+                        <FileCopyIcon />
+                        <span>Copy Secret Key</span>
+                      </PopperItem>
+                    </CopyToClipboard>
+                    <CopyToClipboard
+                      text={secretsData.secretText}
+                      onCopy={() =>
+                        onCopyClicked('Password is copied to clipboard!')
+                      }
+                    >
+                      <PopperItem>
+                        <FileCopyIcon />
+                        <span>Copy Password</span>
+                      </PopperItem>
+                    </CopyToClipboard>
+                  </PopperElement>
+                </FolderIconWrap>
+              </UserList>
+            )}
+          </>
+        )}
         {response.status === 'error' && (
           <Error description={response.message || 'Something went wrong!'} />
         )}

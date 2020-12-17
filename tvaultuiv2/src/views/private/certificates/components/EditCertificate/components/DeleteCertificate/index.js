@@ -42,7 +42,7 @@ const DeleteCertificate = (props) => {
       .then((res) => {
         if (res?.data?.messages && res.data.messages[0]) {
           setDeleteModalDetail({
-            title: 'Deletion Successfull',
+            title: 'Deletion Successful',
             desc: res.data.messages[0],
           });
         }

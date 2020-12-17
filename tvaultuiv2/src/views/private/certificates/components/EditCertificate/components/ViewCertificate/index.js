@@ -413,7 +413,7 @@ const ViewCertificate = (props) => {
     const obj = notificationEmailList.find(
       (item) => item.toLowerCase() === notifyEmail.toLowerCase()
     );
-    if (!notifyEmailError && isValidNotifyEmail) {
+    if (!notifyEmailError && isValidNotifyEmail && notifyEmail !== '') {
       if (!obj) {
         setNotificationEmailList((prev) => [...prev, notifyEmail]);
         setNotifyEmail('');

@@ -256,7 +256,7 @@ const ViewIamServiceAccount = (props) => {
           <SnackbarComponent
             open
             onClose={() => onToastClose()}
-            message={status?.message || 'Request Successfull!'}
+            message={status?.message || 'Request Successful!'}
           />
         )}
       </>
