@@ -313,7 +313,7 @@ public class SSLCertificateController {
 	 * @param certificateType
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.transferCertificateOwner.value}", notes = "${SSLCertificateController.transferCertificateOwner.notes}", hidden = true)
+	@ApiOperation(value = "${SSLCertificateController.transferCertificateOwner.value}", notes = "${SSLCertificateController.transferCertificateOwner.notes}", hidden = false)
 	@PutMapping(value = "/v2/sslcert/{certType}/{certName}/{certOwnerEmailId}/transferowner", produces = "application/json")
 	public ResponseEntity<String> transferCertOwner(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,  @PathVariable("certType") String certType, @PathVariable("certName") String certName,@PathVariable("certOwnerEmailId") String certOwnerEmailId) throws Exception {
