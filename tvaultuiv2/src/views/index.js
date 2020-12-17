@@ -102,9 +102,10 @@ const PrivateRoutes = () => {
 
   const callRenewApi = async () => {
     try {
-      setEndTime(new Date(new Date().getTime() + 3 * 60 * 1000));
+     
       setTimeWhenLoggedIn(new Date().getTime());
-
+      setEndTime(new Date(new Date().getTime() + 3 * 60 * 1000));
+  
       return await renewToken();
     } catch (err) {
       return loggedOut();
@@ -119,35 +120,31 @@ const PrivateRoutes = () => {
         document.title = 'VAULT';
         timer.cancelCountdown();
         console.log(isCalled);
-        setTimeout(async ()=> {
-          if(isCalled)isCalled=false;
-        else 
-          {isCalled = true;console.log('called');await callRenewApi();}
-        },0);
-        
+        await callRenewApi();
       }
     }
   };
 
   const handleOnAction = async () => {
     if (window.location.pathname !== '/') {
-      console.log('object');
-      const diff = Math.abs(timeWhenLoggedIn - getLastActiveTime());
+     
+      const lastActive = getLastActiveTime();
+      const lastIdle = getLastIdleTime();
+      const remain = getRemainingTime() ;
+      const nw= Date.now();
+      const diffBetweenLastIdle= (lastActive -lastIdle)/60000;
+
+      const diff = Math.abs(timeWhenLoggedIn - lastActive);
       const minutes = diff / 60000;
       if (configData.AUTH_TYPE !== 'oidc' && minutes > 30) {
         loggedOut();
-      } else if (configData.AUTH_TYPE === 'oidc' && minutes > 1) {
-        console.log(endTime);
-        
-        console.log(isCalled);
-        if(!isCalled)
-          {await callRenewApi();console.log('called again');}
-        else isCalled =true;
+      } else if (configData.AUTH_TYPE === 'oidc' && minutes > 1 && diffBetweenLastIdle >3) {
+        await callRenewApi();
       }
     }
   };
 
-  const { getRemainingTime, getLastActiveTime } = useIdleTimer({
+  const { getRemainingTime, getLastActiveTime, getLastIdleTime } = useIdleTimer({
     timeout: idleTimer,
     onIdle: handleOnIdle,
     onActive: handleOnActive,
