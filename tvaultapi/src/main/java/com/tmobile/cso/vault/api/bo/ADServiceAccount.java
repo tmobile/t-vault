@@ -14,7 +14,7 @@
 // limitations under the License.
 // See the readme.txt file for additional language around disclaimer of warranties.
 // =========================================================================
-package com.tmobile.cso.vault.api.model;
+package com.tmobile.cso.vault.api.bo;
 
 import java.io.Serializable;
 import java.text.DateFormat;
@@ -33,6 +33,8 @@ import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.model.ADUserAccount;
+
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.util.StringUtils;
 
