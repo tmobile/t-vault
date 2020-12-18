@@ -440,7 +440,7 @@ const ViewCertificate = (props) => {
   };
 
   const onNotifyEmailChange = (e) => {
-    if (e) {
+    if (e && e.target.value) {
       setNotifyEmail(e?.target?.value);
       if (e.target.value && e.target.value?.length > 2) {
         callNotifySearchApi(e.target.value);
@@ -453,6 +453,8 @@ const ViewCertificate = (props) => {
           );
         }
       }
+    } else {
+      setNotifyEmail('');
     }
   };
   const onRemoveEmailsClicked = (email) => {

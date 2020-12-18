@@ -564,8 +564,8 @@ const CreateCertificates = (props) => {
   );
 
   const onNotifyEmailChange = (e) => {
-    if (e) {
-      setNotifyEmail(e?.target?.value);
+    if (e && e.target && e.target.value) {
+      setNotifyEmail(e.target.value);
       if (e.target.value && e.target.value?.length > 2) {
         callSearchApi(e.target.value);
         if (validateEmail(notifyEmail)) {
@@ -577,6 +577,8 @@ const CreateCertificates = (props) => {
           );
         }
       }
+    } else {
+      setNotifyEmail('');
     }
   };
 
