@@ -44,7 +44,7 @@ const SafeDetailHeader = (props) => {
     <ColumnHeader>
       <HeaderBg bgImage={bgImage} />
       <div className="safe-title-wrap">
-        {!isMobileScreen && <SafeTitle>{title || 'No Safe'}</SafeTitle>}
+        {!isMobileScreen && <SafeTitle>{title || 'No Title'}</SafeTitle>}
         <TitleFour color="#c4c4c4">
           {description ||
             'Create a Safe to see your secrets, folders and permissions here'}
