@@ -447,7 +447,7 @@ const ServiceAccountDashboard = () => {
 
   /**
    * @function handleSuccessfullConfirmation
-   * @description function to handle the deletion successfull modal.
+   * @description function to handle the deletion successful modal.
    */
   const handleSuccessfullConfirmation = () => {
     setOffBoardSvcAccountConfirmation(false);

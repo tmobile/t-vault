@@ -150,7 +150,6 @@ const AzureSelectionTabs = (props) => {
         apiService
           .getAzureSecrets(azureDetail.name)
           .then((res) => {
-            setSecretResponse({ status: 'success' });
             if (res?.data) {
               setAzureSecretData(res.data);
             }

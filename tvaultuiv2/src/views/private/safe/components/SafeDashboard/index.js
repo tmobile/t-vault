@@ -583,9 +583,8 @@ const SafeDashboard = () => {
             {response.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
-            {response.status === 'failed' && !safeList?.length && (
+            {response.status === 'failed' && (
               <EmptySecretBox>
-                {' '}
                 <Error description="Error while fetching safes!" />
               </EmptySecretBox>
             )}

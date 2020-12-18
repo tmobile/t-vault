@@ -176,7 +176,7 @@ const EditCertificate = (props) => {
       .then((res) => {
         if (res?.data?.messages && res.data.messages[0]) {
           setModalDetail({
-            title: 'Successfull',
+            title: 'Successful',
             description: res.data.messages[0],
           });
         }
@@ -303,7 +303,7 @@ const EditCertificate = (props) => {
       .then((res) => {
         if (res?.data?.messages && res.data.messages[0]) {
           setModalDetail({
-            title: 'Successfull',
+            title: 'Successful',
             description: res.data.messages[0],
           });
         }
