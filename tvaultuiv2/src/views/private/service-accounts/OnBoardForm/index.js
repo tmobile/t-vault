@@ -695,10 +695,10 @@ const OnBoardForm = (props) => {
           title={
             // eslint-disable-next-line no-nested-ternary
             svcPasswordDetails
-              ? 'Activation Successfull'
+              ? 'Activation Successful'
               : history?.location?.pathname.includes('/edit-service-accounts')
-              ? 'Update Successfull'
-              : 'Onboarding Successfull'
+              ? 'Update Successful'
+              : 'Onboarding Successful'
           }
           description={
             // eslint-disable-next-line no-nested-ternary
@@ -1054,7 +1054,7 @@ const OnBoardForm = (props) => {
           <SnackbarComponent
             open
             onClose={() => onToastClose()}
-            message={status.message || 'Request Successfull'}
+            message={status.message || 'Request Successful'}
           />
         )}
       </div>

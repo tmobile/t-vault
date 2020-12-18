@@ -37,6 +37,10 @@ const modifySecret = (params, payload) =>
 const getSecret = (params) =>
   api.get(`/safes/folders/secrets?path=${params}&fetchOption=all`);
 
+const getOwnerTransferEmail = (value) =>
+  api.get(`/tmo/users?UserPrincipalName=${value}`);
+const transferSafeOwner = (payload) => api.post('/ss/transfersafe', payload);
+
 export default {
   getSafes,
   deleteSafe,
@@ -65,4 +69,6 @@ export default {
   addAppRole,
   editAwsApplication,
   getUsersDetails,
+  getOwnerTransferEmail,
+  transferSafeOwner,
 };

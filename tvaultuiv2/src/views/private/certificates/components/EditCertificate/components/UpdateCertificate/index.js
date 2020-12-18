@@ -39,7 +39,7 @@ const UpdateCertificate = (props) => {
       .then((res) => {
         if (res?.data?.messages && res.data.messages[0]) {
           setModalDetail({
-            title: 'Successfull',
+            title: 'Successful',
             desc: res.data.messages[0],
           });
         }

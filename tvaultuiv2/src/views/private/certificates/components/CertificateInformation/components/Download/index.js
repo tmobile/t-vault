@@ -131,10 +131,20 @@ const Download = (props) => {
               classes={classes}
             >
               <PoperItemWrap>
-                <PopperItem onClick={() => onPopperItemClicked('private')}>
+                <PopperItem
+                  onClick={() => {
+                    onPopperItemClicked('private');
+                    popupState.close();
+                  }}
+                >
                   <span>Download certificate with private key</span>
                 </PopperItem>
-                <PopperItem onClick={() => onPopperItemClicked('pem-der')}>
+                <PopperItem
+                  onClick={() => {
+                    onPopperItemClicked('pem-der');
+                    popupState.close();
+                  }}
+                >
                   <span>Download certificate in PEM/DER format</span>
                 </PopperItem>
               </PoperItemWrap>

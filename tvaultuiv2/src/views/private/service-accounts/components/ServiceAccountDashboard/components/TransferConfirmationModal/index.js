@@ -65,7 +65,7 @@ TransferConfirmationModal.propTypes = {
 };
 
 TransferConfirmationModal.defaultProps = {
-  transferResponseDesc: 'Transfer of ownership is successfull!',
+  transferResponseDesc: 'Transfer of ownership is successful!',
   transferResponse: false,
 };
 
