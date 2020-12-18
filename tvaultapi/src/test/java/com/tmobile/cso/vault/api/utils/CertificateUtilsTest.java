@@ -118,9 +118,11 @@ public class CertificateUtilsTest {
         certDetails.setCertOwnerNtid(ADMIN_USER);
         certDetails.setCertOwnerEmailId("owneremail@test.com");
         certDetails.setApplicationOwnerEmailId("appowneremail@test.com");
+        certDetails.setNotificationEmails("appowneremail@test.com");
         certDetails.setCreateDate("2020-06-24");
         certDetails.setExpiryDate("2021-06-24");
         certDetails.setCertificateStatus("Active");
+        certDetails.setActionId(2);
         return certDetails;
     } 
 
@@ -159,6 +161,15 @@ public class CertificateUtilsTest {
         boolean canAdd = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata);
         assertTrue(canAdd);
     }
+
+    @Test
+    public void testHasAddOrRemovePermissionForNormalUserSuccessfully() {
+        UserDetails userDetails = getMockUser(false);
+        userDetails.setUsername(null);
+        SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+        boolean canAdd = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata);
+        assertFalse(canAdd);
+    }
     
     @Test
     public void testHasAddOrRemovePermissionForNonAdminFailed() {
@@ -181,16 +192,18 @@ public class CertificateUtilsTest {
         UserDetails userDetails = getMockUser(true);
         userDetails.setUsername(ADMIN_USER);        
         String certificatePath = SSLCertificateConstants.SSL_CERT_PATH + '/' + CERT_NAME;
-        
-        Response responseObj = getMockResponse(HttpStatus.OK, true, "{ \"data\": {\"akmid\":\"103001\",\"applicationName\":\"tvt\", "
-          		+ " \"applicationOwnerEmailId\":\"appowneremail@test.com\", \"applicationTag\":\"T-Vault\", "
-          		+ " \"authority\":\"T-Mobile Issuing CA 01 - SHA2\", \"certCreatedBy\": \"testuser1\", "
-          		+ " \"certOwnerEmailId\":\"owneremail@test.com\", \"certOwnerNtid\": \"testuser1\", \"certType\": \"internal\", "
-          		+ " \"certificateId\":\"62765\",\"certificateName\":\"certificatename.t-mobile.com\", "
-          		+ " \"certificateStatus\":\"Active\", \"containerName\":\"VenafiBin_12345\", "
-          		+ " \"createDate\":\"2020-06-24\", \"expiryDate\":\"2021-06-24\", "
-          		+ " \"projectLeadEmailId\":\"project@email.com\"}}");
-         
+
+		Response responseObj = getMockResponse(HttpStatus.OK, true,
+				"{ \"data\": {\"akmid\":\"103001\",\"applicationName\":\"tvt\", "
+						+ " \"applicationOwnerEmailId\":\"appowneremail@test.com\", \"applicationTag\":\"T-Vault\", "
+						+ " \"authority\":\"T-Mobile Issuing CA 01 - SHA2\", \"certCreatedBy\": \"testuser1\", "
+						+ " \"certOwnerEmailId\":\"owneremail@test.com\", \"certOwnerNtid\": \"testuser1\", \"certType\": \"internal\", "
+						+ " \"certificateId\":\"62765\",\"certificateName\":\"certificatename.t-mobile.com\", "
+						+ " \"certificateStatus\":\"Active\", \"containerName\":\"VenafiBin_12345\", "
+						+ " \"createDate\":\"2020-06-24\", \"expiryDate\":\"2021-06-24\", "
+						+ " \"dnsNames\":[\"test.t-mobile.com, test1.t-mobile.com, certtestest.t-mobile.com\"],"
+						+ " \"projectLeadEmailId\":\"project@email.com\", \"notificationEmail\":\"appowneremail@test.com\", \"actionId\":2}}");
+
         when(ControllerUtil.getReqProcessor().process(GET_CERT_DETAIL, GET_CERT_DETAIL_VAL +certificatePath+"\"}",userDetails.getClientToken())).thenReturn(responseObj);
         
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
@@ -202,8 +215,29 @@ public class CertificateUtilsTest {
         assertEquals(certificateMetadataObj.getCreateDate(), certificateMetadata.getCreateDate());
         assertEquals(certificateMetadataObj.getApplicationTag(), certificateMetadata.getApplicationTag());
         assertEquals(certificateMetadataObj.getCertOwnerNtid(), certificateMetadata.getCertOwnerNtid());
+        assertEquals(certificateMetadataObj.getNotificationEmails(), certificateMetadata.getNotificationEmails());
+        assertEquals(certificateMetadataObj.getActionId(), certificateMetadata.getActionId());
     }
-    
+
+	@Test
+	public void testGetCertificateMetaDataEmptySuccessfully() {
+		UserDetails userDetails = getMockUser(true);
+		userDetails.setUsername(ADMIN_USER);
+		String certificatePath = SSLCertificateConstants.SSL_CERT_PATH + '/' + CERT_NAME;
+
+		Response responseObj = getMockResponse(HttpStatus.OK, true,
+				"{ \"data\": {\"certificateId\":\"62765\",\"certificateName\":\"certificatename.t-mobile.com\"}}");
+
+		when(ControllerUtil.getReqProcessor().process(GET_CERT_DETAIL, GET_CERT_DETAIL_VAL + certificatePath + "\"}",
+				userDetails.getClientToken())).thenReturn(responseObj);
+
+		SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
+		String certType = "internal";
+		SSLCertificateMetadataDetails certificateMetadataObj = certificateUtils
+				.getCertificateMetaData(userDetails.getClientToken(), CERT_NAME, certType);
+		assertEquals(certificateMetadataObj.getCertificateName(), certificateMetadata.getCertificateName());
+	}
+
 	@Test
 	public void testGetExternalCertificateMetaDataSuccessfully() {
 		UserDetails userDetails = getMockUser(true);
