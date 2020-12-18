@@ -91,10 +91,12 @@ const CertificateInformation = (props) => {
         {response.status === 'loading' && <Loader customStyle={customStyle} />}
         {response.status === 'success' && (
           <DetailsWrap>
-            <EachDetail>
-              <Label>Container:</Label>
-              <Value>{certificateMetaData.containerName || 'N/A'}</Value>
-            </EachDetail>
+            {certificateMetaData?.containerName && (
+              <EachDetail>
+                <Label>Container:</Label>
+                <Value>{certificateMetaData.containerName || 'N/A'}</Value>
+              </EachDetail>
+            )}
             <EachDetail>
               <Label>Owner Email:</Label>
               <Value>{certificateMetaData.certOwnerEmailId || 'N/A'}</Value>
