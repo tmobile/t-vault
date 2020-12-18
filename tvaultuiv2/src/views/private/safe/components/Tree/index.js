@@ -139,6 +139,7 @@ const Tree = (props) => {
       // eslint-disable-next-line no-unused-vars
       .then((res) => {
         getChildrenData(node);
+        setSecretprefilledData({});
         setStatus({
           status: 'success',
           message: res.data.messages[0],
