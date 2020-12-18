@@ -408,6 +408,7 @@ const CreateCertificates = (props) => {
 
   const onAddDnsClicked = (e) => {
     if (e.keyCode === 13 && e?.target?.value) {
+      e.preventDefault();
       const val = `${e.target.value}.t-mobile.com`;
       checkDnsAlreadyIncluded(val);
     }
@@ -583,7 +584,12 @@ const CreateCertificates = (props) => {
     const obj = notificationEmailList.find(
       (item) => item.toLowerCase() === notifyEmail.toLowerCase()
     );
-    if (!emailError && isValidEmail && notifyEmail !== '') {
+    if (
+      !emailError &&
+      isValidEmail &&
+      notifyEmail !== '' &&
+      validateEmail(notifyEmail)
+    ) {
       if (!obj) {
         setNotificationEmailList((prev) => [...prev, notifyEmail]);
         setNotifyEmail('');
@@ -596,6 +602,7 @@ const CreateCertificates = (props) => {
 
   const onEmailKeyDownClicked = (e) => {
     if (e?.keyCode === 13) {
+      e.preventDefault();
       onAddEmailClicked();
     }
   };
