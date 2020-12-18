@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.model.Safe;
+import com.tmobile.cso.vault.api.model.SafeBasicDetails;
 import com.tmobile.cso.vault.api.model.SafeUser;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
@@ -113,6 +114,26 @@ public class SafeUtilsTest {
     }
 
     @Test
+    public void testGetPoliciesForManagedSafesEmptyNodes() throws IOException {
+        ObjectMapper objMapper = new ObjectMapper();
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"s_users_ert\"],\"lease_duration\":1800000}");
+        JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+        List<String> expectedAdminPolicies = new ArrayList<>();
+        expectedAdminPolicies.add("s_users_ert");
+        List<String> adminPolicies = safeUtils.getPoliciesForManagedSafes(null);
+    }
+
+    @Test
+    public void testGetPoliciesForManagedSafesEmptyContainerNode() throws IOException {
+        ObjectMapper objMapper = new ObjectMapper();
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":\"\",\"lease_duration\":1800000}");
+        JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+        List<String> expectedAdminPolicies = new ArrayList<>();
+        expectedAdminPolicies.add("s_users_ert");
+        List<String> adminPolicies = safeUtils.getPoliciesForManagedSafes(policiesJsonNode);
+    }
+
+    @Test
     public void test_getManagedSafesFromPolicies_successfully() throws IOException {
         ObjectMapper objMapper = new ObjectMapper();
         Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"s_users_ert\"],\"lease_duration\":1800000}");
@@ -121,6 +142,36 @@ public class SafeUtilsTest {
         String[] policies = {"s_users_ert"};
         String[] policiesRes = safeUtils.getManagedSafes(policies, "users");
         assertEquals(expectedList, policiesRes);
+    }
+
+    @Test
+    public void testGetManagedSafesFromPoliciesEmpty() throws IOException {
+        ObjectMapper objMapper = new ObjectMapper();
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"s_users_ert\"],\"lease_duration\":1800000}");
+        JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+        String[] expectedList = {"ert"};
+        String[] policies = {"s_users_ert"};
+        String[] policiesRes = safeUtils.getManagedSafes(null, "users");
+    }
+
+    @Test
+    public void testGetManagedSafesFromPoliciesNotValid() throws IOException {
+        ObjectMapper objMapper = new ObjectMapper();
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"d_users_ert\"],\"lease_duration\":1800000}");
+        JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+        String[] expectedList = {"ert"};
+        String[] policies = {"s_users_ert"};
+        String[] policiesRes = safeUtils.getManagedSafes(policies, "users");
+    }
+
+    @Test
+    public void testGetManagedSafesFromPoliciesInvalidSafetype() throws IOException {
+        ObjectMapper objMapper = new ObjectMapper();
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"s_group_ert\"],\"lease_duration\":1800000}");
+        JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+        String[] expectedList = {"ert"};
+        String[] policies = {"s_users_ert"};
+        String[] policiesRes = safeUtils.getManagedSafes(policies, "users");
     }
 
     @Test
@@ -139,6 +190,43 @@ public class SafeUtilsTest {
         boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
         assertTrue(canAdd);
     }
+
+	@Test
+	public void testGetSafeMetaDataSuccess() {
+		String responseJson = "{  \"keys\": [ \"mysafe01\" ]}";
+		Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":"
+				+ "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"},"
+				+ "\"description\":\"asd\",\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"ownerid\":\"normaluser\","
+				+ "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
+		SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null,
+				"My first safe", "normaluser");
+		Safe safe = new Safe("users/mysafe01", safeBasicDetails);
+
+		when(ControllerUtil.getSafeType("users/mysafe01")).thenReturn("users");
+		when(ControllerUtil.getSafeName("users/mysafe01")).thenReturn("mysafe01");
+		when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/mysafe01\"}",
+				"5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+		Safe safeRes = safeUtils.getSafeMetaData("5PDrOhsy4ig8L3EpsJZSLAMg", "users", "mysafe01");
+		assertEquals(safe.getSafeBasicDetails().getName(), safeRes.getSafeBasicDetails().getName());
+	}
+
+	@Test
+	public void testGetSafeMetaDataEmpty() {
+		String responseJson = "{  \"keys\": [ \"mysafe01\" ]}";
+		Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\":{\"aws-roles\":"
+				+ "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"},"
+				+ "\"description\":\"asd\",\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"ownerid\":\"normaluser\","
+				+ "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
+		SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null,
+				"My first safe", "normaluser");
+		Safe safe = new Safe("users/mysafe01", safeBasicDetails);
+
+		when(ControllerUtil.getSafeType("users/mysafe01")).thenReturn("users");
+		when(ControllerUtil.getSafeName("users/mysafe01")).thenReturn("mysafe01");
+		when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/mysafe01\"}",
+				"5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+		Safe safeRes = safeUtils.getSafeMetaData("5PDrOhsy4ig8L3EpsJZSLAMg", "users", "mysafe01");
+	}
 
     @Test
     public void test_getSafeMetaData_failure() {

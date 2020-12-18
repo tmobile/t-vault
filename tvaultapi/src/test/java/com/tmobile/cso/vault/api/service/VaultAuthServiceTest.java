@@ -142,6 +142,89 @@ public class VaultAuthServiceTest {
     }
 
     @Test
+    public void testLdapLoginSuccessfullyEmptyPermissions() {
+
+        String jsonStr = "{  \"username\": \"safeadmin\",  \"password\": \"safeadmin\"}";
+        UserLogin userLogin = new UserLogin("safeadmin", "safeadmin");
+        String responseJson = "{  \"client_token\": \"8766fdhjSAtH2a4MdvMyzWid\",\"admin\": \"yes\",\"policies\": [\"default\",\"safeadmin\"],\"lease_duration\": 1800000, \"feature\": {\"adpwdrotation\": \"true\", \"serviceaccount\":\"true\"}}";
+        Response response = getMockResponse(HttpStatus.OK, true, null);
+        Map<String, Object> responseMap = null;
+        try {
+            responseMap = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Map<String,Object> access = (Map<String,Object>)responseMap.get("access");        
+
+        ReflectionTestUtils.setField(vaultAuthService,"vaultAuthMethod", "ldap");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(responseJson);
+        when(JSONUtil.getJSON(userLogin)).thenReturn(jsonStr);
+        when(ControllerUtil.filterDuplicateSafePermissions(any())).thenReturn(access);
+        when(ControllerUtil.filterDuplicateSvcaccPermissions(any())).thenReturn(access);
+        when(reqProcessor.process("/auth/ldap/login",jsonStr,"")).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = vaultAuthService.login(userLogin);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void testLdapLoginSuccessfullyEmptyInternalCertPermission() {
+
+        String jsonStr = "{  \"username\": \"safeadmin\",  \"password\": \"safeadmin\"}";
+        UserLogin userLogin = new UserLogin("safeadmin", "safeadmin");
+        String responseJson = "{  \"client_token\": \"8766fdhjSAtH2a4MdvMyzWid\",\"admin\": \"yes\",\"access\": {\"users\":[{\"safe1\":\"read\"}], \"svcacct\":[{\"svc1\":\"read\"}], \"externalcerts\":[{\"\":\"read\"}]},\"policies\": [\"default\",\"safeadmin\"],\"lease_duration\": 1800000, \"feature\": {\"adpwdrotation\": \"true\", \"serviceaccount\":\"true\"}}";
+        Response response = getMockResponse(HttpStatus.OK, true, responseJson);
+        Map<String, Object> responseMap = null;
+        try {
+            responseMap = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Map<String,Object> access = (Map<String,Object>)responseMap.get("access");
+
+        ReflectionTestUtils.setField(vaultAuthService,"vaultAuthMethod", "ldap");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(responseJson);
+        when(JSONUtil.getJSON(userLogin)).thenReturn(jsonStr);
+        when(ControllerUtil.filterDuplicateSafePermissions(any())).thenReturn(access);
+        when(ControllerUtil.filterDuplicateSvcaccPermissions(any())).thenReturn(access);
+        when(reqProcessor.process("/auth/ldap/login",jsonStr,"")).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = vaultAuthService.login(userLogin);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testLdapLoginSuccessfullyEmptyExternalPermissions() {
+
+        String jsonStr = "{  \"username\": \"safeadmin\",  \"password\": \"safeadmin\"}";
+        UserLogin userLogin = new UserLogin("safeadmin", "safeadmin");
+        String responseJson = "{  \"client_token\": \"8766fdhjSAtH2a4MdvMyzWid\",\"admin\": \"yes\",\"access\": {\"users\":[{\"safe1\":\"read\"}], \"svcacct\":[{\"svc1\":\"read\"}], \"cert\":[{\"\":\"read\"}]},\"policies\": [\"default\",\"safeadmin\"],\"lease_duration\": 1800000, \"feature\": {\"adpwdrotation\": \"true\", \"serviceaccount\":\"true\"}}";
+        Response response = getMockResponse(HttpStatus.OK, true, responseJson);
+        Map<String, Object> responseMap = null;
+        try {
+            responseMap = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Map<String,Object> access = (Map<String,Object>)responseMap.get("access");
+
+        ReflectionTestUtils.setField(vaultAuthService,"vaultAuthMethod", "ldap");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(responseJson);
+        when(JSONUtil.getJSON(userLogin)).thenReturn(jsonStr);
+        when(ControllerUtil.filterDuplicateSafePermissions(any())).thenReturn(access);
+        when(ControllerUtil.filterDuplicateSvcaccPermissions(any())).thenReturn(access);
+        when(reqProcessor.process("/auth/ldap/login",jsonStr,"")).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = vaultAuthService.login(userLogin);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
     public void testLdapLoginFailed() {
 
         String jsonStr = "{  \"username\": \"safeadmin\",  \"password\": \"safeadmin\"}";

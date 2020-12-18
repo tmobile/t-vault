@@ -1,4 +1,4 @@
-package com.tmobile.cso.vault.api.service;
+package com.tmobile.cso.vault.api.model;
 
 public class TargetSystemService {
 

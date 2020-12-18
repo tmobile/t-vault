@@ -1,19 +1,19 @@
-// =========================================================================
-// Copyright 2019 T-Mobile, US
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// See the readme.txt file for additional language around disclaimer of warranties.
-// =========================================================================
+/** *******************************************************************************
+*  Copyright 2020 T-Mobile, US
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*  See the readme.txt file for additional language around disclaimer of warranties.
+*********************************************************************************** */
 
 package com.tmobile.cso.vault.api.utils;
 
@@ -47,6 +47,7 @@ public class SafeUtils {
 	private Logger log = LogManager.getLogger(SafeUtils.class);
 	
 	public SafeUtils() {
+		// empty constructor
 	}
 
 	/**
@@ -57,7 +58,7 @@ public class SafeUtils {
 	 * @throws IOException
 	 */
 	public List<String> getPoliciesForManagedSafes(JsonNode policiesNode) throws JsonProcessingException, IOException {
-		List<String> adminPolicies = new ArrayList<String>();
+		List<String> adminPolicies = new ArrayList<>();
 		if (!ObjectUtils.isEmpty(policiesNode)) {
 			// Policies is supposed to be a container node.
 			if (policiesNode.isContainerNode()) {
@@ -80,7 +81,7 @@ public class SafeUtils {
 	 * @return
 	 */
 	public String[] getManagedSafes(String[] policies, String safeType) {
-		List<String> safes = new ArrayList<String>();
+		List<String> safes = new ArrayList<>();
 		if (policies != null) {
 			for (String policy: policies) {
 				if (policy.startsWith("s_")) {
@@ -169,15 +170,15 @@ public class SafeUtils {
 	 * @return
 	 */
 	public Safe getSafeMetaData(String token, String safeType, String safeName){
-		String _path = "metadata/" + safeType + "/" + safeName;
+		String metaDataPath = "metadata/" + safeType + '/' + safeName;
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "Get Info").
-				put(LogMessage.MESSAGE, String.format ("Trying to get Info for [%s]", _path)).
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				put(LogMessage.MESSAGE, String.format ("Trying to get Info for [%s]", metaDataPath)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 		// Elevation is required in case user does not have access to the path.
-		Response response = ControllerUtil.getReqProcessor().process("/sdb","{\"path\":\""+_path+"\"}",token);
+		Response response = ControllerUtil.getReqProcessor().process("/sdb","{\"path\":\""+metaDataPath+"\"}",token);
 		// Create the Safe bean
 		Safe safe = null;
 		if(HttpStatus.OK.equals(response.getHttpstatus())){
@@ -187,19 +188,19 @@ public class SafeUtils {
 				safe = getSafeInfo(dataNode);
 			} catch (IOException e) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						  put(LogMessage.ACTION, "getSafeMetaDataWithAppRoleElevation").
 					      put(LogMessage.MESSAGE, "Error while trying to get details about the safe").
-					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					      build()));			
 			}
 		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "Get Info").
 				put(LogMessage.MESSAGE, "Getting Info completed").
 				put(LogMessage.STATUS, response.getHttpstatus().toString()).
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 		return safe;
 	}
