@@ -117,6 +117,11 @@ const AddAwsApplication = (props) => {
   const onChange = (e) => {
     dispatch({ field: e.target.name, value: e.target.value });
   };
+  const clearData = () => {
+    Object.keys(state).map((item) => {
+      return dispatch({ field: item, value: '' });
+    });
+  };
 
   const {
     vpcId,
@@ -149,7 +154,7 @@ const AddAwsApplication = (props) => {
 
   useEffect(() => {
     if (!isEC2) {
-      if (roleName?.length < 3 || principalError) {
+      if (roleName?.length < 3 || principalError || iamPrincipalArn === '') {
         setDisabledSave(true);
       } else {
         setDisabledSave(false);
@@ -164,9 +169,12 @@ const AddAwsApplication = (props) => {
   const handleAwsRadioChange = (event) => {
     setAwsAuthenticationType(event.target.value);
     if (event.target.value === 'ec2') {
+      setIamPrincipalArn('');
       setIsEC2(true);
+      setPrincipalError(false);
     } else {
       setIsEC2(false);
+      clearData();
     }
   };
 

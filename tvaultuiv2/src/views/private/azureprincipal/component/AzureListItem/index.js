@@ -21,6 +21,7 @@ const ListItemDetailBox = styled('div')`
 const ListItemAvatarWrap = styled.div`
   .MuiAvatar-root {
     border-radius: 0;
+    width: 5rem;
   }
   display: flex;
   align-items: center;

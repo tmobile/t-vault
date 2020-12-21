@@ -215,6 +215,7 @@ const Groups = (props) => {
           <AddGroup
             handleSaveClick={(group, access) => onSubmit(group, access)}
             handleCancelClick={onCancelClicked}
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'edit' && (
@@ -225,6 +226,7 @@ const Groups = (props) => {
             handleCancelClick={onCancelClicked}
             groupname={editGroup}
             access={editAccess}
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'success' && (

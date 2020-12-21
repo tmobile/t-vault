@@ -45,6 +45,7 @@ const AddAwsApplicationModal = (props) => {
     open,
     isSvcAccount,
     isCertificate,
+    isIamAzureSvcAccount,
   } = props;
 
   const classes = useStyles();
@@ -70,6 +71,7 @@ const AddAwsApplicationModal = (props) => {
               handleCancelClick={handleCancelClick}
               isSvcAccount={isSvcAccount}
               isCertificate={isCertificate}
+              isIamAzureSvcAccount={isIamAzureSvcAccount}
             />
           </ModalWrapper>
         </Fade>
@@ -85,10 +87,12 @@ AddAwsApplicationModal.propTypes = {
   open: PropTypes.bool.isRequired,
   isSvcAccount: PropTypes.bool,
   isCertificate: PropTypes.bool,
+  isIamAzureSvcAccount: PropTypes.bool,
 };
 AddAwsApplicationModal.defaultProps = {
   isSvcAccount: false,
   isCertificate: false,
+  isIamAzureSvcAccount: false,
 };
 
 export default AddAwsApplicationModal;

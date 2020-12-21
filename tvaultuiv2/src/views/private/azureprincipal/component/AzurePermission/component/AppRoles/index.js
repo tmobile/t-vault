@@ -213,6 +213,7 @@ const AppRoles = (props) => {
           <AddAppRole
             handleSaveClick={(role, access) => onSubmit(role, access)}
             handleCancelClick={() => onCancelClicked()}
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'edit' && (
@@ -222,6 +223,7 @@ const AppRoles = (props) => {
             access={editAccess}
             editClicked={editClicked}
             role={editRole}
+            isIamAzureSvcAccount
           />
         )}
 

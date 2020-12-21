@@ -306,8 +306,7 @@ const ServiceAccountSecrets = (props) => {
               </NoPermission>
             ) : (
               <NoPermission>
-                Access denied: no permission to read the password details for
-                the <span>{accountDetail.name}</span> service account.
+                You do not have permission to view/reset the secrets
               </NoPermission>
             )}
           </AccessDeniedWrap>
