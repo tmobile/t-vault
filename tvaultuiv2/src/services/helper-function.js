@@ -51,7 +51,7 @@ export const findItemAndRemove = (arr, key, id) => {
   const tempArr = [...arr];
   const indexofItem =
     tempArr[0] && tempArr[0][key].findIndex((item) => item.id === id);
-  if (indexofItem) tempArr[0][key].splice(indexofItem, 1);
+  if (indexofItem >= 0) tempArr[0][key].splice(indexofItem, 1);
   return tempArr;
 };
 
