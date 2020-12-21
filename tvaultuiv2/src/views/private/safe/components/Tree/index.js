@@ -244,6 +244,7 @@ const Tree = (props) => {
     setInputType({ type: 'secret', currentNode: node });
   };
   const handleCancelClick = (val) => {
+    setSecretprefilledData({});
     setIsAddInput(val);
   };
 
