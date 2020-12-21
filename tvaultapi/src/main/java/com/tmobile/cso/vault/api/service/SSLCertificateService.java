@@ -3737,7 +3737,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 						put(LogMessage.MESSAGE, "Group configuration failed").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Contact Admin \"]}");
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
 			}
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -5368,7 +5368,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		            put(LogMessage.MESSAGE, "Failed to remove the group from the certificate").
 		            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		            build()));
-		    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove the group from the certificate\"]}");
+		    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
 		}
 	}
 
@@ -8670,7 +8670,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 						put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully deleted from Certificate\"]}");
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed(if existed) from Certificate\"]}");
 			}
 		 approleControllerResp = appRoleService.configureApprole(approleName,policiesString,authToken);
 		 if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){

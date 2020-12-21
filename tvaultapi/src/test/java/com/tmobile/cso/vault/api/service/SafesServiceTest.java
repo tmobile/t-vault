@@ -1653,7 +1653,7 @@ public class SafesServiceTest {
     public void test_removeApproleFromSafe_successfully() throws Exception {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String inputJson = "{\"role_name\":\"approle1\",\"path\":\"users/safe1\",\"access\":\"read\"}";
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed(if existed) from Safe\"]}");
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);

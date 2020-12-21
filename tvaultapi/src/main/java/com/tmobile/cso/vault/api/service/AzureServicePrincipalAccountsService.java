@@ -2844,7 +2844,7 @@ public class AzureServicePrincipalAccountsService {
 			}
 		} else {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("{\"errors\":[\"Failed to add group to the Azure Service Principal\"]}");
+					.body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
 		}
 	}
 
@@ -3592,7 +3592,7 @@ public class AzureServicePrincipalAccountsService {
 						currentpolicies, currentpoliciesString);
 			}
 			else {
-			    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove the group from the Azure Service Principal\"]}");
+			    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
 			}
 		}
 		
@@ -4018,7 +4018,7 @@ public class AzureServicePrincipalAccountsService {
 								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 								.build()));
 						return ResponseEntity.status(HttpStatus.OK).body(
-								"{\"messages\":[\"Approle is successfully removed from Azure Service Account\"]}");
+								"{\"messages\":[\"Approle is successfully removed(if existed) from Azure Service Account\"]}");
 					}
 					approleControllerResp = appRoleService.configureApprole(approleName, currentpoliciesString, token);
 					if (approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
