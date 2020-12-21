@@ -124,8 +124,8 @@ const Secrets = (props) => {
                             alt="accessDeniedLogo"
                           />
                           <NoPermission>
-                            You <span>do</span> not have acess to this{' '}
-                            <span>Safe</span> and cannot view it’s contents
+                            You <span>do</span>not have access to this{' '}
+                            <span>Safe</span>and cannot view it’s contents
                           </NoPermission>
                         </AccessDeniedWrap>
                       ) : (
@@ -159,7 +159,7 @@ const Secrets = (props) => {
                     alt="accessDeniedLogo"
                   />
                   <NoPermission>
-                    You <span>do</span> not have acess to this <span>Safe</span>{' '}
+                    You<span>do</span>not have access to this<span>Safe</span>
                     and cannot view it’s contents
                   </NoPermission>
                 </AccessDeniedWrap>

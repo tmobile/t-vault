@@ -490,7 +490,9 @@ const CreateModal = (props) => {
                       characterLimit={50}
                       readOnly={!!editSafe}
                       name="name"
-                      onChange={(e) => onSafeNameChange(e.target.value)}
+                      onChange={(e) =>
+                        onSafeNameChange(e?.target?.value?.toLowerCase())
+                      }
                       error={safeError}
                       helperText={
                         safeError

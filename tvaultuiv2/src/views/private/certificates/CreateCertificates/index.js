@@ -397,7 +397,7 @@ const CreateCertificates = (props) => {
   const checkDnsAlreadyIncluded = (val) => {
     if (dnsArray.includes(val)) {
       setDnsError(true);
-      setErrorDnsMessage('Dns name already added!');
+      setErrorDnsMessage('DNS name already added!');
     } else {
       setDnsArray((prev) => [...prev, val.toLowerCase()]);
       setDnsName('');
@@ -407,7 +407,7 @@ const CreateCertificates = (props) => {
   };
 
   const onAddDnsClicked = (e) => {
-    if (e.keyCode === 13 && e?.target?.value) {
+    if (e.keyCode === 13 && e?.target?.value && !dnsError) {
       e.preventDefault();
       const val = `${e.target.value}.t-mobile.com`;
       checkDnsAlreadyIncluded(val);
@@ -415,7 +415,7 @@ const CreateCertificates = (props) => {
   };
 
   const onAddDnsKeyClicked = () => {
-    if (dnsName) {
+    if (dnsName && !dnsError) {
       const val = `${dnsName}.t-mobile.com`;
       checkDnsAlreadyIncluded(val);
     }
@@ -753,11 +753,11 @@ const CreateCertificates = (props) => {
                   </IncludeDnsWrap>
                   {isDns && (
                     <InputFieldLabelWrapper>
-                      <InputLabel>Add Dns</InputLabel>
+                      <InputLabel>Add DNS</InputLabel>
                       <InputEndWrap>
                         <TextFieldComponent
                           value={dnsName}
-                          placeholder="Add dns"
+                          placeholder="Add DNS"
                           fullWidth
                           name="dnsName"
                           onChange={(e) => {

@@ -90,7 +90,11 @@ const AddFolder = (props) => {
       );
       setError(true);
     }
-    setError(value.length < 3 || !value.match(/^[a-zA-Z0-9_]*$/g));
+    if (value.length < 3 || !value.match(/^[a-zA-Z0-9_]*$/g)) {
+      setError(true);
+    } else {
+      setError(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -140,7 +144,7 @@ const AddFolder = (props) => {
               label="Save"
               color="secondary"
               buttonType="containedSecondary"
-              disabled={!inputValue || errorMessage}
+              disabled={!inputValue || error}
               onClick={() =>
                 handleSaveClick({
                   value: inputValue.toLowerCase(),

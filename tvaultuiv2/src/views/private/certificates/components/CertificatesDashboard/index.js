@@ -410,26 +410,28 @@ const CertificatesDashboard = () => {
   }, [fetchAdminData, fetchNonAdminData, admin]);
 
   useEffect(() => {
-    const internalArray = allCertList?.filter(
+    const internalArray = certificateList?.filter(
       (item) => item?.certType === 'internal' && !item.isOnboardCert
     );
-    const externalArray = allCertList?.filter(
+    const externalArray = certificateList?.filter(
       (item) => item?.certType === 'external' && !item.isOnboardCert
     );
     const array = [
-      { name: 'All Certificates', count: allCertList?.length || 0 },
+      { name: 'All Certificates', count: certificateList?.length || 0 },
       { name: 'Internal Certificates', count: internalArray?.length || 0 },
       { name: 'External Certificates', count: externalArray?.length || 0 },
     ];
     if (admin) {
-      const onboardArray = allCertList?.filter((item) => item.isOnboardCert);
+      const onboardArray = certificateList?.filter(
+        (item) => item.isOnboardCert
+      );
       array.push({
         name: 'Onboard Certificates',
         count: onboardArray?.length || 0,
       });
     }
     setMenu([...array]);
-  }, [allCertList, admin]);
+  }, [certificateList, admin]);
 
   /**
    * @function onLinkClicked
