@@ -210,6 +210,211 @@ public class IAMServiceAccountUtilsTest {
     }
 
     @Test
+    public void testRotateIAMSecretFailedInvalidIAMApproleToken() throws IOException {
+
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		String iamServiceAccountName = "svc_vault_test5";
+		String awsAccountId = "1234567890";
+		String accessKeyId = "testaccesskey";
+		String iamSecret = "abcdefgh";
+        when(ControllerUtil.getSscred()).thenReturn(new SSCred());
+        when(ControllerUtil.getIamUsername()).thenReturn("M2UyNTA0MGYtODIwNS02ZWM2LTI4Y2ItOGYwZTQ1NDI1YjQ4");
+        when(ControllerUtil.getIamPassword()).thenReturn("MWFjOGM1ZTgtZjE5Ny0yMTVlLTNmODUtZWIwMDc3ZmY3NmQw");
+
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(300);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        String responseString = "{\"accessKeyId\": \"testaccesskey\", \"userName\": \"svc_vault_test5\", \"accessKeySecret\": \"abcdefgh\", \"expiryDateEpoch\": \"1609754282000\"}";
+        String responseStringToken = "{\"auth\": {\"client_token\": \""+token+"\"}}";
+        when(mockHttpEntity.getContent()).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return new ByteArrayInputStream(responseString.getBytes());
+
+                return new ByteArrayInputStream(responseStringToken.getBytes());
+            }
+        });
+
+        IAMServiceAccountSecret expectedIamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+        IAMServiceAccountRotateRequest iamServiceAccountRotateRequest = new IAMServiceAccountRotateRequest(accessKeyId, iamServiceAccountName, awsAccountId);
+        IAMServiceAccountSecret iamServiceAccountSecret = iamServiceAccountUtils.rotateIAMSecret(iamServiceAccountRotateRequest);
+    }
+
+    @Test
+    public void testRotateIAMSecretFailedInvalidIAMPortalDomain() throws IOException {
+
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		String iamServiceAccountName = "svc_vault_test5";
+		String awsAccountId = "1234567890";
+		String accessKeyId = "testaccesskey";
+		String iamSecret = "abcdefgh";
+        when(ControllerUtil.getSscred()).thenReturn(new SSCred());
+        when(ControllerUtil.getIamUsername()).thenReturn("M2UyNTA0MGYtODIwNS02ZWM2LTI4Y2ItOGYwZTQ1NDI1YjQ4");
+        when(ControllerUtil.getIamPassword()).thenReturn("MWFjOGM1ZTgtZjE5Ny0yMTVlLTNmODUtZWIwMDc3ZmY3NmQw");
+
+        ReflectionTestUtils.setField(iamServiceAccountUtils, "iamPortalDomain", "");
+
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        String responseString = "{\"accessKeyId\": \"testaccesskey\", \"userName\": \"svc_vault_test5\", \"accessKeySecret\": \"abcdefgh\", \"expiryDateEpoch\": \"1609754282000\"}";
+        String responseStringToken = "{\"auth\": {\"client_token\": \""+token+"\"}}";
+        when(mockHttpEntity.getContent()).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return new ByteArrayInputStream(responseString.getBytes());
+
+                return new ByteArrayInputStream(responseStringToken.getBytes());
+            }
+        });
+
+        IAMServiceAccountSecret expectedIamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+        IAMServiceAccountRotateRequest iamServiceAccountRotateRequest = new IAMServiceAccountRotateRequest(accessKeyId, iamServiceAccountName, awsAccountId);
+        IAMServiceAccountSecret iamServiceAccountSecret = iamServiceAccountUtils.rotateIAMSecret(iamServiceAccountRotateRequest);
+    }
+
+    @Test
+    public void testRotateIAMSecretFailedInvalidIAMPortalEndPoint() throws IOException {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		String iamServiceAccountName = "svc_vault_test5";
+		String awsAccountId = "1234567890";
+		String accessKeyId = "testaccesskey";
+		String iamSecret = "abcdefgh";
+        when(ControllerUtil.getSscred()).thenReturn(new SSCred());
+        when(ControllerUtil.getIamUsername()).thenReturn("M2UyNTA0MGYtODIwNS02ZWM2LTI4Y2ItOGYwZTQ1NDI1YjQ4");
+        when(ControllerUtil.getIamPassword()).thenReturn("MWFjOGM1ZTgtZjE5Ny0yMTVlLTNmODUtZWIwMDc3ZmY3NmQw");
+        ReflectionTestUtils.setField(iamServiceAccountUtils, "iamPortalrotateSecretEndpoint", "");
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        String responseString = "{\"accessKeyId\": \"testaccesskey\", \"userName\": \"svc_vault_test5\", \"accessKeySecret\": \"abcdefgh\", \"expiryDateEpoch\": \"1609754282000\"}";
+        String responseStringToken = "{\"auth\": {\"client_token\": \""+token+"\"}}";
+        when(mockHttpEntity.getContent()).thenAnswer(new Answer() {
+            private int count = 0;
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return new ByteArrayInputStream(responseString.getBytes());
+
+                return new ByteArrayInputStream(responseStringToken.getBytes());
+            }
+        });
+        IAMServiceAccountSecret expectedIamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+        IAMServiceAccountRotateRequest iamServiceAccountRotateRequest = new IAMServiceAccountRotateRequest(accessKeyId, iamServiceAccountName, awsAccountId);
+        IAMServiceAccountSecret iamServiceAccountSecret = iamServiceAccountUtils.rotateIAMSecret(iamServiceAccountRotateRequest);
+    }
+
+    @Test
+    public void testRotateIAMSecretFailedEmptyHttpClient() throws IOException {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		String iamServiceAccountName = "svc_vault_test5";
+		String awsAccountId = "1234567890";
+		String accessKeyId = "testaccesskey";
+		String iamSecret = "abcdefgh";
+        when(ControllerUtil.getSscred()).thenReturn(new SSCred());
+        when(ControllerUtil.getIamUsername()).thenReturn("M2UyNTA0MGYtODIwNS02ZWM2LTI4Y2ItOGYwZTQ1NDI1YjQ4");
+        when(ControllerUtil.getIamPassword()).thenReturn("MWFjOGM1ZTgtZjE5Ny0yMTVlLTNmODUtZWIwMDc3ZmY3NmQw");
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        String responseString = "{}";
+        String responseStringToken = "{\"auth\": {\"client_token\": \""+token+"\"}}";
+        when(mockHttpEntity.getContent()).thenAnswer(new Answer() {
+            private int count = 0;
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return new ByteArrayInputStream(responseString.getBytes());
+
+                return new ByteArrayInputStream(responseStringToken.getBytes());
+            }
+        });
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        IAMServiceAccountSecret expectedIamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+        IAMServiceAccountRotateRequest iamServiceAccountRotateRequest = new IAMServiceAccountRotateRequest(accessKeyId, iamServiceAccountName, awsAccountId);
+        IAMServiceAccountSecret iamServiceAccountSecret = iamServiceAccountUtils.rotateIAMSecret(iamServiceAccountRotateRequest);
+    }
+
+    @Test
+    public void testRotateIAMSecretFailedEmptyRequest() throws IOException {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		String iamServiceAccountName = "svc_vault_test5";
+		String awsAccountId = "1234567890";
+		String accessKeyId = "testaccesskey";
+		String iamSecret = "abcdefgh";
+        when(ControllerUtil.getSscred()).thenReturn(new SSCred());
+        when(ControllerUtil.getIamUsername()).thenReturn("M2UyNTA0MGYtODIwNS02ZWM2LTI4Y2ItOGYwZTQ1NDI1YjQ4");
+        when(ControllerUtil.getIamPassword()).thenReturn("MWFjOGM1ZTgtZjE5Ny0yMTVlLTNmODUtZWIwMDc3ZmY3NmQw");
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        String responseString = null;
+        String responseStringToken = "{\"auth\": {\"client_token\": \""+token+"\"}}";
+        when(mockHttpEntity.getContent()).thenAnswer(new Answer() {
+            private int count = 0;
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return new ByteArrayInputStream(responseString.getBytes());
+
+                return new ByteArrayInputStream(responseStringToken.getBytes());
+            }
+        });
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        IAMServiceAccountSecret expectedIamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+        IAMServiceAccountRotateRequest iamServiceAccountRotateRequest = new IAMServiceAccountRotateRequest(accessKeyId, iamServiceAccountName, awsAccountId);
+        IAMServiceAccountSecret iamServiceAccountSecret = iamServiceAccountUtils.rotateIAMSecret(iamServiceAccountRotateRequest);
+    }
+
+    @Test
+    public void testRotateIAMSecretFailedInvalidRequest() throws IOException {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		String iamServiceAccountName = "svc_vault_test5";
+		String awsAccountId = "1234567890";
+		String accessKeyId = "testaccesskey";
+		String iamSecret = "abcdefgh";
+        when(ControllerUtil.getSscred()).thenReturn(new SSCred());
+        when(ControllerUtil.getIamUsername()).thenReturn("M2UyNTA0MGYtODIwNS02ZWM2LTI4Y2ItOGYwZTQ1NDI1YjQ4");
+        when(ControllerUtil.getIamPassword()).thenReturn("MWFjOGM1ZTgtZjE5Ny0yMTVlLTNmODUtZWIwMDc3ZmY3NmQw");
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        String responseString = "{\"accessKeyId\": \"testaccesskey\", \"userName\": \"svc_vault_test5\", \"accessKeySecret\": \"abcdefgh\", \"expiryDateEpoch\": \"1609754282000\"}";
+        String responseStringToken = "{\"auth\": {\"client_tokenn\": \""+token+"\"}}";
+        when(mockHttpEntity.getContent()).thenAnswer(new Answer() {
+            private int count = 0;
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return new ByteArrayInputStream(responseString.getBytes());
+
+                return new ByteArrayInputStream(responseStringToken.getBytes());
+            }
+        });
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        when(statusLine.getStatusCode()).thenReturn(300);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        IAMServiceAccountSecret expectedIamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+        IAMServiceAccountRotateRequest iamServiceAccountRotateRequest = new IAMServiceAccountRotateRequest(accessKeyId, iamServiceAccountName, awsAccountId);
+        IAMServiceAccountSecret iamServiceAccountSecret = iamServiceAccountUtils.rotateIAMSecret(iamServiceAccountRotateRequest);
+    }
+
+    @Test
     public void test_writeIAMSvcAccSecret_success() {
 
         String iamServiceAccountName = "svc_vault_test5";
@@ -235,6 +440,22 @@ public class IAMServiceAccountUtilsTest {
         String iamSecret = "abcdefgh";
         String accessKeyId = "testaccesskey";
         IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+        Response response = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+        when(reqProcessor.process(eq("/write"), Mockito.any(), eq(token))).thenReturn(response);
+        boolean actualStatus = iamServiceAccountUtils.writeIAMSvcAccSecret(token, path, iamServiceAccountName, iamServiceAccountSecret);
+        assertFalse(actualStatus);
+    }
+
+    @Test
+    public void testWriteIAMSvcAccSecretFailedNoData() {
+
+        String iamServiceAccountName = "svc_vault_test5";
+        String token = "123123123123";
+        String awsAccountId = "1234567890";
+        String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+        String iamSecret = "abcdefgh";
+        String accessKeyId = "testaccesskey";
+        IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret();
         Response response = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
         when(reqProcessor.process(eq("/write"), Mockito.any(), eq(token))).thenReturn(response);
         boolean actualStatus = iamServiceAccountUtils.writeIAMSvcAccSecret(token, path, iamServiceAccountName, iamServiceAccountSecret);
@@ -278,6 +499,42 @@ public class IAMServiceAccountUtilsTest {
     }
 
     @Test
+    public void testUpdateActivatedStatusInMetadataFailed() {
+
+        String iamServiceAccountName = "svc_vault_test5";
+        String token = "123123123123";
+        String awsAccountId = "1234567890";
+        String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+        String iamSecret = "abcdefgh";
+        String accessKeyId = "testaccesskey";
+
+        Response response = getMockResponse(HttpStatus.OK, true, null);
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(response);
+        Response response204 = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(reqProcessor.process(eq("/write"), Mockito.any(), eq(token))).thenReturn(response204);
+        Response actualResponse = iamServiceAccountUtils.updateActivatedStatusInMetadata(token, iamServiceAccountName, awsAccountId);
+    }
+
+    @Test
+    public void testUpdateActivatedStatusInMetadataFailedActivated() {
+
+        String iamServiceAccountName = "svc_vault_test5";
+        String token = "123123123123";
+        String awsAccountId = "1234567890";
+        String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+        String iamSecret = "abcdefgh";
+        String accessKeyId = "testaccesskey";
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{ \"data\": { \"isActivated\": true}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(response);
+        Response response204 = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(reqProcessor.process(eq("/write"), Mockito.any(), eq(token))).thenReturn(response204);
+        Response actualResponse = iamServiceAccountUtils.updateActivatedStatusInMetadata(token, iamServiceAccountName, awsAccountId);
+    }
+
+    @Test
     public void test_updateIAMSvcAccNewAccessKeyIdInMetadata_success() {
 
         String iamServiceAccountName = "svc_vault_test5";
@@ -318,6 +575,93 @@ public class IAMServiceAccountUtilsTest {
     }
 
     @Test
+    public void testUpdateIAMSvcAccNewAccessKeyIdInMetadataFailed() {
+
+        String iamServiceAccountName = "svc_vault_test5";
+        String token = "123123123123";
+        String awsAccountId = "1234567890";
+        String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+        String iamSecret = "abcdefgh";
+        String accessKeyId = "testaccesskey";
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{ \"data\": {\"secretvals\": [{\"accessKeyId\": \"testaccesskey\", \"expiryDuration\": 1609668443000}]}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(response);
+        Response response204 = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(reqProcessor.process(eq("/write"), Mockito.any(), eq(token))).thenReturn(response204);
+
+        IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+
+        Response actualResponse = iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(token, awsAccountId, iamServiceAccountName, accessKeyId, iamServiceAccountSecret);
+
+    }
+
+    @Test
+    public void testUpdateIAMSvcAccNewAccessKeyIdInMetadataSuccessKeyMsmatch() {
+
+        String iamServiceAccountName = "svc_vault_test5";
+        String token = "123123123123";
+        String awsAccountId = "1234567890";
+        String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+        String iamSecret = "abcdefgh";
+        String accessKeyId = "testaccesskey1";
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{ \"data\": {\"secret\": [{\"accessKeyId\": \"testaccesskey\", \"expiryDuration\": 1609668443000}]}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(response);
+        Response response204 = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(reqProcessor.process(eq("/write"), Mockito.any(), eq(token))).thenReturn(response204);
+
+        IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+
+        Response actualResponse = iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(token, awsAccountId, iamServiceAccountName, accessKeyId, iamServiceAccountSecret);
+        assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void testUpdateIAMSvcAccNewAccessKeyIdInMetadataFailedNoData() {
+
+        String iamServiceAccountName = "svc_vault_test5";
+        String token = "123123123123";
+        String awsAccountId = "1234567890";
+        String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+        String iamSecret = "abcdefgh";
+        String accessKeyId = "testaccesskey";
+
+        Response response = getMockResponse(HttpStatus.OK, true, null);
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(response);
+        Response response204 = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(reqProcessor.process(eq("/write"), Mockito.any(), eq(token))).thenReturn(response204);
+
+        IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+
+        Response actualResponse = iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(token, awsAccountId, iamServiceAccountName, accessKeyId, iamServiceAccountSecret);
+    }
+
+    @Test
+    public void testUpdateIAMSvcAccNewAccessKeyIdInMetadataFailedInvalidSecret() {
+
+        String iamServiceAccountName = "svc_vault_test5";
+        String token = "123123123123";
+        String awsAccountId = "1234567890";
+        String path = "metadata/iamsvcacc/1234567890_svc_vault_test5";
+        String iamSecret = "abcdefgh";
+        String accessKeyId = "testaccesskey1";
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{ \"data\": {\"secret\": [{\"accessKeyId\": \"testaccesskey\", \"expiryDuration\": 1609668443000}]}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(response);
+        Response response204 = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(reqProcessor.process(eq("/write"), Mockito.any(), eq(token))).thenReturn(response204);
+
+        IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret(iamServiceAccountName, accessKeyId, iamSecret, 1609754282000L, awsAccountId);
+
+        Response actualResponse = iamServiceAccountUtils.updateIAMSvcAccNewAccessKeyIdInMetadata(token, awsAccountId, iamServiceAccountName, accessKeyId, iamServiceAccountSecret);
+
+    }
+
+    @Test
     public void test_getTokenPoliciesAsListFromTokenLookupJson_success() throws IOException {
 
         List<String> expectedPolicies = new ArrayList<>();
@@ -340,6 +684,17 @@ public class IAMServiceAccountUtilsTest {
     }
 
     @Test
+    public void testGetTokenPoliciesAsListFromTokenLookupJsonFailed() throws IOException {
+
+        List<String> expectedPolicies = new ArrayList<>();
+        expectedPolicies.add("default");
+        String policyJson = "{ \"policy\": [\"default\"]}";
+
+        List<String> currentpolicies = iamServiceAccountUtils.getTokenPoliciesAsListFromTokenLookupJson(new ObjectMapper(), policyJson);
+    }
+
+
+    @Test
     public void test_getIdentityPoliciesAsListFromTokenLookupJson_success() throws IOException {
 
         List<String> expectedPolicies = new ArrayList<>();
@@ -360,4 +715,15 @@ public class IAMServiceAccountUtilsTest {
         List<String> currentpolicies = iamServiceAccountUtils.getIdentityPoliciesAsListFromTokenLookupJson(new ObjectMapper(), policyJson);
         assertEquals(expectedPolicies,currentpolicies);
     }
+
+    @Test
+    public void testGetIdentityPoliciesAsListFromTokenLookupJsonFailed() throws IOException {
+
+        List<String> expectedPolicies = new ArrayList<>();
+        expectedPolicies.add("default");
+        String policyJson = "{ \"identity_policy\": [\"default\"]}";
+
+        List<String> currentpolicies = iamServiceAccountUtils.getIdentityPoliciesAsListFromTokenLookupJson(new ObjectMapper(), policyJson);
+    }
+
 }

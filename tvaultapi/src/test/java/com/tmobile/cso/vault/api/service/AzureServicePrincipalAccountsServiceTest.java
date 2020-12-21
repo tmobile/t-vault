@@ -1686,7 +1686,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		userDetails = getMockUser(true);
 		token = userDetails.getClientToken();
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body("{\"errors\":[\"Failed to add group to the Azure Service Principal\"]}");
+				.body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
 		Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
 		Response groupResp = getMockResponse(HttpStatus.OK, true,
@@ -2732,7 +2732,7 @@ public class AzureServicePrincipalAccountsServiceTest {
     @Test
     public void test_removeApproleFromAzureSvcAcc_succssfully() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed from Azure Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed(if existed) from Azure Service Account\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         AzureServiceAccountApprole serviceAccountApprole = new AzureServiceAccountApprole("testsvcname", "role1", "read");

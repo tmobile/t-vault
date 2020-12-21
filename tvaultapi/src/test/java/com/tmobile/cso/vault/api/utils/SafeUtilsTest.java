@@ -134,6 +134,26 @@ public class SafeUtilsTest {
     }
 
     @Test
+    public void testGetPoliciesForManagedSafesInvalidPolicy() throws IOException {
+        ObjectMapper objMapper = new ObjectMapper();
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"s_users_ert\"],\"lease_duration\":1800000}");
+        JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+        List<String> expectedAdminPolicies = new ArrayList<>();
+        expectedAdminPolicies.add("d_users_ert");
+        List<String> adminPolicies = safeUtils.getPoliciesForManagedSafes(policiesJsonNode);
+    }
+
+    @Test
+    public void testGetPoliciesForManagedSafesEmptyPolicy() throws IOException {
+        ObjectMapper objMapper = new ObjectMapper();
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\"],\"lease_duration\":1800000}");
+        JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+        List<String> expectedAdminPolicies = new ArrayList<>();
+        expectedAdminPolicies.add("d_users_ert");
+        List<String> adminPolicies = safeUtils.getPoliciesForManagedSafes(policiesJsonNode);
+    }
+
+    @Test
     public void test_getManagedSafesFromPolicies_successfully() throws IOException {
         ObjectMapper objMapper = new ObjectMapper();
         Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"s_users_ert\"],\"lease_duration\":1800000}");
@@ -160,7 +180,7 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"d_users_ert\"],\"lease_duration\":1800000}");
         JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
         String[] expectedList = {"ert"};
-        String[] policies = {"s_users_ert"};
+        String[] policies = {"d_users_ert"};
         String[] policiesRes = safeUtils.getManagedSafes(policies, "users");
     }
 
@@ -170,7 +190,7 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"s_group_ert\"],\"lease_duration\":1800000}");
         JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
         String[] expectedList = {"ert"};
-        String[] policies = {"s_users_ert"};
+        String[] policies = {"s_groups_ert"};
         String[] policiesRes = safeUtils.getManagedSafes(policies, "users");
     }
 
@@ -368,4 +388,30 @@ public class SafeUtilsTest {
         boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
         assertFalse(canAdd);
     }
+
+    @Test
+    public void testCanAddOrRemoveUserFailureEmptySafeName() {
+        UserDetails userDetails = getMockUser(false);
+        SafeUser safeUser = new SafeUser("ert", "normaluser", "write");
+
+        when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
+        when(ControllerUtil.getSafeName("users/ert")).thenReturn("");
+        boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
+        assertFalse(canAdd);
+    }
+
+    @Test
+    public void testCanAddOrRemoveUserFailedSafeMetadataEmpty() {
+        UserDetails userDetails = getMockUser(false);
+        SafeUser safeUser = new SafeUser("users/ert", "normaluser1", "write");
+
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "{}");
+
+        when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
+        when(ControllerUtil.getSafeName("users/ert")).thenReturn("ert");
+        when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/ert\"}", "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+        boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
+        assertFalse(canAdd);
+    }
+
 }
