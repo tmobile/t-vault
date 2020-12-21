@@ -699,7 +699,7 @@ public class IAMServiceAccountServiceTest {
 		userDetails = getMockUser(true);
 		token = userDetails.getClientToken();
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body("{\"errors\":[\"Failed to add group to the IAM Service Account\"]}");
+				.body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
 		Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
 		Response groupResp = getMockResponse(HttpStatus.OK, true,
@@ -936,7 +936,7 @@ public class IAMServiceAccountServiceTest {
 		token = userDetails.getClientToken();
 		IAMServiceAccountGroup iamSvcAccGroup = new IAMServiceAccountGroup("testaccount", "group1", "rotate", "1234567");
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body("{\"errors\":[\"Failed to remove the group from the IAM Service Account\"]}");
+				.body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
 		Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
 		Response groupResp = getMockResponse(HttpStatus.OK, true,
@@ -1006,7 +1006,7 @@ public class IAMServiceAccountServiceTest {
 	 @Test
 	    public void test_removeApproleFromIAMSvcAcc_succssfully() throws Exception {
 
-	        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed from IAM Service Account\"]}");
+	        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed(if existed) from IAM Service Account\"]}");
 	        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
 	        UserDetails userDetails = getMockUser(false);
 	        IAMServiceAccountApprole serviceAccountApprole = new IAMServiceAccountApprole("testsvcname", "role1", "rotate", "1234567890");

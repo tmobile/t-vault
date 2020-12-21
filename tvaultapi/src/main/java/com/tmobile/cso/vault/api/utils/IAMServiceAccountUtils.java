@@ -274,7 +274,7 @@ public class IAMServiceAccountUtils {
                 iamServiceAccountSecret.setAwsAccountId(iamServiceAccountRotateRequest.getAccountId());
             }
             return iamServiceAccountSecret;
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, IAMServiceAccountConstants.ROTATE_IAM_SECRET).
@@ -388,11 +388,13 @@ public class IAMServiceAccountUtils {
         String pathjson =PATHSTR+path+"\"}";
         // Read info for the path
         Response metadataResponse = requestProcessor.process("/read",pathjson,token);
-        Map<String,Object> _metadataMap = null;
+        Map<String,Object> iamMetadataMap = null;
         if(HttpStatus.OK.equals(metadataResponse.getHttpstatus())){
-            try {
-                _metadataMap = objMapper.readValue(metadataResponse.getResponse(), new TypeReference<Map<String,Object>>() {});
-            } catch (IOException e) {
+			try {
+				iamMetadataMap = objMapper.readValue(metadataResponse.getResponse(),
+						new TypeReference<Map<String, Object>>() {
+						});
+			} catch (IOException e) {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                         put(LogMessage.ACTION, "updateActivatedStatusInMetadata").
@@ -400,30 +402,30 @@ public class IAMServiceAccountUtils {
                         put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                         build()));
             }
+            if(iamMetadataMap != null) {
+	            @SuppressWarnings("unchecked")
+	            Map<String,Object> metadataMap = (Map<String,Object>) iamMetadataMap.get("data");
 
-            @SuppressWarnings("unchecked")
-            Map<String,Object> metadataMap = (Map<String,Object>) _metadataMap.get("data");
+	            boolean isActivated = (boolean) metadataMap.get(typeIsActivated);
+	            if(StringUtils.isEmpty(isActivated) || !isActivated) {
+	                metadataMap.put(typeIsActivated, true);
+	                String metadataJson = "";
+	                try {
+	                    metadataJson = objMapper.writeValueAsString(metadataMap);
+	                } catch (JsonProcessingException e) {
+	                    log.error(e);
+	                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+	                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+	                            put(LogMessage.ACTION, "updateActivatedStatusInMetadata").
+	                            put(LogMessage.MESSAGE, String.format ("Error in creating metadataJson for type [%s] and path [%s] with message [%s]", typeIsActivated, path, e.getMessage())).
+	                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+	                            build()));
+	                }
 
-            @SuppressWarnings("unchecked")
-            boolean isActivated = (boolean) metadataMap.get(typeIsActivated);
-            if(StringUtils.isEmpty(isActivated) || !isActivated) {
-                metadataMap.put(typeIsActivated, true);
-                String metadataJson = "";
-                try {
-                    metadataJson = objMapper.writeValueAsString(metadataMap);
-                } catch (JsonProcessingException e) {
-                    log.error(e);
-                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                            put(LogMessage.ACTION, "updateActivatedStatusInMetadata").
-                            put(LogMessage.MESSAGE, String.format ("Error in creating metadataJson for type [%s] and path [%s] with message [%s]", typeIsActivated, path, e.getMessage())).
-                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                            build()));
-                }
-
-                String writeJson =  PATHSTR+path+DATASTR+ metadataJson +"}";
-                metadataResponse = requestProcessor.process(WRITESTR,writeJson,token);
-                return metadataResponse;
+	                String writeJson =  PATHSTR+path+DATASTR+ metadataJson +"}";
+	                metadataResponse = requestProcessor.process(WRITESTR,writeJson,token);
+	                return metadataResponse;
+	            }
             }
             return metadataResponse;
         }
@@ -431,7 +433,7 @@ public class IAMServiceAccountUtils {
     }
 
     /**
-     * To udpated Access key details in metadata.
+     * Method to update Access key details in metadata.
      * @param token
      * @param awsAccountId
      * @param iamServiceAccountName
@@ -450,9 +452,6 @@ public class IAMServiceAccountUtils {
         String uniqueIAMSvcaccName = awsAccountId + "_" + iamServiceAccountName;
         String path = new StringBuffer(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(uniqueIAMSvcaccName).toString();
 
-        List<IAMSecretsMetadata> secretData = new ArrayList<>();
-
-
         String typeSecret = "secret";
         path = "metadata/"+path;
 
@@ -460,11 +459,13 @@ public class IAMServiceAccountUtils {
         String pathjson =PATHSTR+path+"\"}";
         // Read info for the path
         Response metadataResponse = requestProcessor.process("/read",pathjson,token);
-        Map<String,Object> _metadataMap = null;
+        Map<String,Object> iamMetadataMap = null;
         if(HttpStatus.OK.equals(metadataResponse.getHttpstatus())){
-            try {
-                _metadataMap = objMapper.readValue(metadataResponse.getResponse(), new TypeReference<Map<String,Object>>() {});
-            } catch (IOException e) {
+			try {
+				iamMetadataMap = objMapper.readValue(metadataResponse.getResponse(),
+						new TypeReference<Map<String, Object>>() {
+						});
+			} catch (IOException e) {
                 log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                         put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                         put(LogMessage.ACTION, "updateIAMSvcAccNewAccessKeyIdInMetadata").
@@ -472,42 +473,40 @@ public class IAMServiceAccountUtils {
                         put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                         build()));
             }
+            if(iamMetadataMap != null) {
+	            @SuppressWarnings("unchecked")
+	            Map<String,Object> metadataMap = (Map<String,Object>) iamMetadataMap.get("data");
 
-            @SuppressWarnings("unchecked")
-            Map<String,Object> metadataMap = (Map<String,Object>) _metadataMap.get("data");
+	            ObjectMapper objectMapper = new ObjectMapper();
+	            List<IAMSecretsMetadata> currentSecretData = objectMapper.convertValue((List<IAMSecretsMetadata>) metadataMap.get(typeSecret), new TypeReference<List<IAMSecretsMetadata>>() { });
+	            if(null != currentSecretData) {
+	                List<IAMSecretsMetadata> newSecretData = new ArrayList<>();
+	                for (int i=0;i<currentSecretData.size();i++) {
+	                    IAMSecretsMetadata iamSecretsMetadata = currentSecretData.get(i);
+	                    if (accessKeyId.equals(iamSecretsMetadata.getAccessKeyId())) {
+	                        iamSecretsMetadata.setAccessKeyId(iamServiceAccountSecret.getAccessKeyId());
+	                        iamSecretsMetadata.setExpiryDuration(iamServiceAccountSecret.getExpiryDateEpoch());
+	                    }
+	                    newSecretData.add(iamSecretsMetadata);
+	                }
 
-            @SuppressWarnings("unchecked")
+	                metadataMap.put(typeSecret, newSecretData);
+	                String metadataJson = "";
+	                try {
+	                    metadataJson = objMapper.writeValueAsString(metadataMap);
+	                } catch (JsonProcessingException e) {
+	                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+	                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+	                            put(LogMessage.ACTION, "updateIAMSvcAccNewAccessKeyIdInMetadata").
+	                            put(LogMessage.MESSAGE, String.format ("Error in creating metadataJson for type [%s] and path [%s] with message [%s]", typeSecret, path, e.getMessage())).
+	                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+	                            build()));
+	                }
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            List<IAMSecretsMetadata> currentSecretData = objectMapper.convertValue((List<IAMSecretsMetadata>) metadataMap.get(typeSecret), new TypeReference<List<IAMSecretsMetadata>>() { });
-            if(null != currentSecretData) {
-                List<IAMSecretsMetadata> newSecretData = new ArrayList<>();
-                for (int i=0;i<currentSecretData.size();i++) {
-                    IAMSecretsMetadata iamSecretsMetadata = currentSecretData.get(i);
-                    if (accessKeyId.equals(iamSecretsMetadata.getAccessKeyId())) {
-                        iamSecretsMetadata.setAccessKeyId(iamServiceAccountSecret.getAccessKeyId());
-                        iamSecretsMetadata.setExpiryDuration(iamServiceAccountSecret.getExpiryDateEpoch());
-                    }
-                    newSecretData.add(iamSecretsMetadata);
-                }
-
-                metadataMap.put(typeSecret, newSecretData);
-                String metadataJson = "";
-                try {
-                    metadataJson = objMapper.writeValueAsString(metadataMap);
-                } catch (JsonProcessingException e) {
-                    log.error(e);
-                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                            put(LogMessage.ACTION, "updateIAMSvcAccNewAccessKeyIdInMetadata").
-                            put(LogMessage.MESSAGE, String.format ("Error in creating metadataJson for type [%s] and path [%s] with message [%s]", typeSecret, path, e.getMessage())).
-                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                            build()));
-                }
-
-                String writeJson =  PATHSTR+path+DATASTR+ metadataJson +"}";
-                metadataResponse = requestProcessor.process(WRITESTR,writeJson,token);
-                return metadataResponse;
+	                String writeJson =  PATHSTR+path+DATASTR+ metadataJson +"}";
+	                metadataResponse = requestProcessor.process(WRITESTR,writeJson,token);
+	                return metadataResponse;
+	            }
             }
             return metadataResponse;
         }

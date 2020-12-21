@@ -181,7 +181,7 @@ public class SafeUtils {
 		Response response = ControllerUtil.getReqProcessor().process("/sdb","{\"path\":\""+metaDataPath+"\"}",token);
 		// Create the Safe bean
 		Safe safe = null;
-		if(HttpStatus.OK.equals(response.getHttpstatus())){
+		if(response != null && HttpStatus.OK.equals(response.getHttpstatus())){
 			try {
 				ObjectMapper objMapper = new ObjectMapper();
 				JsonNode dataNode = objMapper.readTree(response.getResponse().toString()).get("data");

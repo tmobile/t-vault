@@ -1632,7 +1632,7 @@ public class  SafesService {
 						}
 					}		
 				}else{
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Try Again\"]}");
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try Again\"]}");
 				}	
 			}else{
 				// Trying to remove the orphan entries if exists
@@ -2542,7 +2542,7 @@ public class  SafesService {
 								put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 								build()));
-						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed(if existed) from Safe\"]}");
 					} else {
 						String safeType = ControllerUtil.getSafeType(path);
 						String safeName = ControllerUtil.getSafeName(path);

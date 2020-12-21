@@ -950,7 +950,7 @@ public class  IAMServiceAccountsService {
 			}
 		} else {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("{\"errors\":[\"Failed to add group to the IAM Service Account\"]}");
+					.body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
 		}
 	}
 
@@ -2072,7 +2072,7 @@ public class  IAMServiceAccountsService {
 					currentpolicies, currentpoliciesString);
 		}
 		else {
-		    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove the group from the IAM Service Account\"]}");
+		    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
 		}
 	}
 
@@ -2567,7 +2567,7 @@ public class  IAMServiceAccountsService {
 											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 									.build()));
 					return ResponseEntity.status(HttpStatus.OK)
-							.body("{\"messages\":[\"Approle is successfully removed from IAM Service Account\"]}");
+							.body("{\"messages\":[\"Approle is successfully removed(if existed) from IAM Service Account\"]}");
 				}
 				approleControllerResp = appRoleService.configureApprole(approleName, currentpoliciesString, token);
 				if (approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {

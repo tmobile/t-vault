@@ -2996,7 +2996,7 @@ public class SSLCertificateServiceTest {
 	@Test
     public void testDeleteAppRoleFromCertificateSuccssfully() {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle successfully deleted from Certificate\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed(if existed) from Certificate\"]}");
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         userDetails = getMockUser(false);
         SSLCertificateMetadataDetails certificateMetadata = getSSLCertificateMetadataDetails();
@@ -4750,7 +4750,7 @@ public class SSLCertificateServiceTest {
     	CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com", "testgroup","read", "internal");
     	Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, false, "");
-        String expectedResponse = "{\"errors\":[\"Failed to remove the group from the certificate\"]}";
+        String expectedResponse = "{\"errors\":[\"Group configuration failed.Try Again\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
 
         when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com","internal")).thenReturn(certificateMetadata);

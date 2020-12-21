@@ -4393,7 +4393,7 @@ public class SSLCertificateMockServiceTest {
         CertificateGroup certGroup = new CertificateGroup("certificatename.t-mobile.com", "testgroup","read", "internal");
         Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"r_cert_certificatename.t-mobile.com\"],\"ttl\":0,\"groups\":\"admin\"}}");
         Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, false, "");
-        String expectedResponse = "{\"errors\":[\"Failed to remove the group from the certificate\"]}";
+        String expectedResponse = "{\"errors\":[\"Group configuration failed.Try Again\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
 
         when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com","internal")).thenReturn(certificateMetadata);
