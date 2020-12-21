@@ -4588,7 +4588,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		}
 		JsonParser jsonParser = new JsonParser();
 		JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
-		metaDataParams = new Gson().fromJson(object.toString(), Map.class);		
+		metaDataParams = new Gson().fromJson(object.toString(), Map.class);
         if(Objects.nonNull(metaDataParams.get("requestStatus")) && (!metaDataParams.get("requestStatus").equalsIgnoreCase(SSLCertificateConstants.REQUEST_PENDING_APPROVAL))
                 && metaDataParams.get(SSLCertificateConstants.CERT_TYPE).equalsIgnoreCase("external")){
             long noOfDays = validateNoOfDays(metaDataParams);
@@ -4673,9 +4673,18 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 CertManagerLogin certManagerLogin = new CertManagerLogin();
                 certManagerLogin.setAccess_token(nclmAccessToken);
                 Map<String, Object> responseMap = ControllerUtil.parseJson(renewResponse.getResponse());
-                if(certID.equalsIgnoreCase(String.valueOf(certData.getCertificateId()))) {
+
+                log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                        .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                        .put(LogMessage.ACTION, "renewCertificate")
+                        .put(LogMessage.MESSAGE, String.format("Renew  certificate name = " +
+                                        "[%s]=certificateType = [%s] = oldCertId = [%s] = newCertId = [%s]",  certificateName,
+                                certType, certificateId, certData.getCertificateId()))
+                        .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+                if(String.valueOf(certificateId).equalsIgnoreCase(String.valueOf(certData.getCertificateId()))) {
                     //Make sure certificate renewed
-                    certData = getRenewedCertificate(certType, certificateName, nclmAccessToken, containerId, certID);
+                    certData = getRenewedCertificate(certType, certificateName, nclmAccessToken, containerId, certificateId);
                 }
                 if (responseMap.size() > 0 && Objects.nonNull(responseMap.get(SSLCertificateConstants.ACTION_ID)) && !MapUtils.isEmpty(responseMap) && responseMap.get(
                         SSLCertificateConstants.ACTION_ID) != null) {
@@ -4808,22 +4817,23 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
      * @throws Exception
      */
     private CertificateData getRenewedCertificate(String certType, String certificateName, String nclmAccessToken,
-                                                  int containerId, String certID) throws Exception {
+                                                  int containerId, int certID) throws Exception {
         CertificateData certData = null;
         for (int i = 0; i < retrycount; i++) {
+            Thread.sleep(renewDelayTime);
+            certData = (!isMockingEnabled(certType)) ?
+                    getLatestCertificate(certificateName, nclmAccessToken, containerId) :
+                    nclmMockUtil.getRenewCertificateMockData();
 
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
                     .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
                     .put(LogMessage.ACTION, "getRenewedCertificate")
                     .put(LogMessage.MESSAGE, String.format("Renew RETRY COUNT = [%s] = certificate name = " +
-                                    "[%s]=certificateType = [%s]", i,certificateName,certType))
+                                    "[%s]=certificateType = [%s] = oldCertId = [%s] = newCertId = [%s]", i, certificateName,
+                            certType, certID, certData.getCertificateId()))
                     .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
-            Thread.sleep(renewDelayTime);
-            certData = (!isMockingEnabled(certType)) ?
-                    getLatestCertificate(certificateName, nclmAccessToken, containerId) :
-                    nclmMockUtil.getRenewCertificateMockData();
-            if (!certID.equalsIgnoreCase(String.valueOf(certData.getCertificateId()))) {
+            if (!String.valueOf(certID).equalsIgnoreCase(String.valueOf(certData.getCertificateId()))) {
                 break;
             }
         }
