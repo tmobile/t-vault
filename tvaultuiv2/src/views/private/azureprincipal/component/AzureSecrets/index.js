@@ -38,6 +38,16 @@ const UserList = styled.div`
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
   }
+
+  .expirationDate {
+    font-family: Roboto;
+    font-size: 1.34rem;
+    color: #ffffff;
+
+    div {
+      color: #c1c1c1;
+    }
+  }
 `;
 
 const Secret = styled.div`
@@ -116,6 +126,17 @@ const LabelWrap = styled.div`
   }
 `;
 
+const formatDate = (expiryDate = '') =>{
+
+  const expirationArr = new Date(expiryDate).toDateString().split(" ");  
+  if(expirationArr.length>3){
+    expirationArr.splice(3,0, ',');
+    const expiryFormattedDate = expirationArr.splice(1).join(" ");
+  
+    return expiryFormattedDate;
+  }    
+}
+
 const AzureSecrets = (props) => {
   const { azureDetail, azureSecretData, secretResponse, refresh } = props;
   const [response, setResponse] = useState({ status: '' });
@@ -130,6 +151,10 @@ const AzureSecrets = (props) => {
     response: false,
   });
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+
+  const {expiryDate} =secretsData || {};
+
+ 
 
   /**
    * @function onViewSecretDetails
@@ -309,6 +334,10 @@ const AzureSecrets = (props) => {
                 <Secret type="password" viewSecret={showSecret}>
                   {secretsData.secretText}
                 </Secret>
+                <span class="expirationDate">
+                  <div>Expires: </div>
+                  {formatDate(secretsData.expiryDate)}
+                </span>
 
                 <FolderIconWrap>
                   <PopperElement
