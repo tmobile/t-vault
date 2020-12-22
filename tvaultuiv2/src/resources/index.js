@@ -25,6 +25,8 @@ const Resources = {
     'seconds and enabled for auto rotation by T-Vault. When you request for the password after this time, T-Vault will generate new password and make it available.',
   noSafeSecretFound:
     'Add a <strong>Folder</strong> and then you will be able to add <strong>Secrets</strong> to view them all here.',
+  noSafeSecretFoundReadPerm:
+    'No <strong>Folder</strong> or <strong>Secrets</strong> found here.',
   noUsersPermissionFound:
     'No <strong>Users</strong> are given permission to access this safe, add users to access the safe.',
   noGroupsPermissionFound:

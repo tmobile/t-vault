@@ -117,18 +117,7 @@ const Secrets = (props) => {
                   ) : secretsFolder[0]?.children?.length === 0 ? (
                     // eslint-disable-next-line react/jsx-indent
                     <EmptySecretBox>
-                      {userHavePermission?.type !== 'write' ? (
-                        <AccessDeniedWrap>
-                          <AccessDeniedIcon
-                            src={AccessDeniedLogo}
-                            alt="accessDeniedLogo"
-                          />
-                          <NoPermission>
-                            You <span>do</span>not have access to this{' '}
-                            <span>Safe</span>and cannot view it’s contents
-                          </NoPermission>
-                        </AccessDeniedWrap>
-                      ) : (
+                      {userHavePermission?.type === 'write' ? (
                         <NoData
                           imageSrc={NoSecretsIcon}
                           description={Strings.Resources.noSafeSecretFound}
@@ -146,6 +135,26 @@ const Secrets = (props) => {
                           bgIconStyle={bgIconStyle}
                           customStyle={noDataStyle}
                         />
+                      ) : userHavePermission?.type === 'read' ? (
+                        <NoData
+                          imageSrc={NoSecretsIcon}
+                          description={
+                            Strings.Resources.noSafeSecretFoundReadPerm
+                          }
+                          bgIconStyle={bgIconStyle}
+                          customStyle={noDataStyle}
+                        />
+                      ) : (
+                        <AccessDeniedWrap>
+                          <AccessDeniedIcon
+                            src={AccessDeniedLogo}
+                            alt="accessDeniedLogo"
+                          />
+                          <NoPermission>
+                            You <span>do</span>not have access to this{' '}
+                            <span>Safe</span>and cannot view it’s contents
+                          </NoPermission>
+                        </AccessDeniedWrap>
                       )}
                     </EmptySecretBox>
                   ) : (
