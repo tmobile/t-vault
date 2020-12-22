@@ -397,7 +397,7 @@ const CreateCertificates = (props) => {
   const checkDnsAlreadyIncluded = (val) => {
     if (dnsArray.includes(val)) {
       setDnsError(true);
-      setErrorDnsMessage('Dns name already added!');
+      setErrorDnsMessage('DNS name already added!');
     } else {
       setDnsArray((prev) => [...prev, val.toLowerCase()]);
       setDnsName('');
@@ -407,14 +407,15 @@ const CreateCertificates = (props) => {
   };
 
   const onAddDnsClicked = (e) => {
-    if (e.keyCode === 13 && e?.target?.value) {
+    if (e.keyCode === 13 && e?.target?.value && !dnsError) {
+      e.preventDefault();
       const val = `${e.target.value}.t-mobile.com`;
       checkDnsAlreadyIncluded(val);
     }
   };
 
   const onAddDnsKeyClicked = () => {
-    if (dnsName) {
+    if (dnsName && !dnsError) {
       const val = `${dnsName}.t-mobile.com`;
       checkDnsAlreadyIncluded(val);
     }
@@ -563,8 +564,8 @@ const CreateCertificates = (props) => {
   );
 
   const onNotifyEmailChange = (e) => {
-    if (e) {
-      setNotifyEmail(e?.target?.value);
+    if (e && e.target && e.target.value) {
+      setNotifyEmail(e.target.value);
       if (e.target.value && e.target.value?.length > 2) {
         callSearchApi(e.target.value);
         if (validateEmail(notifyEmail)) {
@@ -576,6 +577,8 @@ const CreateCertificates = (props) => {
           );
         }
       }
+    } else {
+      setNotifyEmail('');
     }
   };
 
@@ -583,7 +586,12 @@ const CreateCertificates = (props) => {
     const obj = notificationEmailList.find(
       (item) => item.toLowerCase() === notifyEmail.toLowerCase()
     );
-    if (!emailError && isValidEmail && notifyEmail !== '') {
+    if (
+      !emailError &&
+      isValidEmail &&
+      notifyEmail !== '' &&
+      validateEmail(notifyEmail)
+    ) {
       if (!obj) {
         setNotificationEmailList((prev) => [...prev, notifyEmail]);
         setNotifyEmail('');
@@ -596,6 +604,7 @@ const CreateCertificates = (props) => {
 
   const onEmailKeyDownClicked = (e) => {
     if (e?.keyCode === 13) {
+      e.preventDefault();
       onAddEmailClicked();
     }
   };
@@ -744,11 +753,11 @@ const CreateCertificates = (props) => {
                   </IncludeDnsWrap>
                   {isDns && (
                     <InputFieldLabelWrapper>
-                      <InputLabel>Add Dns</InputLabel>
+                      <InputLabel>Add DNS</InputLabel>
                       <InputEndWrap>
                         <TextFieldComponent
                           value={dnsName}
-                          placeholder="Add dns"
+                          placeholder="Add DNS"
                           fullWidth
                           name="dnsName"
                           onChange={(e) => {

@@ -157,6 +157,13 @@ const DownloadModal = (props) => {
     { name: 'PEM-OPENSSL', value: 'pkcs12pem' },
   ]);
 
+  const onCloseModal = () => {
+    setIssuerChain(true);
+    setFormatType('DER-P12');
+    setPassword('');
+    onCloseDownloadModal();
+  };
+
   const onPriDownload = () => {
     let type = '';
     const obj = selectItem.find((item) => item.name === formatType);
@@ -175,6 +182,7 @@ const DownloadModal = (props) => {
       type = 'p12';
     }
     onPrivateDownloadClicked(payload, type);
+    onCloseModal();
   };
 
   return (
@@ -184,7 +192,7 @@ const DownloadModal = (props) => {
         aria-describedby="transition-modal-description"
         className={classes.modal}
         open={openDownloadModal}
-        onClose={() => onCloseDownloadModal()}
+        onClose={() => onCloseModal()}
         closeAfterTransition
         BackdropComponent={Backdrop}
         BackdropProps={{
@@ -239,7 +247,7 @@ const DownloadModal = (props) => {
                     <ButtonComponent
                       label="Cancel"
                       color="primary"
-                      onClick={() => onCloseDownloadModal()}
+                      onClick={() => onCloseModal()}
                       width={isMobileScreen ? '100%' : ''}
                     />
                   </CancelButton>
@@ -278,7 +286,7 @@ const DownloadModal = (props) => {
                   <ButtonComponent
                     label="Cancel"
                     color="primary"
-                    onClick={() => onCloseDownloadModal()}
+                    onClick={() => onCloseModal()}
                     width={isMobileScreen ? '100%' : ''}
                   />
                 </NonPrivateCancel>

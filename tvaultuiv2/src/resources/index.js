@@ -15,6 +15,14 @@ const Resources = {
     'Are you sure you want to offboard this Service Account? This will not delete the Service Account from AD server.',
   offBoardSuccessfull:
     'Offboarding of Service Account has been completed successfully. The Service Account Password can no longer be managed by T-Vault. For security reasons, you need to log out and log in order for the changes to effect.',
+  svcNotEnableUpdateMsg:
+    'The password for this service account will expire in 365 days and will not be enabled for auto rotation by T-Vault even after it is expired. You need to make sure the password for this service account is getting rotated appropriately.',
+  svcNotEnableOnboardMsg:
+    'The password for this service account will expire in 365 days and will not be enabled for auto rotation by T-Vault. You need to make sure the password for this service account is getting rotated appropriately.',
+  svcPwdEnableNoValueMsg:
+    'The password for this service account will expire in 365 days and enabled for auto rotation by T-Vault. When you request for the password after this time, T-Vault will generate new password and make it available.',
+  svcPwdEnableWithValueMsg:
+    'seconds and enabled for auto rotation by T-Vault. When you request for the password after this time, T-Vault will generate new password and make it available.',
   noSafeSecretFound:
     'Add a <strong>Folder</strong> and then you will be able to add <strong>Secrets</strong> to view them all here.',
   noUsersPermissionFound:

@@ -51,7 +51,7 @@ export const findItemAndRemove = (arr, key, id) => {
   const tempArr = [...arr];
   const indexofItem =
     tempArr[0] && tempArr[0][key].findIndex((item) => item.id === id);
-  if (indexofItem) tempArr[0][key].splice(indexofItem, 1);
+  if (indexofItem >= 0) tempArr[0][key].splice(indexofItem, 1);
   return tempArr;
 };
 
@@ -163,6 +163,7 @@ export const validateEmail = (email) => {
     const res = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //eslint-disable-line
     return res.test(email);
   }
+  return false;
 };
 
 export const removeDuplicate = (arr) => {

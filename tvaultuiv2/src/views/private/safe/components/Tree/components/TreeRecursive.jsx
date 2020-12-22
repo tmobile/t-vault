@@ -114,7 +114,7 @@ const TreeRecursive = (props) => {
                   setsecretEditData({});
                 }}
                 handleSecretSave={(secret) => {
-                  saveFolder(secret, item.value);
+                  saveFolder(secret, item.id);
                   setsecretEditData({});
                 }}
               />

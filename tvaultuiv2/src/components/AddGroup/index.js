@@ -197,11 +197,13 @@ const AddGroup = (props) => {
   }, [isIamAzureSvcAccount, isSvcAccount, isCertificate]);
 
   const onSearchChange = (e) => {
-    if (e) {
-      setSearchValue(e?.target?.value);
+    if (e && e?.target?.value) {
+      setSearchValue(e.target.value);
       if (e.target?.value !== '' && e.target?.value?.length > 2) {
         callSearchApi(e.target.value);
       }
+    } else {
+      setSearchValue('');
     }
   };
 

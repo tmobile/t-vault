@@ -115,6 +115,7 @@ const LeftColumn = (props) => {
     onReleaseClicked,
     onOnboardClicked,
     history,
+    onDeleteCertificateClicked,
   } = props;
   const [selectedCert, setSelectedCert] = useState('');
   const [count, setCount] = useState(0);
@@ -210,6 +211,9 @@ const LeftColumn = (props) => {
                         onTransferOwnerClicked(certificate)
                       }
                       onReleaseClicked={() => onReleaseClicked(certificate)}
+                      onDeleteCertificateClicked={() =>
+                        onDeleteCertificateClicked(certificate)
+                      }
                     />
                   </ClickAwayListener>
                 </EditDeletePopperWrap>
@@ -235,6 +239,7 @@ LeftColumn.propTypes = {
   onReleaseClicked: PropTypes.func.isRequired,
   onOnboardClicked: PropTypes.func,
   history: PropTypes.objectOf(PropTypes.any).isRequired,
+  onDeleteCertificateClicked: PropTypes.func.isRequired,
 };
 
 LeftColumn.defaultProps = {

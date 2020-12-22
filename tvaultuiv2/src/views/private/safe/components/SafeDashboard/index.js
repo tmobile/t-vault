@@ -41,6 +41,7 @@ import SelectWithCountComponent from '../../../../../components/FormFields/Selec
 import {
   ListContainer,
   ListContent,
+  NoResultFound,
 } from '../../../../../styles/GlobalStyles/listingStyle';
 import configData from '../../../../../config/config';
 
@@ -91,12 +92,6 @@ const NoDataWrapper = styled.div`
   justify-content: center;
   align-items: center;
   color: #5e627c;
-  span {
-    margin: 0 0.4rem;
-    color: #fff;
-    font-weight: bold;
-    text-transform: uppercase;
-  }
 `;
 
 const PopperWrap = styled.div`
@@ -325,12 +320,12 @@ const SafeDashboard = () => {
 
   useEffect(() => {
     setMenu([
-      { name: 'All Safes', count: allSafeList?.length || 0 },
+      { name: 'All Safes', count: safeList?.length || 0 },
       { name: 'User Safes', count: safes?.users?.length || 0 },
       { name: 'Shared Safes', count: safes?.shared?.length || 0 },
       { name: 'Application Safes', count: safes?.apps?.length || 0 },
     ]);
-  }, [allSafeList, safes]);
+  }, [safeList, safes]);
 
   useEffect(() => {
     if (allSafeList.length > 0) {
@@ -597,17 +592,16 @@ const SafeDashboard = () => {
                 ) : (
                   <>
                     {inputSearchValue ? (
-                      <NoDataWrapper>
+                      <NoResultFound>
                         No safe found with name
-                        <span>{inputSearchValue}</span>
+                        <div>{inputSearchValue}</div>
                         {safeType !== 'All Safes' && (
                           <>
                             and filter by
-                            <span>{safeType}</span>
+                            <div>{safeType}</div>
                           </>
                         )}
-                        {' . '}
-                      </NoDataWrapper>
+                      </NoResultFound>
                     ) : (
                       <NoDataWrapper>
                         <NoSafeWrap>

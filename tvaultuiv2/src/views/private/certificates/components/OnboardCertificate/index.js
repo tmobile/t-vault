@@ -468,7 +468,7 @@ const OnboardCertificates = (props) => {
     const obj = notificationEmailList.find(
       (item) => item.toLowerCase() === notifyEmail.toLowerCase()
     );
-    if (!notifyEmailError && isValidNotifyEmail) {
+    if (!notifyEmailError && isValidNotifyEmail && validateEmail(notifyEmail)) {
       if (!obj) {
         setNotificationEmailList((prev) => [...prev, notifyEmail]);
         setNotifyEmail('');
@@ -481,12 +481,13 @@ const OnboardCertificates = (props) => {
 
   const onEmailKeyDownClicked = (e) => {
     if (e?.keyCode === 13) {
+      e.preventDefault();
       onAddEmailClicked();
     }
   };
 
   const onNotifyEmailChange = (e) => {
-    if (e) {
+    if (e && e?.target?.value) {
       setNotifyEmail(e?.target?.value);
       if (e.target.value && e.target.value?.length > 2) {
         callNotifySearchApi(e.target.value);
@@ -499,6 +500,8 @@ const OnboardCertificates = (props) => {
           );
         }
       }
+    } else {
+      setNotifyEmail('');
     }
   };
   const onRemoveEmailsClicked = (email) => {
