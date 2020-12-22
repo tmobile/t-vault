@@ -184,7 +184,7 @@ public class SafeUtils {
 		if(response != null && HttpStatus.OK.equals(response.getHttpstatus())){
 			try {
 				ObjectMapper objMapper = new ObjectMapper();
-				JsonNode dataNode = objMapper.readTree(response.getResponse().toString()).get("data");
+				JsonNode dataNode = objMapper.readTree(response.getResponse()).get("data");
 				safe = getSafeInfo(dataNode);
 			} catch (IOException e) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -199,7 +199,7 @@ public class SafeUtils {
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "Get Info").
 				put(LogMessage.MESSAGE, "Getting Info completed").
-				put(LogMessage.STATUS, response.getHttpstatus().toString()).
+				put(LogMessage.STATUS, response != null ? response.getHttpstatus().toString() : "").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 		return safe;
