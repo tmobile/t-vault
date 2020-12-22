@@ -140,6 +140,7 @@
                 $state.go('/');
                 return;
             }
+            $scope.selectionValue = 'email';
             $scope.ifTargetServiceExisting=false;	
             $scope.ifTargetSystemExisting=false;
             $scope.enableSvcacc = true;
@@ -2090,7 +2091,129 @@
                 }
             }
         }
+        $scope.searchNtid = function (searchVal) {        	
+            if (searchVal.length > 2) {
+                $scope.isUserSearchLoading = true;
+                searchVal = searchVal.toLowerCase();
+                try {
+                    $scope.userSearchList = [];
 
+                    var queryParameters = searchVal;
+                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('usersGetDataUsingCorpID', queryParameters);
+                    return AdminSafesManagement.usersGetDataUsingCorpID(null, updatedUrlOfEndPoint).then(
+                        function(response) {
+                            $scope.isUserSearchLoading = false;
+                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                var filterdUserData = [];
+                                $scope.userSearchList = response.data.data.values;
+                                $scope.userSearchList.forEach(function (userData) {
+                                    if (userData.userName != null && userData.userName.substring(0, searchVal.length).toLowerCase() == searchVal) {
+                                        filterdUserData.push(userData);
+                                    }
+                                });
+                                return orderByFilter(filterFilter(filterdUserData, searchVal), 'userName', true);
+                            } else {
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
+                        },
+                        function(error) {
+                            // Error handling function
+                            console.log(error);
+                            $scope.isUserSearchLoading = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                    });
+                } catch (e) {
+                    console.log(e);
+                    $scope.isUserSearchLoading = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            }
+        }
+        $scope.searchGroupName = function (searchVal) {        	
+            if (searchVal.length > 2) {
+                $scope.isUserSearchLoading = true;
+                searchVal = searchVal.toLowerCase();
+                try {
+                    $scope.userSearchList = [];
+
+                    var queryParameters = searchVal;
+                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('groupMailGetDataFromAAD', queryParameters);
+                    return AdminSafesManagement.groupMailGetDataFromAAD(null, updatedUrlOfEndPoint).then(
+                        function(response) {
+                            $scope.isUserSearchLoading = false;
+                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                var filterdUserData = [];
+                                $scope.userSearchList = response.data.data.values;
+                                $scope.userSearchList.forEach(function (userData) {
+                                    if (userData.email != null && userData.email.substring(0, searchVal.length).toLowerCase() == searchVal) {
+                                        filterdUserData.push(userData);
+                                    }
+                                });
+                                return orderByFilter(filterFilter(filterdUserData, searchVal), 'email', true);
+                            } else {
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
+                        },
+                        function(error) {
+                            // Error handling function
+                            console.log(error);
+                            $scope.isUserSearchLoading = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                    });
+                } catch (e) {
+                    console.log(e);
+                    $scope.isUserSearchLoading = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            }
+        }
+        $scope.searchLastname = function (searchVal) {      	
+            if (searchVal.length > 2) {
+                $scope.isUserSearchLoading = true;
+                searchVal = searchVal.toLowerCase();
+                try {
+                    $scope.userSearchList = [];
+
+                    var queryParameters = searchVal;
+                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('usersGetDataUsingNTID', queryParameters);
+                    return AdminSafesManagement.usersGetDataUsingNTID(null, updatedUrlOfEndPoint).then(
+                        function(response) {
+                            $scope.isUserSearchLoading = false;
+                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                var filterdUserData = [];
+                                $scope.userSearchList = response.data.data.values;
+                                $scope.userSearchList.forEach(function (userData) {
+                                    if (userData.displayName != null && userData.displayName.substring(0, searchVal.length).toLowerCase() == searchVal) {
+                                        filterdUserData.push(userData);
+                                    }
+                                });
+                                return orderByFilter(filterFilter(filterdUserData, searchVal), 'displayName', true);
+                            } else {
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
+                        },
+                        function(error) {
+                            // Error handling function
+                            console.log(error);
+                            $scope.isUserSearchLoading = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                    });
+                } catch (e) {
+                    console.log(e);
+                    $scope.isUserSearchLoading = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            }
+        }
         $scope.selectOwner = function (ownerEmail) {
             if (ownerEmail != null) {
                 $scope.certObj.certDetails.ownerEmail = ownerEmail.userEmail;
@@ -2761,6 +2884,9 @@
         $scope.selectNotificationEmail = function (ownerEmail) {
             if (ownerEmail != null) {
                 $scope.notificationEmail.email = ownerEmail.userEmail;
+                if(ownerEmail.userEmail==""||ownerEmail.userEmail==undefined||ownerEmail.userEmail==null){
+                    $scope.notificationEmail.email = ownerEmail.email;
+                }
                 $scope.isNotificationEmailSelected = true;
                 $scope.isNotificationEmailSearch = false;
                 $scope.notificationEmailErrorMessage = '';
@@ -2843,10 +2969,22 @@
             }
         }
 
-        $scope.searchEmailForNotification = function (email) {
+        $scope.searchEmailForNotification = function (email,selectionValue) {
             if (!email.endsWith("\\")) {
                 $scope.isNotificationEmailSearch = true;
-                return $scope.searchEmail(email);
+                $scope.selectionValue=selectionValue;
+                if($scope.selectionValue == "email"){
+                    return $scope.searchEmail(email);
+                }
+                if($scope.selectionValue == "ntid"){
+                    return $scope.searchNtid(email);
+                }
+                if($scope.selectionValue == "lastname"){
+                    return $scope.searchLastname(email);
+                }
+                if($scope.selectionValue == "groupemail"){
+                    return $scope.searchGroupName(email);
+                }
             }
         }
 
