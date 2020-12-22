@@ -39,6 +39,16 @@ const UserList = styled.div`
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
   }
+
+  .expirationDate {
+    font-family: Roboto;
+    font-size: 1.34rem;
+    color: #ffffff;
+
+    div {
+      color: #c1c1c1;
+    }
+  }
 `;
 
 const Secret = styled.div`
@@ -143,6 +153,17 @@ const IamServiceAccountSecrets = (props) => {
   const onViewSecretsCliked = () => {
     setShowSecret(!showSecret);
   };
+  
+  const formatDate = (expiryDate = '') =>{
+
+    const expirationArr = new Date(expiryDate).toDateString().split(" ");  
+    if(expirationArr.length>3){
+      expirationArr.splice(3,0, ',');
+      const expiryFormattedDate = expirationArr.splice(1).join(" ");
+    
+      return expiryFormattedDate;
+    }    
+  }
 
   /**
    * @function onCopyClicked
@@ -356,6 +377,10 @@ const IamServiceAccountSecrets = (props) => {
                     <Secret type="password" viewSecret={showSecret}>
                       {secretsData.accessKeySecret}
                     </Secret>
+                    <span class="expirationDate">
+                      <div>Expires: </div>
+                      {formatDate(secretsData.expiryDate)}
+                    </span>
 
                     <FolderIconWrap>
                       <PopperElement
