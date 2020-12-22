@@ -103,7 +103,8 @@ const TreeRecursive = (props) => {
               />
             )}
           {inputType?.type?.toLowerCase() === 'secret' &&
-            inputType?.currentNode === item.value && (
+            (inputType?.currentNode === item.value ||
+              inputType?.currentNode === item.id) && (
               <CreateSecretModal
                 openModal={isAddInput}
                 secretprefilledData={secretEditData}
