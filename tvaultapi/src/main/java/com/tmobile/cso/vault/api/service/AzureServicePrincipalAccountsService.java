@@ -2127,7 +2127,7 @@ public class AzureServicePrincipalAccountsService {
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
+					put(LogMessage.ACTION, AzureServiceAccountConstants.FETCH_AZURE_DETAILS).
 					put(LogMessage.MESSAGE,  String.format ("Azure Service account [%s] detatils fetched successfully.",azureSvcName)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));

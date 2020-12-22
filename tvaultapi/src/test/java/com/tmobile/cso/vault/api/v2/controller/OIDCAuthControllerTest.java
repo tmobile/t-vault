@@ -331,4 +331,24 @@ public class OIDCAuthControllerTest {
 				.andExpect(status().isOk())
 				.andExpect(content().string(containsString(responseMessage)));
 	}
+	@Test
+	public void testsearchGroupEmailInAzureAD() throws Exception {
+
+		DirectoryObjects groups = new DirectoryObjects();
+
+		DirectoryObjectsList groupsList = new DirectoryObjectsList();
+		List<DirecotryGroupEmail> allGroups = new ArrayList<>();
+
+		DirecotryGroupEmail directoryGroupEmail1 = new DirecotryGroupEmail();
+		directoryGroupEmail1.setId(null);
+		directoryGroupEmail1.setEmail("T-vault@t-mobile.com");
+		allGroups.add(directoryGroupEmail1);
+
+		groupsList.setValues(allGroups.toArray(new DirecotryGroupEmail[allGroups.size()]));
+		groups.setData(groupsList);
+
+		ResponseEntity<DirectoryObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(groups);
+
+		when(oidcAuthService.searchGroupEmailInAzureAD("T-vault@t-mobile.com")).thenReturn(responseEntityExpected);
+	}
 }

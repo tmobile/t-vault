@@ -431,4 +431,21 @@ public class OIDCAuthService {
         }
         return ResponseEntity.status(HttpStatus.OK).body(groups);
     }
+    /**
+     * To search groupEmail in AAD.
+     * @param email
+     * @return
+     */
+    public ResponseEntity<DirectoryObjects> searchGroupEmailInAzureAD(String email) {
+        String ssoToken = oidcUtil.getSSOToken();
+        DirectoryObjects groups = new DirectoryObjects();
+        if (!StringUtils.isEmpty(ssoToken)) {
+            List<DirecotryGroupEmail> allGroups = oidcUtil.getGroupsEmailFromAAD(ssoToken, email);
+
+            DirectoryObjectsList groupsList = new DirectoryObjectsList();
+            groupsList.setValues(allGroups.toArray(new DirecotryGroupEmail[allGroups.size()]));
+            groups.setData(groupsList);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(groups);
+    }
 }

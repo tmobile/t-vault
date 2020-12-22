@@ -47,6 +47,7 @@ readTextFile("../apiUrls.json");
         // written below separately as request requires timeout promise 
         usersGetData : '/v2/ldap/users?UserPrincipalName=',
         groupGetDataFromAAD: '/v2/azure/groups?name=',
+        groupMailGetDataFromAAD: '/v2/azure/email?mail=',
         usersGetDataUsingCorpID: '/v2/ldap/corpusers?CorpId=',
         usersGetDataUsingNTID: '/v2/ldap/ntusers?displayName=',
         getUsersDataUsingNTIDs: '/v2/ldap/getusersdetail/',
@@ -351,6 +352,14 @@ readTextFile("../apiUrls.json");
         },{
             name: 'usersGetDataUsingCorpID',
             url: '/v2/ldap/corpusers?CorpId=',
+            method: 'GET'
+        }, {
+            name: 'usersGetDataUsingNTID',
+            url: '/v2/ldap/ntusers?displayName=',
+            method: 'GET'
+        }, {
+            name: 'groupMailGetDataFromAAD',
+            url: '/v2/azure/email?mail=',
             method: 'GET'
         }, {
             name: 'getRevocationReasons',

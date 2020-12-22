@@ -355,9 +355,18 @@ script(type='text/ng-template', id='certificatePopup.html')
                       .certificate-form-label(uib-tooltip="Notification emails list") Notification emails*
                       div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="notificationEmails.length>0")
                       div.dns-wrapper.addNotificationEmailCert
-                        .col-lg-9.col-md-9.col-sm-9.col-xs-9
+                      div.certeditnotes Search Notification Email by Email,NTid,LastName or GroupEmail.
+                      label.certificate-form-label Email
+                        input(type='radio' id='notification_selection' value="email" ng-model="selectionValue" ng-checked="true")
+                      label.certificate-form-label NTID
+                        input(type='radio' id='notification_selection' value="ntid" ng-model="selectionValue" ng-checked="selectionValue == 'ntid'")
+                      label.certificate-form-label LastName
+                        input(type='radio' id='notification_selection' value="lastname" ng-model="selectionValue" ng-checked="selectionValue == 'lastname'")
+                      label.certificate-form-label GroupEmail
+                        input(type='radio' id='notification_selection' value="groupemail" ng-model="selectionValue" ng-checked="selectionValue == 'groupemail'")
+                      .col-lg-9.col-md-9.col-sm-9.col-xs-9
                           .cert-input-group.cert-suffix
-                            input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmailForNotification($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
+                            input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail || key.email for key in searchEmailForNotification($viewValue,selectionValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
                             div.loader.svcaccid.notification-email-loader(ng-if='isUserSearchLoading && isNotificationEmailSearch && $scope.certObj.certDetails.notificationEmail.length > 2')
                                 div.ball-spin-fade-loader
                                     div
@@ -484,9 +493,18 @@ script(type='text/ng-template', id='onboardCertificatePopup.html')
                       .certificate-form-label(uib-tooltip="Notification emails list") Notification Emails*
                       div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="notificationEmails.length>0")
                       div.dns-wrapper.addnotificationemail
-                        .col-lg-9.col-md-9.col-sm-9.col-xs-9
+                      div.certeditnotes Search Notification Email by Email,NTid,LastName or GroupEmail.
+                      label.certificate-form-label Email
+                        input(type='radio' id='notification_selection' value="email" ng-model="selectionValue" ng-checked="true")
+                      label.certificate-form-label NTID
+                        input(type='radio' id='notification_selection' value="ntid" ng-model="selectionValue" ng-checked="selectionValue == 'ntid'")
+                      label.certificate-form-label LastName
+                        input(type='radio' id='notification_selection' value="lastname" ng-model="selectionValue" ng-checked="selectionValue == 'lastname'")
+                      label.certificate-form-label GroupEmail
+                        input(type='radio' id='notification_selection' value="groupemail" ng-model="selectionValue" ng-checked="selectionValue == 'groupemail'")
+                      .col-lg-9.col-md-9.col-sm-9.col-xs-9
                           .cert-input-group.cert-suffix
-                            input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmailForNotification($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
+                            input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail ||key.email for key in searchEmailForNotification($viewValue,selectionValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
                             div.loader.svcaccid.notification-email-loader(ng-if='isUserSearchLoading && isNotificationEmailSearch && notificationEmail.email.length > 2')
                                 div.ball-spin-fade-loader
                                     div

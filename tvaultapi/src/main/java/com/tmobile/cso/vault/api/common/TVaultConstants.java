@@ -169,4 +169,5 @@ public class TVaultConstants {
     public static final String RECURSIVE_DELETE_SDB = "recursivedeletesdb";
     public static final String UPDATE_METADATA_PARAM = "app-roles";
     public static final String DELETE_APPROLE_PERMISSION_PARAM = "delete";
+    public static final String GROUP_EMAIL_FROM_AAD = "getGroupEmailFromAAD";
 }

@@ -518,4 +518,33 @@ public class OIDCAuthServiceTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(2, responseEntity.getBody().getData().getValues().length);
     }
+    
+    @Test
+    public void testsearchGroupEmailInAzureADSuccess() throws Exception {
+        String ssoToken = "abcd";
+        String email = "T-vault@t-mobile.com";
+        when(OIDCUtil.getSSOToken()).thenReturn(ssoToken);
+
+        DirectoryObjects groups = new DirectoryObjects();
+        DirectoryObjectsList groupsList = new DirectoryObjectsList();
+        List<DirecotryGroupEmail> allGroups = new ArrayList<>();
+
+        DirecotryGroupEmail directoryGroup1 = new DirecotryGroupEmail();
+        directoryGroup1.setId(null);
+        directoryGroup1.setEmail("T-vault@t-mobile.com");
+        allGroups.add(directoryGroup1);
+
+        DirecotryGroupEmail directoryGroup2 = new DirecotryGroupEmail();
+        directoryGroup2.setId(null);
+        directoryGroup2.setEmail("T-vault@t-mobile.com");
+        allGroups.add(directoryGroup1);
+        groupsList.setValues(allGroups.toArray(new DirecotryGroupEmail[allGroups.size()]));
+        groups.setData(groupsList);
+
+        when(OIDCUtil.getGroupsEmailFromAAD(ssoToken, email)).thenReturn(allGroups);
+
+        ResponseEntity<DirectoryObjects> responseEntity = oidcAuthService.searchGroupEmailInAzureAD(email);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(2, responseEntity.getBody().getData().getValues().length);
+    }
 }
