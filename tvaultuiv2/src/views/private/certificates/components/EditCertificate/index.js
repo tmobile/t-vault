@@ -68,7 +68,6 @@ const EditCertificate = (props) => {
   const [openModal, setOpenModal] = useState({ status: 'edit' });
   const [loading, setLoading] = useState(true);
   const [showRevokeRenewBtn, setShowRevokeRenewBtn] = useState(true);
-  const [actionResponse, setActionResponse] = useState(false);
   const [revokeMenu, setRevokeMenu] = useState([]);
   const [allRevokeReason, setAllRevokeReason] = useState([]);
   const [editActionPerform, setEditActionPerform] = useState(false);
@@ -181,7 +180,6 @@ const EditCertificate = (props) => {
           });
         }
         setLoading(false);
-        setActionResponse(true);
         setEditActionPerform(true);
       })
       .catch((err) => {
@@ -192,7 +190,6 @@ const EditCertificate = (props) => {
           });
         }
         setLoading(false);
-        setActionResponse(true);
       });
   };
 
@@ -243,7 +240,6 @@ const EditCertificate = (props) => {
    */
   const backToEdit = () => {
     setOpenModal({ status: 'edit' });
-    setActionResponse(false);
   };
 
   /**
@@ -270,7 +266,6 @@ const EditCertificate = (props) => {
           title: 'Error',
           description: 'Something went wrong!',
         });
-        setActionResponse(true);
       });
   };
 
@@ -308,7 +303,6 @@ const EditCertificate = (props) => {
           });
         }
         setLoading(false);
-        setActionResponse(true);
         setEditActionPerform(true);
       })
       .catch((err) => {
@@ -319,7 +313,6 @@ const EditCertificate = (props) => {
           });
         }
         setLoading(false);
-        setActionResponse(true);
       });
   };
 
@@ -345,9 +338,7 @@ const EditCertificate = (props) => {
         {open && (
           <ConfirmationModal
             open={openModal.status === 'confirm'}
-            handleClose={
-              actionResponse ? backToEdit : handleCloseConfirmationModal
-            }
+            handleClose={handleCloseConfirmationModal}
             title={modalDetail.title}
             description={modalDetail.description}
             confirmButton={
@@ -355,11 +346,7 @@ const EditCertificate = (props) => {
                 <ButtonComponent
                   label="Close"
                   color="secondary"
-                  onClick={() =>
-                    actionResponse
-                      ? backToEdit()
-                      : handleCloseConfirmationModal()
-                  }
+                  onClick={() => handleCloseConfirmationModal()}
                   width={isMobileScreen ? '100%' : '45%'}
                 />
               ) : (

@@ -14,14 +14,12 @@ import {
 } from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import sectionHeaderBg from '../../../../../assets/svc_banner_img.png';
+import sectionHeaderBg from '../../../../../assets/azure-banner.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
 import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
-import azureIcon from '../../../../../assets/azure-icon.svg';
-import mobSvcIcon from '../../../../../assets/mob-svcbg.png';
-import tabSvcIcon from '../../../../../assets/tab-svcbg.png';
+import azureIcon from '../../../../../assets/azure.svg';
 import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ListItemDetail from '../../../../../components/ListItemDetail';
 import Error from '../../../../../components/Error';
@@ -418,9 +416,9 @@ const AzureDashboard = () => {
                     backToLists={() => setAzureAccountClicked(false)}
                     ListDetailHeaderBg={
                       isTabScreen
-                        ? tabSvcIcon
+                        ? sectionHeaderBg
                         : isMobileScreen
-                        ? mobSvcIcon
+                        ? sectionHeaderBg
                         : sectionHeaderBg
                     }
                     description={introduction}
@@ -442,9 +440,9 @@ const AzureDashboard = () => {
                     backToLists={() => setAzureAccountClicked(false)}
                     ListDetailHeaderBg={
                       isTabScreen
-                        ? tabSvcIcon
+                        ? sectionHeaderBg
                         : isMobileScreen
-                        ? mobSvcIcon
+                        ? sectionHeaderBg
                         : sectionHeaderBg
                     }
                     description={introduction}

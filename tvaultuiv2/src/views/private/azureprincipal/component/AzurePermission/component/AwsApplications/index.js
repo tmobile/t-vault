@@ -233,6 +233,7 @@ const AwsApplications = (props) => {
             handleSaveClick={(data, access) => onSubmit(data, access)}
             handleCancelClick={onCancelClicked}
             handleModalClose={() => onCancelClicked()}
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'edit' && (
@@ -243,6 +244,7 @@ const AwsApplications = (props) => {
             handleCancelClick={onCancelClicked}
             awsName={editAws}
             access={editAccess}
+            isIamAzureSvcAccount
           />
         )}
         {azureMetaData && response.status === 'success' && (

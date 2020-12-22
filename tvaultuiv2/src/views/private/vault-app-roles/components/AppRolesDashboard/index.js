@@ -43,6 +43,7 @@ import CreateAppRole from '../../CreateAppRole';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
 import {
   ListContainer,
+  NoResultFound,
   StyledInfiniteScroll,
 } from '../../../../../styles/GlobalStyles/listingStyle';
 
@@ -289,26 +290,26 @@ const AppRolesDashboard = () => {
   };
 
   useEffect(() => {
-    if (appRoleList?.length > 0) {
+    if (state?.appRoleList?.length > 0) {
       const val = location.pathname.split('/');
       const roleName = val[val.length - 1];
       if (
         roleName !== 'create-vault-app-role' &&
         roleName !== 'edit-vault-app-role'
       ) {
-        const obj = appRoleList.find((role) => role.name === roleName);
+        const obj = state?.appRoleList.find((role) => role.name === roleName);
         if (obj) {
           if (listItemDetails.name !== obj.name) {
             setListItemDetails({ ...obj });
           }
         } else {
-          setListItemDetails(appRoleList[0]);
-          history.push(`/vault-app-roles/${appRoleList[0].name}`);
+          setListItemDetails(state?.appRoleList[0]);
+          history.push(`/vault-app-roles/${state?.appRoleList[0].name}`);
         }
       }
     }
     // eslint-disable-next-line
-  }, [appRoleList, location, history]);
+  }, [state, location, history]);
 
   // Infine scroll load more data
   const loadMoreData = () => {};
@@ -423,7 +424,6 @@ const AppRolesDashboard = () => {
           title="Confirmation"
           description={`<p>Are you sure you want to delete this appRole : <strong>${deleteAppRoleName}</strong></p>`}
           cancelButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
               label="Cancel"
               color="primary"
@@ -432,7 +432,6 @@ const AppRolesDashboard = () => {
             />
           }
           confirmButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
               label="Delete"
               color="secondary"
@@ -495,15 +494,13 @@ const AppRolesDashboard = () => {
                 ) : (
                   appRoleList?.length === 0 && (
                     <>
-                      {' '}
                       {inputSearchValue ? (
-                        <NoDataWrapper>
+                        <NoResultFound>
                           No app role found with name:
-                          <strong>{inputSearchValue}</strong>
-                        </NoDataWrapper>
+                          <div>{inputSearchValue}</div>
+                        </NoResultFound>
                       ) : (
                         <NoDataWrapper>
-                          {' '}
                           <NoListWrap>
                             <NoData
                               imageSrc={NoSafesIcon}

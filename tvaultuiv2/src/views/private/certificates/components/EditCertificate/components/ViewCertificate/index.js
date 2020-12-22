@@ -282,7 +282,9 @@ const ViewCertificate = (props) => {
       if (!notifyAutoLoader) {
         if (
           notifyOptions.length === 0 ||
-          !notifyOptions.includes(notifyEmail)
+          !notifyOptions.find(
+            (item) => item.toLowerCase() === notifyEmail.toLowerCase()
+          )
         ) {
           setIsValidNotifyEmail(false);
         } else {
@@ -301,7 +303,8 @@ const ViewCertificate = (props) => {
         if (
           projectLeadOptions.length === 0 ||
           !projectLeadOptions.find(
-            (item) => item.userEmail === projectLeadEmail
+            (item) =>
+              item.userEmail.toLowerCase() === projectLeadEmail.toLowerCase()
           )
         ) {
           setIsValidProjectLeadEmail(false);
@@ -413,7 +416,12 @@ const ViewCertificate = (props) => {
     const obj = notificationEmailList.find(
       (item) => item.toLowerCase() === notifyEmail.toLowerCase()
     );
-    if (!notifyEmailError && isValidNotifyEmail && notifyEmail !== '') {
+    if (
+      !notifyEmailError &&
+      isValidNotifyEmail &&
+      notifyEmail !== '' &&
+      validateEmail(notifyEmail)
+    ) {
       if (!obj) {
         setNotificationEmailList((prev) => [...prev, notifyEmail]);
         setNotifyEmail('');
@@ -426,12 +434,13 @@ const ViewCertificate = (props) => {
 
   const onEmailKeyDownClicked = (e) => {
     if (e?.keyCode === 13) {
+      e.preventDefault();
       onAddEmailClicked();
     }
   };
 
   const onNotifyEmailChange = (e) => {
-    if (e) {
+    if (e && e.target.value) {
       setNotifyEmail(e?.target?.value);
       if (e.target.value && e.target.value?.length > 2) {
         callNotifySearchApi(e.target.value);
@@ -444,6 +453,8 @@ const ViewCertificate = (props) => {
           );
         }
       }
+    } else {
+      setNotifyEmail('');
     }
   };
   const onRemoveEmailsClicked = (email) => {

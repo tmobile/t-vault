@@ -185,11 +185,13 @@ const AddUser = (props) => {
   );
 
   const onSearchChange = (e) => {
-    if (e) {
+    if (e && e?.target?.value) {
       setSearchValue(e?.target?.value);
       if (e?.target?.value !== '' && e?.target?.value?.length > 2) {
         callSearchApi(e.target.value);
       }
+    } else {
+      setSearchValue('');
     }
   };
 

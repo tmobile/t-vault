@@ -28,10 +28,10 @@ const UpdateCertificate = (props) => {
   });
 
   /**
-   * @function onCertificateDeleteConfirm
-   * @description function to perform the delete of certificate.
+   * @function onCertificateUpdateaConfirm
+   * @description function to perform to update the certificate.
    */
-  const onCertificateDeleteConfirm = () => {
+  const onCertificateUpdateaConfirm = () => {
     setModalDetail({ title: '', desc: '' });
     setLoading(true);
     apiService
@@ -103,7 +103,7 @@ const UpdateCertificate = (props) => {
                 onClick={() =>
                   deleteResponse
                     ? onCloseUpdate()
-                    : onCertificateDeleteConfirm()
+                    : onCertificateUpdateaConfirm()
                 }
               />
             }

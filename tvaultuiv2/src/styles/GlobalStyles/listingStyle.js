@@ -18,3 +18,17 @@ export const ListContainer = styled.div`
   justify-content: center;
   align-items: center;
 `;
+
+export const NoResultFound = styled.div`
+  color: #5e627c;
+  height: 61vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  div {
+    margin: 0 0.3rem;
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+`;

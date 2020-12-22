@@ -60,7 +60,7 @@ const AutoCompleteComponent = (props) => {
       className={classes || ''}
       onChange={onSelected}
       disabled={disabled}
-      inputValue={searchValue}
+      inputValue={searchValue === null ? '' : searchValue}
       onInputChange={(e) => onChange(e)}
       renderInput={(params) => (
         <TextField

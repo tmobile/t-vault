@@ -351,11 +351,13 @@ const CreateModal = (props) => {
     []
   );
   const onOwnerChange = (e) => {
-    if (e) {
+    if (e && e.target.value) {
       setOwner(e?.target?.value);
       if (e?.target?.value !== '' && e.target.value.length > 2) {
         callSearchApi(e.target.value);
       }
+    } else {
+      setOwner('');
     }
   };
 
@@ -488,7 +490,9 @@ const CreateModal = (props) => {
                       characterLimit={50}
                       readOnly={!!editSafe}
                       name="name"
-                      onChange={(e) => onSafeNameChange(e.target.value)}
+                      onChange={(e) =>
+                        onSafeNameChange(e?.target?.value?.toLowerCase())
+                      }
                       error={safeError}
                       helperText={
                         safeError
