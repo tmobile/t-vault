@@ -1592,23 +1592,15 @@
                 $scope.isOwnerEmailSearch = false;
                 $scope.selectionValue=selectionValue;
                 if($scope.selectionValue == "email"){
-                    console.log("email is:",email);
-                    console.log("$scope.selectionValue:",$scope.selectionValue);
                     return $scope.searchEmail(email,"notification");
                 }
                 if($scope.selectionValue == "ntid"){
-                    console.log("ntid is:",email);
-                    console.log("$scope.selectionValue:",$scope.selectionValue);
                     return $scope.searchNtid(email,"notification");
                 }
                 if($scope.selectionValue == "lastname"){
-                    console.log("lastname is:",email);
-                    console.log("$scope.selectionValue:",$scope.selectionValue);
                     return $scope.searchLastname(email,"notification");
                 }
                 if($scope.selectionValue == "groupemail"){
-                    console.log("groupemail is:",email);
-                    console.log("$scope.selectionValue:",$scope.selectionValue);
                     return $scope.searchGroupName(email,"notification");
                 }
                // return $scope.searchEmail(email,"notification");
