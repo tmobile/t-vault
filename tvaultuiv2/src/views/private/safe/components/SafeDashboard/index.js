@@ -321,9 +321,30 @@ const SafeDashboard = () => {
   useEffect(() => {
     setMenu([
       { name: 'All Safes', count: safeList?.length || 0 },
-      { name: 'User Safes', count: safes?.users?.length || 0 },
-      { name: 'Shared Safes', count: safes?.shared?.length || 0 },
-      { name: 'Application Safes', count: safes?.apps?.length || 0 },
+      {
+        name: 'User Safes',
+        count:
+          safeList?.filter(
+            (item) =>
+              item?.safeType?.toLowerCase() === 'User Safe'.toLowerCase()
+          ).length || 0,
+      },
+      {
+        name: 'Shared Safes',
+        count:
+          safeList?.filter(
+            (item) =>
+              item?.safeType?.toLowerCase() === 'Shared Safe'.toLowerCase()
+          ).length || 0,
+      },
+      {
+        name: 'Application Safes',
+        count:
+          safeList?.filter(
+            (item) =>
+              item?.safeType?.toLowerCase() === 'Application Safe'.toLowerCase()
+          ).length || 0,
+      },
     ]);
   }, [safeList, safes]);
 
