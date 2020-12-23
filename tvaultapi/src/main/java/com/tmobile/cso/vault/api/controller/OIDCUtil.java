@@ -1122,7 +1122,6 @@ public class OIDCUtil {
 						}
 						for (String groupEmail: groupEmailsSet) {
 							DirecotryGroupEmail directoryGroupEmail = new DirecotryGroupEmail();
-							directoryGroupEmail.setId(null);
 							directoryGroupEmail.setEmail(groupEmail);
 							allGroupEmail.add(directoryGroupEmail);
 						}
