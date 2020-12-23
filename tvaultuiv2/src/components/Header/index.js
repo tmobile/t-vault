@@ -78,7 +78,7 @@ const NavLink = styled(Link)`
   font-size: 1.3rem;
   font-weight: bold;
   background: ${(props) =>
-    props.active === 'true' ? props.theme.gradients.list : 'none'};
+    props.active === 'true' ? props.theme.gradients.nav : 'none'};
   :hover {
     text-decoration: none;
   }

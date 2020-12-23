@@ -201,12 +201,6 @@ const ViewIamSvcAccountDetails = (props) => {
                   and groups allowing others to read and/or rotate the secrets
                   for the IAM service account as well through T-Vault.
                 </InfoLine>
-
-                <InfoLine>
-                  T-Vault will rotate the Passwords lazily based on password
-                  expiration time (known as TTL). Rotation only occurs when
-                  first requests it after the set expiray time
-                </InfoLine>
               </CollapsibleContainer>
             </CollapsibleDropdown>
           </InfoContainer>
