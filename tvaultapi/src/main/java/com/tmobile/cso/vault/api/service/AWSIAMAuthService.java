@@ -80,7 +80,7 @@ public class AWSIAMAuthService {
 				logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "Creating AWS IAM role").
-						put(LogMessage.MESSAGE, String.format("AWS IAM Role [%s] created successfully]", awsiamRole)).
+						put(LogMessage.MESSAGE, String.format("AWS IAM Role [%s] created successfully by [%s].", awsiamRole.getRole(),userDetails.getUsername())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role created successfully \"]}");

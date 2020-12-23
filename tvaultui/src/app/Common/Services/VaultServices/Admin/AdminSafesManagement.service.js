@@ -316,6 +316,16 @@
                     return response;
                 });
             },
+            usersGetDataUsingNTID: function (payload, url) {
+                return ServiceEndpoint.usersGetDataUsingNTID.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            groupMailGetDataFromAAD: function (payload, url) {
+                return ServiceEndpoint.groupMailGetDataFromAAD.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             issueRevocationRequest: function (payload, url) {
                 return ServiceEndpoint.issueRevocationRequest.makeRequest(payload, url).then(function(response) {
                     return response;

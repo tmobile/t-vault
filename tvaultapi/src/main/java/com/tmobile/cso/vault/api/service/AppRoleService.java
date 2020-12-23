@@ -1021,7 +1021,7 @@ public class  AppRoleService {
 			}
 			
 		//SAFE
-			if(policy.startsWith("r_users_") || policy.startsWith("w_users_") || policy.startsWith("d_users_") ||policy.startsWith("r_shared_") || policy.startsWith("w_shared_") || policy.startsWith("d_shared_") ||policy.startsWith("r_application_") || policy.startsWith("w_application_") || policy.startsWith("d_application_")){
+			if(policy.startsWith("r_users_") || policy.startsWith("w_users_") || policy.startsWith("d_users_") ||policy.startsWith("r_shared_") || policy.startsWith("w_shared_") || policy.startsWith("d_shared_") ||policy.startsWith("r_apps_") || policy.startsWith("w_apps_") || policy.startsWith("d_apps_")){
 				String safePath = type + '/' + name;
 				Map<String,String> params = new HashMap<>();
 				params.put("type", TVaultConstants.UPDATE_METADATA_PARAM);

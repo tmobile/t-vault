@@ -1076,4 +1076,90 @@ public class OIDCUtil {
 		}
 		return encodedValue;
 	}
+	/**
+	 * To get groupEmail from AAD.
+	 *
+	 * @param ssoToken
+	 * @param email
+	 * @return
+	 */
+	public List<DirecotryGroupEmail> getGroupsEmailFromAAD(String ssoToken, String email) {
+
+		JsonParser jsonParser = new JsonParser();
+		HttpClient httpClient = httpUtils.getHttpClient();
+		List<DirecotryGroupEmail> allGroupEmail = new ArrayList<>();
+		if (httpClient == null) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "getGroupsFromAAD").
+					put(LogMessage.MESSAGE, "Failed to initialize httpClient").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return allGroupEmail;
+		}
+		String filterSearch = "$filter=startsWith(mail,%27"+encodeValue(email)+"%27)&$select=id,mail";
+		String api = ssoGroupsEndpoint + filterSearch;
+		HttpGet getRequest = new HttpGet(api);
+		getRequest.addHeader("accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
+		getRequest.addHeader("Authorization", "Bearer " + ssoToken);
+		String output = "";
+		StringBuilder jsonResponse = new StringBuilder();
+
+		try {
+			HttpResponse apiResponse = httpClient.execute(getRequest);
+			if (apiResponse.getStatusLine().getStatusCode() == 200) {
+
+				readResponseContent(jsonResponse, apiResponse, TVaultConstants.GROUP_EMAIL_FROM_AAD);
+				JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
+				if (responseJson != null && responseJson.has("value")) {
+					JsonArray vaulesArray = responseJson.get("value").getAsJsonArray();
+						allGroupEmail=allGroupEmailValue(vaulesArray);
+				}
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, TVaultConstants.GROUP_EMAIL_FROM_AAD).
+						put(LogMessage.MESSAGE, String.format("Retrieved %d groupemail(s) from AAD", allGroupEmail.size())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return allGroupEmail;
+			}
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, TVaultConstants.GROUP_EMAIL_FROM_AAD).
+					put(LogMessage.MESSAGE, "Failed to retrieve groupemail from AAD").
+					put(LogMessage.STATUS, String.valueOf(apiResponse.getStatusLine().getStatusCode())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+		} catch (IOException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, TVaultConstants.GROUP_EMAIL_FROM_AAD).
+					put(LogMessage.MESSAGE, "Failed to parse AAD groupemail api response").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+		}
+		return allGroupEmail;
+	}
+	/*
+	 * Method to check allGroupEmail
+	 * @param vaulesArray
+	 * @return
+	 */
+	private List<DirecotryGroupEmail> allGroupEmailValue(JsonArray vaulesArray) {
+		List<DirecotryGroupEmail> allGroupEmail = new ArrayList<>();
+		if (vaulesArray.size() > 0) {
+			Set<String> groupEmailsSet = new HashSet<>();
+			// Adding to set to remove duplicates
+			for (int i=0;i<vaulesArray.size();i++) {
+				JsonObject adObject = vaulesArray.get(i).getAsJsonObject();
+				groupEmailsSet.add(adObject.get("mail").getAsString());
+			}
+			for (String groupEmail: groupEmailsSet) {
+				DirecotryGroupEmail directoryGroupEmail = new DirecotryGroupEmail();
+				directoryGroupEmail.setEmail(groupEmail);
+				allGroupEmail.add(directoryGroupEmail);
+			}
+		}
+		return allGroupEmail;
+	}
 }
