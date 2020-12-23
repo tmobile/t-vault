@@ -481,9 +481,10 @@ const CreateCertificates = (props) => {
         })
         .catch((err) => {
           if (err?.response?.data?.errors && err.response.data.errors[0]) {
+            const msg = err.response.data.errors[0];
             setOpenConfirmationModal(true);
             setResponseTitle('Error');
-            setResponseDesc(err.response.data.errors[0]);
+            setResponseDesc(msg.charAt(0).toUpperCase() + msg.slice(1));
           }
           setResponseType(null);
         });

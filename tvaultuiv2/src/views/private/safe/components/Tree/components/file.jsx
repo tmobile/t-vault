@@ -136,6 +136,7 @@ const File = (props) => {
         { name: 'Copy Secret', value: Object.values(secret)[0] },
       ]);
     }
+    setViewSecretValue(false);
   }, [secret]);
 
   return (
