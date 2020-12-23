@@ -1113,19 +1113,7 @@ public class OIDCUtil {
 				JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
 				if (responseJson != null && responseJson.has("value")) {
 					JsonArray vaulesArray = responseJson.get("value").getAsJsonArray();
-					if (vaulesArray.size() > 0) {
-						Set<String> groupEmailsSet = new HashSet<>();
-						// Adding to set to remove duplicates
-						for (int i=0;i<vaulesArray.size();i++) {
-							JsonObject adObject = vaulesArray.get(i).getAsJsonObject();
-							groupEmailsSet.add(adObject.get("mail").getAsString());
-						}
-						for (String groupEmail: groupEmailsSet) {
-							DirecotryGroupEmail directoryGroupEmail = new DirecotryGroupEmail();
-							directoryGroupEmail.setEmail(groupEmail);
-							allGroupEmail.add(directoryGroupEmail);
-						}
-					}
+						allGroupEmail=allGroupEmailValue(vaulesArray);
 				}
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -1152,5 +1140,26 @@ public class OIDCUtil {
 		}
 		return allGroupEmail;
 	}
-
+	/*
+	 * Method to check allGroupEmail
+	 * @param vaulesArray
+	 * @return
+	 */
+	private List<DirecotryGroupEmail> allGroupEmailValue(JsonArray vaulesArray) {
+		List<DirecotryGroupEmail> allGroupEmail = new ArrayList<>();
+		if (vaulesArray.size() > 0) {
+			Set<String> groupEmailsSet = new HashSet<>();
+			// Adding to set to remove duplicates
+			for (int i=0;i<vaulesArray.size();i++) {
+				JsonObject adObject = vaulesArray.get(i).getAsJsonObject();
+				groupEmailsSet.add(adObject.get("mail").getAsString());
+			}
+			for (String groupEmail: groupEmailsSet) {
+				DirecotryGroupEmail directoryGroupEmail = new DirecotryGroupEmail();
+				directoryGroupEmail.setEmail(groupEmail);
+				allGroupEmail.add(directoryGroupEmail);
+			}
+		}
+		return allGroupEmail;
+	}
 }
