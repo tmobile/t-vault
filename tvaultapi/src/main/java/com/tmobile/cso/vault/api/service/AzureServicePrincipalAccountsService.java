@@ -1295,7 +1295,7 @@ public class AzureServicePrincipalAccountsService {
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			response.setSuccess(false);
 			response.setHttpstatus(HttpStatus.FORBIDDEN);
-			response.setResponse("{\"errors\":[\"Unable to read the given path :" + path + "\"]}");
+			response.setResponse("{\"errors\":[\"Access Denied: No permission to read or rotate secret for Azure service principal\"]}");
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
