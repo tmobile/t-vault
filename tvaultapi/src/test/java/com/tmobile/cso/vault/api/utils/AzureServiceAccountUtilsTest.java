@@ -175,7 +175,6 @@ public class AzureServiceAccountUtilsTest {
         String azureServiceAccountName = "svc_vault_test5";
         String servicePrincipalId = "1234567890-s-s-d-d-d";
         String accessKeyId = "testaccesskey";
-        String iamSecret = "abcdefgh";
         String tenantId = "110";
         Long expiryDurationMs = 6932293200L;
         when(iamUtils.getIAMApproleToken()).thenReturn("token");
@@ -219,10 +218,8 @@ public class AzureServiceAccountUtilsTest {
     public void test_rotateAzureSecret_fail() throws IOException {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String azureServiceAccountName = "svc_vault_test5";
-        String awsAccountId = "1234567890";
         String servicePrincipalId = "1234567890-s-s-d-d-d";
         String accessKeyId = "testaccesskey";
-        String iamSecret = "abcdefgh";
         String tenantId = "110";
         Long expiryDurationMs = 63738393L;
         when(iamUtils.getIAMApproleToken()).thenReturn("token");
