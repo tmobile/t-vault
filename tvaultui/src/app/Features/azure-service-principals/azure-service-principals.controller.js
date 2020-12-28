@@ -222,7 +222,8 @@
                     azureSvcAccName: servicePrincipalName,
                     secretKeyId: azuresvcaccSecretData.secretKeyId,
                     servicePrincipalId: azuresvcaccSecretData.servicePrincipalId,
-                    tenantId: azuresvcaccSecretData.tenantId
+                    tenantId: azuresvcaccSecretData.tenantId,
+                    expiryDurationMs: azuresvcaccSecretData.expiryDateEpoch
                 };
                 Modal.createModal('md', 'rotatePopup.html', 'AzureServicePrincipalsCtrl', $scope);
             }

@@ -40,13 +40,14 @@ public class AzureServiceAccountConstants {
 	public static final Map<String, String> AZURE_EMAIL_TEMPLATE_IMAGE_IDS;
 	static {
 		AZURE_EMAIL_TEMPLATE_IMAGE_IDS = Collections.synchronizedMap(new HashMap<String, String>());
-		AZURE_EMAIL_TEMPLATE_IMAGE_IDS.put("iammanagetab", "templates/images/iammanagetab.png");
-		AZURE_EMAIL_TEMPLATE_IMAGE_IDS.put("iamviewlink", "templates/images/iamviewlink.png");
+		AZURE_EMAIL_TEMPLATE_IMAGE_IDS.put("azuremanagetab", "templates/images/azuremanagetab.png");
+		AZURE_EMAIL_TEMPLATE_IMAGE_IDS.put("azureviewlink", "templates/images/azureviewlink.png");
 		AZURE_EMAIL_TEMPLATE_IMAGE_IDS.put("update", "templates/images/update.png");
 		AZURE_EMAIL_TEMPLATE_IMAGE_IDS.put("azureactivate", "templates/images/azureactivate.png");
 		AZURE_EMAIL_TEMPLATE_IMAGE_IDS.put("iampermission", "templates/images/iampermission.png");
 		AZURE_EMAIL_TEMPLATE_IMAGE_IDS.put("permissiontab", "templates/images/permissiontab.png");
 		AZURE_EMAIL_TEMPLATE_IMAGE_IDS.put("adduser", "templates/images/adduser.png");
+		AZURE_EMAIL_TEMPLATE_IMAGE_IDS.put("azurerotate", "templates/images/azurerotate.png");
 	}
 	
 	public static final String OWNER_NT_ID = "owner_ntid";
@@ -55,6 +56,8 @@ public class AzureServiceAccountConstants {
 	public static final String AZURE_SP_ROTATE_SECRET_ACTION = "rotateAzureServicePrincipalSecret";
 	public static final String AZURE_SP_ROTATE_ACTION = "rotateSecret";
 	public static final String SECRET_KEY_ID = "secretKeyId";
+	public static final String EXPIRY_DURATION = "expiryDurationMs";
 	public static final String AZURE_SP_SECRET_FOLDER_PREFIX = "secret_";
+	public static final String AZURE_AUTH_TOKEN_PREFIX = "cloud-iam";
 
 }

@@ -8,16 +8,20 @@ import java.util.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmobile.cso.vault.api.common.AzureServiceAccountConstants;
 import com.tmobile.cso.vault.api.common.IAMServiceAccountConstants;
+import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.logging.log4j.LogManager;
@@ -41,7 +45,7 @@ public class AzureServiceAccountUtils {
     private String iamPortalAuthEndpoint;
     @Value("${azurePortal.secret.endpoint}")
     private String azurePortalrotateSecretEndpoint;
-
+    
     private Logger log = LogManager.getLogger(AzureServiceAccountUtils.class);
 
     @Autowired
@@ -79,35 +83,18 @@ public class AzureServiceAccountUtils {
         return currentpolicies;
     }
 
-
-    /**
-     * To mock rotate Azure secret API.
-     * @param azureServicePrincipalRotateRequest
-     * @return
-     */
-    public AzureServiceAccountSecret rotateAzureServicePrincipalSecretMOCK(AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest) {
-        AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret();
-        azureServiceAccountSecret.setServicePrincipalId(azureServicePrincipalRotateRequest.getServicePrincipalId());
-        azureServiceAccountSecret.setTenantId(azureServicePrincipalRotateRequest.getTenantId());
-        azureServiceAccountSecret.setSecretKeyId(azureServicePrincipalRotateRequest.getSecretKeyId());
-        azureServiceAccountSecret.setSecretText("mocksecrettext_"+ new Date().getTime());
-        azureServiceAccountSecret.setExpiryDateEpoch(604800000L);
-        azureServiceAccountSecret.setExpiryDate(new Date(604800000L).toString());
-        return azureServiceAccountSecret;
-    }
     /**
      * To get response from rotate api.
      *
      * @return
-     * @throws IOException
      */
-    public AzureServiceAccountSecret rotateAzureServicePrincipalSecret(AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest) throws IOException  {
+    public AzureServiceAccountSecret rotateAzureServicePrincipalSecret(AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest)  {
         String iamApproleToken = iamServiceAccountUtils.getIAMApproleToken();
         if (StringUtils.isEmpty(iamApproleToken)) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
-                    put(LogMessage.MESSAGE, "Invalid IAM Portal approle token").
+                    put(LogMessage.MESSAGE, "Invalid Azure Portal approle token").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
             return null;
@@ -137,13 +124,15 @@ public class AzureServiceAccountUtils {
         }
 
         HttpPut httpPut = new HttpPut(api);
-
         String inputJson = JSONUtil.getJSON(azureServicePrincipalRotateRequest);
+        Gson gson = new Gson();
+        JsonElement jsonObj= gson.fromJson(inputJson, JsonElement.class);
+        jsonObj.getAsJsonObject().remove("azureSvcAccName");
         StringEntity entity;
-        String iamAuthToken = IAMServiceAccountConstants.IAM_AUTH_TOKEN_PREFIX + " " + Base64.getEncoder().encodeToString(iamApproleToken.getBytes());
+        String iamAuthToken = AzureServiceAccountConstants.AZURE_AUTH_TOKEN_PREFIX + " " + Base64.getEncoder().encodeToString(iamApproleToken.getBytes());
 
         try {
-            entity = new StringEntity(inputJson);
+            entity = new StringEntity(jsonObj.toString());
             httpPut.setEntity(entity);
             httpPut.setHeader("Authorization", iamAuthToken);
             httpPut.setHeader("Accept", "application/json");
