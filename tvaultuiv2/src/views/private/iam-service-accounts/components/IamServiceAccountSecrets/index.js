@@ -154,7 +154,7 @@ const IamServiceAccountSecrets = (props) => {
     setShowSecret(!showSecret);
   };
   
-  const formatDate = (expiryDate = '') =>{
+  const formatDate = (expiryDate = '') =>{ 
 
     const expirationArr = new Date(expiryDate).toDateString().split(" ");  
     if(expirationArr.length>3){
