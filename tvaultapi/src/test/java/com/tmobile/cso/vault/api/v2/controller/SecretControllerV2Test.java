@@ -120,7 +120,7 @@ public class SecretControllerV2Test {
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/write")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8")
-                .header("deleteFlag", "true")
+                .header("delete-flag", "true")
                 .content(inputJson))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseMessage)));
