@@ -108,7 +108,7 @@ const AccountSelectionTabs = (props) => {
   useEffect(() => {
     if (accountDetail?.name) {
       fetchPermission();
-      if (isIamSvcAccountActive) {
+      if (isIamSvcAccountActive && accountDetail?.permission !== 'deny') {
         getSecrets();
       }
     }
@@ -126,7 +126,7 @@ const AccountSelectionTabs = (props) => {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            {accountDetail?.name && (
+            {accountDetail?.name && !disabledPermission && (
               <Tab
                 label="Permissions"
                 {...a11yProps(1)}
