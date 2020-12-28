@@ -16,6 +16,7 @@ import apiService from '../../apiService';
 import lock from '../../../../../assets/icon_lock.svg';
 import refreshIcon from '../../../../../assets/refresh-ccw.svg';
 import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
+import AccessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
@@ -471,6 +472,15 @@ const IamServiceAccountSecrets = (props) => {
               view <span>Secret</span> all here!
             </NoPermission>
           </AccessDeniedWrap>
+        )}
+        {
+          accountDetail?.permission === "deny" && (
+            <AccessDeniedWrap>
+              <AccessDeniedIcon src={AccessDeniedLogo} alt="accessDeniedLogo" />
+              <NoPermission>
+                Access Denied: No permission to read or rotate secret for the given IAM service account
+              </NoPermission>
+            </AccessDeniedWrap>
         )}
         {responseType === 1 && (
           <SnackbarComponent
