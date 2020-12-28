@@ -19,6 +19,8 @@ package com.tmobile.cso.vault.api.model;
 
 import org.hibernate.validator.constraints.NotBlank;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
@@ -39,6 +41,9 @@ public class AzureServicePrincipalRotateRequest implements Serializable {
     @NotBlank
     @Size(min = 10, max = 128, message = "TenantId specified should be minimum 10 chanracters and maximum 128 characters only")
     private String tenantId;
+    @NotNull
+	@Min(1)
+    private Long expiryDurationMs;
 
     /**
      *
@@ -47,18 +52,21 @@ public class AzureServicePrincipalRotateRequest implements Serializable {
         super();
     }
 
-
     /**
+     * 
+     * @param azureSvcAccName
      * @param secretKeyId
      * @param servicePrincipalId
      * @param tenantId
+     * @param expiryDurationMs
      */
-    public AzureServicePrincipalRotateRequest(String azureSvcAccName, String secretKeyId, String servicePrincipalId, String tenantId) {
+    public AzureServicePrincipalRotateRequest(String azureSvcAccName, String secretKeyId, String servicePrincipalId, String tenantId, Long expiryDurationMs) {
         super();
         this.azureSvcAccName = azureSvcAccName;
         this.secretKeyId = secretKeyId;
         this.servicePrincipalId = servicePrincipalId;
         this.tenantId = tenantId;
+        this.expiryDurationMs = expiryDurationMs;
     }
 
     public String getSecretKeyId() {
@@ -93,13 +101,19 @@ public class AzureServicePrincipalRotateRequest implements Serializable {
         this.azureSvcAccName = azureSvcAccName;
     }
 
-    @Override
-    public String toString() {
-        return "AzureServicePrincipalRotateRequest{" +
-                "azureSvcAccName='" + azureSvcAccName + '\'' +
-                ", secretKeyId='" + secretKeyId + '\'' +
-                ", servicePrincipalId='" + servicePrincipalId + '\'' +
-                ", tenantId='" + tenantId + '\'' +
-                '}';
-    }
+    public Long getExpiryDurationMs() {
+		return expiryDurationMs;
+	}
+
+	public void setExpiryDurationMs(Long expiryDurationMs) {
+		this.expiryDurationMs = expiryDurationMs;
+	}
+
+
+	@Override
+	public String toString() {
+		return "AzureServicePrincipalRotateRequest [azureSvcAccName=" + azureSvcAccName + ", secretKeyId=" + secretKeyId
+				+ ", servicePrincipalId=" + servicePrincipalId + ", tenantId=" + tenantId + ", expiryDurationMs="
+				+ expiryDurationMs + "]";
+	}
 }

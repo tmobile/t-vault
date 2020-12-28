@@ -2012,6 +2012,7 @@ public class AzureServicePrincipalAccountsService {
 		for (int i = 0; i < dataSecret.size(); i++) {
 			JsonElement jsonElement = dataSecret.get(i);
 			JsonObject jsonObject = jsonElement.getAsJsonObject();
+			jsonObject.addProperty("expiryDurationMs", jsonObject.get("expiryDuration").toString());
 			String expiryDate = dateConversion(jsonObject.get("expiryDuration").getAsLong());
 			jsonObject.addProperty("expiryDuration", expiryDate);
 		}
@@ -3008,6 +3009,7 @@ public class AzureServicePrincipalAccountsService {
 
 							if (azureSecret.has(AzureServiceAccountConstants.SECRET_KEY_ID)) {
 								String secretKeyId = azureSecret.get(AzureServiceAccountConstants.SECRET_KEY_ID).getAsString();
+								Long expiryDurationMs = Long.valueOf(azureSecret.get(AzureServiceAccountConstants.EXPIRY_DURATION).getAsString());
 								log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 										put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
@@ -3015,7 +3017,7 @@ public class AzureServicePrincipalAccountsService {
 										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 										build()));
 								// Rotate Azure service account secret for each secret key id in metadata
-								if (rotateAzureServicePrincipalSecret(token, servicePrincipalName, secretKeyId, servicePrincipalId, tenantId, i+1)) {
+								if (rotateAzureServicePrincipalSecret(token, servicePrincipalName, secretKeyId, servicePrincipalId, tenantId,expiryDurationMs, i+1)) {
 									secretSaveCount++;
 								}
 							}
@@ -3180,7 +3182,7 @@ public class AzureServicePrincipalAccountsService {
 							// Rotate Azure Service Principal secret for each secret key id in metadata
 							rotationStatus = rotateAzureServicePrincipalSecret(token, servicePrincipalName,
 									secretKeyId, azureServicePrincipalRotateRequest.getServicePrincipalId(),
-									azureServicePrincipalRotateRequest.getTenantId(), i+1);
+									azureServicePrincipalRotateRequest.getTenantId(), azureServicePrincipalRotateRequest.getExpiryDurationMs(), i+1);
 							break;
 						}
 					}
@@ -3291,12 +3293,10 @@ public class AzureServicePrincipalAccountsService {
 	 * @param secretKeyIndex
 	 * @return
 	 */
-	private boolean rotateAzureServicePrincipalSecret(String token, String servicePrincipalName, String secretKeyId, String servicePrincipalId, String tenantId, int secretKeyIndex) {
-		AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest(servicePrincipalName, secretKeyId, servicePrincipalId, tenantId);
+	private boolean rotateAzureServicePrincipalSecret(String token, String servicePrincipalName, String secretKeyId, String servicePrincipalId, String tenantId, Long expiryDurationMs, int secretKeyIndex) {
+		AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest(servicePrincipalName, secretKeyId, servicePrincipalId, tenantId, expiryDurationMs);
 
-		// @TODO: This is a mock response. This needs to be change to call the actual api (below commented) once the Azure secret api is live.
-		AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(azureServicePrincipalRotateRequest);
-		//AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecret(azureServicePrincipalRotateRequest);
+		AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecret(azureServicePrincipalRotateRequest);
 
 
 		if (null != azureServiceAccountSecret) {
