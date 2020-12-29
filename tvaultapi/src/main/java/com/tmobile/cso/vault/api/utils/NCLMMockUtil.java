@@ -16,6 +16,7 @@ import java.util.Map;
 @Component
 public class NCLMMockUtil {
     public NCLMMockUtil() {
+    	//Empty constructor
     }
 
     /**

@@ -91,6 +91,8 @@ public class OIDCUtil {
 	private static final String SYNCENABLED = "onPremisesSyncEnabled";
 	private static final String BEARERSTR = "Bearer ";
 	private static final String VALUESTR = "value";
+	private static final String ACCEPT = "accept";
+	private static final String GETAZUREUSEROBJ = "getAzureUserObject";
 	
 	/**
 	 * Fetch mount accessor id from oidc mount
@@ -254,7 +256,7 @@ public class OIDCUtil {
 		String api = ControllerUtil.getOidcADLoginUrl();
 		HttpPost postRequest = new HttpPost(api);
 		postRequest.addHeader("Content-type", TVaultConstants.HTTP_CONTENT_TYPE_URL_ENCODED);
-		postRequest.addHeader("Accept",TVaultConstants.HTTP_CONTENT_TYPE_JSON);
+		postRequest.addHeader(ACCEPT,TVaultConstants.HTTP_CONTENT_TYPE_JSON);
 
 		List<NameValuePair> form = new ArrayList<>();
 		form.add(new BasicNameValuePair("grant_type", "client_credentials"));
@@ -342,7 +344,7 @@ public class OIDCUtil {
 		if (httpClient == null) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "getGroupObjectResponse").
+					put(LogMessage.ACTION, "GetGroupObjectResponse").
 					put(LogMessage.MESSAGE, HTTPFAILMSG).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -352,7 +354,7 @@ public class OIDCUtil {
 		String filterSearch = "$filter=displayName%20eq%20'"+encodeValue(groupName)+"'";
 		String api = ssoGroupsEndpoint + filterSearch;
 		HttpGet getRequest = new HttpGet(api);
-		getRequest.addHeader("accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
+		getRequest.addHeader("Accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
 		getRequest.addHeader(AUTHORIZATION, BEARERSTR + ssoToken);
 		String output = "";
 		StringBuilder jsonResponse = new StringBuilder();
@@ -729,7 +731,7 @@ public class OIDCUtil {
 		String filterSearch = "$filter=startsWith%28displayName%2C'"+encodeValue(groupName)+"'%29%20and%20securityEnabled%20eq%20true";
 		String api = ssoGroupsEndpoint + filterSearch;
 		HttpGet getRequest = new HttpGet(api);
-		getRequest.addHeader("accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
+		getRequest.addHeader("Accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
 		getRequest.addHeader(AUTHORIZATION, BEARERSTR + ssoToken);
 		String output = "";
 		StringBuilder jsonResponse = new StringBuilder();
@@ -1005,7 +1007,7 @@ public class OIDCUtil {
 		if (httpClient == null) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "getAzureUserObject")
+					.put(LogMessage.ACTION, GETAZUREUSEROBJ)
 					.put(LogMessage.MESSAGE, HTTPFAILMSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return null;
@@ -1031,21 +1033,21 @@ public class OIDCUtil {
 				aadUserObject = parseAndGetUserObjFromAADResponse(jsonParser, jsonResponse, apiResponse);
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-						.put(LogMessage.ACTION, "getAzureUserObject")
+						.put(LogMessage.ACTION, GETAZUREUSEROBJ)
 						.put(LogMessage.MESSAGE, String.format("Retrieved %s user id from AAD", aadUserObject.getUserId()))
 						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 				return aadUserObject;
 			}
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "getAzureUserObject")
+					.put(LogMessage.ACTION, GETAZUREUSEROBJ)
 					.put(LogMessage.MESSAGE, "Failed to retrieve user id from AAD")
 					.put(LogMessage.STATUS, String.valueOf(apiResponse.getStatusLine().getStatusCode()))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		} catch (IOException e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "getAzureUserObject")
+					.put(LogMessage.ACTION, GETAZUREUSEROBJ)
 					.put(LogMessage.MESSAGE, "Failed to parse AAD user api response")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		}
@@ -1062,7 +1064,7 @@ public class OIDCUtil {
 	 */
 	private AADUserObject parseAndGetUserObjFromAADResponse(JsonParser jsonParser, StringBuilder jsonResponse,
 												HttpResponse apiResponse) {
-		readResponseContent(jsonResponse, apiResponse, "getAzureUserObject");
+		readResponseContent(jsonResponse, apiResponse, GETAZUREUSEROBJ);
 		AADUserObject aadUserObject = new AADUserObject();
 		JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
 		if (responseJson != null && responseJson.has("id")) {
@@ -1107,8 +1109,8 @@ public class OIDCUtil {
 		if (httpClient == null) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "getGroupsFromAAD").
-					put(LogMessage.MESSAGE, "Failed to initialize httpClient").
+					put(LogMessage.ACTION, GETGROUPSFROMAAD).
+					put(LogMessage.MESSAGE, HTTPFAILMSG).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return allGroupEmail;
@@ -1116,8 +1118,8 @@ public class OIDCUtil {
 		String filterSearch = "$filter=startsWith(mail,%27"+encodeValue(email)+"%27)&$select=id,mail";
 		String api = ssoGroupsEndpoint + filterSearch;
 		HttpGet getRequest = new HttpGet(api);
-		getRequest.addHeader("accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
-		getRequest.addHeader("Authorization", "Bearer " + ssoToken);
+		getRequest.addHeader(ACCEPT, TVaultConstants.HTTP_CONTENT_TYPE_JSON);
+		getRequest.addHeader(AUTHORIZATION, BEARERSTR + ssoToken);
 		String output = "";
 		StringBuilder jsonResponse = new StringBuilder();
 
@@ -1127,8 +1129,8 @@ public class OIDCUtil {
 
 				readResponseContent(jsonResponse, apiResponse, TVaultConstants.GROUP_EMAIL_FROM_AAD);
 				JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
-				if (responseJson != null && responseJson.has("value")) {
-					JsonArray vaulesArray = responseJson.get("value").getAsJsonArray();
+				if (responseJson != null && responseJson.has(VALUESTR)) {
+					JsonArray vaulesArray = responseJson.get(VALUESTR).getAsJsonArray();
 						allGroupEmail=allGroupEmailValue(vaulesArray);
 				}
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().

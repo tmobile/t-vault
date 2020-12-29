@@ -102,12 +102,12 @@ public final class ControllerUtil {
 	private static final String CREATEMETADATASTR = "createMetadata";
 	private static final String USERSTR = "username:";
 	private static final String PASSWORDSTR = "password:";
-	private static final String NCLMUSERNAME = "nclmusername:";
-	private static final String NCLMPASSWORD = "nclmpassword:";
-	private static final String CWMTOKEN = "cwmToken:";
-	private static final String OIDCCLIENTNAME = "OIDC_CLIENT_NAME=";
-	private static final String OIDCCLIENTID = "OIDC_CLIENT_ID=";
-	private static final String OIDCCLIENTSECRET = "OIDC_CLIENT_SECRET=";
+	private static final String NCLMUSERNAMESTR = "nclmusername:";
+	private static final String NCLMPASSWORDSTR = "nclmpassword:";
+	private static final String CWMTOKENSTR = "cwmToken:";
+	private static final String OIDCCLIENTNAMESTR = "OIDC_CLIENT_NAME=";
+	private static final String OIDCCLIENTIDSTR = "OIDC_CLIENT_ID=";
+	private static final String OIDCCLIENTSECRETSTR = "OIDC_CLIENT_SECRET=";
 	private static final String BOUNDAUDIENCE = "BOUND_AUDIENCES=";
 	private static final String OIDCURL = "OIDC_DISCOVERY_URL=";
 	private static final String ADLOGINURL = "AD_LOGIN_URL=";
@@ -2268,19 +2268,19 @@ public final class ControllerUtil {
 						sscred.setPassword(line.substring(PASSWORDSTR.length(), line.length()));
 						log.debug("Successfully read password: from sscred file");
 					}
-					else if (line.startsWith(NCLMUSERNAME)) {
-						nclmUsername = line.substring(NCLMUSERNAME.length(), line.length());
-						sscred.setNclmusername(line.substring(NCLMUSERNAME.length(), line.length()));
+					else if (line.startsWith(NCLMUSERNAMESTR)) {
+						nclmUsername = line.substring(NCLMUSERNAMESTR.length(), line.length());
+						sscred.setNclmusername(line.substring(NCLMUSERNAMESTR.length(), line.length()));
 						log.debug("Successfully read nclm username: from sscred file");
 					}
-					else if (line.startsWith(NCLMPASSWORD)) {
-						nclmPassword = line.substring(NCLMPASSWORD.length(), line.length());
-						sscred.setNclmpassword(line.substring(NCLMPASSWORD.length(), line.length()));
+					else if (line.startsWith(NCLMPASSWORDSTR)) {
+						nclmPassword = line.substring(NCLMPASSWORDSTR.length(), line.length());
+						sscred.setNclmpassword(line.substring(NCLMPASSWORDSTR.length(), line.length()));
 						log.debug("Successfully read nclmpassword: from sscred file");
 					}
-					else if (line.startsWith(CWMTOKEN)) {
-						cwmToken = line.substring(CWMTOKEN.length(), line.length());
-						sscred.setCwmToken(line.substring(CWMTOKEN.length(), line.length()));
+					else if (line.startsWith(CWMTOKENSTR)) {
+						cwmToken = line.substring(CWMTOKENSTR.length(), line.length());
+						sscred.setCwmToken(line.substring(CWMTOKENSTR.length(), line.length()));
 						log.debug("Successfully read cwmToken: from sscred file");
 					}
 
@@ -2366,19 +2366,19 @@ public final class ControllerUtil {
 				Scanner sc = new Scanner(oidcFile);
 				while (sc.hasNextLine()) {
 					String line = sc.nextLine();
-					if (line.startsWith(OIDCCLIENTNAME)) {
-						oidcClientName = line.substring(OIDCCLIENTNAME.length(), line.length());
-						oidcCred.setClientName(line.substring(OIDCCLIENTNAME.length(), line.length()));
+					if (line.startsWith(OIDCCLIENTNAMESTR)) {
+						oidcClientName = line.substring(OIDCCLIENTNAMESTR.length(), line.length());
+						oidcCred.setClientName(line.substring(OIDCCLIENTNAMESTR.length(), line.length()));
 						log.debug("Successfully read OIDC_CLIENT_NAME from oidcCred file");
 					}
-					else if (line.startsWith(OIDCCLIENTID)) {
-						oidcClientId = line.substring(OIDCCLIENTID.length(), line.length());
-						oidcCred.setClientId(line.substring(OIDCCLIENTID.length(), line.length()));
+					else if (line.startsWith(OIDCCLIENTIDSTR)) {
+						oidcClientId = line.substring(OIDCCLIENTIDSTR.length(), line.length());
+						oidcCred.setClientId(line.substring(OIDCCLIENTIDSTR.length(), line.length()));
 						log.debug("Successfully read OIDC_CLIENT_ID from oidcCred file");
 					}
-					else if (line.startsWith(OIDCCLIENTSECRET)) {
-						oidcClientSecret = line.substring(OIDCCLIENTSECRET.length(), line.length());
-						oidcCred.setClientSecret(line.substring(OIDCCLIENTSECRET.length(), line.length()));
+					else if (line.startsWith(OIDCCLIENTSECRETSTR)) {
+						oidcClientSecret = line.substring(OIDCCLIENTSECRETSTR.length(), line.length());
+						oidcCred.setClientSecret(line.substring(OIDCCLIENTSECRETSTR.length(), line.length()));
 						log.debug("Successfully read OIDC_CLIENT_SECRET from oidcCred file");
 					}
 					else if (line.startsWith(BOUNDAUDIENCE)) {

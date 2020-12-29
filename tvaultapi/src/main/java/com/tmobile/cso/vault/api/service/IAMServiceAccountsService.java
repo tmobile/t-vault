@@ -108,6 +108,16 @@ public class  IAMServiceAccountsService {
 	
 	@Autowired
 	private AWSIAMAuthService awsiamAuthService;
+	
+	private static final String ACCOUNTSTR = "account [%s].";
+	private static final String DELETEPATH = "/delete";
+	private static final String PATHSTR = "{\"path\":\"";
+	private static final String INVALIDVALUEERROR = "{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}";
+	private static final String POLICYSTR = "policy is [%s]";
+	private static final String GROUPPATH = "/auth/ldap/groups";
+	private static final String GROUPNAME = "{\"groupname\":\"";
+	private static final String READPATH = "/auth/userpass/read";
+	private static final String USERPATH = "/auth/ldap/users";
 
 	/**
 	 * Onboard an IAM service account
@@ -226,7 +236,7 @@ public class  IAMServiceAccountsService {
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
 					.put(LogMessage.MESSAGE, String.format("Successfully added owner permission to [%s] for IAM service " +
-							"account [%s].", iamServiceAccount.getOwnerNtid(), iamSvcAccName))
+							ACCOUNTSTR, iamServiceAccount.getOwnerNtid(), iamSvcAccName))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return true;
 		}
@@ -234,7 +244,7 @@ public class  IAMServiceAccountsService {
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
 				.put(LogMessage.MESSAGE, String.format("Failed to add owner permission to [%s] for IAM service " +
-						"account [%s].", iamServiceAccount.getOwnerNtid(), iamSvcAccName))
+						ACCOUNTSTR, iamServiceAccount.getOwnerNtid(), iamSvcAccName))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		return false;
 
@@ -256,7 +266,7 @@ public class  IAMServiceAccountsService {
 				if (currentPolicies.contains(iamMasterPolicyName)) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-							.put(LogMessage.ACTION, "isAuthorizedForIAMOnboardAndOffboard")
+							.put(LogMessage.ACTION, "IsAuthorizedForIAMOnboardAndOffboard")
 							.put(LogMessage.MESSAGE, "The User/Token has required policies to onboard/offboard IAM Service Account.")
 							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 					return true;
@@ -581,7 +591,7 @@ public class  IAMServiceAccountsService {
 	private ResponseEntity<String> deleteIAMSvcAccount(String token, OnboardedIAMServiceAccount iamServiceAccount) {
 		String iamSvcAccName = iamServiceAccount.getAwsAccountId() + "_" + iamServiceAccount.getUserName();
 		String iamSvcAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName;
-		Response onboardingResponse = reqProcessor.process("/delete", "{\"path\":\"" + iamSvcAccPath + "\"}", token);
+		Response onboardingResponse = reqProcessor.process(DELETEPATH, PATHSTR + iamSvcAccPath + "\"}", token);
 
 		if (onboardingResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 				|| onboardingResponse.getHttpstatus().equals(HttpStatus.OK)) {
@@ -613,7 +623,7 @@ public class  IAMServiceAccountsService {
 	public ResponseEntity<String> getOnboardedIAMServiceAccounts(String token, UserDetails userDetails) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-				.put(LogMessage.ACTION, "listOnboardedIAMServiceAccounts")
+				.put(LogMessage.ACTION, "ListOnboardedIAMServiceAccounts")
 				.put(LogMessage.MESSAGE, "Trying to get list of onboaded IAM service accounts")
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		Response response = null;
@@ -709,7 +719,7 @@ public class  IAMServiceAccountsService {
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		String metadataPath = IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH;
 
-		Response response = reqProcessor.process("/iam/onboardedlist", "{\"path\":\"" + metadataPath + "\"}", token);
+		Response response = reqProcessor.process("/iam/onboardedlist", PATHSTR + metadataPath + "\"}", token);
 
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -746,7 +756,7 @@ public class  IAMServiceAccountsService {
 		}
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountGroup.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountGroup.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
@@ -805,7 +815,7 @@ public class  IAMServiceAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_GROUP_TO_IAMSVCACC_MSG)
-				.put(LogMessage.MESSAGE, String.format("policy is [%s]", policy))
+				.put(LogMessage.MESSAGE, String.format(POLICYSTR, policy))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		String readPolicy = new StringBuffer()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
@@ -830,8 +840,8 @@ public class  IAMServiceAccountsService {
 		Response groupResp = new Response();
 
 		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-			groupResp = reqProcessor.process("/auth/ldap/groups",
-					"{\"groupname\":\"" + iamServiceAccountGroup.getGroupname() + "\"}", token);
+			groupResp = reqProcessor.process(GROUPPATH,
+					GROUPNAME + iamServiceAccountGroup.getGroupname() + "\"}", token);
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// call read api with groupname
 			oidcGroup = oidcUtil.getIdentityGroupDetails(iamServiceAccountGroup.getGroupname(), token);
@@ -1036,7 +1046,7 @@ public class  IAMServiceAccountsService {
 
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountUser.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountUser.setAccess(TVaultConstants.WRITE_POLICY);
@@ -1112,10 +1122,10 @@ public class  IAMServiceAccountsService {
 			String uniqueIAMSvcaccName) {
 		Response userResponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/userpass/read", IAMServiceAccountConstants.USERNAME_PARAM_STRING + iamServiceAccountUser.getUsername() + "\"}",
+			userResponse = reqProcessor.process(READPATH, IAMServiceAccountConstants.USERNAME_PARAM_STRING + iamServiceAccountUser.getUsername() + "\"}",
 					token);
 		} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/ldap/users", IAMServiceAccountConstants.USERNAME_PARAM_STRING + iamServiceAccountUser.getUsername() + "\"}", token);
+			userResponse = reqProcessor.process(USERPATH, IAMServiceAccountConstants.USERNAME_PARAM_STRING + iamServiceAccountUser.getUsername() + "\"}", token);
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
 			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, iamServiceAccountUser.getUsername(),
@@ -1392,7 +1402,7 @@ public class  IAMServiceAccountsService {
 			path = path.substring(0, path.length() - 1);
 		}
 		String iamMetaDataPath = "metadata/" + path;
-		return reqProcessor.process("/sdb", "{\"path\":\"" + iamMetaDataPath + "\"}", token);
+		return reqProcessor.process("/sdb", PATHSTR + iamMetaDataPath + "\"}", token);
 	}
 
 	/**
@@ -1566,7 +1576,7 @@ public class  IAMServiceAccountsService {
 	 */
 	public ResponseEntity<String> getIAMServiceAccountDetail(String token, String iamSvcaccName) {
 		String path = TVaultConstants.IAM_SVC_PATH + iamSvcaccName;
-		Response response = reqProcessor.process("/iamsvcacct", "{\"path\":\"" + path + "\"}", token);
+		Response response = reqProcessor.process("/iamsvcacct", PATHSTR + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
 			JsonObject data = populateMetaData(response);
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1603,7 +1613,7 @@ public class  IAMServiceAccountsService {
 	 */
 	public ResponseEntity<String> getIAMServiceAccountSecretKey(String token, String iamSvcaccName, String folderName) {
 		String path = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcaccName + "/" + folderName;
-		Response response = reqProcessor.process("/iamsvcacct", "{\"path\":\"" + path + "\"}", token);
+		Response response = reqProcessor.process("/iamsvcacct", PATHSTR + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
 			JsonParser jsonParser = new JsonParser();
 			JsonObject data = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
@@ -1657,7 +1667,7 @@ public class  IAMServiceAccountsService {
         }
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountUser.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountUser.setAccess(TVaultConstants.WRITE_POLICY);
@@ -1715,10 +1725,10 @@ public class  IAMServiceAccountsService {
 
 		Response userResponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/userpass/read", "{\"username\":\"" + iamServiceAccountUser.getUsername() + "\"}",
+			userResponse = reqProcessor.process(READPATH, "{\"username\":\"" + iamServiceAccountUser.getUsername() + "\"}",
 					token);
 		} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + iamServiceAccountUser.getUsername() + "\"}", token);
+			userResponse = reqProcessor.process(USERPATH, "{\"username\":\"" + iamServiceAccountUser.getUsername() + "\"}", token);
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
 			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, iamServiceAccountUser.getUsername(), userDetails, true);
@@ -1959,7 +1969,7 @@ public class  IAMServiceAccountsService {
 
         if (!isIamSvcaccPermissionInputValid(iamServiceAccountGroup.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountGroup.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
@@ -1985,7 +1995,7 @@ public class  IAMServiceAccountsService {
 
             Response groupResp = new Response();
 			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-				groupResp = reqProcessor.process("/auth/ldap/groups", "{\"groupname\":\"" + iamServiceAccountGroup.getGroupname() + "\"}", token);
+				groupResp = reqProcessor.process(GROUPPATH, GROUPNAME + iamServiceAccountGroup.getGroupname() + "\"}", token);
 			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 				// call read api with groupname
 				oidcGroup = oidcUtil.getIdentityGroupDetails(iamServiceAccountGroup.getGroupname(), token);
@@ -2183,7 +2193,7 @@ public class  IAMServiceAccountsService {
 	public ResponseEntity<String> readFolders(String token, String path) throws IOException {
 		Response response = new Response();
 		ObjectMapper objMapper = new ObjectMapper();
-		Response lisresp = reqProcessor.process("/iam/list", "{\"path\":\"" + path + "\"}", token);
+		Response lisresp = reqProcessor.process("/iam/list", PATHSTR + path + "\"}", token);
 		if(lisresp.getHttpstatus().equals(HttpStatus.OK)){
 			List<String> foldersList = new ArrayList<>();
 			IAMServiceAccountNode iamServiceAccountNode = new IAMServiceAccountNode();
@@ -2243,7 +2253,7 @@ public class  IAMServiceAccountsService {
 		}
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountApprole.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountApprole.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountApprole.setAccess(TVaultConstants.WRITE_POLICY);
@@ -2270,7 +2280,7 @@ public class  IAMServiceAccountsService {
 									.put(LogMessage.USER,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 									.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_APPROLE_TO_IAMSVCACC_MSG)
-									.put(LogMessage.MESSAGE, String.format("policy is [%s]", policy))
+									.put(LogMessage.MESSAGE, String.format(POLICYSTR, policy))
 									.put(LogMessage.APIURL,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 									.build())); 
@@ -2485,7 +2495,7 @@ public class  IAMServiceAccountsService {
 		}
 		if (!isIamSvcaccPermissionInputValid(access)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(INVALIDVALUEERROR);
 		}
 
 		boolean isAuthorized = hasAddOrRemovePermission(userDetails, uniqueIAMSvcaccName, token);
@@ -2809,7 +2819,7 @@ public class  IAMServiceAccountsService {
 	 */
 	private JsonObject getIAMMetadata(String token, String uniqueIAMSvcaccName) {
 		String path = TVaultConstants.IAM_SVC_PATH + uniqueIAMSvcaccName;
-		Response response = reqProcessor.process("/read", "{\"path\":\"" + path + "\"}", token);
+		Response response = reqProcessor.process("/read", PATHSTR + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
 			return populateMetaData(response);
 		}
@@ -3126,7 +3136,7 @@ public class  IAMServiceAccountsService {
 
 		// delete users,groups,aws-roles,app-roles from service account
 		String path = IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + uniqueIAMSvcName;
-		Response metaResponse = reqProcessor.process("/sdb", "{\"path\":\"" + path + "\"}", token);
+		Response metaResponse = reqProcessor.process("/sdb", PATHSTR + path + "\"}", token);
 		Map<String, Object> responseMap = null;
 		try {
 			responseMap = new ObjectMapper().readValue(metaResponse.getResponse(),
@@ -3268,10 +3278,10 @@ public class  IAMServiceAccountsService {
 
 				Response userResponse = new Response();
 				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-					userResponse = reqProcessor.process("/auth/userpass/read", "{\"username\":\"" + userName + "\"}",
+					userResponse = reqProcessor.process(READPATH, "{\"username\":\"" + userName + "\"}",
 							token);
 				} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-					userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}",
+					userResponse = reqProcessor.process(USERPATH, "{\"username\":\"" + userName + "\"}",
 							token);
 				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 					// OIDC implementation changes
@@ -3418,7 +3428,7 @@ public class  IAMServiceAccountsService {
 			for (String groupName : groups) {
 				Response response = new Response();
 				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-					response = reqProcessor.process("/auth/ldap/groups", "{\"groupname\":\"" + groupName + "\"}",
+					response = reqProcessor.process(GROUPPATH, GROUPNAME + groupName + "\"}",
 							token);
 				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 					// call read api with groupname
@@ -3564,13 +3574,13 @@ public class  IAMServiceAccountsService {
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, "deleteIAMSvcAccountSecrets")
 				.put(LogMessage.MESSAGE, String.format("Trying to delete secret folder for IAM service " +
-						"account [%s].", iamSvcAccName))
+						ACCOUNTSTR, iamSvcAccName))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
 		boolean secretDeleteStatus = deleteIAMSvcAccountSecretFolders(token, iamServiceAccount.getAwsAccountId(),
 				iamServiceAccount.getUserName());
 		if (secretDeleteStatus) {
-			Response onboardingResponse = reqProcessor.process("/delete", "{\"path\":\"" + iamSvcAccPath + "\"}", token);
+			Response onboardingResponse = reqProcessor.process(DELETEPATH, PATHSTR + iamSvcAccPath + "\"}", token);
 
 			if (onboardingResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 					|| onboardingResponse.getHttpstatus().equals(HttpStatus.OK)) {
@@ -3640,8 +3650,8 @@ public class  IAMServiceAccountsService {
 					int deleteCount = 0;
 					for (int i = 0; i < svcSecretArray.size(); i++) {
 						String folderPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + uniqueSvcAccName + "/secret_" + (i+1);
-						Response deleteFolderResponse = reqProcessor.process("/delete",
-								"{\"path\":\"" + folderPath + "\"}", token);
+						Response deleteFolderResponse = reqProcessor.process(DELETEPATH,
+								PATHSTR + folderPath + "\"}", token);
 						if (deleteFolderResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 								|| deleteFolderResponse.getHttpstatus().equals(HttpStatus.OK)) {
 							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -3714,7 +3724,7 @@ public class  IAMServiceAccountsService {
             token = tokenUtils.getSelfServiceToken();
         }
 		if(!isIamSvcaccPermissionInputValid(iamServiceAccountAWSRole.getAccess())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountAWSRole.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountAWSRole.setAccess(TVaultConstants.WRITE_POLICY);
@@ -3737,7 +3747,7 @@ public class  IAMServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_AWS_ROLE_MSG).
-					put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
+					put(LogMessage.MESSAGE, String.format (POLICYSTR, policy)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			
@@ -3874,7 +3884,7 @@ public class  IAMServiceAccountsService {
             token = tokenUtils.getSelfServiceToken();
         }
 		if(!isIamSvcaccPermissionInputValid(iamServiceAccountAWSRole.getAccess())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountAWSRole.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountAWSRole.setAccess(TVaultConstants.WRITE_POLICY);
