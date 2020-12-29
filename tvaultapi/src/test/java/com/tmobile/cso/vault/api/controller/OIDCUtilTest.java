@@ -884,7 +884,7 @@ public class OIDCUtilTest {
         assertEquals(null, aadUserObject.getEmail());
     }
     @Test
-    public void test_getGroupEmailFromAAD_success() throws Exception {
+    public void testgetGroupEmailFromAADsuccess() throws Exception {
         String email = "T-Vault@t-Mobile.com ";
         Response response = new Response();
         response.setHttpstatus(HttpStatus.OK);
@@ -907,7 +907,7 @@ public class OIDCUtilTest {
 
     }
     @Test
-    public void test_getGroupEmailFromAAD_failed() throws Exception {
+    public void testgetGroupEmailFromAADfailed() throws Exception {
         String email = "t-vault@t-mobile.com";
         Response response = new Response();
         response.setHttpstatus(HttpStatus.OK);

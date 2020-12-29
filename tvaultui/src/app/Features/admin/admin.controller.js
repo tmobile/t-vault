@@ -1833,6 +1833,7 @@
         }
 
         $scope.backToEdit = function () {
+            $scope.selectionValue = 'email';
             $scope.isCertificatePreview = false;
             $scope.isCertificateManagePreview = false;
         }
@@ -2745,6 +2746,7 @@
         };
 
         $scope.toogleOnboardPreview = function() {
+            $scope.selectionValue='email';
             $scope.isCertificateOnboardPreview = !$scope.isCertificateOnboardPreview;
             $scope.notificationEmail.email = '';
             $scope.notificationEmailErrorMessage = '';
@@ -2987,7 +2989,12 @@
                 }
             }
         }
-
+        $scope.notifDropdown = function(val){
+            $scope.selectionValue=val;
+            $scope.notificationEmail = { email:""};
+            $scope.isNotificationEmailSelected = false;
+            $scope.notificationEmailErrorMessage = '';
+        }
         $scope.searchOwnerEmailForOnboard = function (email) {
             if (!email.endsWith("\\")) {
                 $scope.isOwnerEmailSearch = true;
