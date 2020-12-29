@@ -1572,7 +1572,7 @@ public class  IAMServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "get IAmservice Account details").
-					put(LogMessage.MESSAGE, String.format ("IAM service Account details fetched successfully.")).
+					put(LogMessage.MESSAGE,"IAM Service Account details fetched successfully.").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body(data.toString());
