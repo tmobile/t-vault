@@ -1572,7 +1572,7 @@ public class  IAMServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "get IAmservice Account details").
-					put(LogMessage.MESSAGE, String.format ("IAmservice Account details fetched successfully.")).
+					put(LogMessage.MESSAGE, String.format ("IAM service Account details fetched successfully.")).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body(data.toString());
@@ -1848,7 +1848,7 @@ public class  IAMServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_USER_FROM_IAMSVCACC_MSG).
-					put(LogMessage.MESSAGE,String.format("user[%s] is successfully removed from IAM Service Account[%s] with policy [%s]",iamServiceAccountUser.getUsername(),iamServiceAccountUser.getIamSvcAccName(),iamServiceAccountUser.getAccess())).
+					put(LogMessage.MESSAGE,String.format("User[%s] is successfully removed from IAM Service Account[%s] with policy [%s]",iamServiceAccountUser.getUsername(),iamServiceAccountUser.getIamSvcAccName(),iamServiceAccountUser.getAccess())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully removed user from the IAM Service Account\"]}");
