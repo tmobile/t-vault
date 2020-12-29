@@ -21,6 +21,7 @@ import com.tmobile.cso.vault.api.model.Secret;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -69,10 +70,17 @@ public class SecretControllerV2 {
 	 * @return
 	 */
 	@ApiOperation(value = "${SecretControllerV2.write.value}", notes = "${SecretControllerV2.write.notes}")
-	@PostMapping(value={"/v2/safes/folders/secrets","/v2/write"},consumes="application/json",produces="application/json")
-	public ResponseEntity<String> write(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody Secret secret){
+	@PostMapping(value = {"/v2/safes/folders/secrets", "/v2/write"}, consumes = "application/json", produces = "application/json")
+	public ResponseEntity<String> write(HttpServletRequest request, @RequestHeader(value = "vault-token") String token,
+										@RequestHeader(value = "delete-flag", required = false) String deleteFlag
+			, @RequestBody Secret secret) {
+
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return secretService.write(token, secret, userDetails);
+		if (!StringUtils.isEmpty(deleteFlag) && deleteFlag.equalsIgnoreCase("true")) {
+			return secretService.write(token, secret, userDetails, deleteFlag);
+		} else {
+			return secretService.write(token, secret, userDetails);
+		}
 	}
 	/**
 	 * Delete secrets from vault

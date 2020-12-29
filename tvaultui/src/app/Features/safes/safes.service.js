@@ -88,7 +88,9 @@
             // newSecret = {key: 'string', value: 'string'}
             var url = RestEndpoints.baseURL + '/v2/write?path=' + folderContent.id;
             var content = folderContent.children.slice(0);
+            var deletingSecretFlag = true;
             if (newSecret) {
+                deletingSecretFlag = false;
                 content.push(newSecret);
             }
             var data = parseFolderContentToSecrets(content);
@@ -99,9 +101,18 @@
                     path: folderContent.id,
                     data: data
                 },
-                headers: getHeaders()
+                headers: getSecretHeaders(deletingSecretFlag)
             }).catch(catchError);
         }
+
+       function getSecretHeaders(deletingSecretFlag) {
+            return {
+                'Content-Type': 'application/json',
+                'vault-token': SessionStore.getItem('myVaultKey'),
+                'delete-flag' : deletingSecretFlag
+            }
+        }
+
 
         function itemIsValidToSave(item, index, parent) {
             //SECRET MISSING INPUT
