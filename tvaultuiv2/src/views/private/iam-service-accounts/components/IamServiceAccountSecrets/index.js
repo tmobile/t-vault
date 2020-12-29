@@ -16,6 +16,7 @@ import apiService from '../../apiService';
 import lock from '../../../../../assets/icon_lock.svg';
 import refreshIcon from '../../../../../assets/refresh-ccw.svg';
 import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
+import AccessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
@@ -38,6 +39,16 @@ const UserList = styled.div`
   border-bottom: 1px solid #323649;
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
+  }
+
+  .expirationDate {
+    font-family: Roboto;
+    font-size: 1.34rem;
+    color: #ffffff;
+
+    div {
+      color: #c1c1c1;
+    }
   }
 `;
 
@@ -143,6 +154,17 @@ const IamServiceAccountSecrets = (props) => {
   const onViewSecretsCliked = () => {
     setShowSecret(!showSecret);
   };
+  
+  const formatDate = (expiryDate = '') =>{
+
+    const expirationArr = new Date(expiryDate).toDateString().split(" ");  
+    if(expirationArr.length>3){
+      expirationArr.splice(3,0, ',');
+      const expiryFormattedDate = expirationArr.splice(1).join(" ");
+    
+      return expiryFormattedDate;
+    }    
+  }
 
   /**
    * @function onCopyClicked
@@ -356,6 +378,10 @@ const IamServiceAccountSecrets = (props) => {
                     <Secret type="password" viewSecret={showSecret}>
                       {secretsData.accessKeySecret}
                     </Secret>
+                    <span class="expirationDate">
+                      <div>Expires: </div>
+                      {formatDate(secretsData.expiryDate)}
+                    </span>
 
                     <FolderIconWrap>
                       <PopperElement
@@ -446,6 +472,15 @@ const IamServiceAccountSecrets = (props) => {
               view <span>Secret</span> all here!
             </NoPermission>
           </AccessDeniedWrap>
+        )}
+        {
+          accountDetail?.permission === "deny" && (
+            <AccessDeniedWrap>
+              <AccessDeniedIcon src={AccessDeniedLogo} alt="accessDeniedLogo" />
+              <NoPermission>
+                Access Denied: No permission to read or rotate secret for the given IAM service account
+              </NoPermission>
+            </AccessDeniedWrap>
         )}
         {responseType === 1 && (
           <SnackbarComponent

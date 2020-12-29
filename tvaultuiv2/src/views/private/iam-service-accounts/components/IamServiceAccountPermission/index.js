@@ -216,7 +216,7 @@ const IamServiceAccountPermission = (props) => {
             </>
           ) : (
             <NoPermission>
-              Please activate the iam service account to add permissions
+              Please activate the IAM service account to add permissions
             </NoPermission>
           )}
         </>

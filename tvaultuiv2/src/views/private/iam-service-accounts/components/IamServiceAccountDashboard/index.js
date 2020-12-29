@@ -183,7 +183,7 @@ const IamServiceAccountDashboard = () => {
   const [isIamSvcAccountActive, setIsIamSvcAccountActive] = useState(false);
   const [accountSecretData, setAccountSecretData] = useState(null);
   const [accountSecretError, setAccountSecretError] = useState('');
-  const [disabledPermission, setDisabledPermission] = useState(false);
+  const [disabledPermission, setDisabledPermission] = useState(true);
   const [accountMetaData, setAccountMetaData] = useState({
     response: {},
     error: '',
@@ -220,6 +220,7 @@ const IamServiceAccountDashboard = () => {
               name: svcName.join('_'),
               iamAccountId: Object.keys(item)[0].split('_')[0],
               active: true,
+              permission: Object.values(item)[0],
             };
             return listArray.push(data);
           });
@@ -355,31 +356,33 @@ const IamServiceAccountDashboard = () => {
 
   // Function to get the metadata of the given service account
   const fetchPermission = useCallback(async () => {
-    setStatus({ status: 'secrets-loading' });
     setAccountSecretData({});
-    try {
-      const res = await apiService.fetchIamServiceAccountDetails(
-        `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`
-      );
-      if (res?.data) {
-        setStatus({ status: 'secret-success' });
-        setIsIamSvcAccountActive(res?.data?.isActivated);
-        if (
-          res.data.owner_ntid.toLowerCase() === state.username.toLowerCase()
-        ) {
-          setDisabledPermission(false);
+    setIsIamSvcAccountActive(listItemDetails.active);
+    if (listItemDetails?.permission === 'write') {
+      setStatus({ status: 'secrets-loading' });
+      try {
+        const res = await apiService.fetchIamServiceAccountDetails(
+          `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`
+        );
+        if (res?.data) {
+          setStatus({ status: 'secret-success' });
           setAccountMetaData({ response: res.data, error: '' });
-          const eachUsersDetails = await getEachUsersDetails(res.data.users);
-          if (eachUsersDetails !== null) {
-            setUserDetails([...eachUsersDetails]);
+          if (
+            res.data.owner_ntid.toLowerCase() === state.username.toLowerCase()
+          ) {
+            setDisabledPermission(false);
+            const eachUsersDetails = await getEachUsersDetails(res.data.users);
+            if (eachUsersDetails !== null) {
+              setUserDetails([...eachUsersDetails]);
+            }
           }
         }
-      }
-    } catch (err) {
-      setStatus({ status: 'error' });
-      if (err) {
-        setAccountSecretError(err?.response?.data?.errors[0]);
-        setAccountMetaData({ response: {}, error: 'Something went wrong' });
+      } catch (err) {
+        setStatus({ status: 'error' });
+        if (err) {
+          setAccountSecretError(err?.response?.data?.errors[0]);
+          setAccountMetaData({ response: {}, error: 'Something went wrong' });
+        }
       }
     }
   }, [listItemDetails, state]);
@@ -423,7 +426,7 @@ const IamServiceAccountDashboard = () => {
           listIconStyles={listIconStyles}
         />
         <BorderLine />
-        {account.name && !isMobileScreen ? (
+        {account.name && !isMobileScreen && state.isAdmin ? (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <ViewIcon
               onClick={(e) =>
@@ -435,7 +438,7 @@ const IamServiceAccountDashboard = () => {
             </ViewIcon>
           </PopperWrap>
         ) : null}
-        {isMobileScreen && account.name && (
+        {isMobileScreen && account.name && state.isAdmin && (
           <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
             {' '}
             <ViewIcon

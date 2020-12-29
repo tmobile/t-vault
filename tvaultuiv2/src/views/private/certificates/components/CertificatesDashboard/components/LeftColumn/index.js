@@ -104,6 +104,10 @@ const OnboardButton = styled.button`
   :focus {
     outline: none;
   }
+  :hover {
+    background-color: rgb(158, 0, 81);
+    color: white;
+  }
 `;
 
 const LeftColumn = (props) => {
