@@ -258,21 +258,8 @@ public class IAMServiceAccountUtils {
             readResponseContent(jsonResponse, apiResponse, "rotateIAMSecret");
             IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret();
             JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
-            if (!responseJson.isJsonNull()) {
-                if (responseJson.has("accessKeyId")) {
-                    iamServiceAccountSecret.setAccessKeyId(responseJson.get("accessKeyId").getAsString());
-                }
-                if (responseJson.has("userName")) {
-                    iamServiceAccountSecret.setUserName(responseJson.get("userName").getAsString());
-                }
-                if (responseJson.has("accessKeySecret")) {
-                    iamServiceAccountSecret.setAccessKeySecret(responseJson.get("accessKeySecret").getAsString());
-                }
-                if (responseJson.has("expiryDateEpoch")) {
-                    iamServiceAccountSecret.setExpiryDateEpoch(responseJson.get("expiryDateEpoch").getAsLong());
-                }
-                iamServiceAccountSecret.setAwsAccountId(iamServiceAccountRotateRequest.getAccountId());
-            }
+            
+            addValuesToIamServiceAccountSecret(responseJson,iamServiceAccountSecret,iamServiceAccountRotateRequest);     
             return iamServiceAccountSecret;
         } catch (Exception e) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -481,14 +468,8 @@ public class IAMServiceAccountUtils {
 	            List<IAMSecretsMetadata> currentSecretData = objectMapper.convertValue((List<IAMSecretsMetadata>) metadataMap.get(typeSecret), new TypeReference<List<IAMSecretsMetadata>>() { });
 	            if(null != currentSecretData) {
 	                List<IAMSecretsMetadata> newSecretData = new ArrayList<>();
-	                for (int i=0;i<currentSecretData.size();i++) {
-	                    IAMSecretsMetadata iamSecretsMetadata = currentSecretData.get(i);
-	                    if (accessKeyId.equals(iamSecretsMetadata.getAccessKeyId())) {
-	                        iamSecretsMetadata.setAccessKeyId(iamServiceAccountSecret.getAccessKeyId());
-	                        iamSecretsMetadata.setExpiryDuration(iamServiceAccountSecret.getExpiryDateEpoch());
-	                    }
-	                    newSecretData.add(iamSecretsMetadata);
-	                }
+	                addMetadataToSecretData(currentSecretData,accessKeyId,newSecretData,iamServiceAccountSecret);
+	               
 
 	                metadataMap.put(typeSecret, newSecretData);
 	                String metadataJson = "";
@@ -564,4 +545,33 @@ public class IAMServiceAccountUtils {
         }
         return currentpolicies;
     }
+    
+   private void addValuesToIamServiceAccountSecret(JsonObject responseJson,IAMServiceAccountSecret iamServiceAccountSecret,IAMServiceAccountRotateRequest iamServiceAccountRotateRequest) {
+       if (!responseJson.isJsonNull()) {
+           if (responseJson.has("accessKeyId")) {
+               iamServiceAccountSecret.setAccessKeyId(responseJson.get("accessKeyId").getAsString());
+           }
+           if (responseJson.has("userName")) {
+               iamServiceAccountSecret.setUserName(responseJson.get("userName").getAsString());
+           }
+           if (responseJson.has("accessKeySecret")) {
+               iamServiceAccountSecret.setAccessKeySecret(responseJson.get("accessKeySecret").getAsString());
+           }
+           if (responseJson.has("expiryDateEpoch")) {
+               iamServiceAccountSecret.setExpiryDateEpoch(responseJson.get("expiryDateEpoch").getAsLong());
+           }
+           iamServiceAccountSecret.setAwsAccountId(iamServiceAccountRotateRequest.getAccountId());
+       }
+    }
+   
+  private void addMetadataToSecretData(List<IAMSecretsMetadata> currentSecretData,String accessKeyId,List<IAMSecretsMetadata> newSecretData,IAMServiceAccountSecret iamServiceAccountSecret) {
+	  for (int i=0;i<currentSecretData.size();i++) {
+          IAMSecretsMetadata iamSecretsMetadata = currentSecretData.get(i);
+          if (accessKeyId.equals(iamSecretsMetadata.getAccessKeyId())) {
+              iamSecretsMetadata.setAccessKeyId(iamServiceAccountSecret.getAccessKeyId());
+              iamSecretsMetadata.setExpiryDuration(iamServiceAccountSecret.getExpiryDateEpoch());
+          }
+          newSecretData.add(iamSecretsMetadata);
+      }
+  }
 }

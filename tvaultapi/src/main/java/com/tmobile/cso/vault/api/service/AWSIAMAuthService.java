@@ -60,6 +60,9 @@ public class AWSIAMAuthService {
 	private String vaultAuthMethod;
 
 	private static Logger logger = LogManager.getLogger(AWSIAMAuthService.class);
+	
+	private static final String POLICIESSTR = "policies";
+	private static final String ROLESTR = "{\"role\":\"";
 
 	/**
 	 * Registers a role in the method.
@@ -86,7 +89,7 @@ public class AWSIAMAuthService {
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role created successfully \"]}");
 			}
 			// revert role creation
-			Response deleteResponse = reqProcessor.process("/auth/aws/iam/roles/delete","{\"role\":\""+awsiamRole.getRole()+"\"}",token);
+			Response deleteResponse = reqProcessor.process("/auth/aws/iam/roles/delete",ROLESTR+awsiamRole.getRole()+"\"}",token);
 			if (deleteResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS IAM role creation failed.\"]}");
 			}
@@ -119,8 +122,8 @@ public class AWSIAMAuthService {
 		try {
 			JsonNode root = objMapper.readTree(jsonStr);
 			roleName = root.get("role").asText();
-			if(root.get("policies") != null)
-				latestPolicies = root.get("policies").asText();
+			if(root.get(POLICIESSTR) != null)
+				latestPolicies = root.get(POLICIESSTR).asText();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -131,7 +134,7 @@ public class AWSIAMAuthService {
 					build()));
 		}
 
-		Response awsResponse = reqProcessor.process("/auth/aws/iam/roles","{\"role\":\""+roleName+"\"}",token);
+		Response awsResponse = reqProcessor.process("/auth/aws/iam/roles",ROLESTR+roleName+"\"}",token);
 		String responseJson="";	
 
 		if(HttpStatus.OK.equals(awsResponse.getHttpstatus())){
@@ -140,7 +143,7 @@ public class AWSIAMAuthService {
 				Map<String,Object> responseMap; 
 				responseMap = objMapper.readValue(responseJson, new TypeReference<Map<String, Object>>(){});
 				@SuppressWarnings("unchecked")
-				List<String> policies  = (List<String>) responseMap.get("policies");
+				List<String> policies  = (List<String>) responseMap.get(POLICIESSTR);
 				currentPolicies = policies.stream().collect(Collectors.joining(",")).toString();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -178,7 +181,7 @@ public class AWSIAMAuthService {
 	 * @return
 	 */
 	public ResponseEntity<String> fetchIAMRole(String token, String role){
-		String jsoninput= "{\"role\":\""+role+"\"}";
+		String jsoninput= ROLESTR+role+"\"}";
 		Response response = reqProcessor.process("/auth/aws/iam/roles",jsoninput,token);
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
@@ -200,7 +203,7 @@ public class AWSIAMAuthService {
 	 */
 	public ResponseEntity<String> deleteIAMRole(String token, String role){
 
-		Response response = reqProcessor.process("/auth/aws/iam/roles/delete","{\"role\":\""+role+"\"}",token);
+		Response response = reqProcessor.process("/auth/aws/iam/roles/delete",ROLESTR+role+"\"}",token);
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"IAM Role deleted \"]}");
 		}else{
@@ -219,7 +222,7 @@ public class AWSIAMAuthService {
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String>configureRoleMap = new HashMap<>();
 		configureRoleMap.put("role", roleName);
-		configureRoleMap.put("policies", policies);
+		configureRoleMap.put(POLICIESSTR, policies);
 		String awsConfigJson ="";
 		try {
 			awsConfigJson = objMapper.writeValueAsString(configureRoleMap);

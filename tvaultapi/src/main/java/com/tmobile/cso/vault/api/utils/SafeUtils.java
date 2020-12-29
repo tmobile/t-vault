@@ -118,47 +118,15 @@ public class SafeUtils {
 		if (safeMetaData == null) {
 			return false;
 		}
-		String safeOwnerid = safeMetaData.getSafeBasicDetails().getOwnerid();
-		if (userDetails.isAdmin()) {
-			
-			if (StringUtils.isEmpty(safeOwnerid)) {
-				// Null or empty user for owner
-				// Existing safes will not have ownerid
-				// Safes created by safeadmins will not have ownerid
-				return true;
-			}
-			else {
-				// There is some owner assigned to the safe
-				if (safeOwnerid.equalsIgnoreCase(safeUser.getUsername())) {
-					// Safeadmin is trying to add the owner of the safe as some user with some permission
-					// Safeadmin can add read or write permission to safeowner
-					if (TVaultConstants.READ_POLICY.equals(safeUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
-						// safeadmin or the safeowner himself can set read/write permission to the safeowner
-						return true;
-					}
-					return false;
-				}
-				else {
-					// Safeadmin is trying to add a user, who is non-owner of the safe with read/write/deny
-					return true;
-				}
-			}
+		String safeOwnerid = safeMetaData.getSafeBasicDetails().getOwnerid();		
+		
+		if (userDetails.isAdmin()) {			
+			boolean isAdmin = checkForAdmin(safeOwnerid,safeUser,action);			
+			return isAdmin;
 		}
-		else {
-			// Prevent the owner of the safe to be denied...
-			if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(safeOwnerid)) {
-				// This user is owner of the safe...
-				if (safeUser.getUsername().equalsIgnoreCase(safeOwnerid)) {
-					if (TVaultConstants.READ_POLICY.equals(safeUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
-						// safeowner himself can set read/write permission to the safeowner
-						return true;
-					}
-					return false;
-				}
-				return true;
-			}
-			// other normal users will not have permission as they are not the owner
-			return false;
+		else {			
+			boolean isNonAdmin = checkForNonAdmin(safeOwnerid,safeUser,action,userDetails);			
+			return isNonAdmin;			
 		}
 	}
 	/**
@@ -222,5 +190,47 @@ public class SafeUtils {
 		}
 		safe.getSafeBasicDetails().setOwnerid(ownerId);
 		return safe;
+	}
+	
+	private boolean checkForAdmin(String safeOwnerid,SafeUser safeUser,String action) {
+		if (StringUtils.isEmpty(safeOwnerid)) {
+			// Null or empty user for owner
+			// Existing safes will not have ownerid
+			// Safes created by safeadmins will not have ownerid
+			return true;
+		}
+		else {
+			// There is some owner assigned to the safe
+			if (safeOwnerid.equalsIgnoreCase(safeUser.getUsername())) {
+				// Safeadmin is trying to add the owner of the safe as some user with some permission
+				// Safeadmin can add read or write permission to safeowner
+				if (TVaultConstants.READ_POLICY.equals(safeUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
+					// safeadmin or the safeowner himself can set read/write permission to the safeowner
+					return true;
+				}
+				return false;
+			}
+			else {
+				// Safeadmin is trying to add a user, who is non-owner of the safe with read/write/deny
+				return true;
+			}
+		}
+	}
+	
+	private boolean checkForNonAdmin(String safeOwnerid,SafeUser safeUser,String action, UserDetails userDetails) {
+		// Prevent the owner of the safe to be denied...
+					if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(safeOwnerid)) {
+						// This user is owner of the safe...
+						if (safeUser.getUsername().equalsIgnoreCase(safeOwnerid)) {
+							if (TVaultConstants.READ_POLICY.equals(safeUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
+								// safeowner himself can set read/write permission to the safeowner
+								return true;
+							}
+							return false;
+						}
+						return true;
+					}
+					// other normal users will not have permission as they are not the owner
+					return false;
 	}
 }
