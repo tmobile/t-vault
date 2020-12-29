@@ -176,6 +176,11 @@ public class  IAMServiceAccountsService {
 			boolean iamSvcAccCreationStatus = addSudoPermissionToOwner(token, iamServiceAccount, userDetails, iamSvcAccName);
 			if (iamSvcAccCreationStatus) {
 				sendMailToIAMSvcAccOwner(iamServiceAccount, iamSvcAccName);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
+						.put(LogMessage.MESSAGE, String.format("Successfully onboarded the IAM Service Account[%s]  with owner [%s].", iamServiceAccount.getUserName(),iamServiceAccount.getOwnerEmail()))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 				return ResponseEntity.status(HttpStatus.OK).body(
 						"{\"messages\":[\"Successfully completed onboarding of IAM service account\"]}");
 			}
@@ -938,7 +943,7 @@ public class  IAMServiceAccountsService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 						.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_GROUP_TO_IAMSVCACC_MSG)
-						.put(LogMessage.MESSAGE, "Group configuration Success.")
+						.put(LogMessage.MESSAGE,String.format("Group [%s] is successfully associated to IAM Service Account [%s] with policy [%s].",iamServiceAccountGroup.getGroupname(),iamServiceAccountGroup.getIamSvcAccName(),iamServiceAccountGroup.getAccess()))
 						.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 				return ResponseEntity.status(HttpStatus.OK)
@@ -1302,7 +1307,7 @@ public class  IAMServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 							.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_USER_TO_IAMSVCACC_MSG)
-							.put(LogMessage.MESSAGE, String.format("User [%s] is successfully associated with IAM Service Account - [%s]", iamServiceAccountUser.getUsername(), iamServiceAccountUser.getIamSvcAccName()))
+							.put(LogMessage.MESSAGE, String.format("User [%s] is successfully associated to IAM Service Account [%s] with policy [%s].", iamServiceAccountUser.getUsername(), iamServiceAccountUser.getIamSvcAccName(),iamServiceAccountUser.getAccess()))
 							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 							.build()));
 			return ResponseEntity.status(HttpStatus.OK)
@@ -1564,6 +1569,12 @@ public class  IAMServiceAccountsService {
 		Response response = reqProcessor.process("/iamsvcacct", "{\"path\":\"" + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
 			JsonObject data = populateMetaData(response);
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "get IAmservice Account details").
+					put(LogMessage.MESSAGE, String.format ("IAmservice Account details fetched successfully.")).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
 			return ResponseEntity.status(HttpStatus.OK).body(data.toString());
 		}
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -1837,7 +1848,7 @@ public class  IAMServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_USER_FROM_IAMSVCACC_MSG).
-					put(LogMessage.MESSAGE, "User is successfully Removed from IAM Service Account").
+					put(LogMessage.MESSAGE,String.format("user[%s] is successfully removed from IAM Service Account[%s] with policy [%s]",iamServiceAccountUser.getUsername(),iamServiceAccountUser.getIamSvcAccName(),iamServiceAccountUser.getAccess())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully removed user from the IAM Service Account\"]}");
@@ -2102,7 +2113,7 @@ public class  IAMServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG).
-					put(LogMessage.MESSAGE, "Group configuration Success.").
+					put(LogMessage.MESSAGE, String.format("Group[%s] is successfully removed from IAM Service Account [%s] with policy [%s].", iamServiceAccountGroup.getGroupname(),iamServiceAccountGroup.getIamSvcAccName(),iamServiceAccountGroup.getAccess())).
 					put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -2358,7 +2369,7 @@ public class  IAMServiceAccountsService {
 									.put(LogMessage.USER,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 									.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_APPROLE_TO_IAMSVCACC_MSG)
-									.put(LogMessage.MESSAGE, "Approle successfully associated with Service Account")
+									.put(LogMessage.MESSAGE,String.format("Approle[%s] successfully associated to Service Account [%s] with policy [%s].",iamServiceAccountApprole.getApprolename(),iamServiceAccountApprole.getIamSvcAccName(),iamServiceAccountApprole.getAccess()))
 									.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 									.put(LogMessage.APIURL,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
@@ -2561,7 +2572,7 @@ public class  IAMServiceAccountsService {
 									.put(LogMessage.USER,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 									.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_APPROLE_TO_IAMSVCACC_MSG)
-									.put(LogMessage.MESSAGE, "Approle is successfully removed from IAM Service Account")
+									.put(LogMessage.MESSAGE,String.format("Approle [%s] is successfully removed from IAM Service Account [%s] with policy [%s].",iamServiceAccountApprole.getApprolename(),iamServiceAccountApprole.getIamSvcAccName(),iamServiceAccountApprole.getAccess()))
 									.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 									.put(LogMessage.APIURL,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
@@ -3161,6 +3172,12 @@ public class  IAMServiceAccountsService {
 			// Remove metadata...
 			ResponseEntity<String> metadataResponse = deleteIAMSvcAccount(token, iamSvcAccToOffboard);
 			if(HttpStatus.OK.equals(metadataResponse.getStatusCode())){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_OFFBOARD_CREATION_TITLE).
+						put(LogMessage.MESSAGE, String.format("Successfully offboarded IAM service account [%s]from T-Vault.", iamServiceAccount.getIamSvcAccName())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
 				return ResponseEntity.status(HttpStatus.OK).body(
 						"{\"messages\":[\"Successfully offboarded IAM service account (if existed) from T-Vault\"]}");
 			}else{
@@ -3798,7 +3815,7 @@ public class  IAMServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_AWS_ROLE_MSG).
-							put(LogMessage.MESSAGE, "AWS Role configuration Success.").
+							put(LogMessage.MESSAGE,String.format("AWS Role [%s] successfully associated to IAM Service Account [%s] with policy [%s].",iamServiceAccountAWSRole.getRolename(),iamServiceAccountAWSRole.getIamSvcAccName(),iamServiceAccountAWSRole.getAccess())).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -3949,7 +3966,7 @@ public class  IAMServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_AWS_ROLE_MSG).
-							put(LogMessage.MESSAGE, "AWS Role configuration Success.").
+							put(LogMessage.MESSAGE, String.format("AWS Role [%s] is successfully removed from IAM Service Account [%s] with policy[%s].", iamServiceAccountAWSRole.getRolename(),iamServiceAccountAWSRole.getIamSvcAccName(),iamServiceAccountAWSRole.getAccess())).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));

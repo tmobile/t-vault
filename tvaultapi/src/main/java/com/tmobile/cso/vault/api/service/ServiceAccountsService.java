@@ -402,6 +402,12 @@ public class  ServiceAccountsService {
 						mailTemplateVariables.put("contactLink", supportEmail);
 						emailUtils.sendHtmlEmalFromTemplate(from, to, mailSubject, mailTemplateVariables);
 					}
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "onboardServiceAccount").
+							put(LogMessage.MESSAGE, String.format ("Successfully completed onboarding of AD service account [%s] into TVault for password rotation.",serviceAccount.getName())).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully completed onboarding of AD service account into TVault for password rotation.\"]}");
 				}
 				else {
@@ -1080,7 +1086,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add User to ServiceAccount").
-							put(LogMessage.MESSAGE, "User is successfully associated with Service Account").
+							put(LogMessage.MESSAGE, String.format ("User [%s] is successfully associated with Service Account [%s]",userName,svcAccName)).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully added user to the Service Account\"]}");
@@ -1108,7 +1114,7 @@ public class  ServiceAccountsService {
 							log.error(e);
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-									.put(LogMessage.ACTION, "Add User to SDB")
+									.put(LogMessage.ACTION, "Add User to AD")
 									.put(LogMessage.MESSAGE,
 											String.format("Exception while adding or updating the identity "))
 									.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
@@ -1321,7 +1327,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Remove User from ServiceAccount").
-							put(LogMessage.MESSAGE, "User is successfully Removed from Service Account").
+							put(LogMessage.MESSAGE,String.format("User[%s] is successfully Removed from Service Account [%s]",userName,svcAccName)).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully removed user from the Service Account\"]}");
@@ -1701,6 +1707,12 @@ public class  ServiceAccountsService {
 		OnboardedServiceAccountDetails onbSvcAccDtls = getOnboarderdServiceAccountDetails(token, svcAccName);
 		if (onbSvcAccDtls != null) {
 			String onbSvcAccDtlsJson = JSONUtil.getJSON(onbSvcAccDtls);
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "getOnboarderdServiceAccount").
+					put(LogMessage.MESSAGE, String.format("List of service accounts fetched successfully")).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 			return ResponseEntity.status(HttpStatus.OK).body(onbSvcAccDtlsJson);
 		}
 		else {
@@ -2028,7 +2040,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add Group to Service Account").
-							put(LogMessage.MESSAGE, "Group configuration Success.").
+							put(LogMessage.MESSAGE,  String.format("Group[%s] is successfully associated with Service Account [%s]",groupName,svcAccName)).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -2202,7 +2214,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Remove Group to Service Account").
-							put(LogMessage.MESSAGE, "Group configuration Success.").
+							put(LogMessage.MESSAGE,String.format("Group [%s] is successfully removed from Service Account [%s]",groupName,svcAccName)).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -2378,7 +2390,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add Approle to Service Account").
-							put(LogMessage.MESSAGE, "Approle successfully associated with Service Account").
+							put(LogMessage.MESSAGE,String.format("Approle [%s] successfully associated with Service Account [%s]",approleName,svcAccName)).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -2914,7 +2926,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Remove AppRole from Service Account").
-							put(LogMessage.MESSAGE, "Approle is successfully removed(if existed) from Service Account").
+							put(LogMessage.MESSAGE,  String.format("Approle [%s] is successfully removed(if existed) from Service Account [%s]",approleName,svcAccName)).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -3067,7 +3079,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add AWS Role to Service Account").
-							put(LogMessage.MESSAGE, "AWS Role configuration Success.").
+							put(LogMessage.MESSAGE,String.format("AWS Role [%s] successfully associated with Service Account [%s]",roleName,svcAccName)).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -3220,7 +3232,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Remove AWS Role from Service Account").
-							put(LogMessage.MESSAGE, "AWS Role configuration Success.").
+							put(LogMessage.MESSAGE,String.format("AWS Role[%s] is successfully removed from Service Account[%s]",roleName,svcAccName)).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -3362,8 +3374,8 @@ public class  ServiceAccountsService {
 			if(metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "pdate onboarded Service Account").
-						put(LogMessage.MESSAGE, "Successfully updated onboarded Service Account.").
+						put(LogMessage.ACTION, "update onboarded Service Account").
+						put(LogMessage.MESSAGE,String.format("Successfully updated onboarded Service Account[%s].",serviceAccount.getName())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully updated onboarded Service Account.\"]}");
@@ -3489,6 +3501,12 @@ public class  ServiceAccountsService {
 					removeOldUserPermissions(oldOwner, token, svcAccName, userDetails);
 
 					if (HttpStatus.OK.equals(addOwnerSudoToServiceAccountResponse.getStatusCode())) {
+						log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+								put(LogMessage.ACTION, "transferSvcAccountOwner").
+								put(LogMessage.MESSAGE, String.format("Service account[%s] ownership transferred successfully from [%s] to [%s].",svcAccName,oldOwner,svcOwner)).
+								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+								build()));
 						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Service account ownership transferred successfully from " + oldOwner + " to " + svcOwner + ".\"]}");
 					}
 					else {

@@ -977,10 +977,33 @@ public class  AppRoleService {
 			policies.addAll(currentpolicies);
 		}
 		for(String policy :policies) {
+			String name = null;
 			String[] parts = policy.split("_");
 			String type = parts[1]; 
-			String name = parts[2];
-			
+			if(policy.startsWith("r_cert_") || policy.startsWith("w_cert_") || policy.startsWith("d_cert_") || policy.startsWith("o_cert_")) {
+				 name=policy.substring(7);
+			}
+			if(policy.startsWith("r_externalcerts_") || policy.startsWith("w_externalcerts_") || policy.startsWith("d_externalcerts_") || policy.startsWith("o_externalcerts_")) {
+				name=policy.substring(16);
+			}
+			if(policy.startsWith("r_users_") || policy.startsWith("w_users_") || policy.startsWith("d_users_")) {
+				name=policy.substring(8);
+			}
+			if(policy.startsWith("r_shared_") || policy.startsWith("w_shared_") || policy.startsWith("d_shared_")) {
+				name=policy.substring(9);
+			}
+			if(policy.startsWith("r_apps_") || policy.startsWith("w_apps_") || policy.startsWith("d_apps_")) {
+				name=policy.substring(7);
+			}
+			if(policy.startsWith("r_iamsvcacc_") || policy.startsWith("w_iamsvcacc_") || policy.startsWith("d_iamsvcacc_") || policy.startsWith("o_iamsvcacc_")) {
+				name=policy.substring(12);
+			}
+			if(policy.startsWith("r_svcacct_") || policy.startsWith("w_svcacct_") || policy.startsWith("d_svcacct_") || policy.startsWith("o_svcacct_")) {
+				name=policy.substring(10);
+			}
+			if(policy.startsWith("r_azuresvcacc_") || policy.startsWith("w_azuresvcacc_") || policy.startsWith("d_azuresvcacc_")) {
+				name=policy.substring(14);
+			}
 			//Internal Certificate
 			if(policy.startsWith("r_cert_") || policy.startsWith("w_cert_") || policy.startsWith("d_cert_") || policy.startsWith("o_cert_") ) {
 				String certificatePath = SSLCertificateConstants.SSL_CERT_PATH_VALUE + name;
@@ -1042,11 +1065,7 @@ public class  AppRoleService {
 		}
 			//IAM Service Account
 			if(policy.startsWith("r_iamsvcacc_") || policy.startsWith("w_iamsvcacc_") || policy.startsWith("d_iamsvcacc_") || policy.startsWith("o_iamsvcacc_") ) {
-				String name1 = parts[2]; 
-				String name2 = parts[3]; 
-				String name3 = parts[4];
-				String name4 = parts[5];
-				String iamPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH +name1+ "_"+name2+ "_"+name3+ "_"+name4;
+				String iamPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH +name;
 				Map<String,String> params = new HashMap<>();
 				params.put("type", TVaultConstants.UPDATE_METADATA_PARAM);
 				params.put("name",appRole.getRole_name());
@@ -1065,10 +1084,7 @@ public class  AppRoleService {
 			}
 			//AD Service Account
 			if(policy.startsWith("r_svcacct_") || policy.startsWith("w_svcacct_") || policy.startsWith("d_svcacct_") || policy.startsWith("o_svcacct_") ) {
-				String name1 = parts[2]; 
-				String name2 = parts[3]; 
-				String name3 = parts[4];
-				String serviceAccountPath = TVaultConstants.SVC_ACC_ROLES_PATH + name1+"_"+name2+"_"+name3;
+				String serviceAccountPath = TVaultConstants.SVC_ACC_ROLES_PATH + name;
 				Map<String,String> params = new HashMap<>();
 				params.put("type", TVaultConstants.UPDATE_METADATA_PARAM);
 				params.put("name",appRole.getRole_name());
@@ -1087,10 +1103,7 @@ public class  AppRoleService {
 			}
 			//Azure Service Account
 			if(policy.startsWith("r_azuresvcacc_") || policy.startsWith("w_azuresvcacc_") || policy.startsWith("d_azuresvcacc_") || policy.startsWith("o_azuresvcacc_") ) {
-				String name1 = parts[2]; 
-				String name2 = parts[3]; 
-				String name3 = parts[4];
-				String azureServiceAccountPath = AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + name1+"_"+name2+"_"+name3;
+				String azureServiceAccountPath = AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + name;
 				Map<String,String> params = new HashMap<>();
 				params.put("type", TVaultConstants.UPDATE_METADATA_PARAM);
 				params.put("name",appRole.getRole_name());
