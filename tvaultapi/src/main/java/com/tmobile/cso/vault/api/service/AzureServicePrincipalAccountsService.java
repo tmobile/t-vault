@@ -2128,7 +2128,7 @@ public class AzureServicePrincipalAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, AzureServiceAccountConstants.FETCH_AZURE_DETAILS).
-					put(LogMessage.MESSAGE,  String.format ("Azure Service account [%s] detatils fetched successfully.",azureSvcName)).
+					put(LogMessage.MESSAGE,  String.format ("Azure Service account [%s] details fetched successfully.",azureSvcName)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			JsonObject data = populateMetaData(response);

@@ -1986,7 +1986,15 @@
                 $scope.notificationEmailErrorMessage = '';
                 $scope.isNotificationEmailSelected = false;
             }
-
+            $scope.notifDropdown = function(val){
+                $scope.selectionValue=val;
+                $scope.notificationEmail = { email:""};
+                $scope.isNotificationEmailSelected = false;
+                $scope.notificationEmailErrorMessage = '';
+            }
+            $scope.setDefault = function(value){
+                $scope.selectionValue=value;
+            }
             $scope.addNotificationEmail = function () {
             	event.preventDefault();
             	if($scope.notificationEmails==undefined){
