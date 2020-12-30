@@ -17,6 +17,7 @@
 
 package com.tmobile.cso.vault.api.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.naming.NamingException;
@@ -456,17 +457,34 @@ public class  DirectoryService {
 
 		List<DirectoryUser> allPersons = getAllPersons(andFilter);
 
-		if(CollectionUtils.isEmpty(allPersons)){
-			andFilter = new AndFilter();
-			andFilter.and(new LikeFilter("mail", UserPrincipalName+"*"));
-			andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter = new AndFilter();
+		andFilter.and(new LikeFilter("mail", UserPrincipalName+"*"));
+		andFilter.and(new EqualsFilter("objectClass", "user"));
 
-			allPersons = getAllPersonsFromCorp(andFilter);
+		List<DirectoryUser> allPersonsFromCorp = getAllPersonsFromCorp(andFilter);
+		List<DirectoryUser> filterdList = new ArrayList<>();
+		filterdList.addAll(allPersons);
+
+		if (!CollectionUtils.isEmpty(allPersonsFromCorp)) {
+			for (int i=0;i< allPersonsFromCorp.size();i++) {
+				DirectoryUser corpUser = allPersonsFromCorp.get(i);
+				boolean isDuplicate = false;
+				for (int j=0;j< allPersons.size();j++) {
+					DirectoryUser user = allPersons.get(j);
+					if (corpUser.getUserEmail().equalsIgnoreCase(user.getUserEmail())) {
+						isDuplicate = true;
+						break;
+					}
+				}
+				if (!isDuplicate) {
+					filterdList.add(corpUser);
+				}
+			}
 		}
 
 		DirectoryObjects users = new DirectoryObjects();
 		DirectoryObjectsList usersList = new DirectoryObjectsList();
-		usersList.setValues(allPersons.toArray(new DirectoryUser[allPersons.size()]));
+		usersList.setValues(filterdList.toArray(new DirectoryUser[filterdList.size()]));
 		users.setData(usersList);
 		return ResponseEntity.status(HttpStatus.OK).body(users);
 	}
