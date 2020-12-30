@@ -903,7 +903,7 @@ public class  SelfSupportService {
 		if (!userDetails.isAdmin()) {
 			powerToken = tokenUtils.getSelfServiceToken();
 		}
-		String path = safeTransferRequest.getSafeType() + "/" + safeTransferRequest.getSafeName();
+		String path = safeTransferRequest.getSafeType() + '/' + safeTransferRequest.getSafeName();
 
 		//get current owner NT id
 		Safe safeMetaData = safeUtils.getSafeMetaData(powerToken, safeTransferRequest.getSafeType(), safeTransferRequest.getSafeName());
@@ -993,8 +993,8 @@ public class  SelfSupportService {
 
 
 			// Update metadata with new owner information
-			String _path = "metadata/" + path;
-			Response response = reqProcessor.process("/read", "{\"path\":\"" + _path + "\"}", powerToken);
+			String safeMetadataPath = "metadata/" + path;
+			Response response = reqProcessor.process("/read", "{\"path\":\"" + safeMetadataPath + "\"}", powerToken);
 			Map<String, Object> responseMap = null;
 			if (HttpStatus.OK.equals(response.getHttpstatus())) {
 				responseMap = ControllerUtil.parseJson(response.getResponse());
@@ -1002,7 +1002,7 @@ public class  SelfSupportService {
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error fetching safe metadata\"]}");
 				}
 
-				responseMap.put("path", _path);
+				responseMap.put("path", safeMetadataPath);
 				((Map<String, Object>) responseMap.get("data")).put("ownerid", newOwnerNtid);
 				((Map<String, Object>) responseMap.get("data")).put("owner", newOwnerEmail);
 
@@ -1058,10 +1058,10 @@ public class  SelfSupportService {
 		}
 		String path = safeUser.getPath();
 		if (ControllerUtil.isValidSafePath(path)) {
-			String s_policy = "s_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
-			String r_policy = "r_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
-			String w_policy = "w_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
-			String d_policy = "d_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
+			String sudoPolicy = "s_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
+			String readPolicy = "r_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
+			String writePolicy = "w_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
+			String denyPolicy = "d_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
 
 			Response userResponse = new Response();
 			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
@@ -1101,7 +1101,7 @@ public class  SelfSupportService {
 					log.error(e);
 				}
 				policies.addAll(currentpolicies);
-				policies.remove(s_policy);
+				policies.remove(sudoPolicy);
 
 				String policiesString = StringUtils.join(policies, ",");
 				String currentpoliciesString = StringUtils.join(currentpolicies, ",");
@@ -1118,7 +1118,6 @@ public class  SelfSupportService {
 								oidcEntityResponse.getEntityName());
 						oidcUtil.renewUserToken(userDetails.getClientToken());
 					} catch (Exception e) {
-						log.error(e);
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 								.put(LogMessage.ACTION, "removeSudoUserFromSafe")
@@ -1131,7 +1130,7 @@ public class  SelfSupportService {
 				}
 				if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 					// Updating metadata only when there is no read/write/deny permission exists to current owner
-					if (currentpolicies.contains(r_policy) || currentpolicies.contains(w_policy) || currentpolicies.contains(d_policy)) {
+					if (currentpolicies.contains(readPolicy) || currentpolicies.contains(writePolicy) || currentpolicies.contains(denyPolicy)) {
 						log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 								.put(LogMessage.USER,
 										ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -1142,7 +1141,7 @@ public class  SelfSupportService {
 								.build()));
 						return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");
 					}
-					Map<String, String> params = new HashMap<String, String>();
+					Map<String, String> params = new HashMap<>();
 					params.put("type", "users");
 					params.put("name", userName);
 					params.put("path", path);
