@@ -874,9 +874,7 @@ public class SafesServiceTest {
         when(ControllerUtil.getSafeType(path)).thenReturn("shared");
         when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
         when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(null);
-        
 		ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "ldap");
-        
         ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -928,6 +926,17 @@ public class SafesServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"groups\": {\"mygroup01\": \"write\"},\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+
         ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup, getMockUser(true));
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -957,6 +966,17 @@ public class SafesServiceTest {
         }
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNotFound);
+
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"groups\": {\"mygroup01\": \"write\"},\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 
         ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup, getMockUser(true));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -1151,13 +1171,22 @@ public class SafesServiceTest {
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, true, "");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");
-
-
         when(JSONUtil.getJSON(safeGroup)).thenReturn(jsonstr);
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"mygroup01\"}",token)).thenReturn(responseNotFound);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"groups\": {\"mygroup01\": \"write\"},\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 
         ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup, getMockUser(true));
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
