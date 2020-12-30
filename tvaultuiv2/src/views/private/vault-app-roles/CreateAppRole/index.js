@@ -434,12 +434,12 @@ const CreateAppRole = (props) => {
 
   const getDisabledState = () => {
     return (
-      !roleName ||
-      !maxTokenTtl ||
-      !tokenTtl ||
-      !sectetIdNumUses ||
-      !tokenNumUses ||
-      !secretIdTtl ||
+      roleName === '' ||
+      maxTokenTtl === '' ||
+      tokenTtl === '' ||
+      sectetIdNumUses === '' ||
+      tokenNumUses === '' ||
+      secretIdTtl === '' ||
       appRoleError ||
       numberError
     );
@@ -468,7 +468,7 @@ const CreateAppRole = (props) => {
                 onClick={() => handleClose()}
               />
               <Typography variant="h5">
-                {editApprole ? 'Edit Approle' : 'Create AppRole'}
+                {editApprole ? 'Edit AppRole' : 'Create AppRole'}
               </Typography>
             </HeaderWrapper>
             <IconDescriptionWrapper>
