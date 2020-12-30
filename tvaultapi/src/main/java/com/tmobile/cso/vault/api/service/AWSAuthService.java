@@ -60,6 +60,10 @@ public class  AWSAuthService {
 	private String vaultAuthMethod;
 
 	private static Logger logger = LogManager.getLogger(AWSAuthService.class);
+	
+	private static final String POLICIESSTR = "policies";
+	private static final String ROLEDELETEPATHSTR = "/auth/aws/roles/delete";
+	private static final String ROLESTR = "{\"role\":\"";
 	/**
 	 * To authenticate using aws ec2 pkcs7 document and app role
 	 * @param login
@@ -97,8 +101,7 @@ public class  AWSAuthService {
 	 */
 	public ResponseEntity<String> createRole(String token, AWSLoginRole awsLoginRole, UserDetails userDetails) throws TVaultValidationException{
 		if (!ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)) {
-			//return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
-			throw new TVaultValidationException("Invalid inputs for the given aws login type");
+			throw new TVaultValidationException("Invalid inputs for the given AWS login type");
 		}
 		logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -107,26 +110,11 @@ public class  AWSAuthService {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 		String jsonStr = JSONUtil.getJSON(awsLoginRole);
-		ObjectMapper objMapper = new ObjectMapper();
 		String currentPolicies = "";
 		String latestPolicies = "";
 		String roleName = "" ;
 
-		try {
-			JsonNode root = objMapper.readTree(jsonStr);
-			roleName = root.get("role").asText();
-			if(root.get("policies") != null)
-				latestPolicies = root.get("policies").asText();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "Create AWS role").
-					put(LogMessage.MESSAGE, String.format("Failed to extract role/policies from json string [%s]", jsonStr)).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-					build()));
-		}
-
+		getLatestPolicies(jsonStr);
 		Response response = reqProcessor.process("/auth/aws/roles/create",jsonStr,token);
 
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ // Role created with policies. Need to update SDB metadata too.
@@ -147,7 +135,7 @@ public class  AWSAuthService {
 				}
 			} else {
 				// revert role creation
-				Response deleteResponse = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+awsLoginRole.getRole()+"\"}",token);
+				Response deleteResponse = reqProcessor.process(ROLEDELETEPATHSTR,ROLESTR+awsLoginRole.getRole()+"\"}",token);
 				if (deleteResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS role creation failed.\"]}");
 				}
@@ -159,6 +147,26 @@ public class  AWSAuthService {
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
 	}
+	
+	private void getLatestPolicies(String jsonStr) {
+		ObjectMapper objMapper = new ObjectMapper();
+		String latestPolicies = "";
+		String roleName = "" ;	
+		try {
+			JsonNode root = objMapper.readTree(jsonStr);
+			roleName = root.get("role").asText();
+			if(root.get(POLICIESSTR) != null)
+				latestPolicies = root.get(POLICIESSTR).asText();
+		} catch (IOException e) {
+			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "Create AWS role").
+					put(LogMessage.MESSAGE, String.format("Failed to extract role/policies from json string [%s]", jsonStr)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+		}
+	}
+	
 	/**
 	 * Method to update an aws app role.
 	 * @param token
@@ -179,10 +187,9 @@ public class  AWSAuthService {
 		try {
 			JsonNode root = objMapper.readTree(jsonStr);
 			roleName = root.get("role").asText();
-			if(root.get("policies") != null)
-				latestPolicies = root.get("policies").asText();
+			if(root.get(POLICIESSTR) != null)
+				latestPolicies = root.get(POLICIESSTR).asText();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Update AWS role").
@@ -191,7 +198,7 @@ public class  AWSAuthService {
 					build()));
 		}
 
-		Response awsResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+roleName+"\"}",token);
+		Response awsResponse = reqProcessor.process("/auth/aws/roles",ROLESTR+roleName+"\"}",token);
 		String responseJson="";	
 
 		if(HttpStatus.OK.equals(awsResponse.getHttpstatus())){
@@ -200,10 +207,9 @@ public class  AWSAuthService {
 				Map<String,Object> responseMap; 
 				responseMap = objMapper.readValue(responseJson, new TypeReference<Map<String, Object>>(){});
 				@SuppressWarnings("unchecked")
-				List<String> policies  = (List<String>) responseMap.get("policies");
+				List<String> policies  = (List<String>) responseMap.get(POLICIESSTR);
 				currentPolicies = policies.stream().collect(Collectors.joining(",")).toString();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "Update AWS role").
@@ -216,7 +222,7 @@ public class  AWSAuthService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Update failed . AWS Role does not exist \"]}");
 		}
 
-		Response response = reqProcessor.process("/auth/aws/roles/delete",jsonStr,token);
+		Response response = reqProcessor.process(ROLEDELETEPATHSTR,jsonStr,token);
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 			response = reqProcessor.process("/auth/aws/roles/update",jsonStr,token);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
@@ -242,7 +248,7 @@ public class  AWSAuthService {
 		if (HttpStatus.INTERNAL_SERVER_ERROR.equals(permissionResponse.getHttpstatus()) || HttpStatus.UNAUTHORIZED.equals(permissionResponse.getHttpstatus())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+permissionResponse.getResponse()+"\"]}");
 		}
-		Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);
+		Response response = reqProcessor.process(ROLEDELETEPATHSTR,ROLESTR+role+"\"}",token);
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 			// delete metadata
 			String metaJson = ControllerUtil.populateAWSMetaJson(role, userDetails.getUsername());
@@ -269,7 +275,7 @@ public class  AWSAuthService {
 	 * @return
 	 */
 	public ResponseEntity<String> fetchRole(String token, String role){
-		String jsoninput= "{\"role\":\""+role+"\"}";
+		String jsoninput= ROLESTR+role+"\"}";
 		Response response = reqProcessor.process("/auth/aws/roles",jsoninput,token);
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
@@ -393,7 +399,7 @@ public class  AWSAuthService {
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String>configureRoleMap = new HashMap<>();
 		configureRoleMap.put("role", roleName);
-		configureRoleMap.put("policies", policies);
+		configureRoleMap.put(POLICIESSTR, policies);
 		String awsConfigJson ="";
 		try {
 			awsConfigJson = objMapper.writeValueAsString(configureRoleMap);

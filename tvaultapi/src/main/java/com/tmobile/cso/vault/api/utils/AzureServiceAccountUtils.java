@@ -174,22 +174,8 @@ public class AzureServiceAccountUtils {
             readResponseContent(jsonResponse, apiResponse, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION);
             AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret();
             JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
-            if (!responseJson.isJsonNull()) {
-                if (responseJson.has("servicePrincipalId")) {
-                    azureServiceAccountSecret.setServicePrincipalId(responseJson.get("servicePrincipalId").getAsString());
-                }
-                if (responseJson.has("tenantId")) {
-                    azureServiceAccountSecret.setTenantId(responseJson.get("tenantId").getAsString());
-                }
-                if (responseJson.has("secretKeyId")) {
-                    azureServiceAccountSecret.setSecretKeyId(responseJson.get("secretKeyId").getAsString());
-                }
-                if (responseJson.has("secretText")) {
-                    azureServiceAccountSecret.setSecretText(responseJson.get("secretText").getAsString());
-                }
-                if (responseJson.has("expiryDateEpoch")) {
-                    azureServiceAccountSecret.setExpiryDateEpoch(responseJson.get("expiryDateEpoch").getAsLong());
-                }
+            if (!responseJson.isJsonNull()) {            	
+            	 addValuesToAzureServiceAccountSecret(azureServiceAccountSecret,responseJson);             
             }
             return azureServiceAccountSecret;
         } catch (IOException e) {
@@ -449,5 +435,23 @@ public class AzureServiceAccountUtils {
 		            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		            build()));
 		}
+	}
+	
+	private void  addValuesToAzureServiceAccountSecret(AzureServiceAccountSecret azureServiceAccountSecret, JsonObject responseJson) {
+		   if (responseJson.has("servicePrincipalId")) {
+               azureServiceAccountSecret.setServicePrincipalId(responseJson.get("servicePrincipalId").getAsString());
+           }
+           if (responseJson.has("tenantId")) {
+               azureServiceAccountSecret.setTenantId(responseJson.get("tenantId").getAsString());
+           }
+           if (responseJson.has("secretKeyId")) {
+               azureServiceAccountSecret.setSecretKeyId(responseJson.get("secretKeyId").getAsString());
+           }
+           if (responseJson.has("secretText")) {
+               azureServiceAccountSecret.setSecretText(responseJson.get("secretText").getAsString());
+           }
+           if (responseJson.has("expiryDateEpoch")) {
+               azureServiceAccountSecret.setExpiryDateEpoch(responseJson.get("expiryDateEpoch").getAsLong());
+           }
 	}
 }

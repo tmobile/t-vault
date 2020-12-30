@@ -63,6 +63,7 @@ public class TokenValidator {
 	private String vaultAuthMethod;
 
 	public TokenValidator() {
+		/**Empty constructor*/
 	}
 	/**
 	 * Does the lookup of vault token and gets the details that are looked up
@@ -93,29 +94,14 @@ public class TokenValidator {
 					// For user token, auth path will be in oidc. Get the user name and user email to set in UserDetails.
 					if (TVaultConstants.OIDC_AUTH_PATH.equalsIgnoreCase(authPath) && !StringUtils.isEmpty(displayName) && displayName.contains("oidc-")) {
 						String email = objNode.get("display_name").asText().substring(5);
-						if (!StringUtils.isEmpty(email)) {
-							lookupDetails.setEmail(email);
-						}
+						addEmailtoLookupDetails(email,lookupDetails);					
 						ResponseEntity<DirectoryObjects> directoryObjectsResponseEntity = directoryService.searchByUPN(email);
-						if (directoryObjectsResponseEntity != null && HttpStatus.OK.equals(directoryObjectsResponseEntity.getStatusCode())) {
-							Object[] adUser = directoryObjectsResponseEntity.getBody().getData().getValues();
-							if (adUser.length > 0) {
-								DirectoryUser directoryUser = (DirectoryUser) adUser[0];
-								lookupDetails.setUsername(directoryUser.getUserName().toLowerCase());
-							}
-						}
+						addUsername(email,lookupDetails,directoryObjectsResponseEntity);					
+						
 						// if user details not found in GSM1900 and the email is sprint email.
 						// Validating null string also in lookupDetails.getUsername as initially username is set as ("null") from lookup response
-						if ((StringUtils.isEmpty(lookupDetails.getUsername()) || TVaultConstants.NULL_STRING.equals(lookupDetails.getUsername()))&& email.contains(TVaultConstants.SPRINT_EMIAL_DOMAIN)) {
-							directoryObjectsResponseEntity = directoryService.searchByEmailInCorp(email);
-							if (directoryObjectsResponseEntity != null && HttpStatus.OK.equals(directoryObjectsResponseEntity.getStatusCode())) {
-								Object[] adUser = directoryObjectsResponseEntity.getBody().getData().getValues();
-								if (adUser.length > 0) {
-									DirectoryUser directoryUser = (DirectoryUser) adUser[0];
-									lookupDetails.setUsername(directoryUser.getUserName().toLowerCase());
-								}
-							}
-						}
+						
+						addCorpUser(email,lookupDetails,directoryObjectsResponseEntity);					
 					}
 					else {
 						// For approle tokens, aws tokens etc
@@ -136,5 +122,35 @@ public class TokenValidator {
 					String.format("Can't perform the required operation. Actual Status: [%s], Reason [%s]", response.getHttpstatus(), response.getResponse()));
 		}
 		return lookupDetails;
+	}
+	
+	private void addUsername(String email,VaultTokenLookupDetails lookupDetails,ResponseEntity<DirectoryObjects> directoryObjectsResponseEntity) {
+		
+		if (directoryObjectsResponseEntity != null && HttpStatus.OK.equals(directoryObjectsResponseEntity.getStatusCode())) {
+			Object[] adUser = directoryObjectsResponseEntity.getBody().getData().getValues();
+			if (adUser.length > 0) {
+				DirectoryUser directoryUser = (DirectoryUser) adUser[0];
+				lookupDetails.setUsername(directoryUser.getUserName().toLowerCase());
+			}
+		}
+	}
+	
+	private void addCorpUser(String email,VaultTokenLookupDetails lookupDetails,ResponseEntity<DirectoryObjects> directoryObjectsResponseEntity) {
+		if ((StringUtils.isEmpty(lookupDetails.getUsername()) || TVaultConstants.NULL_STRING.equals(lookupDetails.getUsername()))&& email.contains(TVaultConstants.SPRINT_EMIAL_DOMAIN)) {
+			directoryObjectsResponseEntity = directoryService.searchByEmailInCorp(email);
+			if (directoryObjectsResponseEntity != null && HttpStatus.OK.equals(directoryObjectsResponseEntity.getStatusCode())) {
+				Object[] adUser = directoryObjectsResponseEntity.getBody().getData().getValues();
+				if (adUser.length > 0) {
+					DirectoryUser directoryUser = (DirectoryUser) adUser[0];
+					lookupDetails.setUsername(directoryUser.getUserName().toLowerCase());
+				}
+			}
+		}
+	}
+	
+	private void addEmailtoLookupDetails(String email,VaultTokenLookupDetails lookupDetails) {
+		if (!StringUtils.isEmpty(email)) {
+			lookupDetails.setEmail(email);
+		}
 	}
 }

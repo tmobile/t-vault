@@ -60,6 +60,11 @@ public class  DirectoryService {
 	private String vaultAuthMethod;
 
 	private static Logger log = LogManager.getLogger(DirectoryService.class);
+	
+	private static final String OBJCLASS = "objectClass";
+	private static final String DISPLAYNAME = "displayname";
+	private static final String GIVENNAME = "givenname";
+	private static final String GETNTIDFORUSER = "getNtidForUser";
 
 	@Autowired
 	private LdapTemplate ldapTemplate;
@@ -76,7 +81,7 @@ public class  DirectoryService {
 	public ResponseEntity<DirectoryObjects> searchByUPN(String UserPrincipalName) {
 		AndFilter andFilter = new AndFilter();
 		andFilter.and(new LikeFilter("userPrincipalName", UserPrincipalName+"*"));
-		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new EqualsFilter(OBJCLASS, "user"));
 
 		List<DirectoryUser> allPersons = getAllPersons(andFilter);
 		DirectoryObjects users = new DirectoryObjects();
@@ -94,7 +99,7 @@ public class  DirectoryService {
 	public ResponseEntity<DirectoryObjects> searchByCorpId(String corpId) {
 		AndFilter andFilter = new AndFilter();
 		andFilter.and(new LikeFilter("cn", corpId+"*"));
-		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new EqualsFilter(OBJCLASS, "user"));
 
 		List<DirectoryUser> allPersons = getAllPersons(andFilter);
 		DirectoryObjects users = new DirectoryObjects();
@@ -113,7 +118,7 @@ public class  DirectoryService {
 	public DirectoryUser getUserDetailsByCorpId(String corpId) {
 		AndFilter andFilter = new AndFilter();
 		andFilter.and(new EqualsFilter("cn", corpId));
-		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new EqualsFilter(OBJCLASS, "user"));
 
 		List<DirectoryUser> allPersons = getAllPersons(andFilter);
 		if(CollectionUtils.isEmpty(allPersons)){
@@ -149,11 +154,11 @@ public class  DirectoryService {
 						userId = mail.substring(0, mail.indexOf("@"));
 					}
 					person.setUserId(userId);
-					if (attr.get("displayname") != null) {
-						person.setDisplayName(((String) attr.get("displayname").get()));
+					if (attr.get(DISPLAYNAME) != null) {
+						person.setDisplayName(((String) attr.get(DISPLAYNAME).get()));
 					}
-					if (attr.get("givenname") != null) {
-						person.setGivenName(((String) attr.get("givenname").get()));
+					if (attr.get(GIVENNAME) != null) {
+						person.setGivenName(((String) attr.get(GIVENNAME).get()));
 					}
 
 					if (attr.get("mail") != null) {
@@ -176,7 +181,7 @@ public class  DirectoryService {
 	 */
 	public ResponseEntity<DirectoryObjects> searchByGroupName(String groupName) {
 		AndFilter andFilter = new AndFilter();
-		andFilter.and(new EqualsFilter("objectClass", "group"));
+		andFilter.and(new EqualsFilter(OBJCLASS, "group"));
 		andFilter.and(new LikeFilter("CN", groupName+"*"));
 		List<DirectoryGroup> allGroups = getAllGroups(andFilter);
 		DirectoryObjects groups = new DirectoryObjects();
@@ -206,8 +211,8 @@ public class  DirectoryService {
 				if (attr.get("name") != null) {
 					dirGrp.setGroupName(((String) attr.get("name").get()));
 				}
-				if (attr.get("displayname") != null) {
-					dirGrp.setDisplayName(((String) attr.get("displayname").get()));
+				if (attr.get(DISPLAYNAME) != null) {
+					dirGrp.setDisplayName(((String) attr.get(DISPLAYNAME).get()));
 				}
 				if (attr.get("mail") != null) {
 					dirGrp.setEmail(((String) attr.get("mail").get()));
@@ -224,8 +229,8 @@ public class  DirectoryService {
 	 */
 	public DirectoryObjects searchBydisplayName(String displayName) {
 		AndFilter andFilter = new AndFilter();
-		andFilter.and(new LikeFilter("displayName", displayName+"*"));
-		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new LikeFilter(DISPLAYNAME, displayName+"*"));
+		andFilter.and(new EqualsFilter(OBJCLASS, "user"));
 
 		List<DirectoryUser> allPersons = getAllPersons(andFilter);
 		DirectoryObjects users = new DirectoryObjects();
@@ -238,7 +243,7 @@ public class  DirectoryService {
 	public DirectoryObjects searchByNTId(String ntId) {
 		AndFilter andFilter = new AndFilter();
 		andFilter.and(new LikeFilter("cn", ntId+"*"));
-		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new EqualsFilter(OBJCLASS, "user"));
 
 		List<DirectoryUser> allPersons = getAllPersons(andFilter);
 		DirectoryObjects users = new DirectoryObjects();
@@ -274,7 +279,7 @@ public class  DirectoryService {
 		if (!StringUtils.isEmpty(ntIds)) {
 			OrFilter orFilter = new OrFilter();
 			String[] userNtIds = ntIds.split(",");
-			andFilter.and(new EqualsFilter("objectClass", "user"));
+			andFilter.and(new EqualsFilter(OBJCLASS, "user"));
 			for (String ntId : userNtIds) {
 				orFilter.or(new EqualsFilter("CN", ntId.trim()));
 			}
@@ -297,7 +302,7 @@ public class  DirectoryService {
 	public ResponseEntity<DirectoryObjects> searchByEmailInCorp(String email) {
 		AndFilter andFilter = new AndFilter();
 		andFilter.and(new EqualsFilter("mail", email));
-		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new EqualsFilter(OBJCLASS, "user"));
 
 		List<DirectoryUser> allPersons = getAllPersonsFromCorp(andFilter);
 		DirectoryObjects users = new DirectoryObjects();
@@ -315,7 +320,7 @@ public class  DirectoryService {
 	public DirectoryUser getUserDetailsFromCorp(String userName) {
 		AndFilter andFilter = new AndFilter();
 		andFilter.and(new EqualsFilter("cn", userName));
-		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new EqualsFilter(OBJCLASS, "user"));
 
 		List<DirectoryUser> allPersons = getAllPersonsFromCorp(andFilter);
 		if(CollectionUtils.isEmpty(allPersons)){
@@ -351,11 +356,11 @@ public class  DirectoryService {
 						userId = mail.substring(0, mail.indexOf("@"));
 					}
 					person.setUserId(userId);
-					if (attr.get("displayname") != null) {
-						person.setDisplayName(((String) attr.get("displayname").get()));
+					if (attr.get(DISPLAYNAME) != null) {
+						person.setDisplayName(((String) attr.get(DISPLAYNAME).get()));
 					}
-					if (attr.get("givenname") != null) {
-						person.setGivenName(((String) attr.get("givenname").get()));
+					if (attr.get(GIVENNAME) != null) {
+						person.setGivenName(((String) attr.get(GIVENNAME).get()));
 					}
 
 					if (attr.get("mail") != null) {
@@ -381,7 +386,7 @@ public class  DirectoryService {
 		// Get NT id for given email from GSM
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION, "getNtidForUser").
+				put(LogMessage.ACTION, GETNTIDFORUSER).
 				put(LogMessage.MESSAGE, String.format("Trying to get NT id from GSM for [%s]", email)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
@@ -394,7 +399,7 @@ public class  DirectoryService {
 					ntid = directoryUser.getUserName().toLowerCase();
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, "getNtidForUser").
+							put(LogMessage.ACTION, GETNTIDFORUSER).
 							put(LogMessage.MESSAGE, String.format("Owner id from GSM for [%s] is [%s]", email, ntid)).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -402,7 +407,7 @@ public class  DirectoryService {
 			} catch (NullPointerException e) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, "getNtidForUser").
+						put(LogMessage.ACTION, GETNTIDFORUSER).
 						put(LogMessage.MESSAGE, "Failed to extract NTid from gsm response").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -413,7 +418,7 @@ public class  DirectoryService {
 		if (org.apache.commons.lang3.StringUtils.isEmpty(ntid)) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "getNtidForUser").
+					put(LogMessage.ACTION, GETNTIDFORUSER).
 					put(LogMessage.MESSAGE, String.format("Trying to get NT id from corp AD for [%s]", email)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -426,7 +431,7 @@ public class  DirectoryService {
 						ntid = directoryUser.getUserName().toLowerCase();
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-								put(LogMessage.ACTION, "getNtidForUser").
+								put(LogMessage.ACTION, GETNTIDFORUSER).
 								put(LogMessage.MESSAGE, String.format("Owner id from Corp AD for [%s] is [%s]", email, ntid)).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 								build()));
@@ -453,13 +458,14 @@ public class  DirectoryService {
 
 		AndFilter andFilter = new AndFilter();
 		andFilter.and(new LikeFilter("userPrincipalName", UserPrincipalName+"*"));
-		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new EqualsFilter(OBJCLASS, "user"));
 
 		List<DirectoryUser> allPersons = getAllPersons(andFilter);
 
 		andFilter = new AndFilter();
 		andFilter.and(new LikeFilter("mail", UserPrincipalName+"*"));
-		andFilter.and(new EqualsFilter("objectClass", "user"));
+		andFilter.and(new EqualsFilter(OBJCLASS, "user"));
+
 
 		List<DirectoryUser> allPersonsFromCorp = getAllPersonsFromCorp(andFilter);
 		List<DirectoryUser> filterdList = new ArrayList<>();
