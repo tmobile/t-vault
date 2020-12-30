@@ -1470,6 +1470,7 @@ public class  SafesService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
+
 	/**
 	 * Removes an associated group from LDAP
 	 * @param token
@@ -1479,44 +1480,76 @@ public class  SafesService {
 	 */
 	public ResponseEntity<String> removeGroupFromSafe(String token, SafeGroup safeGroup, UserDetails userDetails) {
 		OIDCGroup oidcGroup = new OIDCGroup();
-		String removingAccess=safeGroup.getAccess();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "Remove Group from SDB").
 				put(LogMessage.MESSAGE, String.format ("Trying to remove Group [%s] from SDB folder [%s]", safeGroup.getGroupname(),safeGroup.getPath())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		String jsonstr = JSONUtil.getJSON(safeGroup);
+		ObjectMapper objMapper = new ObjectMapper();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
 		}	
-		ObjectMapper objMapper = new ObjectMapper();
-		Map<String,String> requestMap = null;
-		try {
-			requestMap = objMapper.readValue(jsonstr, new TypeReference<Map<String,String>>() {});
-		} catch (IOException e) {
-			log.error(e);
-		}
 
-		String groupName = requestMap.get("groupname");
-		String path = requestMap.get("path");
+		String groupName = safeGroup.getGroupname();
+		String path = safeGroup.getPath();
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
-			String folders[] = path.split("[/]+");
+			// check for this group is associated to this safe
+			String safeMetadataPath = METADATA + path;
+			Response metadataReadResponse = reqProcessor.process("/read","{\"path\":\""+safeMetadataPath+"\"}",token);
+			Map<String, Object> responseMap = null;
+			if(HttpStatus.OK.equals(metadataReadResponse.getHttpstatus())) {
+				responseMap = ControllerUtil.parseJson(metadataReadResponse.getResponse());
+				if(responseMap.isEmpty()) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "Delete Group from SDB").
+							put(LogMessage.MESSAGE, String.format ("Error Fetching existing safe info [%s]", path)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Error Fetching existing safe info. please check the path specified\"]}");
+				}
+			}
+			else {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "Delete Group from SDB").
+						put(LogMessage.MESSAGE, String.format ("Error Fetching existing safe info [%s]", path)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Error Fetching existing safe info. please check the path specified\"]}");
+			}
 
-			String r_policy = "r_";
-			String w_policy = "w_";
-			String d_policy = "d_";
+			@SuppressWarnings("unchecked")
+			Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
+			Map<String,Object> groupsData = (Map<String,Object>)metadataMap.get(TVaultConstants.GROUPS);
+
+			if (groupsData == null || !groupsData.containsKey(groupName)) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "Delete Group from SDB").
+						put(LogMessage.MESSAGE, String.format ("Group [%s] is not associated to Safe [%s]", groupName, path)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove group from safe. Group association to safe not found\"]}");
+			}
+
+			String[] folders = path.split("[/]+");
+
+			String readPolicy = "r_";
+			String writePolicy = "w_";
+			String denyPolicy = "d_";
 			if (folders.length > 0) {
 				for (int index = 0; index < folders.length; index++) {
 					if (index == folders.length -1 ) {
-						r_policy += folders[index];
-						w_policy += folders[index];
-						d_policy += folders[index];
+						readPolicy += folders[index];
+						writePolicy += folders[index];
+						denyPolicy += folders[index];
 					}
 					else {
-						r_policy += folders[index]  +"_";
-						w_policy += folders[index] +"_";
-						d_policy += folders[index] +"_";
+						readPolicy += folders[index]  +"_";
+						writePolicy += folders[index] +"_";
+						denyPolicy += folders[index] +"_";
 					}
 				}
 			}
@@ -1553,9 +1586,9 @@ public class  SafesService {
 					log.error(e);
 				}
 				policies.addAll(currentpolicies);
-				policies.remove(r_policy);
-				policies.remove(w_policy);
-				policies.remove(d_policy);
+				policies.remove(readPolicy);
+				policies.remove(writePolicy);
+				policies.remove(denyPolicy);
 				String policiesString = StringUtils.join(policies, ",");
 				String currentpoliciesString = StringUtils.join(currentpolicies, ",");
 				Response ldapConfigresponse = new Response();
@@ -1569,7 +1602,7 @@ public class  SafesService {
 				}
 				if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 						|| ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)) { 
-					Map<String,String> params = new HashMap<String,String>();
+					Map<String,String> params = new HashMap<>();
 					params.put("type", "groups");
 					params.put("name",groupName);
 					params.put("path",path);
@@ -1635,29 +1668,43 @@ public class  SafesService {
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try Again\"]}");
 				}	
 			}else{
-				// Trying to remove the orphan entries if exists
-				Map<String,String> params = new HashMap<String,String>();
-				params.put("type", "users");
-				params.put("name",groupName);
-				params.put("path",path);
-				params.put("access","delete");
-				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, "Remove Group to SDB").
-							put(LogMessage.MESSAGE, String.format ("Group [%s] is successfully removed from Safe [%s]", safeGroup.getGroupname(),safeGroup.getPath())).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-							build()));
-					return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");		
-				}else{
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try again \"]}");
-				}
+				return deleteOrphanGroupEntriesForSafe(token, safeGroup, groupName, path);
 			}
 		}else{
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
+
+	/**
+	 * Method to delete orphan group entries if exists for Safe
+	 * @param token
+	 * @param safeGroup
+	 * @param groupName
+	 * @param path
+	 * @return
+	 */
+	private ResponseEntity<String> deleteOrphanGroupEntriesForSafe(String token, SafeGroup safeGroup, String groupName,
+			String path) {
+		// Trying to remove the orphan entries if exists
+		Map<String,String> params = new HashMap<>();
+		params.put("type", "users");
+		params.put("name",groupName);
+		params.put("path",path);
+		params.put("access","delete");
+		Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+		if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "Remove Group to SDB").
+					put(LogMessage.MESSAGE, String.format ("Group [%s] is successfully removed from Safe [%s]", safeGroup.getGroupname(),safeGroup.getPath())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");
+		}else{
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try again \"]}");
+		}
+	}
+
 	/**
 	 * Adds AWS Configuration to Safe
 	 * @param token
@@ -1850,8 +1897,8 @@ public class  SafesService {
 		if(ControllerUtil.isValidSafePath(path) && ControllerUtil.isValidSafe(path, token)){
 
 			// check of this role is associated to this safe
-			String _path = "metadata/" + path;
-			Response metadataReadResponse = reqProcessor.process("/read","{\"path\":\""+_path+"\"}",token);
+			String safeMetadataPath = METADATA + path;
+			Response metadataReadResponse = reqProcessor.process("/read","{\"path\":\""+safeMetadataPath+"\"}",token);
 			Map<String, Object> responseMap = null;
 			if(HttpStatus.OK.equals(metadataReadResponse.getHttpstatus())) {
 				responseMap = ControllerUtil.parseJson(metadataReadResponse.getResponse());
@@ -1859,7 +1906,7 @@ public class  SafesService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, "Delete AWS Role from SDB").
-							put(LogMessage.MESSAGE, String.format ("Error Fetching existing safe info [%s]", awsRole.getPath())).
+							put(LogMessage.MESSAGE, String.format ("Error Fetching existing safe info [%s]", path)).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
 					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Error Fetching existing safe info. please check the path specified\"]}");
@@ -1869,7 +1916,7 @@ public class  SafesService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, "Delete AWS Role from SDB").
-						put(LogMessage.MESSAGE, String.format ("Error Fetching existing safe info [%s]", awsRole.getPath())).
+						put(LogMessage.MESSAGE, String.format ("Error Fetching existing safe info [%s]", path)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Error Fetching existing safe info. please check the path specified\"]}");
