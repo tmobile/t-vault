@@ -99,7 +99,7 @@ const Secrets = (props) => {
           <LoaderSpinner customStyle={customStyle} />
         )}
         {secretsStatus.status === 'failed' &&
-          !secretsFolder[0]?.children?.length && (
+          !secretsFolder[0]?.children?.length && userHavePermission.type !== 'deny' && (
             <EmptySecretBox>
               <Error description="Sorry we were unable to retrieve those documents." />
             </EmptySecretBox>
@@ -107,7 +107,7 @@ const Secrets = (props) => {
         {secretsStatus.status === 'success' &&
           Object.keys(safeDetail).length > 0 && (
             <>
-              {userHavePermission.permission ? (
+              {(userHavePermission.permission && userHavePermission.type !== 'deny' ) ? (
                 <>
                   {secretsFolder[0]?.children?.length ? (
                     <Tree
@@ -135,7 +135,7 @@ const Secrets = (props) => {
                           bgIconStyle={bgIconStyle}
                           customStyle={noDataStyle}
                         />
-                      ) : userHavePermission?.type === 'read' ? (
+                      ) : (
                         <NoData
                           imageSrc={NoSecretsIcon}
                           description={
@@ -144,17 +144,6 @@ const Secrets = (props) => {
                           bgIconStyle={bgIconStyle}
                           customStyle={noDataStyle}
                         />
-                      ) : (
-                        <AccessDeniedWrap>
-                          <AccessDeniedIcon
-                            src={AccessDeniedLogo}
-                            alt="accessDeniedLogo"
-                          />
-                          <NoPermission>
-                            You <span>do</span>not have access to this{' '}
-                            <span>Safe</span>and cannot view it’s contents
-                          </NoPermission>
-                        </AccessDeniedWrap>
                       )}
                     </EmptySecretBox>
                   ) : (

@@ -555,7 +555,7 @@ const IamServiceAccountDashboard = () => {
                         accountSecretData={accountSecretData}
                         accountSecretError={accountSecretError}
                         disabledPermission={disabledPermission}
-                        isIamSvcAccountActive={isIamSvcAccountActive}
+                        isIamSvcAccountActive={listItemDetails.active}
                         userDetails={userDetails}
                       />
                     }
@@ -582,7 +582,7 @@ const IamServiceAccountDashboard = () => {
                         accountSecretData={accountSecretData}
                         accountSecretError={accountSecretError}
                         disabledPermission={disabledPermission}
-                        isIamSvcAccountActive={isIamSvcAccountActive}
+                        isIamSvcAccountActive={listItemDetails.active}
                         userDetails={userDetails}
                       />
                     }
