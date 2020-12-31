@@ -5653,10 +5653,11 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		}		
 		
 		String certificateUser = metaDataParams.get(SSLCertificateConstants.CERT_OWNER_NTID);
+        String oldEmailId = metaDataParams.get(SSLCertificateConstants.CERT_OWNER_EMAILID);
 		boolean sslMetaDataUpdationStatus;			
 		metaDataParams.put(SSLCertificateConstants.CERT_OWNER_EMAILID, certOwnerEmailId);
 		metaDataParams.put(SSLCertificateConstants.CERT_OWNER_NTID, certOwnerNtId);
-		
+        updateNotificationEmails(metaDataParams,oldEmailId,certOwnerEmailId);
 		certificateRequest.setCertificateName(certName);
 		certificateRequest.setCertType(certType);
 		certificateRequest.setCertOwnerEmailId(certOwnerEmailId);
@@ -5715,6 +5716,19 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 				.body(ERRORS + e.getMessage() + "\"]}");
 	}
 
+    }
+    /**
+     * This method is to update the notification emails list with new owner email id
+     * @param metaDataParams
+     * @param oldEmailId
+     * @param certOwnerEmailId
+     */
+    private void updateNotificationEmails(Map<String, String> metaDataParams,String oldEmailId,String certOwnerEmailId) {
+        String notificationEmails = metaDataParams.get("notificationEmails");
+        if (!StringUtils.isEmpty(notificationEmails) && notificationEmails.toLowerCase().contains(oldEmailId.toLowerCase())) {
+            notificationEmails = notificationEmails.replaceAll("(?i)" + oldEmailId, certOwnerEmailId);
+            metaDataParams.put("notificationEmails", notificationEmails);
+        }
     }
 
 
@@ -8256,6 +8270,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			        sslCertificateMetadataDetails.setCertOwnerEmailId(projectLeadEmail);
 			        sslCertificateMetadataDetails.setCertOwnerNtid(certOwnerNtId);
 			        sslCertificateMetadataDetails.setContainerId(containerId);
+			        sslCertificateMetadataDetails.setOnboardFlag(Boolean.TRUE);
 			        
 			        sslCertificateRequest.setCertOwnerEmailId(projectLeadEmail);
 			        sslCertificateRequest.setCertOwnerNtid(certOwnerNtId);
@@ -9480,6 +9495,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		sslCertificateMetadataDetails.setCertOwnerEmailId(sslCertificateRequest.getCertOwnerEmailId());
 		sslCertificateMetadataDetails.setCertOwnerNtid(certOwnerNtId);
 		sslCertificateMetadataDetails.setContainerId(containerId);
+        sslCertificateMetadataDetails.setOnboardFlag(Boolean.TRUE);
 		sslCertificateRequest.setCertOwnerNtid(certOwnerNtId);
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()

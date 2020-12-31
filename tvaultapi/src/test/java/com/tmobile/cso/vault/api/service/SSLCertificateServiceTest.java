@@ -2113,6 +2113,7 @@ public class SSLCertificateServiceTest {
         ssCertificateMetadataDetails.setCertificateId(111);
         ssCertificateMetadataDetails.setExpiryDate("10-20-2030");
         ssCertificateMetadataDetails.setApplicationOwnerEmailId("abcdef@mail.com");
+        ssCertificateMetadataDetails.setOnboardFlag(Boolean.FALSE);
         assertNotNull(ssCertificateMetadataDetails);
     }
 
@@ -2952,6 +2953,8 @@ public class SSLCertificateServiceTest {
         certDetails.setCertOwnerEmailId("owneremail@test.com");
         certDetails.setExpiryDate("10-20-2030");
         certDetails.setCreateDate("10-20-2030");
+        certDetails.setNotificationEmails("test@abc.com");
+        certDetails.setOnboardFlag(Boolean.FALSE);
         return certDetails;
     }
 
@@ -5057,7 +5060,10 @@ public class SSLCertificateServiceTest {
         CertManagerLogin certManagerLogin = new CertManagerLogin();
         certManagerLogin.setToken_type("token type");
         certManagerLogin.setAccess_token("1234");
-        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"SpectrumClearingTools@T-Mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerNtid\": \"testusername1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\"," +
+        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\"," +
+                "\"applicationOwnerEmailId\":\"SpectrumClearingTools@T-Mobile.com\",\"applicationTag\":\"TVS\"," +
+                "\"notificationEmails\":\"testcert@t-mobile.com\" , " +
+                "\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerNtid\": \"testusername1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\"," +
                 "\"dnsNames\":\"[d1.t-mbobile.com]\",\"certificateId\":59880,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\"," +
                 "\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
 
