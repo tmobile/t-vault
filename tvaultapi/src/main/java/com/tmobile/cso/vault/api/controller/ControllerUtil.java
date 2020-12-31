@@ -346,6 +346,94 @@ public final class ControllerUtil {
 	}
 
 	/**
+	 * Recursively reads the folders/secrets for a given path to get the secret count.
+	 * @param jsonstr
+	 * @param token
+	 * @param responseVO
+	 * @param _path
+	 * @param type
+	 * @return
+	 */
+	public static SafeNode recursiveReadForCount(String jsonstr,String token,  Response responseVO, String _path, String type){
+		SafeNode safeNode = new SafeNode();
+		safeNode.setId(_path);
+		safeNode.setType(type);
+		ObjectMapper objMapper =  new ObjectMapper();
+		String path = getPath(objMapper, jsonstr, responseVO);
+		/* Read the secrets for the given path */
+		Response secresp = reqProcessor.process(READSTR,jsonstr,token);
+		if (HttpStatus.OK.equals(secresp.getHttpstatus())) {
+			responseVO.setResponse(secresp.getResponse());
+			responseVO.setHttpstatus(secresp.getHttpstatus());
+			SafeNode sn = new SafeNode();
+			sn.setId(path);
+			sn.setValue(secresp.getResponse());
+			if (!TVaultConstants.SAFE.equals(safeNode.getType())) {
+				sn.setType(TVaultConstants.SECRET);
+				sn.setParentId(safeNode.getId());
+				safeNode.addChild(sn);
+			}
+			else {
+				safeNode.setValue(secresp.getResponse());
+			}
+		}
+		/* Read the folders for the given path */
+		Response lisresp = reqProcessor.process(safeList,jsonstr,token);
+		if(HttpStatus.NOT_FOUND.equals(lisresp.getHttpstatus())){
+			Response resp = reqProcessor.process(READSTR,jsonstr,token);
+			responseVO.setResponse(resp.getResponse());
+			responseVO.setHttpstatus(resp.getHttpstatus());
+			return safeNode;
+		}else if ( HttpStatus.FORBIDDEN.equals(lisresp.getHttpstatus())){
+			responseVO.setResponse(lisresp.getResponse());
+			responseVO.setHttpstatus(lisresp.getHttpstatus());
+			return safeNode;
+		}else{
+			if (!lisresp.getResponse().contains("errors")) {
+				try {
+					JsonNode folders = objMapper.readTree(lisresp.getResponse()).get("keys");
+					for(JsonNode node : folders){
+						jsonstr = PATHSTR+path+"/"+node.asText()+"\"}";
+						SafeNode sn = new SafeNode();
+						/* Recursively read the folders for the given folder/sub folders */
+						sn = recursiveReadForCount( jsonstr,token,responseVO, path+"/"+node.asText(), TVaultConstants.FOLDER);
+						sn.setId(path+"/"+node.asText());
+						sn.setValue(path+"/"+node.asText());
+						sn.setType(TVaultConstants.FOLDER);
+						sn.setParentId(safeNode.getId());
+						safeNode.addChild(sn);
+					}
+					return safeNode;
+				} catch (IOException e) {
+					log.error(e);
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "recursiveRead").
+							put(LogMessage.MESSAGE, String.format ("recursiveRead failed for [%s]", e.getMessage())).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+					responseVO.setSuccess(false);
+					responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+					responseVO.setResponse(ERROR_STRING+e.getMessage() +"\"]}");
+				}
+			}
+			else {
+				log.error("Unable to recursively read the given path " + jsonstr);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "recursiveRead").
+						put(LogMessage.MESSAGE, String.format ("Unable to recursively read the given path")).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+				responseVO.setSuccess(false);
+				responseVO.setHttpstatus(HttpStatus.INTERNAL_SERVER_ERROR);
+				responseVO.setResponse("{\"errors\":[\"Unable to recursively read the given path :"+jsonstr +"\"]}");
+			}
+		}
+		return safeNode;
+	}
+
+	/**
 	 * Gets the folders and secrets for a given path
 	 * @param jsonstr
 	 * @param token
