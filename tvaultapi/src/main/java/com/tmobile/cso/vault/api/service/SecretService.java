@@ -18,12 +18,11 @@
 package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
-import com.tmobile.cso.vault.api.model.Secret;
-import com.tmobile.cso.vault.api.model.UserDetails;
+import com.tmobile.cso.vault.api.model.*;
+import com.tmobile.cso.vault.api.utils.CommonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,7 +37,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.model.SafeNode;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -53,8 +51,14 @@ public class  SecretService {
 	@Autowired
 	private RequestProcessor reqProcessor;
 
+	@Autowired
+	private CommonUtils commonUtils;
+
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
+
+	@Value("${safe.version.folderPrefix}")
+	private String safeVersionFolderPrefix;
 
 	private static Logger log = LogManager.getLogger(SecretService.class);
 	/**
@@ -325,5 +329,166 @@ public class  SecretService {
 		} catch (JsonProcessingException e) {
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
+	}
+
+	/**
+	 * Get total secret count in T-Vault
+	 * @param token
+	 * @return
+	 */
+	public ResponseEntity<String> getSecretCount(String token) {
+		if (!isAuthorizedToGetSecretCount(token)) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "getSecretCount").
+					put(LogMessage.MESSAGE, "Access Denied: No enough permission to access this API").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access Denied: No enough permission to access this API\"]}");
+		}
+
+		SecretCount secretCount = new SecretCount();
+		String userSafePath = TVaultConstants.USERS;
+		String sharedSafePath = TVaultConstants.SHARED;
+		String appsSafePath = TVaultConstants.APPS;
+
+		Response response = new Response();
+
+		// User safes
+		SafeNode safeNode = new SafeNode();
+		safeNode.setId(userSafePath);
+		safeNode.setType(TVaultConstants.SAFE);
+		log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "getSecretCount").
+				put(LogMessage.MESSAGE, "Trying to get safe nodes in user safes").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		safeNode = ControllerUtil.recursiveReadForCount("{\"path\":\""+userSafePath+"\"}",token,response, userSafePath, TVaultConstants.SAFE);
+		Map<String, Integer> userSecretCount = new HashMap<>();
+		int userSecretTotalCount = 0;
+		for (int i=0;i< safeNode.getChildren().size(); i++) {
+			SafeNode safe = safeNode.getChildren().get(i);
+			int count = getSecretCountInSafe(safe.getChildren(), safe.getId());
+			userSecretCount.put(ControllerUtil.getSafeName(safe.getId()), count>0?count:0);
+			userSecretTotalCount+=(count>0?count:0);
+		}
+		SafeSecretCount userSafeSecretCount = new SafeSecretCount(userSecretTotalCount, userSecretCount);
+		secretCount.setUserSafeSecretCount(userSafeSecretCount);
+
+		// Shared safes
+		SafeNode sharedSafeNode = new SafeNode();
+		sharedSafeNode.setId(sharedSafePath);
+		sharedSafeNode.setType(TVaultConstants.SAFE);
+		log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "getSecretCount").
+				put(LogMessage.MESSAGE, "Trying to get safe nodes in shared safes").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		sharedSafeNode = ControllerUtil.recursiveReadForCount("{\"path\":\""+sharedSafePath+"\"}",token,response, sharedSafePath, TVaultConstants.SAFE);
+		Map<String, Integer> sharedSecretCount = new HashMap<>();
+		int sharedSecretTotalCount = 0;
+		for (int i=0;i< sharedSafeNode.getChildren().size(); i++) {
+			SafeNode safe = sharedSafeNode.getChildren().get(i);
+			int count = getSecretCountInSafe(safe.getChildren(), safe.getId());
+			sharedSecretCount.put(ControllerUtil.getSafeName(safe.getId()), count>0?count:0);
+			sharedSecretTotalCount+=(count>0?count:0);
+		}
+		SafeSecretCount sharedSafeSecretCount = new SafeSecretCount(sharedSecretTotalCount, sharedSecretCount);
+		secretCount.setSharedSafeSecretCount(sharedSafeSecretCount);
+
+		// Application safes
+		SafeNode appsSafeNode = new SafeNode();
+		appsSafeNode.setId(appsSafePath);
+		appsSafeNode.setType(TVaultConstants.SAFE);
+		log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "getSecretCount").
+				put(LogMessage.MESSAGE, "Trying to get safe nodes in application safes").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		appsSafeNode = ControllerUtil.recursiveReadForCount("{\"path\":\""+appsSafePath+"\"}",token,response, appsSafePath, TVaultConstants.SAFE);
+		Map<String, Integer> appsSecretCount = new HashMap<>();
+		int appsSecretTotalCount = 0;
+		for (int i=0;i< appsSafeNode.getChildren().size(); i++) {
+			SafeNode safe = appsSafeNode.getChildren().get(i);
+			int count = getSecretCountInSafe(safe.getChildren(), safe.getId());
+			appsSecretCount.put(ControllerUtil.getSafeName(safe.getId()), count>0?count:0);
+			appsSecretTotalCount+=(count>0?count:0);
+		}
+		SafeSecretCount appsSafeSecretCount = new SafeSecretCount(appsSecretTotalCount, appsSecretCount);
+		secretCount.setAppsSafeSecretCount(appsSafeSecretCount);
+
+		secretCount.setTotalSecrets(userSecretTotalCount + sharedSecretTotalCount + appsSecretTotalCount);
+		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(secretCount));
+	}
+
+	/**
+	 * To get secret count in a safeNode
+	 * @param safeNode
+	 * @param patentId
+	 * @return
+	 */
+	private int getSecretCountInSafe(List<SafeNode> safeNode, String patentId) {
+		int count = 0;
+		for (int i=0;i< safeNode.size(); i++) {
+			SafeNode safe = safeNode.get(i);
+			if (safe.getType().equalsIgnoreCase("secret") && !safe.getParentId().equalsIgnoreCase(patentId) && !safe.getId().contains(safeVersionFolderPrefix)) {
+				try {
+					Secret data = (Secret)JSONUtil.getObj(safe.getValue(), Secret.class);
+					count += data.getDetails().size();
+				} catch (IOException e) {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "getSecretCountInSafe").
+							put(LogMessage.MESSAGE, "Error getting Safe Object").
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
+			}
+			else if (safe.getType().equalsIgnoreCase("folder") && safe.getChildren().size()>0) {
+				count += getSecretCountInSafe(safe.getChildren(), patentId);
+			}
+		}
+		return count;
+	}
+
+	/**
+	 * To check if authorized to get secret count.
+	 * @param token
+	 * @return
+	 */
+	private boolean isAuthorizedToGetSecretCount(String token) {
+		ObjectMapper objectMapper = new ObjectMapper();
+		List<String> currentPolicies = new ArrayList<>();
+		Response response = reqProcessor.process("/auth/tvault/lookup","{}", token);
+		if(HttpStatus.OK.equals(response.getHttpstatus())) {
+			String responseJson = response.getResponse();
+			try {
+				currentPolicies = Arrays.asList(commonUtils.getPoliciesAsArray(objectMapper, responseJson));
+				if (currentPolicies.contains(TVaultConstants.ROOT_POLICY)) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, "isAuthorizedToGetSecretCount")
+							.put(LogMessage.MESSAGE, "The Token has required policies to get total secret count.")
+							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+					return true;
+				}
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, "isAuthorizedToGetSecretCount")
+						.put(LogMessage.MESSAGE,
+								"Failed to parse policies from token")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+			}
+		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "isAuthorizedToGetSecretCount")
+				.put(LogMessage.MESSAGE, "The Token does not have required policies to get total secret count.")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		return false;
 	}
 }

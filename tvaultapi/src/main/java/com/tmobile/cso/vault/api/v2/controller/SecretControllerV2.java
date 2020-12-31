@@ -93,6 +93,17 @@ public class SecretControllerV2 {
 	public ResponseEntity<String> deleteFromVault(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		return secretService.deleteFromVault(token, path);
 	}
+
+	/**
+	 * Get total secret count in T-Vault
+	 * @param token
+	 * @return
+	 */
+	@ApiOperation(value = "${SecretControllerV2.getSecretCount.value}", notes = "${SecretControllerV2.getSecretCount.notes}")
+	@GetMapping(value="/v2/safes/count",produces="application/json")
+	public ResponseEntity<String> getSecretCount(@RequestHeader(value="vault-token") String token){
+		return secretService.getSecretCount(token);
+	}
 }
 
 enum FetchOption {
