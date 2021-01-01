@@ -371,7 +371,19 @@ public class OIDCUtil {
 				if (vaulesArray.size() > 0) {
 					String cloudGroupId = null;
 					String onPremGroupId = null;
-					filterduplicate(vaulesArray,cloudGroupId,onPremGroupId);				
+					for (int i=0;i<vaulesArray.size();i++) {
+						JsonObject adObject = vaulesArray.get(i).getAsJsonObject();
+						// Filter out the duplicate groups by skipping groups created from onprem. Taking group with onPremisesSyncEnabled == null
+						if (adObject.has(SYNCENABLED)) {
+							if (adObject.get(SYNCENABLED).isJsonNull()) {
+								cloudGroupId = adObject.get("id").getAsString();
+								break;
+							}
+							else if (adObject.get(SYNCENABLED).getAsBoolean()) {
+								onPremGroupId = adObject.get("id").getAsString();
+							}
+						}
+					}				
 					groupObjectId = (cloudGroupId!=null)?cloudGroupId:onPremGroupId;
 					if (groupObjectId == null) {
 						JsonObject adObject = vaulesArray.get(0).getAsJsonObject();
@@ -391,21 +403,7 @@ public class OIDCUtil {
 		return null;
 	}
 	
-	private void filterduplicate(JsonArray vaulesArray,String cloudGroupId, String onPremGroupId){
-	for (int i=0;i<vaulesArray.size();i++) {
-		JsonObject adObject = vaulesArray.get(i).getAsJsonObject();
-		// Filter out the duplicate groups by skipping groups created from onprem. Taking group with onPremisesSyncEnabled == null
-		if (adObject.has(SYNCENABLED)) {
-			if (adObject.get(SYNCENABLED).isJsonNull()) {
-				cloudGroupId = adObject.get("id").getAsString();
-				break;
-			}
-			else if (adObject.get(SYNCENABLED).getAsBoolean()) {
-				onPremGroupId = adObject.get("id").getAsString();
-			}
-		}
-	}
-	}
+	
      /*
 	 * Update Identity Group By Name
 	 * @param token
@@ -744,7 +742,7 @@ public class OIDCUtil {
 				JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
 				if (responseJson != null && responseJson.has(VALUESTR)) {
 					JsonArray vaulesArray = responseJson.get(VALUESTR).getAsJsonArray();
-					addToGroup(vaulesArray,allGroups);				
+					allGroups = addToGroup(vaulesArray,allGroups);				
 				}
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -772,7 +770,7 @@ public class OIDCUtil {
 		return allGroups;
 	}
 	
-	private void addToGroup(JsonArray vaulesArray,List<DirectoryGroup> allGroups) {
+	private List<DirectoryGroup> addToGroup(JsonArray vaulesArray,List<DirectoryGroup> allGroups) {
 		if (vaulesArray.size() > 0) {
 			Set<String> groupNamesSet = new HashSet<>();
 			// Adding to set to remove duplicates
@@ -788,6 +786,7 @@ public class OIDCUtil {
 				allGroups.add(directoryGroup);
 			}
 		}
+		return allGroups;
 	}
 
 	/**
