@@ -1215,7 +1215,7 @@ public class AzureServicePrincipalAccountsService {
 					String azureName = String.join("_", policyName);
 					String azureType = Policies[1];
 
-					addAzurePolicy(azurePolicy,azureName,policy,azureType,azureListUsers);				
+					azureListUsers = addAzurePolicy(azurePolicy,azureName,policy,azureType);				
 				}
 			}
 			azureList.put(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH_PREFIX, azureListUsers);
@@ -1223,7 +1223,8 @@ public class AzureServicePrincipalAccountsService {
 		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(azureList));
 	}
 	
-	private void addAzurePolicy(Map<String, String> azurePolicy,String azureName, String policy, String azureType,List<Map<String, String>> azureListUsers) {
+	private List<Map<String, String>> addAzurePolicy(Map<String, String> azurePolicy,String azureName, String policy, String azureType) {
+		List<Map<String, String>> azureListUsers = new ArrayList<>();
 		if (policy.startsWith("r_")) {
 			azurePolicy.put(azureName, "read");
 		} else if (policy.startsWith("w_")) {
@@ -1236,6 +1237,7 @@ public class AzureServicePrincipalAccountsService {
 				azureListUsers.add(azurePolicy);
 			}
 		}
+		return azureListUsers;
 	}
 	
 	/**
@@ -1259,7 +1261,7 @@ public class AzureServicePrincipalAccountsService {
 					 * nature Removing all matching as there might be duplicate
 					 * policies from user and groups
 					 */
-					addPolicy(policyName,matchingPolicies,itemName,filteredList);
+					filteredList = addPolicy(policyName,matchingPolicies,itemName,filteredList);
 					
 				} else {
 					filteredList.add(policyName);
@@ -1269,7 +1271,7 @@ public class AzureServicePrincipalAccountsService {
 		return filteredList.toArray(new String[0]);
 	}
 	
-	private void addPolicy(String policyName, List<String> matchingPolicies, String itemName,List<String> filteredList) {
+	private List<String> addPolicy(String policyName, List<String> matchingPolicies, String itemName,List<String> filteredList) {
 		if (policyName.startsWith("d_") || (policyName.startsWith("w_")
 				&& !matchingPolicies.stream().anyMatch(p -> p.equals("d" + itemName)))) {
 			filteredList.removeAll(matchingPolicies);
@@ -1292,6 +1294,7 @@ public class AzureServicePrincipalAccountsService {
 			filteredList.removeAll(matchingPolicies);
 			filteredList.add("r" + itemName);
 		}
+		return filteredList;
 	}
 	
 	/**
@@ -1402,11 +1405,21 @@ public class AzureServicePrincipalAccountsService {
 			AzureServiceAccountNode azureServiceAccountNode = mapper.readValue(response.getBody(),
 					AzureServiceAccountNode.class);
 			if (azureServiceAccountNode.getFolders() != null) {
-				boolean isSecretFound = isSecretFound(azureServiceAccountNode,token,azureSvcName,secretKey);
-			if(!isSecretFound) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ERRORSTR
-						+ JSONUtil.getJSON(SECRETNOTFOUND + secretKey + "") + "}");
-			}
+				for (String folderName : azureServiceAccountNode.getFolders()) {
+					ResponseEntity<String> responseEntity = getAzureServiceAccountSecretKey(token, azureSvcName,
+							folderName);
+					if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
+						AzureServiceAccountSecret azureServiceAccountSecret = mapper.readValue(responseEntity.getBody(),
+								AzureServiceAccountSecret.class);
+						if (secretKey.equals(azureServiceAccountSecret.getSecretKeyId())) {
+							secret = azureServiceAccountSecret.getSecretText();
+							break;
+						}
+					} else {
+						return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"error\":"
+								+ JSONUtil.getJSON("No secret found for the secretKey :" + secretKey + "") + "}");
+					}
+				}
 				if (StringUtils.isEmpty(secret)) {
 					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ERRORSTR
 							+ JSONUtil.getJSON(SECRETNOTFOUND + secretKey + "") + "}");
@@ -1426,29 +1439,7 @@ public class AzureServicePrincipalAccountsService {
 		}
 	}
 	
-	private boolean isSecretFound(AzureServiceAccountNode azureServiceAccountNode, String token,String azureSvcName, String secretKey) throws JsonParseException, JsonMappingException, IOException {
-		boolean isSecretFound = true;
-		ObjectMapper mapper = new ObjectMapper();
-		String secret = "";
-		for (String folderName : azureServiceAccountNode.getFolders()) {
-			ResponseEntity<String> responseEntity = getAzureServiceAccountSecretKey(token, azureSvcName,
-					folderName);
-			if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-				AzureServiceAccountSecret azureServiceAccountSecret = mapper.readValue(responseEntity.getBody(),
-						AzureServiceAccountSecret.class);
-				if (secretKey.equals(azureServiceAccountSecret.getSecretKeyId())) {
-					secret = azureServiceAccountSecret.getSecretText();
-					break;
-				}
-			} else {
-				isSecretFound = true;
-				
-			}
-		}
 		
-		return isSecretFound;
-	}
-	
 	/**
 	 * Method to offboard  service account.
 	 * @param token
