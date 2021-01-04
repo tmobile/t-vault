@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable no-nested-ternary */
 import React from 'react';
 import styled, { css } from 'styled-components';
@@ -17,6 +18,8 @@ const UserList = styled.div`
     border-bottom: 1px solid #323649;
   }
 `;
+
+const Wrap = styled.div``;
 
 const EachUserWrap = styled.div`
   display: flex;
@@ -75,33 +78,40 @@ const UserPermissionsList = (props) => {
   return (
     <UserList>
       {Object.entries(list).map(([key, value]) => (
-        <EachUserWrap
-          key={key}
-          inActitveStyles={
-            state[0]?.username?.toLowerCase() === key?.toLowerCase() &&
-            isIamAzureSvcAccount
-              ? 'pointer-events:none;opacity:0.5'
-              : ''
-          }
-        >
-          <IconDetailsWrap>
-            <Icon src={userIcon} alt="user" />
-            <Details>
-              <TitleTwo extraCss={styles}>{getUsersDisplayName(key)}</TitleTwo>
-              <TitleFour extraCss={permissionStyles}>
-                {isSvcAccount && value === 'write'
-                  ? 'reset'
-                  : isIamAzureSvcAccount && value === 'write'
-                  ? 'rotate'
-                  : value}
-              </TitleFour>
-            </Details>
-          </IconDetailsWrap>
-          <EditDeletePopper
-            onEditClicked={() => onEditClick(getUsersDisplayName(key), value)}
-            onDeleteClicked={() => onDeleteClick(key, value)}
-          />
-        </EachUserWrap>
+        <Wrap key={key}>
+          {value?.toLowerCase() !== 'sudo' && (
+            <EachUserWrap
+              inActitveStyles={
+                state[0]?.username?.toLowerCase() === key?.toLowerCase() &&
+                isIamAzureSvcAccount
+                  ? 'pointer-events:none;opacity:0.5'
+                  : ''
+              }
+            >
+              <IconDetailsWrap>
+                <Icon src={userIcon} alt="user" />
+                <Details>
+                  <TitleTwo extraCss={styles}>
+                    {getUsersDisplayName(key)}
+                  </TitleTwo>
+                  <TitleFour extraCss={permissionStyles}>
+                    {isSvcAccount && value === 'write'
+                      ? 'reset'
+                      : isIamAzureSvcAccount && value === 'write'
+                      ? 'rotate'
+                      : value}
+                  </TitleFour>
+                </Details>
+              </IconDetailsWrap>
+              <EditDeletePopper
+                onEditClicked={() =>
+                  onEditClick(getUsersDisplayName(key), value)
+                }
+                onDeleteClicked={() => onDeleteClick(key, value)}
+              />
+            </EachUserWrap>
+          )}
+        </Wrap>
       ))}
     </UserList>
   );

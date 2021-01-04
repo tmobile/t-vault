@@ -126,16 +126,16 @@ const LabelWrap = styled.div`
   }
 `;
 
-const formatDate = (expiryDate = '') =>{
+const formatDate = (expiryDate = '') => {
+  const expirationArr = new Date(expiryDate).toDateString().split(' ');
+  if (expirationArr.length > 3) {
+    expirationArr.splice(3, 0, ',');
+    const expiryFormattedDate = expirationArr.splice(1).join(' ');
 
-  const expirationArr = new Date(expiryDate).toDateString().split(" ");  
-  if(expirationArr.length>3){
-    expirationArr.splice(3,0, ',');
-    const expiryFormattedDate = expirationArr.splice(1).join(" ");
-  
     return expiryFormattedDate;
-  }    
-}
+  }
+  return null;
+};
 
 const AzureSecrets = (props) => {
   const { azureDetail, azureSecretData, secretResponse, refresh } = props;
@@ -151,10 +151,6 @@ const AzureSecrets = (props) => {
     response: false,
   });
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-
-  const {expiryDate} =secretsData || {};
-
- 
 
   /**
    * @function onViewSecretDetails
@@ -334,7 +330,7 @@ const AzureSecrets = (props) => {
                 <Secret type="password" viewSecret={showSecret}>
                   {secretsData.secretText}
                 </Secret>
-                <span class="expirationDate">
+                <span className="expirationDate">
                   <div>Expires: </div>
                   {formatDate(secretsData.expiryDate)}
                 </span>

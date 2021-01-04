@@ -3,13 +3,14 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
+import VisibilityIcon from '@material-ui/icons/Visibility';
+import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import ComponentError from '../../../../../../errorBoundaries/ComponentError/component-error';
 import {
   IconLock,
   IconDeleteActive,
   IconEdit,
 } from '../../../../../../assets/SvgIcons';
-import IconRefreshCC from '../../../../../../assets/refresh-ccw.svg';
 import {
   TitleThree,
   BackgroundColor,
@@ -164,7 +165,7 @@ const File = (props) => {
               }}
             >
               <PopperItem onClick={() => toggleSecretValue(!viewSecretValue)}>
-                <img alt="refersh-ic" src={IconRefreshCC} />
+                {viewSecretValue ? <VisibilityOffIcon /> : <VisibilityIcon />}
                 <span>{viewSecretValue ? 'Hide secret' : 'View Secret'}</span>
               </PopperItem>
               {secretArray?.length > 0 &&
