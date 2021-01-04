@@ -265,8 +265,8 @@ const IamServiceAccountSecrets = (props) => {
 
     apiService
       .activateIamServiceAccount(
-        accountMetaData?.response?.userName,
-        accountMetaData?.response?.awsAccountId
+        accountDetail?.name,
+        accountDetail?.iamAccountId,  
       )
       .then(async (res) => {
         if (res?.data) {
