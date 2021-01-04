@@ -88,6 +88,7 @@ const Secrets = (props) => {
     <ComponentError>
       <SecretsContainer>
         {userHavePermission.permission &&
+          userHavePermission.type !== 'sudo' &&
           Object.keys(safeDetail).length > 0 && (
             <CountSpan color="#5e627c">
               {`${
@@ -107,7 +108,8 @@ const Secrets = (props) => {
         {secretsStatus.status === 'success' &&
           Object.keys(safeDetail).length > 0 && (
             <>
-              {userHavePermission.permission ? (
+              {userHavePermission.permission &&
+              userHavePermission.type !== 'sudo' ? (
                 <>
                   {secretsFolder[0]?.children?.length ? (
                     <Tree

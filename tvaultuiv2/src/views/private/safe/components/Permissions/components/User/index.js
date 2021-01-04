@@ -191,9 +191,10 @@ const User = (props) => {
             access={editAccess}
           />
         )}
-        {response.status === 'success' && safeData?.response?.users && (
+        {response.status === 'success' && (
           <>
             {userDetails?.length > 0 &&
+              safeData?.response?.users &&
               Object.keys(safeData.response.users).length > 0 && (
                 <UserPermissionsList
                   list={safeData.response.users}
@@ -202,7 +203,10 @@ const User = (props) => {
                   userDetails={userDetails}
                 />
               )}
-            {(!safeData.response.users || userDetails?.length === 0) && (
+            {(!safeData.response.users ||
+              userDetails?.length === 0 ||
+              (Object.keys(safeData?.response?.users)?.length === 1 &&
+                Object.values(safeData?.response?.users)[0] === 'sudo')) && (
               <NoDataWrapper>
                 <NoData
                   imageSrc={noPermissionsIcon}

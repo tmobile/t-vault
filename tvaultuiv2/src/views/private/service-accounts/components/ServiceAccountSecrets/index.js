@@ -235,7 +235,7 @@ const ServiceAccountSecrets = (props) => {
           }
           confirmButton={
             <ButtonComponent
-              label="Confirm"
+              label="Reset"
               color="secondary"
               onClick={() => onResetConfirmedClicked()}
               width={isMobileScreen ? '100%' : '45%'}

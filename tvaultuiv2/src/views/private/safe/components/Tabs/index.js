@@ -181,6 +181,7 @@ const SelectionTabs = (props) => {
       permission: false,
       type: '',
     });
+    setUserDetails([]);
     return apiService
       .getSafeDetails(`${safeDetail.path}`)
       .then(async (res) => {
