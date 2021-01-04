@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
 import { Backdrop } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
-import { css } from 'styled-components';
+import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
@@ -17,7 +17,6 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import ViewIamSvcAccountDetails from './components/ViewIamSvcAccount';
 import apiService from '../../apiService';
-import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 
 const { small } = mediaBreakpoints;
 
@@ -26,8 +25,13 @@ const loaderStyle = css`
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  color: red;
   z-index: 1;
+`;
+
+const LoaderWrap = styled.div`
+  padding: 10rem 20rem;
+  background-color: #2a2e3e;
+  outline: none;
 `;
 
 const useStyles = makeStyles((theme) => ({
@@ -184,8 +188,8 @@ const ViewIamServiceAccount = (props) => {
         <ConfirmationModal
           open={openModal?.status === 'open'}
           handleClose={() => handleCloseConfirmationModal()}
-          title={openModal.message}
-          description={openModal?.description}
+          title={openModal.message || ''}
+          description={openModal?.description || ''}
           cancelButton={
             <ButtonComponent
               label="Cancel"
@@ -225,7 +229,9 @@ const ViewIamServiceAccount = (props) => {
             >
               <Fade in={open}>
                 {!iamServiceAccountDetails || status?.status === 'loading' ? (
-                  <LoaderSpinner customStyle={loaderStyle} />
+                  <LoaderWrap>
+                    <LoaderSpinner customStyle={loaderStyle} />
+                  </LoaderWrap>
                 ) : (
                   <ViewIamSvcAccountDetails
                     iamSvcAccountData={iamServiceAccountDetails}
@@ -238,7 +244,13 @@ const ViewIamServiceAccount = (props) => {
               </Fade>
             </Modal>
           ) : status?.status === 'loading' ? (
-            <BackdropLoader />
+            <ConfirmationModal
+              open
+              handleClose={() => {}}
+              title=""
+              description=""
+              confirmButton={<LoaderSpinner customStyle={loaderStyle} />}
+            />
           ) : (
             <></>
           )}
@@ -267,9 +279,13 @@ const ViewIamServiceAccount = (props) => {
 ViewIamServiceAccount.propTypes = {
   refresh: PropTypes.func.isRequired,
   setViewDetails: PropTypes.func.isRequired,
-  iamServiceAccountDetails: PropTypes.objectOf(PropTypes.any).isRequired,
+  iamServiceAccountDetails: PropTypes.objectOf(PropTypes.any),
   getSecrets: PropTypes.func.isRequired,
   getSvcAccDetails: PropTypes.func.isRequired,
+};
+
+ViewIamServiceAccount.defaultProps = {
+  iamServiceAccountDetails: {},
 };
 
 export default ViewIamServiceAccount;

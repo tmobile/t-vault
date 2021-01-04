@@ -152,7 +152,7 @@ const SelectionTabs = (props) => {
   };
 
   const getSecretDetails = useCallback(() => {
-    if(safeDetail.access === 'deny'){
+    if (safeDetail.access === 'deny') {
       setResponse({ status: 'success' });
       setSecretsFolder([]);
       return;
@@ -181,6 +181,7 @@ const SelectionTabs = (props) => {
 
   const fetchPermission = useCallback(() => {
     setPermissionResponseType(0);
+    setUserDetails([]);
     setSafePermissionData({});
     setUserHavePermission({
       permission: false,
@@ -190,10 +191,8 @@ const SelectionTabs = (props) => {
       .getSafeDetails(`${safeDetail.path}`)
       .then(async (res) => {
         let obj = {};
-        setPermissionResponseType(1);
         if (res && res.data?.data) {
           obj = res.data.data;
-          setSafePermissionData({ response: obj, error: '' });
           if (res.data.data.users) {
             const eachUsersDetails = await getEachUsersDetails(
               res.data.data.users
@@ -214,6 +213,8 @@ const SelectionTabs = (props) => {
               return null;
             });
           }
+          setSafePermissionData({ response: obj, error: '' });
+          setPermissionResponseType(1);
         }
       })
       .catch((err) => {
@@ -236,6 +237,7 @@ const SelectionTabs = (props) => {
       }
       fetchData();
     } else {
+      setSafePermissionData({});
       getSecretDetails();
       setUserHavePermission({
         permission: true,

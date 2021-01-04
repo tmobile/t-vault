@@ -174,6 +174,9 @@ const AzureSelectionTabs = (props) => {
     if (Object.keys(azureDetail).length > 0) {
       if (azureDetail.isManagable) {
         getAzureServiceAllDetails();
+      } else {
+        setHasPermission(false);
+        setValue(0);
       }
       getAzureDataSecrets();
     }

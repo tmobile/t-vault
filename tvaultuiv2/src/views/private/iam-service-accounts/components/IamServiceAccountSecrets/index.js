@@ -154,17 +154,17 @@ const IamServiceAccountSecrets = (props) => {
   const onViewSecretsCliked = () => {
     setShowSecret(!showSecret);
   };
-  
-  const formatDate = (expiryDate = '') =>{
 
-    const expirationArr = new Date(expiryDate).toDateString().split(" ");  
-    if(expirationArr.length>3){
-      expirationArr.splice(3,0, ',');
-      const expiryFormattedDate = expirationArr.splice(1).join(" ");
-    
+  const formatDate = (expiryDate = '') => {
+    const expirationArr = new Date(expiryDate).toDateString().split(' ');
+    if (expirationArr.length > 3) {
+      expirationArr.splice(3, 0, ',');
+      const expiryFormattedDate = expirationArr.splice(1).join(' ');
+
       return expiryFormattedDate;
-    }    
-  }
+    }
+    return null;
+  };
 
   /**
    * @function onCopyClicked
@@ -266,7 +266,7 @@ const IamServiceAccountSecrets = (props) => {
     apiService
       .activateIamServiceAccount(
         accountDetail?.name,
-        accountDetail?.iamAccountId,  
+        accountDetail?.iamAccountId
       )
       .then(async (res) => {
         if (res?.data) {
@@ -334,8 +334,8 @@ const IamServiceAccountSecrets = (props) => {
         <ConfirmationModal
           open={openConfirmationModal?.status === 'open'}
           handleClose={handleClose}
-          title={openConfirmationModal?.title}
-          description={openConfirmationModal?.description}
+          title={openConfirmationModal?.title || ''}
+          description={openConfirmationModal?.description || ''}
           cancelButton={
             <ButtonComponent
               label="Cancel"
@@ -378,7 +378,7 @@ const IamServiceAccountSecrets = (props) => {
                     <Secret type="password" viewSecret={showSecret}>
                       {secretsData.accessKeySecret}
                     </Secret>
-                    <span class="expirationDate">
+                    <span className="expirationDate">
                       <div>Expires: </div>
                       {formatDate(secretsData.expiryDate)}
                     </span>
@@ -473,14 +473,14 @@ const IamServiceAccountSecrets = (props) => {
             </NoPermission>
           </AccessDeniedWrap>
         )}
-        {
-          accountDetail?.permission === "deny" && (
-            <AccessDeniedWrap>
-              <AccessDeniedIcon src={AccessDeniedLogo} alt="accessDeniedLogo" />
-              <NoPermission>
-                Access Denied: No permission to read or rotate secret for the given IAM service account
-              </NoPermission>
-            </AccessDeniedWrap>
+        {accountDetail?.permission === 'deny' && (
+          <AccessDeniedWrap>
+            <AccessDeniedIcon src={AccessDeniedLogo} alt="accessDeniedLogo" />
+            <NoPermission>
+              Access Denied: No permission to read or rotate secret for the
+              given IAM service account
+            </NoPermission>
+          </AccessDeniedWrap>
         )}
         {responseType === 1 && (
           <SnackbarComponent
