@@ -426,7 +426,7 @@ const IamServiceAccountDashboard = () => {
           listIconStyles={listIconStyles}
         />
         <BorderLine />
-        {account.name && !isMobileScreen && state.isAdmin ? (
+        {account.name && !isMobileScreen && account.permission === 'write' ? (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <ViewIcon
               onClick={(e) =>
@@ -438,7 +438,7 @@ const IamServiceAccountDashboard = () => {
             </ViewIcon>
           </PopperWrap>
         ) : null}
-        {isMobileScreen && account.name && state.isAdmin && (
+        {isMobileScreen && account.name && account.permission === 'write' && (
           <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
             {' '}
             <ViewIcon
