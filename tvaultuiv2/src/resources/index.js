@@ -68,7 +68,7 @@ const Resources = {
   azureGuide3:
     '<strong>Granting Permissions:</strong>When an AAD service principal is activated in T-Vault, the service principal owner can grant specific permissions to other users and groups allowing others to read and/or rotate the secrets for the AAD service principal as well through T-Vault.',
   azureActivateConfirmation:
-    'During the activation, <strong>the password of the Azure service principal will be rotated</strong> to ensure Azure and T-Vault are in sync. If you want to continue with activation now please click the "ACTIVATE" button below and make sure to update any services depending on the service principal with its new password.',
+    'During the activation, the password of the Azure service principal will be rotated to ensure Azure and T-Vault are in sync. If you want to continue with activation now please click the "ACTIVATE" button below and make sure to update any services depending on the service principal with its new password.',
 };
 
 export default { Resources };
