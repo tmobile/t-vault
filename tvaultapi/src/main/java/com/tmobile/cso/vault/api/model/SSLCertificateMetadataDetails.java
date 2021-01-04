@@ -27,9 +27,15 @@ public class SSLCertificateMetadataDetails implements Serializable {
     private List<String> dnsNames;
     private int actionId;
     private String notificationEmails;
+    private boolean onboardFlag;
     
+    public boolean isOnboardFlag() {
+        return onboardFlag;
+    }
     
-	
+    public void setOnboardFlag(boolean onboardFlag) {
+        this.onboardFlag = onboardFlag;
+    }
 	public String getNotificationEmails() {
 		return notificationEmails;
 	}
