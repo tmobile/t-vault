@@ -152,6 +152,11 @@ const SelectionTabs = (props) => {
   };
 
   const getSecretDetails = useCallback(() => {
+    if (safeDetail.access === 'deny') {
+      setResponse({ status: 'success' });
+      setSecretsFolder([]);
+      return;
+    }
     if (safeDetail?.path) {
       setSecretsFolder([]);
       if (!safeDetail.manage) {
@@ -181,6 +186,7 @@ const SelectionTabs = (props) => {
       permission: false,
       type: '',
     });
+    setUserDetails([]);
     return apiService
       .getSafeDetails(`${safeDetail.path}`)
       .then(async (res) => {
