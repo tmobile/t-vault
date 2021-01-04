@@ -168,7 +168,7 @@ AccountSelectionTabs.propTypes = {
   refresh: PropTypes.func.isRequired,
   fetchPermission: PropTypes.func.isRequired,
   getSecrets: PropTypes.func.isRequired,
-  isIamSvcAccountActive: PropTypes.bool.isRequired,
+  isIamSvcAccountActive: PropTypes.bool,
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   accountSecretData: PropTypes.objectOf(PropTypes.any),
   accountSecretError: PropTypes.string.isRequired,
@@ -179,6 +179,7 @@ AccountSelectionTabs.propTypes = {
 AccountSelectionTabs.defaultProps = {
   accountDetail: {},
   accountSecretData: {},
+  isIamSvcAccountActive: false,
 };
 
 export default AccountSelectionTabs;

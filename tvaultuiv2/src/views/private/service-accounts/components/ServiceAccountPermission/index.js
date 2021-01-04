@@ -224,7 +224,7 @@ ServiceAccountPermission.propTypes = {
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   refresh: PropTypes.func.isRequired,
   hasSvcAccountAcitve: PropTypes.bool,
-  parentStatus: PropTypes.string.isRequired,
+  parentStatus: PropTypes.string,
   fetchPermission: PropTypes.func,
   userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
@@ -233,6 +233,7 @@ ServiceAccountPermission.defaultProps = {
   accountDetail: {},
   hasSvcAccountAcitve: false,
   fetchPermission: () => {},
+  parentStatus: '',
 };
 
 export default ServiceAccountPermission;

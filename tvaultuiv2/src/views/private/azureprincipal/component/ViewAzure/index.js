@@ -18,7 +18,7 @@ import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import apiService from '../../apiService';
 import { GlobalModalWrapper } from '../../../../../styles/GlobalStyles';
 import Strings from '../../../../../resources';
-import ServiceAccountHelp from '../../../service-accounts/components/ServiceAccountHelp';
+import CollapsibleDropdown from '../../../../../components/CollapsibleDropdown';
 
 const { small } = mediaBreakpoints;
 
@@ -301,7 +301,7 @@ const ViewAzure = (props) => {
                       </Description>
                     </CertDesc>
                   </IconDescriptionWrapper>
-                  <ServiceAccountHelp
+                  <CollapsibleDropdown
                     titleMore="View More"
                     titleLess="View Less"
                     collapseStyles="background:none"
@@ -314,14 +314,12 @@ const ViewAzure = (props) => {
                         </Span>
                         {ReactHtmlParser(Strings.Resources.azureGuide1)}
                       </InfoLine>
-
                       <InfoLine>
                         <Span>
                           <strong>Step 2:</strong>
                         </Span>
                         {ReactHtmlParser(Strings.Resources.azureGuide2)}
                       </InfoLine>
-
                       <InfoLine>
                         <Span>
                           <strong>Step 3:</strong>
@@ -329,7 +327,7 @@ const ViewAzure = (props) => {
                         {ReactHtmlParser(Strings.Resources.azureGuide3)}
                       </InfoLine>
                     </CollapsibleContainer>
-                  </ServiceAccountHelp>
+                  </CollapsibleDropdown>
                 </>
                 <>
                   <EachDetail>
