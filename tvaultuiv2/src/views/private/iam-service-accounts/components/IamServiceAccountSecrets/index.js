@@ -334,8 +334,8 @@ const IamServiceAccountSecrets = (props) => {
         <ConfirmationModal
           open={openConfirmationModal?.status === 'open'}
           handleClose={handleClose}
-          title={openConfirmationModal?.title}
-          description={openConfirmationModal?.description}
+          title={openConfirmationModal?.title || ''}
+          description={openConfirmationModal?.description || ''}
           cancelButton={
             <ButtonComponent
               label="Cancel"
