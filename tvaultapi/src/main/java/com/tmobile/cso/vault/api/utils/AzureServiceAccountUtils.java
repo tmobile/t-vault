@@ -175,7 +175,7 @@ public class AzureServiceAccountUtils {
             AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret();
             JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
             if (!responseJson.isJsonNull()) {            	
-            	 addValuesToAzureServiceAccountSecret(azureServiceAccountSecret,responseJson);             
+            	azureServiceAccountSecret = addValuesToAzureServiceAccountSecret(azureServiceAccountSecret,responseJson);             
             }
             return azureServiceAccountSecret;
         } catch (IOException e) {
@@ -437,7 +437,7 @@ public class AzureServiceAccountUtils {
 		}
 	}
 	
-	private void  addValuesToAzureServiceAccountSecret(AzureServiceAccountSecret azureServiceAccountSecret, JsonObject responseJson) {
+	private AzureServiceAccountSecret addValuesToAzureServiceAccountSecret(AzureServiceAccountSecret azureServiceAccountSecret, JsonObject responseJson) {
 		   if (responseJson.has("servicePrincipalId")) {
                azureServiceAccountSecret.setServicePrincipalId(responseJson.get("servicePrincipalId").getAsString());
            }
@@ -453,5 +453,6 @@ public class AzureServiceAccountUtils {
            if (responseJson.has("expiryDateEpoch")) {
                azureServiceAccountSecret.setExpiryDateEpoch(responseJson.get("expiryDateEpoch").getAsLong());
            }
+           return azureServiceAccountSecret;
 	}
 }

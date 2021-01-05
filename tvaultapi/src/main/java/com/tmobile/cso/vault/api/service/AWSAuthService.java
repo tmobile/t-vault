@@ -113,8 +113,22 @@ public class  AWSAuthService {
 		String currentPolicies = "";
 		String latestPolicies = "";
 		String roleName = "" ;
+		ObjectMapper objMapper = new ObjectMapper();
 
-		getLatestPolicies(jsonStr);
+		try {
+			JsonNode root = objMapper.readTree(jsonStr);
+			roleName = root.get("role").asText();
+			if(root.get("policies") != null)
+				latestPolicies = root.get("policies").asText();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "Create AWS role").
+					put(LogMessage.MESSAGE, String.format("Failed to extract role/policies from json string [%s]", jsonStr)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+		}
 		Response response = reqProcessor.process("/auth/aws/roles/create",jsonStr,token);
 
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){ // Role created with policies. Need to update SDB metadata too.
@@ -148,24 +162,6 @@ public class  AWSAuthService {
 		}
 	}
 	
-	private void getLatestPolicies(String jsonStr) {
-		ObjectMapper objMapper = new ObjectMapper();
-		String latestPolicies = "";
-		String roleName = "" ;	
-		try {
-			JsonNode root = objMapper.readTree(jsonStr);
-			roleName = root.get("role").asText();
-			if(root.get(POLICIESSTR) != null)
-				latestPolicies = root.get(POLICIESSTR).asText();
-		} catch (IOException e) {
-			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "Create AWS role").
-					put(LogMessage.MESSAGE, String.format("Failed to extract role/policies from json string [%s]", jsonStr)).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-					build()));
-		}
-	}
 	
 	/**
 	 * Method to update an aws app role.

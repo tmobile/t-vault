@@ -259,7 +259,7 @@ public class IAMServiceAccountUtils {
             IAMServiceAccountSecret iamServiceAccountSecret = new IAMServiceAccountSecret();
             JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
             
-            addValuesToIamServiceAccountSecret(responseJson,iamServiceAccountSecret,iamServiceAccountRotateRequest);     
+            iamServiceAccountSecret = addValuesToIamServiceAccountSecret(responseJson,iamServiceAccountSecret,iamServiceAccountRotateRequest);     
             return iamServiceAccountSecret;
         } catch (Exception e) {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -468,7 +468,7 @@ public class IAMServiceAccountUtils {
 	            List<IAMSecretsMetadata> currentSecretData = objectMapper.convertValue((List<IAMSecretsMetadata>) metadataMap.get(typeSecret), new TypeReference<List<IAMSecretsMetadata>>() { });
 	            if(null != currentSecretData) {
 	                List<IAMSecretsMetadata> newSecretData = new ArrayList<>();
-	                addMetadataToSecretData(currentSecretData,accessKeyId,newSecretData,iamServiceAccountSecret);
+	                newSecretData = addMetadataToSecretData(currentSecretData,accessKeyId,newSecretData,iamServiceAccountSecret);
 	               
 
 	                metadataMap.put(typeSecret, newSecretData);
@@ -546,7 +546,7 @@ public class IAMServiceAccountUtils {
         return currentpolicies;
     }
     
-   private void addValuesToIamServiceAccountSecret(JsonObject responseJson,IAMServiceAccountSecret iamServiceAccountSecret,IAMServiceAccountRotateRequest iamServiceAccountRotateRequest) {
+   private IAMServiceAccountSecret addValuesToIamServiceAccountSecret(JsonObject responseJson,IAMServiceAccountSecret iamServiceAccountSecret,IAMServiceAccountRotateRequest iamServiceAccountRotateRequest) {
        if (!responseJson.isJsonNull()) {
            if (responseJson.has("accessKeyId")) {
                iamServiceAccountSecret.setAccessKeyId(responseJson.get("accessKeyId").getAsString());
@@ -562,9 +562,10 @@ public class IAMServiceAccountUtils {
            }
            iamServiceAccountSecret.setAwsAccountId(iamServiceAccountRotateRequest.getAccountId());
        }
+       return iamServiceAccountSecret;
     }
    
-  private void addMetadataToSecretData(List<IAMSecretsMetadata> currentSecretData,String accessKeyId,List<IAMSecretsMetadata> newSecretData,IAMServiceAccountSecret iamServiceAccountSecret) {
+  private List<IAMSecretsMetadata> addMetadataToSecretData(List<IAMSecretsMetadata> currentSecretData,String accessKeyId,List<IAMSecretsMetadata> newSecretData,IAMServiceAccountSecret iamServiceAccountSecret) {
 	  for (int i=0;i<currentSecretData.size();i++) {
           IAMSecretsMetadata iamSecretsMetadata = currentSecretData.get(i);
           if (accessKeyId.equals(iamSecretsMetadata.getAccessKeyId())) {
@@ -573,5 +574,6 @@ public class IAMServiceAccountUtils {
           }
           newSecretData.add(iamSecretsMetadata);
       }
+	  return newSecretData;
   }
 }
