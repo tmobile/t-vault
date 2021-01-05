@@ -40,8 +40,7 @@ import SnackbarComponent from '../../../../components/Snackbar';
 import ConfirmationModal from '../../../../components/ConfirmationModal';
 import BackdropLoader from '../../../../components/Loaders/BackdropLoader';
 import svcHeaderBgimg from '../../../../assets/icon-service-account.svg';
-// eslint-disable-next-line import/named
-import { formatSecondsToTime } from '../../../../services/helper-function';
+import Strings from '../../../../resources';
 
 const useStyles = makeStyles((theme) => ({
   select: {
@@ -248,7 +247,10 @@ const OnBoardForm = (props) => {
     false
   );
   const [status, setStatus] = useState({});
-
+  const [
+    onboardUpdateConfirmationMsg,
+    setOnboardUpdateConfirmationMsg,
+  ] = useState('');
   const [postOnBoardModal, setPostOnBoardModal] = useState(false);
   const [isAutoExpand, setIsAutoExpand] = useState(false);
   const [serviceAccountsList, setServiceAccountsList] = useState([]);
@@ -423,9 +425,13 @@ const OnBoardForm = (props) => {
       appName: selectedApplication.appName,
       appTag: selectedApplication.appTag,
       autoRotate: isSwitchOn,
-      max_ttl: serviceAccountDetails?.maxPwdAge,
+      ...(serviceAccountDetails?.maxPwdAge && {
+        max_ttl: serviceAccountDetails?.maxPwdAge,
+      }),
       name: inputServiceName,
-      ttl: inputExpiryTime || serviceAccountDetails?.maxPwdAge,
+      ...((inputExpiryTime || serviceAccountDetails?.maxPwdAge) && {
+        ttl: inputExpiryTime || serviceAccountDetails?.maxPwdAge,
+      }),
     };
     apiService
       .onBoardServiceAccount(payload)
@@ -460,9 +466,13 @@ const OnBoardForm = (props) => {
       appName: selectedApplication.appName,
       appTag: selectedApplication.appTag,
       autoRotate: isSwitchOn,
-      max_ttl: serviceAccountDetails?.maxPwdAge,
+      ...(serviceAccountDetails?.maxPwdAge && {
+        max_ttl: serviceAccountDetails?.maxPwdAge,
+      }),
       name: inputServiceName,
-      ttl: inputExpiryTime || serviceAccountDetails?.maxPwdAge,
+      ...((inputExpiryTime || serviceAccountDetails?.maxPwdAge) && {
+        ttl: inputExpiryTime || serviceAccountDetails?.maxPwdAge,
+      }),
     };
     apiService
       .updateServiceAccount(payload)
@@ -564,6 +574,23 @@ const OnBoardForm = (props) => {
   const handleSaveClick = (e) => {
     e.preventDefault();
     setOnBoardConfirmationModal(true);
+    if (!isSwitchOn) {
+      if (history?.location?.pathname.includes('/edit-service-accounts')) {
+        setOnboardUpdateConfirmationMsg(
+          Strings.Resources.svcNotEnableUpdateMsg
+        );
+      } else {
+        setOnboardUpdateConfirmationMsg(
+          Strings.Resources.svcNotEnableOnboardMsg
+        );
+      }
+    } else if (!inputExpiryTime) {
+      setOnboardUpdateConfirmationMsg(Strings.Resources.svcPwdEnableNoValueMsg);
+    } else {
+      setOnboardUpdateConfirmationMsg(
+        `The password for this service account will expire in ${inputExpiryTime} ${Strings.Resources.svcPwdEnableWithValueMsg}`
+      );
+    }
   };
   const handleConfirmationModalClose = () => {
     setOnBoardConfirmationModal(false);
@@ -650,11 +677,7 @@ const OnBoardForm = (props) => {
           description={
             isActivateSvc
               ? "During the activation, the password of the service account will be reset to ensure Active Directory and T-Vault are in sync. If you want to continue with activation now please click the 'ACTIVATE' button below and make sure to update any services depending on the service account with its new password."
-              : `The password for this service account will expire in ${
-                  formatSecondsToTime(
-                    inputExpiryTime || serviceAccountDetails?.maxPwdAge
-                  ) || '365 days'
-                } and will not be enabled for auto rotation by T-Vault. You need to makes sure the passwod for this service account is getting roated appropriately.`
+              : onboardUpdateConfirmationMsg
           }
           cancelButton={
             <ButtonComponent
@@ -695,10 +718,10 @@ const OnBoardForm = (props) => {
           title={
             // eslint-disable-next-line no-nested-ternary
             svcPasswordDetails
-              ? 'Activation Successfull'
+              ? 'Activation Successful'
               : history?.location?.pathname.includes('/edit-service-accounts')
-              ? 'Update Successfull'
-              : 'Onboarding Successfull'
+              ? 'Update Successful'
+              : 'Onboarding Successful'
           }
           description={
             // eslint-disable-next-line no-nested-ternary
@@ -759,7 +782,7 @@ const OnBoardForm = (props) => {
                   {history?.location?.pathname.includes(
                     '/edit-service-accounts'
                   )
-                    ? 'Edit Create Safe'
+                    ? 'Edit Service Account'
                     : 'Onboard Service Account'}
                 </Typography>
               </HeaderWrapper>
@@ -840,6 +863,9 @@ const OnBoardForm = (props) => {
                     onSelected={(e, val) => onServiceAccountSelected(e, val)}
                     onChange={(e) => onServiceAccountNameChange(e)}
                     placeholder="Search for service account"
+                    disabled={history?.location?.pathname.includes(
+                      '/edit-service-accounts'
+                    )}
                   />
                   {isServiceFetching && (
                     <LoaderSpinner
@@ -1054,7 +1080,7 @@ const OnBoardForm = (props) => {
           <SnackbarComponent
             open
             onClose={() => onToastClose()}
-            message={status.message || 'Request Successfull'}
+            message={status.message || 'Request Successful'}
           />
         )}
       </div>

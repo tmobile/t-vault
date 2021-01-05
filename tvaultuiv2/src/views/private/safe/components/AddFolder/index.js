@@ -86,11 +86,15 @@ const AddFolder = (props) => {
     });
     if (isFolderExist) {
       setErrorMessage(
-        "Folder already exist's, You can't store secrets in folders having same name "
+        "Folder already exists, You can't store secrets in folders having same name "
       );
       setError(true);
     }
-    setError(value.length < 3 || !value.match(/^[a-zA-Z0-9_]*$/g));
+    if (value.length < 3 || !value.match(/^[a-zA-Z0-9_]*$/g)) {
+      setError(true);
+    } else {
+      setError(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -120,7 +124,7 @@ const AddFolder = (props) => {
             fullWidth
             error={error}
             helperText={
-              errorMessage && errorMessage.includes("Folder already exist's")
+              errorMessage && errorMessage.includes('Folder already exist')
                 ? errorMessage
                 : 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.'
             }
@@ -140,7 +144,7 @@ const AddFolder = (props) => {
               label="Save"
               color="secondary"
               buttonType="containedSecondary"
-              disabled={!inputValue || errorMessage}
+              disabled={!inputValue || error}
               onClick={() =>
                 handleSaveClick({
                   value: inputValue.toLowerCase(),

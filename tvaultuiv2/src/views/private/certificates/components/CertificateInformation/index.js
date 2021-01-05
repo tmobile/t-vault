@@ -33,14 +33,12 @@ const Label = styled.p`
 
 const Value = styled.p`
   font-size: 1.6rem;
-  text-transform: capitalize;
+  text-transform: ${(props) => props.capitalize || ''};
 `;
 
 const DnsName = styled.p`
-  border-bottom: 1px solid #5e627c;
   padding: 0.5rem 0;
   font-size: 1.6rem;
-  text-transform: capitalize;
 `;
 
 const customStyle = css`
@@ -93,24 +91,28 @@ const CertificateInformation = (props) => {
         {response.status === 'loading' && <Loader customStyle={customStyle} />}
         {response.status === 'success' && (
           <DetailsWrap>
-            <EachDetail>
-              <Label>Container:</Label>
-              <Value>{certificateMetaData.containerName || 'N/A'}</Value>
-            </EachDetail>
+            {certificateMetaData?.containerName && (
+              <EachDetail>
+                <Label>Container:</Label>
+                <Value>{certificateMetaData.containerName || 'N/A'}</Value>
+              </EachDetail>
+            )}
             <EachDetail>
               <Label>Owner Email:</Label>
               <Value>{certificateMetaData.certOwnerEmailId || 'N/A'}</Value>
             </EachDetail>
             <EachDetail>
               <Label>Certificate Type:</Label>
-              <Value>{certificateMetaData.certType || 'N/A'}</Value>
+              <Value capitalize="capitalize">
+                {certificateMetaData.certType || 'N/A'}
+              </Value>
             </EachDetail>
             <EachDetail>
               <Label>Certificate Name:</Label>
               <Value>{certificateMetaData.certificateName || 'N/A'}</Value>
             </EachDetail>
             <EachDetail>
-              <Label>Aplication Name:</Label>
+              <Label>Application Name:</Label>
               <Value>{certificateMetaData.applicationTag || 'N/A'}</Value>
             </EachDetail>
             <EachDetail>

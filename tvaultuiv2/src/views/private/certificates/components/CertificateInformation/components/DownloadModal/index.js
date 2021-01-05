@@ -137,7 +137,7 @@ const useStyles = makeStyles((theme) => ({
 const DownloadModal = (props) => {
   const {
     onCloseDownloadModal,
-    isPrivateKey,
+    typeOfDownload,
     openDownloadModal,
     onPemDerFormatClicked,
     certificateMetaData,
@@ -157,6 +157,13 @@ const DownloadModal = (props) => {
     { name: 'PEM-OPENSSL', value: 'pkcs12pem' },
   ]);
 
+  const onCloseModal = () => {
+    setIssuerChain(true);
+    setFormatType('DER-P12');
+    setPassword('');
+    onCloseDownloadModal();
+  };
+
   const onPriDownload = () => {
     let type = '';
     const obj = selectItem.find((item) => item.name === formatType);
@@ -175,6 +182,7 @@ const DownloadModal = (props) => {
       type = 'p12';
     }
     onPrivateDownloadClicked(payload, type);
+    onCloseModal();
   };
 
   return (
@@ -184,7 +192,7 @@ const DownloadModal = (props) => {
         aria-describedby="transition-modal-description"
         className={classes.modal}
         open={openDownloadModal}
-        onClose={() => onCloseDownloadModal()}
+        onClose={() => onCloseModal()}
         closeAfterTransition
         BackdropComponent={Backdrop}
         BackdropProps={{
@@ -194,7 +202,7 @@ const DownloadModal = (props) => {
         <Fade in={openDownloadModal}>
           <ModalWrapper>
             <Header>Download Certificate</Header>
-            {isPrivateKey && (
+            {typeOfDownload === 'private' && (
               <PrivateKeyWrap>
                 <Description>
                   Download certificate with private key.
@@ -239,7 +247,7 @@ const DownloadModal = (props) => {
                     <ButtonComponent
                       label="Cancel"
                       color="primary"
-                      onClick={() => onCloseDownloadModal()}
+                      onClick={() => onCloseModal()}
                       width={isMobileScreen ? '100%' : ''}
                     />
                   </CancelButton>
@@ -253,7 +261,7 @@ const DownloadModal = (props) => {
                 </CancelSaveWrapper>
               </PrivateKeyWrap>
             )}
-            {!isPrivateKey && (
+            {typeOfDownload === 'pem-der' && (
               <>
                 <Description>
                   Download certificate in PEM or DER format.
@@ -278,7 +286,7 @@ const DownloadModal = (props) => {
                   <ButtonComponent
                     label="Cancel"
                     color="primary"
-                    onClick={() => onCloseDownloadModal()}
+                    onClick={() => onCloseModal()}
                     width={isMobileScreen ? '100%' : ''}
                   />
                 </NonPrivateCancel>
@@ -293,7 +301,7 @@ const DownloadModal = (props) => {
 
 DownloadModal.propTypes = {
   onCloseDownloadModal: PropTypes.func.isRequired,
-  isPrivateKey: PropTypes.bool.isRequired,
+  typeOfDownload: PropTypes.string.isRequired,
   openDownloadModal: PropTypes.bool.isRequired,
   onPemDerFormatClicked: PropTypes.func.isRequired,
   onPrivateDownloadClicked: PropTypes.func.isRequired,

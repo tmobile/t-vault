@@ -74,9 +74,8 @@ const HeaderCenter = styled.div`
 
 const NavLink = styled(Link)`
   text-decoration: none;
-  margin: 0 0.5rem;
-  padding: 2.5rem 2rem;
-
+  padding: 2.5rem 1rem;
+  font-size: 1.3rem;
   font-weight: bold;
   background: ${(props) =>
     props.active === 'true' ? props.theme.gradients.nav : 'none'};
@@ -102,7 +101,8 @@ const EachLink = styled.a`
   font-size: 1.4rem;
   display: flex;
   align-items: center;
-  text-decoration: ${(props) => props.decoration};
+  font-weight: bold;
+  text-decoration: underline;
   svg {
     margin-right: 0.5rem;
   }
@@ -122,10 +122,26 @@ const Header = (props) => {
   const [isLogin, setIsLogin] = useState(false);
   const [currentTab, setCurrentTab] = useState('Safes');
   const { location } = props;
+  const [navItems, setNavItems] = useState([]);
   const [userName, setUserName] = useState('User');
   const [state, setState] = useState({
     left: false,
   });
+
+  const generalNavItems = [
+    { label: 'Safes', path: 'safes' },
+    { label: 'Vault AppRoles', path: 'vault-app-roles' },
+    { label: 'Service Accounts', path: 'service-accounts' },
+    { label: 'Certificates', path: 'certificates' },
+    { label: 'IAM Service Accounts', path: 'iam-service-accounts' },
+    { label: 'Azure Principal', path: 'azure-principal' },
+  ];
+
+  const userPassNavItems = [
+    { label: 'Safes', path: 'safes' },
+    { label: 'Vault AppRoles', path: 'vault-app-roles' },
+    { label: 'Service Accounts', path: 'service-accounts' },
+  ];
 
   const toggleDrawer = (anchor, open) => (event) => {
     if (
@@ -137,29 +153,29 @@ const Header = (props) => {
     }
     setState({ ...state, [anchor]: open });
   };
-  const navItems = [
-    { label: 'Safes', path: 'safes' },
-    { label: 'Vault AppRoles', path: 'vault-app-roles' },
-    { label: 'Service Accounts', path: 'service-accounts' },
-    { label: 'Certificates', path: 'certificates' },
-    { label: 'IAM Service Accounts', path: 'iam-service-accounts' },
-  ];
+
+  useEffect(() => {
+    if (configData.AUTH_TYPE === 'userpass') {
+      setNavItems([...userPassNavItems]);
+    } else {
+      setNavItems([...generalNavItems]);
+    }
+    // eslint-disable-next-line
+  }, []);
 
   const hideSideMenu = (anchor, open) => {
     setState({ ...state, [anchor]: open });
   };
 
   const checkToken = () => {
-    const loggedIn = localStorage.getItem('token');
-    if (loggedIn) {
-      setIsLogin(true);
-      const name = localStorage.getItem('displayName');
-      if (name) {
-        const str = name?.split(',');
-        setUserName(`${str[1]} ${str[0]}` || 'User');
-      }
-    } else {
+    if (window.location.pathname === '/') {
       setIsLogin(false);
+    } else {
+      setIsLogin(true);
+    }
+    const name = localStorage.getItem('username');
+    if (name !== null) {
+      setUserName(`${name}` || 'User');
     }
   };
 
@@ -240,7 +256,10 @@ const Header = (props) => {
             ) : (
               <ProfileIconWrap>
                 <EachLink
-                  href={configData.DOCS_LINK}
+                  href={`${configUrl.baseUrl.replace(
+                    '/vault/v2',
+                    ''
+                  )}/vault/swagger-ui.html`}
                   target="_blank"
                   rel="noopener noreferrer"
                   decoration="none"

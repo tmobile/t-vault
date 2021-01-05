@@ -27,7 +27,6 @@ const SecretsList = styled.div`
   margin-top: 0.5rem;
   justify-content: space-between;
   align-items: center;
-  background-color: ${BackgroundColor.listBg};
   padding: 1.2rem 0 0;
   height: calc(100% - 3.8rem);
   overflow: auto;
@@ -178,6 +177,7 @@ const AppRoleSecrets = (props) => {
     setCheckedSecretIds([...tempChecks]);
     setCheckBoxClicked(true);
   };
+
   return (
     <ComponentError>
       <>
@@ -292,7 +292,7 @@ const AppRoleSecrets = (props) => {
 };
 
 AppRoleSecrets.propTypes = {
-  secretIds: PropTypes.arrayOf(PropTypes.array).isRequired,
+  secretIds: PropTypes.arrayOf(PropTypes.any).isRequired,
   deleteSecretIds: PropTypes.func,
 };
 

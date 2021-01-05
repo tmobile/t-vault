@@ -124,12 +124,14 @@ const AddAppRole = (props) => {
     access,
     isSvcAccount,
     isCertificate,
+    isIamAzureSvcAccount,
   } = props;
   const [radioValue, setRadioValue] = useState('read');
   const [selectedValue, setSelectedValue] = useState('');
   const [disabledSave, setDisabledSave] = useState(true);
   const [menu, setMenu] = useState([]);
   const isMobileScreen = useMediaQuery(small);
+  const [radioArray, setRadioArray] = useState([]);
   const [loader, setLoader] = useState(false);
 
   useEffect(() => {
@@ -171,6 +173,18 @@ const AddAppRole = (props) => {
     }
   }, [selectedValue, radioValue, menu, access, editClicked]);
 
+  useEffect(() => {
+    if (isIamAzureSvcAccount) {
+      setRadioArray(['read', 'rotate', 'deny']);
+    } else if (isCertificate) {
+      setRadioArray(['read', 'deny']);
+    } else if (isSvcAccount) {
+      setRadioArray(['read', 'reset', 'deny']);
+    } else {
+      setRadioArray(['read', 'write', 'deny']);
+    }
+  }, [isIamAzureSvcAccount, isSvcAccount, isCertificate]);
+
   return (
     <ComponentError>
       <PermissionWrapper>
@@ -191,6 +205,7 @@ const AddAppRole = (props) => {
             menu={menu}
             value={selectedValue}
             classes={classes}
+            disabled={editClicked}
             readOnly={menu.length === 0 || editClicked}
             handleChange={(e) => setSelectedValue(e.target.value)}
             filledText="Select role name"
@@ -201,13 +216,7 @@ const AddAppRole = (props) => {
         )}
         <RadioButtonWrapper>
           <RadioButtonComponent
-            menu={
-              isSvcAccount
-                ? ['read', 'reset', 'deny']
-                : isCertificate
-                ? ['read', 'deny']
-                : ['read', 'write', 'deny']
-            }
+            menu={radioArray}
             handleChange={(e) => setRadioValue(e.target.value)}
             value={radioValue}
           />
@@ -242,6 +251,7 @@ AddAppRole.propTypes = {
   access: PropTypes.string,
   isSvcAccount: PropTypes.bool,
   isCertificate: PropTypes.bool,
+  isIamAzureSvcAccount: PropTypes.bool,
 };
 
 AddAppRole.defaultProps = {
@@ -250,6 +260,7 @@ AddAppRole.defaultProps = {
   editClicked: false,
   isSvcAccount: false,
   isCertificate: false,
+  isIamAzureSvcAccount: false,
 };
 
 export default AddAppRole;

@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
@@ -28,7 +29,6 @@ import CertificateItemDetail from '../CertificateItemDetail';
 import apiService from '../../apiService';
 import EditCertificate from '../EditCertificate';
 import TransferCertificate from '../TransferCertificateOwner';
-import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import CreateCertificates from '../../CreateCertificates';
 import LeftColumn from './components/LeftColumn';
 import { useStateValue } from '../../../../../contexts/globalState';
@@ -38,6 +38,10 @@ import {
   ListContent,
 } from '../../../../../styles/GlobalStyles/listingStyle';
 import configData from '../../../../../config/config';
+import CertificateRelease from '../CertificateRelease';
+import SnackbarComponent from '../../../../../components/Snackbar';
+import OnboardCertificates from '../OnboardCertificate';
+import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -159,17 +163,21 @@ const CertificatesDashboard = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [allCertList, setAllCertList] = useState([]);
   const [certificateClicked, setCertificateClicked] = useState(false);
-  const [ListItemDetails, setListItemDetails] = useState({});
+  const [listItemDetails, setListItemDetails] = useState({});
   const [certificateData, setCertificateData] = useState({});
   const [openTransferModal, setOpenTransferModal] = useState(false);
+  const [openReleaseModal, setOpenReleaseModal] = useState(false);
+  const [responseType, setResponseType] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
+  const [openOnboardModal, setOpenOnboardModal] = useState(false);
   const [openDeleteConfirmation, setOpenDeleteConfirmation] = useState(false);
   const [deleteResponse, setDeleteResponse] = useState(false);
-  const [deleteError, setDeleteError] = useState(false);
   const [deleteConfirmClicked, setDeleteConfirmClicked] = useState(false);
   const [deleteModalDetail, setDeleteModalDetail] = useState({
     title: '',
     description: '',
   });
+  const [deleteError, setDeleteError] = useState(false);
   const classes = useStyles();
   const history = useHistory();
   const location = useLocation();
@@ -194,30 +202,39 @@ const CertificatesDashboard = () => {
     }
   };
 
+  const clearData = () => {
+    setInputSearchValue('');
+    setCertificateType('All Certificates');
+    setResponse({ status: 'loading' });
+    setAllCertList([]);
+    setCertificateList([]);
+  };
+
   /**
    * @function fetchData
    * @description function call all certificates api.
    */
   const fetchAdminData = useCallback(async () => {
-    setResponse({ status: 'loading' });
-    setAllCertList([]);
-    setCertificateList([]);
+    clearData();
     let allCertInternal = [];
     if (configData.AUTH_TYPE === 'oidc') {
       allCertInternal = await apiService.getAllAdminCertInternal();
     }
     const internalCertificates = await apiService.getInternalCertificates();
     const externalCertificates = await apiService.getExternalCertificates();
+    const onboardCertificates = await apiService.getOnboardCertificates();
     const allApiResponse = Promise.all([
       allCertInternal,
       internalCertificates,
       externalCertificates,
+      onboardCertificates,
     ]);
     allApiResponse
       .then((result) => {
         const allCertArray = [];
         const internalCertArray = [];
         const externalCertArray = [];
+        const onboardCertArray = [];
         if (configData.AUTH_TYPE === 'oidc') {
           if (result && result[0]?.data?.data?.keys) {
             result[0].data.data.keys.map((item) => {
@@ -254,8 +271,22 @@ const CertificatesDashboard = () => {
             return null;
           });
         }
-        setCertificateList([...internalCertArray, ...externalCertArray]);
-        setAllCertList([...internalCertArray, ...externalCertArray]);
+        if (result && result[3].data) {
+          result[3].data.map((ele) => {
+            ele.isOnboardCert = true;
+            return onboardCertArray.push(ele);
+          });
+        }
+        setCertificateList([
+          ...internalCertArray,
+          ...externalCertArray,
+          ...onboardCertArray,
+        ]);
+        setAllCertList([
+          ...internalCertArray,
+          ...externalCertArray,
+          ...onboardCertArray,
+        ]);
         setResponse({ status: 'success' });
       })
       .catch(() => {
@@ -264,7 +295,7 @@ const CertificatesDashboard = () => {
   }, []);
 
   const fetchNonAdminData = useCallback(async () => {
-    setResponse({ status: 'loading' });
+    clearData();
     let allCertInternal = [];
     let allCertExternal = [];
     if (configData.AUTH_TYPE === 'oidc') {
@@ -379,18 +410,28 @@ const CertificatesDashboard = () => {
   }, [fetchAdminData, fetchNonAdminData, admin]);
 
   useEffect(() => {
-    const internalArray = allCertList?.filter(
-      (item) => item?.certType === 'internal'
+    const internalArray = certificateList?.filter(
+      (item) => item?.certType === 'internal' && !item.isOnboardCert
     );
-    const externalArray = allCertList?.filter(
-      (item) => item?.certType === 'external'
+    const externalArray = certificateList?.filter(
+      (item) => item?.certType === 'external' && !item.isOnboardCert
     );
-    setMenu([
-      { name: 'All Certificates', count: allCertList?.length || 0 },
+    const array = [
+      { name: 'All Certificates', count: certificateList?.length || 0 },
       { name: 'Internal Certificates', count: internalArray?.length || 0 },
       { name: 'External Certificates', count: externalArray?.length || 0 },
-    ]);
-  }, [allCertList]);
+    ];
+    if (admin) {
+      const onboardArray = certificateList?.filter(
+        (item) => item.isOnboardCert
+      );
+      array.push({
+        name: 'Onboard Certificates',
+        count: onboardArray?.length || 0,
+      });
+    }
+    setMenu([...array]);
+  }, [certificateList, admin]);
 
   /**
    * @function onLinkClicked
@@ -442,9 +483,15 @@ const CertificatesDashboard = () => {
    */
   const onSelectChange = (value) => {
     setCertificateType(value);
-    if (value !== 'All Certificates') {
-      const filterArray = allCertList.filter((cert) =>
-        value.toLowerCase().includes(cert.certType)
+    if (value !== 'All Certificates' && value !== 'Onboard Certificates') {
+      const filterArray = allCertList.filter(
+        (cert) =>
+          value.toLowerCase().includes(cert.certType) && !cert.isOnboardCert
+      );
+      setCertificateList([...filterArray]);
+    } else if (value === 'Onboard Certificates') {
+      const filterArray = allCertList.filter(
+        (cert) => cert.isOnboardCert === true
       );
       setCertificateList([...filterArray]);
     } else {
@@ -460,7 +507,9 @@ const CertificatesDashboard = () => {
   const onSearchChange = (value) => {
     if (value !== '') {
       const searchArray = allCertList.filter((item) =>
-        item.certificateName.includes(value)
+        item?.certificateName
+          ?.toLowerCase()
+          .includes(value?.toLowerCase().trim())
       );
       setCertificateList([...searchArray]);
     } else {
@@ -472,7 +521,7 @@ const CertificatesDashboard = () => {
   useEffect(() => {
     if (certificateType !== 'All Certificates' && inputSearchValue) {
       const array = certificateList.filter((cert) =>
-        cert.certificateName.includes(inputSearchValue)
+        cert?.certificateName?.includes(inputSearchValue?.toLowerCase().trim())
       );
       setCertificateList([...array]);
     } else if (certificateType === 'All Certificates' && inputSearchValue) {
@@ -503,6 +552,8 @@ const CertificatesDashboard = () => {
    */
   const onCloseAllModal = (actionPerform) => {
     setOpenTransferModal(false);
+    setOpenReleaseModal(false);
+    setOpenOnboardModal(false);
     setCertificateData({});
     if (actionPerform) {
       setResponse({ status: 'loading' });
@@ -522,6 +573,79 @@ const CertificatesDashboard = () => {
   const onTransferOwnerClicked = (data) => {
     setOpenTransferModal(true);
     setCertificateData(data);
+  };
+
+  /**
+   * @function onReleaseClicked
+   * @description function to open released modal when released certificate is clicked.
+   */
+
+  const onReleaseClicked = (data) => {
+    setOpenReleaseModal(true);
+    setCertificateData(data);
+  };
+
+  /**
+   * @function onReleaseSubmitClicked
+   * @description function to call an api when release submit is clicked
+   */
+  const onReleaseSubmitClicked = (data) => {
+    setResponse({ status: 'loading' });
+    setOpenReleaseModal(false);
+    apiService
+      .onReleasecertificate(data.name, data.type, data.reason)
+      .then(() => {
+        setResponseType(1);
+        onCloseAllModal(true);
+        setToastMessage('Certificate released successfully!');
+      })
+      .catch((e) => {
+        if (e?.response?.data?.errors && e?.response?.data?.errors[0]) {
+          setToastMessage(e.response.data.errors[0]);
+        }
+        setResponseType(-1);
+        setResponse({ status: 'success' });
+      });
+  };
+
+  /**
+   * @function onOnboardClicked
+   * @description function to open released modal when released certificate is clicked.
+   */
+
+  const onOnboardClicked = (data) => {
+    setOpenOnboardModal(true);
+    setCertificateData(data);
+  };
+
+  /**
+   * @function onOboardCertClicked
+   * @description function to call an api when onboard submit is clicked
+   */
+  const onOboardCertClicked = (data) => {
+    setResponse({ status: 'loading' });
+    setOpenOnboardModal(false);
+    apiService
+      .onOnboardcertificate(data)
+      .then(() => {
+        setResponseType(1);
+        onCloseAllModal(true);
+        setToastMessage('SSL certificate onboarded successfully!');
+      })
+      .catch((e) => {
+        if (e?.response?.data?.errors && e?.response?.data?.errors[0]) {
+          setToastMessage(e.response.data.errors[0]);
+        }
+        setResponseType(-1);
+        setResponse({ status: 'success' });
+      });
+  };
+
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
   };
 
   /**
@@ -596,8 +720,10 @@ const CertificatesDashboard = () => {
       <LeftColumn
         onLinkClicked={(cert) => onLinkClicked(cert)}
         onEditListItemClicked={(cert) => onEditListItemClicked(cert)}
-        onDeleteCertificateClicked={(cert) => onDeleteCertificateClicked(cert)}
         onTransferOwnerClicked={(cert) => onTransferOwnerClicked(cert)}
+        onReleaseClicked={(cert) => onReleaseClicked(cert)}
+        onOnboardClicked={(cert) => onOnboardClicked(cert)}
+        onDeleteCertificateClicked={(cert) => onDeleteCertificateClicked(cert)}
         isTabAndMobileScreen={isTabAndMobileScreen}
         history={history}
         certificateList={certificateList}
@@ -624,6 +750,22 @@ const CertificatesDashboard = () => {
               onCertificateDeleteConfirm={onCertificateDeleteConfirm}
               deleteResponse={deleteResponse}
               deleteModalDetail={deleteModalDetail}
+            />
+          )}
+          {openReleaseModal && (
+            <CertificateRelease
+              certificateData={certificateData}
+              open={openReleaseModal}
+              onCloseModal={(action) => onCloseAllModal(action)}
+              onReleaseSubmitClicked={(data) => onReleaseSubmitClicked(data)}
+            />
+          )}
+          {openOnboardModal && (
+            <OnboardCertificates
+              certificateData={certificateData}
+              open={openOnboardModal}
+              onCloseModal={(action) => onCloseAllModal(action)}
+              onOboardCertClicked={(data) => onOboardCertClicked(data)}
             />
           )}
           <LeftColumnSection>
@@ -741,10 +883,10 @@ const CertificatesDashboard = () => {
                         ? sectionMobHeaderBg
                         : sectionHeaderBg
                     }
-                    name={ListItemDetails.certificateName}
+                    name={listItemDetails.certificateName}
                     renderContent={
                       <CertificatesReviewDetails
-                        certificateDetail={ListItemDetails}
+                        certificateDetail={listItemDetails}
                       />
                     }
                   />
@@ -761,8 +903,8 @@ const CertificatesDashboard = () => {
                         ? sectionMobHeaderBg
                         : sectionHeaderBg
                     }
-                    owner={ListItemDetails.certOwnerEmailId}
-                    container={ListItemDetails.containerName}
+                    owner={listItemDetails.certOwnerEmailId}
+                    container={listItemDetails.containerName}
                     renderContent={
                       <CertificatesReviewDetails
                         certificateList={certificateList}
@@ -796,6 +938,22 @@ const CertificatesDashboard = () => {
             />
           </Switch>
         </SectionPreview>
+        {responseType === -1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message={toastMessage || 'Something went wrong!'}
+          />
+        )}
+        {responseType === 1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message={toastMessage}
+          />
+        )}
       </>
     </ComponentError>
   );

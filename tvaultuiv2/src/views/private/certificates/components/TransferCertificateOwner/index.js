@@ -186,7 +186,7 @@ const CreateCertificates = (props) => {
       .then((res) => {
         if (res?.data?.messages && res.data.messages[0]) {
           setModalDetail({
-            title: 'Successfull!',
+            title: 'Successful',
             description: res.data.messages[0],
           });
         }
@@ -236,7 +236,7 @@ const CreateCertificates = (props) => {
   );
 
   const onOwnerChange = (e) => {
-    if (e) {
+    if (e && e?.target?.value) {
       setOwner(e.target.value);
       if (e.target.value && e.target.value?.length > 2) {
         callSearchApi(e.target.value);
@@ -246,6 +246,8 @@ const CreateCertificates = (props) => {
           setEmailError(true);
         }
       }
+    } else {
+      setOwner('');
     }
   };
 

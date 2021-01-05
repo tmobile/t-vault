@@ -30,7 +30,7 @@ const StyledTree = styled.div`
   }
 `;
 const Tree = (props) => {
-  const { data } = props;
+  const { data, userHavePermission } = props;
   const [secretsFolder, setSecretsFolder] = useState([]);
   const [isAddInput, setIsAddInput] = useState(false);
   const [inputType, setInputType] = useState({});
@@ -64,6 +64,7 @@ const Tree = (props) => {
     const tempFolders = [...secretsFolder] || [];
     setStatus({ status: 'loading', message: 'loading...' });
     if (id) {
+      console.log('id', id);
       apiService
         .getSecret(id)
         .then((res) => {
@@ -138,6 +139,7 @@ const Tree = (props) => {
       // eslint-disable-next-line no-unused-vars
       .then((res) => {
         getChildrenData(node);
+        setSecretprefilledData({});
         setStatus({
           status: 'success',
           message: res.data.messages[0],
@@ -242,6 +244,7 @@ const Tree = (props) => {
     setInputType({ type: 'secret', currentNode: node });
   };
   const handleCancelClick = (val) => {
+    setSecretprefilledData({});
     setIsAddInput(val);
   };
 
@@ -327,6 +330,7 @@ const Tree = (props) => {
           onDeleteTreeItem={onDeleteTreeItem}
           secretprefilledData={secretprefilledData}
           setSecretprefilledData={setSecretprefilledData}
+          userHavePermission={userHavePermission}
         />
         {status.status === 'failed' ? (
           <SnackbarComponent
@@ -373,6 +377,7 @@ const Tree = (props) => {
 // props validation
 Tree.propTypes = {
   data: PropTypes.arrayOf(PropTypes.any),
+  userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 Tree.defaultProps = {

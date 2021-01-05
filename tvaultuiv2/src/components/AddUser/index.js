@@ -103,6 +103,7 @@ const AddUser = (props) => {
     access,
     isSvcAccount,
     isCertificate,
+    isIamAzureSvcAccount,
   } = props;
   const classes = useStyles();
   const [radioValue, setRadioValue] = useState('read');
@@ -110,7 +111,8 @@ const AddUser = (props) => {
   const [options, setOptions] = useState([]);
   const [disabledSave, setDisabledSave] = useState(true);
   const [searchLoader, setSearchLoader] = useState(false);
-  const [isValidUserName, setIsValidUserName] = useState(true);
+  const [isValidUserName, setIsValidUserName] = useState(false);
+  const [radioArray, setRadioArray] = useState([]);
   const isMobileScreen = useMediaQuery(small);
 
   useEffect(() => {
@@ -133,12 +135,7 @@ const AddUser = (props) => {
   useEffect(() => {
     if (configData.AD_USERS_AUTOCOMPLETE) {
       if (username) {
-        if (
-          (username.toLowerCase() !== searchValue?.toLowerCase() &&
-            !isValidUserName) ||
-          (username.toLowerCase() === searchValue?.toLowerCase() &&
-            access === radioValue)
-        ) {
+        if (access === radioValue) {
           setDisabledSave(true);
         } else {
           setDisabledSave(false);
@@ -148,12 +145,6 @@ const AddUser = (props) => {
       } else {
         setDisabledSave(false);
       }
-    } else if (
-      (username.toLowerCase() === searchValue?.toLowerCase() &&
-        access === radioValue) ||
-      searchValue === ''
-    ) {
-      setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
@@ -176,7 +167,7 @@ const AddUser = (props) => {
               const array = [];
               res.data.data.values.map((item) => {
                 if (item.userName) {
-                  return array.push(item.userName.toLowerCase());
+                  return array.push(`${item.displayName} (${item.userName})`);
                 }
                 return null;
               });
@@ -194,17 +185,38 @@ const AddUser = (props) => {
   );
 
   const onSearchChange = (e) => {
-    if (e) {
-      setSearchValue(e.target?.value);
-      if (e.target?.value !== '' && e.target?.value?.length > 2) {
+    if (e && e?.target?.value) {
+      setSearchValue(e?.target?.value);
+      if (e?.target?.value !== '' && e?.target?.value?.length > 2) {
         callSearchApi(e.target.value);
       }
+    } else {
+      setSearchValue('');
     }
   };
 
   const onSelected = (e, val) => {
-    setSearchValue(val);
+    if (val) {
+      setSearchValue(val);
+    }
   };
+
+  const onSaveClick = () => {
+    const result = searchValue.match(/\((.*)\)/);
+    handleSaveClick(result[1].toLowerCase(), radioValue);
+  };
+
+  useEffect(() => {
+    if (isIamAzureSvcAccount) {
+      setRadioArray(['read', 'rotate', 'deny']);
+    } else if (isCertificate) {
+      setRadioArray(['read', 'deny']);
+    } else if (isSvcAccount) {
+      setRadioArray(['read', 'reset', 'deny']);
+    } else {
+      setRadioArray(['read', 'write', 'deny']);
+    }
+  }, [isIamAzureSvcAccount, isSvcAccount, isCertificate]);
 
   return (
     <ComponentError>
@@ -227,6 +239,7 @@ const AddUser = (props) => {
                 options={options}
                 icon="search"
                 classes={classes}
+                disabled={!!(access && username)}
                 searchValue={searchValue}
                 onSelected={(e, val) => onSelected(e, val)}
                 onChange={(e) => onSearchChange(e)}
@@ -239,7 +252,7 @@ const AddUser = (props) => {
                 }
               />
               <InstructionText>
-                Search the T-Mobile system to add users
+                Search users by user name (lastname, firstname) or by NTID.
               </InstructionText>
               {searchLoader && <LoaderSpinner customStyle={customStyle} />}
             </>
@@ -255,13 +268,7 @@ const AddUser = (props) => {
         </InputWrapper>
         <RadioButtonWrapper>
           <RadioButtonComponent
-            menu={
-              isSvcAccount
-                ? ['read', 'reset', 'deny']
-                : isCertificate
-                ? ['read', 'deny']
-                : ['read', 'write', 'deny']
-            }
+            menu={radioArray}
             handleChange={(e) => handleChange(e)}
             value={radioValue}
           />
@@ -277,7 +284,7 @@ const AddUser = (props) => {
             <ButtonComponent
               label={username && access ? 'Edit' : 'Save'}
               color="secondary"
-              onClick={() => handleSaveClick(searchValue, radioValue)}
+              onClick={() => onSaveClick(searchValue, radioValue)}
               disabled={disabledSave}
               width={isMobileScreen ? '100%' : ''}
             />
@@ -295,6 +302,7 @@ AddUser.propTypes = {
   access: PropTypes.string,
   isSvcAccount: PropTypes.bool,
   isCertificate: PropTypes.bool,
+  isIamAzureSvcAccount: PropTypes.bool,
 };
 
 AddUser.defaultProps = {
@@ -302,6 +310,7 @@ AddUser.defaultProps = {
   access: 'read',
   isSvcAccount: false,
   isCertificate: false,
+  isIamAzureSvcAccount: false,
 };
 
 export default AddUser;

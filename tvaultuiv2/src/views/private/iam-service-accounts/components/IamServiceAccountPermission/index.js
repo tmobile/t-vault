@@ -47,6 +47,7 @@ const IamServiceAccountPermission = (props) => {
     parentStatus,
     fetchPermission,
     isIamSvcAccountActive,
+    userDetails,
   } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
@@ -79,8 +80,8 @@ const IamServiceAccountPermission = (props) => {
     ) {
       setCount(0);
       if (value === 0) {
-        if (accountMetaData.response.users) {
-          setCount(Object.keys(accountMetaData.response.users).length);
+        if (userDetails) {
+          setCount(userDetails.length);
         }
       } else if (value === 1) {
         if (accountMetaData.response.groups) {
@@ -96,7 +97,7 @@ const IamServiceAccountPermission = (props) => {
         }
       }
     }
-  }, [value, accountMetaData]);
+  }, [value, accountMetaData, userDetails]);
 
   const onAddLabelBtnClicked = () => {
     Object.keys(initialObject).map((item) => {
@@ -155,6 +156,7 @@ const IamServiceAccountPermission = (props) => {
                       updateToastMessage={(res, message) =>
                         updateToastMessage(res, message)
                       }
+                      userDetails={userDetails}
                     />
                   </TabPanel>
                   <TabPanel value={value} index={1}>
@@ -214,7 +216,7 @@ const IamServiceAccountPermission = (props) => {
             </>
           ) : (
             <NoPermission>
-              Please activate the iam service account to add permissions
+              Please activate the IAM service account to add permissions
             </NoPermission>
           )}
         </>
@@ -227,14 +229,17 @@ IamServiceAccountPermission.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any),
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   refresh: PropTypes.func.isRequired,
-  parentStatus: PropTypes.string.isRequired,
+  parentStatus: PropTypes.string,
   fetchPermission: PropTypes.func,
-  isIamSvcAccountActive: PropTypes.bool.isRequired,
+  isIamSvcAccountActive: PropTypes.bool,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
 IamServiceAccountPermission.defaultProps = {
   accountDetail: {},
   fetchPermission: () => {},
+  isIamSvcAccountActive: false,
+  parentStatus: '',
 };
 
 export default IamServiceAccountPermission;

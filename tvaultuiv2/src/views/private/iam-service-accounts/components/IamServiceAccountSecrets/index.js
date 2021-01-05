@@ -1,9 +1,8 @@
- /* eslint-disable react/jsx-curly-newline */
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { makeStyles } from '@material-ui/core/styles';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import ReportProblemOutlinedIcon from '@material-ui/icons/ReportProblemOutlined';
 import PropTypes from 'prop-types';
@@ -16,7 +15,8 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import apiService from '../../apiService';
 import lock from '../../../../../assets/icon_lock.svg';
 import refreshIcon from '../../../../../assets/refresh-ccw.svg';
-import accessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
+import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
+import AccessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
@@ -39,6 +39,16 @@ const UserList = styled.div`
   border-bottom: 1px solid #323649;
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
+  }
+
+  .expirationDate {
+    font-family: Roboto;
+    font-size: 1.34rem;
+    color: #ffffff;
+
+    div {
+      color: #c1c1c1;
+    }
   }
 `;
 
@@ -110,11 +120,6 @@ const NoPermission = styled.div`
   }
 `;
 
-const useStyles = makeStyles(() => ({
-  backdrop: {
-    position: 'absolute',
-  },
-}));
 const IamServiceAccountSecrets = (props) => {
   const {
     accountDetail,
@@ -134,7 +139,6 @@ const IamServiceAccountSecrets = (props) => {
   const [writePermission, setWritePermission] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const [state] = useStateValue();
-  const loaderStyles = useStyles();
   /**
    * @function handleClose
    * @description function to handle opening and closing of confirmation modal.
@@ -149,6 +153,17 @@ const IamServiceAccountSecrets = (props) => {
    */
   const onViewSecretsCliked = () => {
     setShowSecret(!showSecret);
+  };
+
+  const formatDate = (expiryDate = '') => {
+    const expirationArr = new Date(expiryDate).toDateString().split(' ');
+    if (expirationArr.length > 3) {
+      expirationArr.splice(3, 0, ',');
+      const expiryFormattedDate = expirationArr.splice(1).join(' ');
+
+      return expiryFormattedDate;
+    }
+    return null;
   };
 
   /**
@@ -230,7 +245,7 @@ const IamServiceAccountSecrets = (props) => {
       type: 'activate',
       title: 'IAM Service Account Activation!',
       description:
-        "During the activation. the password of the LAM service account will be rotated to ensure AWS and T-Vault are in sync If you want to continue with activation now please click the 'ACTIVATE IAM SERVICE ACCOUNT’ button below and make sure to update any services depending on the service account with its new password.",
+        "During the activation. the password of the IAM service account will be rotated to ensure AWS and T-Vault are in sync If you want to continue with activation now please click the 'ACTIVATE IAM SERVICE ACCOUNT’ button below and make sure to update any services depending on the service account with its new password.",
     });
   };
 
@@ -250,8 +265,8 @@ const IamServiceAccountSecrets = (props) => {
 
     apiService
       .activateIamServiceAccount(
-        accountMetaData?.response?.userName,
-        accountMetaData?.response?.awsAccountId
+        accountDetail?.name,
+        accountDetail?.iamAccountId
       )
       .then(async (res) => {
         if (res?.data) {
@@ -319,8 +334,8 @@ const IamServiceAccountSecrets = (props) => {
         <ConfirmationModal
           open={openConfirmationModal?.status === 'open'}
           handleClose={handleClose}
-          title={openConfirmationModal?.title}
-          description={openConfirmationModal?.description}
+          title={openConfirmationModal?.title || ''}
+          description={openConfirmationModal?.description || ''}
           cancelButton={
             <ButtonComponent
               label="Cancel"
@@ -347,9 +362,7 @@ const IamServiceAccountSecrets = (props) => {
           }
         />
         {(response.status === 'loading' ||
-          status.status === 'secrets-loading') && (
-          <BackdropLoader classes={loaderStyles} />
-        )}
+          status.status === 'secrets-loading') && <BackdropLoader />}
         {accountSecretData?.folders?.length && !accountSecretError
           ? accountSecretData?.folders.map((secret) => (
               // eslint-disable-next-line react/jsx-indent
@@ -365,6 +378,10 @@ const IamServiceAccountSecrets = (props) => {
                     <Secret type="password" viewSecret={showSecret}>
                       {secretsData.accessKeySecret}
                     </Secret>
+                    <span className="expirationDate">
+                      <div>Expires: </div>
+                      {formatDate(secretsData.expiryDate)}
+                    </span>
 
                     <FolderIconWrap>
                       <PopperElement
@@ -422,7 +439,7 @@ const IamServiceAccountSecrets = (props) => {
             ))
           : null}
 
-        {!isIamSvcAccountActive && (
+        {!isIamSvcAccountActive && accountDetail?.name && (
           <UserList>
             <LabelWrap>
               <ReportProblemOutlinedIcon />
@@ -447,12 +464,21 @@ const IamServiceAccountSecrets = (props) => {
             }
           />
         )}
-        {response.status === 'no-permission' && (
+        {!accountDetail?.name && (
           <AccessDeniedWrap>
-            <AccessDeniedIcon src={accessDeniedLogo} alt="accessDeniedLogo" />
+            <AccessDeniedIcon src={NoSecretsIcon} alt="accessDeniedLogo" />
             <NoPermission>
-              Access denied: no permission to read the password details for the{' '}
-              <span>{accountDetail.name}</span> service account.
+              Once you onboard a <span>Service Account</span> you’ll be able to
+              view <span>Secret</span> all here!
+            </NoPermission>
+          </AccessDeniedWrap>
+        )}
+        {accountDetail?.permission === 'deny' && (
+          <AccessDeniedWrap>
+            <AccessDeniedIcon src={AccessDeniedLogo} alt="accessDeniedLogo" />
+            <NoPermission>
+              Access Denied: No permission to read or rotate secret for the
+              given IAM service account
             </NoPermission>
           </AccessDeniedWrap>
         )}

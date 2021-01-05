@@ -1,6 +1,4 @@
 /* eslint-disable react/jsx-indent */
-/* eslint-disable react/jsx-curly-newline */
-/* eslint-disable no-nested-ternary */
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
@@ -8,24 +6,25 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../../../components/NoData';
 import ButtonComponent from '../../../../../../../components/FormFields/ActionButton';
-import PermissionsList from '../../../../../../../components/PermissionsList';
 import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
+import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import Error from '../../../../../../../components/Error';
-import AddAwsApplicationModal from '../../../../../../../components/AddAwsApplicationModal';
-import EditAwsApplication from '../../../../../../../components/EditAwsApplication';
 import Strings from '../../../../../../../resources';
 import { checkAccess } from '../../../../../../../services/helper-function';
+import UserPermissionsList from '../../../../../../../components/UserPermissionsList';
+import Error from '../../../../../../../components/Error';
 
 const { small, belowLarge } = mediaBreakpoints;
 
 const NoDataWrapper = styled.section`
   display: flex;
   justify-content: center;
-  width: 100%;
+  align-items: center;
   height: 100%;
+  width: 100%;
+
   p {
     ${small} {
       margin-top: 2rem;
@@ -47,67 +46,59 @@ const customStyle = css`
 const noDataStyle = css`
   width: 42%;
   ${belowLarge} {
-    width: 75%;
+    width: 70%;
   }
   ${small} {
     width: 100%;
   }
 `;
 
-const AwsApplications = (props) => {
+const Users = (props) => {
   const {
-    certificateMetaData,
-    refresh,
-    onNewAwsChange,
-    newAwsApplication,
+    newPermission,
+    onNewPermissionChange,
+    azureMetaData,
     updateToastMessage,
+    refresh,
+    userDetails,
     responseStatus,
   } = props;
 
-  const [editAws, setEditAws] = useState('');
+  const [editUser, setEditUser] = useState('');
   const [editAccess, setEditAccess] = useState('');
   const [response, setResponse] = useState({ status: 'loading' });
-
   const isMobileScreen = useMediaQuery(small);
 
-  // on svc account meta data is available.
+  // on azure svc account meta data is available.
   useEffect(() => {
-    setResponse({ status: responseStatus });
+    setResponse(responseStatus);
   }, [responseStatus]);
 
-  // When add group button is clicked.
+  // When add permission button is clicked.
   useEffect(() => {
-    if (newAwsApplication) {
+    if (newPermission) {
       setResponse({ status: 'add' });
     }
-  }, [newAwsApplication]);
-
-  const constructPayload = (role, access) => {
-    const data = {
-      access: checkAccess(access),
-      certType: certificateMetaData?.certType,
-      certificateName: certificateMetaData?.certificateName,
-      rolename: role,
-    };
-    return data;
-  };
+  }, [newPermission]);
 
   /**
    * @function onDeleteClick
-   * @description function to delete the aws configuration from the svc account aws
-   * application list.
-   * @param {role} string role of the aws configuration.
-   * @param {access} string permission of the aws configuration.
+   * @description function to delete the user from the azure svc account users list.
+   * @param {username} string username of the user.
+   * @param {access} string permission of the user.
    */
-  const onDeleteClick = (role, access) => {
+  const onDeleteClick = async (username, access) => {
     setResponse({ status: 'loading' });
-    const payload = constructPayload(role, access);
+    const payload = {
+      access: checkAccess(access, 'iamsvcaccount'),
+      azureSvcAccName: azureMetaData.servicePrincipalName,
+      username,
+    };
     apiService
-      .deleteAwsRole(payload)
+      .deleteUserPermission(payload)
       .then(async (res) => {
-        if (res && res.data?.messages && res.data?.messages[0]) {
+        if (res && res.data?.messages && res.data.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
-          setResponse({ status: '' });
           await refresh();
         }
       })
@@ -121,18 +112,16 @@ const AwsApplications = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the aws configuration role to the svc account
-   * aws application list.
+   * @description function to save the user to the azure svc account users list.
    * @param {data} object payload to call api.
    */
-  const onSaveClicked = (role, access) => {
-    const payload = constructPayload(role, access);
+  const onSaveClicked = (data) => {
+    setResponse({ status: 'loading' });
     return apiService
-      .addAwsRole(payload)
+      .addUserPermission(data)
       .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
-          setResponse({ status: '' });
           await refresh();
         }
       })
@@ -146,48 +135,44 @@ const AwsApplications = (props) => {
 
   /**
    * @function onSubmit
-   * @description function to save the aws configuration  to the svc account
-   * aws application list and then call the save of role to aws application list.
-   * @param {data} object payload to call api.
+   * @description function structure the payload when save/edit is clicked and call save api.
+   * @param {username} string user name of the user.
+   * @param {access} string permission given to the user.
    */
-  const onSubmit = (data, access) => {
-    setResponse({ status: 'loading' });
-    onNewAwsChange();
-    let url = '';
-    if (data.auth_type === 'iam') {
-      url = '/serviceaccounts/aws/iam/role';
-    } else {
-      url = '/serviceaccounts/aws/role';
+  const onSubmit = async (username, access) => {
+    const value = {
+      access: checkAccess(access, 'iamsvcaccount'),
+      azureSvcAccName: azureMetaData.servicePrincipalName,
+      username,
+    };
+    try {
+      await onSaveClicked(value);
+      onNewPermissionChange();
+    } catch {
+      setResponse({ status: 'success' });
+      updateToastMessage(-1, 'Something went wrong');
     }
-    apiService
-      .addAwsPermission(url, data)
-      .then(async (res) => {
-        updateToastMessage(1, res.data?.messages[0]);
-        await onSaveClicked(data.role, access);
-      })
-      .catch((err) => {
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
-          updateToastMessage(-1, err.response.data.errors[0]);
-        }
-        setResponse({ status: 'success' });
-      });
   };
 
   /**
    * @function onEditSaveClicked
-   * @description function to edit the existing aws configuration.
-   * @param {role} string aws configuration name to edit.
-   * @param {access} string permission given to the aws configuration.
+   * @description function to edit the existing user.
+   * @param {username} string user name of the user.
+   * @param {access} string permission given to the user.
    */
-  const onEditSaveClicked = (awsName, access) => {
+  const onEditSaveClicked = (username, access) => {
     setResponse({ status: 'loading' });
-    const payload = constructPayload(awsName, access);
+    const payload = {
+      access: checkAccess(access, 'iamsvcaccount'),
+      azureSvcAccName: azureMetaData.servicePrincipalName,
+      username,
+    };
     apiService
-      .deleteAwsRole(payload)
-      .then((res) => {
+      .deleteUserPermission(payload)
+      .then(async (res) => {
         if (res) {
           setResponse({ status: 'loading' });
-          onSaveClicked(awsName, access);
+          await onSubmit(username, access);
         }
       })
       .catch((err) => {
@@ -200,27 +185,26 @@ const AwsApplications = (props) => {
 
   /**
    * @function onCancelClicked
-   * @description function when cancel of add aws configuration and
-   * aws configuration  is called.
+   * @description function when cancel of add user and edit user is called.
    */
   const onCancelClicked = () => {
     setResponse({ status: 'success' });
-    onNewAwsChange();
+    onNewPermissionChange();
   };
 
   /**
    * @function onEditClick
-   * @description function to edit the existing aws configuration.
-   * @param {key} key aws configuration name of  the permission.
-   * @param {value} value permission given to the aws configuration.
+   * @description function to edit the existing user.
+   * @param {key} key user name of the user.
+   * @param {value} value permission given to the user.
    */
   const onEditClick = (key, value) => {
     if (value === 'write') {
-      setEditAccess('reset');
+      setEditAccess('rotate');
     } else {
       setEditAccess(value);
     }
-    setEditAws(key);
+    setEditUser(key);
     setResponse({ status: 'edit' });
   };
 
@@ -231,41 +215,40 @@ const AwsApplications = (props) => {
           <LoaderSpinner customStyle={customStyle} />
         )}
         {response.status === 'add' && (
-          <AddAwsApplicationModal
-            open
-            handleSaveClick={(data, access) => onSubmit(data, access)}
+          <AddUser
+            handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
-            handleModalClose={() => onCancelClicked()}
-            isCertificate
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'edit' && (
-          <EditAwsApplication
-            handleSaveClick={(awsName, access) =>
-              onEditSaveClicked(awsName, access)
-            }
+          <AddUser
+            handleSaveClick={(user, access) => onEditSaveClicked(user, access)}
             handleCancelClick={onCancelClicked}
-            awsName={editAws}
+            username={editUser}
             access={editAccess}
-            isCertificate
+            isIamAzureSvcAccount
           />
         )}
-        {certificateMetaData && (
+        {response.status === 'success' && azureMetaData && (
           <>
-            {certificateMetaData['aws-roles'] &&
-              Object.keys(certificateMetaData['aws-roles']).length > 0 && (
-                <PermissionsList
-                  list={certificateMetaData['aws-roles']}
+            {Object.keys(azureMetaData?.users).length > 0 &&
+              userDetails?.length > 0 && (
+                <UserPermissionsList
+                  list={azureMetaData.users}
+                  isIamAzureSvcAccount
                   onEditClick={(key, value) => onEditClick(key, value)}
                   onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                  userDetails={userDetails}
                 />
               )}
-            {(!certificateMetaData['aws-roles'] ||
-              Object.keys(certificateMetaData['aws-roles']).length === 0) && (
+            {(!azureMetaData.users ||
+              userDetails.length === 0 ||
+              Object.keys(azureMetaData.users).length === 0) && (
               <NoDataWrapper>
                 <NoData
                   imageSrc={noPermissionsIcon}
-                  description={Strings.Resources.noAwsPermissionFound}
+                  description={Strings.Resources.noUsersPermissionFound}
                   actionButton={
                     // eslint-disable-next-line react/jsx-wrap-multilines
                     <ButtonComponent
@@ -284,19 +267,22 @@ const AwsApplications = (props) => {
           </>
         )}
         {response.status === 'error' && (
-          <Error description="Something went wrong!" />
+          <Error
+            description={responseStatus.message || 'Something went wrong!'}
+          />
         )}
       </>
     </ComponentError>
   );
 };
 
-AwsApplications.propTypes = {
-  certificateMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
-  refresh: PropTypes.func.isRequired,
-  newAwsApplication: PropTypes.bool.isRequired,
-  onNewAwsChange: PropTypes.func.isRequired,
+Users.propTypes = {
+  responseStatus: PropTypes.objectOf(PropTypes.any).isRequired,
+  newPermission: PropTypes.bool.isRequired,
+  onNewPermissionChange: PropTypes.func.isRequired,
+  azureMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   updateToastMessage: PropTypes.func.isRequired,
-  responseStatus: PropTypes.string.isRequired,
+  refresh: PropTypes.func.isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
-export default AwsApplications;
+export default Users;

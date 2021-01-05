@@ -13,7 +13,7 @@ import Strings from '../../../../../resources';
 import Tree from '../Tree';
 import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
-import accessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
+import AccessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
 
 const SecretsContainer = styled('div')`
   height: 100%;
@@ -54,6 +54,7 @@ const AccessDeniedWrap = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 `;
 
 const AccessDeniedIcon = styled.img`
@@ -65,6 +66,7 @@ const NoPermission = styled.div`
   color: #5a637a;
   text-align: center;
   margin-top: 4rem;
+  width: 60%;
   span {
     margin: 0 0.3rem;
     color: #fff;
@@ -75,75 +77,108 @@ const Secrets = (props) => {
   const {
     secretsFolder,
     secretsStatus,
-    safeDetail,
-    getResponse,
     setEnableAddFolder,
+    userHavePermission,
+    safeDetail,
   } = props;
-
   // resolution handlers
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+
   return (
     <ComponentError>
       <SecretsContainer>
-        {
-          <CountSpan color="#5e627c">
-            {`${
-              secretsFolder[0] ? secretsFolder[0]?.children?.length : 0
-            } Secrets`}
-          </CountSpan>
-        }
-
+        {userHavePermission.permission &&
+          userHavePermission.type !== 'sudo' &&
+          userHavePermission.type !== 'deny' &&
+          Object.keys(safeDetail).length > 0 && (
+            <CountSpan color="#5e627c">
+              {`${
+                secretsFolder[0] ? secretsFolder[0]?.children?.length : 0
+              } Secrets`}
+            </CountSpan>
+          )}
         {secretsStatus.status === 'loading' && (
           <LoaderSpinner customStyle={customStyle} />
         )}
-        {getResponse === -1 && !secretsFolder[0]?.children?.length && (
-          <EmptySecretBox>
-            <Error description="Error while fetching safes folders" />
-          </EmptySecretBox>
-        )}
-
-        {secretsFolder[0]?.children?.length &&
-        secretsStatus.status !== 'loading' ? (
-          <Tree data={secretsFolder} />
-        ) : secretsFolder[0]?.children?.length === 0 &&
-          getResponse === 1 &&
-          secretsStatus.status !== 'loading' ? (
-          // eslint-disable-next-line react/jsx-indent
-          <EmptySecretBox>
-            {safeDetail?.access?.toLowerCase() === 'read' ||
-            safeDetail?.access === '' ? (
-              <AccessDeniedWrap>
-                <AccessDeniedIcon
-                  src={accessDeniedLogo}
-                  alt="accessDeniedLogo"
-                />
-                <NoPermission>
-                  You <span>do</span> not have acess to this <span>Safe</span>{' '}
-                  and cannot view it’s contents
-                </NoPermission>
-              </AccessDeniedWrap>
-            ) : (
-              <NoData
-                imageSrc={NoSecretsIcon}
-                description={Strings.Resources.noSafeSecretFound}
-                actionButton={
-                  // eslint-disable-next-line react/jsx-wrap-multilines
-                  <ButtonComponent
-                    label="add"
-                    icon="add"
-                    color="secondary"
-                    width={isMobileScreen ? '100%' : '9.4rem'}
-                    onClick={() => setEnableAddFolder(true)}
+        {secretsStatus.status === 'failed' &&
+          !secretsFolder[0]?.children?.length &&
+          userHavePermission.type !== 'deny' && (
+            <EmptySecretBox>
+              <Error description="Sorry we were unable to retrieve those documents." />
+            </EmptySecretBox>
+          )}
+        {secretsStatus.status === 'success' &&
+          Object.keys(safeDetail).length > 0 && (
+            <>
+              {userHavePermission.permission &&
+              userHavePermission.type !== 'deny' &&
+              userHavePermission.type !== 'sudo' ? (
+                <>
+                  {secretsFolder[0]?.children?.length ? (
+                    <Tree
+                      data={secretsFolder}
+                      userHavePermission={userHavePermission}
+                    />
+                  ) : secretsFolder[0]?.children?.length === 0 ? (
+                    // eslint-disable-next-line react/jsx-indent
+                    <EmptySecretBox>
+                      {userHavePermission?.type === 'write' ? (
+                        <NoData
+                          imageSrc={NoSecretsIcon}
+                          description={Strings.Resources.noSafeSecretFound}
+                          actionButton={
+                            // eslint-disable-next-line react/jsx-wrap-multilines
+                            <ButtonComponent
+                              label="add"
+                              icon="add"
+                              color="secondary"
+                              disabled={userHavePermission.type !== 'write'}
+                              width={isMobileScreen ? '100%' : '9.4rem'}
+                              onClick={() => setEnableAddFolder(true)}
+                            />
+                          }
+                          bgIconStyle={bgIconStyle}
+                          customStyle={noDataStyle}
+                        />
+                      ) : (
+                        <NoData
+                          imageSrc={NoSecretsIcon}
+                          description={
+                            Strings.Resources.noSafeSecretFoundReadPerm
+                          }
+                          bgIconStyle={bgIconStyle}
+                          customStyle={noDataStyle}
+                        />
+                      )}
+                    </EmptySecretBox>
+                  ) : (
+                    <></>
+                  )}
+                </>
+              ) : (
+                <AccessDeniedWrap>
+                  <AccessDeniedIcon
+                    src={AccessDeniedLogo}
+                    alt="accessDeniedLogo"
                   />
-                }
-                bgIconStyle={bgIconStyle}
-                customStyle={noDataStyle}
-              />
-            )}
-          </EmptySecretBox>
-        ) : (
-          <></>
-        )}
+                  <NoPermission>
+                    You<span>do</span>not have access to this<span>Safe</span>
+                    and cannot view it’s contents
+                  </NoPermission>
+                </AccessDeniedWrap>
+              )}
+            </>
+          )}
+        {secretsStatus.status === 'success' &&
+          Object.keys(safeDetail).length === 0 && (
+            <AccessDeniedWrap>
+              <AccessDeniedIcon src={NoSecretsIcon} alt="noSecretAvailable" />
+              <NoPermission>
+                Once you add a <span>safe</span> you’ll be able to add{' '}
+                <span>Secret</span> to view them all here!
+              </NoPermission>
+            </AccessDeniedWrap>
+          )}
       </SecretsContainer>
     </ComponentError>
   );
@@ -151,16 +186,14 @@ const Secrets = (props) => {
 Secrets.propTypes = {
   secretsFolder: PropTypes.arrayOf(PropTypes.any),
   secretsStatus: PropTypes.objectOf(PropTypes.any),
-  safeDetail: PropTypes.objectOf(PropTypes.any),
   setEnableAddFolder: PropTypes.func,
-  getResponse: PropTypes.number,
+  userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
+  safeDetail: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 Secrets.defaultProps = {
   secretsFolder: [],
   secretsStatus: {},
-  safeDetail: {},
   setEnableAddFolder: () => {},
-  getResponse: null,
 };
 
 export default Secrets;

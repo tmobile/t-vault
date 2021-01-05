@@ -43,6 +43,7 @@ import CreateAppRole from '../../CreateAppRole';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
 import {
   ListContainer,
+  NoResultFound,
   StyledInfiniteScroll,
 } from '../../../../../styles/GlobalStyles/listingStyle';
 
@@ -203,6 +204,8 @@ const AppRolesDashboard = () => {
    * @description function call all the manage and safe api.
    */
   const fetchData = useCallback(async () => {
+    setListItemDetails({});
+    setInputSearchValue('');
     setStatus({ status: 'loading', message: 'Loading...' });
     apiService
       .getAppRole()
@@ -219,7 +222,6 @@ const AppRolesDashboard = () => {
             return appRolesArr.push(appObj);
           });
         }
-
         setAppRoleList([...appRolesArr]);
         dispatch({ type: 'UPDATE_APP_ROLE_LIST', payload: [...appRolesArr] });
       })
@@ -246,7 +248,7 @@ const AppRolesDashboard = () => {
     setInputSearchValue(value);
     if (value !== '') {
       const array = state?.appRoleList?.filter((item) => {
-        return String(item.name).startsWith(value);
+        return item?.name?.toLowerCase().includes(value?.toLowerCase().trim());
       });
       setAppRoleList([...array]);
     } else {
@@ -288,15 +290,26 @@ const AppRolesDashboard = () => {
   };
 
   useEffect(() => {
-    if (appRoleList?.length > 0) {
-      appRoleList.map((item) => {
-        if (history.location.pathname === `/vault-app-roles/${item.name}`) {
-          return setListItemDetails(item);
+    if (state?.appRoleList?.length > 0) {
+      const val = location.pathname.split('/');
+      const roleName = val[val.length - 1];
+      if (
+        roleName !== 'create-vault-app-role' &&
+        roleName !== 'edit-vault-app-role'
+      ) {
+        const obj = state?.appRoleList.find((role) => role.name === roleName);
+        if (obj) {
+          if (listItemDetails.name !== obj.name) {
+            setListItemDetails({ ...obj });
+          }
+        } else {
+          setListItemDetails(state?.appRoleList[0]);
+          history.push(`/vault-app-roles/${state?.appRoleList[0].name}`);
         }
-        return null;
-      });
+      }
     }
-  }, [appRoleList, listItemDetails, history]);
+    // eslint-disable-next-line
+  }, [state, location, history]);
 
   // Infine scroll load more data
   const loadMoreData = () => {};
@@ -333,25 +346,6 @@ const AppRolesDashboard = () => {
   };
 
   /**
-   * @function onDeleteRouteToNextAppRole
-   * @description function is called after deletion is successfull
-   * based on that the next approle  is selected,
-   */
-  const onDeleteRouteToNextAppRole = () => {
-    const val = location.pathname.split('/');
-    const routeName = val.slice(-1)[0];
-    if (appRoleList.length > 0) {
-      const obj = appRoleList.find((item) => item === routeName);
-      if (!obj) {
-        setListItemDetails(appRoleList[0]);
-        history.push(`/vault-app-roles/${appRoleList[0].name}`);
-      }
-    } else {
-      setListItemDetails({});
-      history.push(`/vault-app-roles`);
-    }
-  };
-  /**
    * @function onAppRoleDelete
    * @description delete app role
    */
@@ -362,7 +356,6 @@ const AppRolesDashboard = () => {
       .deleteAppRole(deleteAppRoleName)
       .then(async (res) => {
         setStatus({ status: 'success', message: res?.data?.messages[0] });
-        onDeleteRouteToNextAppRole();
         await fetchData();
       })
       .catch((err) => {
@@ -431,7 +424,6 @@ const AppRolesDashboard = () => {
           title="Confirmation"
           description={`<p>Are you sure you want to delete this appRole : <strong>${deleteAppRoleName}</strong></p>`}
           cancelButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
               label="Cancel"
               color="primary"
@@ -440,7 +432,6 @@ const AppRolesDashboard = () => {
             />
           }
           confirmButton={
-            // eslint-disable-next-line react/jsx-wrap-multilines
             <ButtonComponent
               label="Delete"
               color="secondary"
@@ -503,15 +494,13 @@ const AppRolesDashboard = () => {
                 ) : (
                   appRoleList?.length === 0 && (
                     <>
-                      {' '}
                       {inputSearchValue ? (
-                        <NoDataWrapper>
+                        <NoResultFound>
                           No app role found with name:
-                          <strong>{inputSearchValue}</strong>
-                        </NoDataWrapper>
+                          <div>{inputSearchValue}</div>
+                        </NoResultFound>
                       ) : (
                         <NoDataWrapper>
-                          {' '}
                           <NoListWrap>
                             <NoData
                               imageSrc={NoSafesIcon}
@@ -591,7 +580,7 @@ const AppRolesDashboard = () => {
                 path="/vault-app-roles"
                 render={(routerProps) => (
                   <ListItemDetail
-                    listItemDetails={appRoleList}
+                    listItemDetails={listItemDetails}
                     params={routerProps}
                     backToLists={backToAppRoles}
                     ListDetailHeaderBg={
@@ -602,6 +591,9 @@ const AppRolesDashboard = () => {
                         : sectionHeaderBg
                     }
                     description={introduction}
+                    renderContent={
+                      <AppRoleDetails appRoleDetail={listItemDetails} />
+                    }
                   />
                 )}
               />

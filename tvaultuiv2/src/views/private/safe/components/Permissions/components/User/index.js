@@ -11,8 +11,8 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import PermissionsList from '../../../../../../../components/PermissionsList';
 import Error from '../../../../../../../components/Error';
+import UserPermissionsList from '../../../../../../../components/UserPermissionsList';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -57,9 +57,9 @@ const User = (props) => {
     newPermission,
     onNewPermissionChange,
     safeData,
-    fetchPermission,
     updateToastMessage,
     refresh,
+    userDetails,
   } = props;
 
   const [editUser, setEditUser] = useState('');
@@ -96,9 +96,8 @@ const User = (props) => {
       .then(async (res) => {
         if (res && res.data?.Message) {
           updateToastMessage(1, res.data.Message);
-          setResponse({ status: '' });
-          await fetchPermission();
-          refresh();
+          setResponse({ status: 'loading' });
+          await refresh();
         }
       })
       .catch((err) => {
@@ -113,11 +112,9 @@ const User = (props) => {
     setResponse({ status: 'loading' });
     apiService
       .addUserPermission(data)
-      .then(async (res) => {
+      .then((res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
-          setResponse({ status: '' });
-          await fetchPermission();
         }
       })
       .catch((err) => {
@@ -135,7 +132,8 @@ const User = (props) => {
       username: user.toLowerCase(),
     };
     await onSaveClicked(value);
-    refresh();
+    setResponse({ status: 'loading' });
+    await refresh();
     onNewPermissionChange();
   };
 
@@ -183,7 +181,6 @@ const User = (props) => {
           <AddUser
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
-            refresh={refresh}
           />
         )}
         {response.status === 'edit' && (
@@ -192,23 +189,24 @@ const User = (props) => {
             handleCancelClick={onCancelClicked}
             username={editUser}
             access={editAccess}
-            refresh={refresh}
           />
         )}
-        {response.status === 'success' && safeData && safeData.response && (
+        {response.status === 'success' && (
           <>
-            {safeData.response?.users &&
-              Object.keys(safeData.response?.users).length > 0 && (
-                <PermissionsList
+            {userDetails?.length > 0 &&
+              safeData?.response?.users &&
+              Object.keys(safeData.response.users).length > 0 && (
+                <UserPermissionsList
                   list={safeData.response.users}
                   onEditClick={(key, value) => onEditClick(key, value)}
                   onDeleteClick={(key) => onDeleteClick(key)}
+                  userDetails={userDetails}
                 />
               )}
-            {(safeData.response.users === null ||
-              !safeData.response.users ||
-              (safeData.response.users &&
-                Object.keys(safeData.response.users).length === 0)) && (
+            {(!safeData?.response?.users ||
+              userDetails?.length === 0 ||
+              (Object.keys(safeData?.response?.users)?.length === 1 &&
+                Object.values(safeData?.response?.users)[0] === 'sudo')) && (
               <NoDataWrapper>
                 <NoData
                   imageSrc={noPermissionsIcon}
@@ -244,8 +242,8 @@ User.propTypes = {
   newPermission: PropTypes.bool.isRequired,
   onNewPermissionChange: PropTypes.func.isRequired,
   safeData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 export default User;

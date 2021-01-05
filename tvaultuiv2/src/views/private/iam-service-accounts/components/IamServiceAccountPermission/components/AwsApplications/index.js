@@ -69,7 +69,7 @@ const AwsApplications = (props) => {
 
   const isMobileScreen = useMediaQuery(small);
 
-  // on svc account meta data is available.
+  // on iam svc account meta data is available.
   useEffect(() => {
     if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
       if (Object.keys(accountMetaData?.response).length !== 0) {
@@ -101,7 +101,7 @@ const AwsApplications = (props) => {
 
   /**
    * @function onDeleteClick
-   * @description function to delete the aws configuration from the svc account aws
+   * @description function to delete the aws configuration from the iam svc account aws
    * application list.
    * @param {role} string role of the aws configuration.
    * @param {access} string permission of the aws configuration.
@@ -128,7 +128,7 @@ const AwsApplications = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the aws configuration role to the svc account
+   * @description function to save the aws configuration role to the iam svc account
    * aws application list.
    * @param {data} object payload to call api.
    */
@@ -153,7 +153,7 @@ const AwsApplications = (props) => {
 
   /**
    * @function onSubmit
-   * @description function to save the aws configuration  to the svc account
+   * @description function to save the aws configuration  to the iam svc account
    * aws application list and then call the save of role to aws application list.
    * @param {data} object payload to call api.
    */
@@ -162,9 +162,9 @@ const AwsApplications = (props) => {
     onNewAwsChange();
     let url = '';
     if (data.auth_type === 'iam') {
-      url = '/serviceaccounts/aws/iam/role';
+      url = '/iamserviceaccounts/aws/iam/role';
     } else {
-      url = '/serviceaccounts/aws/role';
+      url = '/iamserviceaccounts/aws/role';
     }
     apiService
       .addAwsPermission(url, data)
@@ -223,7 +223,7 @@ const AwsApplications = (props) => {
    */
   const onEditClick = (key, value) => {
     if (value === 'write') {
-      setEditAccess('reset');
+      setEditAccess('rotate');
     } else {
       setEditAccess(value);
     }
@@ -243,7 +243,7 @@ const AwsApplications = (props) => {
             handleSaveClick={(data, access) => onSubmit(data, access)}
             handleCancelClick={onCancelClicked}
             handleModalClose={() => onCancelClicked()}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'edit' && (
@@ -254,7 +254,7 @@ const AwsApplications = (props) => {
             handleCancelClick={onCancelClicked}
             awsName={editAws}
             access={editAccess}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
         {accountMetaData &&
@@ -268,7 +268,7 @@ const AwsApplications = (props) => {
                     list={accountMetaData.response['aws-roles']}
                     onEditClick={(key, value) => onEditClick(key, value)}
                     onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                    isIamSvcAccount
+                    isIamAzureSvcAccount
                   />
                 )}
               {(!accountMetaData.response['aws-roles'] ||

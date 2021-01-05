@@ -16,6 +16,7 @@ import CertificateInformation from '../CertificateInformation';
 import CertificatePermission from '../CertificatePermission';
 import Download from '../CertificateInformation/components/Download';
 import SnackbarComponent from '../../../../../components/Snackbar';
+import { getEachUsersDetails } from '../../../../../services/helper-function';
 // import { UserContext } from '../../../../../contexts';
 // styled components goes here
 
@@ -99,6 +100,7 @@ const CertificateSelectionTabs = (props) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [hasPermission, setHasPermission] = useState(false);
   const [toastResponse, setToastResponse] = useState(null);
+  const [userDetails, setUserDetails] = useState([]);
 
   const [state] = useStateValue();
   // const contextObj = useContext(UserContext);
@@ -107,17 +109,27 @@ const CertificateSelectionTabs = (props) => {
     setValue(newValue);
   };
 
+  const getEachUser = async (data) => {
+    const eachUsersDetails = await getEachUsersDetails(data);
+    setResponse({ status: 'success' });
+    if (eachUsersDetails !== null) {
+      setUserDetails([...eachUsersDetails]);
+    }
+  };
+
   const getAllCertificateDetail = () => {
     setResponse({ status: 'loading' });
+    setUserDetails([]);
     const url = `/sslcert?certificateName=${certificateDetail.certificateName}&certType=${certificateDetail.certType}`;
     apiService
       .getCertificateDetail(url)
       .then((res) => {
-        setResponse({ status: 'success' });
         if (res.data.keys && res.data.keys[0]) {
           setCertificateMetaData({ ...res.data.keys[0] });
+          getEachUser(res.data.keys[0].users);
         } else if (res.data) {
           setCertificateMetaData({ ...res.data });
+          getEachUser(res.data);
         } else {
           setCertificateMetaData({});
         }
@@ -134,17 +146,20 @@ const CertificateSelectionTabs = (props) => {
 
   const fetchCertificateDetail = () => {
     setResponse({ status: 'loading' });
+    setUserDetails([]);
     const url = `/sslcert/certificate/${certificateDetail.certType}?certificate_name=${certificateDetail.certificateName}`;
     apiService
       .getCertificateDetail(url)
       .then((res) => {
-        setResponse({ status: 'success' });
         if (res.data.keys && res.data.keys[0]) {
           setCertificateMetaData({ ...res.data.keys[0] });
+          getEachUser(res.data.keys[0].users);
         } else if (res.data) {
           setCertificateMetaData({ ...res.data });
+          getEachUser(res.data);
         } else {
           setCertificateMetaData({});
+          setResponse({ status: 'success' });
         }
       })
       .catch((err) => {
@@ -172,8 +187,9 @@ const CertificateSelectionTabs = (props) => {
     apiService
       .checkCertificateStatus(url)
       .then(() => {
-        setResponse({ status: 'success' });
         setCertificateMetaData({ ...certificateDetail });
+        getEachUser(certificateDetail.users);
+        setResponse({ status: 'success' });
       })
       .catch((err) => {
         if (err?.response?.data?.errors && err.response.data.errors[0]) {
@@ -181,8 +197,9 @@ const CertificateSelectionTabs = (props) => {
             err.response.data.errors[0] ===
             'Certificate is in Revoke Requested status'
           ) {
-            setResponse({ status: 'success' });
             setCertificateMetaData({ ...certificateDetail });
+            getEachUser(certificateDetail.users);
+            setResponse({ status: 'success' });
           } else {
             setErrorMessage(err.response.data.errors[0]);
             setResponse({ status: 'error' });
@@ -195,7 +212,10 @@ const CertificateSelectionTabs = (props) => {
 
   useEffect(() => {
     if (Object.keys(certificateDetail).length > 0) {
-      if (!certificateDetail?.applicationName) {
+      if (
+        !certificateDetail?.applicationName &&
+        !certificateDetail.isOnboardCert
+      ) {
         fetchCertificateDetail();
       } else if (
         certificateDetail.certificateStatus === 'Revoked' ||
@@ -203,8 +223,8 @@ const CertificateSelectionTabs = (props) => {
       ) {
         checkCertStatus();
       } else {
-        setResponse({ status: 'success' });
         setCertificateMetaData({ ...certificateDetail });
+        getEachUser(certificateDetail?.users);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -285,6 +305,7 @@ const CertificateSelectionTabs = (props) => {
               responseStatus={response.status}
               certificateMetaData={certificateMetaData}
               fetchDetail={getAllCertificateDetail}
+              userDetails={userDetails}
               username={state.username}
             />
           </TabPanel>

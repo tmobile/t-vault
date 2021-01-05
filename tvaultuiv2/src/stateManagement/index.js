@@ -1,7 +1,7 @@
 const initilaState = {
   message: 'Welcome',
-  username: localStorage.getItem('username'),
-  isAdmin: localStorage.getItem('isAdmin'),
+  username: localStorage.getItem('username')?.toLowerCase(),
+  isAdmin: JSON.parse(localStorage.getItem('isAdmin')),
   userEmail: localStorage.getItem('owner'),
   appRoleList: [],
   iamServiceAccountList: [],

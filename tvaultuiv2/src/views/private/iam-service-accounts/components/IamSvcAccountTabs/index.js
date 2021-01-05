@@ -96,6 +96,7 @@ const AccountSelectionTabs = (props) => {
     disabledPermission,
     accountMetaData,
     status,
+    userDetails,
   } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
@@ -107,8 +108,10 @@ const AccountSelectionTabs = (props) => {
   useEffect(() => {
     if (accountDetail?.name) {
       fetchPermission();
+      if (isIamSvcAccountActive && accountDetail?.permission !== 'deny') {
+        getSecrets();
+      }
     }
-    if (accountDetail?.name && isIamSvcAccountActive) getSecrets();
   }, [accountDetail, fetchPermission, getSecrets, isIamSvcAccountActive]);
 
   return (
@@ -123,7 +126,7 @@ const AccountSelectionTabs = (props) => {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            {!disabledPermission && (
+            {accountDetail?.name && !disabledPermission && (
               <Tab
                 label="Permissions"
                 {...a11yProps(1)}
@@ -152,6 +155,7 @@ const AccountSelectionTabs = (props) => {
               refresh={refresh}
               fetchPermission={fetchPermission}
               isIamSvcAccountActive={isIamSvcAccountActive}
+              userDetails={userDetails}
             />
           </TabPanel>
         </TabContentsWrap>
@@ -160,19 +164,22 @@ const AccountSelectionTabs = (props) => {
   );
 };
 AccountSelectionTabs.propTypes = {
-  accountDetail: PropTypes.objectOf(PropTypes.object),
+  accountDetail: PropTypes.objectOf(PropTypes.any),
   refresh: PropTypes.func.isRequired,
   fetchPermission: PropTypes.func.isRequired,
   getSecrets: PropTypes.func.isRequired,
-  isIamSvcAccountActive: PropTypes.bool.isRequired,
-  accountMetaData: PropTypes.objectOf(PropTypes.object).isRequired,
-  accountSecretData: PropTypes.objectOf(PropTypes.object),
+  isIamSvcAccountActive: PropTypes.bool,
+  accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
+  accountSecretData: PropTypes.objectOf(PropTypes.any),
   accountSecretError: PropTypes.string.isRequired,
   disabledPermission: PropTypes.bool.isRequired,
-  status: PropTypes.objectOf(PropTypes.object).isRequired,
+  status: PropTypes.objectOf(PropTypes.any).isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 AccountSelectionTabs.defaultProps = {
   accountDetail: {},
+  accountSecretData: {},
+  isIamSvcAccountActive: false,
 };
 
 export default AccountSelectionTabs;

@@ -1,5 +1,7 @@
-/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-indent */
+/* eslint-disable react/jsx-curly-newline */
+/* eslint-disable no-nested-ternary */
+
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
@@ -7,23 +9,23 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../../../components/NoData';
 import ButtonComponent from '../../../../../../../components/FormFields/ActionButton';
+import PermissionsList from '../../../../../../../components/PermissionsList';
 import noPermissionsIcon from '../../../../../../../assets/no-permissions.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
-import AddGroup from '../../../../../../../components/AddGroup';
+import AddAppRole from '../../../../../../../components/AddAppRole';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import PermissionsList from '../../../../../../../components/PermissionsList';
+import Error from '../../../../../../../components/Error';
 import Strings from '../../../../../../../resources';
+import { checkAccess } from '../../../../../../../services/helper-function';
 
 const { small, belowLarge } = mediaBreakpoints;
 
 const NoDataWrapper = styled.section`
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100%;
   width: 100%;
-
+  height: 100%;
   p {
     ${small} {
       margin-top: 2rem;
@@ -52,58 +54,58 @@ const noDataStyle = css`
   }
 `;
 
-const Groups = (props) => {
+const AppRoles = (props) => {
   const {
-    certificateMetaData,
-    newGroup,
-    onNewGroupChange,
+    azureMetaData,
+    refresh,
+    onNewAppRoleChange,
+    newAppRole,
     updateToastMessage,
     responseStatus,
-    refresh,
   } = props;
 
-  const [editGroup, setEditGroup] = useState('');
-  const [editAccess, setEditAccess] = useState('');
   const [response, setResponse] = useState({ status: 'loading' });
+  const [editRole, setEditRole] = useState('');
+  const [editAccess, setEditAccess] = useState('');
+  const [editClicked, setEditClicked] = useState(false);
+
   const isMobileScreen = useMediaQuery(small);
 
-  // on svc account meta data is available.
+  // azure account meta data is available.
   useEffect(() => {
-    setResponse({ status: responseStatus });
+    setResponse(responseStatus);
   }, [responseStatus]);
 
-  // When add permission button is clicked.
+  // When add app role button is clicked.
   useEffect(() => {
-    if (newGroup) {
+    if (newAppRole) {
       setResponse({ status: 'add' });
     }
-  }, [newGroup]);
+  }, [newAppRole]);
 
-  const constructPayload = (groupname, access) => {
+  const constructPayload = (approlename, access) => {
     const data = {
-      access,
-      certType: certificateMetaData.certType,
-      certificateName: certificateMetaData.certificateName,
-      groupname,
+      access: checkAccess(access, 'iamsvcaccount'),
+      approlename,
+      azureSvcAccName: azureMetaData.servicePrincipalName,
     };
     return data;
   };
 
   /**
    * @function onDeleteClick
-   * @description function to delete the group from the svc account groups list.
-   * @param {groupname} string groupname of the group.
-   * @param {access} string permission of the group.
+   * @description function to delete the app role from the azure svc account app role list.
+   * @param {role} string app role name.
+   * @param {access} string permission of the app role.
    */
-  const onDeleteClick = async (groupname, access) => {
+  const onDeleteClick = (role, access) => {
     setResponse({ status: 'loading' });
-    const payload = constructPayload(groupname, access);
+    const payload = constructPayload(role, access);
     apiService
-      .deleteCertificateGroup(payload)
+      .deleteAppRolePermission(payload)
       .then(async (res) => {
-        if (res && res.data?.messages && res.data.messages[0]) {
+        if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
-          setResponse({ status: '' });
           await refresh();
         }
       })
@@ -117,17 +119,16 @@ const Groups = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the group to the svc account groups list.
+   * @description function to save the app rolr to the azure svc account app role list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {
     setResponse({ status: 'loading' });
-    apiService
-      .addCertificateGroup(data)
+    return apiService
+      .addAppRolePermission(data)
       .then(async (res) => {
-        if (res && res.data?.messages) {
+        if (res?.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data?.messages[0]);
-          setResponse({ status: '' });
           await refresh();
         }
       })
@@ -142,35 +143,30 @@ const Groups = (props) => {
   /**
    * @function onSubmit
    * @description function structure the payload when save/edit is clicked and call save api.
-   * @param {groupname} string group name of the group.
-   * @param {access} string permission given to the group.
+   * @param {role} string role name.
+   * @param {access} string permission given to the app role.
    */
-  const onSubmit = async (groupname, access) => {
-    const payload = constructPayload(groupname, access);
-    try {
-      await onSaveClicked(payload);
-      onNewGroupChange();
-    } catch {
-      setResponse({ status: 'success' });
-      updateToastMessage(-1, 'Something went wrong');
-    }
+  const onSubmit = async (role, access) => {
+    const payload = constructPayload(role, access);
+    await onSaveClicked(payload);
+    onNewAppRoleChange();
   };
 
   /**
    * @function onEditSaveClicked
-   * @description function to edit the existing group.
-   * @param {groupname} string group name of the group.
-   * @param {access} string permission given to the group.
+   * @description function to edit the existing app role.
+   * @param {role} string app role name to edit.
+   * @param {access} string permission given to the app role.
    */
-  const onEditSaveClicked = (groupname, access) => {
+  const onEditSaveClicked = (role, access) => {
     setResponse({ status: 'loading' });
-    const payload = constructPayload(groupname, access);
+    const payload = constructPayload(role, access);
     apiService
-      .deleteCertificateGroup(payload)
+      .deleteAppRolePermission(payload)
       .then(async (res) => {
         if (res) {
           setResponse({ status: 'loading' });
-          await onSubmit(groupname, access);
+          await onSubmit(role, access);
         }
       })
       .catch((err) => {
@@ -182,24 +178,29 @@ const Groups = (props) => {
   };
 
   /**
-   * @function onCancelClicked
-   * @description function when cancel of add group and edit group is called.
+   * @function onEditClick
+   * @description function to edit the existing app role.
+   * @param {key} key role name of  the permission.
+   * @param {value} value permission given to the app role.
    */
-  const onCancelClicked = () => {
-    setResponse({ status: 'success' });
-    onNewGroupChange();
+  const onEditClick = (key, value) => {
+    setEditClicked(true);
+    if (value === 'write') {
+      setEditAccess('rotate');
+    } else {
+      setEditAccess(value);
+    }
+    setEditRole(key);
+    setResponse({ status: 'edit' });
   };
 
   /**
-   * @function onEditClick
-   * @description function to edit the existing group.
-   * @param {key} key group name of the group.
-   * @param {value} value permission given to the group.
+   * @function onCancelClicked
+   * @description function when cancel of add app role and edit app role is called.
    */
-  const onEditClick = (key, value) => {
-    setEditAccess(value);
-    setEditGroup(key);
-    setResponse({ status: 'edit' });
+  const onCancelClicked = () => {
+    setResponse({ status: 'success' });
+    onNewAppRoleChange();
   };
 
   return (
@@ -209,39 +210,40 @@ const Groups = (props) => {
           <LoaderSpinner customStyle={customStyle} />
         )}
         {response.status === 'add' && (
-          <AddGroup
-            handleSaveClick={(group, access) => onSubmit(group, access)}
-            handleCancelClick={onCancelClicked}
-            isCertificate
+          <AddAppRole
+            handleSaveClick={(role, access) => onSubmit(role, access)}
+            handleCancelClick={() => onCancelClicked()}
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'edit' && (
-          <AddGroup
-            handleSaveClick={(group, access) =>
-              onEditSaveClicked(group, access)
-            }
-            handleCancelClick={onCancelClicked}
-            groupname={editGroup}
+          <AddAppRole
+            handleSaveClick={(role, access) => onEditSaveClicked(role, access)}
+            handleCancelClick={() => onCancelClicked()}
             access={editAccess}
-            isCertificate
+            editClicked={editClicked}
+            role={editRole}
+            isIamAzureSvcAccount
           />
         )}
-        {response.status === 'success' && (
+
+        {azureMetaData && response.status === 'success' && (
           <>
-            {certificateMetaData.groups &&
-              Object.keys(certificateMetaData.groups).length > 0 && (
+            {azureMetaData['app-roles'] &&
+              Object.keys(azureMetaData['app-roles']).length > 0 && (
                 <PermissionsList
-                  list={certificateMetaData.groups}
+                  list={azureMetaData['app-roles']}
                   onEditClick={(key, value) => onEditClick(key, value)}
                   onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                  isIamAzureSvcAccount
                 />
               )}
-            {(!certificateMetaData.groups ||
-              Object.keys(certificateMetaData.groups).length === 0) && (
+            {(!azureMetaData['app-roles'] ||
+              Object.keys(azureMetaData['app-roles']).length === 0) && (
               <NoDataWrapper>
                 <NoData
                   imageSrc={noPermissionsIcon}
-                  description={Strings.Resources.noGroupsPermissionFound}
+                  description={Strings.Resources.noAppRolePermissionFound}
                   actionButton={
                     // eslint-disable-next-line react/jsx-wrap-multilines
                     <ButtonComponent
@@ -259,17 +261,22 @@ const Groups = (props) => {
             )}
           </>
         )}
+        {response.status === 'error' && (
+          <Error
+            description={responseStatus.message || 'Something went wrong!'}
+          />
+        )}
       </>
     </ComponentError>
   );
 };
 
-Groups.propTypes = {
-  responseStatus: PropTypes.string.isRequired,
-  newGroup: PropTypes.bool.isRequired,
-  onNewGroupChange: PropTypes.func.isRequired,
-  certificateMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
-  updateToastMessage: PropTypes.func.isRequired,
+AppRoles.propTypes = {
+  azureMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   refresh: PropTypes.func.isRequired,
+  newAppRole: PropTypes.bool.isRequired,
+  onNewAppRoleChange: PropTypes.func.isRequired,
+  updateToastMessage: PropTypes.func.isRequired,
+  responseStatus: PropTypes.objectOf(PropTypes.any).isRequired,
 };
-export default Groups;
+export default AppRoles;

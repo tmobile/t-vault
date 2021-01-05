@@ -3,7 +3,14 @@
 /* eslint-disable no-param-reassign */
 import React, { useState, useEffect, useCallback, lazy } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Link, Route, Switch, Redirect, useHistory } from 'react-router-dom';
+import {
+  Link,
+  Route,
+  Switch,
+  Redirect,
+  useHistory,
+  useLocation,
+} from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
@@ -33,7 +40,8 @@ import EditDeletePopper from '../EditDeletePopper';
 import SelectWithCountComponent from '../../../../../components/FormFields/SelectWithCount';
 import {
   ListContainer,
-  StyledInfiniteScroll,
+  ListContent,
+  NoResultFound,
 } from '../../../../../styles/GlobalStyles/listingStyle';
 import configData from '../../../../../config/config';
 
@@ -84,12 +92,6 @@ const NoDataWrapper = styled.div`
   justify-content: center;
   align-items: center;
   color: #5e627c;
-  span {
-    margin: 0 0.4rem;
-    color: #fff;
-    font-weight: bold;
-    text-transform: uppercase;
-  }
 `;
 
 const PopperWrap = styled.div`
@@ -110,8 +112,8 @@ const SafeFolderWrap = styled(Link)`
   justify-content: space-between;
   padding: 1.2rem 1.8rem 1.2rem 3.8rem;
   background-image: ${(props) =>
-    props.active ? props.theme.gradients.list : 'none'};
-  color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
+    props.active === 'true' ? props.theme.gradients.list : 'none'};
+  color: ${(props) => (props.active === 'true' ? '#fff' : '#4a4a4a')};
   ${mediaBreakpoints.belowLarge} {
     padding: 2rem 1.1rem;
   }
@@ -189,9 +191,7 @@ const SafeDashboard = () => {
     shared: [],
   });
   const [safeList, setSafeList] = useState([]);
-  const [moreData] = useState(false);
-  const [status, setStatus] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [response, setResponse] = useState({});
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [menu, setMenu] = useState([]);
   const [selectList] = useState([
@@ -205,7 +205,7 @@ const SafeDashboard = () => {
   const [toast, setToast] = useState(null);
   const [safeClicked, setSafeClicked] = useState(false);
   const [allSafeList, setAllSafeList] = useState([]);
-  const [goodToRoute, setGoodToRoute] = useState(false);
+  const location = useLocation();
   const [selectedSafeDetails, setSelectedSafeDetails] = useState({});
   const handleClose = () => {
     setOpenConfirmationModal(false);
@@ -241,7 +241,8 @@ const SafeDashboard = () => {
    * @description function call all the manage and safe api.
    */
   const fetchData = useCallback(async () => {
-    setStatus({ status: 'loading', message: 'Loading...' });
+    setSafeType('All Safes');
+    setResponse({ status: 'loading', message: 'Loading...' });
     setInputSearchValue('');
     let safesApiResponse = [];
     if (configData.AUTH_TYPE === 'oidc') {
@@ -257,12 +258,12 @@ const SafeDashboard = () => {
       appsListApiResponse,
     ]);
     allApiResponse
-      .then((response) => {
+      .then((result) => {
         const safesObject = { users: [], apps: [], shared: [] };
         if (configData.AUTH_TYPE === 'oidc') {
-          if (response[0] && response[0].data) {
-            Object.keys(response[0].data).forEach((item) => {
-              const data = makeSafesList(response[0].data[item], item);
+          if (result[0] && result[0].data) {
+            Object.keys(result[0].data).forEach((item) => {
+              const data = makeSafesList(result[0].data[item], item);
               data.map((value) => {
                 return safesObject[item].push(value);
               });
@@ -281,14 +282,14 @@ const SafeDashboard = () => {
             });
           }
         }
-        if (response[1] && response[1]?.data?.keys) {
-          compareSafesAndList(response[1].data.keys, 'users', safesObject);
+        if (result[1] && result[1]?.data?.keys) {
+          compareSafesAndList(result[1].data.keys, 'users', safesObject);
         }
-        if (response[2] && response[2]?.data?.keys) {
-          compareSafesAndList(response[2].data.keys, 'shared', safesObject);
+        if (result[2] && result[2]?.data?.keys) {
+          compareSafesAndList(result[2].data.keys, 'shared', safesObject);
         }
-        if (response[3] && response[3]?.data?.keys) {
-          compareSafesAndList(response[3].data.keys, 'apps', safesObject);
+        if (result[3] && result[3]?.data?.keys) {
+          compareSafesAndList(result[3].data.keys, 'apps', safesObject);
         }
         setSafes(safesObject);
         setSafeList([
@@ -301,11 +302,10 @@ const SafeDashboard = () => {
           ...safesObject.shared,
           ...safesObject.apps,
         ]);
-        setGoodToRoute(true);
-        setStatus({ status: 'success', message: '' });
+        setResponse({ status: 'success', message: '' });
       })
       .catch(() => {
-        setStatus({ status: 'failed', message: 'failed' });
+        setResponse({ status: 'failed', message: 'failed' });
       });
   }, [compareSafesAndList]);
 
@@ -314,26 +314,56 @@ const SafeDashboard = () => {
    */
   useEffect(() => {
     fetchData().catch(() => {
-      setStatus({ status: 'failed', message: 'failed' });
+      setResponse({ status: 'failed', message: 'failed' });
     });
   }, [fetchData]);
 
   useEffect(() => {
     setMenu([
-      { name: 'All Safes', count: allSafeList?.length || 0 },
-      { name: 'User Safes', count: safes?.users?.length || 0 },
-      { name: 'Shared Safes', count: safes?.shared?.length || 0 },
-      { name: 'Application Safes', count: safes?.apps?.length || 0 },
+      { name: 'All Safes', count: safeList?.length || 0 },
+      {
+        name: 'User Safes',
+        count:
+          safeList?.filter(
+            (item) =>
+              item?.safeType?.toLowerCase() === 'User Safe'.toLowerCase()
+          ).length || 0,
+      },
+      {
+        name: 'Shared Safes',
+        count:
+          safeList?.filter(
+            (item) =>
+              item?.safeType?.toLowerCase() === 'Shared Safe'.toLowerCase()
+          ).length || 0,
+      },
+      {
+        name: 'Application Safes',
+        count:
+          safeList?.filter(
+            (item) =>
+              item?.safeType?.toLowerCase() === 'Application Safe'.toLowerCase()
+          ).length || 0,
+      },
     ]);
+  }, [safeList, safes]);
 
-    if (safeList && safeList.length) {
-      const activeSafeDetail = safeList.filter(
-        (item) =>
-          item?.name?.toLowerCase() === history.location.pathname.split('/')[2]
-      );
-      setSelectedSafeDetails(activeSafeDetail[0]);
+  useEffect(() => {
+    if (allSafeList.length > 0) {
+      const val = location.pathname.split('/');
+      const safeName = val[val.length - 1];
+      if (safeName !== 'create-safe' && safeName !== 'edit-safe') {
+        const obj = allSafeList.find((safe) => safe.name === safeName);
+        if (obj) {
+          setSelectedSafeDetails({ ...obj });
+        } else {
+          setSelectedSafeDetails(allSafeList[0]);
+          history.push(`/safes/${allSafeList[0].name}`);
+        }
+      }
     }
-  }, [allSafeList, safes, history.location.pathname, safeList]);
+    // eslint-disable-next-line
+  }, [allSafeList, location, history]);
 
   /**
    * @function onSearchChange
@@ -344,7 +374,7 @@ const SafeDashboard = () => {
     setInputSearchValue(value);
     if (value !== '') {
       const array = allSafeList?.filter((item) => {
-        return String(item.name).startsWith(value);
+        return item?.name?.toLowerCase().includes(value?.toLowerCase().trim());
       });
       setSafeList([...array]);
     } else {
@@ -375,7 +405,9 @@ const SafeDashboard = () => {
       const array = allSafeList.filter(
         (item) =>
           item.path.split('/')[0] === obj.path &&
-          String(item.name).startsWith(inputSearchValue)
+          item?.name
+            ?.toLowerCase()
+            .includes(inputSearchValue?.toLowerCase().trim())
       );
       setSafeList([...array]);
     } else if (safeType === 'All Safes' && inputSearchValue) {
@@ -385,10 +417,6 @@ const SafeDashboard = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputSearchValue, safeType]);
-
-  const loadMoreData = () => {
-    setIsLoading(true);
-  };
 
   /**
    * @function onActionClicked
@@ -416,7 +444,7 @@ const SafeDashboard = () => {
    * @description function to delete safe.
    */
   const onDeleteSafeConfirmClicked = () => {
-    setStatus({ status: 'loading', message: 'loading' });
+    setResponse({ status: 'loading', message: 'loading' });
     setSafes({ users: [], apps: [], shared: [] });
     setSafeList([]);
     setOpenConfirmationModal(false);
@@ -424,7 +452,7 @@ const SafeDashboard = () => {
       .deleteSafe(deletionPath)
       .then(() => {
         setDeletionPath('');
-        setStatus({ status: 'success', message: 'success' });
+        setResponse({ status: 'success', message: 'success' });
         setToast(1);
         fetchData();
       })
@@ -476,7 +504,6 @@ const SafeDashboard = () => {
     history.push({ pathname: '/safes/edit-safe', state: { safe } });
   };
 
-  let scrollParentRef = null;
   const renderSafes = () => {
     return safeList.map((safe) => {
       return (
@@ -487,7 +514,11 @@ const SafeDashboard = () => {
             state: { safe },
           }}
           onClick={() => onLinkClicked()}
-          active={history.location.pathname === `/safes/${safe.name}`}
+          active={
+            history.location.pathname === `/safes/${safe.name}`
+              ? 'true'
+              : 'false'
+          }
         >
           <ListItem
             title={safe.name}
@@ -565,73 +596,58 @@ const SafeDashboard = () => {
                 />
               </SearchWrap>
             </ColumnHeader>
-            {status.status === 'loading' && (
+            {response.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
-            {status.status === 'failed' && !safeList?.length && (
+            {response.status === 'failed' && (
               <EmptySecretBox>
-                {' '}
                 <Error description="Error while fetching safes!" />
               </EmptySecretBox>
             )}
-            {safeList && safeList.length > 0 ? (
-              <ListContainer ref={(ref) => (scrollParentRef = ref)}>
-                <StyledInfiniteScroll
-                  pageStart={0}
-                  loadMore={() => {
-                    loadMoreData();
-                  }}
-                  hasMore={moreData}
-                  threshold={100}
-                  loader={!isLoading ? <div key={0}>Loading...</div> : <></>}
-                  useWindow={false}
-                  getScrollParent={() => scrollParentRef}
-                >
-                  {renderSafes()}
-                </StyledInfiniteScroll>
-              </ListContainer>
-            ) : (
-              safeList?.length === 0 &&
-              status.status === 'success' && (
-                <>
-                  {inputSearchValue ? (
-                    <NoDataWrapper>
-                      No safe found with name
-                      <span>{inputSearchValue}</span>
-                      {safeType !== 'All Safes' && (
-                        <>
-                          and filter by
-                          <span>{safeType}</span>
-                        </>
-                      )}
-                      {' . '}
-                    </NoDataWrapper>
-                  ) : (
-                    <NoDataWrapper>
-                      {' '}
-                      <NoSafeWrap>
-                        <NoData
-                          imageSrc={NoSafesIcon}
-                          description="Create a Safe to get started!"
-                          actionButton={
-                            // eslint-disable-next-line react/jsx-wrap-multilines
-                            <FloatingActionButtonComponent
-                              href="/safes/create-safe"
-                              color="secondary"
-                              icon="addd"
-                              tooltipTitle="Create New Safe"
-                              tooltipPos="bottom"
-                            />
-                          }
-                          customStyle={noDataStyle}
-                        />
-                      </NoSafeWrap>
-                    </NoDataWrapper>
-                  )}
-                </>
-              )
+            {response.status === 'success' && (
+              <>
+                {safeList.length > 0 ? (
+                  <ListContainer>
+                    <ListContent>{renderSafes()}</ListContent>
+                  </ListContainer>
+                ) : (
+                  <>
+                    {inputSearchValue ? (
+                      <NoResultFound>
+                        No safe found with name
+                        <div>{inputSearchValue}</div>
+                        {safeType !== 'All Safes' && (
+                          <>
+                            and filter by
+                            <div>{safeType}</div>
+                          </>
+                        )}
+                      </NoResultFound>
+                    ) : (
+                      <NoDataWrapper>
+                        <NoSafeWrap>
+                          <NoData
+                            imageSrc={NoSafesIcon}
+                            description="Create a Safe to get started!"
+                            actionButton={
+                              <FloatingActionButtonComponent
+                                href="/safes/create-safe"
+                                color="secondary"
+                                icon="addd"
+                                tooltipTitle="Create New Safe"
+                                tooltipPos="bottom"
+                              />
+                            }
+                            customStyle={noDataStyle}
+                          />
+                        </NoSafeWrap>
+                      </NoDataWrapper>
+                    )}
+                  </>
+                )}
+              </>
             )}
-            {safeList?.length ? (
+            {safeList?.length > 0 && (
               <FloatBtnWrapper>
                 <FloatingActionButtonComponent
                   href="/safes/create-safe"
@@ -641,8 +657,6 @@ const SafeDashboard = () => {
                   tooltipPos="left"
                 />
               </FloatBtnWrapper>
-            ) : (
-              <></>
             )}
           </LeftColumnSection>
 
@@ -664,9 +678,8 @@ const SafeDashboard = () => {
                 render={(routerProps) => (
                   <SafeDetails
                     resetClicked={() => onResetClicked()}
-                    detailData={safeList}
+                    detailData={selectedSafeDetails}
                     params={routerProps}
-                    goodToRoute={goodToRoute}
                     refresh={fetchData}
                     renderContent={
                       <SelectionTabs
@@ -681,10 +694,9 @@ const SafeDashboard = () => {
                 path="/"
                 render={(routerProps) => (
                   <SafeDetails
-                    detailData={safeList}
+                    detailData={selectedSafeDetails}
                     params={routerProps}
                     resetClicked={() => onResetClicked()}
-                    goodToRoute={goodToRoute}
                     refresh={fetchData}
                     renderContent={
                       <SelectionTabs

@@ -11,9 +11,9 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import PermissionsList from '../../../../../../../components/PermissionsList';
 import Strings from '../../../../../../../resources';
 import { checkAccess } from '../../../../../../../services/helper-function';
+import UserPermissionsList from '../../../../../../../components/UserPermissionsList';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -60,6 +60,7 @@ const Users = (props) => {
     accountMetaData,
     updateToastMessage,
     refresh,
+    userDetails,
   } = props;
 
   const [editUser, setEditUser] = useState('');
@@ -67,7 +68,7 @@ const Users = (props) => {
   const [response, setResponse] = useState({ status: 'loading' });
   const isMobileScreen = useMediaQuery(small);
 
-  // on svc account meta data is available.
+  // on iam svc account meta data is available.
   useEffect(() => {
     if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
       if (Object.keys(accountMetaData?.response).length !== 0) {
@@ -87,7 +88,7 @@ const Users = (props) => {
 
   /**
    * @function onDeleteClick
-   * @description function to delete the user from the svc account users list.
+   * @description function to delete the user from the iam svc account users list.
    * @param {username} string username of the user.
    * @param {access} string permission of the user.
    */
@@ -118,7 +119,7 @@ const Users = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the user to the svc account users list.
+   * @description function to save the user to the iam svc account users list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {
@@ -172,8 +173,9 @@ const Users = (props) => {
     setResponse({ status: 'loading' });
     const payload = {
       access: checkAccess(access, 'iamsvcaccount'),
-      svcAccName: accountDetail.name,
-      username,
+      awsAccountId: `${accountDetail.iamAccountId}`,
+      username: username.toLowerCase(),
+      iamSvcAccName: `${accountDetail.name}`,
     };
     apiService
       .deleteUserPermission(payload)
@@ -208,7 +210,7 @@ const Users = (props) => {
    */
   const onEditClick = (key, value) => {
     if (value === 'write') {
-      setEditAccess('reset');
+      setEditAccess('rotate');
     } else {
       setEditAccess(value);
     }
@@ -227,7 +229,7 @@ const Users = (props) => {
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
             refresh={refresh}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'edit' && (
@@ -237,22 +239,25 @@ const Users = (props) => {
             username={editUser}
             access={editAccess}
             refresh={refresh}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'success' &&
           accountMetaData &&
           accountMetaData.response && (
             <>
-              {Object.keys(accountMetaData.response?.users).length > 0 && (
-                <PermissionsList
-                  list={accountMetaData.response.users}
-                  isIamSvcAccount
-                  onEditClick={(key, value) => onEditClick(key, value)}
-                  onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                />
-              )}
+              {Object.keys(accountMetaData.response?.users).length > 0 &&
+                userDetails?.length > 0 && (
+                  <UserPermissionsList
+                    list={accountMetaData.response.users}
+                    isIamAzureSvcAccount
+                    onEditClick={(key, value) => onEditClick(key, value)}
+                    onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                    userDetails={userDetails}
+                  />
+                )}
               {(!accountMetaData.response.users ||
+                userDetails.length === 0 ||
                 Object.keys(accountMetaData.response.users).length === 0) && (
                 <NoDataWrapper>
                   <NoData
@@ -287,5 +292,6 @@ Users.propTypes = {
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 export default Users;

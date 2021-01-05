@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-curly-newline */
 import React from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
@@ -50,8 +51,16 @@ const permissionStyles = css`
 `;
 
 const CertificatePermissionsList = (props) => {
-  const { onEditClick, list, onDeleteClick, username } = props;
-
+  const { onEditClick, list, onDeleteClick, username, userDetails } = props;
+  const getUsersDisplayName = (userName) => {
+    const obj = userDetails.find(
+      (item) => item.userName.toLowerCase() === userName.toLowerCase()
+    );
+    if (obj) {
+      return `${obj.displayName} (${obj.userName})`;
+    }
+    return username;
+  };
   return (
     <UserList>
       {Object.entries(list).map(([key, value]) => {
@@ -62,12 +71,16 @@ const CertificatePermissionsList = (props) => {
                 <IconDetailsWrap>
                   <Icon src={userIcon} alt="user" />
                   <Details>
-                    <TitleTwo extraCss={styles}>{key}</TitleTwo>
+                    <TitleTwo extraCss={styles}>
+                      {getUsersDisplayName(key)}
+                    </TitleTwo>
                     <TitleFour extraCss={permissionStyles}>{value}</TitleFour>
                   </Details>
                 </IconDetailsWrap>
                 <EditDeletePopper
-                  onEditClicked={() => onEditClick(key, value)}
+                  onEditClicked={() =>
+                    onEditClick(getUsersDisplayName(key), value)
+                  }
                   onDeleteClicked={() => onDeleteClick(key, value)}
                 />
               </EachUserWrap>
@@ -83,6 +96,7 @@ CertificatePermissionsList.propTypes = {
   onEditClick: PropTypes.func.isRequired,
   list: PropTypes.objectOf(PropTypes.any).isRequired,
   username: PropTypes.string,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
 CertificatePermissionsList.defaultProps = {

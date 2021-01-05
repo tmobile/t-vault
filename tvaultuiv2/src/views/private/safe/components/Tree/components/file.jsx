@@ -1,18 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import FileCopyIcon from '@material-ui/icons/FileCopy';
+import VisibilityIcon from '@material-ui/icons/Visibility';
+import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import ComponentError from '../../../../../../errorBoundaries/ComponentError/component-error';
 import {
   IconLock,
   IconDeleteActive,
   IconEdit,
 } from '../../../../../../assets/SvgIcons';
-import IconRefreshCC from '../../../../../../assets/refresh-ccw.svg';
 import {
   TitleThree,
   BackgroundColor,
 } from '../../../../../../styles/GlobalStyles';
 import PopperElement from '../../Popper';
+import SnackbarComponent from '../../../../../../components/Snackbar';
 
 const StyledFile = styled.div`
   background: ${BackgroundColor.secretBg};
@@ -48,6 +52,7 @@ const FolderIconWrap = styled('div')`
   margin: 0 1em;
   display: flex;
   align-items: center;
+  cursor: pointer;
   .MuiSvgIcon-root {
     width: 2.4rem;
     height: 2.4rem;
@@ -86,8 +91,11 @@ const File = (props) => {
     type,
     setIsAddInput,
     setInputType,
+    userHavePermission,
   } = props;
   const [viewSecretValue, setViewSecretValue] = useState(false);
+  const [responseType, setResponseType] = useState(null);
+  const [secretArray, setSecretArray] = useState([]);
 
   const toggleSecretValue = (val) => {
     setViewSecretValue(val);
@@ -106,8 +114,31 @@ const File = (props) => {
     });
     if (secret) {
       setSecretprefilledData(secret);
+    } else {
+      setSecretprefilledData({});
     }
   };
+
+  const onCopyClicked = () => {
+    setResponseType(1);
+  };
+
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
+  };
+
+  useEffect(() => {
+    if (secret && Object.keys(secret).length > 0) {
+      setSecretArray([
+        { name: 'Copy Key', value: Object.keys(secret)[0] },
+        { name: 'Copy Secret', value: Object.values(secret)[0] },
+      ]);
+    }
+    setViewSecretValue(false);
+  }, [secret]);
 
   return (
     <ComponentError>
@@ -134,37 +165,60 @@ const File = (props) => {
               }}
             >
               <PopperItem onClick={() => toggleSecretValue(!viewSecretValue)}>
-                <img alt="refersh-ic" src={IconRefreshCC} />
+                {viewSecretValue ? <VisibilityOffIcon /> : <VisibilityIcon />}
                 <span>{viewSecretValue ? 'Hide secret' : 'View Secret'}</span>
               </PopperItem>
-              <PopperItem onClick={() => editNode()}>
-                <IconEdit />
-                <span>Edit</span>
-              </PopperItem>
-              <PopperItem
-                onClick={
-                  () =>
-                    deleteNode({
-                      id,
-                      type,
-                      key: Object.keys(secret)[0],
-                      parentId,
-                    })
-                  // eslint-disable-next-line react/jsx-curly-newline
-                }
-              >
-                <IconDeleteActive />
-                <span>Delete</span>
-              </PopperItem>
+              {secretArray?.length > 0 &&
+                secretArray.map((item) => (
+                  <CopyToClipboard
+                    text={item.value}
+                    onCopy={() => onCopyClicked()}
+                  >
+                    <PopperItem>
+                      <FileCopyIcon />
+                      <span>{item.name}</span>
+                    </PopperItem>
+                  </CopyToClipboard>
+                ))}
+              {userHavePermission?.type === 'write' && (
+                <PopperItem onClick={() => editNode()}>
+                  <IconEdit />
+                  <span>Edit</span>
+                </PopperItem>
+              )}
+              {userHavePermission?.type === 'write' && (
+                <PopperItem
+                  onClick={
+                    () =>
+                      deleteNode({
+                        id,
+                        type,
+                        key: Object.keys(secret)[0],
+                        parentId,
+                      })
+                    // eslint-disable-next-line react/jsx-curly-newline
+                  }
+                >
+                  <IconDeleteActive />
+                  <span>Delete</span>
+                </PopperItem>
+              )}
             </PopperElement>
           </FolderIconWrap>
         </StyledFile>
+        {responseType === 1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message="Copied successfully!"
+          />
+        )}
       </FileWrap>
     </ComponentError>
   );
 };
 File.propTypes = {
-  secret: PropTypes.objectOf(PropTypes.object),
+  secret: PropTypes.objectOf(PropTypes.any),
   id: PropTypes.string,
   onDeleteTreeItem: PropTypes.func,
   parentId: PropTypes.string,
@@ -172,6 +226,7 @@ File.propTypes = {
   setIsAddInput: PropTypes.func,
   setInputType: PropTypes.func,
   setSecretprefilledData: PropTypes.func,
+  userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 File.defaultProps = {
   onDeleteTreeItem: () => {},

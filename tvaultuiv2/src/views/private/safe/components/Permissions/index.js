@@ -1,11 +1,10 @@
 /* eslint-disable react/jsx-curly-newline */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import User from './components/User';
 import Groups from './components/Groups';
-import apiService from '../../apiService';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import AppRoles from './components/AppRoles';
 import SnackbarComponent from '../../../../../components/Snackbar';
@@ -21,21 +20,24 @@ const PermissionTabsWrapper = styled('div')`
 
 const customStyle = css`
   height: 100%;
-  transform: translate(-50%, -50%);
-  position: absolute;
-  left: 50%;
-  top: 50%;
 `;
 
 const Permissions = (props) => {
-  const { safeDetail, refresh } = props;
+  const {
+    safeDetail,
+    refresh,
+    fetchPermission,
+    safePermissionData,
+    permissionResponseType,
+    userDetails,
+  } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
   const [newGroup, setNewGroup] = useState(false);
   const [newAwsApplication, setNewAwsApplication] = useState(false);
   const [newAppRole, setNewAppRole] = useState(false);
   const [count, setCount] = useState(0);
-  const [safeData, setSafeData] = useState({ response: {}, error: '' });
+  const [safeData, setSafeData] = useState({});
   const [responseType, setResponseType] = useState(0);
   const [toastResponse, setToastResponse] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
@@ -54,7 +56,14 @@ const Permissions = (props) => {
       setCount(0);
       if (value === 0) {
         if (safeData.response.users) {
-          setCount(Object.keys(safeData.response.users).length);
+          let usersCount = 0;
+          Object.entries(safeData.response.users).map(([, data]) => {
+            if (data !== 'sudo') {
+              usersCount += 1;
+            }
+            return usersCount;
+          });
+          setCount(usersCount);
         }
       } else if (value === 1) {
         if (safeData.response.groups) {
@@ -70,36 +79,7 @@ const Permissions = (props) => {
         }
       }
     }
-  }, [value, safeData]);
-
-  const fetchPermission = useCallback(() => {
-    setResponseType(0);
-    setCount(0);
-    setSafeData({});
-    return apiService
-      .getSafeDetails(`${safeDetail.path}`)
-      .then((res) => {
-        let obj = {};
-        setResponseType(1);
-        if (res && res.data?.data) {
-          obj = res.data.data;
-          setSafeData({ response: obj, error: '' });
-          setCount(Object.keys(res.data.data.users).length);
-        }
-      })
-      .catch((err) => {
-        setResponseType(-1);
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
-          setSafeData({ response: {}, error: err.response.data.errors[0] });
-        }
-      });
-  }, [safeDetail]);
-
-  useEffect(() => {
-    if (safeDetail?.manage) {
-      fetchPermission();
-    }
-  }, [safeDetail, fetchPermission]);
+  }, [value, safeData, userDetails]);
 
   const onAddLabelBtnClicked = () => {
     Object.keys(initialObject).map((item) => {
@@ -125,6 +105,16 @@ const Permissions = (props) => {
     setValue(newValue);
   };
 
+  useEffect(() => {
+    if (Object.keys(safePermissionData).length > 0) {
+      setSafeData({ ...safePermissionData });
+    }
+  }, [safePermissionData]);
+
+  useEffect(() => {
+    setResponseType(permissionResponseType);
+  }, [permissionResponseType]);
+
   return (
     <ComponentError>
       <>
@@ -136,58 +126,59 @@ const Permissions = (props) => {
             onAddLabelBtnClicked={onAddLabelBtnClicked}
           />
           {responseType === 0 && <LoaderSpinner customStyle={customStyle} />}
-          <PermissionTabsWrapper>
-            {' '}
-            <TabPanel value={value} index={0}>
-              <User
-                safeDetail={safeDetail}
-                newPermission={newPermission}
-                onNewPermissionChange={() => setNewUser(false)}
-                fetchPermission={() => fetchPermission()}
-                safeData={safeData}
-                refresh={refresh}
-                updateToastMessage={(response, message) =>
-                  updateToastMessage(response, message)
-                }
-              />
-            </TabPanel>
-            <TabPanel value={value} index={1}>
-              <Groups
-                safeDetail={safeDetail}
-                safeData={safeData}
-                fetchPermission={() => fetchPermission()}
-                newGroup={newGroup}
-                onNewGroupChange={() => setNewGroup(false)}
-                updateToastMessage={(response, message) =>
-                  updateToastMessage(response, message)
-                }
-              />
-            </TabPanel>
-            <TabPanel value={value} index={2}>
-              <AwsApplications
-                safeDetail={safeDetail}
-                safeData={safeData}
-                fetchPermission={() => fetchPermission()}
-                newAwsApplication={newAwsApplication}
-                onNewAwsChange={() => setNewAwsApplication(false)}
-                updateToastMessage={(response, message) =>
-                  updateToastMessage(response, message)
-                }
-              />
-            </TabPanel>
-            <TabPanel value={value} index={3}>
-              <AppRoles
-                safeDetail={safeDetail}
-                safeData={safeData}
-                fetchPermission={() => fetchPermission()}
-                newAppRole={newAppRole}
-                onNewAppRoleChange={() => setNewAppRole(false)}
-                updateToastMessage={(response, message) =>
-                  updateToastMessage(response, message)
-                }
-              />
-            </TabPanel>
-          </PermissionTabsWrapper>
+          {responseType === 1 && (
+            <PermissionTabsWrapper>
+              <TabPanel value={value} index={0}>
+                <User
+                  safeDetail={safeDetail}
+                  userDetails={userDetails}
+                  newPermission={newPermission}
+                  onNewPermissionChange={() => setNewUser(false)}
+                  safeData={safeData}
+                  refresh={refresh}
+                  updateToastMessage={(response, message) =>
+                    updateToastMessage(response, message)
+                  }
+                />
+              </TabPanel>
+              <TabPanel value={value} index={1}>
+                <Groups
+                  safeDetail={safeDetail}
+                  safeData={safeData}
+                  fetchPermission={fetchPermission}
+                  newGroup={newGroup}
+                  onNewGroupChange={() => setNewGroup(false)}
+                  updateToastMessage={(response, message) =>
+                    updateToastMessage(response, message)
+                  }
+                />
+              </TabPanel>
+              <TabPanel value={value} index={2}>
+                <AwsApplications
+                  safeDetail={safeDetail}
+                  safeData={safeData}
+                  fetchPermission={fetchPermission}
+                  newAwsApplication={newAwsApplication}
+                  onNewAwsChange={() => setNewAwsApplication(false)}
+                  updateToastMessage={(response, message) =>
+                    updateToastMessage(response, message)
+                  }
+                />
+              </TabPanel>
+              <TabPanel value={value} index={3}>
+                <AppRoles
+                  safeDetail={safeDetail}
+                  safeData={safeData}
+                  fetchPermission={fetchPermission}
+                  newAppRole={newAppRole}
+                  onNewAppRoleChange={() => setNewAppRole(false)}
+                  updateToastMessage={(response, message) =>
+                    updateToastMessage(response, message)
+                  }
+                />
+              </TabPanel>
+            </PermissionTabsWrapper>
+          )}
           {toastResponse === -1 && (
             <SnackbarComponent
               open
@@ -213,10 +204,15 @@ const Permissions = (props) => {
 Permissions.propTypes = {
   safeDetail: PropTypes.objectOf(PropTypes.any),
   refresh: PropTypes.func.isRequired,
+  fetchPermission: PropTypes.func.isRequired,
+  safePermissionData: PropTypes.objectOf(PropTypes.any).isRequired,
+  permissionResponseType: PropTypes.number,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
 Permissions.defaultProps = {
   safeDetail: {},
+  permissionResponseType: null,
 };
 
 export default Permissions;

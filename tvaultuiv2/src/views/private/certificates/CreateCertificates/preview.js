@@ -21,11 +21,10 @@ const Label = styled.p`
 
 const Value = styled.p`
   font-size: 1.8rem;
-  text-transform: capitalize;
+  text-transform: ${(props) => props.capitalize || ''};
 `;
 const DnsName = styled.p`
-  text-decoration: underline;
-  padding: 1rem 0;
+  padding: 0.5rem 0;
   font-size: 1.8rem;
 `;
 
@@ -64,6 +63,8 @@ const PreviewCertificate = (props) => {
     isEditCertificate,
     container,
     owner,
+    notificationEmails,
+    onboard,
   } = props;
   const [dnsNames, setDnsNames] = useState([]);
   useEffect(() => {
@@ -90,16 +91,24 @@ const PreviewCertificate = (props) => {
         </EachDetail>
         <EachDetail>
           <Label>Certificate Type:</Label>
-          <Value>{certificateType || 'N/A'}</Value>
+          <Value capitalize="capitalize">{certificateType || 'N/A'}</Value>
         </EachDetail>
         <EachDetail>
           <Label>Certificate Name:</Label>
           <Value>{certName || 'N/A'}</Value>
         </EachDetail>
         <EachDetail>
-          <Label>Aplication Name:</Label>
+          <Label>Application Name:</Label>
           <Value>{applicationName || 'N/A'}</Value>
         </EachDetail>
+        {notificationEmails?.length > 0 && (
+          <EachDetail>
+            <Label>Notification Emails:</Label>
+            {notificationEmails?.map((item) => {
+              return <DnsName key={item}>{item}</DnsName>;
+            })}
+          </EachDetail>
+        )}
         <EachDetail>
           <Label>Dns:</Label>
           {dnsNames?.length > 0 ? (
@@ -149,8 +158,8 @@ const PreviewCertificate = (props) => {
               />
             </CancelButton>
             <ButtonComponent
-              label="Create"
-              icon="add"
+              label={onboard ? 'Onboard' : 'Create'}
+              icon={onboard ? '' : 'add'}
               color="secondary"
               disabled={responseType === 0}
               onClick={() => onCreateClicked()}
@@ -175,7 +184,9 @@ PreviewCertificate.propTypes = {
   responseType: PropTypes.number,
   isEditCertificate: PropTypes.bool,
   container: PropTypes.string,
+  notificationEmails: PropTypes.arrayOf(PropTypes.any),
   owner: PropTypes.string,
+  onboard: PropTypes.bool,
 };
 
 PreviewCertificate.defaultProps = {
@@ -185,12 +196,14 @@ PreviewCertificate.defaultProps = {
   applicationName: 'N/A',
   certName: 'N/A',
   dns: [],
+  notificationEmails: [],
   handleClose: () => {},
   onCreateClicked: () => {},
   onEditClicked: () => {},
   isMobileScreen: false,
   responseType: null,
   isEditCertificate: false,
+  onboard: false,
 };
 
 export default PreviewCertificate;

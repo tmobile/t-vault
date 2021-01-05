@@ -4,7 +4,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import InfiniteScroll from 'react-infinite-scroller';
 import { Link, Route, Switch, useHistory, Redirect } from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -27,8 +26,8 @@ import apiService from '../../apiService';
 import Strings from '../../../../../resources';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
 import AccountSelectionTabs from '../IamSvcAccountTabs';
-
-// const OnBoardForm = lazy(() => import('../../OnBoardForm'));
+import { ListContent } from '../../../../../styles/GlobalStyles/listingStyle';
+import { getEachUsersDetails } from '../../../../../services/helper-function';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -63,13 +62,6 @@ const ColumnHeader = styled('div')`
   padding: 0.5em;
   justify-content: space-between;
   border-bottom: 0.1rem solid #1d212c;
-`;
-const StyledInfiniteScroll = styled(InfiniteScroll)`
-  width: 100%;
-  max-height: 61vh;
-  ${mediaBreakpoints.small} {
-    max-height: 78vh;
-  }
 `;
 
 const ListContainer = styled.div`
@@ -179,8 +171,6 @@ const IamServiceAccountDashboard = () => {
     false
   );
   const [listItemDetails, setListItemDetails] = useState({});
-  const [moreData] = useState(false);
-  const [isLoading] = useState(false);
   const [iamServiceAccountList, setIamServiceAccountList] = useState([]);
   const [status, setStatus] = useState({});
   const [getResponse, setGetResponse] = useState(null);
@@ -193,20 +183,18 @@ const IamServiceAccountDashboard = () => {
   const [isIamSvcAccountActive, setIsIamSvcAccountActive] = useState(false);
   const [accountSecretData, setAccountSecretData] = useState(null);
   const [accountSecretError, setAccountSecretError] = useState('');
-  const [disabledPermission, setDisabledPermission] = useState(false);
+  const [disabledPermission, setDisabledPermission] = useState(true);
   const [accountMetaData, setAccountMetaData] = useState({
     response: {},
     error: '',
   });
+  const [userDetails, setUserDetails] = useState([]);
 
   const [state, dispatch] = useStateValue();
 
-  let scrollParentRef = null;
-  // const classes = useStyles();
   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
-  //   const location = useLocation();
 
   const introduction = Strings.Resources.iamServiceAccountDesc;
 
@@ -216,6 +204,7 @@ const IamServiceAccountDashboard = () => {
    */
   const fetchData = useCallback(async () => {
     setStatus({ status: 'loading', message: 'Loading...' });
+    setListItemDetails({});
     setInputSearchValue('');
     const serviceList = await apiService.getIamServiceAccountList();
     const iamServiceAccounts = await apiService.getIamServiceAccounts();
@@ -231,6 +220,7 @@ const IamServiceAccountDashboard = () => {
               name: svcName.join('_'),
               iamAccountId: Object.keys(item)[0].split('_')[0],
               active: true,
+              permission: Object.values(item)[0],
             };
             return listArray.push(data);
           });
@@ -268,6 +258,7 @@ const IamServiceAccountDashboard = () => {
   useEffect(() => {
     fetchData().catch(() => {
       setStatus({ status: 'failed', message: 'failed' });
+      setGetResponse(-1);
     });
   }, [fetchData]);
 
@@ -279,7 +270,7 @@ const IamServiceAccountDashboard = () => {
     setInputSearchValue(value);
     if (value !== '') {
       const array = state?.iamServiceAccountList?.filter((item) => {
-        return String(item.name).startsWith(value);
+        return item?.name?.toLowerCase().includes(value?.toLowerCase().trim());
       });
       setIamServiceAccountList([...array]);
     } else {
@@ -365,27 +356,33 @@ const IamServiceAccountDashboard = () => {
 
   // Function to get the metadata of the given service account
   const fetchPermission = useCallback(async () => {
-    setStatus({ status: 'secrets-loading' });
     setAccountSecretData({});
-    try {
-      const res = await apiService.fetchIamServiceAccountDetails(
-        `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`
-      );
-      if (res?.data) {
-        setStatus({ status: 'secret-success' });
-        setIsIamSvcAccountActive(res?.data?.isActivated);
-        if (
-          res.data.owner_ntid.toLowerCase() === state.username.toLowerCase()
-        ) {
-          setDisabledPermission(false);
+    setIsIamSvcAccountActive(listItemDetails.active);
+    if (listItemDetails?.permission === 'write') {
+      setStatus({ status: 'secrets-loading' });
+      try {
+        const res = await apiService.fetchIamServiceAccountDetails(
+          `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`
+        );
+        if (res?.data) {
+          setStatus({ status: 'secret-success' });
           setAccountMetaData({ response: res.data, error: '' });
+          if (
+            res.data.owner_ntid.toLowerCase() === state.username.toLowerCase()
+          ) {
+            setDisabledPermission(false);
+            const eachUsersDetails = await getEachUsersDetails(res.data.users);
+            if (eachUsersDetails !== null) {
+              setUserDetails([...eachUsersDetails]);
+            }
+          }
         }
-      }
-    } catch (err) {
-      setStatus({ status: 'error' });
-      if (err) {
-        setAccountSecretError(err?.response?.data?.errors[0]);
-        setAccountMetaData({ response: {}, error: 'Something went wrong' });
+      } catch (err) {
+        setStatus({ status: 'error' });
+        if (err) {
+          setAccountSecretError(err?.response?.data?.errors[0]);
+          setAccountMetaData({ response: {}, error: 'Something went wrong' });
+        }
       }
     }
   }, [listItemDetails, state]);
@@ -402,9 +399,6 @@ const IamServiceAccountDashboard = () => {
       });
     }
   }, [iamServiceAccountList, listItemDetails, history]);
-
-  // Infine scroll load more data
-  const loadMoreData = () => {};
 
   // toast close handler
   const onToastClose = () => {
@@ -432,7 +426,7 @@ const IamServiceAccountDashboard = () => {
           listIconStyles={listIconStyles}
         />
         <BorderLine />
-        {account.name && !isMobileScreen ? (
+        {account.name && !isMobileScreen && account.permission === 'write' ? (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <ViewIcon
               onClick={(e) =>
@@ -444,7 +438,7 @@ const IamServiceAccountDashboard = () => {
             </ViewIcon>
           </PopperWrap>
         ) : null}
-        {isMobileScreen && account.name && (
+        {isMobileScreen && account.name && account.permission === 'write' && (
           <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
             {' '}
             <ViewIcon
@@ -485,7 +479,7 @@ const IamServiceAccountDashboard = () => {
             {status.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
-            {getResponse === -1 && !iamServiceAccountList?.length && (
+            {getResponse === -1 && (
               <EmptyContentBox>
                 {' '}
                 <Error description="Error while fetching service accounts!" />
@@ -495,25 +489,8 @@ const IamServiceAccountDashboard = () => {
             {getResponse === 1 && (
               <>
                 {iamServiceAccountList && iamServiceAccountList.length > 0 ? (
-                  <ListContainer
-                    // eslint-disable-next-line no-return-assign
-                    ref={(ref) => (scrollParentRef = ref)}
-                  >
-                    <StyledInfiniteScroll
-                      pageStart={0}
-                      loadMore={() => {
-                        loadMoreData();
-                      }}
-                      hasMore={moreData}
-                      threshold={100}
-                      loader={
-                        !isLoading ? <div key={0}>Loading...</div> : <></>
-                      }
-                      useWindow={false}
-                      getScrollParent={() => scrollParentRef}
-                    >
-                      {renderList()}
-                    </StyledInfiniteScroll>
+                  <ListContainer>
+                    <ListContent>{renderList()}</ListContent>
                   </ListContainer>
                 ) : (
                   iamServiceAccountList?.length === 0 &&
@@ -578,7 +555,8 @@ const IamServiceAccountDashboard = () => {
                         accountSecretData={accountSecretData}
                         accountSecretError={accountSecretError}
                         disabledPermission={disabledPermission}
-                        isIamSvcAccountActive={isIamSvcAccountActive}
+                        isIamSvcAccountActive={listItemDetails.active}
+                        userDetails={userDetails}
                       />
                     }
                   />
@@ -593,6 +571,21 @@ const IamServiceAccountDashboard = () => {
                     backToLists={backToIamServiceAccounts}
                     ListDetailHeaderBg={sectionHeaderBg}
                     description={introduction}
+                    renderContent={
+                      <AccountSelectionTabs
+                        accountDetail={listItemDetails}
+                        refresh={() => fetchData()}
+                        fetchPermission={fetchPermission}
+                        getSecrets={getSecrets}
+                        status={status}
+                        accountMetaData={accountMetaData}
+                        accountSecretData={accountSecretData}
+                        accountSecretError={accountSecretError}
+                        disabledPermission={disabledPermission}
+                        isIamSvcAccountActive={listItemDetails.active}
+                        userDetails={userDetails}
+                      />
+                    }
                   />
                 )}
               />

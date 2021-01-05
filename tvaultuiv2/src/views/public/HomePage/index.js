@@ -412,8 +412,8 @@ const LoginPage = () => {
   };
 
   useEffect(() => {
-    localStorage.clear();
     if (urlParams?.code && urlParams?.state) {
+      localStorage.clear();
       setResponse({ status: 'loading' });
       axios
         .get(
@@ -464,7 +464,7 @@ const LoginPage = () => {
 
   const ldapApiCall = (payload) => {
     axios
-      .post(`${configUrl.baseUrl}/auth/ldap/login`, payload)
+      .post(`${configUrl.baseUrl}/auth/tvault/login`, payload)
       .then(async (res) => {
         if (res?.data) {
           localStorage.setItem('token', res.data.client_token);
@@ -486,14 +486,11 @@ const LoginPage = () => {
 
   const userpassApiCall = (payload) => {
     axios
-      .post(`${configUrl.baseUrl}/auth/userpass/login`, payload)
+      .post(`${configUrl.baseUrl}/auth/tvault/login`, payload)
       .then(async (res) => {
-        const val = res.data.split('response=');
-        const data = val[1].split(', adminPolicies');
-        const responseData = JSON.parse(data[0]);
-        localStorage.setItem('token', responseData?.client_token);
-        checkAdmin(responseData?.admin);
-        localStorage.setItem('access', JSON.stringify(responseData?.access));
+        localStorage.setItem('token', res.data.client_token);
+        checkAdmin(res?.data?.admin);
+        localStorage.setItem('access', JSON.stringify(res.data.access));
         localStorage.setItem('username', payload.username.toLowerCase());
         await getOwnerAllDetails(payload.username.toLowerCase());
         window.location = '/safes';

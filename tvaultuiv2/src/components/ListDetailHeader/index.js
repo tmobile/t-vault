@@ -14,7 +14,7 @@ const ColumnHeader = styled('div')`
   height: 17.1rem;
   padding: 2rem;
   .list-title-wrap {
-    width: 62%;
+    width: 75%;
     z-index: 2;
     ${mediaBreakpoints.small} {
       width: 70%;
@@ -33,7 +33,6 @@ const ListTitle = styled('h5')`
   margin: 1rem 0 1.2rem;
   text-overflow: ellipsis;
   overflow: hidden;
-  text-transform: capitalize;
   ${mediaBreakpoints.medium} {
     font-size: 1.8rem;
   }
@@ -64,7 +63,6 @@ const BackButton = styled.div`
     margin-left: 1rem;
     font-size: 1.8rem;
     font-weight: bold;
-    text-transform: capitalize;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;

@@ -1,7 +1,7 @@
-/* eslint-disable consistent-return */
-import React, { useState } from 'react';
+/* eslint-disable array-callback-return */
+/* eslint-disable react/no-array-index-key */
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { makeStyles } from '@material-ui/core/styles';
 
 import CreateSecretButton from '../../CreateSecretButton';
 import { convertObjectToArray } from '../../../../../../services/helper-function';
@@ -11,13 +11,7 @@ import Folder from './folder';
 import AddFolderModal from '../../AddFolderModal';
 import CreateSecretModal from '../../CreateSecretsModal';
 import BackdropLoader from '../../../../../../components/Loaders/BackdropLoader';
-// import { BackgroundColor } from '../../../../../styles/GlobalStyles';
 
-const useStyles = makeStyles(() => ({
-  backdrop: {
-    position: 'absolute',
-  },
-}));
 const SecretsError = styled.div`
   display: flex;
   justify-content: center;
@@ -25,29 +19,35 @@ const SecretsError = styled.div`
   padding: 0.5rem;
 `;
 
-const TreeRecursive = ({
-  data,
-  saveSecretsToFolder,
-  saveFolder,
-  handleCancelClick,
-  setCreateSecretBox,
-  setIsAddInput,
-  isAddInput,
-  setInputType,
-  inputType,
-  status,
-  setStatus,
-  getChildrenData,
-  onDeleteTreeItem,
-  secretprefilledData,
-  setSecretprefilledData,
-}) => {
+const TreeRecursive = (props) => {
+  const {
+    data,
+    saveSecretsToFolder,
+    saveFolder,
+    handleCancelClick,
+    setCreateSecretBox,
+    setIsAddInput,
+    isAddInput,
+    setInputType,
+    inputType,
+    status,
+    setStatus,
+    getChildrenData,
+    onDeleteTreeItem,
+    secretprefilledData,
+    setSecretprefilledData,
+    userHavePermission,
+  } = props;
   const [currentNode, setCurrentNode] = useState('');
-  const classes = useStyles();
+  const [secretEditData, setsecretEditData] = useState({});
   // loop through the data
-
+  useEffect(() => {
+    if (Object.keys(secretprefilledData).length > 0) {
+      setsecretEditData(secretprefilledData);
+    }
+  }, [secretprefilledData]);
   let arr = [];
-  // eslint-disable-next-line array-callback-return
+  // eslint-disable-next-line consistent-return
   return data.map((item) => {
     if (
       item?.children[0]?.type.toLowerCase() === 'secret' &&
@@ -60,9 +60,9 @@ const TreeRecursive = ({
     if (item.type.toLowerCase() === 'secret') {
       const secretArray =
         item.value && convertObjectToArray(JSON.parse(item.value));
-      return secretArray.map((secret) => (
+      return secretArray.map((secret, index) => (
         <File
-          key={item.id}
+          key={index}
           secret={secret}
           parentId={item.parentId}
           setSecretprefilledData={setSecretprefilledData}
@@ -71,6 +71,7 @@ const TreeRecursive = ({
           setInputType={setInputType}
           onDeleteTreeItem={onDeleteTreeItem}
           id={item.id}
+          userHavePermission={userHavePermission}
         />
       ));
     }
@@ -86,10 +87,9 @@ const TreeRecursive = ({
           onDeleteTreeItem={onDeleteTreeItem}
           id={item.id}
           key={item.id}
+          userHavePermission={userHavePermission}
         >
-          {status.status === 'loading' && (
-            <BackdropLoader classes={classes} color="secondary" />
-          )}
+          {status.status === 'loading' && <BackdropLoader color="secondary" />}
 
           {inputType?.type?.toLowerCase() === 'folder' &&
             inputType?.currentNode === item.value && (
@@ -103,14 +103,21 @@ const TreeRecursive = ({
               />
             )}
           {inputType?.type?.toLowerCase() === 'secret' &&
-            inputType?.currentNode === item.value && (
+            (inputType?.currentNode === item.value ||
+              inputType?.currentNode === item.id) && (
               <CreateSecretModal
                 openModal={isAddInput}
-                secretprefilledData={secretprefilledData}
+                secretprefilledData={secretEditData}
                 setOpenModal={setIsAddInput}
                 parentId={item.id}
-                handleSecretCancel={handleCancelClick}
-                handleSecretSave={(secret) => saveFolder(secret, item.value)}
+                handleSecretCancel={() => {
+                  handleCancelClick();
+                  setsecretEditData({});
+                }}
+                handleSecretSave={(secret) => {
+                  saveFolder(secret, item.id);
+                  setsecretEditData({});
+                }}
               />
             )}
           {Array.isArray(item.children) ? (
@@ -131,6 +138,7 @@ const TreeRecursive = ({
               onDeleteTreeItem={onDeleteTreeItem}
               secretprefilledData={secretprefilledData}
               setSecretprefilledData={setSecretprefilledData}
+              userHavePermission={userHavePermission}
             />
           ) : (
             <></>
