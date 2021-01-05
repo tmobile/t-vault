@@ -101,8 +101,7 @@ const Secrets = (props) => {
           <LoaderSpinner customStyle={customStyle} />
         )}
         {secretsStatus.status === 'failed' &&
-          !secretsFolder[0]?.children?.length &&
-          userHavePermission.type !== 'deny' && (
+          !secretsFolder[0]?.children?.length && (
             <EmptySecretBox>
               <Error description="Sorry we were unable to retrieve those documents." />
             </EmptySecretBox>

@@ -153,7 +153,7 @@ const SelectionTabs = (props) => {
 
   const getSecretDetails = useCallback(() => {
     if (safeDetail.access === 'deny') {
-      setResponse({ status: 'success' });
+      setResponse({ status: 'failed' });
       setSecretsFolder([]);
       return;
     }
@@ -260,14 +260,16 @@ const SelectionTabs = (props) => {
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
             {safeDetail.manage && <Tab label="Permissions" {...a11yProps(1)} />}
           </Tabs>
-          {value === 0 && userHavePermission.type === 'write' && (
-            <NamedButton
-              label="Add Folder"
-              onClick={addSecretsFolder}
-              customStyle={customBtnStyles}
-              iconSrc={addFolderPlus}
-            />
-          )}
+          {value === 0 &&
+            userHavePermission.type === 'write' &&
+            safeDetail.access !== 'deny' && (
+              <NamedButton
+                label="Add Folder"
+                onClick={addSecretsFolder}
+                customStyle={customBtnStyles}
+                iconSrc={addFolderPlus}
+              />
+            )}
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
