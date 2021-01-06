@@ -570,6 +570,7 @@
         } 
 
         $scope.requestDataFrChangeCertificate = function () {
+            $scope.selectionValue='email';
             $scope.isLoadingData = true;           
 
             if ($stateParams.certificateObject) {
@@ -1991,9 +1992,6 @@
                 $scope.notificationEmail = { email:""};
                 $scope.isNotificationEmailSelected = false;
                 $scope.notificationEmailErrorMessage = '';
-            }
-            $scope.setDefault = function(value){
-                $scope.selectionValue=value;
             }
             $scope.addNotificationEmail = function () {
             	event.preventDefault();
