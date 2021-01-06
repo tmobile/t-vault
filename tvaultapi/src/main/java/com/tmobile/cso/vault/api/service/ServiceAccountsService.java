@@ -190,6 +190,12 @@ public class  ServiceAccountsService {
 		}
 		adServiceAccountObjectsList.setValues(values);
 		adServiceAccountObjects.setData(adServiceAccountObjectsList);
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "listOnboardedServiceAccounts").
+			      put(LogMessage.MESSAGE, "Successfully retrieved the list of Service Accounts").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return ResponseEntity.status(HttpStatus.OK).body(adServiceAccountObjects);
 	}
 
@@ -1086,7 +1092,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add User to ServiceAccount").
-							put(LogMessage.MESSAGE, String.format ("User [%s] is successfully associated with Service Account [%s]",userName,svcAccName)).
+							put(LogMessage.MESSAGE, String.format ("User [%s] is successfully associated with AD Service Account [%s] with policy[%s].",userName,svcAccName,access)).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully added user to the Service Account\"]}");
@@ -1327,7 +1333,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Remove User from ServiceAccount").
-							put(LogMessage.MESSAGE,String.format("User[%s] is successfully Removed from Service Account [%s]",userName,svcAccName)).
+							put(LogMessage.MESSAGE,String.format("User[%s] is successfully Removed from AD Service Account [%s]",userName,svcAccName)).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully removed user from the Service Account\"]}");
@@ -2040,7 +2046,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add Group to Service Account").
-							put(LogMessage.MESSAGE,  String.format("Group[%s] is successfully associated with Service Account [%s]",groupName,svcAccName)).
+							put(LogMessage.MESSAGE,  String.format("Group[%s] is successfully associated with AD Service Account [%s] with policy[%s].",groupName,svcAccName,access)).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -2214,7 +2220,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Remove Group to Service Account").
-							put(LogMessage.MESSAGE,String.format("Group [%s] is successfully removed from Service Account [%s]",groupName,svcAccName)).
+							put(LogMessage.MESSAGE,String.format("Group [%s] is successfully removed from AD Service Account [%s]",groupName,svcAccName)).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -2390,7 +2396,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add Approle to Service Account").
-							put(LogMessage.MESSAGE,String.format("Approle [%s] successfully associated with Service Account [%s]",approleName,svcAccName)).
+							put(LogMessage.MESSAGE,String.format("Approle [%s] successfully associated with AD Service Account [%s] with policy[%s].",approleName,svcAccName,access)).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -2926,7 +2932,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Remove AppRole from Service Account").
-							put(LogMessage.MESSAGE,  String.format("Approle [%s] is successfully removed(if existed) from Service Account [%s]",approleName,svcAccName)).
+							put(LogMessage.MESSAGE,  String.format("Approle [%s] is successfully removed from AD Service Account [%s]",approleName,svcAccName)).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -3079,7 +3085,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add AWS Role to Service Account").
-							put(LogMessage.MESSAGE,String.format("AWS Role [%s] successfully associated with Service Account [%s]",roleName,svcAccName)).
+							put(LogMessage.MESSAGE,String.format("AWS Role [%s] successfully associated with AD Service Account [%s] with policy[%s].",roleName,svcAccName,access)).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -3232,7 +3238,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Remove AWS Role from Service Account").
-							put(LogMessage.MESSAGE,String.format("AWS Role[%s] is successfully removed from Service Account[%s]",roleName,svcAccName)).
+							put(LogMessage.MESSAGE,String.format("AWS Role[%s] is successfully removed from AD Service Account[%s]",roleName,svcAccName)).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
