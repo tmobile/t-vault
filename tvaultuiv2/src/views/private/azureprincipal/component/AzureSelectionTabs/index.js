@@ -202,6 +202,7 @@ const AzureSelectionTabs = (props) => {
             <AzureSecrets
               azureSecretData={azureSecretData}
               secretResponse={secretResponse}
+              azureMetaData={azureMetaData}
               azureDetail={azureDetail}
               refresh={refresh}
             />
