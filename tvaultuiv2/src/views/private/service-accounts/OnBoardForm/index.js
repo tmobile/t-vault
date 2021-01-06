@@ -365,52 +365,60 @@ const OnBoardForm = (props) => {
     ),
     []
   );
-  /**
-   * fetch/update service account details after it has been onboarded
-   */
-  const updateServiceAccountDetails = useCallback(async (name) => {
-    const fetchServiceAccountDetails = await apiService.fetchServiceAccountDetails(
-      name
-    );
-    const callServiceAccount = await apiService.callServiceAccount(name);
-    const updateMetaPath = await apiService.updateMetaPath(name);
-    const allApiResponse = Promise.all([
-      fetchServiceAccountDetails,
-      callServiceAccount,
-      updateMetaPath,
-    ]);
-    allApiResponse
-      .then((res) => {
-        setStatus({});
-        setIsAutoExpand(true);
-        setIsActiveServiceAccount(res[2]?.data?.data?.initialPasswordReset);
-        setIsSwitchOn(
-          res[1]?.data?.ttl <= res[0]?.data?.data?.values[0]?.maxPwdAge
-        );
-        dispatch({
-          type: 'UPDATE_FORM_FIELDS',
-          payload: {
-            inputServiceName: res[0]?.data?.data?.values[0]?.userId,
-            inputAdGroupName: res[2]?.data?.data?.adGroup,
-            inputApplicationName: `${res[2]?.data?.data?.appName} (AppId:${res[2]?.data?.data?.appID},AppTag:${res[2]?.data?.data?.appTag})`,
-            inputExpiryTime: res[1]?.data?.ttl,
-            selectedApplication: res[2]?.data?.data,
-            serviceAccountDetails: res[0]?.data?.data?.values[0],
-          },
-        });
-      })
-      .catch((err) => {
-        setStatus({
-          status: 'failed',
-          message: err?.response?.data?.errors[0],
-        });
-      });
-  }, []);
-  // Close on board from functionality
+
+  // Close on board form functionality
   const handleClose = () => {
     setOpen(false);
     history.goBack();
   };
+
+  /**
+   * fetch/update service account details after it has been onboarded
+   */
+  const updateServiceAccountDetails = useCallback(
+    async (name) => {
+      const fetchServiceAccountDetails = await apiService.fetchServiceAccountDetails(
+        name
+      );
+      const callServiceAccount = await apiService.callServiceAccount(name);
+      const updateMetaPath = await apiService.updateMetaPath(name);
+      const allApiResponse = Promise.all([
+        fetchServiceAccountDetails,
+        callServiceAccount,
+        updateMetaPath,
+      ]);
+      allApiResponse
+        .then((res) => {
+          setStatus({});
+          setIsAutoExpand(true);
+          setIsActiveServiceAccount(res[2]?.data?.data?.initialPasswordReset);
+          setIsSwitchOn(
+            res[1]?.data?.ttl <= res[0]?.data?.data?.values[0]?.maxPwdAge
+          );
+          dispatch({
+            type: 'UPDATE_FORM_FIELDS',
+            payload: {
+              inputServiceName: res[0]?.data?.data?.values[0]?.userId,
+              inputAdGroupName: res[2]?.data?.data?.adGroup,
+              inputApplicationName: `${res[2]?.data?.data?.appName} (AppId:${res[2]?.data?.data?.appID},AppTag:${res[2]?.data?.data?.appTag})`,
+              inputExpiryTime: res[1]?.data?.ttl,
+              selectedApplication: res[2]?.data?.data,
+              serviceAccountDetails: res[0]?.data?.data?.values[0],
+            },
+          });
+        })
+        .catch((err) => {
+          setStatus({
+            status: 'failed',
+            message: err?.response?.data?.errors[0],
+          });
+          handleClose();
+        });
+    },
+    // eslint-disable-next-line
+    []
+  );
+
   /**
    *
    * @param {*} e

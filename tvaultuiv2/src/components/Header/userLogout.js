@@ -1,5 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useEffect, useState } from 'react';
+import * as msal from '@azure/msal-browser';
 import { makeStyles } from '@material-ui/core/styles';
 import Popper from '@material-ui/core/Popper';
 import Fade from '@material-ui/core/Fade';
@@ -11,6 +12,7 @@ import vectorIcon from '../../assets/vector.svg';
 import { revokeToken } from '../../views/public/HomePage/utils';
 import configData from '../../config/config';
 import mediaBreakpoints from '../../breakpoints';
+import configUrl from '../../config/index';
 
 const UserWrap = styled.div`
   display: flex;
@@ -67,6 +69,15 @@ const UserLogout = (props) => {
     setAnchorEl(anchorEl ? null : event.currentTarget);
   };
 
+  const config = {
+    auth: {
+      clientId: localStorage.getItem('clientId'),
+      redirectUri: configUrl.redirectUrl, // defaults to application start page
+      postLogoutRedirectUri: configUrl.redirectUrl,
+    },
+  };
+
+  const myMsal = new msal.PublicClientApplication(config);
   const onLogoutClicked = async () => {
     if (configData.AUTH_TYPE === 'oidc') {
       await revokeToken();
@@ -74,6 +85,7 @@ const UserLogout = (props) => {
     localStorage.clear();
     checkToken();
     history.push('/');
+    myMsal.logout();
   };
 
   const open = Boolean(anchorEl);
