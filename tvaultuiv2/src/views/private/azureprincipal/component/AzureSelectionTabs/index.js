@@ -165,6 +165,7 @@ const AzureSelectionTabs = (props) => {
             }
           });
       } else {
+        setAzureSecretData({});
         setSecretResponse({ status: 'inactive' });
       }
     }
