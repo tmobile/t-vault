@@ -448,6 +448,12 @@ const LoginPage = () => {
       axios
         .post(`${configUrl.baseUrl}/auth/oidc/auth_url`, payload)
         .then((res) => {
+          const str = res.data?.data?.auth_url;
+          const clientId = str?.substring(
+            str?.lastIndexOf('client_id=') + 10,
+            str?.lastIndexOf('&nonce')
+          );
+          localStorage.setItem('clientId', clientId);
           window.location = res.data?.data?.auth_url;
         })
         .catch(() => {
