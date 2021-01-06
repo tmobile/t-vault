@@ -169,32 +169,14 @@ public class AzureServiceAccountUtilsTest {
     }
 
     @Test
-    public void test_rotateAzureServicePrincipalSecretMOCK() {
-        AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret();
-        AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest();
-        azureServicePrincipalRotateRequest.setServicePrincipalId("100");
-        azureServicePrincipalRotateRequest.setTenantId("101");
-        azureServicePrincipalRotateRequest.setSecretKeyId("secret1");
-        
-        azureServiceAccountSecret.setServicePrincipalId("100");
-        azureServiceAccountSecret.setTenantId("101");
-        azureServiceAccountSecret.setSecretKeyId("secret1");
-        azureServiceAccountSecret.setSecretText("mocksecrettext_"+ new Date().getTime());
-        azureServiceAccountSecret.setExpiryDateEpoch(604800000L);
-        azureServiceAccountSecret.setExpiryDate(new Date(604800000L).toString());
-        AzureServiceAccountSecret result = azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(azureServicePrincipalRotateRequest);
-        assertEquals(result.getSecretKeyId(), azureServiceAccountSecret.getSecretKeyId());
-    }
-
-    @Test
     public void test_rotateAzureSecret_success() throws IOException {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String azureServiceAccountName = "svc_vault_test5";
-        String awsAccountId = "1234567890";
+        String servicePrincipalId = "1234567890-s-s-d-d-d";
         String accessKeyId = "testaccesskey";
-        String iamSecret = "abcdefgh";
         String tenantId = "110";
+        Long expiryDurationMs = 6932293200L;
         when(iamUtils.getIAMApproleToken()).thenReturn("token");
         when(ControllerUtil.getSscred()).thenReturn(new SSCred());
         when(ControllerUtil.getIamUsername()).thenReturn("M2UyNTA0MGYtODIwNS02ZWM2LTI4Y2ItOGYwZTQ1NDI1YjQ4");
@@ -205,6 +187,8 @@ public class AzureServiceAccountUtilsTest {
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(200);
         when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        String inputJson = "{\"servicePrincipalId\":\"781998f7-43d0-4c99-9d78-600ce1b6086c\",\"secretKeyId\":\"f36cbb1f-32bb-4063-9cc3-fa305fa4d967\",\"expiryDurationMs\":604800000,\"tenantId\":\"b0163331-70a6-4edc-9bbb-40c3ad1cd965\"}";
+        when(JSONUtil.getJSON(Mockito.any(ImmutableMap.class))).thenReturn(inputJson);
 
         String responseString = "{\"accessKeyId\": \"testaccesskey\", \"userName\": \"svc_vault_test5\", \"accessKeySecret\": \"abcdefgh\", \"expiryDateEpoch\": \"1609754282000\"}";
         String responseStringToken = "{\"auth\": {\"client_token\": \""+token+"\"}}";
@@ -220,7 +204,13 @@ public class AzureServiceAccountUtilsTest {
         });
 
         AzureServiceAccountSecret expectedIamServiceAccountSecret = new AzureServiceAccountSecret();
-        AzureServicePrincipalRotateRequest azureServiceAccountRotateRequest = new AzureServicePrincipalRotateRequest(accessKeyId, azureServiceAccountName, awsAccountId, responseStringToken);
+        AzureServicePrincipalRotateRequest azureServiceAccountRotateRequest = new AzureServicePrincipalRotateRequest();
+      
+        azureServiceAccountRotateRequest.setAzureSvcAccName(azureServiceAccountName);
+        azureServiceAccountRotateRequest.setServicePrincipalId(servicePrincipalId);
+        azureServiceAccountRotateRequest.setSecretKeyId(accessKeyId);
+        azureServiceAccountRotateRequest.setTenantId(tenantId);
+        azureServiceAccountRotateRequest.setExpiryDurationMs(expiryDurationMs);
         AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecret(azureServiceAccountRotateRequest);
     }
 
@@ -228,10 +218,10 @@ public class AzureServiceAccountUtilsTest {
     public void test_rotateAzureSecret_fail() throws IOException {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String azureServiceAccountName = "svc_vault_test5";
-        String awsAccountId = "1234567890";
+        String servicePrincipalId = "1234567890-s-s-d-d-d";
         String accessKeyId = "testaccesskey";
-        String iamSecret = "abcdefgh";
         String tenantId = "110";
+        Long expiryDurationMs = 63738393L;
         when(iamUtils.getIAMApproleToken()).thenReturn("token");
         when(ControllerUtil.getSscred()).thenReturn(new SSCred());
         when(ControllerUtil.getIamUsername()).thenReturn("M2UyNTA0MGYtODIwNS02ZWM2LTI4Y2ItOGYwZTQ1NDI1YjQ4");
@@ -241,6 +231,8 @@ public class AzureServiceAccountUtilsTest {
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(500);
         when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        String inputJson = "{\"servicePrincipalId\":\"781998f7-43d0-4c99-9d78-600ce1b6086c\",\"secretKeyId\":\"f36cbb1f-32bb-4063-9cc3-fa305fa4d967\",\"expiryDurationMs\":604800000,\"tenantId\":\"b0163331-70a6-4edc-9bbb-40c3ad1cd965\"}";
+        when(JSONUtil.getJSON(Mockito.any(ImmutableMap.class))).thenReturn(inputJson);
         String responseString = "{\"accessKeyId\": \"testaccesskey\", \"userName\": \"svc_vault_test5\", \"accessKeySecret\": \"abcdefgh\", \"expiryDateEpoch\": \"1609754282000\"}";
         String responseStringToken = "{\"auth\": {\"client_token\": \""+token+"\"}}";
         when(mockHttpEntity.getContent()).thenAnswer(new Answer() {
@@ -254,7 +246,7 @@ public class AzureServiceAccountUtilsTest {
         });
 
         AzureServiceAccountSecret expectedIamServiceAccountSecret = new AzureServiceAccountSecret();
-        AzureServicePrincipalRotateRequest azureServiceAccountRotateRequest = new AzureServicePrincipalRotateRequest(accessKeyId, azureServiceAccountName, awsAccountId, responseStringToken);
+        AzureServicePrincipalRotateRequest azureServiceAccountRotateRequest = new AzureServicePrincipalRotateRequest(azureServiceAccountName, accessKeyId, servicePrincipalId, tenantId, expiryDurationMs);
         AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecret(azureServiceAccountRotateRequest);
     }
 

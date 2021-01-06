@@ -357,7 +357,7 @@ public class AzureServicePrincipalAccountsControllerTest {
 
 	@Test
 	public void test_rotateSecret() throws Exception {
-		AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest("testaureserviceprincipal", "testsecretkeyid", "12345678-1234-1234-1234-123456789098", "12345678-1234-1234-97c8-123456789098");
+		AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest("testaureserviceprincipal", "testsecretkeyid", "12345678-1234-1234-1234-123456789098", "12345678-1234-1234-97c8-123456789098", 12123234L);
 		String inputJson = getJSON(azureServicePrincipalRotateRequest);
 		String responseJson = "{\"messages\":[\"Azure Service Principal secret rotated successfully\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);

@@ -1575,7 +1575,8 @@
             });
         }
 
-        $scope.newCertificateConfiguration = function (size) {           
+        $scope.newCertificateConfiguration = function (size) {   
+            $scope.selectionValue = 'email';          
             $scope.hostNameErrorMessage = '';
             $scope.certNameErrorMessage = '';
             $scope.targetSysErrorMessage = '';
@@ -2721,6 +2722,7 @@
 
         $scope.showOnboardCertificatePopup = function(certificateToOnboard) {
             $scope.clearOnboardCert();
+            $scope.selectionValue = 'email';
             $scope.certificateToOnboard = certificateToOnboard;
             $scope.certificateToOnboard.ownerEmail = "";
             $scope.certificateToOnboard.ownerNtId = "";
@@ -2858,6 +2860,7 @@
             $scope.notificationEmailErrorMessage='';
         }
         $scope.clearOnboardCert = function () {
+            $scope.selectionValue = 'email';
             $scope.certificateToOnboard = null;
             $scope.isOwnerSelectedForOnboard = false;
             $scope.appnameSelectedForOnboard = false;

@@ -20,6 +20,7 @@ package com.tmobile.cso.vault.api.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -66,6 +67,7 @@ public class SwaggerConfig {
 		ApiSelectorBuilder apiSelectorBuilder = new ApiSelectorBuilder(docket);
 		apiSelectorBuilder.apis(RequestHandlerSelectors.any());
 		apiSelectorBuilder.paths(PathSelectors.any());
+		apiSelectorBuilder.paths(Predicates.not(PathSelectors.regex("/error.*")));
 		log.debug("Checking enable/disable status for features");
 		if (!isSelfServiceEnabled) {
 			log.debug("Self Service is disabled");
