@@ -425,9 +425,13 @@ const OnBoardForm = (props) => {
       appName: selectedApplication.appName,
       appTag: selectedApplication.appTag,
       autoRotate: isSwitchOn,
-      max_ttl: serviceAccountDetails?.maxPwdAge,
+      ...(serviceAccountDetails?.maxPwdAge && {
+        max_ttl: serviceAccountDetails?.maxPwdAge,
+      }),
       name: inputServiceName,
-      ttl: inputExpiryTime || serviceAccountDetails?.maxPwdAge,
+      ...((inputExpiryTime || serviceAccountDetails?.maxPwdAge) && {
+        ttl: inputExpiryTime || serviceAccountDetails?.maxPwdAge,
+      }),
     };
     apiService
       .onBoardServiceAccount(payload)
@@ -462,9 +466,13 @@ const OnBoardForm = (props) => {
       appName: selectedApplication.appName,
       appTag: selectedApplication.appTag,
       autoRotate: isSwitchOn,
-      max_ttl: serviceAccountDetails?.maxPwdAge,
+      ...(serviceAccountDetails?.maxPwdAge && {
+        max_ttl: serviceAccountDetails?.maxPwdAge,
+      }),
       name: inputServiceName,
-      ttl: inputExpiryTime || serviceAccountDetails?.maxPwdAge,
+      ...((inputExpiryTime || serviceAccountDetails?.maxPwdAge) && {
+        ttl: inputExpiryTime || serviceAccountDetails?.maxPwdAge,
+      }),
     };
     apiService
       .updateServiceAccount(payload)

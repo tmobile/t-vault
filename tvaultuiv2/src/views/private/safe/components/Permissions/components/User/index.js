@@ -203,7 +203,7 @@ const User = (props) => {
                   userDetails={userDetails}
                 />
               )}
-            {(!safeData.response.users ||
+            {(!safeData?.response?.users ||
               userDetails?.length === 0 ||
               (Object.keys(safeData?.response?.users)?.length === 1 &&
                 Object.values(safeData?.response?.users)[0] === 'sudo')) && (

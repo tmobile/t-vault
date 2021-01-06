@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 import { Typography } from '@material-ui/core';
@@ -8,6 +8,7 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import leftArrowIcon from '../../../../../../../assets/left-arrow.svg';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import CollapsibleDropdown from '../../../../../../../components/CollapsibleDropdown';
+import { useStateValue } from '../../../../../../../contexts/globalState';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -80,7 +81,6 @@ const Label = styled.p`
 
 const Value = styled.p`
   font-size: 1.8rem;
-  text-transform: capitalize;
 `;
 
 const EachDetail = styled.div`
@@ -132,7 +132,8 @@ const ViewIamSvcAccountDetails = (props) => {
     isActivateIamSvcAcc,
     setViewDetails,
   } = props;
-
+  const [writePermission, setWritePermission] = useState(false);
+  const [state] = useStateValue();
   const onRotateClicked = () => {
     isRotateSecret(true);
   };
@@ -144,6 +145,19 @@ const ViewIamSvcAccountDetails = (props) => {
   const onCancelViewDetails = (val) => {
     setViewDetails(val);
   };
+  useEffect(() => {
+    if (iamSvcAccountData?.users) {
+      Object.entries(iamSvcAccountData.users).map(([key, value]) => {
+        if (
+          key.toLowerCase() === state.username.toLowerCase() &&
+          value === 'write'
+        ) {
+          return setWritePermission(true);
+        }
+        return null;
+      });
+    }
+  }, [iamSvcAccountData, state]);
 
   return (
     <ComponentError>
@@ -161,9 +175,10 @@ const ViewIamSvcAccountDetails = (props) => {
             <HeaderInfoWrapper>
               <SvcIcon alt="safe-icon" src={svcHeaderBgimg} />
               <InfoLine>
-                T-Vault can be used to manage the life cycle of Corporate (CORP)
-                active directory service accounts, for features like password
-                resets and expiry.
+                T-Vault can be used to manage to read and rotate the secrets of
+                IAM service accounts. In order to self-service your IAM service
+                accounts there is a three-step process to onboard the account
+                into T-Vault.
               </InfoLine>
             </HeaderInfoWrapper>
             <CollapsibleDropdown
@@ -175,26 +190,25 @@ const ViewIamSvcAccountDetails = (props) => {
               <CollapsibleContainer>
                 <InfoLine>
                   <Span>
-                    <strong>On-Boarding:</strong>
+                    <strong>Step 1: On-Boarding:</strong>
                   </Span>
-                  This step links a service account from active directory to be
-                  self-service managed into T-Vault. This is a one-time
-                  operation.
+                  This step brings the IAM service account into T-Vault so that
+                  the secrets can be read or rotated through T-Vault. This is a
+                  one-time operation.
                 </InfoLine>
 
                 <InfoLine>
                   <Span>
-                    <strong>Service Account Activation:</strong>
+                    <strong>Step 2: Service Account Activation: </strong>
                   </Span>
                   The IAM service account owner will Activate (rotate) the
                   account password once after on-boarding the account into
                   T-Vault. This process ensures that the secrets in T-Vault and
                   IAM portal are in sync.
                 </InfoLine>
-
                 <InfoLine>
                   <Span>
-                    <strong>Granting Permissions:</strong>
+                    <strong>Step 3: Granting Permissions: </strong>
                   </Span>
                   When an IAM service account is activated in T-Vault, the
                   account owner can grant specific permissions to other users
@@ -243,18 +257,26 @@ const ViewIamSvcAccountDetails = (props) => {
             />
           </CancelButton>
 
-          <CancelButton>
-            <ButtonComponent
-              label={iamSvcAccountData?.isActivated ? 'Rotate' : 'Activate'}
-              color="secondary"
-              onClick={
-                iamSvcAccountData?.isActivated
-                  ? () => onRotateClicked()
-                  : () => onActivateClicked()
-              }
-              width={isMobileScreen ? '100%' : ''}
-            />
-          </CancelButton>
+          {writePermission && (
+            <CancelButton>
+              <ButtonComponent
+                label="Rotate"
+                color="secondary"
+                onClick={() => onRotateClicked()}
+                width={isMobileScreen ? '100%' : ''}
+              />
+            </CancelButton>
+          )}
+          {!iamSvcAccountData?.isActivated && (
+            <CancelButton>
+              <ButtonComponent
+                label="Activate"
+                color="secondary"
+                onClick={() => onActivateClicked()}
+                width={isMobileScreen ? '100%' : ''}
+              />
+            </CancelButton>
+          )}
         </CancelSaveWrapper>
       </ModalWrapper>
     </ComponentError>

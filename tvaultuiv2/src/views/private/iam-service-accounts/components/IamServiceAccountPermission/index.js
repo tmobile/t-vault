@@ -229,15 +229,17 @@ IamServiceAccountPermission.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any),
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   refresh: PropTypes.func.isRequired,
-  parentStatus: PropTypes.string.isRequired,
+  parentStatus: PropTypes.string,
   fetchPermission: PropTypes.func,
-  isIamSvcAccountActive: PropTypes.bool.isRequired,
+  isIamSvcAccountActive: PropTypes.bool,
   userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
 IamServiceAccountPermission.defaultProps = {
   accountDetail: {},
   fetchPermission: () => {},
+  isIamSvcAccountActive: false,
+  parentStatus: '',
 };
 
 export default IamServiceAccountPermission;

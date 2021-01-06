@@ -4,7 +4,7 @@ import ReactHtmlParser from 'react-html-parser';
 import Strings from '../../../../../resources';
 import certIcon from '../../../../../assets/cert-icon.svg';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
-import ServiceAccountHelp from '../../../service-accounts/components/ServiceAccountHelp';
+import CollapsibleDropdown from '../../../../../components/CollapsibleDropdown';
 
 const IconDescriptionWrapper = styled.div`
   display: flex;
@@ -60,7 +60,7 @@ const CertificateHeader = () => {
             <Description>{Strings.Resources.certificateDesc}</Description>
           </CertDesc>
         </IconDescriptionWrapper>
-        <ServiceAccountHelp
+        <CollapsibleDropdown
           titleMore="How certificates work"
           titleLess="View Less"
           collapseStyles="background:none"
@@ -101,7 +101,7 @@ const CertificateHeader = () => {
               {ReactHtmlParser(Strings.Resources.certificateGuide5)}
             </InfoLine>
           </CollapsibleContainer>
-        </ServiceAccountHelp>
+        </CollapsibleDropdown>
       </>
     </ComponentError>
   );

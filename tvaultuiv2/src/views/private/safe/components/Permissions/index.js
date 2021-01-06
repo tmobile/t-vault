@@ -55,8 +55,15 @@ const Permissions = (props) => {
     if (safeData?.response && Object.keys(safeData.response).length !== 0) {
       setCount(0);
       if (value === 0) {
-        if (userDetails) {
-          setCount(userDetails.length);
+        if (safeData.response.users) {
+          let usersCount = 0;
+          Object.entries(safeData.response.users).map(([, data]) => {
+            if (data !== 'sudo') {
+              usersCount += 1;
+            }
+            return usersCount;
+          });
+          setCount(usersCount);
         }
       } else if (value === 1) {
         if (safeData.response.groups) {
