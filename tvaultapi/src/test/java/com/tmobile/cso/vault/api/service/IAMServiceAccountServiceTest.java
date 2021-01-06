@@ -57,6 +57,7 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.IAMServiceAccountConstants;
@@ -813,7 +814,16 @@ public class IAMServiceAccountServiceTest {
 		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,
 				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
-
+		String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"write\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"application_id\":1222,\"application_name\":\"T-Vault\",\"application_tag\":\"TVT\",\"awsAccountId\":\"1234567\",\"awsAccountName\":\"AWS-SEC\",\"createdAtEpoch\":1086073200000,\"isActivated\":true,\"owner_email\":\"test@testmail.com\",\"owner_ntid\":\"testid\",\"secret\":[{\"accessKeyId\":\"1212zdasd\",\"expiryDuration\":\"1086073200000\"}],\"userName\":\"testaccount\",\"users\":{\"testid\":\"write\"}}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process(eq("/iamsvcacct"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 		ResponseEntity<String> responseEntity = iamServiceAccountsService.removeGroupFromIAMServiceAccount(token,
 				iamSvcAccGroup, userDetails);
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -866,7 +876,16 @@ public class IAMServiceAccountServiceTest {
 		Response response1 = new Response();
 		response1.setHttpstatus(HttpStatus.NO_CONTENT);
 		when(OIDCUtil.updateGroupPolicies(any(), any(), any(), any(), any())).thenReturn(response1);
-
+		String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"write\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"application_id\":1222,\"application_name\":\"T-Vault\",\"application_tag\":\"TVT\",\"awsAccountId\":\"1234567\",\"awsAccountName\":\"AWS-SEC\",\"createdAtEpoch\":1086073200000,\"isActivated\":true,\"owner_email\":\"test@testmail.com\",\"owner_ntid\":\"testid\",\"secret\":[{\"accessKeyId\":\"1212zdasd\",\"expiryDuration\":\"1086073200000\"}],\"userName\":\"testaccount\",\"users\":{\"testid\":\"write\"}}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process(eq("/iamsvcacct"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 		ResponseEntity<String> responseEntity = iamServiceAccountsService.removeGroupFromIAMServiceAccount(token,
 				iamSvcAccGroup, userDetails);
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -924,6 +943,17 @@ public class IAMServiceAccountServiceTest {
 		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,
 				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
 
+		String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"write\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"application_id\":1222,\"application_name\":\"T-Vault\",\"application_tag\":\"TVT\",\"awsAccountId\":\"1234567\",\"awsAccountName\":\"AWS-SEC\",\"createdAtEpoch\":1086073200000,\"isActivated\":true,\"owner_email\":\"test@testmail.com\",\"owner_ntid\":\"testid\",\"secret\":[{\"accessKeyId\":\"1212zdasd\",\"expiryDuration\":\"1086073200000\"}],\"userName\":\"testaccount\",\"users\":{\"testid\":\"write\"}}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process(eq("/iamsvcacct"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+
 		ResponseEntity<String> responseEntity = iamServiceAccountsService.removeGroupFromIAMServiceAccount(token,
 				iamSvcAccGroup, userDetails);
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -953,6 +983,17 @@ public class IAMServiceAccountServiceTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"write\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"application_id\":1222,\"application_name\":\"T-Vault\",\"application_tag\":\"TVT\",\"awsAccountId\":\"1234567\",\"awsAccountName\":\"AWS-SEC\",\"createdAtEpoch\":1086073200000,\"isActivated\":true,\"owner_email\":\"test@testmail.com\",\"owner_ntid\":\"testid\",\"secret\":[{\"accessKeyId\":\"1212zdasd\",\"expiryDuration\":\"1086073200000\"}],\"userName\":\"testaccount\",\"users\":{\"testid\":\"write\"}}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process(eq("/iamsvcacct"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+
 		when(ControllerUtil.configureLDAPGroup(any(), any(), any())).thenReturn(response404);
 		String[] latestPolicies = { "o_iamsvcacc_1234567_testaccount" };
 		when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails))
