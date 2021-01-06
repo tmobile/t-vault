@@ -1071,7 +1071,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                       button.show-more-btn VIEW MORE
                                                       span
                                                           img(src="assets/icons/front-arrow.svg")
-                                    md-tab( md-on-select="getCertificatesForOnboard()" ng-attr-label="Onboard Existing certificate" )
+                                    md-tab( md-on-select="getCertificatesForOnboard()" ng-attr-label="Onboard Existing certificate" ng-if="isSSLOnboardEnable")
                                         md-content(class="md-content-wrapper")
                                           div.svcdescription
                                             text.weighted Below are the list of available certificates in NCLM that can be onboarded to T-Vault.

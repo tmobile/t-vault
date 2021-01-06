@@ -525,7 +525,7 @@ public class SSLCertificateController {
 	 * Get all on-board pending certificates from nclm
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.getAllOnboardPendingCertificates.value}", notes = "${SSLCertificateController.getAllOnboardPendingCertificates.notes}")
+	@ApiOperation(value = "${SSLCertificateController.getAllOnboardPendingCertificates.value}", notes = "${SSLCertificateController.getAllOnboardPendingCertificates.notes}", hidden = true)
 	@GetMapping(value = "/v2/sslcert/pendingcertificates", produces = "application/json")
 	public ResponseEntity<String> getAllOnboardPendingCertificates(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token) throws Exception { 
@@ -542,7 +542,7 @@ public class SSLCertificateController {
 	 * @return
 	 * @throws Exception
 	 */
-	@ApiOperation(value = "${SSLCertificateController.onboardSSLCertificate.value}", notes = "${SSLCertificateController.onboardSSLCertificate.notes}", hidden = false)
+	@ApiOperation(value = "${SSLCertificateController.onboardSSLCertificate.value}", notes = "${SSLCertificateController.onboardSSLCertificate.notes}", hidden = true)
 	@PostMapping(value = "/v2/sslcert/onboardSSLcertificate", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<String> onboardSSLCertificate(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,

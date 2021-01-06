@@ -60,6 +60,7 @@
         $scope.isNotificationEmailSearch = false;
         $scope.numOfOnboardPendingCertificates = 0;
         $scope.isOffboardingDecommitioned = false;
+        $scope.isSSLOnboardEnable = true;
         // Type of safe to be filtered from the rest
 
         $scope.safeType = {
@@ -191,6 +192,7 @@
             $scope.isNotificationEmailSearch = false;
             $scope.numOfOnboardPendingCertificates = 0;
             $scope.isOffboardingDecommitioned = false;
+            $scope.isSSLOnboardEnable = AppConstant.SSL_ONBOARD;
             $scope.certObj = {
                 'sslcertType': 'PRIVATE_SINGLE_SAN',
                 'certDetails': {"certType":"internal",},
