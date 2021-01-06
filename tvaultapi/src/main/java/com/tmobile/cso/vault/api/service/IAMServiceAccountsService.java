@@ -1979,48 +1979,120 @@ public class  IAMServiceAccountsService {
 
 		boolean isAuthorized = isAuthorizedToAddPermissionInIAMSvcAcc(userDetails, iamSvcAccountName, token, false);
 		if (isAuthorized) {
-			// Only Sudo policy can be added (as part of onbord) before activation.
-			if (!isIAMSvcaccActivated(token, userDetails, iamSvcAccountName)
-					&& !TVaultConstants.SUDO_POLICY.equals(iamServiceAccountGroup.getAccess())) {
-				log.error(
-						JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-								.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG)
-								.put(LogMessage.MESSAGE, String.format("Failed to remove group permission to IAM Service account. [%s] is not activated.", iamSvcAccountName))
-								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
-								.build()));
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-						"{\"errors\":[\"Failed to remove group permission to IAM Service account. IAM Service Account is not activated. Please activate this service account and try again.\"]}");
-			}
-
-            Response groupResp = new Response();
-			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-				groupResp = reqProcessor.process(GROUPPATH, GROUPNAME + iamServiceAccountGroup.getGroupname() + "\"}", token);
-			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-				// call read api with groupname
-				oidcGroup = oidcUtil.getIdentityGroupDetails(iamServiceAccountGroup.getGroupname(), token);
-				if (oidcGroup != null) {
-					groupResp.setHttpstatus(HttpStatus.OK);
-					groupResp.setResponse(oidcGroup.getPolicies().toString());
-				} else {
-					groupResp.setHttpstatus(HttpStatus.BAD_REQUEST);
-				}
-			}
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                    put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG).
-                    put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", groupResp.getHttpstatus())).
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                    build()));
-
-            return removePoliciesAndUpdateMetadataForIAMSvcAcc(token, iamServiceAccountGroup, userDetails, oidcGroup,
-					iamSvcAccountName, groupResp);
+			return groupRemovalForIAMServiceAccount(token, iamServiceAccountGroup, userDetails, oidcGroup,
+					iamSvcAccountName);
         }
         else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove groups from this IAM service account\"]}");
         }
 
     }
+
+	/**
+	 * Remove Group from IAM Service Account after validation
+	 *
+	 * @param token
+	 * @param iamServiceAccountGroup
+	 * @param userDetails
+	 * @param oidcGroup
+	 * @param iamSvcAccountName
+	 * @return
+	 */
+	private ResponseEntity<String> groupRemovalForIAMServiceAccount(String token,
+			IAMServiceAccountGroup iamServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
+			String iamSvcAccountName) {
+		// Only Sudo policy can be added (as part of onbord) before activation.
+		if (!isIAMSvcaccActivated(token, userDetails, iamSvcAccountName)
+				&& !TVaultConstants.SUDO_POLICY.equals(iamServiceAccountGroup.getAccess())) {
+			log.error(
+					JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG)
+							.put(LogMessage.MESSAGE, String.format("Failed to remove group permission to IAM Service account. [%s] is not activated.", iamSvcAccountName))
+							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+							.build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+					"{\"errors\":[\"Failed to remove group permission to IAM Service account. IAM Service Account is not activated. Please activate this service account and try again.\"]}");
+		}
+
+		// check for this group is associated to this IAM Service account
+		String iamMetadataPath = new StringBuilder().append(TVaultConstants.IAM_SVC_PATH).append(iamSvcAccountName).toString();
+		Response metadataReadResponse = reqProcessor.process("/iamsvcacct", PATHSTR + iamMetadataPath + "\"}", token);
+		Map<String, Object> responseMap = null;
+		boolean metaDataResponseStatus = true;
+		if(HttpStatus.OK.equals(metadataReadResponse.getHttpstatus())) {
+			responseMap = ControllerUtil.parseJson(metadataReadResponse.getResponse());
+			if(responseMap.isEmpty()) {
+				metaDataResponseStatus = false;
+			}
+		}
+		else {
+			metaDataResponseStatus = false;
+		}
+
+		if(metaDataResponseStatus) {
+			@SuppressWarnings("unchecked")
+			Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
+			Map<String,Object> groupsData = (Map<String,Object>)metadataMap.get(TVaultConstants.GROUPS);
+
+			if (groupsData == null || !groupsData.containsKey(iamServiceAccountGroup.getGroupname())) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG).
+						put(LogMessage.MESSAGE, String.format ("Group [%s] is not associated to IAM service account [%s]", iamServiceAccountGroup.getGroupname(), iamMetadataPath)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove group from IAM service account. Group association to IAM service account not found\"]}");
+			}
+		}else {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG).
+					put(LogMessage.MESSAGE, String.format ("Error Fetching existing IAM Service account info [%s]", iamMetadataPath)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Error Fetching existing IAM Service account info. please check the path specified\"]}");
+		}
+
+		return validateAuthMethodAndGroupRemovalProcess(token, iamServiceAccountGroup, userDetails, oidcGroup,
+				iamSvcAccountName);
+	}
+
+	/**
+	 * Method to call the group removal based on the auth method
+	 * @param token
+	 * @param iamServiceAccountGroup
+	 * @param userDetails
+	 * @param oidcGroup
+	 * @param iamSvcAccountName
+	 * @return
+	 */
+	private ResponseEntity<String> validateAuthMethodAndGroupRemovalProcess(String token,
+			IAMServiceAccountGroup iamServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
+			String iamSvcAccountName) {
+		Response groupResp = new Response();
+		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+			groupResp = reqProcessor.process(GROUPPATH, GROUPNAME + iamServiceAccountGroup.getGroupname() + "\"}", token);
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			// call read api with groupname
+			oidcGroup = oidcUtil.getIdentityGroupDetails(iamServiceAccountGroup.getGroupname(), token);
+			if (oidcGroup != null) {
+				groupResp.setHttpstatus(HttpStatus.OK);
+				groupResp.setResponse(oidcGroup.getPolicies().toString());
+			} else {
+				groupResp.setHttpstatus(HttpStatus.BAD_REQUEST);
+			}
+		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		        put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG).
+		        put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", groupResp.getHttpstatus())).
+		        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		        build()));
+
+		return removePoliciesAndUpdateMetadataForIAMSvcAcc(token, iamServiceAccountGroup, userDetails, oidcGroup,
+				iamSvcAccountName, groupResp);
+	}
 
 	/**
 	 * Method to update policies for remove group from IAM service account.
