@@ -680,7 +680,73 @@
                 }
             }
         }
-
+        $scope.appNameSelect = function(){
+            $scope.appNameSelected =false;
+            if($scope.dropdownApplicationName !==undefined){
+                var appId = $scope.dropdownApplicationName.selectedGroupOption.id;
+            $scope.dropdownApplicationName.selectedGroupOption.type;
+            $scope.appName = $scope.dropdownApplicationName.selectedGroupOption.type;
+             $scope.safe.appName=$scope.appName;
+            $scope.appNameSelected = true;
+            }
+        }
+        var getWorkloadDetails = function () {
+            $scope.isApplicationsLoading = true;
+            AdminSafesManagement.getApprolesFromCwm().then(function (response) {
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    $scope.isApplicationsLoading = false;
+                    $scope.isAppNamesLoading = true;
+                    var data = response.data;
+                    $scope.appNameTableOptions=[];                    
+                     for (var index = 0;index<data.length;index++) {
+                        var value = '';
+                        var appTag = '';
+                        var appID = '';
+                        var name = '';
+                        if (data[index].appName !='' && data[index].appName != null && data[index].appName != undefined) {
+                            value = data[index].appName;
+                            name = value;
+                        }
+                        if (data[index].appID !='' && data[index].appID != null && data[index].appID != undefined) {
+                            appID = data[index].appID;
+                        }
+                        if (data[index].appTag !='' && data[index].appTag != null && data[index].appTag != undefined) {
+                            appTag = data[index].appTag;
+                        }
+                        if(JSON.parse(SessionStore.getItem("isAdmin")) == true){
+                        	$scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
+                        }
+                        if(JSON.parse(SessionStore.getItem("isAdmin")) == false){
+                            $scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
+                        }
+                    }
+                    $scope.getAppnames();
+                     $scope.isAppNamesLoading = false;
+                }
+                else {
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    $scope.error('md');
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.isAppNamesLoading = false;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            })
+        }
+        $scope.getAppnames = function () {
+            if($scope.appNameTableOptions!==undefined){
+                $scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort(function (a, b) {
+                    return (a.name > b.name ? 1 : -1);
+                });   
+                $scope.dropdownApplicationName = {
+                        'selectedGroupOption': {"type": "Select Application Name"},       // As initial placeholder
+                        'tableOptions':  $scope.appNameTableOptionsSort 
+                    } 
+                }
+        }
         $scope.editSafe = function () {
             try {
                 $scope.isLoadingData = true;
@@ -801,13 +867,18 @@
                                         name: object.name || $stateParams.safeObject.safe,
                                         owner: object.owner || $stateParams.safeObject.owner || '',
                                         description: object.description || $stateParams.safeObject.description || '',
-                                        type: $stateParams.safeObject.type || object.type ||$scope.dropDownOptions.selectedGroupOption.type || ''
+                                        type: $stateParams.safeObject.type || object.type ||$scope.dropDownOptions.selectedGroupOption.type || '',
+                                        appName:$stateParams.safeObject.appName|| ''
                                     }
                                     $scope.safePrevious = angular.copy($scope.safe);
                                     $scope.selectedGroupOption = $scope.safe;
                                     $scope.dropDownOptions = {
                                         'selectedGroupOption': $scope.selectedGroupOption,
                                         'tableOptions': $scope.tableOptions
+                                    }
+                                    $scope.dropdownApplicationName = {
+                                        'selectedGroupOption': $scope.selectedGroupOption,
+                                        'tableOptions': $scope.appNameTableOptionsSort
                                     }
                                     if($scope.activeDetailsTab === 'details') {
                                          $scope.checkOwnerEmailHasValue('details');
@@ -998,6 +1069,10 @@
                 $state.go('/');
                 return;
             }
+            getWorkloadDetails();
+            $scope.appNameTableOptionsSort=[]
+            $scope.certApplicationName = "";
+            $scope.appNameSelected = false;
             var feature = JSON.parse(SessionStore.getItem("feature"));
             if (feature.selfservice == false && JSON.parse(SessionStore.getItem("isAdmin")) == false) {
                 $state.go('manage');
@@ -1006,11 +1081,16 @@
                 name: '',
                 owner: '',
                 description: '',
-                type: ''
+                type: '',
+                appName:''
             };
             $scope.dropDownOptions = {
                 'selectedGroupOption': {"type": "Select Type"},       // As initial placeholder
                 'tableOptions': $scope.tableOptions
+            }  
+            $scope.dropdownApplicationName = {
+                    'selectedGroupOption': {"type": "Select Application Name"},       // As initial placeholder
+                    'tableOptions':  $scope.appNameTableOptionsSort 
             }
             $scope.allSafesList = JSON.parse(SessionStore.getItem("allSafes"));
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");

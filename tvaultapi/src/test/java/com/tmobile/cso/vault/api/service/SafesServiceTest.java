@@ -218,9 +218,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_createSafe_successfully() {
+    public void testcreateSafesuccessfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         String jsonStr = "{ \"data\": {\"description\": \"My first safe\", \"name\": \"mysafe01\", \"owner\": \"youremail@yourcompany.com\"}, \"path\": \"shared/mysafe01\"}";
         String metadatajson = "{\"path\":\"metadata/shared/mysafe03\",\"data\":{\"name\":\"mysafe03\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";
@@ -251,9 +251,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_createSafe_failure_invalid_safename() {
+    public void testcreateSafefailureinvalidsafename() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01_", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01_", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01_",safeBasicDetails);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Safe name: unexpected character _ in the end\"]}");
@@ -265,9 +265,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_createSafe_failure_safename_too_short() {
+    public void testcreateSafefailuresafenametooshort() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("sa", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("sa", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/sa",safeBasicDetails);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Safe name: Please enter minimum 3 characters\"]}");
@@ -279,9 +279,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_createSafe_failure_description_too_short() {
+    public void testcreateSafefailuredescriptiontooshort() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("safe1", "youremail@yourcompany.com", null, "My safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("safe1", "youremail@yourcompany.com", null, "My safe","T-Vault");
         Safe safe = new Safe("shared/safe1",safeBasicDetails);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Description: Please enter minimum 10 characters\"]}");
@@ -293,7 +293,7 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_createSafe_failure_description_too_long() {
+    public void testcreateSafefailuredescriptiontoolong() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe My first safe" +
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
@@ -303,7 +303,7 @@ public class SafesServiceTest {
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
-                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe");
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values: Description too long\"]}");
         when(ControllerUtil.areSDBInputsValid(safe)).thenReturn(true);
@@ -314,9 +314,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_createSafe_failure_policies_creation() {
+    public void testcreateSafefailurepoliciescreation() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         String jsonStr = "{ \"data\": {\"description\": \"My first safe\", \"name\": \"mysafe01\", \"owner\": \"youremail@yourcompany.com\"}, \"path\": \"shared/mysafe01\"}";
         String metadatajson = "{\"path\":\"metadata/shared/mysafe03\",\"data\":{\"name\":\"mysafe03\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";
@@ -348,9 +348,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_createSafe_failure_400() {
+    public void testcreateSafefailure400() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         String jsonStr = "{ \"data\": {\"description\": \"My first safe\", \"name\": \"mysafe01\", \"owner\": \"youremail@yourcompany.com\"}, \"path\": \"shared/mysafe01\"}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -391,10 +391,10 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_deleteSafe_failed_400() {
+    public void testdeleteSafefailed400() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String path = "shared/mysafe01";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe(path,safeBasicDetails);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 
@@ -409,9 +409,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_updateSafe_successfully() {
+    public void testupdateSafesuccessfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String jsonStr = "{\"path\":\"shared/mysafe01\",\"data\":{\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";
@@ -446,7 +446,7 @@ public class SafesServiceTest {
 
 
     @Test
-    public void test_updateSafe_failure_description_too_long() {
+    public void testupdateSafefailuredescriptiontoolong() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe My first safe" +
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
@@ -456,7 +456,7 @@ public class SafesServiceTest {
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
-                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe");
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String jsonStr = "{\"path\":\"shared/mysafe01\",\"data\":{\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";
@@ -479,9 +479,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_updateSafe_failure_400() {
+    public void testupdateSafefailure400() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String jsonStr = "{\"path\":\"shared/mysafe01\",\"data\":{\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";
@@ -507,9 +507,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_updateSafe_failure_404() {
+    public void testupdateSafefailure404() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String jsonStr = "{\"path\":\"shared/mysafe01\",\"data\":{\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";
@@ -538,9 +538,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_updateSafe_failure_invalidInput() {
+    public void testupdateSafefailureinvalidInput() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String jsonStr = "{\"path\":\"shared/mysafe01\",\"data\":{\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";

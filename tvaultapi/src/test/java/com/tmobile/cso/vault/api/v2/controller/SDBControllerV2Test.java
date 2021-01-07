@@ -124,7 +124,7 @@ public class SDBControllerV2Test {
     @Test
     public void test_deletefolder() throws Exception {
         String responseJson = "{\"messages\":[\"SDB deleted\"]}";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         String inputJson =new ObjectMapper().writeValueAsString(safe);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
@@ -140,7 +140,7 @@ public class SDBControllerV2Test {
 
     @Test
     public void test_updateSafe() throws Exception {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String inputJson =new ObjectMapper().writeValueAsString(safe);
@@ -159,7 +159,7 @@ public class SDBControllerV2Test {
 
     @Test
     public void test_createSafe() throws Exception {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String inputJson =new ObjectMapper().writeValueAsString(safe);
@@ -179,7 +179,7 @@ public class SDBControllerV2Test {
     @Test
     public void test_deleteSafe() throws Exception {
         String responseJson = "{\"messages\":[\"Safe deleted\"]}";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String inputJson =new ObjectMapper().writeValueAsString(safe);
