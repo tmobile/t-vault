@@ -14,7 +14,7 @@ import { ColorBackArrow } from '../../../../../assets/SvgIcons';
 const AddFolderNameWrapper = styled.div`
   padding: 5.5rem 6rem 6rem 6rem;
   background-color: ${(props) => props.theme.palette.background.modal};
-  width: ${(props) => props.width || '100%'};
+  width: 70rem;
   ${mediaBreakpoints.semiLarge} {
     padding: 4.5rem 5rem 5rem 5rem;
   }
@@ -66,13 +66,7 @@ const extraCss = css`
 `;
 
 const AddFolder = (props) => {
-  const {
-    width = '100%',
-    handleCancelClick,
-    handleSaveClick,
-    parentId,
-    childrens,
-  } = props;
+  const { handleCancelClick, handleSaveClick, parentId, childrens } = props;
   const [inputValue, setInputValue] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [error, setError] = useState(null);
@@ -103,7 +97,7 @@ const AddFolder = (props) => {
   };
   return (
     <ComponentError>
-      <AddFolderNameWrapper width={width}>
+      <AddFolderNameWrapper>
         <SubHeading extraCss={extraCss}>
           {isMobileScreen && (
             <BackButton onClick={() => handleCancelClick(false)}>
@@ -161,14 +155,12 @@ const AddFolder = (props) => {
   );
 };
 AddFolder.propTypes = {
-  width: PropTypes.string,
   handleCancelClick: PropTypes.func,
   handleSaveClick: PropTypes.func,
   parentId: PropTypes.string,
   childrens: PropTypes.arrayOf(PropTypes.any),
 };
 AddFolder.defaultProps = {
-  width: '100%',
   handleSaveClick: () => {},
   handleCancelClick: () => {},
   parentId: '',
