@@ -307,6 +307,8 @@ const AppRolesDashboard = () => {
           history.push(`/vault-app-roles/${state?.appRoleList[0].name}`);
         }
       }
+    } else {
+      setListItemDetails({});
     }
     // eslint-disable-next-line
   }, [state, location, history]);

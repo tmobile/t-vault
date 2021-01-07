@@ -473,6 +473,8 @@ const CertificatesDashboard = () => {
           history.push(`/certificates/${allCertList[0].certificateName}`);
         }
       }
+    } else {
+      setListItemDetails({});
     }
   }, [allCertList, location, history]);
 
