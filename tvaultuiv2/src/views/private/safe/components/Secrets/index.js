@@ -80,6 +80,7 @@ const Secrets = (props) => {
     setEnableAddFolder,
     userHavePermission,
     safeDetail,
+    getSecretDetails,
   } = props;
   // resolution handlers
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -116,6 +117,7 @@ const Secrets = (props) => {
                   {secretsFolder[0]?.children?.length ? (
                     <Tree
                       data={secretsFolder}
+                      getSecretDetails={getSecretDetails}
                       userHavePermission={userHavePermission}
                     />
                   ) : secretsFolder[0]?.children?.length === 0 ? (
@@ -188,6 +190,7 @@ Secrets.propTypes = {
   setEnableAddFolder: PropTypes.func,
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
   safeDetail: PropTypes.objectOf(PropTypes.any).isRequired,
+  getSecretDetails: PropTypes.func.isRequired,
 };
 Secrets.defaultProps = {
   secretsFolder: [],

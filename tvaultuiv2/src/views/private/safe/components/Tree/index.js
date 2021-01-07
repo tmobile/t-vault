@@ -30,7 +30,7 @@ const StyledTree = styled.div`
   }
 `;
 const Tree = (props) => {
-  const { data, userHavePermission } = props;
+  const { data, userHavePermission, getSecretDetails } = props;
   const [secretsFolder, setSecretsFolder] = useState([]);
   const [isAddInput, setIsAddInput] = useState(false);
   const [inputType, setInputType] = useState({});
@@ -64,7 +64,6 @@ const Tree = (props) => {
     const tempFolders = [...secretsFolder] || [];
     setStatus({ status: 'loading', message: 'loading...' });
     if (id) {
-      console.log('id', id);
       apiService
         .getSecret(id)
         .then((res) => {
@@ -283,13 +282,14 @@ const Tree = (props) => {
     }
     apiService
       .deleteFolder(node.id)
-      .then((res) => {
+      .then(async (res) => {
         if (node?.parentId?.split('/').length === 2) {
           getChildrenData(node.parentId, node.id, 'deleteparentitem');
           setStatus({
             status: 'success',
             message: 'Folder Deleted Successfully',
           });
+          await getSecretDetails();
           return;
         }
         getChildrenData(node.parentId);
@@ -378,6 +378,7 @@ const Tree = (props) => {
 Tree.propTypes = {
   data: PropTypes.arrayOf(PropTypes.any),
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
+  getSecretDetails: PropTypes.func.isRequired,
 };
 
 Tree.defaultProps = {

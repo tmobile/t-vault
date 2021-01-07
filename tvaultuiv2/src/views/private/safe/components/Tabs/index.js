@@ -162,6 +162,7 @@ const SelectionTabs = (props) => {
       if (!safeDetail.manage) {
         setValue(0);
       }
+      setResponse({ status: 'loading' });
       apiService
         .getSecret(safeDetail.path)
         .then((res) => {
@@ -289,6 +290,7 @@ const SelectionTabs = (props) => {
               safeDetail={safeDetail}
               userHavePermission={userHavePermission}
               setEnableAddFolder={setEnableAddFolder}
+              getSecretDetails={getSecretDetails}
             />
           </TabPanel>
 

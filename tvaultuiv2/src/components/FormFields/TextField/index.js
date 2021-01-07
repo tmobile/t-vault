@@ -25,8 +25,7 @@ const StyleTextField = styled(TextField)`
       props.primary === 'primary' ? '#fff' : '#20232e'};
   }
   .MuiFormHelperText-root.Mui-error {
-    font-size: 1.2rem;
-    margin: 1rem 0 0;
+    font-size: 1.3rem;
   }
   .MuiFilledInput-multiline {
     height: auto;

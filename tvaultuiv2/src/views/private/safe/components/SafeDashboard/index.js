@@ -361,6 +361,8 @@ const SafeDashboard = () => {
           history.push(`/safes/${allSafeList[0].name}`);
         }
       }
+    } else {
+      setSelectedSafeDetails({});
     }
     // eslint-disable-next-line
   }, [allSafeList, location, history]);
