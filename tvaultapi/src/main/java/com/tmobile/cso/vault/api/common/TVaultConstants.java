@@ -56,6 +56,8 @@ public class TVaultConstants {
     public static final String APPROLE_METADATA_MOUNT_PATH = "metadata/approle";
     public static final String APPROLE_USERS_METADATA_MOUNT_PATH = "metadata/approle_users";
     public static final String AWSROLE_METADATA_MOUNT_PATH = "metadata/awsrole";
+    public static final String AWSIAM_USERS_METADATA_MOUNT_PATH = "metadata/awsroleiam_users";	
+    public static final String AWSEC2_USERS_METADATA_MOUNT_PATH = "metadata/awsroleec2_users";
     public static final String SELF_SERVICE_APPROLE_NAME = "selfservicesupportrole";
     public static final String SECRET = "secret";
     public static final boolean HIDEMASTERAPPROLE = true;

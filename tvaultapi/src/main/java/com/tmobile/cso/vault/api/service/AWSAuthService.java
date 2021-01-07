@@ -135,14 +135,17 @@ public class  AWSAuthService {
 			String metadataJson = ControllerUtil.populateAWSMetaJson(awsLoginRole.getRole(), userDetails.getUsername());
 			if(ControllerUtil.createMetadata(metadataJson, token)) {
 				response = ControllerUtil.updateMetaDataOnConfigChanges(roleName, "roles", currentPolicies, latestPolicies, token);
-				if(HttpStatus.OK.equals(response.getHttpstatus())) {
+				boolean awsec2RoleMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson, token);	
+				String awsec2roleUsermetadataJson = ControllerUtil.populateec2UserMetaJson(awsLoginRole.getRole(), userDetails.getUsername());	
+				boolean awsec2RoleUserMetaDataCreationStatus = ControllerUtil.createMetadata(awsec2roleUsermetadataJson, token);
+				if(awsec2RoleMetaDataCreationStatus && awsec2RoleUserMetaDataCreationStatus) {
 					logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, "Creating AWS role").
-							put(LogMessage.MESSAGE, String.format("AWS Role [%s] created successfully by [%s]", awsLoginRole.getRole(),userDetails.getUsername())).
+							put(LogMessage.ACTION, "Creating AWS EC2 role").
+							put(LogMessage.MESSAGE, String.format("AWS EC2 Role [%s] created successfully by [%s]", awsLoginRole.getRole(),userDetails.getUsername())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
-					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS EC2 Role created \"]}");
 				}
 				else {
 					return ResponseEntity.status(response.getHttpstatus()).body("{\"messages\":[\"AWS Role configured\",\"" + response.getResponse() + "\"]}");
