@@ -124,7 +124,7 @@ public class AWSAuthServiceTest {
         when(JSONUtil.getJSON(awsLoginRole)).thenReturn(jsonStr);
         UserDetails userDetails = getMockUser(true);
         when(ControllerUtil.createMetadata(Mockito.any(), eq(token))).thenReturn(true);
-        when(ControllerUtil.populateec2UserMetaJson(Mockito.any(), Mockito.any())).thenReturn("awsec2RoleUserMetaDataCreationStatus");
+        when(ControllerUtil.populateUserMetaJson(Mockito.any(), Mockito.any())).thenReturn("awsec2RoleUserMetaDataCreationStatus");
         when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(responseNoContent);
         ResponseEntity<String> responseEntity = null;
         try {
