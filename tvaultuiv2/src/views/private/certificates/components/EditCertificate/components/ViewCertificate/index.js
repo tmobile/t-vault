@@ -212,6 +212,14 @@ const ViewCertificate = (props) => {
   const [projectLeadEmail, setProjectLeadEmail] = useState('');
   const [disabledUpdate, setDisabledUpdate] = useState(true);
   const [isAdmin, setIsAdmin] = useState(true);
+  const [ownerDetail, setownerDetail] = useState(applicationOwner);
+  const [ownerSelected, setOwnerselected] = useState(false);
+
+  const [projectLeadDetail, setProjectLeadDetail] = useState(projectLeadEmail);
+  const [projectLeadSelected, setProjectLeadselected] = useState(false);
+
+  const [notifyUserDetail, setNotifyUserDetail] = useState(notifyEmail);
+  const [notifyUserSelected, setNotifyUserselected] = useState(false);
 
   useEffect(() => {
     const admin = localStorage.getItem('isAdmin');
@@ -223,6 +231,8 @@ const ViewCertificate = (props) => {
   useEffect(() => {
     if (Object.keys(certificateData).length > 0) {
       setApplicationOwner(certificateData?.applicationOwnerEmailId);
+      setownerDetail(certificateData?.applicationOwnerEmailId);
+      setProjectLeadDetail(certificateData?.projectLeadEmailId);
       setProjectLeadEmail(certificateData?.projectLeadEmailId);
       const array = certificateData?.notificationEmails?.split(',');
       if (array?.length > 0) {
@@ -260,31 +270,26 @@ const ViewCertificate = (props) => {
   ]);
 
   useEffect(() => {
-    if (applicationOwner?.length > 2) {
+    if (ownerDetail?.length > 2) {
       if (
         !autoLoader &&
-        applicationOwner !== certificateData.applicationOwnerEmailId
+        ownerDetail !== certificateData.applicationOwnerEmailId
       ) {
-        if (
-          options.length === 0 ||
-          !options.find((item) => item.userEmail === applicationOwner)
-        ) {
+        if (options.length === 0 || !options.includes(ownerDetail)) {
           setIsValidEmail(false);
         } else {
           setIsValidEmail(true);
         }
       }
     }
-  }, [applicationOwner, autoLoader, options, certificateData]);
+  }, [ownerDetail, autoLoader, options, certificateData]);
 
   useEffect(() => {
-    if (notifyEmail?.length > 2) {
+    if (notifyUserDetail?.length > 2) {
       if (!notifyAutoLoader) {
         if (
           notifyOptions.length === 0 ||
-          !notifyOptions.find(
-            (item) => item.toLowerCase() === notifyEmail.toLowerCase()
-          )
+          !notifyOptions.includes(notifyUserDetail)
         ) {
           setIsValidNotifyEmail(false);
         } else {
@@ -292,7 +297,7 @@ const ViewCertificate = (props) => {
         }
       }
     }
-  }, [notifyEmail, notifyAutoLoader, notifyOptions]);
+  }, [notifyUserDetail, notifyOptions, notifyAutoLoader]);
 
   useEffect(() => {
     if (projectLeadEmail?.length > 2) {
@@ -302,10 +307,7 @@ const ViewCertificate = (props) => {
       ) {
         if (
           projectLeadOptions.length === 0 ||
-          !projectLeadOptions.find(
-            (item) =>
-              item.userEmail.toLowerCase() === projectLeadEmail.toLowerCase()
-          )
+          !projectLeadOptions.includes(projectLeadDetail)
         ) {
           setIsValidProjectLeadEmail(false);
         } else {
@@ -315,65 +317,49 @@ const ViewCertificate = (props) => {
     }
   }, [
     projectLeadEmail,
-    projectLeadAutoLoader,
+    projectLeadDetail,
     projectLeadOptions,
+    projectLeadAutoLoader,
     certificateData,
   ]);
 
   const callSearchApi = useCallback(
     debounce(
-      (value) => {
-        setAutoLoader(true);
-        apiService
-          .getOwnerTransferEmail(value)
-          .then((res) => {
-            setOptions([]);
-            const array = [];
-            setAutoLoader(false);
-            if (res?.data?.data?.values?.length > 0) {
-              res.data.data.values.map((item) => {
-                if (item.userEmail) {
-                  return array.push(item);
+      (value, type) => {
+        const userNameSearch = apiService.getUserName(value);
+        const emailSearch = apiService.getOwnerTransferEmail(value);
+        Promise.all([userNameSearch, emailSearch])
+          .then((responses) => {
+            const array = new Set([]);
+            if (responses[0]?.data?.data?.values?.length > 0) {
+              responses[0].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(
+                    `${item.displayName} [${item.userEmail}] (${item.userName})`
+                  );
                 }
                 return null;
               });
-              setOptions([...array]);
             }
-          })
-          .catch(() => {
-            setAutoLoader(false);
-            setResponseType(-1);
-            setToastMessage('Something went wrong while fetching emails!');
-          });
-      },
-      1000,
-      true
-    ),
-    []
-  );
-
-  const callNotifySearchApi = useCallback(
-    debounce(
-      (value) => {
-        setNotifyAutoLoader(true);
-        setNotifyOptions([]);
-        apiService
-          .getOwnerTransferEmail(value)
-          .then((res) => {
-            const array = [];
-            setNotifyAutoLoader(false);
-            if (res?.data?.data?.values?.length > 0) {
-              res.data.data.values.map((item) => {
-                if (item.userEmail) {
-                  return array.push(item.userEmail);
+            if (responses[1]?.data?.data?.values?.length > 0) {
+              responses[1].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(
+                    `${item.displayName} [${item.userEmail}] (${item.userName})`
+                  );
                 }
                 return null;
               });
+            }
+            if (type === 'applicationOwner') {
+              setOptions([...array]);
+            } else if (type === 'projectLead') {
+              setProjectLeadOptions([...array]);
+            } else {
               setNotifyOptions([...array]);
             }
           })
           .catch(() => {
-            setNotifyAutoLoader(false);
             setResponseType(-1);
             setToastMessage('Something went wrong while fetching emails!');
           });
@@ -386,29 +372,42 @@ const ViewCertificate = (props) => {
 
   const onOwnerChange = (e) => {
     if (e) {
-      setApplicationOwner(e?.target?.value);
+      setownerDetail(e?.target?.value);
       if (e?.target?.value && e?.target?.value?.length > 2) {
-        callSearchApi(e.target.value);
-        if (validateEmail(e.target.value)) {
+        setOptions([]);
+        setOwnerselected(false);
+        setAutoLoader(true);
+        callSearchApi(e.target.value, 'applicationOwner');
+        setAutoLoader(false);
+        if (validateEmail(applicationOwner)) {
           setEmailError(false);
         } else {
           setEmailError(true);
         }
       }
+    } else {
+      setownerDetail('');
+      setApplicationOwner('');
     }
   };
 
   const onSelected = (e, val) => {
     if (val) {
-      setApplicationOwner(val);
+      setownerDetail(val);
+      const applicationOwnerEmail = val?.match(/\[(.*)\]/)[1].toLowerCase();
+      setApplicationOwner(applicationOwnerEmail);
+      setOwnerselected(true);
       setEmailError(false);
     }
   };
 
   const onNotifyEmailSelected = (e, val) => {
     if (val) {
-      setNotifyEmail(val);
+      setNotifyUserDetail(val);
+      const notifyUserEmail = val?.match(/\[(.*)\]/)[1].toLowerCase();
+      setNotifyEmail(notifyUserEmail);
       setNotifyEmailError(false);
+      setNotifyUserselected(true);
     }
   };
 
@@ -425,6 +424,7 @@ const ViewCertificate = (props) => {
       if (!obj) {
         setNotificationEmailList((prev) => [...prev, notifyEmail]);
         setNotifyEmail('');
+        setNotifyUserDetail('');
       } else {
         setNotifyEmailError(true);
         setEmailErrorMsg('Duplicate Email!');
@@ -441,9 +441,13 @@ const ViewCertificate = (props) => {
 
   const onNotifyEmailChange = (e) => {
     if (e && e.target.value) {
-      setNotifyEmail(e?.target?.value);
+      setNotifyUserDetail(e?.target?.value);
       if (e.target.value && e.target.value?.length > 2) {
-        callNotifySearchApi(e.target.value);
+        setNotifyOptions([]);
+        setNotifyUserselected(false);
+        setNotifyAutoLoader(true);
+        callSearchApi(e.target.value, 'notifyUser');
+        setNotifyAutoLoader(false);
         if (validateEmail(notifyEmail)) {
           setNotifyEmailError(false);
         } else {
@@ -455,8 +459,10 @@ const ViewCertificate = (props) => {
       }
     } else {
       setNotifyEmail('');
+      setNotifyUserDetail('');
     }
   };
+
   const onRemoveEmailsClicked = (email) => {
     const array = notificationEmailList.filter((item) => item !== email);
     setNotificationEmailList([...array]);
@@ -470,53 +476,31 @@ const ViewCertificate = (props) => {
   };
 
   const onProjectLeadSelected = (e, val) => {
-    setProjectLeadEmail(val);
+    setProjectLeadDetail(val);
+    const projectLeadUserEmail = val?.match(/\[(.*)\]/)[1].toLowerCase();
+    setProjectLeadEmail(projectLeadUserEmail);
     setProjectLeadEmailError(false);
+    setProjectLeadselected(true);
   };
-
-  const callProjectLeadSearchApi = useCallback(
-    debounce(
-      (value) => {
-        setProjectLeadAutoLoader(true);
-        apiService
-          .getOwnerTransferEmail(value)
-          .then((res) => {
-            setProjectLeadOptions([]);
-            const array = [];
-            setProjectLeadAutoLoader(false);
-            if (res?.data?.data?.values?.length > 0) {
-              res.data.data.values.map((item) => {
-                if (item.userEmail) {
-                  return array.push(item);
-                }
-                return null;
-              });
-              setProjectLeadOptions([...array]);
-            }
-          })
-          .catch(() => {
-            setProjectLeadAutoLoader(false);
-            setResponseType(-1);
-            setToastMessage('Something went wrong while fetching emails!');
-          });
-      },
-      1000,
-      true
-    ),
-    []
-  );
 
   const onProjectLeadChange = (e) => {
     if (e) {
-      setProjectLeadEmail(e?.target?.value);
+      setProjectLeadDetail(e?.target?.value);
       if (e?.target?.value && e?.target.value?.length > 2) {
-        callProjectLeadSearchApi(e.target.value);
+        setProjectLeadOptions([]);
+        setProjectLeadselected(false);
+        setProjectLeadAutoLoader(true);
+        callSearchApi(e.target.value, 'projectLead');
+        setProjectLeadAutoLoader(false);
         if (validateEmail(e?.target?.value)) {
           setProjectLeadEmailError(false);
         } else {
           setProjectLeadEmailError(true);
         }
       }
+    } else {
+      setProjectLeadDetail('');
+      setProjectLeadEmail('');
     }
   };
 
@@ -570,21 +554,24 @@ const ViewCertificate = (props) => {
                     <RequiredCircle margin="0.5rem" />
                   </InputLabel>
                   <AutoCompleteComponent
-                    options={[...options.map((item) => item.userEmail)]}
+                    options={options}
                     classes={classes}
-                    searchValue={applicationOwner}
+                    searchValue={ownerDetail}
                     icon="search"
                     name="applicationOwner"
+                    open={
+                      ownerDetail?.length > 2 &&
+                      options.length > 0 &&
+                      !ownerSelected
+                    }
                     onSelected={(e, val) => onSelected(e, val)}
                     onChange={(e) => onOwnerChange(e)}
-                    placeholder="Email address- Enter min 3 characters"
+                    placeholder="Search by NTID, Email or Name "
                     error={
-                      applicationOwner?.length > 2 &&
-                      (emailError || !isValidEmail)
+                      ownerDetail?.length > 2 && (emailError || !isValidEmail)
                     }
                     helperText={
-                      applicationOwner?.length > 2 &&
-                      (emailError || !isValidEmail)
+                      ownerDetail?.length > 2 && (emailError || !isValidEmail)
                         ? 'Please enter a valid email address or not available!'
                         : ''
                     }
@@ -599,22 +586,25 @@ const ViewCertificate = (props) => {
                     <RequiredCircle margin="0.5rem" />
                   </InputLabel>
                   <AutoCompleteComponent
-                    options={[
-                      ...projectLeadOptions.map((item) => item.userEmail),
-                    ]}
+                    options={projectLeadOptions}
                     classes={classes}
-                    searchValue={projectLeadEmail}
+                    searchValue={projectLeadDetail}
                     icon="search"
                     name="applicationOwner"
+                    open={
+                      projectLeadDetail?.length > 2 &&
+                      projectLeadOptions.length > 0 &&
+                      !projectLeadSelected
+                    }
                     onSelected={(e, val) => onProjectLeadSelected(e, val)}
                     onChange={(e) => onProjectLeadChange(e)}
-                    placeholder="Email address- Enter min 3 characters"
+                    placeholder="Search by NTID, Email or Name "
                     error={
-                      projectLeadEmail?.length > 2 &&
+                      projectLeadDetail?.length > 2 &&
                       (projectLeadEmailError || !isValidProjectLeadEmail)
                     }
                     helperText={
-                      projectLeadEmail?.length > 2 &&
+                      projectLeadDetail?.length > 2 &&
                       (projectLeadEmailError || !isValidProjectLeadEmail)
                         ? 'Please enter a valid email address or not available!'
                         : ''
@@ -638,19 +628,24 @@ const ViewCertificate = (props) => {
                 <AutoCompleteComponent
                   options={notifyOptions}
                   classes={classes}
-                  searchValue={notifyEmail}
+                  searchValue={notifyUserDetail}
                   icon="search"
                   name="notifyEmail"
+                  open={
+                    notifyUserDetail?.length > 2 &&
+                    notifyOptions.length > 0 &&
+                    !notifyUserSelected
+                  }
                   onSelected={(e, val) => onNotifyEmailSelected(e, val)}
                   onKeyDown={(e) => onEmailKeyDownClicked(e)}
                   onChange={(e) => onNotifyEmailChange(e)}
-                  placeholder="Email address- Enter min 3 characters"
+                  placeholder="Search by NTID, Email or Name "
                   error={
-                    notifyEmail?.length > 2 &&
+                    notifyUserDetail?.length > 2 &&
                     (notifyEmailError || !isValidNotifyEmail)
                   }
                   helperText={
-                    notifyEmail?.length > 2 &&
+                    notifyUserDetail?.length > 2 &&
                     (notifyEmailError || !isValidNotifyEmail)
                       ? emailErrorMsg
                       : ''

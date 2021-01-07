@@ -114,6 +114,7 @@ const AddUser = (props) => {
   const [isValidUserName, setIsValidUserName] = useState(false);
   const [radioArray, setRadioArray] = useState([]);
   const isMobileScreen = useMediaQuery(small);
+  const [userSelected, setUserSelected] = useState(false);
 
   useEffect(() => {
     setSearchValue(username);
@@ -158,21 +159,34 @@ const AddUser = (props) => {
     debounce(
       (value) => {
         setSearchLoader(true);
-        apiService
-          .getUserName(value)
-          .then((res) => {
+        const userNameSearch = apiService.getUserName(value);
+        const emailSearch = apiService.getOwnerEmail(value);
+        Promise.all([userNameSearch, emailSearch])
+          .then((responses) => {
             setOptions([]);
-            setSearchLoader(false);
-            if (res?.data?.data?.values?.length > 0) {
-              const array = [];
-              res.data.data.values.map((item) => {
+            const array = new Set([]);
+            if (responses[0]?.data?.data?.values?.length > 0) {
+              responses[0].data.data.values.map((item) => {
                 if (item.userName) {
-                  return array.push(`${item.displayName} (${item.userName})`);
+                  return array.add(
+                    `${item.displayName} [${item.userEmail}] (${item.userName})`
+                  );
                 }
                 return null;
               });
-              setOptions([...array]);
             }
+            if (responses[1]?.data?.data?.values?.length > 0) {
+              responses[1].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(
+                    `${item.displayName} [${item.userEmail}] (${item.userName})`
+                  );
+                }
+                return null;
+              });
+            }
+            setOptions([...array]);
+            setSearchLoader(false);
           })
           .catch(() => {
             setSearchLoader(false);
@@ -188,6 +202,7 @@ const AddUser = (props) => {
     if (e && e?.target?.value) {
       setSearchValue(e?.target?.value);
       if (e?.target?.value !== '' && e?.target?.value?.length > 2) {
+        setUserSelected(false);
         callSearchApi(e.target.value);
       }
     } else {
@@ -198,6 +213,7 @@ const AddUser = (props) => {
   const onSelected = (e, val) => {
     if (val) {
       setSearchValue(val);
+      setUserSelected(true);
     }
   };
 
@@ -230,7 +246,7 @@ const AddUser = (props) => {
         </HeaderWrapper>
         <InputWrapper>
           <InputLabel>
-            User Name
+            User
             <RequiredCircle margin="0.5rem" />
           </InputLabel>
           {configData.AD_USERS_AUTOCOMPLETE ? (
@@ -240,19 +256,22 @@ const AddUser = (props) => {
                 icon="search"
                 classes={classes}
                 disabled={!!(access && username)}
+                open={
+                  options.length > 0 && searchValue.length > 2 && !userSelected
+                }
                 searchValue={searchValue}
                 onSelected={(e, val) => onSelected(e, val)}
                 onChange={(e) => onSearchChange(e)}
-                placeholder="Username - Enter min 3 characters"
+                placeholder="Search by NTID, Email or Name "
                 error={username !== searchValue && !isValidUserName}
                 helperText={
                   username !== searchValue && !isValidUserName
-                    ? `User name ${searchValue} does not exist!`
+                    ? `User ${searchValue} does not exist!`
                     : ''
                 }
               />
               <InstructionText>
-                Search users by user name (lastname, firstname) or by NTID.
+                Search the T-Mobile system to add users
               </InstructionText>
               {searchLoader && <LoaderSpinner customStyle={customStyle} />}
             </>

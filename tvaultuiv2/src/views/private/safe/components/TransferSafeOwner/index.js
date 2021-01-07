@@ -118,6 +118,8 @@ const TransferSafeOwner = (props) => {
   } = props;
 
   const [owner, setOwner] = useState('');
+  const [ownerDetails, setOwnerDetails] = useState('');
+  const [ownerSelected, setOwnerSelected] = useState(false);
   const [options, setOptions] = useState([]);
   const [autoLoader, setAutoLoader] = useState(false);
   const classes = useStyles();
@@ -126,16 +128,16 @@ const TransferSafeOwner = (props) => {
   const [disabledTransfer, setDisabledTransfer] = useState(true);
 
   useEffect(() => {
-    if (owner?.length > 2) {
+    if (ownerDetails?.length > 2) {
       if (!autoLoader) {
-        if (options.length === 0 || !options.includes(owner)) {
+        if (options.length === 0 || !options.includes(ownerDetails)) {
           setIsValidEmail(false);
         } else {
           setIsValidEmail(true);
         }
       }
     }
-  }, [owner, autoLoader, options]);
+  }, [ownerDetails, autoLoader, options]);
 
   useEffect(() => {
     if (emailError || !isValidEmail) {
@@ -149,23 +151,55 @@ const TransferSafeOwner = (props) => {
     debounce(
       (value) => {
         setAutoLoader(true);
-        apiService
-          .getOwnerTransferEmail(value)
-          .then((res) => {
+        const userNameSearch = apiService.getUserName(value);
+        const emailSearch = apiService.getOwnerTransferEmail(value);
+        Promise.all([userNameSearch, emailSearch])
+          .then((responses) => {
             setOptions([]);
-            const array = [];
-            setAutoLoader(false);
-            if (res?.data?.data?.values?.length > 0) {
-              res.data.data.values.map((item) => {
-                if (item.userEmail) {
-                  return array.push(item.userEmail);
+            const array = new Set([]);
+            if (responses[0]?.data?.data?.values?.length > 0) {
+              responses[0].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(
+                    `${item.displayName} [${item.userEmail}] (${item.userName})`
+                  );
                 }
                 return null;
               });
-              setOptions([...array]);
             }
+            if (responses[1]?.data?.data?.values?.length > 0) {
+              responses[1].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(
+                    `${item.displayName} [${item.userEmail}] (${item.userName})`
+                  );
+                }
+                return null;
+              });
+            }
+            setOptions([...array]);
+            setAutoLoader(false);
           })
-          .catch(() => setAutoLoader(false));
+          .catch(() => {
+            setAutoLoader(false);
+          });
+        // apiService
+        //   .getOwnerTransferEmail(value)
+        //   .then((res) => {
+        //     setOptions([]);
+        //     const array = [];
+        //     setAutoLoader(false);
+        //     if (res?.data?.data?.values?.length > 0) {
+        //       res.data.data.values.map((item) => {
+        //         if (item.userEmail) {
+        //           return array.push(item.userEmail);
+        //         }
+        //         return null;
+        //       });
+        //       setOptions([...array]);
+        //     }
+        //   })
+        //   .catch(() => setAutoLoader(false));
       },
       1000,
       true
@@ -175,8 +209,9 @@ const TransferSafeOwner = (props) => {
 
   const onOwnerChange = (e) => {
     if (e && e?.target?.value) {
-      setOwner(e.target.value);
+      setOwnerDetails(e.target.value);
       if (e.target.value && e.target.value?.length > 2) {
+        setOwnerSelected(false);
         callSearchApi(e.target.value);
         if (validateEmail(owner)) {
           setEmailError(false);
@@ -185,13 +220,17 @@ const TransferSafeOwner = (props) => {
         }
       }
     } else {
+      setOwnerDetails('');
       setOwner('');
     }
   };
 
   const onSelected = (e, val) => {
-    setOwner(val);
+    setOwnerDetails(val);
+    const ownerEmail = val?.match(/\[(.*)\]/)[1].toLowerCase();
+    setOwner(ownerEmail);
     setEmailError(false);
+    setOwnerSelected(true);
   };
 
   const onTransfer = () => {
@@ -227,26 +266,31 @@ const TransferSafeOwner = (props) => {
       </EachValueWrap>
       <InputFieldLabelWrapper postion>
         <InputLabel>
-          New Owner Email ID
+          New Owner
           <RequiredCircle margin="0.5rem" />
         </InputLabel>
         <AutoCompleteComponent
           options={options}
           classes={classes}
-          searchValue={owner}
+          searchValue={ownerDetails || owner}
+          open={
+            ownerDetails?.length > 2 && options.length > 0 && !ownerSelected
+          }
           icon="search"
           name="owner"
           onSelected={(e, val) => onSelected(e, val)}
           onChange={(e) => onOwnerChange(e)}
-          placeholder="Email address- Enter min 3 characters"
-          error={owner?.length > 2 && (emailError || !isValidEmail)}
+          placeholder="Search by NTID, Email or Name "
+          error={ownerDetails?.length > 2 && (emailError || !isValidEmail)}
           helperText={
-            owner?.length > 2 && (emailError || !isValidEmail)
-              ? 'Please enter a valid email address or not available!'
+            ownerDetails?.length > 2 && (emailError || !isValidEmail)
+              ? 'Please enter a valid value or not available!'
               : ''
           }
         />
-        <InstructionText>Search the T-Mobile system by email.</InstructionText>
+        <InstructionText>
+          Search the T-Mobile system to add users
+        </InstructionText>
         {autoLoader && <LoaderSpinner customStyle={autoLoaderStyle} />}
       </InputFieldLabelWrapper>
       <CancelSaveWrapper>

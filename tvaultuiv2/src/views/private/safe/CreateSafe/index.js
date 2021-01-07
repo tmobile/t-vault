@@ -159,6 +159,7 @@ const CreateModal = (props) => {
   const [open, setOpen] = useState(true);
   const [safeType, setSafeType] = useState('Users Safe');
   const [owner, setOwner] = useState('');
+  const [ownerDetail, setOwnerDetail] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [disabledSave, setDisabledSave] = useState(true);
@@ -175,18 +176,19 @@ const CreateModal = (props) => {
   const [safeDetails, setSafeDetails] = useState({});
   const [isValidEmail, setIsValidEmail] = useState(true);
   const history = useHistory();
+  const [ownerSelected, setOwnerSelected] = useState(false);
 
   useEffect(() => {
     if (owner?.length > 2) {
       if (!autoLoader) {
-        if (options.length === 0 || !options.includes(owner)) {
+        if (options.length === 0 || !options.includes(ownerDetail)) {
           setIsValidEmail(false);
         } else {
           setIsValidEmail(true);
         }
       }
     }
-  }, [owner, autoLoader, options]);
+  }, [owner, ownerDetail, autoLoader, options]);
 
   useEffect(() => {
     if (
@@ -327,21 +329,34 @@ const CreateModal = (props) => {
     debounce(
       (value) => {
         setAutoLoader(true);
-        apiService
-          .getOwnerEmail(value)
-          .then((res) => {
+        const userNameSearch = apiService.getUserName(value);
+        const emailSearch = apiService.getOwnerEmail(value);
+        Promise.all([userNameSearch, emailSearch])
+          .then((responses) => {
             setOptions([]);
-            const array = [];
-            setAutoLoader(false);
-            if (res?.data?.data?.values?.length > 0) {
-              res.data.data.values.map((item) => {
-                if (item.userEmail) {
-                  return array.push(item.userEmail);
+            const array = new Set([]);
+            if (responses[0]?.data?.data?.values?.length > 0) {
+              responses[0].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(
+                    `${item.displayName} [${item.userEmail}] (${item.userName})`
+                  );
                 }
                 return null;
               });
-              setOptions([...array]);
             }
+            if (responses[1]?.data?.data?.values?.length > 0) {
+              responses[1].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(
+                    `${item.displayName} [${item.userEmail}] (${item.userName})`
+                  );
+                }
+                return null;
+              });
+            }
+            setOptions([...array]);
+            setAutoLoader(false);
           })
           .catch(() => setAutoLoader(false));
       },
@@ -352,18 +367,23 @@ const CreateModal = (props) => {
   );
   const onOwnerChange = (e) => {
     if (e && e.target.value) {
-      setOwner(e?.target?.value);
+      setOwnerDetail(e?.target?.value);
       if (e?.target?.value !== '' && e.target.value.length > 2) {
+        setOwnerSelected(false);
         callSearchApi(e.target.value);
       }
     } else {
+      setOwnerDetail('');
       setOwner('');
     }
   };
 
   const onSelected = (e, val) => {
     if (val) {
-      setOwner(val);
+      setOwnerDetail(val);
+      const ownerEmail = val?.match(/\[(.*)\]/)[1].toLowerCase();
+      setOwner(ownerEmail);
+      setOwnerSelected(true);
     }
   };
   const onToastClose = (reason) => {
@@ -509,11 +529,16 @@ const CreateModal = (props) => {
                     <AutoCompleteComponent
                       options={options}
                       classes={classes}
-                      searchValue={owner}
+                      searchValue={ownerDetail || owner}
+                      open={
+                        options.length > 0 &&
+                        !ownerSelected &&
+                        ownerDetail?.length > 2
+                      }
                       name="owner"
                       onSelected={(e, val) => onSelected(e, val)}
                       onChange={(e) => onOwnerChange(e)}
-                      placeholder="Email address- Enter min 3 characters"
+                      placeholder="Search by NTID, Email or Name "
                       error={
                         emailError ||
                         (!isValidEmail && safeDetails.owner !== owner)
@@ -522,7 +547,7 @@ const CreateModal = (props) => {
                       helperText={
                         (!isValidEmail && safeDetails.owner !== owner) ||
                         emailError
-                          ? 'Please enter a valid email address or not available!'
+                          ? 'Please enter a valid value or not available!'
                           : ''
                       }
                     />
