@@ -5854,9 +5854,12 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
      */
     private void updateNotificationEmails(Map<String, String> metaDataParams,String oldEmailId,String certOwnerEmailId) {
         String notificationEmails = metaDataParams.get("notificationEmails");
-        if (!StringUtils.isEmpty(notificationEmails) && (notificationEmails.toLowerCase().contains(oldEmailId.toLowerCase())
-                && (!notificationEmails.toLowerCase().contains(certOwnerEmailId.toLowerCase())))) {
-            notificationEmails = notificationEmails.replaceAll("(?i)" + oldEmailId, certOwnerEmailId);
+        if (!StringUtils.isEmpty(notificationEmails) && (notificationEmails.toLowerCase().contains(oldEmailId.toLowerCase()))) {
+            notificationEmails = notificationEmails.replaceAll("(?i)" + oldEmailId, certOwnerEmailId).toLowerCase();
+            notificationEmails=
+                    new LinkedHashSet<String>(Arrays.asList(notificationEmails.split(","))).toString().replaceAll("(^\\[|\\]$)",
+                    "").replace(", ", ",");
+
             metaDataParams.put("notificationEmails", notificationEmails);
         }
     }
