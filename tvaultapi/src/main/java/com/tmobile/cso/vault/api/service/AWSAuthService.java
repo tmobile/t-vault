@@ -136,7 +136,7 @@ public class  AWSAuthService {
 			if(ControllerUtil.createMetadata(metadataJson, token)) {
 				response = ControllerUtil.updateMetaDataOnConfigChanges(roleName, "roles", currentPolicies, latestPolicies, token);
 				boolean awsec2RoleMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson, token);	
-				String awsec2roleUsermetadataJson = ControllerUtil.populateec2UserMetaJson(awsLoginRole.getRole(), userDetails.getUsername());	
+				String awsec2roleUsermetadataJson = ControllerUtil.populateUserMetaJson(awsLoginRole.getRole(), userDetails.getUsername(),awsLoginRole.getAuth_type());	
 				boolean awsec2RoleUserMetaDataCreationStatus = ControllerUtil.createMetadata(awsec2roleUsermetadataJson, token);
 				if(awsec2RoleMetaDataCreationStatus && awsec2RoleUserMetaDataCreationStatus) {
 					logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().

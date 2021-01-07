@@ -124,7 +124,7 @@ public class AWSIAMAuthServiceTest {
         when(ControllerUtil.createMetadata(Mockito.any(), eq(token))).thenReturn(true);
         try {
             when(ControllerUtil.areAWSIAMRoleInputsValid(awsiamRole)).thenReturn(true);
-            when(ControllerUtil.populateiamUserMetaJson(Mockito.any(), Mockito.any())).thenReturn("awsiamroleUsermetadataJson");
+            when(ControllerUtil.populateUserMetaJson(Mockito.any(), Mockito.any())).thenReturn("awsiamroleUsermetadataJson");
             ResponseEntity<String> responseEntity = awsIamAuthService.createIAMRole(awsiamRole, token, userDetails);
             assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
             assertEquals(responseEntityExpected, responseEntity);
