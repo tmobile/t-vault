@@ -1502,11 +1502,13 @@ public final class ControllerUtil {
 		String sdbName = safeBasicDetails.getName();
 		String sdbOwner = safeBasicDetails.getOwner();
 		String sdbDescription = safeBasicDetails.getDescription();
+		String appName=safeBasicDetails.getAppName();
 		String path = safe.getPath();
 		if (StringUtils.isEmpty(sdbName) 
 				|| StringUtils.isEmpty(sdbOwner) 
 				|| StringUtils.isEmpty(sdbDescription) 
 				|| StringUtils.isEmpty(path) 
+				|| StringUtils.isEmpty(appName) 
 				) {
 			return false;
 		}
@@ -2208,7 +2210,38 @@ public final class ControllerUtil {
 		rqstParams.put("path",_path);
 		return ControllerUtil.convetToJson(rqstParams);
 	}
-
+	/**
+     * Populate awsec2 metadata json with the user information
+     * @param RoleName
+     * @param username
+     * @return
+     */
+    public static  String populateec2UserMetaJson(String RoleName, String username) {
+        String _path = TVaultConstants.AWSEC2_USERS_METADATA_MOUNT_PATH + "/" + username +"/" + RoleName;
+        AppRoleMetadataDetails appRoleMetadataDetails = new AppRoleMetadataDetails(RoleName);
+		appRoleMetadataDetails.setCreatedBy(username);
+		AppRoleMetadata appRoleMetadata =  new AppRoleMetadata(_path, appRoleMetadataDetails);
+		String jsonStr = JSONUtil.getJSON(appRoleMetadata);
+		Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+		rqstParams.put("path",_path);
+		return ControllerUtil.convetToJson(rqstParams);
+    }
+	/**
+     * Populate awsiam metadata json with the user information
+     * @param RoleName
+     * @param username
+     * @return
+     */
+    public static  String populateiamUserMetaJson(String RoleName, String username) {
+        String _path = TVaultConstants.AWSIAM_USERS_METADATA_MOUNT_PATH + "/" + username +"/" + RoleName;
+        AppRoleMetadataDetails appRoleMetadataDetails = new AppRoleMetadataDetails(RoleName);
+		appRoleMetadataDetails.setCreatedBy(username);
+		AppRoleMetadata appRoleMetadata =  new AppRoleMetadata(_path, appRoleMetadataDetails);
+		String jsonStr = JSONUtil.getJSON(appRoleMetadata);
+		Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+		rqstParams.put("path",_path);
+		return ControllerUtil.convetToJson(rqstParams);
+    }
 	/**
 	 * Create metadata
 	 * @param metadataJson

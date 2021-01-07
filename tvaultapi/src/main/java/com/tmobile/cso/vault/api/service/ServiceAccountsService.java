@@ -141,7 +141,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "getADServiceAccounts").
-							put(LogMessage.MESSAGE, String.format("There are no service accounts currently onboarded or error in retrieving onboarded service accounts")).
+							put(LogMessage.MESSAGE, String.format("There are no AD service accounts currently onboarded or error in retrieving onboarded service accounts")).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 				}
@@ -1716,7 +1716,7 @@ public class  ServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "getOnboarderdServiceAccount").
-					put(LogMessage.MESSAGE, String.format("List of service accounts fetched successfully")).
+					put(LogMessage.MESSAGE, String.format("List of AD service accounts fetched successfully")).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body(onbSvcAccDtlsJson);
@@ -1832,7 +1832,7 @@ public class  ServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "listOnboardedServiceAccounts").
-				      put(LogMessage.MESSAGE, "Successfully retrieved the list of Service Accounts").
+				      put(LogMessage.MESSAGE, "Successfully retrieved the list of AD Service Accounts").
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -3381,7 +3381,7 @@ public class  ServiceAccountsService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "update onboarded Service Account").
-						put(LogMessage.MESSAGE,String.format("Successfully updated onboarded Service Account[%s].",serviceAccount.getName())).
+						put(LogMessage.MESSAGE,String.format("Successfully updated onboarded AD Service Account[%s].",serviceAccount.getName())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully updated onboarded Service Account.\"]}");
@@ -3510,7 +3510,7 @@ public class  ServiceAccountsService {
 						log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 								put(LogMessage.ACTION, "transferSvcAccountOwner").
-								put(LogMessage.MESSAGE, String.format("Service account[%s] ownership transferred successfully from [%s] to [%s].",svcAccName,oldOwner,svcOwner)).
+								put(LogMessage.MESSAGE, String.format("AD Service account[%s] ownership transferred successfully from [%s] to [%s].",svcAccName,oldOwner,svcOwner)).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
 						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Service account ownership transferred successfully from " + oldOwner + " to " + svcOwner + ".\"]}");

@@ -133,7 +133,7 @@ public class SelfSupportServiceTest {
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
@@ -147,7 +147,7 @@ public class SelfSupportServiceTest {
     public void test_createSafe_successfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
@@ -169,7 +169,7 @@ public class SelfSupportServiceTest {
     public void test_createSafe_failure() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"You have reached the limit of number of allowed safes that can be created\"]}");
@@ -191,7 +191,7 @@ public class SelfSupportServiceTest {
     public void test_createSafe_failure_400() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("",safeBasicDetails);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
@@ -205,7 +205,7 @@ public class SelfSupportServiceTest {
     public void test_createSafe_admin() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
@@ -433,7 +433,7 @@ public class SelfSupportServiceTest {
         String responseJson = "{\"errors\":[\"Access denied: no permission to read this safe information\"]}";
 
         String[] policies = {"s_shared_mysafe01"};
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01", safeBasicDetails);
 
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseJson);
@@ -460,7 +460,7 @@ public class SelfSupportServiceTest {
         String responseJson = "{  \"keys\": [ \"mysafe01\" ]}";
 
         String[] policies = {"s_shared_mysafe01"};
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01", safeBasicDetails);
 
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body(responseJson);
@@ -512,7 +512,7 @@ public class SelfSupportServiceTest {
     public void test_updateSafe_successfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe updated \"]}");
@@ -529,7 +529,7 @@ public class SelfSupportServiceTest {
     public void test_updateSafe_successfully_admin() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe updated \"]}");
@@ -545,7 +545,7 @@ public class SelfSupportServiceTest {
     public void test_updateSafe_failure_403() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update this safe\"]}");
@@ -561,7 +561,7 @@ public class SelfSupportServiceTest {
     public void test_updateSafe_failure_400() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path specified\"]}");
@@ -638,7 +638,7 @@ public class SelfSupportServiceTest {
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(ControllerUtil.isPathValid(path)).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
@@ -680,7 +680,7 @@ public class SelfSupportServiceTest {
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(ControllerUtil.isPathValid(path)).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
@@ -722,7 +722,7 @@ public class SelfSupportServiceTest {
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
@@ -749,7 +749,7 @@ public class SelfSupportServiceTest {
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
@@ -1981,7 +1981,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2189,7 +2189,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2277,7 +2277,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2355,7 +2355,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2449,7 +2449,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2543,7 +2543,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2576,7 +2576,7 @@ public class SelfSupportServiceTest {
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2681,7 +2681,7 @@ public class SelfSupportServiceTest {
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
