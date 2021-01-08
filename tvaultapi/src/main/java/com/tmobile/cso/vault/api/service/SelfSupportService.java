@@ -1252,4 +1252,25 @@ public class  SelfSupportService {
 		return ResponseEntity.status(response==null?null:response.getHttpstatus()).body(response.getResponse());	
 	}
 	
+	public ResponseEntity<String> createAwsec2Role(UserDetails userDetails, String token, AWSLoginRole awsLoginRole) throws TVaultValidationException {
+		String accesstoken;
+		if (userDetails.isAdmin()) {
+			 accesstoken = userDetails.getClientToken();
+		}
+		else {
+			accesstoken = userDetails.getSelfSupportToken();
+		}
+		return awsAuthService.createRole(accesstoken, awsLoginRole, userDetails);
+	}
+
+	public ResponseEntity<String> createAwsiamRole(UserDetails userDetails, String token, AWSIAMRole awsiamRole) throws TVaultValidationException {
+		String accesstoken;
+		if (userDetails.isAdmin()) {
+			accesstoken = userDetails.getClientToken();
+		}
+		else {
+			accesstoken = userDetails.getSelfSupportToken();
+		}
+		return awsiamAuthService.createIAMRole(awsiamRole, accesstoken, userDetails);
+	}
 }
