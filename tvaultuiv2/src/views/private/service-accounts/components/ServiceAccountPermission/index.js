@@ -76,8 +76,8 @@ const ServiceAccountPermission = (props) => {
     ) {
       setCount(0);
       if (value === 0) {
-        if (userDetails) {
-          setCount(userDetails.length);
+        if (accountMetaData.response.users) {
+          setCount(Object.keys(accountMetaData.response.users).length);
         }
       } else if (value === 1) {
         if (accountMetaData.response.groups) {
@@ -163,7 +163,6 @@ const ServiceAccountPermission = (props) => {
                         updateToastMessage={(res, message) =>
                           updateToastMessage(res, message)
                         }
-                        fetchPermission={fetchPermission}
                         refresh={refresh}
                       />
                     </TabPanel>

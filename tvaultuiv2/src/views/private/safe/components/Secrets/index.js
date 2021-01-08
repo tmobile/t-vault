@@ -174,7 +174,7 @@ const Secrets = (props) => {
               <AccessDeniedIcon src={NoSecretsIcon} alt="noSecretAvailable" />
               <NoPermission>
                 Once you add a <span>safe</span> you’ll be able to add{' '}
-                <span>Secret</span> to view them all here!
+                <span>secret</span> to view them all here!
               </NoPermission>
             </AccessDeniedWrap>
           )}
