@@ -17,7 +17,6 @@ import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
-import { useStateValue } from '../../../../../contexts/globalState';
 import accessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
 import {
   PopperItem,
@@ -104,7 +103,6 @@ const NoPermission = styled.div`
 const ServiceAccountSecrets = (props) => {
   const {
     accountDetail,
-    accountMetaData,
     accountSecretError,
     accountSecretData,
     secretStatus,
@@ -115,9 +113,7 @@ const ServiceAccountSecrets = (props) => {
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
-  const [writePermission, setWritePermission] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-  const [state] = useStateValue();
 
   /**
    * @function handleClose
@@ -202,21 +198,6 @@ const ServiceAccountSecrets = (props) => {
     setResponseType(null);
   };
 
-  /**
-   * @description to check the whether the user have write permission
-   * compare the service account data with loged in user.
-   */
-  useEffect(() => {
-    if (accountMetaData?.response?.users) {
-      Object.entries(accountMetaData.response.users).map(([key, value]) => {
-        if (key === state.username && value === 'write') {
-          return setWritePermission(true);
-        }
-        return setWritePermission(false);
-      });
-    }
-  }, [accountMetaData, state]);
-
   return (
     <ComponentError>
       <>
@@ -268,7 +249,7 @@ const ServiceAccountSecrets = (props) => {
                   {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
                   <span>{showSecret ? 'Hide Secret' : 'View Secret'}</span>
                 </PopperItem>
-                {writePermission && (
+                {accountDetail?.access === 'write' && (
                   <PopperItem onClick={() => onResetClicked()}>
                     <img alt="refersh-ic" src={IconRefreshCC} />
                     <span>Reset Secret</span>
@@ -334,7 +315,6 @@ const ServiceAccountSecrets = (props) => {
 
 ServiceAccountSecrets.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
-  accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   accountSecretError: PropTypes.string,
   accountSecretData: PropTypes.objectOf(PropTypes.any),
   secretStatus: PropTypes.string,
