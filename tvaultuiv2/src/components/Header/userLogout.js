@@ -70,17 +70,17 @@ const UserLogout = (props) => {
     setLogoutClicked(!logoutClicked);
   };
 
-  const config = {
-    auth: {
-      clientId: localStorage.getItem('clientId'),
-      redirectUri: configUrl.redirectUrl, // defaults to application start page
-      postLogoutRedirectUri: configUrl.redirectUrl,
-    },
-  };
-
-  const myMsal = new msal.PublicClientApplication(config);
   const onLogoutClicked = async () => {
     setLogoutClicked(false);
+    const config = {
+      auth: {
+        clientId: localStorage.getItem('clientId'),
+        redirectUri: configUrl.redirectUrl, // defaults to application start page
+        postLogoutRedirectUri: configUrl.redirectUrl,
+      },
+    };
+
+    const myMsal = new msal.PublicClientApplication(config);
     myMsal.logout();
     if (configData.AUTH_TYPE === 'oidc') {
       await revokeToken();
