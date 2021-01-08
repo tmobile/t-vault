@@ -1502,11 +1502,13 @@ public final class ControllerUtil {
 		String sdbName = safeBasicDetails.getName();
 		String sdbOwner = safeBasicDetails.getOwner();
 		String sdbDescription = safeBasicDetails.getDescription();
+		String appName=safeBasicDetails.getAppName();
 		String path = safe.getPath();
 		if (StringUtils.isEmpty(sdbName) 
 				|| StringUtils.isEmpty(sdbOwner) 
 				|| StringUtils.isEmpty(sdbDescription) 
 				|| StringUtils.isEmpty(path) 
+				|| StringUtils.isEmpty(appName) 
 				) {
 			return false;
 		}
@@ -2208,7 +2210,25 @@ public final class ControllerUtil {
 		rqstParams.put("path",_path);
 		return ControllerUtil.convetToJson(rqstParams);
 	}
-
+	/**
+     * Populate aws metadata json with the user information
+     * @param RoleName
+     * @param username
+     * @param auth_type
+     * @return
+     */
+    public static  String populateUserMetaJson(String RoleName, String username,String type) {
+        String _path = TVaultConstants.AWS_USERS_METADATA_MOUNT_PATH + "/" + username +"/" + RoleName;
+        AWSMetadataDetails awsRoleMetadataDetails = new AWSMetadataDetails();
+        awsRoleMetadataDetails.setCreatedBy(username);
+        awsRoleMetadataDetails.setName(RoleName);
+        awsRoleMetadataDetails.setType(type);
+		AWSRoleMetadata awsRoleMetadata =  new AWSRoleMetadata(_path, awsRoleMetadataDetails);
+		String jsonStr = JSONUtil.getJSON(awsRoleMetadata);
+		Map<String,Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+		rqstParams.put("path",_path);
+		return ControllerUtil.convetToJson(rqstParams);
+    }
 	/**
 	 * Create metadata
 	 * @param metadataJson

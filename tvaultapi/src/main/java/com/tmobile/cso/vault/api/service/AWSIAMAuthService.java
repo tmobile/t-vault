@@ -80,6 +80,10 @@ public class AWSIAMAuthService {
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 			String metadataJson = ControllerUtil.populateAWSMetaJson(awsiamRole.getRole(), userDetails.getUsername());
 			if(ControllerUtil.createMetadata(metadataJson, token)) {
+				boolean awsiamRoleMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson, token);
+				String awsiamroleUsermetadataJson = ControllerUtil.populateUserMetaJson(awsiamRole.getRole(), userDetails.getUsername(),awsiamRole.getAuth_type());
+				boolean awsiamRoleUserMetaDataCreationStatus = ControllerUtil.createMetadata(awsiamroleUsermetadataJson, token);
+				if(awsiamRoleMetaDataCreationStatus && awsiamRoleUserMetaDataCreationStatus) {
 				logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "Creating AWS IAM role").
@@ -87,6 +91,7 @@ public class AWSIAMAuthService {
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role created successfully \"]}");
+				}
 			}
 			// revert role creation
 			Response deleteResponse = reqProcessor.process("/auth/aws/iam/roles/delete",ROLESTR+awsiamRole.getRole()+"\"}",token);
