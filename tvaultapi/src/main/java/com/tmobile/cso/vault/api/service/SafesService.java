@@ -1665,6 +1665,13 @@ public class  SafesService {
 						}
 					}		
 				}else{
+					String ssoToken = oidcUtil.getSSOToken();
+					if (!StringUtils.isEmpty(ssoToken)) {
+						String objectId = oidcUtil.getGroupObjectResponse(ssoToken, groupName);
+						if (objectId == null || StringUtils.isEmpty(objectId)) {
+							return deleteOrphanGroupEntriesForSafe(token, safeGroup, groupName, path);
+						}
+					}
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try Again\"]}");
 				}	
 			}else{
@@ -1687,7 +1694,7 @@ public class  SafesService {
 			String path) {
 		// Trying to remove the orphan entries if exists
 		Map<String,String> params = new HashMap<>();
-		params.put("type", "users");
+		params.put("type", "groups");
 		params.put("name",groupName);
 		params.put("path",path);
 		params.put("access","delete");

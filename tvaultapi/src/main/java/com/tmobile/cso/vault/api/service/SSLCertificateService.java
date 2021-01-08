@@ -1816,14 +1816,14 @@ public class SSLCertificateService {
 				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-		                    put(LogMessage.MESSAGE, String.format("[%s] -Read Policy Created – Completed", certificateName )).
+		                    put(LogMessage.MESSAGE, String.format("[%s] -Read Policy Created - Completed", certificateName )).
 		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		                    build()));
 			}else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-						put(LogMessage.MESSAGE, String.format("[%s] -Read Policy Creation – FAILED", certificateName )).
+						put(LogMessage.MESSAGE, String.format("[%s] -Read Policy Creation - FAILED", certificateName )).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
@@ -1838,14 +1838,14 @@ public class SSLCertificateService {
 				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-		                    put(LogMessage.MESSAGE, String.format("[%s] -Write Policy Created – Completed", certificateName )).
+		                    put(LogMessage.MESSAGE, String.format("[%s] -Write Policy Created - Completed", certificateName )).
 		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		                    build()));
 			}else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-						put(LogMessage.MESSAGE, String.format("[%s] -Write Policy Creation – Failed", certificateName )).
+						put(LogMessage.MESSAGE, String.format("[%s] -Write Policy Creation - Failed", certificateName )).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
@@ -1859,14 +1859,14 @@ public class SSLCertificateService {
 				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-		                    put(LogMessage.MESSAGE, String.format("[%s] -Deny Policy Created – Completed", certificateName )).
+		                    put(LogMessage.MESSAGE, String.format("[%s] -Deny Policy Created - Completed", certificateName )).
 		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		                    build()));
 			}else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-						put(LogMessage.MESSAGE, String.format("[%s] -Deny Policy Creation – Failed", certificateName )).
+						put(LogMessage.MESSAGE, String.format("[%s] -Deny Policy Creation - Failed", certificateName )).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
@@ -1881,14 +1881,14 @@ public class SSLCertificateService {
 				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-		                    put(LogMessage.MESSAGE, String.format("[%s] -Sudo Policy Created – Completed", certificateName )).
+		                    put(LogMessage.MESSAGE, String.format("[%s] -Sudo Policy Created - Completed", certificateName )).
 		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		                    build()));
 			}else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-						put(LogMessage.MESSAGE, String.format("[%s] -Sudo Policy Creation – Failed", certificateName )).
+						put(LogMessage.MESSAGE, String.format("[%s] -Sudo Policy Creation - Failed", certificateName )).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
@@ -1906,7 +1906,7 @@ public class SSLCertificateService {
 	            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 	                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-	                    put(LogMessage.MESSAGE, String.format("[%s] -Policies Creation – Completed", certificateName )).
+	                    put(LogMessage.MESSAGE, String.format("[%s] -Policies Creation - Completed", certificateName )).
 	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 	                    build()));
 	            policiesCreated = true;
@@ -1914,7 +1914,7 @@ public class SSLCertificateService {
 	            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 	                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-	                    put(LogMessage.MESSAGE, String.format("[%s] -Policies Creation – Failed", certificateName )).
+	                    put(LogMessage.MESSAGE, String.format("[%s] -Policies Creation - Failed", certificateName )).
 	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 	                    build()));
 	        }
@@ -5203,7 +5203,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			}
 		}
 	}
-	
+
 	/**
      * Remove Group from certificate
      * @param certificateGroup
@@ -5211,7 +5211,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
      * @return
      */
     public ResponseEntity<String> removeGroupFromCertificate(CertificateGroup certificateGroup, UserDetails userDetails) {
-    	
+
     	if(!areCertificateGroupInputsValid(certificateGroup)) {
    			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
    					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -5221,21 +5221,21 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    					build()));
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
    		}
-    	
+
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG).
                 put(LogMessage.MESSAGE, String.format("Trying to remove Group from certificate - [%s]", certificateGroup.toString())).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
-        
+
         String groupName = certificateGroup.getGroupname();
    		String certificateName = certificateGroup.getCertificateName().toLowerCase();
    		String certificateType = certificateGroup.getCertType();
    		String authToken = null;
-   		
+
    		boolean isAuthorized = true;
-   		
+
    		if (!ObjectUtils.isEmpty(userDetails)) {
    			if (userDetails.isAdmin()) {
    				authToken = userDetails.getClientToken();   	            
@@ -5243,9 +5243,9 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    	        	authToken = userDetails.getSelfSupportToken();
    	        }
    			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, certificateType);
-   			
+
    			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
-   			
+
    		}else {
 			log.error(
 					JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -5259,14 +5259,14 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    			
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove group from this certificate\"]}");
    		} 
-   		
+
         if(isAuthorized){        	
 			return checkPolicyDetailsAndRemoveGroupFromCertificate(groupName, certificateName, authToken,
 					certificateType, userDetails);
         } else {
         	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                    put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
+                    put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG).
                     put(LogMessage.MESSAGE, "Access denied: No permission to remove groups from this certificate").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
@@ -5285,26 +5285,64 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	private ResponseEntity<String> checkPolicyDetailsAndRemoveGroupFromCertificate(String groupName,
 			String certificateName, String authToken, String certificateType, UserDetails userDetails) {
 		OIDCGroup oidcGroup = new OIDCGroup();
-		String certPrefix=(certificateType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL))?
-                SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
+
+		// check for this group is associated to this certificate
+		String sslCertMetaDataPath = (certificateType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL))?
+                new StringBuilder(SSLCertificateConstants.SSL_CERT_PATH).append("/").append(certificateName).toString() : new StringBuilder(SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH).append("/").append(certificateName).toString();
+		Response metadataReadResponse = reqProcessor.process("/read", "{\"path\":\"" + sslCertMetaDataPath + "\"}", authToken);
 		
-		String metaDataPath = (certificateType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL))?
-	            SSLCertificateConstants.SSL_CERT_PATH_VALUE :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
-		
-		String certificatePath = metaDataPath + certificateName;
-		
-		String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
-		String writePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
-		String denyPolicy = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
-		String sudoPolicy = SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
-		
-		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
-				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-				build()));
-		
+		Map<String, Object> responseMap = null;
+		boolean metaDataResponseStatus = true;
+		if(metadataReadResponse != null && HttpStatus.OK.equals(metadataReadResponse.getHttpstatus())) {
+			responseMap = ControllerUtil.parseJson(metadataReadResponse.getResponse());
+			if(responseMap.isEmpty()) {
+				metaDataResponseStatus = false;
+			}
+		}
+		else {
+			metaDataResponseStatus = false;
+		}
+
+		if(metaDataResponseStatus) {
+			@SuppressWarnings("unchecked")
+			Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
+			Map<String,Object> groupsData = (Map<String,Object>)metadataMap.get(TVaultConstants.GROUPS);
+
+			if (groupsData == null || !groupsData.containsKey(groupName)) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG).
+						put(LogMessage.MESSAGE, String.format ("Group [%s] is not associated to certificate [%s]", groupName, certificateName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove group from certificate. Group association to certificate not found\"]}");
+			}
+		}else {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG).
+					put(LogMessage.MESSAGE, String.format ("Error Fetching existing certificate info [%s]", certificateName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Error Fetching existing certificate info. please check the path specified\"]}");
+		}
+
+		return getGroupDetailsAndCallRemovalProcessForCert(groupName, certificateName, authToken, certificateType,
+				userDetails, oidcGroup);
+	}
+
+	/**
+	 * Method to call the group removal based on the auth method
+	 * @param groupName
+	 * @param certificateName
+	 * @param authToken
+	 * @param certificateType
+	 * @param userDetails
+	 * @param oidcGroup
+	 * @return
+	 */
+	private ResponseEntity<String> getGroupDetailsAndCallRemovalProcessForCert(String groupName, String certificateName,
+			String authToken, String certificateType, UserDetails userDetails, OIDCGroup oidcGroup) {
 		Response groupResp = new Response();
 		if(TVaultConstants.LDAP.equals(vaultAuthMethod)){
 			groupResp = reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}", authToken);
@@ -5325,11 +5363,47 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		        build()));
 
+		return removePoliciesAndCallMetadataUpdate(groupName, certificateName, authToken, certificateType, userDetails,
+				oidcGroup, groupResp);
+	}
+
+	/**
+	 * Method to update policies for remove group from certificate.
+	 * @param groupName
+	 * @param certificateName
+	 * @param authToken
+	 * @param certificateType
+	 * @param userDetails
+	 * @param oidcGroup
+	 * @param groupResp
+	 * @return
+	 */
+	private ResponseEntity<String> removePoliciesAndCallMetadataUpdate(String groupName, String certificateName,
+			String authToken, String certificateType, UserDetails userDetails, OIDCGroup oidcGroup,
+			Response groupResp) {
+		String metaDataPath = (certificateType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL))?
+	            SSLCertificateConstants.SSL_CERT_PATH_VALUE :SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
+
+		String certificatePath = metaDataPath + certificateName;
+		String certPrefix=(certificateType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL))?
+                SSLCertificateConstants.INTERNAL_POLICY_NAME :SSLCertificateConstants.EXTERNAL_POLICY_NAME;
+		String readPolicy = SSLCertificateConstants.READ_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
+		String writePolicy = SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
+		String denyPolicy = SSLCertificateConstants.DENY_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
+		String sudoPolicy = SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX+certPrefix+"_"+certificateName;
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG).
+				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+
 		String responseJson="";
 		List<String> policies = new ArrayList<>();
 		List<String> currentpolicies = new ArrayList<>();
-		
-		if(HttpStatus.OK.equals(groupResp.getHttpstatus())){
+
+		if(groupResp != null && HttpStatus.OK.equals(groupResp.getHttpstatus())){
 		    responseJson = groupResp.getResponse();
 		    try {
 				ObjectMapper objMapper = new ObjectMapper();
@@ -5354,10 +5428,31 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			policies.remove(readPolicy);
 			policies.remove(writePolicy);
 			policies.remove(denyPolicy);
+		}else {
+			return deleteOrphanGroupEntriesForCertificate(authToken, certificatePath, groupName);
 		}
+
+		return configureGroupPoliciesAndCallMetadataUpdate(groupName, authToken, userDetails, oidcGroup,
+				certificatePath, policies, currentpolicies);
+	}
+
+	/**
+	 * Method to configure group policies based on the auth method and call the metadata update
+	 * @param groupName
+	 * @param authToken
+	 * @param userDetails
+	 * @param oidcGroup
+	 * @param certificatePath
+	 * @param policies
+	 * @param currentpolicies
+	 * @return
+	 */
+	private ResponseEntity<String> configureGroupPoliciesAndCallMetadataUpdate(String groupName, String authToken,
+			UserDetails userDetails, OIDCGroup oidcGroup, String certificatePath, List<String> policies,
+			List<String> currentpolicies) {
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
-		
+
 		Response ldapConfigresponse = new Response();
 		// OIDC Changes
 		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
@@ -5368,10 +5463,16 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			oidcUtil.renewUserToken(userDetails.getClientToken());
 		}
 		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
-
 			return updateMetadataForRemoveGroupFromCertificate(groupName, certificatePath, authToken,
 					currentpoliciesString, userDetails, currentpolicies, oidcGroup!=null?oidcGroup.getId(): null);
 		} else {
+			String ssoToken = oidcUtil.getSSOToken();
+			if (!StringUtils.isEmpty(ssoToken)) {
+				String objectId = oidcUtil.getGroupObjectResponse(ssoToken, groupName);
+				if (objectId == null || StringUtils.isEmpty(objectId)) {
+					return deleteOrphanGroupEntriesForCertificate(authToken, certificatePath, groupName);
+				}
+			}
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 		            put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
@@ -5379,6 +5480,34 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		            build()));
 		    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
+		}
+	}
+
+	/**
+	 * Method to delete orphan group entries if exists for certificate
+	 * @param token
+	 * @param certificatePath
+	 * @param groupName
+	 * @return
+	 */
+	private ResponseEntity<String> deleteOrphanGroupEntriesForCertificate(String token, String certificatePath, String groupName) {
+		// Trying to remove the orphan entries if exists
+		Map<String,String> params = new HashMap<>();
+		params.put("type", "groups");
+		params.put("name",groupName);
+		params.put("path",certificatePath);
+		params.put("access","delete");
+		Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+		if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "Remove Group from certificate").
+					put(LogMessage.MESSAGE, String.format ("Group [%s] is successfully removed from certificate [%s]", groupName, certificatePath)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");
+		}else{
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try again \"]}");
 		}
 	}
 
@@ -8090,7 +8219,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 		                    put(LogMessage.ACTION, SSLCertificateConstants.GENERATE_SSL_CERTIFICTAE).
-		                    put(LogMessage.MESSAGE, "Sudo Policy Creation – Started  ").
+		                    put(LogMessage.MESSAGE, "Sudo Policy Creation - Started  ").
 		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 		                    build()));
 		            permissionResponse =  addSudoPermissionToCertificateOwner(sslCertificateRequest, userDetails, enrollResponse
@@ -8099,7 +8228,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		            	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 			                    put(LogMessage.ACTION, SSLCertificateConstants.GENERATE_SSL_CERTIFICTAE).
-			                    put(LogMessage.MESSAGE, String.format(" [%s] - ERROR - Sudo Policy Creation – Failed  ",sslCertificateRequest.getCertificateName())).
+			                    put(LogMessage.MESSAGE, String.format(" [%s] - ERROR - Sudo Policy Creation - Failed  ",sslCertificateRequest.getCertificateName())).
 			                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 			                    build()));
 		            	SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(tokenUtils.getSelfServiceToken(),
@@ -8112,7 +8241,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		        			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				                    put(LogMessage.ACTION, SSLCertificateConstants.GENERATE_SSL_CERTIFICTAE).
-				                    put(LogMessage.MESSAGE, String.format(" [%s] - ERROR - Metadata and policy deletion – Completed  ",sslCertificateRequest.getCertificateName())).
+				                    put(LogMessage.MESSAGE, String.format(" [%s] - ERROR - Metadata and policy deletion - Completed  ",sslCertificateRequest.getCertificateName())).
 				                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				                    build()));
 		        		}

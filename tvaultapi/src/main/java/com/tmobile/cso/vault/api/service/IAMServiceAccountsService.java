@@ -31,7 +31,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -1656,7 +1655,8 @@ public class  IAMServiceAccountsService {
 	/**
 	 * Removes user from IAM service account
 	 * @param token
-	 * @param safeUser
+	 * @param iamServiceAccountUser
+	 * @param userDetails
 	 * @return
 	 */
 	public ResponseEntity<String> removeUserFromIAMServiceAccount(String token, IAMServiceAccountUser iamServiceAccountUser, UserDetails userDetails) {
@@ -2020,7 +2020,7 @@ public class  IAMServiceAccountsService {
 		Response metadataReadResponse = reqProcessor.process("/iamsvcacct", PATHSTR + iamMetadataPath + "\"}", token);
 		Map<String, Object> responseMap = null;
 		boolean metaDataResponseStatus = true;
-		if(HttpStatus.OK.equals(metadataReadResponse.getHttpstatus())) {
+		if(metadataReadResponse != null && HttpStatus.OK.equals(metadataReadResponse.getHttpstatus())) {
 			responseMap = ControllerUtil.parseJson(metadataReadResponse.getResponse());
 			if(responseMap.isEmpty()) {
 				metaDataResponseStatus = false;
@@ -2148,7 +2148,10 @@ public class  IAMServiceAccountsService {
 			policies.remove(readPolicy);
 			policies.remove(writePolicy);
 			policies.remove(denyPolicy);
+		}else {
+			return deleteOrphanGroupEntriesForIAMSvcAcc(token, iamServiceAccountGroup);
 		}
+
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 		Response ldapConfigresponse = new Response();
@@ -2165,7 +2168,43 @@ public class  IAMServiceAccountsService {
 					currentpolicies, currentpoliciesString);
 		}
 		else {
+			String ssoToken = oidcUtil.getSSOToken();
+			if (!StringUtils.isEmpty(ssoToken)) {
+				String objectId = oidcUtil.getGroupObjectResponse(ssoToken, iamServiceAccountGroup.getGroupname());
+				if (objectId == null || StringUtils.isEmpty(objectId)) {
+					return deleteOrphanGroupEntriesForIAMSvcAcc(token, iamServiceAccountGroup);
+				}
+			}
 		    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
+		}
+	}
+
+	/**
+	 * Method to delete orphan group entries if exists for IAM service account
+	 * @param token
+	 * @param iamServiceAccountGroup
+	 * @return
+	 */
+	private ResponseEntity<String> deleteOrphanGroupEntriesForIAMSvcAcc(String token, IAMServiceAccountGroup iamServiceAccountGroup) {
+		// Trying to remove the orphan entries if exists
+		String iamUniqueSvcAccountName = iamServiceAccountGroup.getAwsAccountId() + "_" + iamServiceAccountGroup.getIamSvcAccName();
+		String path = new StringBuilder(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(iamUniqueSvcAccountName).toString();
+		Map<String,String> params = new HashMap<>();
+		params.put("type", "groups");
+		params.put("name",iamServiceAccountGroup.getGroupname());
+		params.put("path",path);
+		params.put("access","delete");
+		Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+		if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "Remove Group from IAM service account").
+					put(LogMessage.MESSAGE, String.format ("Group [%s] is successfully removed from IAM service account [%s]", iamServiceAccountGroup.getGroupname(), iamUniqueSvcAccountName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");
+		}else{
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try again \"]}");
 		}
 	}
 
@@ -2184,7 +2223,7 @@ public class  IAMServiceAccountsService {
 			IAMServiceAccountGroup iamServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
 			List<String> currentpolicies, String currentpoliciesString) {
 		String iamUniqueSvcAccountName = iamServiceAccountGroup.getAwsAccountId() + "_" + iamServiceAccountGroup.getIamSvcAccName();
-		String path = new StringBuffer(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(iamUniqueSvcAccountName).toString();
+		String path = new StringBuilder(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(iamUniqueSvcAccountName).toString();
 		Map<String,String> params = new HashMap<>();
 		params.put("type", "groups");
 		params.put("name",iamServiceAccountGroup.getGroupname());
