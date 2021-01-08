@@ -125,6 +125,7 @@ const CreateCertificates = (props) => {
   const { onCloseModal, open, certificateData } = props;
 
   const [owner, setOwner] = useState('');
+  const [ownerSelected, setOwnerSelected] = useState({});
   const [options, setOptions] = useState([]);
   const [autoLoader, setAutoLoader] = useState(false);
   const classes = useStyles();
@@ -144,14 +145,14 @@ const CreateCertificates = (props) => {
   useEffect(() => {
     if (owner?.length > 2) {
       if (!autoLoader) {
-        if (options.length === 0 || !options.includes(owner)) {
+        if (ownerSelected?.userEmail !== owner) {
           setIsValidEmail(false);
         } else {
           setIsValidEmail(true);
         }
       }
     }
-  }, [owner, autoLoader, options]);
+  }, [owner, ownerSelected, autoLoader, options]);
 
   useEffect(() => {
     if (emailError || !isValidEmail) {
@@ -211,23 +212,34 @@ const CreateCertificates = (props) => {
     debounce(
       (value) => {
         setAutoLoader(true);
-        apiService
-          .getOwnerTransferEmail(value)
-          .then((res) => {
+        const userNameSearch = apiService.getUserName(value);
+        const emailSearch = apiService.getOwnerTransferEmail(value);
+        Promise.all([userNameSearch, emailSearch])
+          .then((responses) => {
             setOptions([]);
-            const array = [];
-            setAutoLoader(false);
-            if (res?.data?.data?.values?.length > 0) {
-              res.data.data.values.map((item) => {
-                if (item.userEmail) {
-                  return array.push(item.userEmail);
+            const array = new Set([]);
+            if (responses[0]?.data?.data?.values?.length > 0) {
+              responses[0].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(item);
                 }
                 return null;
               });
-              setOptions([...array]);
             }
+            if (responses[1]?.data?.data?.values?.length > 0) {
+              responses[1].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(item);
+                }
+                return null;
+              });
+            }
+            setOptions([...array]);
+            setAutoLoader(false);
           })
-          .catch(() => setAutoLoader(false));
+          .catch(() => {
+            setAutoLoader(false);
+          });
       },
       1000,
       true
@@ -246,13 +258,13 @@ const CreateCertificates = (props) => {
           setEmailError(true);
         }
       }
-    } else {
-      setOwner('');
     }
   };
 
   const onSelected = (e, val) => {
-    setOwner(val);
+    const ownerEmail = val?.match(/\[(.*)\]/)[1];
+    setOwnerSelected(options.filter((i) => i.userEmail === ownerEmail)[0]);
+    setOwner(ownerEmail);
     setEmailError(false);
   };
 
@@ -340,18 +352,21 @@ const CreateCertificates = (props) => {
                 />
                 <InputFieldLabelWrapper postion>
                   <InputLabel>
-                    New Owner Email ID
+                    New Owner
                     <RequiredCircle margin="0.5rem" />
                   </InputLabel>
                   <AutoCompleteComponent
-                    options={options}
+                    options={options.map(
+                      (item) =>
+                        `${item.displayName} [${item.userEmail}] (${item.userName})`
+                    )}
                     classes={classes}
                     searchValue={owner}
                     icon="search"
                     name="owner"
                     onSelected={(e, val) => onSelected(e, val)}
                     onChange={(e) => onOwnerChange(e)}
-                    placeholder="Email address- Enter min 3 characters"
+                    placeholder="Search by NTID, Email or Name "
                     error={owner?.length > 2 && (emailError || !isValidEmail)}
                     helperText={
                       owner?.length > 2 && (emailError || !isValidEmail)
@@ -360,7 +375,7 @@ const CreateCertificates = (props) => {
                     }
                   />
                   <InstructionText>
-                    Search the T-Mobile system by email.
+                    Search the T-Mobile system to add users
                   </InstructionText>
                   {autoLoader && (
                     <LoaderSpinner customStyle={autoLoaderStyle} />

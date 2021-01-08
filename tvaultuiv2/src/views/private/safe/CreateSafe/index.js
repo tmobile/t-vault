@@ -175,18 +175,19 @@ const CreateModal = (props) => {
   const [safeDetails, setSafeDetails] = useState({});
   const [isValidEmail, setIsValidEmail] = useState(true);
   const history = useHistory();
+  const [ownerSelected, setOwnerSelected] = useState(false);
 
   useEffect(() => {
     if (owner?.length > 2) {
       if (!autoLoader) {
-        if (options.length === 0 || !options.includes(owner)) {
+        if (ownerSelected?.userEmail !== owner) {
           setIsValidEmail(false);
         } else {
           setIsValidEmail(true);
         }
       }
     }
-  }, [owner, autoLoader, options]);
+  }, [owner, ownerSelected, autoLoader, options]);
 
   useEffect(() => {
     if (
@@ -328,21 +329,30 @@ const CreateModal = (props) => {
     debounce(
       (value) => {
         setAutoLoader(true);
-        apiService
-          .getOwnerEmail(value)
-          .then((res) => {
+        const userNameSearch = apiService.getUserName(value);
+        const emailSearch = apiService.getOwnerEmail(value);
+        Promise.all([userNameSearch, emailSearch])
+          .then((responses) => {
             setOptions([]);
-            const array = [];
-            setAutoLoader(false);
-            if (res?.data?.data?.values?.length > 0) {
-              res.data.data.values.map((item) => {
-                if (item.userEmail) {
-                  return array.push(item.userEmail);
+            const array = new Set([]);
+            if (responses[0]?.data?.data?.values?.length > 0) {
+              responses[0].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(item);
                 }
                 return null;
               });
-              setOptions([...array]);
             }
+            if (responses[1]?.data?.data?.values?.length > 0) {
+              responses[1].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(item);
+                }
+                return null;
+              });
+            }
+            setOptions([...array]);
+            setAutoLoader(false);
           })
           .catch(() => setAutoLoader(false));
       },
@@ -357,14 +367,14 @@ const CreateModal = (props) => {
       if (e?.target?.value !== '' && e.target.value.length > 2) {
         callSearchApi(e.target.value);
       }
-    } else {
-      setOwner('');
     }
   };
 
   const onSelected = (e, val) => {
     if (val) {
-      setOwner(val);
+      const ownerEmail = val?.match(/\[(.*)\]/)[1];
+      setOwnerSelected(options.filter((i) => i.userEmail === ownerEmail)[0]);
+      setOwner(ownerEmail);
     }
   };
   const onToastClose = (reason) => {
@@ -508,13 +518,16 @@ const CreateModal = (props) => {
                       <RequiredCircle margin="0.5rem" />
                     </InputLabel>
                     <AutoCompleteComponent
-                      options={options}
+                      options={options.map(
+                        (item) =>
+                          `${item.displayName} [${item.userEmail}] (${item.userName})`
+                      )}
                       classes={classes}
                       searchValue={owner}
                       name="owner"
                       onSelected={(e, val) => onSelected(e, val)}
                       onChange={(e) => onOwnerChange(e)}
-                      placeholder="Email address- Enter min 3 characters"
+                      placeholder="Search by NTID, Email or Name "
                       error={
                         emailError ||
                         (!isValidEmail && safeDetails.owner !== owner)
@@ -523,7 +536,7 @@ const CreateModal = (props) => {
                       helperText={
                         (!isValidEmail && safeDetails.owner !== owner) ||
                         emailError
-                          ? 'Please enter a valid email address or not available!'
+                          ? 'Please enter a valid value or not available!'
                           : ''
                       }
                     />
