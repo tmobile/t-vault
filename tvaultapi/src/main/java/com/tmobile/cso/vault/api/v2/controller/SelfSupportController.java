@@ -255,9 +255,8 @@ public class SelfSupportController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
 	}
-
 	/**
-	 * Method to create an aws app role
+	 * Method to create an EC2 AWS  role
 	 * @param token
 	 * @param awsLoginRole
 	 * @return
@@ -268,7 +267,6 @@ public class SelfSupportController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.createRole(userDetails, token, awsLoginRole, path);
 	}
-
 	/**
 	 * Method to update an aws app role.
 	 * @param token
@@ -495,5 +493,29 @@ public class SelfSupportController {
 	public ResponseEntity<String> listRoles(HttpServletRequest request,@RequestHeader(value="vault-token") String token){
 		UserDetails userDetails = (UserDetails) (request).getAttribute("UserDetails");
 		return selfSupportService.listRoles(token,userDetails);
+	}
+	/**
+	 * Method to create an AWS EC2  role in new UI
+	 * @param token
+	 * @param awsLoginRole
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.createAwsec2Role.value}", notes = "${SelfSupportController.createAwsec2Role.notes}")
+	@PostMapping(value="/v2/ss/auth/aws/awsec2/role",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> createAwsec2Role(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole) throws TVaultValidationException {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.createAwsec2Role(userDetails, token, awsLoginRole);
+	}
+	/**
+	 * Method to create AWS IAM role in new UI
+	 * @param token
+	 * @param awsiamRole
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.createAwsiamRole.value}", notes = "${SelfSupportController.createAwsiamRole.notes}")
+	@PostMapping(value="/v2/ss/auth/aws/awsiam/role",produces="application/json")
+	public ResponseEntity<String> createAwsiamRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSIAMRole awsiamRole) throws TVaultValidationException{
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.createAwsiamRole(userDetails, token, awsiamRole);
 	}
 }
