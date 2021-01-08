@@ -117,8 +117,9 @@ public class AWSAuthControllerV2 {
 	 */
 	@ApiOperation(value = "${AWSAuthControllerV2.listRoles.value}", notes = "${AWSAuthControllerV2.listRoles.notes}")
 	@GetMapping(value="/roles",produces="application/json")
-	public ResponseEntity<String> listRoles(@RequestHeader(value="vault-token") String token){
-		return awsAuthService.listRoles(token);
+	public ResponseEntity<String> listRoles(HttpServletRequest request,@RequestHeader(value="vault-token") String token){
+		UserDetails userDetails = (UserDetails) (request).getAttribute("UserDetails");
+		return awsAuthService.listRoles(token,userDetails);
 	}
 
 	/**

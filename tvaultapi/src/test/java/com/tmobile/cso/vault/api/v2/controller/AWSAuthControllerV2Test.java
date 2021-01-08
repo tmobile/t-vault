@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -55,6 +55,9 @@ public class AWSAuthControllerV2Test {
 
     @Mock
     private AWSAuthService awsAuthService;
+    
+    @Mock
+    UserDetails userDetails;
 
     @InjectMocks
     private AWSAuthControllerV2 awsAuthControllerV2;
@@ -171,14 +174,17 @@ public class AWSAuthControllerV2Test {
 
         String responseMessage = "{ \"keys\": [\"mytestawsrole\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
-
-        when(awsAuthService.listRoles(eq("5PDrOhsy4ig8L3EpsJZSLAMg"))).thenReturn(responseEntityExpected);
+        userDetails.setUsername("normaluser");
+        userDetails.setAdmin(true);
+        userDetails.setClientToken("5PDrOhsy4ig8L3EpsJZSLAMg");
+        userDetails.setSelfSupportToken("5PDrOhsy4ig8L3EpsJZSLAMg");
+        
+        when(awsAuthService.listRoles("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails)).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/roles")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString(responseMessage)));
+                .andExpect(status().isOk());
     }
 
     @Test
