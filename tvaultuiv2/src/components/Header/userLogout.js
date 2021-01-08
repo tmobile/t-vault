@@ -46,12 +46,17 @@ const AdminLabel = styled.div`
 const LogoutPaper = styled.div`
   display: ${(props) => (props.logoutClicked ? 'block' : 'none')};
   position: absolute;
-  background-color: ${(props) => props.theme.palette.background.paper};
-  padding: 1rem 2rem;
+  background-color: #151820;
+  padding: 1.5rem 2rem;
   right: 0;
   cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: bold;
   ${mediaBreakpoints.smallAndMedium} {
     right: 50%;
+  }
+  :hover {
+    background-color: #20232e;
   }
 `;
 

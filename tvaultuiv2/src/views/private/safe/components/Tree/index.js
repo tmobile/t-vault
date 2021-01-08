@@ -64,7 +64,6 @@ const Tree = (props) => {
     const tempFolders = [...secretsFolder] || [];
     setStatus({ status: 'loading', message: 'loading...' });
     if (id) {
-      console.log('id', id);
       apiService
         .getSecret(id)
         .then((res) => {
