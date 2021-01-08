@@ -224,8 +224,11 @@ const AzureSecrets = (props) => {
   }, [azureSecretData, onViewSecretDetails]);
 
   useEffect(() => {
-    if (secretResponse.status === 'inactive') {
-      setResponse({ status: 'success' });
+    setResponse({
+      status: secretResponse.status,
+      message: secretResponse.message,
+    });
+    if (Object.keys(azureDetail).length === 0) {
       setSecretsData({});
     }
   }, [secretResponse, azureDetail]);
@@ -422,7 +425,7 @@ const AzureSecrets = (props) => {
             ) : (
               <NoSecretsContaner>
                 <NoSecretsdispIcon src={NoSecretsIcon} alt="NoSecretsIcon" />
-                <NoData>No Secrets</NoData>
+                <NoData>No secrets available!</NoData>
               </NoSecretsContaner>
             )}
           </>
@@ -439,7 +442,7 @@ const AzureSecrets = (props) => {
             </NoPermission>
           </AccessDeniedWrap>
         )}
-        {!azureMetaData.isActivated && secretResponse.status === 'inactive' && (
+        {!azureMetaData.isActivated && response.status === 'success' && (
           <UserList>
             <LabelWrap>
               <ReportProblemOutlinedIcon />
