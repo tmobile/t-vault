@@ -256,7 +256,7 @@ public class SelfSupportController {
 		return selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
 	}
 	/**
-	 * Method to create an ec2 aws  role
+	 * Method to create an EC2 AWS  role
 	 * @param token
 	 * @param awsLoginRole
 	 * @return
@@ -495,7 +495,7 @@ public class SelfSupportController {
 		return selfSupportService.listRoles(token,userDetails);
 	}
 	/**
-	 * Method to create an ec2 aws  role in new UI
+	 * Method to create an AWS EC2  role in new UI
 	 * @param token
 	 * @param awsLoginRole
 	 * @return
@@ -507,7 +507,7 @@ public class SelfSupportController {
 		return selfSupportService.createAwsec2Role(userDetails, token, awsLoginRole);
 	}
 	/**
-	 * Method to create aws iam role in new UI
+	 * Method to create AWS IAM role in new UI
 	 * @param token
 	 * @param awsiamRole
 	 * @return
