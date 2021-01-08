@@ -1,19 +1,19 @@
-// =========================================================================
-// Copyright 2019 T-Mobile, US
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// See the readme.txt file for additional language around disclaimer of warranties.
-// =========================================================================
+/* =========================================================================
+ Copyright 2019 T-Mobile, US
+ 
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ See the readme.txt file for additional language around disclaimer of warranties.
+========================================================================= */
 
 package com.tmobile.cso.vault.api.service;
 
@@ -64,6 +64,7 @@ public class  AWSAuthService {
 	private static final String POLICIESSTR = "policies";
 	private static final String ROLEDELETEPATHSTR = "/auth/aws/roles/delete";
 	private static final String ROLESTR = "{\"role\":\"";
+	private static final String PATHSTR = "{\"path\":\"";
 	/**
 	 * To authenticate using aws ec2 pkcs7 document and app role
 	 * @param login
@@ -174,7 +175,6 @@ public class  AWSAuthService {
 	 */
 	public ResponseEntity<String> updateRole(String token, AWSLoginRole awsLoginRole) throws TVaultValidationException{
 		if (!ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)) {
-			//return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
 			throw new TVaultValidationException("Invalid inputs for the given aws login type");
 		}
 		String jsonStr = JSONUtil.getJSON(awsLoginRole);
@@ -283,8 +283,28 @@ public class  AWSAuthService {
 	 * @param token
 	 * @return
 	 */
-	public ResponseEntity<String> listRoles(String token){
-		Response response = reqProcessor.process("/auth/aws/roles/list","{}",token);
+	public ResponseEntity<String> listRoles(String token, UserDetails userDetails){
+		logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "listRoles").
+			      put(LogMessage.MESSAGE, "Trying to get list of AWS roles").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
+		String path = TVaultConstants.AWS_USERS_METADATA_MOUNT_PATH + "/" + userDetails.getUsername();
+		Response response = null;
+		if (userDetails.isAdmin()) {
+			response = reqProcessor.process("/auth/aws/roles/list","{}",token);
+		}
+		else {
+			response = reqProcessor.process("/auth/aws/rolesbyuser/list",PATHSTR+path+"\"}",userDetails.getSelfSupportToken());
+		}
+		
+		if (HttpStatus.OK.equals(response.getHttpstatus())) {			
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}
+		else if (HttpStatus.NOT_FOUND.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(HttpStatus.OK).body("{\"keys\":[]}");
+		}		
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 	
