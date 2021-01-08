@@ -485,12 +485,15 @@ public final class ControllerUtil {
 				try {
 					JsonNode folders = objMapper.readTree(lisresp.getResponse()).get("keys");
 					for(JsonNode node : folders){
-						SafeNode sn = new SafeNode();
-						sn.setId(path+"/"+node.asText());
-						sn.setValue(path+"/"+node.asText());
-						sn.setType(TVaultConstants.FOLDER);
-						sn.setParentId(safeNode.getId());
-						safeNode.addChild(sn);
+						if (!node.asText().startsWith(TVaultConstants.VERSION_FOLDER_PREFIX)) {
+							jsonstr = PATHSTR+path+"/"+node.asText()+"\"}";
+							SafeNode sn = new SafeNode();
+							sn.setId(path+"/"+node.asText());
+							sn.setValue(path+"/"+node.asText());
+							sn.setType(TVaultConstants.FOLDER);
+							sn.setParentId(safeNode.getId());
+							safeNode.addChild(sn);
+						}
 					}
 					responseVO.setSuccess(true);
 					responseVO.setHttpstatus(HttpStatus.OK);
