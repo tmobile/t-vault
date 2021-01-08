@@ -437,7 +437,9 @@ public class  SecretService {
 			if (safe.getType().equalsIgnoreCase("secret") && !safe.getParentId().equalsIgnoreCase(patentId) && !safe.getId().contains(safeVersionFolderPrefix)) {
 				try {
 					Secret data = (Secret)JSONUtil.getObj(safe.getValue(), Secret.class);
-					count += data.getDetails().size();
+					if (data.getDetails().size() > 1 || (data.getDetails().size() == 1 && !TVaultConstants.DEFAULT_SECRET.equals(data.getDetails().get(TVaultConstants.DEFAULT_SECRET)))) {
+						count += data.getDetails().size();
+					}
 				} catch (IOException e) {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
