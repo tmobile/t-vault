@@ -55,10 +55,7 @@ public class AWSAuthControllerV2Test {
 
     @Mock
     private AWSAuthService awsAuthService;
-    
-    @Mock
-    UserDetails userDetails;
-
+   
     @InjectMocks
     private AWSAuthControllerV2 awsAuthControllerV2;
 
@@ -174,18 +171,16 @@ public class AWSAuthControllerV2Test {
 
         String responseMessage = "{ \"keys\": [\"mytestawsrole\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
-        userDetails.setUsername("normaluser");
-        userDetails.setAdmin(true);
-        userDetails.setClientToken("5PDrOhsy4ig8L3EpsJZSLAMg");
-        userDetails.setSelfSupportToken("5PDrOhsy4ig8L3EpsJZSLAMg");
-        
-        when(awsAuthService.listRoles("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails)).thenReturn(responseEntityExpected);
+
+        when(awsAuthService.listRoles(eq("5PDrOhsy4ig8L3EpsJZSLAMg"))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/roles")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseMessage)));
     }
+
 
     @Test
     public void test_configureClient() throws Exception {

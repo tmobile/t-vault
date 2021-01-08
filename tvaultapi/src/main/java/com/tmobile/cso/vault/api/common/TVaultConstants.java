@@ -173,5 +173,4 @@ public class TVaultConstants {
     public static final String GROUP_EMAIL_FROM_AAD = "getGroupEmailFromAAD";
     public static final String ROOT_POLICY = "root";
     public static final String DEFAULT_SECRET = "default";
-
 }

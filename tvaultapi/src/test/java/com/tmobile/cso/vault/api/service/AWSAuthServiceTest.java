@@ -63,10 +63,7 @@ public class AWSAuthServiceTest {
     AWSAuthService awsAuthService;
 
     @Mock
-    RequestProcessor reqProcessor;
-    
-    @Mock
-    UserDetails userDetails;
+    RequestProcessor reqProcessor;    
 
     @Before
     public void setUp() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
@@ -419,27 +416,20 @@ public class AWSAuthServiceTest {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String responseBody = "{ \"keys\": [\"mytestawsrole\"]}";
-        userDetails.setUsername("adminuser");
-        userDetails.setAdmin(false);
-        userDetails.setClientToken(token);
-        userDetails.setSelfSupportToken(token);   
-        
-        Response response =getMockResponse(HttpStatus.OK, true, responseBody);
-        String _path = "metadata/awsrole_users/" + userDetails.getUsername();
-        String jsonStr = "{\"path\":\""+_path+"\"}";
-        when(reqProcessor.process("/auth/aws/rolesbyuser/list", jsonStr,userDetails.getSelfSupportToken())).thenReturn(response);
+        Response listResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseBody);
+        when(reqProcessor.process("/auth/aws/roles/list", "{}", token)).thenReturn(listResponse);
 
-        ResponseEntity<String> responseEntity = awsAuthService.listRoles(token, userDetails);
+        ResponseEntity<String> responseEntity = awsAuthService.listRoles(token);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
-    }
-    
-   
 
-    @Test
+    }
+
+   @Test
     public void test_configureClient_successfully() {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";

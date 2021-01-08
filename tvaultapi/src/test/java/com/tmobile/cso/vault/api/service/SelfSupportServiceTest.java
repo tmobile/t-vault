@@ -104,6 +104,9 @@ public class SelfSupportServiceTest {
 
     @Mock
     TokenUtils tokenUtils;
+    
+    @Mock
+    UserDetails userDetails;
 
     @Before
     public void setUp() {
@@ -3084,6 +3087,29 @@ public class SelfSupportServiceTest {
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");
         ResponseEntity<String> responseEntity = selfSupportService.removeSudoUserFromSafe(token, safeUser, userDetails);
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test
+    public void test_listRoles_successfully() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String responseBody = "{ \"keys\": [\"mytestawsrole\"]}";
+        userDetails.setUsername("adminuser");
+        userDetails.setAdmin(false);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);   
+        
+        Response response =getMockResponse(HttpStatus.OK, true, responseBody);
+        String _path = "metadata/awsrole_users/" + userDetails.getUsername();
+        String jsonStr = "{\"path\":\""+_path+"\"}";
+        when(reqProcessor.process("/auth/aws/rolesbyuser/list", jsonStr,userDetails.getSelfSupportToken())).thenReturn(response);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseBody);
+
+        ResponseEntity<String> responseEntity = selfSupportService.listRoles(token, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);

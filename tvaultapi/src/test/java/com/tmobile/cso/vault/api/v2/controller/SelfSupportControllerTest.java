@@ -63,6 +63,9 @@ public class SelfSupportControllerTest {
 
     @InjectMocks
     private SelfSupportController selfSupportController;
+    
+    @Mock
+    UserDetails userDetails;
 
     @Before
     public void setUp() {
@@ -706,5 +709,24 @@ public class SelfSupportControllerTest {
                 .content(inputJson))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseMessage)));
+    }
+    
+    @Test
+    public void test_listRoles() throws Exception {
+
+        String responseMessage = "{ \"keys\": [\"mytestawsrole\"]}";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        userDetails.setUsername("adminuser");
+        userDetails.setAdmin(false);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token); 
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+
+        when(selfSupportService.listRoles(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), eq(userDetails))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/roles")
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8"))
+                .andExpect(status().isOk());
     }
 }
