@@ -1251,6 +1251,14 @@ public class  SelfSupportService {
 		}		
 		return ResponseEntity.status(response==null?null:response.getHttpstatus()).body(response.getResponse());	
 	}
+	/**
+	 * Create AWS EC2 role
+	 * @param userDetails
+	 * @param userToken
+	 * @param awsLoginRole
+	 * @return
+	 * @throws TVaultValidationException
+	 */
 	
 	public ResponseEntity<String> createAwsec2Role(UserDetails userDetails, String token, AWSLoginRole awsLoginRole) throws TVaultValidationException {
 		String accesstoken;
@@ -1262,7 +1270,14 @@ public class  SelfSupportService {
 		}
 		return awsAuthService.createRole(accesstoken, awsLoginRole, userDetails);
 	}
-
+	/**
+	 * Create AWS IAM role
+	 * @param userDetails
+	 * @param userToken
+	 * @param awsLoginRole
+	 * @return
+	 * @throws TVaultValidationException
+	 */
 	public ResponseEntity<String> createAwsiamRole(UserDetails userDetails, String token, AWSIAMRole awsiamRole) throws TVaultValidationException {
 		String accesstoken;
 		if (userDetails.isAdmin()) {
