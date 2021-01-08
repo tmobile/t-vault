@@ -320,6 +320,7 @@ const CreateModal = (props) => {
         if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setToastMessage(err.response.data.errors[0]);
         }
+        setDisabledSave(false);
         setResponseType(-1);
       });
   };
@@ -497,7 +498,7 @@ const CreateModal = (props) => {
                       value={name}
                       placeholder="Safe Name- Enter min 3 characters"
                       fullWidth
-                      characterLimit={50}
+                      characterLimit={40}
                       readOnly={!!editSafe}
                       name="name"
                       onChange={(e) =>

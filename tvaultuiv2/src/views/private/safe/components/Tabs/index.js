@@ -152,7 +152,7 @@ const SelectionTabs = (props) => {
   };
 
   const getSecretDetails = useCallback(() => {
-    if (safeDetail.access === 'deny') {
+    if (safeDetail?.access === 'deny') {
       setResponse({ status: 'failed' });
       setSecretsFolder([]);
       return;
@@ -162,6 +162,10 @@ const SelectionTabs = (props) => {
       if (!safeDetail.manage) {
         setValue(0);
       }
+      setUserHavePermission({
+        permission: true,
+        type: safeDetail?.access,
+      });
       setResponse({ status: 'loading' });
       apiService
         .getSecret(safeDetail.path)
@@ -184,10 +188,6 @@ const SelectionTabs = (props) => {
     setPermissionResponseType(0);
     setUserDetails([]);
     setSafePermissionData({});
-    setUserHavePermission({
-      permission: false,
-      type: '',
-    });
     return apiService
       .getSafeDetails(`${safeDetail.path}`)
       .then(async (res) => {
@@ -201,18 +201,6 @@ const SelectionTabs = (props) => {
             if (eachUsersDetails !== null) {
               setUserDetails([...eachUsersDetails]);
             }
-            Object.entries(res.data.data.users).map(([key, val]) => {
-              if (
-                key?.toLowerCase() ===
-                localStorage.getItem('username').toLowerCase()
-              ) {
-                return setUserHavePermission({
-                  permission: true,
-                  type: val?.toLowerCase(),
-                });
-              }
-              return null;
-            });
           }
           setSafePermissionData({ response: obj, error: '' });
           setPermissionResponseType(1);
@@ -240,10 +228,6 @@ const SelectionTabs = (props) => {
     } else {
       setSafePermissionData({});
       getSecretDetails();
-      setUserHavePermission({
-        permission: true,
-        type: safeDetail.access,
-      });
     }
   }, [safeDetail, fetchPermission, getSecretDetails]);
 
@@ -261,16 +245,14 @@ const SelectionTabs = (props) => {
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
             {safeDetail.manage && <Tab label="Permissions" {...a11yProps(1)} />}
           </Tabs>
-          {value === 0 &&
-            userHavePermission.type === 'write' &&
-            safeDetail.access !== 'deny' && (
-              <NamedButton
-                label="Add Folder"
-                onClick={addSecretsFolder}
-                customStyle={customBtnStyles}
-                iconSrc={addFolderPlus}
-              />
-            )}
+          {value === 0 && safeDetail?.access === 'write' && (
+            <NamedButton
+              label="Add Folder"
+              onClick={addSecretsFolder}
+              customStyle={customBtnStyles}
+              iconSrc={addFolderPlus}
+            />
+          )}
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>

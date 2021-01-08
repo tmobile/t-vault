@@ -54,7 +54,7 @@ const Groups = (props) => {
   const {
     safeDetail,
     safeData,
-    fetchPermission,
+    refresh,
     onNewGroupChange,
     newGroup,
     updateToastMessage,
@@ -95,8 +95,7 @@ const Groups = (props) => {
       .then(async (res) => {
         if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
-          setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -114,8 +113,7 @@ const Groups = (props) => {
       .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
-          setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -242,9 +240,9 @@ const Groups = (props) => {
 Groups.propTypes = {
   safeDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   safeData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
   newGroup: PropTypes.bool.isRequired,
   onNewGroupChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  refresh: PropTypes.func.isRequired,
 };
 export default Groups;

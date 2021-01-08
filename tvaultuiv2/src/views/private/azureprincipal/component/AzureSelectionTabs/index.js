@@ -145,7 +145,6 @@ const AzureSelectionTabs = (props) => {
 
   const getAzureDataSecrets = useCallback(() => {
     if (azureDetail?.name) {
-      setSecretResponse({ status: 'loading' });
       if (azureDetail.access !== 'N/A') {
         apiService
           .getAzureSecrets(azureDetail.name)
@@ -155,7 +154,16 @@ const AzureSelectionTabs = (props) => {
             }
           })
           .catch((err) => {
-            if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+            if (azureDetail.access === 'deny') {
+              setSecretResponse({
+                status: 'error',
+                message:
+                  'Access denied: no permission to read the password details for the given service account',
+              });
+            } else if (
+              err?.response?.data?.errors &&
+              err?.response?.data?.errors[0]
+            ) {
               setSecretResponse({
                 status: 'error',
                 message: err?.response?.data?.errors[0],
@@ -166,20 +174,23 @@ const AzureSelectionTabs = (props) => {
           });
       } else {
         setAzureSecretData({});
-        setSecretResponse({ status: 'inactive' });
+        setSecretResponse({ status: 'success' });
       }
     }
   }, [azureDetail]);
 
   useEffect(() => {
     if (Object.keys(azureDetail).length > 0) {
-      if (azureDetail.isManagable) {
-        getAzureServiceAllDetails();
-      } else {
+      if (!azureDetail.isManagable) {
         setHasPermission(false);
         setValue(0);
       }
-      getAzureDataSecrets();
+      async function fetchData() {
+        setSecretResponse({ status: 'loading' });
+        await getAzureServiceAllDetails();
+        getAzureDataSecrets();
+      }
+      fetchData();
     }
   }, [getAzureDataSecrets, azureDetail, getAzureServiceAllDetails]);
 
