@@ -2351,7 +2351,7 @@ public class  SafesService {
 				build()));
 		path = (path != null) ? path.toLowerCase(): path;
 
-		if(ControllerUtil.isPathValid(path) && 	isValidSafe(token, path, userDetails)){
+		if(path != null && ControllerUtil.isPathValid(path) && 	isValidSafe(token, path, userDetails)){
 			String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
 			Response response = reqProcessor.process("/sdb/createfolder",jsonStr,token);
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2362,6 +2362,26 @@ public class  SafesService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+				// create version folder
+				Response versionCreationResponse = safeUtils.createVersionFolder(token, path, userDetails, true, new ArrayList<>());
+				if (HttpStatus.NO_CONTENT.equals(versionCreationResponse.getHttpstatus())) {
+					log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "createNestedfolder").
+							put(LogMessage.MESSAGE, String.format ("Created version folder for [%s]", path)).
+							put(LogMessage.STATUS, versionCreationResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
+				else {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "createNestedfolder").
+							put(LogMessage.MESSAGE, String.format ("Failed to create version folder for [%s]", path)).
+							put(LogMessage.STATUS, versionCreationResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder created \"]}");
 			}
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
