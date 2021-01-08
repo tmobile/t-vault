@@ -95,7 +95,6 @@ const Groups = (props) => {
       .then(async (res) => {
         if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
-          setResponse({ status: '' });
           await refresh();
         }
       })
@@ -114,7 +113,6 @@ const Groups = (props) => {
       .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
-          setResponse({ status: '' });
           await refresh();
         }
       })

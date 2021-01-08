@@ -88,8 +88,7 @@ const Secrets = (props) => {
   return (
     <ComponentError>
       <SecretsContainer>
-        {userHavePermission.permission &&
-          userHavePermission.type !== 'sudo' &&
+        {userHavePermission.type !== '' &&
           userHavePermission.type !== 'deny' &&
           Object.keys(safeDetail).length > 0 && (
             <CountSpan color="#5e627c">
@@ -110,11 +109,9 @@ const Secrets = (props) => {
         {secretsStatus.status === 'success' &&
           Object.keys(safeDetail).length > 0 && (
             <>
-              {userHavePermission.permission &&
-              userHavePermission.type !== 'deny' &&
-              userHavePermission.type !== 'sudo' ? (
+              {safeDetail.access !== 'deny' && safeDetail.access !== '' && (
                 <>
-                  {secretsFolder[0]?.children?.length ? (
+                  {secretsFolder[0]?.children?.length > 0 ? (
                     <Tree
                       data={secretsFolder}
                       getSecretDetails={getSecretDetails}
@@ -123,7 +120,7 @@ const Secrets = (props) => {
                   ) : secretsFolder[0]?.children?.length === 0 ? (
                     // eslint-disable-next-line react/jsx-indent
                     <EmptySecretBox>
-                      {userHavePermission?.type === 'write' ? (
+                      {safeDetail.access === 'write' ? (
                         <NoData
                           imageSrc={NoSecretsIcon}
                           description={Strings.Resources.noSafeSecretFound}
@@ -133,7 +130,7 @@ const Secrets = (props) => {
                               label="add"
                               icon="add"
                               color="secondary"
-                              disabled={userHavePermission.type !== 'write'}
+                              disabled={safeDetail.access !== 'write'}
                               width={isMobileScreen ? '100%' : '9.4rem'}
                               onClick={() => setEnableAddFolder(true)}
                             />
@@ -156,7 +153,8 @@ const Secrets = (props) => {
                     <></>
                   )}
                 </>
-              ) : (
+              )}
+              {safeDetail.access === '' && (
                 <AccessDeniedWrap>
                   <AccessDeniedIcon
                     src={AccessDeniedLogo}
