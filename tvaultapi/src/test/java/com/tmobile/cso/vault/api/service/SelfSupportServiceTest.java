@@ -3109,7 +3109,6 @@ public class SelfSupportServiceTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
-=======
     @Test
     public void testcreateEc2Rolesuccessfully() throws TVaultValidationException {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
@@ -3118,8 +3117,6 @@ public class SelfSupportServiceTest {
                 "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
                 "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
                 "\"[prod, dev\"]");
->>>>>>> COCICCS-5681:Create AWS Roles
-
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
         when(awsAuthService.createRole(eq(token), eq(awsLoginRole), Mockito.any())).thenReturn(response);
