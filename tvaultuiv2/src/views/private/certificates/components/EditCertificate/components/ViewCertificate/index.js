@@ -352,10 +352,13 @@ const ViewCertificate = (props) => {
               });
             }
             if (type === 'applicationOwner') {
+              setAutoLoader(false);
               setOptions([...array]);
             } else if (type === 'projectLead') {
+              setProjectLeadAutoLoader(false);
               setProjectLeadOptions([...array]);
             } else {
+              setNotifyAutoLoader(false);
               setNotifyOptions([...array]);
             }
           })
@@ -378,7 +381,6 @@ const ViewCertificate = (props) => {
         setOwnerselected(false);
         setAutoLoader(true);
         callSearchApi(e.target.value, 'applicationOwner');
-        setAutoLoader(false);
         if (validateEmail(applicationOwner)) {
           setEmailError(false);
         } else {
@@ -388,6 +390,7 @@ const ViewCertificate = (props) => {
     } else {
       setownerDetail('');
       setApplicationOwner('');
+      setAutoLoader(false);
     }
   };
 
@@ -447,7 +450,6 @@ const ViewCertificate = (props) => {
         setNotifyUserselected(false);
         setNotifyAutoLoader(true);
         callSearchApi(e.target.value, 'notifyUser');
-        setNotifyAutoLoader(false);
         if (validateEmail(notifyEmail)) {
           setNotifyEmailError(false);
         } else {
@@ -460,6 +462,7 @@ const ViewCertificate = (props) => {
     } else {
       setNotifyEmail('');
       setNotifyUserDetail('');
+      setNotifyAutoLoader(false);
     }
   };
 
@@ -491,7 +494,6 @@ const ViewCertificate = (props) => {
         setProjectLeadselected(false);
         setProjectLeadAutoLoader(true);
         callSearchApi(e.target.value, 'projectLead');
-        setProjectLeadAutoLoader(false);
         if (validateEmail(e?.target?.value)) {
           setProjectLeadEmailError(false);
         } else {
@@ -501,6 +503,7 @@ const ViewCertificate = (props) => {
     } else {
       setProjectLeadDetail('');
       setProjectLeadEmail('');
+      setProjectLeadAutoLoader(false);
     }
   };
 
