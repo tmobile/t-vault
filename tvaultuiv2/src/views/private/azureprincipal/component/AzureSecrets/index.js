@@ -106,6 +106,32 @@ const AccessDeniedIcon = styled.img`
   height: 16rem;
 `;
 
+const NoSecretsContaner = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+`;
+
+const NoSecretsdispIcon = styled.img`
+  width: 16rem;
+  height: 16rem;
+`;
+
+const NoData = styled.div`
+  color: #5a637a;
+  text-align: center;
+  margin-top: 2rem;
+  span {
+    display: contents;
+    margin: 0 0.3rem;
+    color: #fff;
+  }
+`;
+
 const NoPermission = styled.div`
   color: #5a637a;
   text-align: center;
@@ -138,7 +164,13 @@ const formatDate = (expiryDate = '') => {
 };
 
 const AzureSecrets = (props) => {
-  const { azureDetail, azureSecretData, secretResponse, refresh } = props;
+  const {
+    azureDetail,
+    azureSecretData,
+    azureMetaData,
+    secretResponse,
+    refresh,
+  } = props;
   const [response, setResponse] = useState({ status: '' });
   const [secretsData, setSecretsData] = useState({});
   const [showSecret, setShowSecret] = useState(false);
@@ -185,13 +217,18 @@ const AzureSecrets = (props) => {
       secretResponse.status !== 'error'
     ) {
       onViewSecretDetails();
+    } else {
+      setSecretsData({});
     }
     // eslint-disable-next-line
   }, [azureSecretData, onViewSecretDetails]);
 
   useEffect(() => {
-    setResponse(secretResponse);
-  }, [secretResponse]);
+    if (secretResponse.status === 'inactive') {
+      setResponse({ status: 'success' });
+      setSecretsData({});
+    }
+  }, [secretResponse, azureDetail]);
 
   /**
    * @function onToastClose
@@ -321,9 +358,9 @@ const AzureSecrets = (props) => {
           }
         />
         {response.status === 'loading' && <Loader customStyle={customStyle} />}
-        {response.status === 'success' && (
+        {response.status === 'success' && azureMetaData.isActivated && (
           <>
-            {Object.keys(secretsData).length > 0 && (
+            {Object.keys(secretsData).length > 0 ? (
               <UserList>
                 <Icon src={lock} alt="lock" />
                 <Span>{secretsData.secretKeyId}</Span>
@@ -382,6 +419,11 @@ const AzureSecrets = (props) => {
                   </PopperElement>
                 </FolderIconWrap>
               </UserList>
+            ) : (
+              <NoSecretsContaner>
+                <NoSecretsdispIcon src={NoSecretsIcon} alt="NoSecretsIcon" />
+                <NoData>No Secrets</NoData>
+              </NoSecretsContaner>
             )}
           </>
         )}
@@ -397,7 +439,7 @@ const AzureSecrets = (props) => {
             </NoPermission>
           </AccessDeniedWrap>
         )}
-        {response.status === 'inactive' && (
+        {!azureMetaData.isActivated && secretResponse.status === 'inactive' && (
           <UserList>
             <LabelWrap>
               <ReportProblemOutlinedIcon />
@@ -435,12 +477,14 @@ const AzureSecrets = (props) => {
 AzureSecrets.propTypes = {
   azureDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   azureSecretData: PropTypes.objectOf(PropTypes.any),
+  azureMetaData: PropTypes.objectOf(PropTypes.any),
   secretResponse: PropTypes.objectOf(PropTypes.any).isRequired,
   refresh: PropTypes.func.isRequired,
 };
 
 AzureSecrets.defaultProps = {
   azureSecretData: {},
+  azureMetaData: {},
 };
 
 export default AzureSecrets;

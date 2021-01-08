@@ -165,6 +165,7 @@ const AzureSelectionTabs = (props) => {
             }
           });
       } else {
+        setAzureSecretData({});
         setSecretResponse({ status: 'inactive' });
       }
     }
@@ -202,6 +203,7 @@ const AzureSelectionTabs = (props) => {
             <AzureSecrets
               azureSecretData={azureSecretData}
               secretResponse={secretResponse}
+              azureMetaData={azureMetaData}
               azureDetail={azureDetail}
               refresh={refresh}
             />
