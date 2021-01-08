@@ -63,7 +63,7 @@ public class AWSAuthServiceTest {
     AWSAuthService awsAuthService;
 
     @Mock
-    RequestProcessor reqProcessor;
+    RequestProcessor reqProcessor;    
 
     @Before
     public void setUp() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
@@ -429,7 +429,7 @@ public class AWSAuthServiceTest {
 
     }
 
-    @Test
+   @Test
     public void test_configureClient_successfully() {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";

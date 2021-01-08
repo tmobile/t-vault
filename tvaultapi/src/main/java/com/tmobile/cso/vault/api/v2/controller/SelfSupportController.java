@@ -483,4 +483,17 @@ public class SelfSupportController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.transferSafe(token, safeTransferRequest, userDetails);
 	}
+	
+	/**
+	 * To list aws ec2 roles
+	 * @param request
+	 * @param token
+	 * @return
+	 */
+	@ApiOperation(value = "${SelfSupportController.listRoles.value}", notes = "${SelfSupportController.listRoles.notes}")
+	@GetMapping(value="/v2/ss/roles",produces="application/json")
+	public ResponseEntity<String> listRoles(HttpServletRequest request,@RequestHeader(value="vault-token") String token){
+		UserDetails userDetails = (UserDetails) (request).getAttribute("UserDetails");
+		return selfSupportService.listRoles(token,userDetails);
+	}
 }

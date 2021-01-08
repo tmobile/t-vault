@@ -92,6 +92,7 @@ public class  SelfSupportService {
 	private DirectoryService directoryService;
 
 	private static Logger log = LogManager.getLogger(SelfSupportService.class);
+	private static final String PATHSTR = "{\"path\":\"";
 
 	/**
 	 * Creates a safe by the user with least privileges, Requires an AppRole which can perform Safe Creation 
@@ -1219,4 +1220,36 @@ public class  SelfSupportService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 		}
 	}
+	
+	/**
+	 * List AWS and EC2 Roles
+	 * @param token
+	 * @param userDetails
+	 * @return
+	 */	
+	public ResponseEntity<String> listRoles(String token, UserDetails userDetails){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "listRoles").
+			      put(LogMessage.MESSAGE, "Trying to get list of AWS roles").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
+		String path = TVaultConstants.AWS_USERS_METADATA_MOUNT_PATH + "/" + userDetails.getUsername();
+		Response response = new Response();
+		if (userDetails.isAdmin()) {
+			return awsAuthService.listRoles(token);
+		}
+		else {
+			response = reqProcessor.process("/auth/aws/rolesbyuser/list",PATHSTR+path+"\"}",userDetails.getSelfSupportToken());
+		}
+		
+		if (response!=null && HttpStatus.OK.equals(response.getHttpstatus())) {			
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}
+		else if (response!=null && HttpStatus.NOT_FOUND.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(HttpStatus.OK).body("{\"keys\":[]}");
+		}		
+		return ResponseEntity.status(response==null?null:response.getHttpstatus()).body(response.getResponse());	
+	}
+	
 }

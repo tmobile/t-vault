@@ -1257,5 +1257,16 @@
         	{"name":"path","required":true, "appendToPath":true}
         ],
         "outparams":["data"]
+    },
+    {"#":"**** - Read list of AWS EC2 Roles created by a user *******",
+    
+    	"apiEndPoint":"/auth/aws/rolesbyuser/list",
+    	"vaultEndPoint":"/<path>?list=true",
+    	"method":"GET",
+    	"params":[
+        	{"name":"path","required":true, "appendToPath":true}
+        ],
+        "outparams":["data/keys"]
+        
     }
 ]
