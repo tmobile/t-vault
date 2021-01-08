@@ -35,6 +35,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.AzureServiceAccountConstants;
@@ -2384,7 +2385,19 @@ public class AzureServicePrincipalAccountsServiceTest {
 		when(ControllerUtil.updateMetadata(any(), eq(token))).thenReturn(responseNoContent);
 		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,
-				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"testaccount\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+
+		String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"rotate\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"accessKeyId\":\"1212zdasd\",\"accessKeySecret\":\"assOOetcHce1VugthF6KE9hqv2PWWbX3ULrpe1T\",\"awsAccountId\":\"123456789012\",\"expiryDateEpoch\":1609845308000,\"userName\":\"testiamsvcacc01_01\",\"expiryDate\":\"2021-01-05 16:45:08\"}}";
+		Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+
+        when(reqProcessor.process(eq("/azuresvcacct"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 
 		ResponseEntity<String> responseEntity = azureServicePrincipalAccountsService.removeGroupFromAzureServiceAccount(token, azureSvcAccGroup, userDetails);
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -2437,6 +2450,18 @@ public class AzureServicePrincipalAccountsServiceTest {
 		Response response1 = new Response();
 		response1.setHttpstatus(HttpStatus.NO_CONTENT);
 		when(OIDCUtil.updateGroupPolicies(any(), any(), any(), any(), any())).thenReturn(response1);
+
+		String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"rotate\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"accessKeyId\":\"1212zdasd\",\"accessKeySecret\":\"assOOetcHce1VugthF6KE9hqv2PWWbX3ULrpe1T\",\"awsAccountId\":\"123456789012\",\"expiryDateEpoch\":1609845308000,\"userName\":\"testiamsvcacc01_01\",\"expiryDate\":\"2021-01-05 16:45:08\"}}";
+		Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+
+        when(reqProcessor.process(eq("/azuresvcacct"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 
 		ResponseEntity<String> responseEntity = azureServicePrincipalAccountsService.removeGroupFromAzureServiceAccount(token,
 				azureSvcAccGroup, userDetails);
