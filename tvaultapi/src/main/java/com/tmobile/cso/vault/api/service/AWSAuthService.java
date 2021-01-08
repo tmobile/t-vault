@@ -283,28 +283,8 @@ public class  AWSAuthService {
 	 * @param token
 	 * @return
 	 */
-	public ResponseEntity<String> listRoles(String token, UserDetails userDetails){
-		logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				  put(LogMessage.ACTION, "listRoles").
-			      put(LogMessage.MESSAGE, "Trying to get list of AWS roles").
-			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-			      build()));
-		String path = TVaultConstants.AWS_USERS_METADATA_MOUNT_PATH + "/" + userDetails.getUsername();
-		Response response = null;
-		if (userDetails.isAdmin()) {
-			response = reqProcessor.process("/auth/aws/roles/list","{}",token);
-		}
-		else {
-			response = reqProcessor.process("/auth/aws/rolesbyuser/list",PATHSTR+path+"\"}",userDetails.getSelfSupportToken());
-		}
-		
-		if (HttpStatus.OK.equals(response.getHttpstatus())) {			
-			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-		}
-		else if (HttpStatus.NOT_FOUND.equals(response.getHttpstatus())) {
-			return ResponseEntity.status(HttpStatus.OK).body("{\"keys\":[]}");
-		}		
+	public ResponseEntity<String> listRoles(String token){
+		Response response = reqProcessor.process("/auth/aws/roles/list","{}",token);
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
 	
