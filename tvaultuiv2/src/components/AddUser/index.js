@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { debounce } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
 import { InputLabel, Typography } from '@material-ui/core';
@@ -106,6 +106,7 @@ const AddUser = (props) => {
     isIamAzureSvcAccount,
   } = props;
   const classes = useStyles();
+  const mountedRef = useRef(true);
   const [radioValue, setRadioValue] = useState('read');
   const [searchValue, setSearchValue] = useState('');
   const [options, setOptions] = useState([]);
@@ -114,7 +115,7 @@ const AddUser = (props) => {
   const [isValidUserName, setIsValidUserName] = useState(false);
   const [radioArray, setRadioArray] = useState([]);
   const isMobileScreen = useMediaQuery(small);
-  const [userSelected, setUserSelected] = useState(false);
+  const [selectedUser, setSelectedUser] = useState({});
 
   useEffect(() => {
     setSearchValue(username);
@@ -124,14 +125,14 @@ const AddUser = (props) => {
   useEffect(() => {
     if (searchValue?.length > 2) {
       if (!searchLoader) {
-        if (options.length === 0 || !options.includes(searchValue)) {
+        if (selectedUser.displayName !== searchValue) {
           setIsValidUserName(false);
         } else {
           setIsValidUserName(true);
         }
       }
     }
-  }, [searchValue, searchLoader, options]);
+  }, [searchValue, searchLoader, selectedUser.displayName]);
 
   useEffect(() => {
     if (configData.AD_USERS_AUTOCOMPLETE) {
@@ -168,9 +169,7 @@ const AddUser = (props) => {
             if (responses[0]?.data?.data?.values?.length > 0) {
               responses[0].data.data.values.map((item) => {
                 if (item.userName) {
-                  return array.add(
-                    `${item.displayName} [${item.userEmail}] (${item.userName})`
-                  );
+                  return array.add(item);
                 }
                 return null;
               });
@@ -178,9 +177,7 @@ const AddUser = (props) => {
             if (responses[1]?.data?.data?.values?.length > 0) {
               responses[1].data.data.values.map((item) => {
                 if (item.userName) {
-                  return array.add(
-                    `${item.displayName} [${item.userEmail}] (${item.userName})`
-                  );
+                  return array.add(item);
                 }
                 return null;
               });
@@ -199,27 +196,27 @@ const AddUser = (props) => {
   );
 
   const onSearchChange = (e) => {
-    if (e && e?.target?.value) {
+    if (e && e?.target?.value !== undefined) {
       setSearchValue(e?.target?.value);
       if (e?.target?.value !== '' && e?.target?.value?.length > 2) {
-        setUserSelected(false);
         callSearchApi(e.target.value);
       }
-    } else {
-      setSearchValue('');
     }
   };
 
   const onSelected = (e, val) => {
     if (val) {
-      setSearchValue(val);
-      setUserSelected(true);
+      setSearchValue(val?.match(/([A-z]+),\s([A-z]+)/)[0]);
+      setSelectedUser(
+        options.filter((i) => i.userEmail === val?.match(/\[(.*)\]/)[1])[0]
+      );
+      setOptions([]);
     }
   };
 
   const onSaveClick = () => {
-    const result = searchValue.match(/\((.*)\)/);
-    handleSaveClick(result[1].toLowerCase(), radioValue);
+    const result = selectedUser.userName;
+    handleSaveClick(result.toLowerCase(), radioValue);
   };
 
   useEffect(() => {
@@ -233,6 +230,12 @@ const AddUser = (props) => {
       setRadioArray(['read', 'write', 'deny']);
     }
   }, [isIamAzureSvcAccount, isSvcAccount, isCertificate]);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   return (
     <ComponentError>
@@ -252,13 +255,13 @@ const AddUser = (props) => {
           {configData.AD_USERS_AUTOCOMPLETE ? (
             <>
               <AutoCompleteComponent
-                options={options}
+                options={options.map(
+                  (item) =>
+                    `${item.displayName} [${item.userEmail}] (${item.userName})`
+                )}
                 icon="search"
                 classes={classes}
                 disabled={!!(access && username)}
-                open={
-                  options.length > 0 && searchValue.length > 2 && !userSelected
-                }
                 searchValue={searchValue}
                 onSelected={(e, val) => onSelected(e, val)}
                 onChange={(e) => onSearchChange(e)}

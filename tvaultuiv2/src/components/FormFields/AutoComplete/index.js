@@ -40,7 +40,6 @@ const AutoCompleteComponent = (props) => {
     onChange,
     classes,
     icon,
-    open,
     onSelected,
     placeholder,
     searchValue,
@@ -57,7 +56,6 @@ const AutoCompleteComponent = (props) => {
       icon={icon}
       options={options}
       getOptionLabel={(option) => option}
-      open={open}
       forcePopupIcon={false}
       className={classes || ''}
       onChange={onSelected}
@@ -95,7 +93,6 @@ AutoCompleteComponent.propTypes = {
   onChange: PropTypes.func.isRequired,
   classes: PropTypes.objectOf(PropTypes.any),
   onSelected: PropTypes.func.isRequired,
-  open: PropTypes.bool.isRequired,
   icon: PropTypes.string,
   placeholder: PropTypes.string,
   searchValue: PropTypes.string,

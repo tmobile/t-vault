@@ -277,7 +277,6 @@ const CreateCertificates = (props) => {
   const [options, setOptions] = useState([]);
   const [notifyEmail, setNotifyEmail] = useState('');
 
-  const [notifyUserDetails, setNotifyUserDetails] = useState('');
   const [notifyUserSelected, setNotifyUserSelected] = useState(false);
   const [emailError, setEmailError] = useState(false);
   const [isDns, setIsDns] = useState(false);
@@ -297,9 +296,9 @@ const CreateCertificates = (props) => {
     setResponseType(null);
   };
   useEffect(() => {
-    if (notifyUserDetails?.length > 2) {
+    if (notifyEmail?.length > 2) {
       if (!autoLoader) {
-        if (options.length === 0 || !options.includes(notifyUserDetails)) {
+        if (notifyEmail !== notifyUserSelected?.userEmail) {
           setIsValidEmail(false);
           setEmailErrorMsg(
             'Please enter a valid email address or not available!'
@@ -309,7 +308,7 @@ const CreateCertificates = (props) => {
         }
       }
     }
-  }, [notifyUserDetails, autoLoader, options]);
+  }, [notifyEmail, notifyUserSelected, autoLoader, options]);
 
   useEffect(() => {
     if (allApplication?.length > 0) {
@@ -536,10 +535,11 @@ const CreateCertificates = (props) => {
     setOpenConfirmationModal(false);
   };
   const onSelected = (e, val) => {
-    setNotifyUserDetails(val);
     const notifyUserEmail = val?.match(/\[(.*)\]/)[1].toLowerCase();
+    setNotifyUserSelected(
+      options.filter((i) => i.userEmail === notifyUserEmail)[0]
+    );
     setNotifyEmail(notifyUserEmail);
-    setNotifyUserSelected(true);
     setEmailError(false);
   };
   const callSearchApi = useCallback(
@@ -555,9 +555,7 @@ const CreateCertificates = (props) => {
             if (responses[0]?.data?.data?.values?.length > 0) {
               responses[0].data.data.values.map((item) => {
                 if (item.userName) {
-                  return array.add(
-                    `${item.displayName} [${item.userEmail}] (${item.userName})`
-                  );
+                  return array.add(item);
                 }
                 return null;
               });
@@ -565,9 +563,7 @@ const CreateCertificates = (props) => {
             if (responses[1]?.data?.data?.values?.length > 0) {
               responses[1].data.data.values.map((item) => {
                 if (item.userName) {
-                  return array.add(
-                    `${item.displayName} [${item.userEmail}] (${item.userName})`
-                  );
+                  return array.add(item);
                 }
                 return null;
               });
@@ -587,9 +583,8 @@ const CreateCertificates = (props) => {
 
   const onNotifyEmailChange = (e) => {
     if (e && e.target && e.target.value) {
-      setNotifyUserDetails(e.target.value);
+      setNotifyEmail(e.target.value);
       if (e.target.value && e.target.value?.length > 2) {
-        setNotifyUserSelected(false);
         callSearchApi(e.target.value);
         if (validateEmail(notifyEmail)) {
           setEmailError(false);
@@ -600,9 +595,6 @@ const CreateCertificates = (props) => {
           );
         }
       }
-    } else {
-      setNotifyUserDetails('');
-      setNotifyEmail('');
     }
   };
 
@@ -838,26 +830,24 @@ const CreateCertificates = (props) => {
                     <NotificationAutoWrap>
                       <AutoInputFieldLabelWrapper>
                         <AutoCompleteComponent
-                          options={options}
+                          options={options.map(
+                            (item) =>
+                              `${item.displayName} [${item.userEmail}] (${item.userName})`
+                          )}
                           classes={classes}
-                          searchValue={notifyUserDetails}
+                          searchValue={notifyEmail}
                           icon="search"
                           name="notifyUser"
-                          open={
-                            notifyUserDetails?.length > 2 &&
-                            options.length > 0 &&
-                            !notifyUserSelected
-                          }
                           onSelected={(e, val) => onSelected(e, val)}
                           onKeyDown={(e) => onEmailKeyDownClicked(e)}
                           onChange={(e) => onNotifyEmailChange(e)}
                           placeholder="Search by NTID, Email or Name "
                           error={
-                            notifyUserDetails?.length > 2 &&
+                            notifyEmail?.length > 2 &&
                             (emailError || !isValidEmail)
                           }
                           helperText={
-                            notifyUserDetails?.length > 2 &&
+                            notifyEmail?.length > 2 &&
                             (emailError || !isValidEmail)
                               ? emailErrorMsg
                               : ''
