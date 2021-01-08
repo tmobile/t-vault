@@ -1331,7 +1331,12 @@ public class  AppRoleService {
 		boolean canAddAppRole = ControllerUtil.canAddPermission(path, token);
 		if(canAddAppRole){
 
-			log.info("Associate approle to SDB -  path : {} valid", path );
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, ASSOCIATEAPPROLE).
+				      put(LogMessage.MESSAGE, String.format ("Associate approle to SDB -  path :  [%s] valid", path)).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));	
 
 			String folders[] = path.split("[/]+");
 			

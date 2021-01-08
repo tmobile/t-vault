@@ -490,7 +490,7 @@ public class SelfSupportController {
 	 * @param token
 	 * @return
 	 */
-	@ApiOperation(value = "${AWSAuthControllerV2.listRoles.value}", notes = "${AWSAuthControllerV2.listRoles.notes}")
+	@ApiOperation(value = "${SelfSupportController.listRoles.value}", notes = "${SelfSupportController.listRoles.notes}")
 	@GetMapping(value="/v2/ss/roles",produces="application/json")
 	public ResponseEntity<String> listRoles(HttpServletRequest request,@RequestHeader(value="vault-token") String token){
 		UserDetails userDetails = (UserDetails) (request).getAttribute("UserDetails");
