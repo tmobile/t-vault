@@ -145,8 +145,8 @@ const Permissions = (props) => {
                 <Groups
                   safeDetail={safeDetail}
                   safeData={safeData}
-                  fetchPermission={fetchPermission}
                   newGroup={newGroup}
+                  refresh={refresh}
                   onNewGroupChange={() => setNewGroup(false)}
                   updateToastMessage={(response, message) =>
                     updateToastMessage(response, message)

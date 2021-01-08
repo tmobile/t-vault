@@ -164,6 +164,7 @@ const ServiceAccountPermission = (props) => {
                           updateToastMessage(res, message)
                         }
                         fetchPermission={fetchPermission}
+                        refresh={refresh}
                       />
                     </TabPanel>
                     <TabPanel value={value} index={2}>
