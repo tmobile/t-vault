@@ -1249,7 +1249,7 @@ public class  SelfSupportService {
 		else if (response!=null && HttpStatus.NOT_FOUND.equals(response.getHttpstatus())) {
 			return ResponseEntity.status(HttpStatus.OK).body("{\"keys\":[]}");
 		}		
-		return ResponseEntity.status(response==null?null:response.getHttpstatus()).body(response.getResponse());	
+		return ResponseEntity.status(response==null?null:response.getHttpstatus()).body(response==null?null:response.getResponse());	
 	}
 	/**
 	 * Create AWS EC2 role
