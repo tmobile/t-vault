@@ -359,7 +359,7 @@ const ViewCertificate = (props) => {
   );
 
   const onOwnerChange = (e) => {
-    if (e && e?.target?.value) {
+    if (e && e?.target?.value !== undefined) {
       setApplicationOwner(e?.target?.value);
       if (e?.target?.value && e?.target?.value?.length > 2) {
         setOptions([]);
@@ -374,9 +374,11 @@ const ViewCertificate = (props) => {
     }
   };
 
+  const emailRegx = /([a-zA-Z0-9+._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/;
+
   const onSelected = (e, val) => {
     if (val) {
-      const applicationOwnerEmail = val?.match(/\[(.*)\]/)[1];
+      const applicationOwnerEmail = val?.match(emailRegx)[0];
       setApplicationOwner(applicationOwnerEmail);
       setOwnerselected(
         options.filter((i) => i.userEmail === applicationOwnerEmail)[0]
@@ -387,7 +389,7 @@ const ViewCertificate = (props) => {
 
   const onNotifyEmailSelected = (e, val) => {
     if (val) {
-      const notifyUserEmail = val?.match(/\[(.*)\]/)[1];
+      const notifyUserEmail = val?.match(emailRegx)[1];
       setNotifyUserselected(
         notifyOptions.filter((i) => i.userEmail === notifyUserEmail)[0]
       );
@@ -424,7 +426,7 @@ const ViewCertificate = (props) => {
   };
 
   const onNotifyEmailChange = (e) => {
-    if (e && e?.target?.value) {
+    if (e && e?.target?.value !== undefined) {
       setNotifyEmail(e?.target?.value);
       if (e.target.value && e.target.value?.length > 2) {
         setNotifyOptions([]);
@@ -453,7 +455,7 @@ const ViewCertificate = (props) => {
   };
 
   const onProjectLeadSelected = (e, val) => {
-    const projectLeadUserEmail = val?.match(/\[(.*)\]/)[1];
+    const projectLeadUserEmail = val?.match(emailRegx)[1];
     setProjectLeadselected(
       projectLeadOptions.filter((i) => i.userEmail === projectLeadUserEmail)[0]
     );
@@ -462,7 +464,7 @@ const ViewCertificate = (props) => {
   };
 
   const onProjectLeadChange = (e) => {
-    if (e) {
+    if (e?.target?.value !== undefined) {
       setProjectLeadEmail(e?.target?.value);
       if (e?.target?.value && e?.target.value?.length > 2) {
         setProjectLeadOptions([]);
