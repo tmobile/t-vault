@@ -201,4 +201,57 @@ public class DirectoryServiceControllerV2Test {
                 .andExpect(content().string(containsString(responseMessage)));
     }
 
+    @Test
+    public void test_searchByUPNInGsmAndCorp() throws Exception {
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        String responseMessage =new ObjectMapper().writeValueAsString(users);
+
+        ResponseEntity<DirectoryObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(users);
+        when(directoryService.searchByUPNInGsmAndCorp(Mockito.any())).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/tmo/users?userPrincipalName=testUser@t-mobile.com")
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseMessage)));
+    }
+
+    @Test
+    public void testGetAllUsersDetailByNtIdsSuccess() throws Exception {
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        String responseMessage =new ObjectMapper().writeValueAsString(users);
+
+        ResponseEntity<DirectoryObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(users);
+        when(directoryService.getAllUsersDetailByNtIds(Mockito.any())).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ldap/getusersdetail/testUser")
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseMessage)));
+    }
 }

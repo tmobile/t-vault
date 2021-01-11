@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.tmobile.cso.vault.api.model.ADUserAccount;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -252,17 +251,17 @@ public class CertificateUtils {
 	 * @param certificate
 	 */
 	private void setDnsDetailsToCertificate(JsonNode dataNode, SSLCertificateMetadataDetails certificate) {
-		if (null != dataNode.get("dnsNames")) {
+		if (null != dataNode.get(SSLCertificateConstants.DNS_NAMES)) {
 			if(certificate.getCertType().equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
 				//Adding DNS names to certificate info
 				List<String> list = new ArrayList<>();
-				JsonNode dnsArray = dataNode.get("dnsNames");
+				JsonNode dnsArray = dataNode.get(SSLCertificateConstants.DNS_NAMES);
 				for (int i = 0; i < dnsArray.size(); i++) {
 					list.add(dnsArray.get(i).toString());
 				}
 				certificate.setDnsNames(list);
 			} else {
-				certificate.setDnsNames(Collections.singletonList(dataNode.get("dnsNames").toString()));
+				certificate.setDnsNames(Collections.singletonList(dataNode.get(SSLCertificateConstants.DNS_NAMES).toString()));
 			}
 		}
 	}	

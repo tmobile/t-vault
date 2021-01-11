@@ -31,7 +31,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -108,6 +107,16 @@ public class  IAMServiceAccountsService {
 	
 	@Autowired
 	private AWSIAMAuthService awsiamAuthService;
+	
+	private static final String ACCOUNTSTR = "account [%s].";
+	private static final String DELETEPATH = "/delete";
+	private static final String PATHSTR = "{\"path\":\"";
+	private static final String INVALIDVALUEERROR = "{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}";
+	private static final String POLICYSTR = "policy is [%s]";
+	private static final String GROUPPATH = "/auth/ldap/groups";
+	private static final String GROUPNAME = "{\"groupname\":\"";
+	private static final String READPATH = "/auth/userpass/read";
+	private static final String USERPATH = "/auth/ldap/users";
 
 	/**
 	 * Onboard an IAM service account
@@ -176,6 +185,11 @@ public class  IAMServiceAccountsService {
 			boolean iamSvcAccCreationStatus = addSudoPermissionToOwner(token, iamServiceAccount, userDetails, iamSvcAccName);
 			if (iamSvcAccCreationStatus) {
 				sendMailToIAMSvcAccOwner(iamServiceAccount, iamSvcAccName);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
+						.put(LogMessage.MESSAGE, String.format("Successfully onboarded the IAM Service Account[%s]  with owner [%s].", iamServiceAccount.getUserName(),iamServiceAccount.getOwnerEmail()))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 				return ResponseEntity.status(HttpStatus.OK).body(
 						"{\"messages\":[\"Successfully completed onboarding of IAM service account\"]}");
 			}
@@ -221,7 +235,7 @@ public class  IAMServiceAccountsService {
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
 					.put(LogMessage.MESSAGE, String.format("Successfully added owner permission to [%s] for IAM service " +
-							"account [%s].", iamServiceAccount.getOwnerNtid(), iamSvcAccName))
+							ACCOUNTSTR, iamServiceAccount.getOwnerNtid(), iamSvcAccName))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return true;
 		}
@@ -229,7 +243,7 @@ public class  IAMServiceAccountsService {
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
 				.put(LogMessage.MESSAGE, String.format("Failed to add owner permission to [%s] for IAM service " +
-						"account [%s].", iamServiceAccount.getOwnerNtid(), iamSvcAccName))
+						ACCOUNTSTR, iamServiceAccount.getOwnerNtid(), iamSvcAccName))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		return false;
 
@@ -251,7 +265,7 @@ public class  IAMServiceAccountsService {
 				if (currentPolicies.contains(iamMasterPolicyName)) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-							.put(LogMessage.ACTION, "isAuthorizedForIAMOnboardAndOffboard")
+							.put(LogMessage.ACTION, "IsAuthorizedForIAMOnboardAndOffboard")
 							.put(LogMessage.MESSAGE, "The User/Token has required policies to onboard/offboard IAM Service Account.")
 							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 					return true;
@@ -348,7 +362,7 @@ public class  IAMServiceAccountsService {
 	private void sendMailToIAMSvcAccOwner(IAMServiceAccount iamServiceAccount, String iamSvcAccName) {
 		// send email notification to IAM service account owner
 		DirectoryUser directoryUser = getUserDetails(iamServiceAccount.getOwnerNtid());
-		if (!ObjectUtils.isEmpty(directoryUser)) {
+		if (directoryUser != null) {
 			String from = supportEmail;
 			List<String> to = new ArrayList<>();
 			to.add(iamServiceAccount.getOwnerEmail());
@@ -394,11 +408,11 @@ public class  IAMServiceAccountsService {
 		DirectoryUser directoryUser = null;
 		for (int i = 0; i < usersList.getValues().length; i++) {
 			directoryUser = (DirectoryUser) usersList.getValues()[i];
-			if (directoryUser.getUserName().equalsIgnoreCase(userName)) {
+			if (directoryUser != null && directoryUser.getUserName().equalsIgnoreCase(userName)) {
 				break;
 			}
 		}
-		if (!ObjectUtils.isEmpty(directoryUser)) {
+		if (directoryUser != null) {
 			String[] displayName = directoryUser.getDisplayName().split(",");
 			if (displayName.length > 1) {
 				directoryUser.setDisplayName(displayName[1] + "  " + displayName[0]);
@@ -576,7 +590,7 @@ public class  IAMServiceAccountsService {
 	private ResponseEntity<String> deleteIAMSvcAccount(String token, OnboardedIAMServiceAccount iamServiceAccount) {
 		String iamSvcAccName = iamServiceAccount.getAwsAccountId() + "_" + iamServiceAccount.getUserName();
 		String iamSvcAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName;
-		Response onboardingResponse = reqProcessor.process("/delete", "{\"path\":\"" + iamSvcAccPath + "\"}", token);
+		Response onboardingResponse = reqProcessor.process(DELETEPATH, PATHSTR + iamSvcAccPath + "\"}", token);
 
 		if (onboardingResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 				|| onboardingResponse.getHttpstatus().equals(HttpStatus.OK)) {
@@ -608,7 +622,7 @@ public class  IAMServiceAccountsService {
 	public ResponseEntity<String> getOnboardedIAMServiceAccounts(String token, UserDetails userDetails) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-				.put(LogMessage.ACTION, "listOnboardedIAMServiceAccounts")
+				.put(LogMessage.ACTION, "ListOnboardedIAMServiceAccounts")
 				.put(LogMessage.MESSAGE, "Trying to get list of onboaded IAM service accounts")
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		Response response = null;
@@ -704,7 +718,7 @@ public class  IAMServiceAccountsService {
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		String metadataPath = IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH;
 
-		Response response = reqProcessor.process("/iam/onboardedlist", "{\"path\":\"" + metadataPath + "\"}", token);
+		Response response = reqProcessor.process("/iam/onboardedlist", PATHSTR + metadataPath + "\"}", token);
 
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -741,7 +755,7 @@ public class  IAMServiceAccountsService {
 		}
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountGroup.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountGroup.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
@@ -800,7 +814,7 @@ public class  IAMServiceAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_GROUP_TO_IAMSVCACC_MSG)
-				.put(LogMessage.MESSAGE, String.format("policy is [%s]", policy))
+				.put(LogMessage.MESSAGE, String.format(POLICYSTR, policy))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		String readPolicy = new StringBuffer()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
@@ -825,8 +839,8 @@ public class  IAMServiceAccountsService {
 		Response groupResp = new Response();
 
 		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-			groupResp = reqProcessor.process("/auth/ldap/groups",
-					"{\"groupname\":\"" + iamServiceAccountGroup.getGroupname() + "\"}", token);
+			groupResp = reqProcessor.process(GROUPPATH,
+					GROUPNAME + iamServiceAccountGroup.getGroupname() + "\"}", token);
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// call read api with groupname
 			oidcGroup = oidcUtil.getIdentityGroupDetails(iamServiceAccountGroup.getGroupname(), token);
@@ -855,7 +869,7 @@ public class  IAMServiceAccountsService {
 				// OIDC Changes
 				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && oidcGroup != null) {
 					currentpolicies.addAll(oidcGroup.getPolicies());
 				}
 			} catch (IOException e) {
@@ -938,7 +952,7 @@ public class  IAMServiceAccountsService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 						.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_GROUP_TO_IAMSVCACC_MSG)
-						.put(LogMessage.MESSAGE, "Group configuration Success.")
+						.put(LogMessage.MESSAGE,String.format("Group [%s] is successfully associated to IAM Service Account [%s] with policy [%s].",iamServiceAccountGroup.getGroupname(),iamServiceAccountGroup.getIamSvcAccName(),iamServiceAccountGroup.getAccess()))
 						.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 				return ResponseEntity.status(HttpStatus.OK)
@@ -950,7 +964,7 @@ public class  IAMServiceAccountsService {
 			}
 		} else {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("{\"errors\":[\"Failed to add group to the IAM Service Account\"]}");
+					.body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
 		}
 	}
 
@@ -1031,7 +1045,7 @@ public class  IAMServiceAccountsService {
 
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountUser.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountUser.setAccess(TVaultConstants.WRITE_POLICY);
@@ -1107,10 +1121,10 @@ public class  IAMServiceAccountsService {
 			String uniqueIAMSvcaccName) {
 		Response userResponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/userpass/read", IAMServiceAccountConstants.USERNAME_PARAM_STRING + iamServiceAccountUser.getUsername() + "\"}",
+			userResponse = reqProcessor.process(READPATH, IAMServiceAccountConstants.USERNAME_PARAM_STRING + iamServiceAccountUser.getUsername() + "\"}",
 					token);
 		} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/ldap/users", IAMServiceAccountConstants.USERNAME_PARAM_STRING + iamServiceAccountUser.getUsername() + "\"}", token);
+			userResponse = reqProcessor.process(USERPATH, IAMServiceAccountConstants.USERNAME_PARAM_STRING + iamServiceAccountUser.getUsername() + "\"}", token);
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
 			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, iamServiceAccountUser.getUsername(),
@@ -1302,7 +1316,7 @@ public class  IAMServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 							.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_USER_TO_IAMSVCACC_MSG)
-							.put(LogMessage.MESSAGE, String.format("User [%s] is successfully associated with IAM Service Account - [%s]", iamServiceAccountUser.getUsername(), iamServiceAccountUser.getIamSvcAccName()))
+							.put(LogMessage.MESSAGE, String.format("User [%s] is successfully associated to IAM Service Account [%s] with policy [%s].", iamServiceAccountUser.getUsername(), iamServiceAccountUser.getIamSvcAccName(),iamServiceAccountUser.getAccess()))
 							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 							.build()));
 			return ResponseEntity.status(HttpStatus.OK)
@@ -1387,7 +1401,7 @@ public class  IAMServiceAccountsService {
 			path = path.substring(0, path.length() - 1);
 		}
 		String iamMetaDataPath = "metadata/" + path;
-		return reqProcessor.process("/sdb", "{\"path\":\"" + iamMetaDataPath + "\"}", token);
+		return reqProcessor.process("/sdb", PATHSTR + iamMetaDataPath + "\"}", token);
 	}
 
 	/**
@@ -1561,9 +1575,15 @@ public class  IAMServiceAccountsService {
 	 */
 	public ResponseEntity<String> getIAMServiceAccountDetail(String token, String iamSvcaccName) {
 		String path = TVaultConstants.IAM_SVC_PATH + iamSvcaccName;
-		Response response = reqProcessor.process("/iamsvcacct", "{\"path\":\"" + path + "\"}", token);
+		Response response = reqProcessor.process("/iamsvcacct", PATHSTR + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
 			JsonObject data = populateMetaData(response);
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "get IAmservice Account details").
+					put(LogMessage.MESSAGE,"IAM Service Account details fetched successfully.").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
 			return ResponseEntity.status(HttpStatus.OK).body(data.toString());
 		}
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -1592,7 +1612,7 @@ public class  IAMServiceAccountsService {
 	 */
 	public ResponseEntity<String> getIAMServiceAccountSecretKey(String token, String iamSvcaccName, String folderName) {
 		String path = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcaccName + "/" + folderName;
-		Response response = reqProcessor.process("/iamsvcacct", "{\"path\":\"" + path + "\"}", token);
+		Response response = reqProcessor.process("/iamsvcacct", PATHSTR + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
 			JsonParser jsonParser = new JsonParser();
 			JsonObject data = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
@@ -1635,7 +1655,8 @@ public class  IAMServiceAccountsService {
 	/**
 	 * Removes user from IAM service account
 	 * @param token
-	 * @param safeUser
+	 * @param iamServiceAccountUser
+	 * @param userDetails
 	 * @return
 	 */
 	public ResponseEntity<String> removeUserFromIAMServiceAccount(String token, IAMServiceAccountUser iamServiceAccountUser, UserDetails userDetails) {
@@ -1646,7 +1667,7 @@ public class  IAMServiceAccountsService {
         }
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountUser.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountUser.setAccess(TVaultConstants.WRITE_POLICY);
@@ -1704,10 +1725,10 @@ public class  IAMServiceAccountsService {
 
 		Response userResponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/userpass/read", "{\"username\":\"" + iamServiceAccountUser.getUsername() + "\"}",
+			userResponse = reqProcessor.process(READPATH, "{\"username\":\"" + iamServiceAccountUser.getUsername() + "\"}",
 					token);
 		} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + iamServiceAccountUser.getUsername() + "\"}", token);
+			userResponse = reqProcessor.process(USERPATH, "{\"username\":\"" + iamServiceAccountUser.getUsername() + "\"}", token);
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
 			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, iamServiceAccountUser.getUsername(), userDetails, true);
@@ -1837,7 +1858,7 @@ public class  IAMServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_USER_FROM_IAMSVCACC_MSG).
-					put(LogMessage.MESSAGE, "User is successfully Removed from IAM Service Account").
+					put(LogMessage.MESSAGE,String.format("User[%s] is successfully removed from IAM Service Account[%s]",iamServiceAccountUser.getUsername(),iamServiceAccountUser.getIamSvcAccName())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully removed user from the IAM Service Account\"]}");
@@ -1948,7 +1969,7 @@ public class  IAMServiceAccountsService {
 
         if (!isIamSvcaccPermissionInputValid(iamServiceAccountGroup.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountGroup.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
@@ -1958,48 +1979,120 @@ public class  IAMServiceAccountsService {
 
 		boolean isAuthorized = isAuthorizedToAddPermissionInIAMSvcAcc(userDetails, iamSvcAccountName, token, false);
 		if (isAuthorized) {
-			// Only Sudo policy can be added (as part of onbord) before activation.
-			if (!isIAMSvcaccActivated(token, userDetails, iamSvcAccountName)
-					&& !TVaultConstants.SUDO_POLICY.equals(iamServiceAccountGroup.getAccess())) {
-				log.error(
-						JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-								.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG)
-								.put(LogMessage.MESSAGE, String.format("Failed to remove group permission to IAM Service account. [%s] is not activated.", iamSvcAccountName))
-								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
-								.build()));
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-						"{\"errors\":[\"Failed to remove group permission to IAM Service account. IAM Service Account is not activated. Please activate this service account and try again.\"]}");
-			}
-
-            Response groupResp = new Response();
-			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-				groupResp = reqProcessor.process("/auth/ldap/groups", "{\"groupname\":\"" + iamServiceAccountGroup.getGroupname() + "\"}", token);
-			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-				// call read api with groupname
-				oidcGroup = oidcUtil.getIdentityGroupDetails(iamServiceAccountGroup.getGroupname(), token);
-				if (oidcGroup != null) {
-					groupResp.setHttpstatus(HttpStatus.OK);
-					groupResp.setResponse(oidcGroup.getPolicies().toString());
-				} else {
-					groupResp.setHttpstatus(HttpStatus.BAD_REQUEST);
-				}
-			}
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                    put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG).
-                    put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", groupResp.getHttpstatus())).
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                    build()));
-
-            return removePoliciesAndUpdateMetadataForIAMSvcAcc(token, iamServiceAccountGroup, userDetails, oidcGroup,
-					iamSvcAccountName, groupResp);
+			return groupRemovalForIAMServiceAccount(token, iamServiceAccountGroup, userDetails, oidcGroup,
+					iamSvcAccountName);
         }
         else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove groups from this IAM service account\"]}");
         }
 
     }
+
+	/**
+	 * Remove Group from IAM Service Account after validation
+	 *
+	 * @param token
+	 * @param iamServiceAccountGroup
+	 * @param userDetails
+	 * @param oidcGroup
+	 * @param iamSvcAccountName
+	 * @return
+	 */
+	private ResponseEntity<String> groupRemovalForIAMServiceAccount(String token,
+			IAMServiceAccountGroup iamServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
+			String iamSvcAccountName) {
+		// Only Sudo policy can be added (as part of onbord) before activation.
+		if (!isIAMSvcaccActivated(token, userDetails, iamSvcAccountName)
+				&& !TVaultConstants.SUDO_POLICY.equals(iamServiceAccountGroup.getAccess())) {
+			log.error(
+					JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG)
+							.put(LogMessage.MESSAGE, String.format("Failed to remove group permission to IAM Service account. [%s] is not activated.", iamSvcAccountName))
+							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+							.build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+					"{\"errors\":[\"Failed to remove group permission to IAM Service account. IAM Service Account is not activated. Please activate this service account and try again.\"]}");
+		}
+
+		// check for this group is associated to this IAM Service account
+		String iamMetadataPath = new StringBuilder().append(TVaultConstants.IAM_SVC_PATH).append(iamSvcAccountName).toString();
+		Response metadataReadResponse = reqProcessor.process("/iamsvcacct", PATHSTR + iamMetadataPath + "\"}", token);
+		Map<String, Object> responseMap = null;
+		boolean metaDataResponseStatus = true;
+		if(metadataReadResponse != null && HttpStatus.OK.equals(metadataReadResponse.getHttpstatus())) {
+			responseMap = ControllerUtil.parseJson(metadataReadResponse.getResponse());
+			if(responseMap.isEmpty()) {
+				metaDataResponseStatus = false;
+			}
+		}
+		else {
+			metaDataResponseStatus = false;
+		}
+
+		if(metaDataResponseStatus) {
+			@SuppressWarnings("unchecked")
+			Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
+			Map<String,Object> groupsData = (Map<String,Object>)metadataMap.get(TVaultConstants.GROUPS);
+
+			if (groupsData == null || !groupsData.containsKey(iamServiceAccountGroup.getGroupname())) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG).
+						put(LogMessage.MESSAGE, String.format ("Group [%s] is not associated to IAM service account [%s]", iamServiceAccountGroup.getGroupname(), iamMetadataPath)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove group from IAM service account. Group association to IAM service account not found\"]}");
+			}
+		}else {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG).
+					put(LogMessage.MESSAGE, String.format ("Error Fetching existing IAM Service account info [%s]", iamMetadataPath)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Error Fetching existing IAM Service account info. please check the path specified\"]}");
+		}
+
+		return validateAuthMethodAndGroupRemovalProcess(token, iamServiceAccountGroup, userDetails, oidcGroup,
+				iamSvcAccountName);
+	}
+
+	/**
+	 * Method to call the group removal based on the auth method
+	 * @param token
+	 * @param iamServiceAccountGroup
+	 * @param userDetails
+	 * @param oidcGroup
+	 * @param iamSvcAccountName
+	 * @return
+	 */
+	private ResponseEntity<String> validateAuthMethodAndGroupRemovalProcess(String token,
+			IAMServiceAccountGroup iamServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
+			String iamSvcAccountName) {
+		Response groupResp = new Response();
+		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+			groupResp = reqProcessor.process(GROUPPATH, GROUPNAME + iamServiceAccountGroup.getGroupname() + "\"}", token);
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			// call read api with groupname
+			oidcGroup = oidcUtil.getIdentityGroupDetails(iamServiceAccountGroup.getGroupname(), token);
+			if (oidcGroup != null) {
+				groupResp.setHttpstatus(HttpStatus.OK);
+				groupResp.setResponse(oidcGroup.getPolicies().toString());
+			} else {
+				groupResp.setHttpstatus(HttpStatus.BAD_REQUEST);
+			}
+		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		        put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG).
+		        put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", groupResp.getHttpstatus())).
+		        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		        build()));
+
+		return removePoliciesAndUpdateMetadataForIAMSvcAcc(token, iamServiceAccountGroup, userDetails, oidcGroup,
+				iamSvcAccountName, groupResp);
+	}
 
 	/**
 	 * Method to update policies for remove group from IAM service account.
@@ -2037,7 +2130,7 @@ public class  IAMServiceAccountsService {
 				// OIDC Changes
 				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && oidcGroup != null) {
 					currentpolicies.addAll(oidcGroup.getPolicies());
 				}
 		    } catch (IOException e) {
@@ -2055,7 +2148,10 @@ public class  IAMServiceAccountsService {
 			policies.remove(readPolicy);
 			policies.remove(writePolicy);
 			policies.remove(denyPolicy);
+		}else {
+			return deleteOrphanGroupEntriesForIAMSvcAcc(token, iamServiceAccountGroup);
 		}
+
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 		Response ldapConfigresponse = new Response();
@@ -2072,7 +2168,43 @@ public class  IAMServiceAccountsService {
 					currentpolicies, currentpoliciesString);
 		}
 		else {
-		    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove the group from the IAM Service Account\"]}");
+			String ssoToken = oidcUtil.getSSOToken();
+			if (!StringUtils.isEmpty(ssoToken)) {
+				String objectId = oidcUtil.getGroupObjectResponse(ssoToken, iamServiceAccountGroup.getGroupname());
+				if (objectId == null || StringUtils.isEmpty(objectId)) {
+					return deleteOrphanGroupEntriesForIAMSvcAcc(token, iamServiceAccountGroup);
+				}
+			}
+		    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
+		}
+	}
+
+	/**
+	 * Method to delete orphan group entries if exists for IAM service account
+	 * @param token
+	 * @param iamServiceAccountGroup
+	 * @return
+	 */
+	private ResponseEntity<String> deleteOrphanGroupEntriesForIAMSvcAcc(String token, IAMServiceAccountGroup iamServiceAccountGroup) {
+		// Trying to remove the orphan entries if exists
+		String iamUniqueSvcAccountName = iamServiceAccountGroup.getAwsAccountId() + "_" + iamServiceAccountGroup.getIamSvcAccName();
+		String path = new StringBuilder(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(iamUniqueSvcAccountName).toString();
+		Map<String,String> params = new HashMap<>();
+		params.put("type", "groups");
+		params.put("name",iamServiceAccountGroup.getGroupname());
+		params.put("path",path);
+		params.put("access","delete");
+		Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+		if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "Remove Group from IAM service account").
+					put(LogMessage.MESSAGE, String.format ("Group [%s] is successfully removed from IAM service account [%s]", iamServiceAccountGroup.getGroupname(), iamUniqueSvcAccountName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");
+		}else{
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try again \"]}");
 		}
 	}
 
@@ -2091,7 +2223,7 @@ public class  IAMServiceAccountsService {
 			IAMServiceAccountGroup iamServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
 			List<String> currentpolicies, String currentpoliciesString) {
 		String iamUniqueSvcAccountName = iamServiceAccountGroup.getAwsAccountId() + "_" + iamServiceAccountGroup.getIamSvcAccName();
-		String path = new StringBuffer(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(iamUniqueSvcAccountName).toString();
+		String path = new StringBuilder(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(iamUniqueSvcAccountName).toString();
 		Map<String,String> params = new HashMap<>();
 		params.put("type", "groups");
 		params.put("name",iamServiceAccountGroup.getGroupname());
@@ -2102,7 +2234,7 @@ public class  IAMServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG).
-					put(LogMessage.MESSAGE, "Group configuration Success.").
+					put(LogMessage.MESSAGE, String.format("Group[%s] is successfully removed from IAM Service Account [%s].", iamServiceAccountGroup.getGroupname(),iamServiceAccountGroup.getIamSvcAccName())).
 					put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -2172,7 +2304,7 @@ public class  IAMServiceAccountsService {
 	public ResponseEntity<String> readFolders(String token, String path) throws IOException {
 		Response response = new Response();
 		ObjectMapper objMapper = new ObjectMapper();
-		Response lisresp = reqProcessor.process("/iam/list", "{\"path\":\"" + path + "\"}", token);
+		Response lisresp = reqProcessor.process("/iam/list", PATHSTR + path + "\"}", token);
 		if(lisresp.getHttpstatus().equals(HttpStatus.OK)){
 			List<String> foldersList = new ArrayList<>();
 			IAMServiceAccountNode iamServiceAccountNode = new IAMServiceAccountNode();
@@ -2232,7 +2364,7 @@ public class  IAMServiceAccountsService {
 		}
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountApprole.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountApprole.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountApprole.setAccess(TVaultConstants.WRITE_POLICY);
@@ -2259,7 +2391,7 @@ public class  IAMServiceAccountsService {
 									.put(LogMessage.USER,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 									.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_APPROLE_TO_IAMSVCACC_MSG)
-									.put(LogMessage.MESSAGE, String.format("policy is [%s]", policy))
+									.put(LogMessage.MESSAGE, String.format(POLICYSTR, policy))
 									.put(LogMessage.APIURL,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 									.build())); 
@@ -2358,7 +2490,7 @@ public class  IAMServiceAccountsService {
 									.put(LogMessage.USER,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 									.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_APPROLE_TO_IAMSVCACC_MSG)
-									.put(LogMessage.MESSAGE, "Approle successfully associated with Service Account")
+									.put(LogMessage.MESSAGE,String.format("Approle[%s] successfully associated to IAM Service Account [%s] with policy [%s].",iamServiceAccountApprole.getApprolename(),iamServiceAccountApprole.getIamSvcAccName(),iamServiceAccountApprole.getAccess()))
 									.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 									.put(LogMessage.APIURL,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
@@ -2474,7 +2606,7 @@ public class  IAMServiceAccountsService {
 		}
 		if (!isIamSvcaccPermissionInputValid(access)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(INVALIDVALUEERROR);
 		}
 
 		boolean isAuthorized = hasAddOrRemovePermission(userDetails, uniqueIAMSvcaccName, token);
@@ -2561,13 +2693,13 @@ public class  IAMServiceAccountsService {
 									.put(LogMessage.USER,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 									.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_APPROLE_TO_IAMSVCACC_MSG)
-									.put(LogMessage.MESSAGE, "Approle is successfully removed from IAM Service Account")
+									.put(LogMessage.MESSAGE,String.format("Approle [%s] is successfully removed from IAM Service Account [%s].",iamServiceAccountApprole.getApprolename(),iamServiceAccountApprole.getIamSvcAccName()))
 									.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 									.put(LogMessage.APIURL,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 									.build()));
 					return ResponseEntity.status(HttpStatus.OK)
-							.body("{\"messages\":[\"Approle is successfully removed from IAM Service Account\"]}");
+							.body("{\"messages\":[\"Approle is successfully removed(if existed) from IAM Service Account\"]}");
 				}
 				approleControllerResp = appRoleService.configureApprole(approleName, currentpoliciesString, token);
 				if (approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
@@ -2798,7 +2930,7 @@ public class  IAMServiceAccountsService {
 	 */
 	private JsonObject getIAMMetadata(String token, String uniqueIAMSvcaccName) {
 		String path = TVaultConstants.IAM_SVC_PATH + uniqueIAMSvcaccName;
-		Response response = reqProcessor.process("/read", "{\"path\":\"" + path + "\"}", token);
+		Response response = reqProcessor.process("/read", PATHSTR + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
 			return populateMetaData(response);
 		}
@@ -3115,7 +3247,7 @@ public class  IAMServiceAccountsService {
 
 		// delete users,groups,aws-roles,app-roles from service account
 		String path = IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + uniqueIAMSvcName;
-		Response metaResponse = reqProcessor.process("/sdb", "{\"path\":\"" + path + "\"}", token);
+		Response metaResponse = reqProcessor.process("/sdb", PATHSTR + path + "\"}", token);
 		Map<String, Object> responseMap = null;
 		try {
 			responseMap = new ObjectMapper().readValue(metaResponse.getResponse(),
@@ -3161,6 +3293,12 @@ public class  IAMServiceAccountsService {
 			// Remove metadata...
 			ResponseEntity<String> metadataResponse = deleteIAMSvcAccount(token, iamSvcAccToOffboard);
 			if(HttpStatus.OK.equals(metadataResponse.getStatusCode())){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_OFFBOARD_CREATION_TITLE).
+						put(LogMessage.MESSAGE, String.format("Successfully offboarded IAM service account [%s]from T-Vault.", iamServiceAccount.getIamSvcAccName())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
 				return ResponseEntity.status(HttpStatus.OK).body(
 						"{\"messages\":[\"Successfully offboarded IAM service account (if existed) from T-Vault\"]}");
 			}else{
@@ -3251,10 +3389,10 @@ public class  IAMServiceAccountsService {
 
 				Response userResponse = new Response();
 				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-					userResponse = reqProcessor.process("/auth/userpass/read", "{\"username\":\"" + userName + "\"}",
+					userResponse = reqProcessor.process(READPATH, "{\"username\":\"" + userName + "\"}",
 							token);
 				} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-					userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}",
+					userResponse = reqProcessor.process(USERPATH, "{\"username\":\"" + userName + "\"}",
 							token);
 				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 					// OIDC implementation changes
@@ -3401,7 +3539,7 @@ public class  IAMServiceAccountsService {
 			for (String groupName : groups) {
 				Response response = new Response();
 				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-					response = reqProcessor.process("/auth/ldap/groups", "{\"groupname\":\"" + groupName + "\"}",
+					response = reqProcessor.process(GROUPPATH, GROUPNAME + groupName + "\"}",
 							token);
 				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 					// call read api with groupname
@@ -3423,7 +3561,7 @@ public class  IAMServiceAccountsService {
 						// OIDC Changes
 						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 							currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && oidcGroup != null) {
 							currentpolicies.addAll(oidcGroup.getPolicies());
 						}
 					} catch (IOException e) {
@@ -3451,7 +3589,7 @@ public class  IAMServiceAccountsService {
 					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 						ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
 					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup.getId());
+						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup != null ? oidcGroup.getId() : null);
 						oidcUtil.renewUserToken(userDetails.getClientToken());
 					}
 				}
@@ -3547,13 +3685,13 @@ public class  IAMServiceAccountsService {
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, "deleteIAMSvcAccountSecrets")
 				.put(LogMessage.MESSAGE, String.format("Trying to delete secret folder for IAM service " +
-						"account [%s].", iamSvcAccName))
+						ACCOUNTSTR, iamSvcAccName))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
 		boolean secretDeleteStatus = deleteIAMSvcAccountSecretFolders(token, iamServiceAccount.getAwsAccountId(),
 				iamServiceAccount.getUserName());
 		if (secretDeleteStatus) {
-			Response onboardingResponse = reqProcessor.process("/delete", "{\"path\":\"" + iamSvcAccPath + "\"}", token);
+			Response onboardingResponse = reqProcessor.process(DELETEPATH, PATHSTR + iamSvcAccPath + "\"}", token);
 
 			if (onboardingResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 					|| onboardingResponse.getHttpstatus().equals(HttpStatus.OK)) {
@@ -3623,8 +3761,8 @@ public class  IAMServiceAccountsService {
 					int deleteCount = 0;
 					for (int i = 0; i < svcSecretArray.size(); i++) {
 						String folderPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + uniqueSvcAccName + "/secret_" + (i+1);
-						Response deleteFolderResponse = reqProcessor.process("/delete",
-								"{\"path\":\"" + folderPath + "\"}", token);
+						Response deleteFolderResponse = reqProcessor.process(DELETEPATH,
+								PATHSTR + folderPath + "\"}", token);
 						if (deleteFolderResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 								|| deleteFolderResponse.getHttpstatus().equals(HttpStatus.OK)) {
 							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -3697,7 +3835,7 @@ public class  IAMServiceAccountsService {
             token = tokenUtils.getSelfServiceToken();
         }
 		if(!isIamSvcaccPermissionInputValid(iamServiceAccountAWSRole.getAccess())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountAWSRole.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountAWSRole.setAccess(TVaultConstants.WRITE_POLICY);
@@ -3720,7 +3858,7 @@ public class  IAMServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_AWS_ROLE_MSG).
-					put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
+					put(LogMessage.MESSAGE, String.format (POLICYSTR, policy)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			
@@ -3798,7 +3936,7 @@ public class  IAMServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_AWS_ROLE_MSG).
-							put(LogMessage.MESSAGE, "AWS Role configuration Success.").
+							put(LogMessage.MESSAGE,String.format("AWS Role [%s] successfully associated to IAM Service Account [%s] with policy [%s].",iamServiceAccountAWSRole.getRolename(),iamServiceAccountAWSRole.getIamSvcAccName(),iamServiceAccountAWSRole.getAccess())).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -3857,7 +3995,7 @@ public class  IAMServiceAccountsService {
             token = tokenUtils.getSelfServiceToken();
         }
 		if(!isIamSvcaccPermissionInputValid(iamServiceAccountAWSRole.getAccess())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountAWSRole.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
 			iamServiceAccountAWSRole.setAccess(TVaultConstants.WRITE_POLICY);
@@ -3949,7 +4087,7 @@ public class  IAMServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_AWS_ROLE_MSG).
-							put(LogMessage.MESSAGE, "AWS Role configuration Success.").
+							put(LogMessage.MESSAGE, String.format("AWS Role [%s] is successfully removed from IAM Service Account [%s].", iamServiceAccountAWSRole.getRolename(),iamServiceAccountAWSRole.getIamSvcAccName())).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));

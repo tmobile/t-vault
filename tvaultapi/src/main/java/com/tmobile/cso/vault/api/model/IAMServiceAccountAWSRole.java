@@ -134,22 +134,22 @@ public class IAMServiceAccountAWSRole implements Serializable{
 			if (other.access != null)
 				return false;
 		} else if (!access.equals(other.access))
-			return false;
+				return false;
 		if (awsAccountId == null) {
 			if (other.awsAccountId != null)
 				return false;
 		} else if (!awsAccountId.equals(other.awsAccountId))
-			return false;
+				return false;
 		if (iamSvcAccName == null) {
 			if (other.iamSvcAccName != null)
 				return false;
 		} else if (!iamSvcAccName.equals(other.iamSvcAccName))
-			return false;
+				return false;
 		if (rolename == null) {
 			if (other.rolename != null)
 				return false;
 		} else if (!rolename.equals(other.rolename))
-			return false;
+				return false;
 		return true;
 	}
 

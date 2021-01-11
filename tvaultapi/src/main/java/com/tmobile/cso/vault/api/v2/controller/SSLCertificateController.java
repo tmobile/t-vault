@@ -268,7 +268,7 @@ public class SSLCertificateController {
 	 * @param certificateUser
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.removeUserFromCertificate.value}", notes = "${SSLCertificateController.removeUserFromCertificate.notes}", hidden = true)
+	@ApiOperation(value = "${SSLCertificateController.removeUserFromCertificate.value}", notes = "${SSLCertificateController.removeUserFromCertificate.notes}", hidden = false)
 	@DeleteMapping(value="/v2/sslcert/user", produces="application/json")
 	public ResponseEntity<String> removeUserFromCertificate( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateUser certificateUser){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
@@ -282,7 +282,7 @@ public class SSLCertificateController {
      * @param certificateGroup
      * @return
      */
-    @ApiOperation(value = "${SSLCertificateController.removeGroupFromCertificate.value}", notes = "${SSLCertificateController.removeGroupFromCertificate.notes}", hidden = true)
+    @ApiOperation(value = "${SSLCertificateController.removeGroupFromCertificate.value}", notes = "${SSLCertificateController.removeGroupFromCertificate.notes}", hidden = false)
     @DeleteMapping(value="/v2/sslcert/group", produces="application/json")
     public ResponseEntity<String> removeGroupFromCertificate( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody CertificateGroup certificateGroup ){
         UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
@@ -313,7 +313,7 @@ public class SSLCertificateController {
 	 * @param certificateType
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.transferCertificateOwner.value}", notes = "${SSLCertificateController.transferCertificateOwner.notes}", hidden = true)
+	@ApiOperation(value = "${SSLCertificateController.transferCertificateOwner.value}", notes = "${SSLCertificateController.transferCertificateOwner.notes}", hidden = false)
 	@PutMapping(value = "/v2/sslcert/{certType}/{certName}/{certOwnerEmailId}/transferowner", produces = "application/json")
 	public ResponseEntity<String> transferCertOwner(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,  @PathVariable("certType") String certType, @PathVariable("certName") String certName,@PathVariable("certOwnerEmailId") String certOwnerEmailId) throws Exception {

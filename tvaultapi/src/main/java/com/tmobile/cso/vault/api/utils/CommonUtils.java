@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class CommonUtils {
 
 	public CommonUtils() {
+		//Empty constructor
 	}
 	/**
 	 * Converts policies string part of response received from Vault Rest call to string array

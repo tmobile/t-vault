@@ -84,6 +84,16 @@ public class OIDCUtil {
 	@Autowired
 	private DirectoryService directoryService;
 	
+	private static final String AUTHORIZATION = "Authorization";
+	private static final String GETGROUPSFROMAAD = "getGroupsFromAAD";
+	private static final String GETSSOTOKEN = "getSSOToken";
+	private static final String HTTPFAILMSG = "Failed to initialize httpClient";
+	private static final String SYNCENABLED = "onPremisesSyncEnabled";
+	private static final String BEARERSTR = "Bearer ";
+	private static final String VALUESTR = "value";
+	private static final String ACCEPT = "accept";
+	private static final String GETAZUREUSEROBJ = "getAzureUserObject";
+	
 	/**
 	 * Fetch mount accessor id from oidc mount
 	 * @param response
@@ -237,8 +247,8 @@ public class OIDCUtil {
 		if (httpClient == null) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "getSSOToken").
-					put(LogMessage.MESSAGE, "Failed to initialize httpClient").
+					put(LogMessage.ACTION, GETSSOTOKEN).
+					put(LogMessage.MESSAGE, HTTPFAILMSG).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return null;
@@ -246,7 +256,7 @@ public class OIDCUtil {
 		String api = ControllerUtil.getOidcADLoginUrl();
 		HttpPost postRequest = new HttpPost(api);
 		postRequest.addHeader("Content-type", TVaultConstants.HTTP_CONTENT_TYPE_URL_ENCODED);
-		postRequest.addHeader("Accept",TVaultConstants.HTTP_CONTENT_TYPE_JSON);
+		postRequest.addHeader(ACCEPT,TVaultConstants.HTTP_CONTENT_TYPE_JSON);
 
 		List<NameValuePair> form = new ArrayList<>();
 		form.add(new BasicNameValuePair("grant_type", "client_credentials"));
@@ -260,7 +270,7 @@ public class OIDCUtil {
 		} catch (UnsupportedEncodingException e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "getSSOToken").
+					put(LogMessage.ACTION, GETSSOTOKEN).
 					put(LogMessage.MESSAGE, "Failed to encode entity").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -276,16 +286,13 @@ public class OIDCUtil {
 			if (apiResponse.getStatusLine().getStatusCode() != 200) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, "getSSOToken").
+						put(LogMessage.ACTION, GETSSOTOKEN).
 						put(LogMessage.MESSAGE, "Failed to get sso token").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 				return null;
 			}
-			BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-			while ((output = br.readLine()) != null) {
-				jsonResponse.append(output);
-			}
+			readResponseContent(jsonResponse, apiResponse, GETSSOTOKEN);
 			JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
 			if (!responseJson.isJsonNull() && responseJson.has("access_token")) {
 				accessToken = responseJson.get("access_token").getAsString();
@@ -294,12 +301,33 @@ public class OIDCUtil {
 		} catch (IOException e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "getSSOToken").
+					put(LogMessage.ACTION, GETSSOTOKEN).
 					put(LogMessage.MESSAGE, "Failed to parse SSO response").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 		}
 		return null;
+	}
+
+	/**
+	 * Method to read the response content
+	 * @param jsonResponse
+	 * @param apiResponse
+	 */
+	private void readResponseContent(StringBuilder jsonResponse, HttpResponse apiResponse, String actionMsg) {
+		String output = "";
+		try(BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())))) {
+			while ((output = br.readLine()) != null) {
+				jsonResponse.append(output);
+			}
+		}catch(Exception ex) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		            put(LogMessage.ACTION, actionMsg).
+		            put(LogMessage.MESSAGE, "Failed to read the response").
+		            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		            build()));
+		}
 	}
 
 	/**
@@ -316,8 +344,8 @@ public class OIDCUtil {
 		if (httpClient == null) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "getGroupObjectResponse").
-					put(LogMessage.MESSAGE, "Failed to initialize httpClient").
+					put(LogMessage.ACTION, "GetGroupObjectResponse").
+					put(LogMessage.MESSAGE, HTTPFAILMSG).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return null;
@@ -326,8 +354,8 @@ public class OIDCUtil {
 		String filterSearch = "$filter=displayName%20eq%20'"+encodeValue(groupName)+"'";
 		String api = ssoGroupsEndpoint + filterSearch;
 		HttpGet getRequest = new HttpGet(api);
-		getRequest.addHeader("accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
-		getRequest.addHeader("Authorization", "Bearer " + ssoToken);
+		getRequest.addHeader("Accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
+		getRequest.addHeader(AUTHORIZATION, BEARERSTR + ssoToken);
 		String output = "";
 		StringBuilder jsonResponse = new StringBuilder();
 
@@ -336,30 +364,26 @@ public class OIDCUtil {
 			if (apiResponse.getStatusLine().getStatusCode() != 200) {
 				return null;
 			}
-			BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-			while ((output = br.readLine()) != null) {
-				jsonResponse.append(output);
-			}
-
+			readResponseContent(jsonResponse, apiResponse, "getGroupObjectResponse");
 			JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
-			if (responseJson != null && responseJson.has("value")) {
-				JsonArray vaulesArray = responseJson.get("value").getAsJsonArray();
+			if (responseJson != null && responseJson.has(VALUESTR)) {
+				JsonArray vaulesArray = responseJson.get(VALUESTR).getAsJsonArray();
 				if (vaulesArray.size() > 0) {
 					String cloudGroupId = null;
 					String onPremGroupId = null;
 					for (int i=0;i<vaulesArray.size();i++) {
 						JsonObject adObject = vaulesArray.get(i).getAsJsonObject();
 						// Filter out the duplicate groups by skipping groups created from onprem. Taking group with onPremisesSyncEnabled == null
-						if (adObject.has("onPremisesSyncEnabled")) {
-							if (adObject.get("onPremisesSyncEnabled").isJsonNull()) {
+						if (adObject.has(SYNCENABLED)) {
+							if (adObject.get(SYNCENABLED).isJsonNull()) {
 								cloudGroupId = adObject.get("id").getAsString();
 								break;
 							}
-							else if (adObject.get("onPremisesSyncEnabled").getAsBoolean()) {
+							else if (adObject.get(SYNCENABLED).getAsBoolean()) {
 								onPremGroupId = adObject.get("id").getAsString();
 							}
 						}
-					}
+					}				
 					groupObjectId = (cloudGroupId!=null)?cloudGroupId:onPremGroupId;
 					if (groupObjectId == null) {
 						JsonObject adObject = vaulesArray.get(0).getAsJsonObject();
@@ -378,6 +402,8 @@ public class OIDCUtil {
 		}
 		return null;
 	}
+	
+	
      /*
 	 * Update Identity Group By Name
 	 * @param token
@@ -439,9 +465,8 @@ public class OIDCUtil {
 
 			if (StringUtils.isEmpty(directoryUser.getUserEmail())) {
 				// Get user details from Corp domain (For sprint users)
-				if (userDetails.getEmail().contains(TVaultConstants.SPRINT_EMIAL_DOMAIN)) {
-					directoryUser = directoryService.getUserDetailsFromCorp(username);
-				}
+				directoryUser = directoryService.getUserDetailsFromCorp(username);
+
 				if (StringUtils.isEmpty(directoryUser.getUserEmail())) {
 					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new OIDCEntityResponse());
 				}
@@ -583,12 +608,12 @@ public class OIDCUtil {
      */
     public void renewUserToken(String token) {
         Response renewResponse = reqProcessor.process("/auth/tvault/renew", "{}", token);
-        if (HttpStatus.OK.equals(renewResponse.getHttpstatus())) {
+        if (renewResponse != null && HttpStatus.OK.equals(renewResponse.getHttpstatus())) {
             log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, "Add Group to SDB").
                     put(LogMessage.MESSAGE, "Successfully renewd user token after group policy update").
-                    put(LogMessage.STATUS, (null != renewResponse) ? renewResponse.getHttpstatus().toString() : TVaultConstants.EMPTY).
+                    put(LogMessage.STATUS, renewResponse.getHttpstatus().toString()).
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
         } else {
@@ -694,8 +719,8 @@ public class OIDCUtil {
 		if (httpClient == null) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "getGroupsFromAAD").
-					put(LogMessage.MESSAGE, "Failed to initialize httpClient").
+					put(LogMessage.ACTION, GETGROUPSFROMAAD).
+					put(LogMessage.MESSAGE, HTTPFAILMSG).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return allGroups;
@@ -704,41 +729,24 @@ public class OIDCUtil {
 		String filterSearch = "$filter=startsWith%28displayName%2C'"+encodeValue(groupName)+"'%29%20and%20securityEnabled%20eq%20true";
 		String api = ssoGroupsEndpoint + filterSearch;
 		HttpGet getRequest = new HttpGet(api);
-		getRequest.addHeader("accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
-		getRequest.addHeader("Authorization", "Bearer " + ssoToken);
+		getRequest.addHeader("Accept", TVaultConstants.HTTP_CONTENT_TYPE_JSON);
+		getRequest.addHeader(AUTHORIZATION, BEARERSTR + ssoToken);
 		String output = "";
 		StringBuilder jsonResponse = new StringBuilder();
 
 		try {
 			HttpResponse apiResponse = httpClient.execute(getRequest);
 			if (apiResponse.getStatusLine().getStatusCode() == 200) {
-				BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-				while ((output = br.readLine()) != null) {
-					jsonResponse.append(output);
-				}
 
+				readResponseContent(jsonResponse, apiResponse, GETGROUPSFROMAAD);
 				JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
-				if (responseJson != null && responseJson.has("value")) {
-					JsonArray vaulesArray = responseJson.get("value").getAsJsonArray();
-					if (vaulesArray.size() > 0) {
-						Set<String> groupNamesSet = new HashSet<>();
-						// Adding to set to remove duplicates
-						for (int i=0;i<vaulesArray.size();i++) {
-							JsonObject adObject = vaulesArray.get(i).getAsJsonObject();
-							groupNamesSet.add(adObject.get("displayName").getAsString());
-						}
-						for (String group: groupNamesSet) {
-							DirectoryGroup directoryGroup = new DirectoryGroup();
-							directoryGroup.setDisplayName(group);
-							directoryGroup.setGroupName(group);
-							directoryGroup.setEmail(null);
-							allGroups.add(directoryGroup);
-						}
-					}
+				if (responseJson != null && responseJson.has(VALUESTR)) {
+					JsonArray vaulesArray = responseJson.get(VALUESTR).getAsJsonArray();
+					allGroups = addToGroup(vaulesArray,allGroups);				
 				}
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, "getGroupsFromAAD").
+						put(LogMessage.ACTION, GETGROUPSFROMAAD).
 						put(LogMessage.MESSAGE, String.format("Retrieved %d group(s) from AAD", allGroups.size())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -746,7 +754,7 @@ public class OIDCUtil {
 			}
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "getGroupsFromAAD").
+					put(LogMessage.ACTION, GETGROUPSFROMAAD).
 					put(LogMessage.MESSAGE, "Failed to retrieve groups from AAD").
 					put(LogMessage.STATUS, String.valueOf(apiResponse.getStatusLine().getStatusCode())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -754,10 +762,29 @@ public class OIDCUtil {
 		} catch (IOException e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "getGroupsFromAAD").
+					put(LogMessage.ACTION, GETGROUPSFROMAAD).
 					put(LogMessage.MESSAGE, "Failed to parse AAD groups api response").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
+		}
+		return allGroups;
+	}
+	
+	private List<DirectoryGroup> addToGroup(JsonArray vaulesArray,List<DirectoryGroup> allGroups) {
+		if (vaulesArray.size() > 0) {
+			Set<String> groupNamesSet = new HashSet<>();
+			// Adding to set to remove duplicates
+			for (int i=0;i<vaulesArray.size();i++) {
+				JsonObject adObject = vaulesArray.get(i).getAsJsonObject();
+				groupNamesSet.add(adObject.get("displayName").getAsString());
+			}
+			for (String group: groupNamesSet) {
+				DirectoryGroup directoryGroup = new DirectoryGroup();
+				directoryGroup.setDisplayName(group);
+				directoryGroup.setGroupName(group);
+				directoryGroup.setEmail(null);
+				allGroups.add(directoryGroup);
+			}
 		}
 		return allGroups;
 	}
@@ -777,7 +804,7 @@ public class OIDCUtil {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, SSLCertificateConstants.GET_ID_USER_STRING)
-					.put(LogMessage.MESSAGE, "Failed to initialize httpClient")
+					.put(LogMessage.MESSAGE, HTTPFAILMSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return null;
 		}
@@ -792,7 +819,7 @@ public class OIDCUtil {
 		String api = ssoGetUserEndpoint + filterSearch;
 
 		HttpGet getRequest = new HttpGet(api);
-		getRequest.addHeader("Authorization", "Bearer " + accessToken);
+		getRequest.addHeader(AUTHORIZATION, BEARERSTR + accessToken);
 
 		StringBuilder jsonResponse = new StringBuilder();
 
@@ -832,12 +859,9 @@ public class OIDCUtil {
 	 * @throws IOException
 	 */
 	private String parseAndGetIdFromAADResponse(String userId, JsonParser jsonParser, StringBuilder jsonResponse,
-			HttpResponse apiResponse) throws IOException {
-		String output = "";
-		BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-		while ((output = br.readLine()) != null) {
-			jsonResponse.append(output);
-		}
+			HttpResponse apiResponse) {
+
+		readResponseContent(jsonResponse, apiResponse, SSLCertificateConstants.GET_ID_USER_STRING);
 
 		JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
 		if (responseJson != null && responseJson.has("id")) {
@@ -862,26 +886,23 @@ public class OIDCUtil {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, SSLCertificateConstants.GET_SELF_SERVICE_GROUPS_STRING)
-					.put(LogMessage.MESSAGE, "Failed to initialize httpClient")
+					.put(LogMessage.MESSAGE, HTTPFAILMSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return allGroups;
 		}
 		String api = ssoGetUserEndpoint + userAADId + ssoGetUserGroups;
 		HttpGet getRequest = new HttpGet(api);
-		getRequest.addHeader("Authorization", "Bearer " + accessToken);
+		getRequest.addHeader(AUTHORIZATION, BEARERSTR + accessToken);
 		String output = "";
 		StringBuilder jsonResponse = new StringBuilder();
 
 		try {
 			HttpResponse apiResponse = httpClient.execute(getRequest);
 			if (apiResponse.getStatusLine().getStatusCode() == 200) {
-				BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-				while ((output = br.readLine()) != null) {
-					jsonResponse.append(output);
-				}
+				readResponseContent(jsonResponse, apiResponse, SSLCertificateConstants.GET_SELF_SERVICE_GROUPS_STRING);
 				JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
-				if (responseJson != null && responseJson.has("value")) {
-					JsonArray vaulesArray = responseJson.get("value").getAsJsonArray();
+				if (responseJson != null && responseJson.has(VALUESTR)) {
+					JsonArray vaulesArray = responseJson.get(VALUESTR).getAsJsonArray();
 					if (vaulesArray.size() > 0) {
 						Set<String> groupNamesSet = getGroupNameFromJsonArray(vaulesArray);
 
@@ -985,8 +1006,8 @@ public class OIDCUtil {
 		if (httpClient == null) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "getAzureUserObject")
-					.put(LogMessage.MESSAGE, "Failed to initialize httpClient")
+					.put(LogMessage.ACTION, GETAZUREUSEROBJ)
+					.put(LogMessage.MESSAGE, HTTPFAILMSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return null;
 		}
@@ -1001,7 +1022,7 @@ public class OIDCUtil {
 		String api = ssoGetUserEndpoint + filterSearch;
 
 		HttpGet getRequest = new HttpGet(api);
-		getRequest.addHeader("Authorization", "Bearer " + accessToken);
+		getRequest.addHeader(AUTHORIZATION, BEARERSTR + accessToken);
 
 		StringBuilder jsonResponse = new StringBuilder();
 
@@ -1011,21 +1032,21 @@ public class OIDCUtil {
 				aadUserObject = parseAndGetUserObjFromAADResponse(jsonParser, jsonResponse, apiResponse);
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-						.put(LogMessage.ACTION, "getAzureUserObject")
+						.put(LogMessage.ACTION, GETAZUREUSEROBJ)
 						.put(LogMessage.MESSAGE, String.format("Retrieved %s user id from AAD", aadUserObject.getUserId()))
 						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 				return aadUserObject;
 			}
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "getAzureUserObject")
+					.put(LogMessage.ACTION, GETAZUREUSEROBJ)
 					.put(LogMessage.MESSAGE, "Failed to retrieve user id from AAD")
 					.put(LogMessage.STATUS, String.valueOf(apiResponse.getStatusLine().getStatusCode()))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		} catch (IOException e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "getAzureUserObject")
+					.put(LogMessage.ACTION, GETAZUREUSEROBJ)
 					.put(LogMessage.MESSAGE, "Failed to parse AAD user api response")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		}
@@ -1041,13 +1062,8 @@ public class OIDCUtil {
 	 * @throws IOException
 	 */
 	private AADUserObject parseAndGetUserObjFromAADResponse(JsonParser jsonParser, StringBuilder jsonResponse,
-												HttpResponse apiResponse) throws IOException {
-		String output = "";
-		BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-		while ((output = br.readLine()) != null) {
-			jsonResponse.append(output);
-		}
-
+												HttpResponse apiResponse) {
+		readResponseContent(jsonResponse, apiResponse, GETAZUREUSEROBJ);
 		AADUserObject aadUserObject = new AADUserObject();
 		JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
 		if (responseJson != null && responseJson.has("id")) {
@@ -1076,5 +1092,91 @@ public class OIDCUtil {
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		}
 		return encodedValue;
+	}
+	/**
+	 * To get groupEmail from AAD.
+	 *
+	 * @param ssoToken
+	 * @param email
+	 * @return
+	 */
+	public List<DirecotryGroupEmail> getGroupsEmailFromAAD(String ssoToken, String email) {
+
+		JsonParser jsonParser = new JsonParser();
+		HttpClient httpClient = httpUtils.getHttpClient();
+		List<DirecotryGroupEmail> allGroupEmail = new ArrayList<>();
+		if (httpClient == null) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, GETGROUPSFROMAAD).
+					put(LogMessage.MESSAGE, HTTPFAILMSG).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return allGroupEmail;
+		}
+		String filterSearch = "$filter=startsWith(mail,%27"+encodeValue(email)+"%27)&$select=id,mail";
+		String api = ssoGroupsEndpoint + filterSearch;
+		HttpGet getRequest = new HttpGet(api);
+		getRequest.addHeader(ACCEPT, TVaultConstants.HTTP_CONTENT_TYPE_JSON);
+		getRequest.addHeader(AUTHORIZATION, BEARERSTR + ssoToken);
+		String output = "";
+		StringBuilder jsonResponse = new StringBuilder();
+
+		try {
+			HttpResponse apiResponse = httpClient.execute(getRequest);
+			if (apiResponse.getStatusLine().getStatusCode() == 200) {
+
+				readResponseContent(jsonResponse, apiResponse, TVaultConstants.GROUP_EMAIL_FROM_AAD);
+				JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
+				if (responseJson != null && responseJson.has(VALUESTR)) {
+					JsonArray vaulesArray = responseJson.get(VALUESTR).getAsJsonArray();
+						allGroupEmail=allGroupEmailValue(vaulesArray);
+				}
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, TVaultConstants.GROUP_EMAIL_FROM_AAD).
+						put(LogMessage.MESSAGE, String.format("Retrieved %d groupemail(s) from AAD", allGroupEmail.size())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return allGroupEmail;
+			}
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, TVaultConstants.GROUP_EMAIL_FROM_AAD).
+					put(LogMessage.MESSAGE, "Failed to retrieve groupemail from AAD").
+					put(LogMessage.STATUS, String.valueOf(apiResponse.getStatusLine().getStatusCode())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+		} catch (IOException e) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, TVaultConstants.GROUP_EMAIL_FROM_AAD).
+					put(LogMessage.MESSAGE, "Failed to parse AAD groupemail api response").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+		}
+		return allGroupEmail;
+	}
+	/*
+	 * Method to check allGroupEmail
+	 * @param vaulesArray
+	 * @return
+	 */
+	private List<DirecotryGroupEmail> allGroupEmailValue(JsonArray vaulesArray) {
+		List<DirecotryGroupEmail> allGroupEmail = new ArrayList<>();
+		if (vaulesArray.size() > 0) {
+			Set<String> groupEmailsSet = new HashSet<>();
+			// Adding to set to remove duplicates
+			for (int i=0;i<vaulesArray.size();i++) {
+				JsonObject adObject = vaulesArray.get(i).getAsJsonObject();
+				groupEmailsSet.add(adObject.get("mail").getAsString());
+			}
+			for (String groupEmail: groupEmailsSet) {
+				DirecotryGroupEmail directoryGroupEmail = new DirecotryGroupEmail();
+				directoryGroupEmail.setEmail(groupEmail);
+				allGroupEmail.add(directoryGroupEmail);
+			}
+		}
+		return allGroupEmail;
 	}
 }

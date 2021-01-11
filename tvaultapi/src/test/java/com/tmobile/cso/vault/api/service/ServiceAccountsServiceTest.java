@@ -52,8 +52,10 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.bo.ADServiceAccount;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
@@ -2391,7 +2393,7 @@ public class ServiceAccountsServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "reset");
         UserDetails userDetails = getMockUser(true);
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to add group to the Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
         Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
         Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
@@ -2489,8 +2491,16 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
-        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
-
+        String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"write\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test7\",\"users\":{\"smohan11\":\"sudo\"}}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
         ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -2524,8 +2534,16 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
-        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
-
+        String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"write\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test7\",\"users\":{\"smohan11\":\"sudo\"}}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 
         ReflectionTestUtils.setField(serviceAccountsService, "vaultAuthMethod", "oidc");
         List<String> policie = new ArrayList<>();
@@ -2592,7 +2610,16 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(response404);
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
-        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"write\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test7\",\"users\":{\"smohan11\":\"sudo\"}}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -2604,7 +2631,7 @@ public class ServiceAccountsServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "reset");
         UserDetails userDetails = getMockUser(true);
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove the group from the Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
         Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
         Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
@@ -2623,7 +2650,16 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(response404);
         String[] latestPolicies = {"o_svcacct_svc_vault_test7"};
         when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
-        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"write\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test7\",\"users\":{\"smohan11\":\"sudo\"}}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -2847,7 +2883,7 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_removeApproleFromSvcAcc_succssfully() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed from Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed(if existed) from Service Account\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "write");

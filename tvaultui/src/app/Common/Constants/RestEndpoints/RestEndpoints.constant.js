@@ -45,8 +45,10 @@ readTextFile("../apiUrls.json");
     app.constant('RestEndpoints', {
         baseURL: JSON.parse(sessionStorage.getItem('ApiUrls')).baseURL,
         // written below separately as request requires timeout promise 
-        usersGetData : '/v2/ldap/users?UserPrincipalName=',
+//        usersGetData : '/v2/ldap/users?UserPrincipalName=',
+        usersGetData : '/v2/tmo/users?UserPrincipalName=',
         groupGetDataFromAAD: '/v2/azure/groups?name=',
+        groupMailGetDataFromAAD: '/v2/azure/email?mail=',
         usersGetDataUsingCorpID: '/v2/ldap/corpusers?CorpId=',
         usersGetDataUsingNTID: '/v2/ldap/ntusers?displayName=',
         getUsersDataUsingNTIDs: '/v2/ldap/getusersdetail/',
@@ -346,11 +348,19 @@ readTextFile("../apiUrls.json");
             method: 'POST'
         }, {
             name: 'usersGetData',
-            url: '/v2/ldap/users?UserPrincipalName=',
+            url: '/v2/tmo/users?UserPrincipalName=',
             method: 'GET'
         },{
             name: 'usersGetDataUsingCorpID',
             url: '/v2/ldap/corpusers?CorpId=',
+            method: 'GET'
+        }, {
+            name: 'usersGetDataUsingNTID',
+            url: '/v2/ldap/ntusers?displayName=',
+            method: 'GET'
+        }, {
+            name: 'groupMailGetDataFromAAD',
+            url: '/v2/azure/email?mail=',
             method: 'GET'
         }, {
             name: 'getRevocationReasons',
@@ -580,6 +590,14 @@ readTextFile("../apiUrls.json");
             name: 'detachAppRolePermissionFromAzureSvcacc',
             url: '/v2/azureserviceaccounts/approle',
             method: 'DELETE'
+        },{
+            name: 'transferSafe',
+            url: '/v2/ss/transfersafe',
+            method: 'POST'
+        },{
+            name: 'searchByUPNInGsmAndCorp',
+            url: '/v2/tmo/users?UserPrincipalName=',
+            method: 'GET'
         }
     ]
     });

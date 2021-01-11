@@ -121,6 +121,77 @@ script(type='text/ng-template', id='appRolePopup.html')
             .clearfix
               button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
 
+script(type='text/ng-template', id='transferSafeConfirmation.html')
+  .top-lg-sep
+      .common-header-label.text-center Transfer Safe
+  .top-lg-sep.notification-text Are you sure, do you want to transfer ownership for this safe?
+  .text-center.bottom-lg-sep.top-lg-sep.notification-button
+    .clearfix.bottom-sm-sep
+      button.common-btn.btn.btn-primary.btn-lg(ng-click="transferSafeForm()") YES
+    .clearfix
+      button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") NO
+
+script(type='text/ng-template', id='transferSafeSuccess.html')
+  .top-lg-sep
+      .common-header-label.text-center Safe Transfer Successful!
+  .top-lg-sep.notification-text Safe ownership has been transferred to {{ tansferSafe.newOwnerEmail }}
+  .text-center.bottom-lg-sep.top-lg-sep.notification-button
+    .clearfix.bottom-sm-sep
+      button.common-btn.btn.btn-primary.btn-lg(ng-click="closeSafeTransfer()") CLOSE
+
+script(type='text/ng-template', id='transferSafeFailed.html')
+  .top-lg-sep
+      .common-header-label.text-center Safe Transfer Failed!
+  .top-lg-sep.notification-text Failed to transfer safe ownership to {{ tansferSafe.newOwnerEmail }}
+  .text-center.bottom-lg-sep.top-lg-sep.notification-button
+    .clearfix.bottom-sm-sep
+      button.common-btn.btn.btn-primary.btn-lg(ng-click="closeSafeTransfer()") CLOSE
+
+script(type='text/ng-template', id='transferSafeForm.html')
+          .modal-sep
+            .common-header-label.text-center Transfer Safe
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws
+              .common-form-row
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label Safe Name
+                    input.form-control.input-box-style(ng-model="tansferSafe.safeName" ng-disabled="true" name="safeName")
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label Safe Type
+                    input.form-control.input-box-style(ng-model="tansferSafe.safeType" ng-disabled="true" name="safeType")
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label Current Owner
+                    input.form-control.input-box-style(ng-model="tansferSafe.currentOwner" ng-disabled="true" name="currentOwner")
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label New Owner Email ID*
+                    input.form-control.input-box-style(id="newOwnerEmail"  ng-model="tansferSafe.newOwnerEmail" ng-change="ownerEmailValidation()" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmail($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectOwnerforSafe(tansferSafe.newOwnerEmail)")
+                    div.loader.svcaccid(ng-if='isUserSearchLoading && tansferSafe.newOwnerEmail.length > 2')
+                        div.ball-spin-fade-loader
+                            div
+                            div
+                            div
+                            div
+                            div
+                            div
+                            div
+                            div
+                    div.input-cross.svcaccid(ng-if='!isUserSearchLoading && tansferSafe.newOwnerEmail.length > 2' ng-click="clearOwnerEmail()")
+                        div.delete-title
+                            img.delete-icon(src="../../assets/images/delete.png")
+                    span.invalid-email   {{ tansferSafeEmailErrorMessage }}
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label
+          .text-center.bottom-lg-sep.modal-sep.aws
+            .clearfix.bottom-sm-sep
+              button.common-btn.btn.btn-primary.btn-lg(id="safe_transfer_btn" ng-click="transferSafe()" ng-disabled="safeTransferInValid || !isOwnerSelected") Transfer
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
+
 script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
 .container-fluid.common-main-content.route-page.change-safe-wrapper
     .container-fluid-wrapper.curved
@@ -135,9 +206,9 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
       .page-content-container(ng-class="{'no-tabs-body' : showDetails}" ng-cloak="")
           .page-content-container.details(ng-if="showDetails" ng-cloak="" )
               form.row(name="createSafeDetails" ng-submit="goToPermissions()" autocomplete="off" novalidate)
-                .page-content-container
+                loading-state(ng-if='isLoadingData')
+                .page-content-container(ng-if="!isTransferInProgress")
                   .clearfix.details-wrapper
-                    loading-state(ng-if='isLoadingData')
                     .safe-left-content-container.border-right.col-lg-6.col-sm-5
                       .common-section-label SAFE DETAILS
                       .common-form
@@ -180,7 +251,10 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                             img.delete-icon(src="../../assets/images/delete.png")
                                     span.invalid-form(ng-show="createSafeDetails.ownerEmail.$dirty && createSafeDetails.ownerEmail.$invalid && createSafeDetails.ownerEmail.$error.required") Please enter this field
                                     span.invalid-form(ng-if="invalidEmail") Please enter valid email address
-                        .row
+                          .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                            .details-input-group
+                              .certificate-form-label(uib-tooltip="Name of the Cloud application this safe will be used for. Only applications you have self-service rights to will be shown.") Application Name*
+                              drop-down(drop-down-options="dropdownApplicationName" name="safeApplicationName" id="applicationNameforSafe"  ng-click="appNameSelect()")
                           .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
                             .details-input-group
                                 .common-form-label Description
@@ -200,6 +274,8 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                     .right.col-lg-6.col-md-6.col-sm-6.col-xs-12.bottom-lg-sep.top-lg-sep
                       .right
                         button.common-btn.btn.btn-primary.btn-lg(type='submit' ng-disabled="createSafeDetails.ownerEmail.$invalid || createSafeDetails.ownerName.$invalid || createSafeDetails.description.$invalid || createSafeDetails.dropdown.$invalid || !isUserEmailSelected") Next
+                      .right.transfer-safe
+                        button.common-btn.btn.btn-lg.transfer-safe-btn(type='button' ng-if="isEditSafe" ng-click="transferSafeConfirmation()") Transfer Safe
                       .right.right-sm-sepshowInputLoader
                         button.link-style.common-btn.btn.btn-default.btn-lg.col-lg-6.col-md-6.col-sm-6.col-xs-12(type='button' ng-click="goBack()") Cancel
           .page-content-container.permissions(ng-if="!showDetails" ng-cloak="")

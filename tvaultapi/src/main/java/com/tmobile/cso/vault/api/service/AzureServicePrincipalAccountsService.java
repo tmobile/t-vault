@@ -37,7 +37,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -56,28 +55,6 @@ import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
-import com.tmobile.cso.vault.api.model.AWSIAMRole;
-import com.tmobile.cso.vault.api.model.AWSLoginRole;
-import com.tmobile.cso.vault.api.model.AccessPolicy;
-import com.tmobile.cso.vault.api.model.AzureSecrets;
-import com.tmobile.cso.vault.api.model.AzureSecretsMetadata;
-import com.tmobile.cso.vault.api.model.AzureServiceAccount;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountAWSRole;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountApprole;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountGroup;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountMetadataDetails;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountNode;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountOffboardRequest;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountSecret;
-import com.tmobile.cso.vault.api.model.AzureServiceAccountUser;
-import com.tmobile.cso.vault.api.model.AzureSvccAccMetadata;
-import com.tmobile.cso.vault.api.model.DirectoryObjects;
-import com.tmobile.cso.vault.api.model.DirectoryObjectsList;
-import com.tmobile.cso.vault.api.model.DirectoryUser;
-import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
-import com.tmobile.cso.vault.api.model.OIDCGroup;
-import com.tmobile.cso.vault.api.model.OnboardedAzureServiceAccount;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.utils.AzureServiceAccountUtils;
 import com.tmobile.cso.vault.api.utils.EmailUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -134,7 +111,31 @@ public class AzureServicePrincipalAccountsService {
 	
 	private static Logger log = LogManager.getLogger(AzureServicePrincipalAccountsService.class);
 
-	
+	private static final String PATHSTR = "{\"path\":\"";
+	private static final String DELETEPATH = "/delete";
+	private static final String ACCOUNTSTR = "account [%s].";
+	private static final String ERRORBODYSTR = "{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}";
+	private static final String ERRORINVALIDSTR = "{\"messages\":[\"User configuration failed. Invalid user\"]}";
+	private static final String READPATH = "/auth/userpass/read";
+	private static final String USERPATH = "/auth/ldap/users";
+	private static final String USERS = "users";
+	private static final String ERRORSTR = "{\"error\":";
+	private static final String SECRETNOTFOUND = "No secret found for the secretKey :";
+	private static final String GROUPSTR = "groups";
+	private static final String AWSROLES = "aws-roles";
+	private static final String UPDATEPOLICYSTR = "updateUserPolicyAssociationOnAzureSvcaccDelete";
+	private static final String USERNAMESTR = "{\"username\":\"";
+	private static final String UPDATEGROUPPOLICYSTR = "updateGroupPolicyAssociationOnAzureSvcaccDelete";
+	private static final String GROUPPATH = "/auth/ldap/groups";
+	private static final String GROUPNAMESTR = "{\"groupname\":\"";
+	private static final String READROLEPATH = "/auth/approle/role/read";
+	private static final String ROLENAME = "{\"role_name\":\"";
+	private static final String POLICIESSTR = "policies";
+	private static final String DELETEAZURE = "deleteAzureSvcAccountSecrets";
+	private static final String SECRETSTR = "secret";
+	private static final String ACCESS = "access";
+	private static final String DELETE = "delete";
+	private static final String POLICYSTR = "policy is [%s]";
 	
 	/**
 	 * Onboard an Azure service account
@@ -204,6 +205,14 @@ public class AzureServicePrincipalAccountsService {
 					azureSvcAccName);
 			if (azureSvcAccCreationStatus) {
 				sendMailToAzureSvcAccOwner(azureServiceAccount, azureSvcAccName);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SVCACC_CREATION_TITLE)
+						.put(LogMessage.MESSAGE,
+								String.format("Successfully onboarded the Azure Service Account [%s] with owner [%s]",
+										azureServiceAccount.getServicePrincipalName(),azureServiceAccount.getOwnerEmail()))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+						.build()));
 				return ResponseEntity.status(HttpStatus.OK)
 						.body("{\"messages\":[\"Successfully completed onboarding of Azure service account\"]}");
 			}
@@ -310,7 +319,7 @@ public class AzureServicePrincipalAccountsService {
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		String metadataPath = AzureServiceAccountConstants.AZURE_SVCC_ACC_META_PATH;
 
-		Response response = reqProcessor.process("/azure/onboardedlist", "{\"path\":\"" + metadataPath + "\"}", token);
+		Response response = reqProcessor.process("/azure/onboardedlist", PATHSTR + metadataPath + "\"}", token);
 
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -493,7 +502,7 @@ public class AzureServicePrincipalAccountsService {
 	private void sendMailToAzureSvcAccOwner(AzureServiceAccount azureServiceAccount, String azureSvcAccName) {
 		// send email notification to Azure service account owner
 		DirectoryUser directoryUser = getUserDetails(azureServiceAccount.getOwnerNtid());
-		if (!ObjectUtils.isEmpty(directoryUser)) {
+		if (directoryUser != null) {
 			String from = supportEmail;
 			List<String> to = new ArrayList<>();
 			to.add(azureServiceAccount.getOwnerEmail());
@@ -543,7 +552,7 @@ public class AzureServicePrincipalAccountsService {
 				break;
 			}
 		}
-		if (!ObjectUtils.isEmpty(directoryUser)) {
+		if (directoryUser != null) {
 			String[] displayName = directoryUser.getDisplayName().split(",");
 			if (displayName.length > 1) {
 				directoryUser.setDisplayName(displayName[1] + "  " + displayName[0]);
@@ -627,7 +636,7 @@ public class AzureServicePrincipalAccountsService {
 	private ResponseEntity<String> deleteAzureSvcAccount(String token, OnboardedAzureServiceAccount azureServiceAccount) {
 		String azureSvcAccName = azureServiceAccount.getServicePrincipalName();
 		String azureSvcAccPath = AzureServiceAccountConstants.AZURE_SVCC_ACC_META_PATH + azureSvcAccName;
-		Response onboardingResponse = reqProcessor.process("/delete", "{\"path\":\"" + azureSvcAccPath + "\"}", token);
+		Response onboardingResponse = reqProcessor.process(DELETEPATH, PATHSTR + azureSvcAccPath + "\"}", token);
 
 		if (onboardingResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 				|| onboardingResponse.getHttpstatus().equals(HttpStatus.OK)) {
@@ -676,7 +685,7 @@ public class AzureServicePrincipalAccountsService {
 					.put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SVCACC_CREATION_TITLE)
 					.put(LogMessage.MESSAGE,
 							String.format(
-									"Successfully added owner permission to [%s] for Azure service " + "account [%s].",
+									"Successfully added owner permission to [%s] for Azure service " + ACCOUNTSTR,
 									azureServiceAccount.getOwnerNtid(), azureSvcAccName))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return true;
@@ -685,7 +694,7 @@ public class AzureServicePrincipalAccountsService {
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SVCACC_CREATION_TITLE)
 				.put(LogMessage.MESSAGE,
-						String.format("Failed to add owner permission to [%s] for Azure service " + "account [%s].",
+						String.format("Failed to add owner permission to [%s] for Azure service " + ACCOUNTSTR,
 								azureServiceAccount.getOwnerNtid(), azureSvcAccName))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		return false;
@@ -717,7 +726,7 @@ public class AzureServicePrincipalAccountsService {
 
 		if (!isAzureSvcaccPermissionInputValid(azureServiceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(ERRORBODYSTR);
 		}
 		if (azureServiceAccountUser.getAccess().equalsIgnoreCase(AzureServiceAccountConstants.AZURE_ROTATE_MSG_STRING)) {
 			azureServiceAccountUser.setAccess(TVaultConstants.WRITE_POLICY);
@@ -856,7 +865,7 @@ public class AzureServicePrincipalAccountsService {
 			path = path.substring(0, path.length() - 1);
 		}
 		String azureMetaDataPath = "metadata/" + path;
-		return reqProcessor.process("/sdb", "{\"path\":\"" + azureMetaDataPath + "\"}", token);
+		return reqProcessor.process("/sdb", PATHSTR + azureMetaDataPath + "\"}", token);
 	}
 	
 	/**
@@ -873,10 +882,10 @@ public class AzureServicePrincipalAccountsService {
 			String azureSvcaccName) {
 		Response userResponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/userpass/read", AzureServiceAccountConstants.USERNAME_PARAM_STRING + azureServiceAccountUser.getUsername() + "\"}",
+			userResponse = reqProcessor.process(READPATH, AzureServiceAccountConstants.USERNAME_PARAM_STRING + azureServiceAccountUser.getUsername() + "\"}",
 					token);
 		} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/ldap/users", AzureServiceAccountConstants.USERNAME_PARAM_STRING + azureServiceAccountUser.getUsername() + "\"}", token);
+			userResponse = reqProcessor.process(USERPATH, AzureServiceAccountConstants.USERNAME_PARAM_STRING + azureServiceAccountUser.getUsername() + "\"}", token);
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
 			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, azureServiceAccountUser.getUsername(),
@@ -893,7 +902,7 @@ public class AzureServicePrincipalAccountsService {
 							.body("{\"messages\":[\"User configuration failed. Please try again.\"]}");
 				}
 				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
+						.body(ERRORINVALIDSTR);
 			}
 
 			oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
@@ -1057,7 +1066,7 @@ public class AzureServicePrincipalAccountsService {
 		String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(azureServiceAccountUser.getAzureSvcAccName())
 				.toString();
 		Map<String, String> params = new HashMap<>();
-		params.put("type", "users");
+		params.put("type", USERS);
 		params.put("name", azureServiceAccountUser.getUsername());
 		params.put("path", path);
 		params.put(AzureServiceAccountConstants.AZURE_ACCESS_MSG_STRING, azureServiceAccountUser.getAccess());
@@ -1067,7 +1076,7 @@ public class AzureServicePrincipalAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 							.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_USER_TO_AZURESVCACC_MSG)
-							.put(LogMessage.MESSAGE, String.format("User [%s] is successfully associated with Azure Service Account - [%s]", azureServiceAccountUser.getUsername(), azureServiceAccountUser.getAzureSvcAccName()))
+							.put(LogMessage.MESSAGE, String.format("User [%s] is successfully associated to Azure Service Account [%s] with policy [%s].", azureServiceAccountUser.getUsername(), azureServiceAccountUser.getAzureSvcAccName(),azureServiceAccountUser.getAccess()))
 							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 							.build()));
 			return ResponseEntity.status(HttpStatus.OK)
@@ -1181,23 +1190,29 @@ public class AzureServicePrincipalAccountsService {
 					String azureName = String.join("_", policyName);
 					String azureType = Policies[1];
 
-					if (policy.startsWith("r_")) {
-						azurePolicy.put(azureName, "read");
-					} else if (policy.startsWith("w_")) {
-						azurePolicy.put(azureName, "write");
-					} else if (policy.startsWith("d_")) {
-						azurePolicy.put(azureName, "deny");
-					}
-					if (!azurePolicy.isEmpty()) {
-						if (azureType.equals(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH_PREFIX)) {
-							azureListUsers.add(azurePolicy);
-						}
-					}
+					azureListUsers = addAzurePolicy(azurePolicy,azureName,policy,azureType);				
 				}
 			}
 			azureList.put(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH_PREFIX, azureListUsers);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(azureList));
+	}
+	
+	private List<Map<String, String>> addAzurePolicy(Map<String, String> azurePolicy,String azureName, String policy, String azureType) {
+		List<Map<String, String>> azureListUsers = new ArrayList<>();
+		if (policy.startsWith("r_")) {
+			azurePolicy.put(azureName, "read");
+		} else if (policy.startsWith("w_")) {
+			azurePolicy.put(azureName, "write");
+		} else if (policy.startsWith("d_")) {
+			azurePolicy.put(azureName, "deny");
+		}
+		if (!azurePolicy.isEmpty()) {
+			if (azureType.equals(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH_PREFIX)) {
+				azureListUsers.add(azurePolicy);
+			}
+		}
+		return azureListUsers;
 	}
 	
 	/**
@@ -1221,34 +1236,40 @@ public class AzureServicePrincipalAccountsService {
 					 * nature Removing all matching as there might be duplicate
 					 * policies from user and groups
 					 */
-					if (policyName.startsWith("d_") || (policyName.startsWith("w_")
-							&& !matchingPolicies.stream().anyMatch(p -> p.equals("d" + itemName)))) {
-						filteredList.removeAll(matchingPolicies);
-						filteredList.add(policyName);
-					} else if (matchingPolicies.stream().anyMatch(p -> p.equals("d" + itemName))) {
-						// policy is read and deny already in the list. Then
-						// deny has precedence.
-						filteredList.removeAll(matchingPolicies);
-						filteredList.add("d" + itemName);
-					} else if (matchingPolicies.stream().anyMatch(p -> p.equals("w" + itemName))) {
-						// policy is read and write already in the list. Then
-						// write has precedence.
-						filteredList.removeAll(matchingPolicies);
-						filteredList.add("w" + itemName);
-					} else if (matchingPolicies.stream().anyMatch(p -> p.equals("r" + itemName))
-							|| matchingPolicies.stream().anyMatch(p -> p.equals("o" + itemName))) {
-						// policy is read and read already in the list. Then
-						// remove all duplicates read and add single read
-						// permission for that azure service account.
-						filteredList.removeAll(matchingPolicies);
-						filteredList.add("r" + itemName);
-					}
+					filteredList = addPolicy(policyName,matchingPolicies,itemName,filteredList);
+					
 				} else {
 					filteredList.add(policyName);
 				}
 			}
 		}
 		return filteredList.toArray(new String[0]);
+	}
+	
+	private List<String> addPolicy(String policyName, List<String> matchingPolicies, String itemName,List<String> filteredList) {
+		if (policyName.startsWith("d_") || (policyName.startsWith("w_")
+				&& !matchingPolicies.stream().anyMatch(p -> p.equals("d" + itemName)))) {
+			filteredList.removeAll(matchingPolicies);
+			filteredList.add(policyName);
+		} else if (matchingPolicies.stream().anyMatch(p -> p.equals("d" + itemName))) {
+			// policy is read and deny already in the list. Then
+			// deny has precedence.
+			filteredList.removeAll(matchingPolicies);
+			filteredList.add("d" + itemName);
+		} else if (matchingPolicies.stream().anyMatch(p -> p.equals("w" + itemName))) {
+			// policy is read and write already in the list. Then
+			// write has precedence.
+			filteredList.removeAll(matchingPolicies);
+			filteredList.add("w" + itemName);
+		} else if (matchingPolicies.stream().anyMatch(p -> p.equals("r" + itemName))
+				|| matchingPolicies.stream().anyMatch(p -> p.equals("o" + itemName))) {
+			// policy is read and read already in the list. Then
+			// remove all duplicates read and add single read
+			// permission for that azure service account.
+			filteredList.removeAll(matchingPolicies);
+			filteredList.add("r" + itemName);
+		}
+		return filteredList;
 	}
 	
 	/**
@@ -1262,7 +1283,7 @@ public class AzureServicePrincipalAccountsService {
 	public ResponseEntity<String> readFolders(String token, String path) throws IOException {
 		Response response = new Response();
 		ObjectMapper objMapper = new ObjectMapper();
-		Response lisresp = reqProcessor.process("/azure/list", "{\"path\":\"" + path + "\"}", token);
+		Response lisresp = reqProcessor.process("/azure/list", PATHSTR + path + "\"}", token);
 		if(lisresp.getHttpstatus().equals(HttpStatus.OK)){
 			List<String> foldersList = new ArrayList<>();
 			AzureServiceAccountNode azureServiceAccountNode = new AzureServiceAccountNode();
@@ -1287,7 +1308,7 @@ public class AzureServicePrincipalAccountsService {
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			response.setSuccess(false);
 			response.setHttpstatus(HttpStatus.FORBIDDEN);
-			response.setResponse("{\"errors\":[\"Unable to read the given path :" + path + "\"]}");
+			response.setResponse("{\"errors\":[\"Access Denied: No permission to read or rotate secret for Azure service principal\"]}");
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
@@ -1312,7 +1333,7 @@ public class AzureServicePrincipalAccountsService {
 	 */
 	public ResponseEntity<String> getAzureServiceAccountSecretKey(String token, String azureSvcaccName, String folderName) {
 		String path = AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + azureSvcaccName + "/" + folderName;
-		Response response = reqProcessor.process("/azuresvcacct", "{\"path\":\"" + path + "\"}", token);
+		Response response = reqProcessor.process("/azuresvcacct", PATHSTR + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
 			JsonParser jsonParser = new JsonParser();
 			JsonObject data = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
@@ -1375,25 +1396,25 @@ public class AzureServicePrincipalAccountsService {
 					}
 				}
 				if (StringUtils.isEmpty(secret)) {
-					return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"error\":"
-							+ JSONUtil.getJSON("No secret found for the secretKey :" + secretKey + "") + "}");
+					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ERRORSTR
+							+ JSONUtil.getJSON(SECRETNOTFOUND + secretKey + "") + "}");
 				}
 				return ResponseEntity.status(HttpStatus.OK)
 						.body("{\"accessKeySecret\":" + JSONUtil.getJSON(secret) + "}");
 			} else {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-						"{\"error\":" + JSONUtil.getJSON("No secret found for the secretKey :" + secretKey + "") + "}");
+						ERRORSTR + JSONUtil.getJSON(SECRETNOTFOUND + secretKey + "") + "}");
 			}
 		} else if (HttpStatus.FORBIDDEN.equals(response.getStatusCode())) {
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"error\":"
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ERRORSTR
 					+ JSONUtil.getJSON("Access denied: No permission to read secret for Azure service account") + "}");
 		} else {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-					"{\"error\":" + JSONUtil.getJSON("azure_svc_name not found") + "}");
+					ERRORSTR + JSONUtil.getJSON("azure_svc_name not found") + "}");
 		}
 	}
 	
-	
+		
 	/**
 	 * Method to offboard  service account.
 	 * @param token
@@ -1423,7 +1444,7 @@ public class AzureServicePrincipalAccountsService {
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SVCACC_OFFBOARD_CREATION_TITLE)
 					.put(LogMessage.MESSAGE,
-							String.format("Failed to delete some of the policies for azure service " + "account [%s]",
+							String.format("Failed to delete some of the policies for azure service " + ACCOUNTSTR,
 									azureSvcName))
 					.put(LogMessage.APIURL,	ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 					.build()));
@@ -1433,7 +1454,7 @@ public class AzureServicePrincipalAccountsService {
 
 		// delete users,groups,aws-roles,app-roles from azure service account
 		String path = AzureServiceAccountConstants.AZURE_SVCC_ACC_META_PATH + azureSvcName;
-		Response metaResponse = reqProcessor.process("/sdb", "{\"path\":\"" + path + "\"}", token);
+		Response metaResponse = reqProcessor.process("/sdb", PATHSTR + path + "\"}", token);
 		Map<String, Object> responseMap = null;
 		try {
 			responseMap = new ObjectMapper().readValue(metaResponse.getResponse(),
@@ -1453,9 +1474,9 @@ public class AzureServicePrincipalAccountsService {
 		if (responseMap != null && responseMap.get("data") != null) {
 			Map<String, Object> metadataMap = (Map<String, Object>) responseMap.get("data");
 			Map<String, String> approles = (Map<String, String>) metadataMap.get("app-roles");
-			Map<String, String> groups = (Map<String, String>) metadataMap.get("groups");
-			Map<String, String> users = (Map<String, String>) metadataMap.get("users");
-			Map<String,String> awsroles = (Map<String, String>)metadataMap.get("aws-roles");
+			Map<String, String> groups = (Map<String, String>) metadataMap.get(GROUPSTR);
+			Map<String, String> users = (Map<String, String>) metadataMap.get(USERS);
+			Map<String,String> awsroles = (Map<String, String>)metadataMap.get(AWSROLES);
 			// always add owner to the users list whose policy should be updated
 			managedBy = (String) metadataMap.get(AzureServiceAccountConstants.OWNER_NT_ID);
 			if (!org.apache.commons.lang3.StringUtils.isEmpty(managedBy)) {
@@ -1478,6 +1499,12 @@ public class AzureServicePrincipalAccountsService {
 			// Remove metadata...
 			ResponseEntity<String> metadataResponse = deleteAzureSvcAccount(token, azureSvcAccToOffboard);
 			if(HttpStatus.OK.equals(metadataResponse.getStatusCode())){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, "offboarding Azure service account")
+						.put(LogMessage.MESSAGE, String.format("Successfully offboarded Azure service account [%s] from T-Vault", azureSvcName))
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+						.build()));
 				return ResponseEntity.status(HttpStatus.OK).body(
 						"{\"messages\":[\"Successfully offboarded Azure service account (if existed) from T-Vault\"]}");
 			}else{
@@ -1509,7 +1536,7 @@ public class AzureServicePrincipalAccountsService {
 		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-				.put(LogMessage.ACTION, "updateUserPolicyAssociationOnAzureSvcaccDelete")
+				.put(LogMessage.ACTION, UPDATEPOLICYSTR)
 				.put(LogMessage.MESSAGE, String.format("Trying to delete user policies on Azure service account delete " +
 						"of [%s]", azureSvcAccName))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
@@ -1533,10 +1560,10 @@ public class AzureServicePrincipalAccountsService {
 
 				Response userResponse = new Response();
 				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-					userResponse = reqProcessor.process("/auth/userpass/read", "{\"username\":\"" + userName + "\"}",
+					userResponse = reqProcessor.process(READPATH, USERNAMESTR + userName + "\"}",
 							token);
 				} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-					userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}",
+					userResponse = reqProcessor.process(USERPATH, USERNAMESTR + userName + "\"}",
 							token);
 				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 					// OIDC implementation changes
@@ -1546,7 +1573,7 @@ public class AzureServicePrincipalAccountsService {
 						if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-									.put(LogMessage.ACTION, "updateUserPolicyAssociationOnAzureSvcaccDelete")
+									.put(LogMessage.ACTION, UPDATEPOLICYSTR)
 									.put(LogMessage.MESSAGE, String.format("Failed to fetch OIDC user policies for [%s]"
 											, userName))
 									.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
@@ -1555,7 +1582,7 @@ public class AzureServicePrincipalAccountsService {
 									.body("{\"messages\":[\"User configuration failed. Please try again.\"]}");
 						}
 						ResponseEntity.status(HttpStatus.NOT_FOUND)
-								.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
+								.body(ERRORINVALIDSTR);
 					}
 					oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
 					oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
@@ -1576,13 +1603,13 @@ public class AzureServicePrincipalAccountsService {
 						} else {
 							currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
 							if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-								groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+								groups = objMapper.readTree(responseJson).get("data").get(GROUPSTR).asText();
 							}
 						}
 					} catch (IOException e) {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-								.put(LogMessage.ACTION, "updateUserPolicyAssociationOnAzureSvcaccDelete")
+								.put(LogMessage.ACTION, UPDATEPOLICYSTR)
 								.put(LogMessage.MESSAGE, String.format("updateUserPolicyAssociationOnAzureSvcaccDelete " +
 												"failed [%s]", e.getMessage()))
 								.put(LogMessage.APIURL,	ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
@@ -1598,14 +1625,14 @@ public class AzureServicePrincipalAccountsService {
 
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-							.put(LogMessage.ACTION, "updateUserPolicyAssociationOnAzureSvcaccDelete")
+							.put(LogMessage.ACTION, UPDATEPOLICYSTR)
 							.put(LogMessage.MESSAGE, String.format("Current policies [%s]", policies))
 							.put(LogMessage.APIURL,	ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 							.build()));
 					if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-								.put(LogMessage.ACTION, "updateUserPolicyAssociationOnAzureSvcaccDelete")
+								.put(LogMessage.ACTION, UPDATEPOLICYSTR)
 								.put(LogMessage.MESSAGE, String.format("Current policies userpass [%s]", policies))
 								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 								.build()));
@@ -1613,7 +1640,7 @@ public class AzureServicePrincipalAccountsService {
 					} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-								.put(LogMessage.ACTION, "updateUserPolicyAssociationOnAzureSvcaccDelete")
+								.put(LogMessage.ACTION, UPDATEPOLICYSTR)
 								.put(LogMessage.MESSAGE, String.format("Current policies ldap [%s]", policies))
 								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 								.build()));
@@ -1627,7 +1654,7 @@ public class AzureServicePrincipalAccountsService {
 							log.error(e);
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-									.put(LogMessage.ACTION, "updateUserPolicyAssociationOnAzureSvcaccDelete")
+									.put(LogMessage.ACTION, UPDATEPOLICYSTR)
 									.put(LogMessage.MESSAGE, "Exception while adding or updating the identity ")
 									.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
 									.put(LogMessage.APIURL,	ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
@@ -1652,14 +1679,14 @@ public class AzureServicePrincipalAccountsService {
 		OIDCGroup oidcGroup = new OIDCGroup();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-				.put(LogMessage.ACTION, "updateGroupPolicyAssociationOnAzureSvcaccDelete")
+				.put(LogMessage.ACTION, UPDATEGROUPPOLICYSTR)
 				.put(LogMessage.MESSAGE, String.format("trying to delete group policies on Azure service account delete " +
 						"for [%s]", azureSvcAccountName))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "updateGroupPolicyAssociationOnAzureSvcaccDelete")
+					.put(LogMessage.ACTION, UPDATEGROUPPOLICYSTR)
 					.put(LogMessage.MESSAGE, "Inside userpass of updateGroupPolicyAssociationOnAzureSvcaccDelete...Just Returning...")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return;
@@ -1683,7 +1710,7 @@ public class AzureServicePrincipalAccountsService {
 			for (String groupName : groups) {
 				Response response = new Response();
 				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-					response = reqProcessor.process("/auth/ldap/groups", "{\"groupname\":\"" + groupName + "\"}",
+					response = reqProcessor.process(GROUPPATH, GROUPNAMESTR + groupName + "\"}",
 							token);
 				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 					// call read api with groupname
@@ -1705,14 +1732,14 @@ public class AzureServicePrincipalAccountsService {
 						// OIDC Changes
 						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 							currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && oidcGroup != null) {
 							currentpolicies.addAll(oidcGroup.getPolicies());
 						}
 					} catch (IOException e) {
 						log.error(e);
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-								.put(LogMessage.ACTION, "updateGroupPolicyAssociationOnAzureSvcaccDelete")
+								.put(LogMessage.ACTION, UPDATEGROUPPOLICYSTR)
 								.put(LogMessage.MESSAGE, String.format("updateGroupPolicyAssociationOnAzureSvcaccDelete " +
 												"failed [%s]", e.getMessage()))
 								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
@@ -1726,14 +1753,14 @@ public class AzureServicePrincipalAccountsService {
 					String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-							.put(LogMessage.ACTION, "updateGroupPolicyAssociationOnAzureSvcaccDelete")
+							.put(LogMessage.ACTION, UPDATEGROUPPOLICYSTR)
 							.put(LogMessage.MESSAGE, String.format("Current policies [%s]", policies))
 							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 							.build()));
 					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 						ControllerUtil.configureLDAPGroup(groupName, policiesString, token);
 					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup.getId());
+						oidcUtil.updateGroupPolicies(token, groupName, policies, currentpolicies, oidcGroup != null ? oidcGroup.getId() : null);
 						oidcUtil.renewUserToken(userDetails.getClientToken());
 					}
 				}
@@ -1752,7 +1779,7 @@ public class AzureServicePrincipalAccountsService {
 																 Map<String, String> acessInfo, String token) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-				.put(LogMessage.ACTION, "updateApprolePolicyAssociationOnAzureSvcaccDelete")
+				.put(LogMessage.ACTION, "updateApprolePolicyAssociationOn AzureSvcaccDelete")
 				.put(LogMessage.MESSAGE, String.format("trying to update approle policies on Azure service account " +
 						"delete for [%s]", azureSvcAccountName))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
@@ -1772,15 +1799,15 @@ public class AzureServicePrincipalAccountsService {
 			Set<String> approles = acessInfo.keySet();
 			ObjectMapper objMapper = new ObjectMapper();
 			for (String approleName : approles) {
-				Response roleResponse = reqProcessor.process("/auth/approle/role/read",
-						"{\"role_name\":\"" + approleName + "\"}", token);
+				Response roleResponse = reqProcessor.process(READROLEPATH,
+						ROLENAME + approleName + "\"}", token);
 				String responseJson = "";
 				List<String> policies = new ArrayList<>();
 				List<String> currentpolicies = new ArrayList<>();
 				if (HttpStatus.OK.equals(roleResponse.getHttpstatus())) {
 					responseJson = roleResponse.getResponse();
 					try {
-						JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+						JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get(POLICIESSTR);
 						if (null != policiesArry) {
 							for (JsonNode policyNode : policiesArry) {
 								currentpolicies.add(policyNode.asText());
@@ -1826,20 +1853,20 @@ public class AzureServicePrincipalAccountsService {
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-				.put(LogMessage.ACTION, "deleteAzureSvcAccountSecrets")
+				.put(LogMessage.ACTION, DELETEAZURE)
 				.put(LogMessage.MESSAGE, String.format("Trying to delete secret folder for Azure service " +
-						"account [%s].", azureSvcAccName))
+						ACCOUNTSTR, azureSvcAccName))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
 		boolean secretDeleteStatus = deleteAzureSvcAccountSecretFolders(token, azureServiceAccount.getServicePrincipalName());
 		if (secretDeleteStatus) {
-			Response onboardingResponse = reqProcessor.process("/delete", "{\"path\":\"" + azureSvcAccPath + "\"}", token);
+			Response onboardingResponse = reqProcessor.process(DELETEPATH, PATHSTR + azureSvcAccPath + "\"}", token);
 
 			if (onboardingResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 					|| onboardingResponse.getHttpstatus().equals(HttpStatus.OK)) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-						.put(LogMessage.ACTION, "deleteAzureSvcAccountSecrets")
+						.put(LogMessage.ACTION, DELETEAZURE)
 						.put(LogMessage.MESSAGE, "Successfully deleted Azure service account Secrets.")
 						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 				return ResponseEntity.status(HttpStatus.OK)
@@ -1847,7 +1874,7 @@ public class AzureServicePrincipalAccountsService {
 			}
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "deleteAzureSvcAccountSecrets")
+					.put(LogMessage.ACTION, DELETEAZURE)
 					.put(LogMessage.MESSAGE, "Failed to delete Azure service account Secrets.")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -1856,7 +1883,7 @@ public class AzureServicePrincipalAccountsService {
 
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-				.put(LogMessage.ACTION, "deleteAzureSvcAccountSecrets")
+				.put(LogMessage.ACTION, DELETEAZURE)
 				.put(LogMessage.MESSAGE, "Failed to delete one or more Azure service account Secret folders.")
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -1874,12 +1901,12 @@ public class AzureServicePrincipalAccountsService {
 		JsonObject azureMetadataJson = getAzureMetadata(token, azureSvcAccName);
 
 		if (null!= azureMetadataJson && azureMetadataJson.has(TVaultConstants.SECRET)) {
-			if (!azureMetadataJson.get("secret").isJsonNull()) {
+			if (!azureMetadataJson.get(SECRETSTR).isJsonNull()) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, "deleteAzureSvcAccountSecretFolders").
+						put(LogMessage.ACTION, "DeleteAzureSvcAccountSecretFolders").
 						put(LogMessage.MESSAGE, String.format("Trying to delete secret folders for the Azure Service " +
-								"account [%s]", azureSvcAccName)).
+								ACCOUNTSTR, azureSvcAccName)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 
@@ -1901,15 +1928,15 @@ public class AzureServicePrincipalAccountsService {
 					int deleteCount = 0;
 					for (int i = 0; i < svcSecretArray.size(); i++) {
 						String folderPath = AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + azureSvcAccName + "/secret_" + (i+1);
-						Response deleteFolderResponse = reqProcessor.process("/delete",
-								"{\"path\":\"" + folderPath + "\"}", token);
+						Response deleteFolderResponse = reqProcessor.process(DELETEPATH,
+								PATHSTR + folderPath + "\"}", token);
 						if (deleteFolderResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
 								|| deleteFolderResponse.getHttpstatus().equals(HttpStatus.OK)) {
 							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 									put(LogMessage.ACTION, "deleteAzureSvcAccountSecretFolders").
 									put(LogMessage.MESSAGE, String.format("Deleted secret folder [%d] for the Azure Service " +
-											"account [%s]", (i+1), azureSvcAccName)).
+											ACCOUNTSTR, (i+1), azureSvcAccName)).
 									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 									build()));
 							deleteCount++;
@@ -1935,7 +1962,7 @@ public class AzureServicePrincipalAccountsService {
 	 */
 	private JsonObject getAzureMetadata(String token, String azureSvcaccName) {
 		String path = AzureServiceAccountConstants.AZURE_SVCC_ACC_META_PATH + azureSvcaccName;
-		Response response = reqProcessor.process("/read", "{\"path\":\"" + path + "\"}", token);
+		Response response = reqProcessor.process("/read", PATHSTR + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
 			return populateMetaData(response);
 		}
@@ -1955,16 +1982,17 @@ public class AzureServicePrincipalAccountsService {
 
 		String createdDate = dateConversion(createdAtEpoch);
 		data.addProperty("createdDate", createdDate);
-		JsonArray dataSecret = ((JsonObject) jsonParser.parse(data.toString())).getAsJsonArray("secret");
+		JsonArray dataSecret = ((JsonObject) jsonParser.parse(data.toString())).getAsJsonArray(SECRETSTR);
 
 		for (int i = 0; i < dataSecret.size(); i++) {
 			JsonElement jsonElement = dataSecret.get(i);
 			JsonObject jsonObject = jsonElement.getAsJsonObject();
+			jsonObject.addProperty("expiryDurationMs", jsonObject.get("expiryDuration").toString());
 			String expiryDate = dateConversion(jsonObject.get("expiryDuration").getAsLong());
 			jsonObject.addProperty("expiryDuration", expiryDate);
 		}
 		JsonElement jsonElement = dataSecret.getAsJsonArray();
-		data.add("secret", jsonElement);
+		data.add(SECRETSTR, jsonElement);
 		return data;
 	}
 	
@@ -1976,7 +2004,7 @@ public class AzureServicePrincipalAccountsService {
     private void deleteAwsRoleonOnAzureSvcaccDelete(Map<String,String> acessInfo, String token) {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                put(LogMessage.ACTION, "deleteAwsRoleonOnAzureSvcaccDelete").
+                put(LogMessage.ACTION, "DeleteAwsRoleonOnAzureSvcaccDelete").
                 put(LogMessage.MESSAGE, "Trying to delete AwsRole On Azure Service Account offboarding").
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
@@ -2019,7 +2047,7 @@ public class AzureServicePrincipalAccountsService {
 		}
 		if (!isAzureSvcaccPermissionInputValid(azureServiceAccountUser.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(ERRORBODYSTR);
 		}
 		if (azureServiceAccountUser.getAccess()
 				.equalsIgnoreCase(AzureServiceAccountConstants.AZURE_ROTATE_MSG_STRING)) {
@@ -2109,8 +2137,14 @@ public class AzureServicePrincipalAccountsService {
 	 */
 	public ResponseEntity<String> getAzureServicePrincipalDetail(String token, String azureSvcName) {
 		String path = AzureServiceAccountConstants.AZURE_SVCC_ACC_META_PATH + azureSvcName;
-		Response response = reqProcessor.process("/azuresvcacct", "{\"path\":\"" + path + "\"}", token);
+		Response response = reqProcessor.process("/azuresvcacct", PATHSTR + path + "\"}", token);
 		if (response.getHttpstatus().equals(HttpStatus.OK)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, AzureServiceAccountConstants.FETCH_AZURE_DETAILS).
+					put(LogMessage.MESSAGE,  String.format ("Azure Service account [%s] details fetched successfully.",azureSvcName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
 			JsonObject data = populateMetaData(response);
 			return ResponseEntity.status(HttpStatus.OK).body(data.toString());
 		}
@@ -2133,11 +2167,11 @@ public class AzureServicePrincipalAccountsService {
 
 		Response userResponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/userpass/read",
-					"{\"username\":\"" + azureServiceAccountUser.getUsername() + "\"}", token);
+			userResponse = reqProcessor.process(READPATH,
+					USERNAMESTR + azureServiceAccountUser.getUsername() + "\"}", token);
 		} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-			userResponse = reqProcessor.process("/auth/ldap/users",
-					"{\"username\":\"" + azureServiceAccountUser.getUsername() + "\"}", token);
+			userResponse = reqProcessor.process(USERPATH,
+					USERNAMESTR + azureServiceAccountUser.getUsername() + "\"}", token);
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
 			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token,
@@ -2154,7 +2188,7 @@ public class AzureServicePrincipalAccountsService {
 									.build()));
 				}
 				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
+						.body(ERRORINVALIDSTR);
 			}
 			oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
 			oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
@@ -2206,7 +2240,7 @@ public class AzureServicePrincipalAccountsService {
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
 				.put(LogMessage.MESSAGE,
-						String.format("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy,
+						String.format("Policies are read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy,
 								writePolicy, denyPolicy, ownerPolicy))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
@@ -2223,7 +2257,7 @@ public class AzureServicePrincipalAccountsService {
 				} else {
 					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
 					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-						groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+						groups = objMapper.readTree(responseJson).get("data").get(GROUPSTR).asText();
 					}
 				}
 			} catch (IOException e) {
@@ -2321,18 +2355,19 @@ public class AzureServicePrincipalAccountsService {
 		String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(azureSvcaccName)
 				.toString();
 		Map<String, String> params = new HashMap<>();
-		params.put("type", "users");
+		params.put("type", USERS);
 		params.put("name", azureServiceAccountUser.getUsername());
 		params.put("path", path);
-		params.put("access", "delete");
+		params.put(ACCESS, DELETE);
 		Response metadataResponse = ControllerUtil.updateMetadata(params, token);
 		if (metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())
 				|| HttpStatus.OK.equals(metadataResponse.getHttpstatus()))) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
-					.put(LogMessage.MESSAGE, "User is successfully Removed from Azure Service Account")
-					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+					.put(LogMessage.MESSAGE, String.format("User [%s] is successfully Removed from Azure Service Account [%s].",azureServiceAccountUser.getUsername(), azureServiceAccountUser.getAzureSvcAccName()))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+					.build()));
 			return ResponseEntity.status(HttpStatus.OK)
 					.body("{\"messages\":[\"Successfully removed user from the Azure Service Account\"]}");
 		} else {
@@ -2437,7 +2472,7 @@ public class AzureServicePrincipalAccountsService {
             token = tokenUtils.getSelfServiceToken();
         }
 		if(!isAzureSvcaccPermissionInputValid(azureServiceAccountAWSRole.getAccess())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORBODYSTR);
 		}
 		if (azureServiceAccountAWSRole.getAccess().equalsIgnoreCase(AzureServiceAccountConstants.AZURE_ROTATE_MSG_STRING)) {
 			azureServiceAccountAWSRole.setAccess(TVaultConstants.WRITE_POLICY);
@@ -2458,7 +2493,7 @@ public class AzureServicePrincipalAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
-					put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
+					put(LogMessage.MESSAGE, String.format (POLICYSTR, policy)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 
@@ -2478,7 +2513,7 @@ public class AzureServicePrincipalAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
-					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, ownerPolicy)).
+					put(LogMessage.MESSAGE, String.format ("Policies are read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, ownerPolicy)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 
@@ -2494,7 +2529,7 @@ public class AzureServicePrincipalAccountsService {
 				responseJson = roleResponse.getResponse();
 				ObjectMapper objMapper = new ObjectMapper();
 				try {
-					JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
+					JsonNode policiesArry =objMapper.readTree(responseJson).get(POLICIESSTR);
 					for(JsonNode policyNode : policiesArry){
 						currentpolicies.add(policyNode.asText());
 					}
@@ -2515,7 +2550,7 @@ public class AzureServicePrincipalAccountsService {
 				policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 				currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 			} else{
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exists or you don't have enough permission to add this aws role to Azure Service Principal\"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exists or you don't have enough permission to add this AWS role to Azure Service Principal\"]}");
 			}
 			Response awsRoleConfigresponse = null;
 			if (TVaultConstants.IAM.equals(authType)) {
@@ -2527,16 +2562,16 @@ public class AzureServicePrincipalAccountsService {
 			if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 				String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(azureSvcName).toString();
 				Map<String,String> params = new HashMap<>();
-				params.put("type", "aws-roles");
+				params.put("type", AWSROLES);
 				params.put("name",roleName);
 				params.put("path",path);
-				params.put("access",access);
+				params.put(ACCESS,access);
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
-							put(LogMessage.MESSAGE, "AWS Role configuration Success.").
+							put(LogMessage.MESSAGE, String.format("AWS Role [%s] successfully associated to Azure Service Account [%s] with policy [%s].",azureServiceAccountAWSRole.getRolename(),azureServiceAccountAWSRole.getAzureSvcAccName(),azureServiceAccountAWSRole.getAccess())).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -2621,7 +2656,7 @@ public class AzureServicePrincipalAccountsService {
 		}
 		if (!isAzureSvcaccPermissionInputValid(azureServiceAccountGroup.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(ERRORBODYSTR);
 		}
 		if (azureServiceAccountGroup.getAccess().equalsIgnoreCase(AzureServiceAccountConstants.AZURE_ROTATE_MSG_STRING)) {
 			azureServiceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
@@ -2674,7 +2709,7 @@ public class AzureServicePrincipalAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_GROUP_TO_AZURESVCACC_MSG)
-				.put(LogMessage.MESSAGE, String.format("policy is [%s]", policy))
+				.put(LogMessage.MESSAGE, String.format(POLICYSTR, policy))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		String readPolicy = new StringBuilder()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
@@ -2699,8 +2734,8 @@ public class AzureServicePrincipalAccountsService {
 		Response groupResp = new Response();
 
 		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-			groupResp = reqProcessor.process("/auth/ldap/groups",
-					"{\"groupname\":\"" + azureServiceAccountGroup.getGroupname() + "\"}", token);
+			groupResp = reqProcessor.process(GROUPPATH,
+					GROUPNAMESTR + azureServiceAccountGroup.getGroupname() + "\"}", token);
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// call read api with groupname
 			oidcGroup = oidcUtil.getIdentityGroupDetails(azureServiceAccountGroup.getGroupname(), token);
@@ -2729,7 +2764,7 @@ public class AzureServicePrincipalAccountsService {
 				// OIDC Changes
 				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && oidcGroup != null) {
 					currentpolicies.addAll(oidcGroup.getPolicies());
 				}
 			} catch (IOException e) {
@@ -2810,9 +2845,10 @@ public class AzureServicePrincipalAccountsService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 						.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_GROUP_TO_AZURESVCACC_MSG)
-						.put(LogMessage.MESSAGE, "Group configuration Success.")
+						.put(LogMessage.MESSAGE, String.format("Group [%s] is successfully configured to Azure Service Account [%s] with policy [%s].",azureServiceAccountGroup.getGroupname(),azureServiceAccountGroup.getAzureSvcAccName(),azureServiceAccountGroup.getAccess()))
 						.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
-						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+						.build()));
 				return ResponseEntity.status(HttpStatus.OK)
 						.body("{\"messages\":[\"Group is successfully associated with Azure Service Principal\"]}");
 			} else {
@@ -2822,7 +2858,7 @@ public class AzureServicePrincipalAccountsService {
 			}
 		} else {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("{\"errors\":[\"Failed to add group to the Azure Service Principal\"]}");
+					.body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
 		}
 	}
 
@@ -2916,8 +2952,8 @@ public class AzureServicePrincipalAccountsService {
 
 			JsonObject azureMetadataJson = getAzureMetadata(token, servicePrincipalName);
 
-			if (null!= azureMetadataJson && azureMetadataJson.has("secret")) {
-				if (!azureMetadataJson.get("secret").isJsonNull()) {
+			if (null!= azureMetadataJson && azureMetadataJson.has(SECRETSTR)) {
+				if (!azureMetadataJson.get(SECRETSTR).isJsonNull()) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
@@ -2927,7 +2963,7 @@ public class AzureServicePrincipalAccountsService {
 
 					JsonArray svcSecretArray = null;
 					try {
-						svcSecretArray = azureMetadataJson.get("secret").getAsJsonArray();
+						svcSecretArray = azureMetadataJson.get(SECRETSTR).getAsJsonArray();
 						servicePrincipalId = azureMetadataJson.get("servicePrincipalId").getAsString();
 						tenantId = azureMetadataJson.get("tenantId").getAsString();
 					} catch (IllegalStateException e) {
@@ -2948,6 +2984,7 @@ public class AzureServicePrincipalAccountsService {
 
 							if (azureSecret.has(AzureServiceAccountConstants.SECRET_KEY_ID)) {
 								String secretKeyId = azureSecret.get(AzureServiceAccountConstants.SECRET_KEY_ID).getAsString();
+								Long expiryDurationMs = Long.valueOf(azureSecret.get(AzureServiceAccountConstants.EXPIRY_DURATION).getAsString());
 								log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 										put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
@@ -2955,7 +2992,7 @@ public class AzureServicePrincipalAccountsService {
 										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 										build()));
 								// Rotate Azure service account secret for each secret key id in metadata
-								if (rotateAzureServicePrincipalSecret(token, servicePrincipalName, secretKeyId, servicePrincipalId, tenantId, i+1)) {
+								if (rotateAzureServicePrincipalSecret(token, servicePrincipalName, secretKeyId, servicePrincipalId, tenantId,expiryDurationMs, i+1)) {
 									secretSaveCount++;
 								}
 							}
@@ -2992,7 +3029,7 @@ public class AzureServicePrincipalAccountsService {
 									log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 											put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 											put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
-											put(LogMessage.MESSAGE, String.format ("Azure Service Principal [%s] activated successfully", servicePrincipalName)).
+											put(LogMessage.MESSAGE, String.format ("Azure Service Principal [%s] activated successfully.", servicePrincipalName)).
 											put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 											build()));
 									return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Azure Service Principal activated successfully\"]}");
@@ -3077,8 +3114,8 @@ public class AzureServicePrincipalAccountsService {
 		// Get metadata to check the secretkeyid
 		JsonObject azureMetadataJson = getAzureMetadata(token, servicePrincipalName);
 
-		if (null!= azureMetadataJson && azureMetadataJson.has("secret")) {
-			if (!azureMetadataJson.get("secret").isJsonNull()) {
+		if (null!= azureMetadataJson && azureMetadataJson.has(SECRETSTR)) {
+			if (!azureMetadataJson.get(SECRETSTR).isJsonNull()) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_ACTION).
@@ -3088,7 +3125,7 @@ public class AzureServicePrincipalAccountsService {
 
 				JsonArray azureSecretArray = null;
 				try {
-					azureSecretArray = azureMetadataJson.get("secret").getAsJsonArray();
+					azureSecretArray = azureMetadataJson.get(SECRETSTR).getAsJsonArray();
 				} catch (IllegalStateException e) {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -3120,7 +3157,7 @@ public class AzureServicePrincipalAccountsService {
 							// Rotate Azure Service Principal secret for each secret key id in metadata
 							rotationStatus = rotateAzureServicePrincipalSecret(token, servicePrincipalName,
 									secretKeyId, azureServicePrincipalRotateRequest.getServicePrincipalId(),
-									azureServicePrincipalRotateRequest.getTenantId(), i+1);
+									azureServicePrincipalRotateRequest.getTenantId(), azureServicePrincipalRotateRequest.getExpiryDurationMs(), i+1);
 							break;
 						}
 					}
@@ -3185,7 +3222,7 @@ public class AzureServicePrincipalAccountsService {
 				if (currentPolicies.contains(resetPermission) || identityPolicies.contains(resetPermission)) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-							.put(LogMessage.ACTION, "hasResetPermissionForAzureServicePrincipal")
+							.put(LogMessage.ACTION, "HasResetPermissionForAzureServicePrincipal")
 							.put(LogMessage.MESSAGE, "User has reset permission on this Azure Service principal.")
 							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 					return true;
@@ -3231,12 +3268,10 @@ public class AzureServicePrincipalAccountsService {
 	 * @param secretKeyIndex
 	 * @return
 	 */
-	private boolean rotateAzureServicePrincipalSecret(String token, String servicePrincipalName, String secretKeyId, String servicePrincipalId, String tenantId, int secretKeyIndex) {
-		AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest(servicePrincipalName, secretKeyId, servicePrincipalId, tenantId);
+	private boolean rotateAzureServicePrincipalSecret(String token, String servicePrincipalName, String secretKeyId, String servicePrincipalId, String tenantId, Long expiryDurationMs, int secretKeyIndex) {
+		AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest(servicePrincipalName, secretKeyId, servicePrincipalId, tenantId, expiryDurationMs);
 
-		// @TODO: This is a mock response. This needs to be change to call the actual api (below commented) once the Azure secret api is live.
-		AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(azureServicePrincipalRotateRequest);
-		//AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecret(azureServicePrincipalRotateRequest);
+		AzureServiceAccountSecret azureServiceAccountSecret = azureServiceAccountUtils.rotateAzureServicePrincipalSecret(azureServicePrincipalRotateRequest);
 
 
 		if (null != azureServiceAccountSecret) {
@@ -3280,8 +3315,11 @@ public class AzureServicePrincipalAccountsService {
 				put(LogMessage.MESSAGE, String.format ("Trying to remove AWS Role from Azure service principal [%s]", azureServiceAccountAWSRole.getRolename())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
+		if (!userDetails.isAdmin()) {
+			token = tokenUtils.getSelfServiceToken();
+		}
 		if(!isAzureSvcaccPermissionInputValid(azureServiceAccountAWSRole.getAccess())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORBODYSTR);
 		}
 		if (azureServiceAccountAWSRole.getAccess().equalsIgnoreCase(AzureServiceAccountConstants.AZURE_ROTATE_MSG_STRING)) {
 			azureServiceAccountAWSRole.setAccess(TVaultConstants.WRITE_POLICY);
@@ -3302,7 +3340,7 @@ public class AzureServicePrincipalAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_AWS_ROLE_AZURE_MSG).
-					put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
+					put(LogMessage.MESSAGE, String.format (POLICYSTR, policy)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			
@@ -3338,7 +3376,7 @@ public class AzureServicePrincipalAccountsService {
 				responseJson = roleResponse.getResponse();
 				ObjectMapper objMapper = new ObjectMapper();
 				try {
-					JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
+					JsonNode policiesArry =objMapper.readTree(responseJson).get(POLICIESSTR);
 					for(JsonNode policyNode : policiesArry){
 						currentpolicies.add(policyNode.asText());
 					}
@@ -3358,7 +3396,7 @@ public class AzureServicePrincipalAccountsService {
     				currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 				}
 			} else{
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exists or you don't have enough permission to remove this aws role from Azure Service Principal\"]}");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exists or you don't have enough permission to remove this AWS role from Azure Service Principal\"]}");
 			}
 			Response awsRoleConfigresponse = null;
 			if (TVaultConstants.IAM.equals(authType)) {
@@ -3370,16 +3408,16 @@ public class AzureServicePrincipalAccountsService {
 			if(awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
 				String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(azureSvcName).toString();
 				Map<String,String> params = new HashMap<>();
-				params.put("type", "aws-roles");
+				params.put("type", AWSROLES);
 				params.put("name",roleName);
 				params.put("path",path);
-				params.put("access","delete");
+				params.put(ACCESS,DELETE);
 				Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 				if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
-							put(LogMessage.MESSAGE, "AWS Role configuration Success.").
+							put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_AWS_ROLE_AZURE_MSG).
+							put(LogMessage.MESSAGE, String.format("AWS Role [%s] successfully removed from Azure Service Account [%s].",azureServiceAccountAWSRole.getRolename(),azureServiceAccountAWSRole.getAzureSvcAccName())).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -3443,7 +3481,7 @@ public class AzureServicePrincipalAccountsService {
 
         if (!isAzureSvcaccPermissionInputValid(azureServiceAccountGroup.getAccess())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(ERRORBODYSTR);
 		}
 		if (azureServiceAccountGroup.getAccess().equalsIgnoreCase(AzureServiceAccountConstants.AZURE_ROTATE_MSG_STRING)) {
 			azureServiceAccountGroup.setAccess(TVaultConstants.WRITE_POLICY);
@@ -3453,124 +3491,250 @@ public class AzureServicePrincipalAccountsService {
 
 		boolean isAuthorized = isAuthorizedToAddPermissionInAzureSvcAcc(userDetails, azureSvcAccountName, false);
 		if (isAuthorized) {
-			// Only Sudo policy can be added (as part of onbord) before activation.
-			if (!isAzureSvcaccActivated(token, userDetails, azureSvcAccountName)
-					&& !TVaultConstants.SUDO_POLICY.equals(azureServiceAccountGroup.getAccess())) {
-				log.error(
-						JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-								.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG)
-								.put(LogMessage.MESSAGE, String.format("Failed to remove group permission to Azure Service principal. [%s] is not activated.", azureSvcAccountName))
-								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
-								.build()));
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-						"{\"errors\":[\"Failed to remove group permission. Azure Service Principal is not activated. Please activate this service principal and try again.\"]}");
-			}
-
-            Response groupResp = new Response();
-			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-				groupResp = reqProcessor.process("/auth/ldap/groups", "{\"groupname\":\"" + azureServiceAccountGroup.getGroupname() + "\"}", token);
-			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-				// call read api with groupname
-				oidcGroup = oidcUtil.getIdentityGroupDetails(azureServiceAccountGroup.getGroupname(), token);
-				if (oidcGroup != null) {
-					groupResp.setHttpstatus(HttpStatus.OK);
-					groupResp.setResponse(oidcGroup.getPolicies().toString());
-				} else {
-					groupResp.setHttpstatus(HttpStatus.BAD_REQUEST);
-				}
-			}
-            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                    put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
-                    put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", groupResp.getHttpstatus())).
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                    build()));
-
-            return removePoliciesAndUpdateMetadataForAzurevcAcc(token, azureServiceAccountGroup, userDetails, oidcGroup,
-					azureSvcAccountName, groupResp);
+			return getGroupDetailsAndAzureSvcAccActivatedCheck(token, azureServiceAccountGroup, userDetails, oidcGroup,
+					azureSvcAccountName);
         }
         else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove groups from this Azure service principal\"]}");
         }
 
     }
-	
-	 /**
-		 * Method to update policies for remove group from Azure service account.
-		 * @param token
-		 * @param azureServiceAccountGroup
-		 * @param userDetails
-		 * @param oidcGroup
-		 * @param azureSvcAccountName
-		 * @param groupResp
-		 * @return
-		 */
-		private ResponseEntity<String> removePoliciesAndUpdateMetadataForAzurevcAcc(String token,
-				AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
-				String azureSvcAccountName, Response groupResp) {
-			String readPolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
-			String writePolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
-			String denyPolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
-			String sudoPolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
 
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-			        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-			        put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
-			        put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
-			        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-			        build()));
+	/**
+	 * Method to check the azure service principal activation and get the group details
+	 * @param token
+	 * @param azureServiceAccountGroup
+	 * @param userDetails
+	 * @param oidcGroup
+	 * @param azureSvcAccountName
+	 * @return
+	 */
+	private ResponseEntity<String> getGroupDetailsAndAzureSvcAccActivatedCheck(String token,
+			AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
+			String azureSvcAccountName) {
+		// Only Sudo policy can be added (as part of onbord) before activation.
+		if (!isAzureSvcaccActivated(token, userDetails, azureSvcAccountName)
+				&& !TVaultConstants.SUDO_POLICY.equals(azureServiceAccountGroup.getAccess())) {
+			log.error(
+					JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG)
+							.put(LogMessage.MESSAGE, String.format("Failed to remove group permission to Azure Service principal. [%s] is not activated.", azureSvcAccountName))
+							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+							.build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+					"{\"errors\":[\"Failed to remove group permission. Azure Service Principal is not activated. Please activate this service principal and try again.\"]}");
+		}
 
-			String responseJson="";
-			List<String> policies = new ArrayList<>();
-			List<String> currentpolicies = new ArrayList<>();
-
-			if(groupResp != null && HttpStatus.OK.equals(groupResp.getHttpstatus())){
-			    responseJson = groupResp.getResponse();
-			    try {
-					ObjectMapper objMapper = new ObjectMapper();
-					// OIDC Changes
-					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
-					} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && !ObjectUtils.isEmpty(oidcGroup)) {
-						currentpolicies.addAll(oidcGroup.getPolicies());
-					}
-			    } catch (IOException e) {
-			        log.error(e);
-			        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-			                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-			                put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
-			                put(LogMessage.MESSAGE, "Exception while creating currentpolicies or groups").
-			                put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
-			                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-			                build()));
-			    }
-
-			    policies.addAll(currentpolicies);
-				policies.remove(readPolicy);
-				policies.remove(writePolicy);
-				policies.remove(denyPolicy);
-			}
-			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
-			String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
-			Response ldapConfigresponse = new Response();
-			// OIDC Changes
-			if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
-				ldapConfigresponse = ControllerUtil.configureLDAPGroup(azureServiceAccountGroup.getGroupname(), policiesString, token);
-			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
-				ldapConfigresponse = oidcUtil.updateGroupPolicies(token, azureServiceAccountGroup.getGroupname(), policies, currentpolicies,
-						oidcGroup != null ? oidcGroup.getId() : null);
-				oidcUtil.renewUserToken(userDetails.getClientToken());
-			}
-			if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
-				return updateMetadataForRemoveGroupFromAzureSvcAcc(token, azureServiceAccountGroup, userDetails, oidcGroup,
-						currentpolicies, currentpoliciesString);
-			}
-			else {
-			    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove the group from the Azure Service Principal\"]}");
+		// check for this group is associated to this Azure Service account
+		String azureMetadataPath = new StringBuilder().append(AzureServiceAccountConstants.AZURE_SVCC_ACC_META_PATH).append(azureSvcAccountName).toString();
+		Response metadataReadResponse = reqProcessor.process("/azuresvcacct", PATHSTR + azureMetadataPath + "\"}", token);
+		Map<String, Object> responseMap = null;
+		boolean metaDataResponseStatus = true;
+		if(metadataReadResponse != null && HttpStatus.OK.equals(metadataReadResponse.getHttpstatus())) {
+			responseMap = ControllerUtil.parseJson(metadataReadResponse.getResponse());
+			if(responseMap.isEmpty()) {
+				metaDataResponseStatus = false;
 			}
 		}
-		
+		else {
+			metaDataResponseStatus = false;
+		}
+
+		if(metaDataResponseStatus) {
+			@SuppressWarnings("unchecked")
+			Map<String,Object> metadataMap = (Map<String,Object>)responseMap.get("data");
+			Map<String,Object> groupsData = (Map<String,Object>)metadataMap.get(TVaultConstants.GROUPS);
+
+			if (groupsData == null || !groupsData.containsKey(azureServiceAccountGroup.getGroupname())) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
+						put(LogMessage.MESSAGE, String.format ("Group [%s] is not associated to Azure service principal [%s]", azureServiceAccountGroup.getGroupname(), azureSvcAccountName)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove group from Azure service principal. Group association to Azure service principal not found\"]}");
+			}
+		}else {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
+					put(LogMessage.MESSAGE, String.format ("Error Fetching existing Azure service principal info [%s]", azureSvcAccountName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Error Fetching existing Azure service principal info. please check the path specified\"]}");
+		}
+
+		return getGroupDetailsAndCallRemovalProcess(token, azureServiceAccountGroup, userDetails, oidcGroup,
+				azureSvcAccountName);
+	}
+
+	/**
+	 * Method to call the group removal based on the auth method
+	 * @param token
+	 * @param azureServiceAccountGroup
+	 * @param userDetails
+	 * @param oidcGroup
+	 * @param azureSvcAccountName
+	 * @return
+	 */
+	private ResponseEntity<String> getGroupDetailsAndCallRemovalProcess(String token,
+			AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
+			String azureSvcAccountName) {
+		Response groupResp = new Response();
+		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+			groupResp = reqProcessor.process(GROUPPATH, GROUPNAMESTR + azureServiceAccountGroup.getGroupname() + "\"}", token);
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			// call read api with groupname
+			oidcGroup = oidcUtil.getIdentityGroupDetails(azureServiceAccountGroup.getGroupname(), token);
+			if (oidcGroup != null) {
+				groupResp.setHttpstatus(HttpStatus.OK);
+				groupResp.setResponse(oidcGroup.getPolicies().toString());
+			} else {
+				groupResp.setHttpstatus(HttpStatus.BAD_REQUEST);
+			}
+		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		        put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
+		        put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", groupResp.getHttpstatus())).
+		        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		        build()));
+
+		return removePoliciesAndUpdateMetadataForAzurevcAcc(token, azureServiceAccountGroup, userDetails, oidcGroup,
+				azureSvcAccountName, groupResp);
+	}
+
+	 /**
+	 * Method to update policies for remove group from Azure service account.
+	 * @param token
+	 * @param azureServiceAccountGroup
+	 * @param userDetails
+	 * @param oidcGroup
+	 * @param azureSvcAccountName
+	 * @param groupResp
+	 * @return
+	 */
+	private ResponseEntity<String> removePoliciesAndUpdateMetadataForAzurevcAcc(String token,
+			AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
+			String azureSvcAccountName, Response groupResp) {
+		String readPolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
+		String writePolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
+		String denyPolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
+		String sudoPolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
+
+		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		        put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
+		        put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, sudoPolicy)).
+		        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		        build()));
+
+		String responseJson="";
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+
+		if(groupResp != null && HttpStatus.OK.equals(groupResp.getHttpstatus())){
+		    responseJson = groupResp.getResponse();
+		    try {
+				ObjectMapper objMapper = new ObjectMapper();
+				// OIDC Changes
+				if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod) && oidcGroup != null) {
+					currentpolicies.addAll(oidcGroup.getPolicies());
+				}
+		    } catch (IOException e) {
+		        log.error(e);
+		        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
+		                put(LogMessage.MESSAGE, "Exception while creating currentpolicies or groups").
+		                put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
+		                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                build()));
+		    }
+
+		    policies.addAll(currentpolicies);
+			policies.remove(readPolicy);
+			policies.remove(writePolicy);
+			policies.remove(denyPolicy);
+		}else {
+			return deleteOrphanGroupEntriesForAzureSvcAcc(token, azureServiceAccountGroup);
+		}
+
+		return configureGroupPoliciesByAuthMethod(token, azureServiceAccountGroup, userDetails, oidcGroup, policies,
+				currentpolicies);
+	}
+
+	/**
+	 * Method to configure group policies based on the auth method and call the metadata update
+	 * @param token
+	 * @param azureServiceAccountGroup
+	 * @param userDetails
+	 * @param oidcGroup
+	 * @param policies
+	 * @param currentpolicies
+	 * @return
+	 */
+	private ResponseEntity<String> configureGroupPoliciesByAuthMethod(String token,
+			AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
+			List<String> policies, List<String> currentpolicies) {
+		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+		Response ldapConfigresponse = new Response();
+		// OIDC Changes
+		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+			ldapConfigresponse = ControllerUtil.configureLDAPGroup(azureServiceAccountGroup.getGroupname(), policiesString, token);
+		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+			ldapConfigresponse = oidcUtil.updateGroupPolicies(token, azureServiceAccountGroup.getGroupname(), policies, currentpolicies,
+					oidcGroup != null ? oidcGroup.getId() : null);
+			oidcUtil.renewUserToken(userDetails.getClientToken());
+		}
+		if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || ldapConfigresponse.getHttpstatus().equals(HttpStatus.OK)){
+			return updateMetadataForRemoveGroupFromAzureSvcAcc(token, azureServiceAccountGroup, userDetails, oidcGroup,
+					currentpolicies, currentpoliciesString);
+		}
+		else {
+			String ssoToken = oidcUtil.getSSOToken();
+			if (!StringUtils.isEmpty(ssoToken)) {
+				String objectId = oidcUtil.getGroupObjectResponse(ssoToken, azureServiceAccountGroup.getGroupname());
+				if (objectId == null || StringUtils.isEmpty(objectId)) {
+					return deleteOrphanGroupEntriesForAzureSvcAcc(token, azureServiceAccountGroup);
+				}
+			}
+		    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
+		}
+	}
+
+	/**
+	 * Method to delete orphan group entries if exists for Azure service account
+	 * @param token
+	 * @param azureServiceAccountGroup
+	 * @return
+	 */
+	private ResponseEntity<String> deleteOrphanGroupEntriesForAzureSvcAcc(String token, AzureServiceAccountGroup azureServiceAccountGroup) {
+		// Trying to remove the orphan entries if exists
+		String path = new StringBuilder(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(azureServiceAccountGroup.getAzureSvcAccName()).toString();
+		Map<String,String> params = new HashMap<>();
+		params.put("type", GROUPSTR);
+		params.put("name",azureServiceAccountGroup.getGroupname());
+		params.put("path",path);
+		params.put(ACCESS,DELETE);
+		Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+		if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "Remove Group from Azure service principal").
+					put(LogMessage.MESSAGE, String.format ("Group [%s] is successfully removed from Azure service principal [%s]", azureServiceAccountGroup.getGroupname(), azureServiceAccountGroup.getAzureSvcAccName())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");
+		}else{
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try again \"]}");
+		}
+	}
+
 		/**
 		 * Method to update metadata and revert group permission if metadata update failed.
 		 *
@@ -3585,18 +3749,18 @@ public class AzureServicePrincipalAccountsService {
 		private ResponseEntity<String> updateMetadataForRemoveGroupFromAzureSvcAcc(String token,
 				AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
 				List<String> currentpolicies, String currentpoliciesString) {
-			String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(azureServiceAccountGroup.getAzureSvcAccName()).toString();
+			String path = new StringBuilder(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(azureServiceAccountGroup.getAzureSvcAccName()).toString();
 			Map<String,String> params = new HashMap<>();
-			params.put("type", "groups");
+			params.put("type", GROUPSTR);
 			params.put("name",azureServiceAccountGroup.getGroupname());
 			params.put("path",path);
-			params.put("access","delete");
+			params.put(ACCESS,DELETE);
 			Response metadataResponse = ControllerUtil.updateMetadata(params,token);
 			if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
-						put(LogMessage.MESSAGE, "Group configuration Success.").
+						put(LogMessage.MESSAGE,  String.format("Group [%s] is successfully removed from Azure Service Principal [%s].",azureServiceAccountGroup.getGroupname(),azureServiceAccountGroup.getAzureSvcAccName())).
 						put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -3679,7 +3843,7 @@ public class AzureServicePrincipalAccountsService {
 					.put(LogMessage.MESSAGE, "Invalid value specified for access. Valid values are read, rotate, deny")
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(ERRORBODYSTR);
 		}
 		if (azureServiceAccountApprole.getAccess().equalsIgnoreCase(AzureServiceAccountConstants.AZURE_ROTATE_MSG_STRING)) {
 			azureServiceAccountApprole.setAccess(TVaultConstants.WRITE_POLICY);
@@ -3723,7 +3887,7 @@ public class AzureServicePrincipalAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_APPROLE_TO_AZURESVCACC_MSG)
-				.put(LogMessage.MESSAGE, String.format("policy is [%s]", policy))
+				.put(LogMessage.MESSAGE, String.format(POLICYSTR, policy))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
 		String readPolicy = new StringBuilder()
@@ -3747,8 +3911,8 @@ public class AzureServicePrincipalAccountsService {
 								readPolicy, writePolicy, denyPolicy, ownerPolicy))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
-		Response roleResponse = reqProcessor.process("/auth/approle/role/read",
-				"{\"role_name\":\"" + azureServiceAccountApprole.getApprolename() + "\"}", token);
+		Response roleResponse = reqProcessor.process(READROLEPATH,
+				ROLENAME + azureServiceAccountApprole.getApprolename() + "\"}", token);
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -3836,14 +4000,14 @@ public class AzureServicePrincipalAccountsService {
 		params.put("type", TVaultConstants.APP_ROLES);
 		params.put("name", azureServiceAccountApprole.getApprolename());
 		params.put("path", path);
-		params.put("access", azureServiceAccountApprole.getAccess());
+		params.put(ACCESS, azureServiceAccountApprole.getAccess());
 		Response metadataResponse = ControllerUtil.updateMetadata(params, token);
 		if (metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())
 				|| HttpStatus.OK.equals(metadataResponse.getHttpstatus()))) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_APPROLE_TO_AZURESVCACC_MSG)
-					.put(LogMessage.MESSAGE, "Approle successfully associated with Azure Service Principal")
+					.put(LogMessage.MESSAGE, String.format("Approle [%s] successfully associated to Azure Service Principal [%s] with policy [%s].",azureServiceAccountApprole.getApprolename(),azureServiceAccountApprole.getAzureSvcAccName(),azureServiceAccountApprole.getAccess()))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 					.build()));
 
@@ -3909,7 +4073,7 @@ public class AzureServicePrincipalAccountsService {
 		}
 		if (!isAzureSvcaccPermissionInputValid(access)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Invalid value specified for access. Valid values are read, rotate, deny\"]}");
+					.body(ERRORBODYSTR);
 		}
 
 		boolean isAuthorized = hasAddOrRemovePermission(userDetails, azureSvcaccName, token);
@@ -3935,8 +4099,8 @@ public class AzureServicePrincipalAccountsService {
 							String.format("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]",
 									readPolicy, writePolicy, denyPolicy, ownerPolicy))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			Response roleResponse = reqProcessor.process("/auth/approle/role/read",
-					"{\"role_name\":\"" + approleName + "\"}", token);
+			Response roleResponse = reqProcessor.process(READROLEPATH,
+					ROLENAME + approleName + "\"}", token);
 			String responseJson = "";
 			List<String> policies = new ArrayList<>();
 			List<String> currentpolicies = new ArrayList<>();
@@ -3944,7 +4108,7 @@ public class AzureServicePrincipalAccountsService {
 				responseJson = roleResponse.getResponse();
 				ObjectMapper objMapper = new ObjectMapper();
 				try {
-					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get("policies");
+					JsonNode policiesArry = objMapper.readTree(responseJson).get("data").get(POLICIESSTR);
 					if (null != policiesArry) {
 						for (JsonNode policyNode : policiesArry) {
 							currentpolicies.add(policyNode.asText());
@@ -3981,19 +4145,19 @@ public class AzureServicePrincipalAccountsService {
 					params.put("type", "app-roles");
 					params.put("name", approleName);
 					params.put("path", path);
-					params.put("access", "delete");
+					params.put(ACCESS, DELETE);
 					Response metadataResponse = ControllerUtil.updateMetadata(params, token);
 					if (metadataResponse != null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())
 							|| HttpStatus.OK.equals(metadataResponse.getHttpstatus()))) {
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 								.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_APPROLE_TO_AZURESVCACC_MSG)
-								.put(LogMessage.MESSAGE, "Approle is successfully removed from Azure Service Account")
+								.put(LogMessage.MESSAGE, String.format("Approle [%s] is successfully removed from Azure Service Account [%s].",azureServiceAccountApprole.getApprolename(),azureServiceAccountApprole.getAzureSvcAccName()))
 								.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 								.build()));
 						return ResponseEntity.status(HttpStatus.OK).body(
-								"{\"messages\":[\"Approle is successfully removed from Azure Service Account\"]}");
+								"{\"messages\":[\"Approle is successfully removed(if existed) from Azure Service Account\"]}");
 					}
 					approleControllerResp = appRoleService.configureApprole(approleName, currentpoliciesString, token);
 					if (approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {

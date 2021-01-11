@@ -270,4 +270,15 @@ public class OIDCAuthController {
 		return oidcAuthService.searchGroupInAzureAD(groupName);
 
 	}
+	/**
+	 * To search groupEmail in AAD.
+	 * @param email
+	 * @return
+	 */
+	@GetMapping(value="/v2/azure/email",produces="application/json")
+	@ApiOperation(value = "${OIDCAuthController.searchGroupEmailInAzureAD.value}", notes = "${OIDCAuthController.searchGroupEmailInAzureAD.notes}")
+	public ResponseEntity<DirectoryObjects> searchGroupEmailInAzureAD(@RequestParam("mail") String email){
+		return oidcAuthService.searchGroupEmailInAzureAD(email);
+
+	}
 }

@@ -1,19 +1,19 @@
-// =========================================================================
-// Copyright 2019 T-Mobile, US
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// See the readme.txt file for additional language around disclaimer of warranties.
-// =========================================================================
+/** *******************************************************************************
+*  Copyright 2020 T-Mobile, US
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*  See the readme.txt file for additional language around disclaimer of warranties.
+*********************************************************************************** */
 
 package com.tmobile.cso.vault.api.utils;
 
@@ -47,6 +47,7 @@ public class SafeUtils {
 	private Logger log = LogManager.getLogger(SafeUtils.class);
 	
 	public SafeUtils() {
+		// empty constructor
 	}
 
 	/**
@@ -57,7 +58,7 @@ public class SafeUtils {
 	 * @throws IOException
 	 */
 	public List<String> getPoliciesForManagedSafes(JsonNode policiesNode) throws JsonProcessingException, IOException {
-		List<String> adminPolicies = new ArrayList<String>();
+		List<String> adminPolicies = new ArrayList<>();
 		if (!ObjectUtils.isEmpty(policiesNode)) {
 			// Policies is supposed to be a container node.
 			if (policiesNode.isContainerNode()) {
@@ -80,7 +81,7 @@ public class SafeUtils {
 	 * @return
 	 */
 	public String[] getManagedSafes(String[] policies, String safeType) {
-		List<String> safes = new ArrayList<String>();
+		List<String> safes = new ArrayList<>();
 		if (policies != null) {
 			for (String policy: policies) {
 				if (policy.startsWith("s_")) {
@@ -117,47 +118,15 @@ public class SafeUtils {
 		if (safeMetaData == null) {
 			return false;
 		}
-		String safeOwnerid = safeMetaData.getSafeBasicDetails().getOwnerid();
-		if (userDetails.isAdmin()) {
-			
-			if (StringUtils.isEmpty(safeOwnerid)) {
-				// Null or empty user for owner
-				// Existing safes will not have ownerid
-				// Safes created by safeadmins will not have ownerid
-				return true;
-			}
-			else {
-				// There is some owner assigned to the safe
-				if (safeOwnerid.equalsIgnoreCase(safeUser.getUsername())) {
-					// Safeadmin is trying to add the owner of the safe as some user with some permission
-					// Safeadmin can add read or write permission to safeowner
-					if (TVaultConstants.READ_POLICY.equals(safeUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
-						// safeadmin or the safeowner himself can set read/write permission to the safeowner
-						return true;
-					}
-					return false;
-				}
-				else {
-					// Safeadmin is trying to add a user, who is non-owner of the safe with read/write/deny
-					return true;
-				}
-			}
+		String safeOwnerid = safeMetaData.getSafeBasicDetails().getOwnerid();		
+		
+		if (userDetails.isAdmin()) {			
+			boolean isAdmin = checkForAdmin(safeOwnerid,safeUser,action);			
+			return isAdmin;
 		}
-		else {
-			// Prevent the owner of the safe to be denied...
-			if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(safeOwnerid)) {
-				// This user is owner of the safe...
-				if (safeUser.getUsername().equalsIgnoreCase(safeOwnerid)) {
-					if (TVaultConstants.READ_POLICY.equals(safeUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
-						// safeowner himself can set read/write permission to the safeowner
-						return true;
-					}
-					return false;
-				}
-				return true;
-			}
-			// other normal users will not have permission as they are not the owner
-			return false;
+		else {			
+			boolean isNonAdmin = checkForNonAdmin(safeOwnerid,safeUser,action,userDetails);			
+			return isNonAdmin;			
 		}
 	}
 	/**
@@ -169,37 +138,37 @@ public class SafeUtils {
 	 * @return
 	 */
 	public Safe getSafeMetaData(String token, String safeType, String safeName){
-		String _path = "metadata/" + safeType + "/" + safeName;
+		String metaDataPath = "metadata/" + safeType + '/' + safeName;
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "Get Info").
-				put(LogMessage.MESSAGE, String.format ("Trying to get Info for [%s]", _path)).
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				put(LogMessage.MESSAGE, String.format ("Trying to get Info for [%s]", metaDataPath)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 		// Elevation is required in case user does not have access to the path.
-		Response response = ControllerUtil.getReqProcessor().process("/sdb","{\"path\":\""+_path+"\"}",token);
+		Response response = ControllerUtil.getReqProcessor().process("/sdb","{\"path\":\""+metaDataPath+"\"}",token);
 		// Create the Safe bean
 		Safe safe = null;
-		if(HttpStatus.OK.equals(response.getHttpstatus())){
+		if(response != null && HttpStatus.OK.equals(response.getHttpstatus())){
 			try {
 				ObjectMapper objMapper = new ObjectMapper();
-				JsonNode dataNode = objMapper.readTree(response.getResponse().toString()).get("data");
+				JsonNode dataNode = objMapper.readTree(response.getResponse()).get("data");
 				safe = getSafeInfo(dataNode);
 			} catch (IOException e) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						  put(LogMessage.ACTION, "getSafeMetaDataWithAppRoleElevation").
 					      put(LogMessage.MESSAGE, "Error while trying to get details about the safe").
-					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					      build()));			
 			}
 		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "Get Info").
 				put(LogMessage.MESSAGE, "Getting Info completed").
-				put(LogMessage.STATUS, response.getHttpstatus().toString()).
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				put(LogMessage.STATUS, response != null ? response.getHttpstatus().toString() : "").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 		return safe;
 	}
@@ -221,5 +190,47 @@ public class SafeUtils {
 		}
 		safe.getSafeBasicDetails().setOwnerid(ownerId);
 		return safe;
+	}
+	
+	private boolean checkForAdmin(String safeOwnerid,SafeUser safeUser,String action) {
+		if (StringUtils.isEmpty(safeOwnerid)) {
+			// Null or empty user for owner
+			// Existing safes will not have ownerid
+			// Safes created by safeadmins will not have ownerid
+			return true;
+		}
+		else {
+			// There is some owner assigned to the safe
+			if (safeOwnerid.equalsIgnoreCase(safeUser.getUsername())) {
+				// Safeadmin is trying to add the owner of the safe as some user with some permission
+				// Safeadmin can add read or write permission to safeowner
+				if (TVaultConstants.READ_POLICY.equals(safeUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
+					// safeadmin or the safeowner himself can set read/write permission to the safeowner
+					return true;
+				}
+				return false;
+			}
+			else {
+				// Safeadmin is trying to add a user, who is non-owner of the safe with read/write/deny
+				return true;
+			}
+		}
+	}
+	
+	private boolean checkForNonAdmin(String safeOwnerid,SafeUser safeUser,String action, UserDetails userDetails) {
+		// Prevent the owner of the safe to be denied...
+					if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(safeOwnerid)) {
+						// This user is owner of the safe...
+						if (safeUser.getUsername().equalsIgnoreCase(safeOwnerid)) {
+							if (TVaultConstants.READ_POLICY.equals(safeUser.getAccess()) || TVaultConstants.WRITE_POLICY.equals(safeUser.getAccess()) || (null==safeUser.getAccess() && action.equals(TVaultConstants.REMOVE_USER))) {
+								// safeowner himself can set read/write permission to the safeowner
+								return true;
+							}
+							return false;
+						}
+						return true;
+					}
+					// other normal users will not have permission as they are not the owner
+					return false;
 	}
 }

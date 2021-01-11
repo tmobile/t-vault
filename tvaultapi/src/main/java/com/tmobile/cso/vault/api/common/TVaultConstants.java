@@ -56,6 +56,7 @@ public class TVaultConstants {
     public static final String APPROLE_METADATA_MOUNT_PATH = "metadata/approle";
     public static final String APPROLE_USERS_METADATA_MOUNT_PATH = "metadata/approle_users";
     public static final String AWSROLE_METADATA_MOUNT_PATH = "metadata/awsrole";
+    public static final String AWS_USERS_METADATA_MOUNT_PATH = "metadata/awsrole_users";	
     public static final String SELF_SERVICE_APPROLE_NAME = "selfservicesupportrole";
     public static final String SECRET = "secret";
     public static final boolean HIDEMASTERAPPROLE = true;
@@ -119,7 +120,7 @@ public class TVaultConstants {
         EMAIL_TEMPLATE_IMAGE_IDS = Collections.synchronizedMap(new HashMap<String, String>());
         EMAIL_TEMPLATE_IMAGE_IDS.put("managetab", "templates/images/managetab.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("viewlink", "templates/images/viewlink.png");
-        EMAIL_TEMPLATE_IMAGE_IDS.put("update", "templates/images/update.png");
+        EMAIL_TEMPLATE_IMAGE_IDS.put(UPDATE, "templates/images/update.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("activate", "templates/images/activate.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("permission", "templates/images/permission.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("permissiontab", "templates/images/permissiontab.png");
@@ -163,7 +164,13 @@ public class TVaultConstants {
 
     public static final String IAM_SVC_PATH = "metadata/iamsvcacc/";
     public static final String IAM_SVC_ACC_PATH_PREFIX="iamsvcacc";
-    public static final String[] MASTER_APPROLES = { "selfservicesupportrole", "iamportal_master_approle", "azure_master_approle"};
+    public static final String[] MASTER_APPROLES = { SELF_SERVICE_APPROLE_NAME, "iamportal_master_approle", "azure_master_approle"};
     public static final String SPRINT_EMIAL_DOMAIN = "sprint.com";
     public static final String NULL_STRING = "null";
+    public static final String RECURSIVE_DELETE_SDB = "recursivedeletesdb";
+    public static final String UPDATE_METADATA_PARAM = "app-roles";
+    public static final String DELETE_APPROLE_PERMISSION_PARAM = "delete";
+    public static final String GROUP_EMAIL_FROM_AAD = "getGroupEmailFromAAD";
+    public static final String ROOT_POLICY = "root";
+    public static final String DEFAULT_SECRET = "default";
 }

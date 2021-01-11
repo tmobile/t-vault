@@ -883,4 +883,46 @@ public class OIDCUtilTest {
         assertEquals(null, aadUserObject.getUserId());
         assertEquals(null, aadUserObject.getEmail());
     }
+    @Test
+    public void testgetGroupEmailFromAADsuccess() throws Exception {
+        String email = "T-Vault@t-Mobile.com ";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        String groupResponseString = "{\"value\":[{\"id\":\"null\",\"mail\":\"T-Vault@t-Mobile.com\"}]}";
+        when(mockHttpEntity.getContent()).thenReturn( new ByteArrayInputStream(groupResponseString.getBytes()));
+        ReflectionTestUtils.setField(oidcUtil, "ssoGroupsEndpoint", "testgroupurl");
+
+        List<DirecotryGroupEmail> emails = oidcUtil.getGroupsEmailFromAAD("testssotoken", email);
+        assertEquals(1, emails.size());
+        assertEquals("T-Vault@t-Mobile.com", emails.get(0).getEmail());
+
+    }
+    @Test
+    public void testgetGroupEmailFromAADfailed() throws Exception {
+        String email = "t-vault@t-mobile.com";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(400);
+
+        ReflectionTestUtils.setField(oidcUtil, "ssoGroupsEndpoint", "testgroupurl");
+
+        List<DirecotryGroupEmail> emails = oidcUtil.getGroupsEmailFromAAD("testssotoken", email);
+        assertEquals(0, emails.size());
+
+    }
 }

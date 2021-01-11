@@ -1,19 +1,19 @@
-// =========================================================================
-// Copyright 2020 T-Mobile, US
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// See the readme.txt file for additional language around disclaimer of warranties.
-// =========================================================================
+/** *******************************************************************************
+*  Copyright 2020 T-Mobile, US
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*  See the readme.txt file for additional language around disclaimer of warranties.
+*********************************************************************************** */
 
 package com.tmobile.cso.vault.api.service;
 
@@ -26,11 +26,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
-import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -48,7 +46,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -91,21 +88,29 @@ public class WorkloadDetailsService {
 			JsonArray results = response.getAsJsonArray("items");
 			// iterate json array to populate WorkloadAppDetails list
 			for(JsonElement jsonElement: results) {
-				if (jsonElement.getAsJsonObject() != null) {
-					JsonObject metadata = jsonElement.getAsJsonObject().getAsJsonObject("metadata");
-					JsonObject spec = jsonElement.getAsJsonObject().getAsJsonObject("spec");
-					WorkloadAppDetails workloadAppDetails = new WorkloadAppDetails();
-					if (spec != null) {
-						workloadAppDetails.setAppName((spec.get("summary").isJsonNull()?"":spec.get("summary").getAsString()));
-						workloadAppDetails.setAppID((spec.get("id").isJsonNull()?"":spec.get("id").getAsString()));
-						workloadAppDetails.setAppTag((spec.get("id").isJsonNull()?"":spec.get("id").getAsString()));
-						workloadAppDetailsList.add(workloadAppDetails);
-					}
-				}
+				populateWorkloadAppDetails(workloadAppDetailsList, jsonElement);
 			}
 		}
 
 		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(workloadAppDetailsList));
+	}
+
+	/**
+	 * Method to populate application details
+	 * @param workloadAppDetailsList
+	 * @param jsonElement
+	 */
+	private void populateWorkloadAppDetails(List<WorkloadAppDetails> workloadAppDetailsList, JsonElement jsonElement) {
+		if (jsonElement.getAsJsonObject() != null) {
+			JsonObject spec = jsonElement.getAsJsonObject().getAsJsonObject("spec");
+			WorkloadAppDetails workloadAppDetails = new WorkloadAppDetails();
+			if (spec != null) {
+				workloadAppDetails.setAppName((spec.get("summary").isJsonNull()?"":spec.get("summary").getAsString()));
+				workloadAppDetails.setAppID((spec.get("id").isJsonNull()?"":spec.get("id").getAsString()));
+				workloadAppDetails.setAppTag((spec.get("id").isJsonNull()?"":spec.get("id").getAsString()));
+				workloadAppDetailsList.add(workloadAppDetails);
+			}
+		}
 	}
 
 
@@ -117,10 +122,10 @@ public class WorkloadDetailsService {
 	private JsonObject getApiResponse(String api)  {
 		if (StringUtils.isEmpty(workloadEndpointToken)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "getApiResponse").
-					put(LogMessage.MESSAGE, String.format ("Invalid workload token")).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					put(LogMessage.MESSAGE, "Invalid workload token").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return null;
 		}
@@ -139,56 +144,78 @@ public class WorkloadDetailsService {
 							}
 						}).build()
 					).setRedirectStrategy(new LaxRedirectStrategy()).build();
-
 				
 		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "getApiResponse").
-					put(LogMessage.MESSAGE, String.format ("Faile to create httpClient")).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					put(LogMessage.MESSAGE, "Faile to create httpClient").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 		}
 
 		HttpGet getRequest = new HttpGet(api);
 		getRequest.addHeader("accept", "application/json");
 		getRequest.addHeader("Authorization",workloadEndpointToken);
-		String output = "";
-		StringBuffer jsonResponse = new StringBuffer();
-
+		StringBuilder jsonResponse = new StringBuilder();
 		try {
-			HttpResponse apiResponse = httpClient.execute(getRequest);
-			if (apiResponse.getStatusLine().getStatusCode() != 200) {
-				return null;
+			HttpResponse apiResponse = null;
+			if(httpClient != null) {
+				apiResponse = httpClient.execute(getRequest);
+				if (apiResponse.getStatusLine().getStatusCode() != 200) {
+					return null;
+				}
 			}
-			BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-			while ((output = br.readLine()) != null) {
-				jsonResponse.append(output);
-			}
+			readAPIResponse(jsonResponse, apiResponse);
+
 			return (JsonObject) jsonParser.parse(jsonResponse.toString());
 		} catch (IOException e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "getApprolesFromCwm").
-					put(LogMessage.MESSAGE, String.format ("Failed to parse CWM api response")).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					put(LogMessage.MESSAGE, "Failed to parse CWM api response").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 		}
 		return null;
 	}
 
+	/**
+	 * Method to read api response
+	 * @param jsonResponse
+	 * @param apiResponse
+	 */
+	private void readAPIResponse(StringBuilder jsonResponse, HttpResponse apiResponse) {
+		String output;
+		if(apiResponse != null) {
+			try(BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())))){
+				while ((output = br.readLine()) != null) {
+					jsonResponse.append(output);
+				}
+			}catch(Exception ex) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "getApprolesFromCwm").
+						put(LogMessage.MESSAGE, "Failed to read CWM api response").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+		}
+	}
+
 	public ResponseEntity<String> getWorkloadDetailsByAppName(String appName){
 		JsonObject response = getApiResponse(workloadEndpoint + "/" + appName);
-		if(Objects.isNull(response)){
+		if(null == response){
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "Getting Application Details by app name ").
 					put(LogMessage.MESSAGE, String.format("For an application name  = [%s]",appName)).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Application name doesn't " +
 					"exist\"]}");
+		}else {
+			return ResponseEntity.status(HttpStatus.OK).body(response.toString());
 		}
-		return ResponseEntity.status(HttpStatus.OK).body(response.toString());
 	}
 }

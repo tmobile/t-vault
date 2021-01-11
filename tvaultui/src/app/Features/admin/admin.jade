@@ -355,9 +355,18 @@ script(type='text/ng-template', id='certificatePopup.html')
                       .certificate-form-label(uib-tooltip="Notification emails list") Notification emails*
                       div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="notificationEmails.length>0")
                       div.dns-wrapper.addNotificationEmailCert
-                        .col-lg-9.col-md-9.col-sm-9.col-xs-9
+                      div.certeditnotes Search By:
+                      label.certificate-form-label Email
+                        input(type='radio' id='notification_selection_email' value="email"  ng-click="notifDropdown('email')" ng-checked="selectionValue == 'email'")
+                      label.certificate-form-label NTID
+                        input(type='radio' id='notification_selection_ntid' value="ntid" ng-click="notifDropdown('ntid')" ng-checked="selectionValue == 'ntid'")
+                      label.certificate-form-label LastName
+                        input(type='radio' id='notification_selection_lastname' value="lastname"  ng-click="notifDropdown('lastname')" ng-checked="selectionValue == 'lastname'")
+                      label.certificate-form-label GroupEmail
+                        input(type='radio' id='notification_selection_groupmail' value="groupemail"  ng-click="notifDropdown('groupemail')" ng-checked="selectionValue == 'groupemail'")
+                      .col-lg-9.col-md-9.col-sm-9.col-xs-9
                           .cert-input-group.cert-suffix
-                            input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmailForNotification($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
+                            input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail || key.email for key in searchEmailForNotification($viewValue,selectionValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
                             div.loader.svcaccid.notification-email-loader(ng-if='isUserSearchLoading && isNotificationEmailSearch && $scope.certObj.certDetails.notificationEmail.length > 2')
                                 div.ball-spin-fade-loader
                                     div
@@ -484,9 +493,18 @@ script(type='text/ng-template', id='onboardCertificatePopup.html')
                       .certificate-form-label(uib-tooltip="Notification emails list") Notification Emails*
                       div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="notificationEmails.length>0")
                       div.dns-wrapper.addnotificationemail
-                        .col-lg-9.col-md-9.col-sm-9.col-xs-9
+                      div.certeditnotes Search By:
+                      label.certificate-form-label Email
+                        input(type='radio' id='notification_selection_onemail' value="email" ng-click="notifDropdown('email')" ng-checked="selectionValue == 'email'")
+                      label.certificate-form-label NTID
+                        input(type='radio' id='notification_selection_onntid' value="ntid" ng-click="notifDropdown('ntid')" ng-checked="selectionValue == 'ntid'")
+                      label.certificate-form-label LastName
+                        input(type='radio' id='notification_selection_onlastname' value="lastname" ng-click="notifDropdown('lastname')" ng-checked="selectionValue == 'lastname'")
+                      label.certificate-form-label GroupEmail
+                        input(type='radio' id='notification_selection_ongroupname' value="groupemail" ng-click="notifDropdown('groupemail')" ng-checked="selectionValue == 'groupemail'")
+                      .col-lg-9.col-md-9.col-sm-9.col-xs-9
                           .cert-input-group.cert-suffix
-                            input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmailForNotification($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
+                            input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail ||key.email for key in searchEmailForNotification($viewValue,selectionValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
                             div.loader.svcaccid.notification-email-loader(ng-if='isUserSearchLoading && isNotificationEmailSearch && notificationEmail.email.length > 2')
                                 div.ball-spin-fade-loader
                                     div
@@ -574,7 +592,7 @@ script(type='text/ng-template', id='certificateOnboardPopUp.html')
       .top-lg-sep.notification-text  {{ certificateOnboardMessage }}
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
       .clearfix.bottom-sm-sep
-        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="successCancel()") CLOSE
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="successCancelOnboardCert()") CLOSE
 
 script(type='text/ng-template', id='certificateOnboardFailedPopUp.html')
   loading-state(ng-if="isLoadingModalData")
@@ -928,7 +946,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                     md-tab(label="Certificates" md-on-select="tabChangeForAdminCert()" )
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                           .md-content-inner-wrapper
-                              div.certnotes How to get started and what to know
+                              div.certnotes(id='certificateStart') How to get started and what to know
                                 span.cert-collapse-link(ng-click="collapseNoteCert()") >>
                               div.certcollapsible(uib-collapse="isCollapsedCert")
                                   div.svcdescription
@@ -971,7 +989,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                               .change-list-table-data.row
                                                   .unavailable-text(ng-show="!isLoadingData && certificateData.certificates.length==0")
                                                       .container.name No Certificates Available
-                                              .row.change-data.header.solid-header.removeborder(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length != '0')")
+                                              .row.change-data.header.solid-header(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length != '0')")
                                                   .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-3 CERTIFICATE
                                                   .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
                                                   .container.name.col-lg-1.col-md-2.col-sm-2.col-xs-2 STATUS
@@ -981,8 +999,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                       .action-icon-wrapper.static
                                                           .rotate.glyphicon.glyphicon-remove-circle
                                                       .create-link.middle-block.hide-in-mobile
-                                                          .text CREATE NEW CERTIFICATE                                              
-                                              .row.change-data.header.solid-header
+                                                          .text CREATE NEW CERTIFICATE
                                               .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter: {certificateName:searchValue} | limitTo: certpaginationLimit()")
                                                   .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-3(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
                                                   .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-2(title="{{ getCertExpirationDate(value) }}") {{ getCertExpirationDate(value) }}

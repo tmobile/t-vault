@@ -51,6 +51,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tmobile.cso.vault.api.bo.ADServiceAccount;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.main.Application;
 import com.tmobile.cso.vault.api.process.Response;

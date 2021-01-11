@@ -63,7 +63,7 @@ public class AWSAuthServiceTest {
     AWSAuthService awsAuthService;
 
     @Mock
-    RequestProcessor reqProcessor;
+    RequestProcessor reqProcessor;    
 
     @Before
     public void setUp() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
@@ -100,7 +100,7 @@ public class AWSAuthServiceTest {
     }
 
     @Test
-    public void test_createRole_successfully() {
+    public void testcreateRolesuccessfully() {
 
         Response response = new Response();
         response.setHttpstatus(HttpStatus.OK);
@@ -118,12 +118,13 @@ public class AWSAuthServiceTest {
                 "\"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\",  " +
                 "\"policies\": \"\\\"[prod, dev\\\"]\"}";
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS EC2 Role created \"]}");
         when(reqProcessor.process("/auth/aws/roles/create", jsonStr, token)).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(response);
         when(JSONUtil.getJSON(awsLoginRole)).thenReturn(jsonStr);
         UserDetails userDetails = getMockUser(true);
         when(ControllerUtil.createMetadata(Mockito.any(), eq(token))).thenReturn(true);
+        when(ControllerUtil.populateUserMetaJson(Mockito.any(), Mockito.any())).thenReturn("awsec2RoleUserMetaDataCreationStatus");
         when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(responseNoContent);
         ResponseEntity<String> responseEntity = null;
         try {
@@ -428,7 +429,7 @@ public class AWSAuthServiceTest {
 
     }
 
-    @Test
+   @Test
     public void test_configureClient_successfully() {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";

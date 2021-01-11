@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
@@ -399,6 +400,15 @@ public class OIDCAuthService {
 	 */
 	public ResponseEntity<String> getUserName(UserDetails userDetails) {
 		String userName = oidcUtil.getUserName(userDetails.getEmail());
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, "getUserName").
+                put(LogMessage.MESSAGE, String.format ("User Successfully logged in into application and user name = " +
+                                "[%s] email = [%s] admin = [%s]",
+                        userDetails.getUsername(),userDetails.getEmail(),userDetails.isAdmin())).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
+
 		return ResponseEntity.status(HttpStatus.OK)
 				.body("{\"data\":{\"username\": \"" + userName.toLowerCase() + "\"}}");
 
@@ -417,6 +427,23 @@ public class OIDCAuthService {
 
             DirectoryObjectsList groupsList = new DirectoryObjectsList();
             groupsList.setValues(allGroups.toArray(new DirectoryGroup[allGroups.size()]));
+            groups.setData(groupsList);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(groups);
+    }
+    /**
+     * To search groupEmail in AAD.
+     * @param email
+     * @return
+     */
+    public ResponseEntity<DirectoryObjects> searchGroupEmailInAzureAD(String email) {
+        String ssoToken = oidcUtil.getSSOToken();
+        DirectoryObjects groups = new DirectoryObjects();
+        if (!StringUtils.isEmpty(ssoToken)) {
+            List<DirecotryGroupEmail> allGroups = oidcUtil.getGroupsEmailFromAAD(ssoToken, email);
+
+            DirectoryObjectsList groupsList = new DirectoryObjectsList();
+            groupsList.setValues(allGroups.toArray(new DirecotryGroupEmail[allGroups.size()]));
             groups.setData(groupsList);
         }
         return ResponseEntity.status(HttpStatus.OK).body(groups);

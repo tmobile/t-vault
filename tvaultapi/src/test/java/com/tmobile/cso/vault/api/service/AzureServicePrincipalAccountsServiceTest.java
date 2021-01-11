@@ -35,6 +35,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.AzureServiceAccountConstants;
@@ -1686,7 +1687,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		userDetails = getMockUser(true);
 		token = userDetails.getClientToken();
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body("{\"errors\":[\"Failed to add group to the Azure Service Principal\"]}");
+				.body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
 		Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
 		Response groupResp = getMockResponse(HttpStatus.OK, true,
@@ -1771,7 +1772,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 	}
 
 	@Test
-	public void test_activateAzureServicePrincipal_successfull() {
+	public void test_activateAzureServicePrincipal_successfull() throws IOException {
 
 		String servicePrincipal = "svc_vault_test5";
 		String token = "123123123123";
@@ -1804,7 +1805,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 
 		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
 
-		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		//when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
 		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
@@ -2011,7 +2012,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		    }
 
 	@Test
-	public void test_activateAzureServicePrincipal_failed_owner_association() {
+	public void test_activateAzureServicePrincipal_failed_owner_association() throws IOException {
 
 		String servicePrincipal = "svc_vault_test5";
 		String token = "123123123123";
@@ -2070,7 +2071,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		String secretKeyId = "12345678-1234-1234-1234-123456789098";
 		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
 
-		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		//when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
 		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
@@ -2082,7 +2083,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 	}
 
 	@Test
-	public void test_activateAzureServicePrincipal_failed_add_user() {
+	public void test_activateAzureServicePrincipal_failed_add_user() throws IOException {
 
 		String servicePrincipal = "svc_vault_test5";
 		String token = "123123123123";
@@ -2115,7 +2116,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		String secretKeyId = "12345678-1234-1234-1234-123456789098";
 		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
 
-		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		//when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
 		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
@@ -2144,7 +2145,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 	}
 
 	@Test
-	public void test_activateAzureServicePrincipal_failed_to_save_secret() {
+	public void test_activateAzureServicePrincipal_failed_to_save_secret() throws IOException {
 
 		String servicePrincipal = "svc_vault_test5";
 		String token = "123123123123";
@@ -2171,7 +2172,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		when(reqProcessor.process("/read", "{\"path\":\""+path+"\"}", token)).thenReturn(getMockResponse(HttpStatus.OK, true,
 				azureMetaDataStr));
 
-		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(null);
+		//when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(null);
 		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(null);
 
 
@@ -2199,7 +2200,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 	}
 
 	@Test
-	public void test_activateAzureServicePrincipal_failed_metadata_update() {
+	public void test_activateAzureServicePrincipal_failed_metadata_update() throws IOException {
 
 		String servicePrincipal = "svc_vault_test5";
 		String token = "123123123123";
@@ -2232,7 +2233,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 		String secretKeyId = "12345678-1234-1234-1234-123456789098";
 		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
 
-		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		//when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
 		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
@@ -2244,7 +2245,7 @@ public class AzureServicePrincipalAccountsServiceTest {
 	}
 
 	@Test
-	public void test_rotateSecret_successfull() {
+	public void test_rotateSecret_successfull() throws IOException {
 
 		String servicePrincipal = "svc_vault_test5";
 		String token = "123123123123";
@@ -2271,16 +2272,17 @@ public class AzureServicePrincipalAccountsServiceTest {
 
 		String azureSecret = "abcdefgh";
 		String secretKeyId = "12345678-1234-1234-1234-123456789098";
+		Long expiryDurationMs = 63738393L;
 		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
 
-		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		//when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
 		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
 		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
 		when(azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipal)).thenReturn(responseNoContent);
 
 		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Azure Service Principal secret rotated successfully\"]}");
-		AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest(servicePrincipal, secretKeyId, "98765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
+		AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest(servicePrincipal, secretKeyId, "98765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098", expiryDurationMs);
 		ResponseEntity<String> actualResponse = azureServicePrincipalAccountsService.rotateSecret(token, azureServicePrincipalRotateRequest);
 		assertEquals(expectedResponse, actualResponse);
 	}
@@ -2304,15 +2306,15 @@ public class AzureServicePrincipalAccountsServiceTest {
 		}
 
 		String secretKeyId = "12345678-1234-1234-1234-123456789098";
-
+		Long expiryDurationMs = 63738393L;
 		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: No permission to rotate secret for this Azure Service Principal.\"]}");
-		AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest(servicePrincipal, secretKeyId, "98765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
+		AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest(servicePrincipal, secretKeyId, "98765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098", expiryDurationMs);
 		ResponseEntity<String> actualResponse = azureServicePrincipalAccountsService.rotateSecret(token, azureServicePrincipalRotateRequest);
 		assertEquals(expectedResponse, actualResponse);
 	}
 
 	@Test
-	public void test_rotateIAMServiceAccount_faile_to_rotate_secret() {
+	public void test_rotateIAMServiceAccount_faile_to_rotate_secret() throws IOException {
 
 		String servicePrincipal = "svc_vault_test5";
 		String token = "123123123123";
@@ -2339,16 +2341,17 @@ public class AzureServicePrincipalAccountsServiceTest {
 
 		String azureSecret = "abcdefgh";
 		String secretKeyId = "12345678-1234-1234-1234-123456789098";
+		Long expiryDurationMs = 63738393L;
 		AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret(secretKeyId, azureSecret, 604800000L, "Thu Jan 08 05:30:00 IST 1970", "8765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
 
-		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(null);
-		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(azureServiceAccountSecret);
+		//when(azureServiceAccountUtils.rotateAzureServicePrincipalSecretMOCK(Mockito.any())).thenReturn(null);
+		when(azureServiceAccountUtils.rotateAzureServicePrincipalSecret(Mockito.any())).thenReturn(null);
 		when(azureServiceAccountUtils.writeAzureSPSecret(token, "azuresvcacc/svc_vault_test5/secret_1", servicePrincipal, azureServiceAccountSecret)).thenReturn(true);
 		when(azureServiceAccountUtils.updateAzureSPSecretKeyInfoInMetadata(eq(token), eq(servicePrincipal), eq(secretKeyId), Mockito.any())).thenReturn(responseNoContent);
 		when(azureServiceAccountUtils.updateActivatedStatusInMetadata(token, servicePrincipal)).thenReturn(responseNoContent);
 
 		ResponseEntity<String> expectedResponse =  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to rotate secret for Azure Service Principal\"]}");
-		AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest(servicePrincipal, secretKeyId, "98765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098");
+		AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest = new AzureServicePrincipalRotateRequest(servicePrincipal, secretKeyId, "98765432-1234-1234-1234-123456789098", "abcd1234-1234-1234-1234-123456789098", expiryDurationMs);
 		ResponseEntity<String> actualResponse = azureServicePrincipalAccountsService.rotateSecret(token, azureServicePrincipalRotateRequest);
 		assertEquals(expectedResponse, actualResponse);
 	}
@@ -2382,7 +2385,19 @@ public class AzureServicePrincipalAccountsServiceTest {
 		when(ControllerUtil.updateMetadata(any(), eq(token))).thenReturn(responseNoContent);
 		when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 		when(reqProcessor.process(eq("/sdb"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,
-				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+				"{\"data\":{\"isActivated\":true,\"managedBy\":\"normaluser\",\"name\":\"testaccount\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+
+		String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"rotate\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"accessKeyId\":\"1212zdasd\",\"accessKeySecret\":\"assOOetcHce1VugthF6KE9hqv2PWWbX3ULrpe1T\",\"awsAccountId\":\"123456789012\",\"expiryDateEpoch\":1609845308000,\"userName\":\"testiamsvcacc01_01\",\"expiryDate\":\"2021-01-05 16:45:08\"}}";
+		Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+
+        when(reqProcessor.process(eq("/azuresvcacct"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 
 		ResponseEntity<String> responseEntity = azureServicePrincipalAccountsService.removeGroupFromAzureServiceAccount(token, azureSvcAccGroup, userDetails);
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -2435,6 +2450,18 @@ public class AzureServicePrincipalAccountsServiceTest {
 		Response response1 = new Response();
 		response1.setHttpstatus(HttpStatus.NO_CONTENT);
 		when(OIDCUtil.updateGroupPolicies(any(), any(), any(), any(), any())).thenReturn(response1);
+
+		String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"rotate\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"accessKeyId\":\"1212zdasd\",\"accessKeySecret\":\"assOOetcHce1VugthF6KE9hqv2PWWbX3ULrpe1T\",\"awsAccountId\":\"123456789012\",\"expiryDateEpoch\":1609845308000,\"userName\":\"testiamsvcacc01_01\",\"expiryDate\":\"2021-01-05 16:45:08\"}}";
+		Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+
+        when(reqProcessor.process(eq("/azuresvcacct"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 
 		ResponseEntity<String> responseEntity = azureServicePrincipalAccountsService.removeGroupFromAzureServiceAccount(token,
 				azureSvcAccGroup, userDetails);
@@ -2732,7 +2759,7 @@ public class AzureServicePrincipalAccountsServiceTest {
     @Test
     public void test_removeApproleFromAzureSvcAcc_succssfully() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed from Azure Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed(if existed) from Azure Service Account\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         AzureServiceAccountApprole serviceAccountApprole = new AzureServiceAccountApprole("testsvcname", "role1", "read");

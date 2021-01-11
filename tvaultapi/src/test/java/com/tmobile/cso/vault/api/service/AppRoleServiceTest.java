@@ -51,8 +51,11 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
@@ -83,6 +86,9 @@ public class AppRoleServiceTest {
 
     @Mock
     RequestProcessor reqProcessor;
+    
+    @Mock
+    JsonNode jsonNode;
     
     ObjectMapper objMapper = new ObjectMapper();
 
@@ -469,6 +475,10 @@ public class AppRoleServiceTest {
         // END - isAllowed
         Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
+        Response metaDataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenReturn(metaDataResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -512,6 +522,10 @@ public class AppRoleServiceTest {
         // END - isAllowed
         Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
+        Response metaDataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenReturn(metaDataResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -543,6 +557,10 @@ public class AppRoleServiceTest {
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
         Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
+        Response metaDataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenReturn(metaDataResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -581,6 +599,10 @@ public class AppRoleServiceTest {
         // END - isAllowed
         Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
+        Response metaDataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenReturn(metaDataResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
@@ -595,7 +617,7 @@ public class AppRoleServiceTest {
         String appRoleId = "approle1";
         Response response =getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response response403 =getMockResponse(HttpStatus.UNAUTHORIZED, true, "");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to remove the role\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Either role doesn't exist or you don't have enough permission to remove this role from Safe\"]}");
         AppRole appRole = new AppRole();
         appRole.setRole_name(appRoleId);
         String jsonStr = "{\"role_name\":\"approle1\",\"policies\":null,\"bind_secret_id\":false,\"secret_id_num_uses\":null,\"secret_id_ttl\":null,\"token_num_uses\":null,\"token_ttl\":null,\"token_max_ttl\":null}";
@@ -610,7 +632,7 @@ public class AppRoleServiceTest {
         responseMap.put("data", data);
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(responseMap);
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(response);
-        Response permissionResponse =getMockResponse(HttpStatus.UNAUTHORIZED, true, "Access denied: no permission to remove the role");
+        Response permissionResponse =getMockResponse(HttpStatus.UNAUTHORIZED, true, "Either role doesn't exist or you don't have enough permission to remove this role from Safe");
         when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
@@ -656,6 +678,12 @@ public class AppRoleServiceTest {
         // END - isAllowed
         Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
+        Response responseData =getMockResponse(HttpStatus.OK, true, "");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\""+appRole.getRole_name()+"\"}",token)).thenReturn(responseData);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
+        Response metaDataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenReturn(metaDataResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());
@@ -699,6 +727,10 @@ public class AppRoleServiceTest {
         // END - isAllowed
         Response permissionResponse =getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.canDeleteRole(appRole.getRole_name(), token, userDetails, TVaultConstants.APPROLE_METADATA_MOUNT_PATH)).thenReturn(permissionResponse);
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
+        when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
+        Response metaDataResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.updateMetadata(Mockito.anyMap(), eq(token))).thenReturn(metaDataResponse);
         ResponseEntity<String> responseEntityActual = appRoleService.deleteAppRole(token, appRole, userDetails);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntityActual.getStatusCode());

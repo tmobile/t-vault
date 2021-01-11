@@ -124,7 +124,7 @@ public class SDBControllerV2Test {
     @Test
     public void test_deletefolder() throws Exception {
         String responseJson = "{\"messages\":[\"SDB deleted\"]}";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         String inputJson =new ObjectMapper().writeValueAsString(safe);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
@@ -140,7 +140,7 @@ public class SDBControllerV2Test {
 
     @Test
     public void test_updateSafe() throws Exception {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String inputJson =new ObjectMapper().writeValueAsString(safe);
@@ -159,7 +159,7 @@ public class SDBControllerV2Test {
 
     @Test
     public void test_createSafe() throws Exception {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String inputJson =new ObjectMapper().writeValueAsString(safe);
@@ -179,7 +179,7 @@ public class SDBControllerV2Test {
     @Test
     public void test_deleteSafe() throws Exception {
         String responseJson = "{\"messages\":[\"Safe deleted\"]}";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String inputJson =new ObjectMapper().writeValueAsString(safe);
@@ -216,7 +216,7 @@ public class SDBControllerV2Test {
         String inputJson =new ObjectMapper().writeValueAsString(safeUser);
         String responseJson = "{\"messages\":[\"User is successfully associated \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-        when(safesService.addUserToSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), eq(null))).thenReturn(responseEntityExpected);
+        when(safesService.addUserToSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), eq(null), eq(false))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/sdb/user")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")

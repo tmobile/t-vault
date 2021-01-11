@@ -218,9 +218,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_createSafe_successfully() {
+    public void testcreateSafesuccessfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         String jsonStr = "{ \"data\": {\"description\": \"My first safe\", \"name\": \"mysafe01\", \"owner\": \"youremail@yourcompany.com\"}, \"path\": \"shared/mysafe01\"}";
         String metadatajson = "{\"path\":\"metadata/shared/mysafe03\",\"data\":{\"name\":\"mysafe03\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";
@@ -251,9 +251,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_createSafe_failure_invalid_safename() {
+    public void testcreateSafefailureinvalidsafename() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01_", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01_", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01_",safeBasicDetails);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Safe name: unexpected character _ in the end\"]}");
@@ -265,9 +265,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_createSafe_failure_safename_too_short() {
+    public void testcreateSafefailuresafenametooshort() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("sa", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("sa", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/sa",safeBasicDetails);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Safe name: Please enter minimum 3 characters\"]}");
@@ -279,9 +279,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_createSafe_failure_description_too_short() {
+    public void testcreateSafefailuredescriptiontooshort() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("safe1", "youremail@yourcompany.com", null, "My safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("safe1", "youremail@yourcompany.com", null, "My safe","T-Vault");
         Safe safe = new Safe("shared/safe1",safeBasicDetails);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Description: Please enter minimum 10 characters\"]}");
@@ -293,7 +293,7 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_createSafe_failure_description_too_long() {
+    public void testcreateSafefailuredescriptiontoolong() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe My first safe" +
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
@@ -303,7 +303,7 @@ public class SafesServiceTest {
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
-                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe");
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values: Description too long\"]}");
         when(ControllerUtil.areSDBInputsValid(safe)).thenReturn(true);
@@ -314,9 +314,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_createSafe_failure_policies_creation() {
+    public void testcreateSafefailurepoliciescreation() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         String jsonStr = "{ \"data\": {\"description\": \"My first safe\", \"name\": \"mysafe01\", \"owner\": \"youremail@yourcompany.com\"}, \"path\": \"shared/mysafe01\"}";
         String metadatajson = "{\"path\":\"metadata/shared/mysafe03\",\"data\":{\"name\":\"mysafe03\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";
@@ -348,9 +348,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_createSafe_failure_400() {
+    public void testcreateSafefailure400() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         String jsonStr = "{ \"data\": {\"description\": \"My first safe\", \"name\": \"mysafe01\", \"owner\": \"youremail@yourcompany.com\"}, \"path\": \"shared/mysafe01\"}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
@@ -391,10 +391,10 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_deleteSafe_failed_400() {
+    public void testdeleteSafefailed400() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String path = "shared/mysafe01";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe(path,safeBasicDetails);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
 
@@ -409,9 +409,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_updateSafe_successfully() {
+    public void testupdateSafesuccessfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String jsonStr = "{\"path\":\"shared/mysafe01\",\"data\":{\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";
@@ -446,7 +446,7 @@ public class SafesServiceTest {
 
 
     @Test
-    public void test_updateSafe_failure_description_too_long() {
+    public void testupdateSafefailuredescriptiontoolong() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe My first safe" +
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
@@ -456,7 +456,7 @@ public class SafesServiceTest {
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
                 "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe" +
-                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe");
+                "My first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safeMy first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String jsonStr = "{\"path\":\"shared/mysafe01\",\"data\":{\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";
@@ -479,9 +479,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_updateSafe_failure_400() {
+    public void testupdateSafefailure400() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String jsonStr = "{\"path\":\"shared/mysafe01\",\"data\":{\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";
@@ -507,9 +507,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_updateSafe_failure_404() {
+    public void testupdateSafefailure404() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String jsonStr = "{\"path\":\"shared/mysafe01\",\"data\":{\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";
@@ -538,9 +538,9 @@ public class SafesServiceTest {
     }
 
     @Test
-    public void test_updateSafe_failure_invalidInput() {
+    public void testupdateSafefailureinvalidInput() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String jsonStr = "{\"path\":\"shared/mysafe01\",\"data\":{\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\",\"description\":\"My first safe\"}}";
@@ -573,7 +573,7 @@ public class SafesServiceTest {
         when(ControllerUtil.areSafeUserInputsValid(safeUser)).thenReturn(false);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
         
-        ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
+        ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails, false);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -874,9 +874,7 @@ public class SafesServiceTest {
         when(ControllerUtil.getSafeType(path)).thenReturn("shared");
         when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
         when(ControllerUtil.getAllExistingSafeNames("shared", token)).thenReturn(null);
-        
 		ReflectionTestUtils.setField(safesService, "vaultAuthMethod", "ldap");
-        
         ResponseEntity<String> responseEntity = safesService.removeUserFromSafe(token, safeUser, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -928,6 +926,17 @@ public class SafesServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"groups\": {\"mygroup01\": \"write\"},\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+
         ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup, getMockUser(true));
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -957,6 +966,17 @@ public class SafesServiceTest {
         }
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNotFound);
+
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"groups\": {\"mygroup01\": \"write\"},\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 
         ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup, getMockUser(true));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -1151,13 +1171,22 @@ public class SafesServiceTest {
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, true, "");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");
-
-
         when(JSONUtil.getJSON(safeGroup)).thenReturn(jsonstr);
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"mygroup01\"}",token)).thenReturn(responseNotFound);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"groups\": {\"mygroup01\": \"write\"},\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 
         ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup, getMockUser(true));
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -1297,6 +1326,18 @@ public class SafesServiceTest {
         when(ControllerUtil.canDeleteRole(awsRole.getRole(), token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH)).thenReturn(responseOk);
         Response deleteResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(deleteResponse);
+
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"aws-roles\": {\"iam\": \"write\"},\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+
         ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1324,6 +1365,18 @@ public class SafesServiceTest {
         when(ControllerUtil.canDeleteRole(awsRole.getRole(), token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH)).thenReturn(responseOk);
         Response deleteResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(reqProcessor.process(eq("/delete"),Mockito.any(),eq(token))).thenReturn(deleteResponse);
+
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"aws-roles\": {\"iam\": \"write\"},\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+
         ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1347,6 +1400,18 @@ public class SafesServiceTest {
         UserDetails userDetails = getMockUser(false);
         Response responseOk = getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.canDeleteRole(awsRole.getRole(), token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH)).thenReturn(responseOk);
+
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"aws-roles\": {\"iam\": \"write\"},\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+
         ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1364,6 +1429,84 @@ public class SafesServiceTest {
         when(JSONUtil.getJSON(awsRole)).thenReturn(jsonStr);
         when(ControllerUtil.isValidSafePath(path)).thenReturn(false);
         UserDetails userDetails = getMockUser(false);
+        ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSafe_failed_404() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        AWSRole awsRole = new AWSRole(path,"iam","read");
+        String jsonStr = "{  \"access\": \"read\",  \"path\": \"shared/mysafe01\",  \"role\": \"iam\"}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove AWS role from safe. AWS role association to safe not found\"]}");
+
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+
+        when(JSONUtil.getJSON(awsRole)).thenReturn(jsonStr);
+        when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        UserDetails userDetails = getMockUser(false);
+
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+
+        ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSafe_failed_metadata_invalid() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        AWSRole awsRole = new AWSRole(path,"iam","read");
+        String jsonStr = "{  \"access\": \"read\",  \"path\": \"shared/mysafe01\",  \"role\": \"iam\"}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Error Fetching existing safe info. please check the path specified\"]}");
+
+        String metdataJsonString = "{\"data\":{\"description\":\"My first safe\",\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"type\":\"\"}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(readResponse);
+
+        when(JSONUtil.getJSON(awsRole)).thenReturn(jsonStr);
+        when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        UserDetails userDetails = getMockUser(false);
+
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(new HashMap<>());
+
+        ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_removeAWSRoleFromSafe_failed_metadata_notFound() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String path = "shared/mysafe01";
+        AWSRole awsRole = new AWSRole(path,"iam","read");
+        String jsonStr = "{  \"access\": \"read\",  \"path\": \"shared/mysafe01\",  \"role\": \"iam\"}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Error Fetching existing safe info. please check the path specified\"]}");
+
+        when(reqProcessor.process("/read","{\"path\":\"metadata/shared/mysafe01\"}",token)).thenReturn(getMockResponse(HttpStatus.NOT_FOUND, true, ""));
+
+        when(JSONUtil.getJSON(awsRole)).thenReturn(jsonStr);
+        when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
+        when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
+        UserDetails userDetails = getMockUser(false);
+
         ResponseEntity<String> responseEntity = safesService.removeAWSRoleFromSafe(token, awsRole, false, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1539,7 +1682,7 @@ public class SafesServiceTest {
     public void test_removeApproleFromSafe_successfully() throws Exception {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String inputJson = "{\"role_name\":\"approle1\",\"path\":\"users/safe1\",\"access\":\"read\"}";
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed(if existed) from Safe\"]}");
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"approle1\"}",token)).thenReturn(appRoleResponse);
@@ -1777,7 +1920,7 @@ public class SafesServiceTest {
 
             when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails, true)).thenReturn(responseEntity2);
 			when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
-			ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
+			ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails, false);
 			assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
 			assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1861,7 +2004,7 @@ public class SafesServiceTest {
 			when(OIDCUtil.updateOIDCEntity(any(), any()))
 					.thenReturn(responseEntity3);
               when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails, true)).thenReturn(responseEntity2);
-     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
+     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails, false);
      assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
      assertEquals(responseEntityExpected, responseEntity);
  }
@@ -1873,6 +2016,8 @@ public class SafesServiceTest {
 	          SafeUser safeUser = new SafeUser(path, "testuser1","write");
 	          UserDetails userDetails = new UserDetails();
 	          userDetails.setUsername("testuser1");
+	          userDetails.setAccess("write");
+	          userDetails.setEmail("test@t-mobile.com");
 	          
 	          Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
 	          Response idapConfigureResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
@@ -1902,7 +2047,7 @@ public class SafesServiceTest {
 	          when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
 	          when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
 
-	          ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, null);
+	          ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails, false);
 	          assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 	          assertEquals(responseEntityExpected, responseEntity);
 	      }
@@ -1998,7 +2143,7 @@ public class SafesServiceTest {
 					.thenReturn(responseEntity3);
 			when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails, true)).thenReturn(responseEntity2);
      
-     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
+     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails, false);
      assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
      assertEquals(responseEntityExpected, responseEntity);
  }
@@ -2090,7 +2235,7 @@ public class SafesServiceTest {
 			Response responseEntity3 = getMockResponse(HttpStatus.BAD_REQUEST, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
 		when(OIDCUtil.updateOIDCEntity(any(), any())).thenReturn(responseEntity3);
      when(OIDCUtil.oidcFetchEntityDetails(token, "testuser1", userDetails, true)).thenReturn(responseEntity2);
-     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails);
+     ResponseEntity<String> responseEntity = safesService.addUserToSafe(token, safeUser, userDetails, false);
      assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
  }
 }

@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -55,7 +55,7 @@ public class AWSAuthControllerV2Test {
 
     @Mock
     private AWSAuthService awsAuthService;
-
+   
     @InjectMocks
     private AWSAuthControllerV2 awsAuthControllerV2;
 
@@ -180,6 +180,7 @@ public class AWSAuthControllerV2Test {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseMessage)));
     }
+
 
     @Test
     public void test_configureClient() throws Exception {

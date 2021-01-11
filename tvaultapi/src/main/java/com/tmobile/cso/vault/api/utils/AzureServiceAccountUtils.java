@@ -8,10 +8,11 @@ import java.util.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmobile.cso.vault.api.common.AzureServiceAccountConstants;
-import com.tmobile.cso.vault.api.common.IAMServiceAccountConstants;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
@@ -41,7 +42,7 @@ public class AzureServiceAccountUtils {
     private String iamPortalAuthEndpoint;
     @Value("${azurePortal.secret.endpoint}")
     private String azurePortalrotateSecretEndpoint;
-
+    
     private Logger log = LogManager.getLogger(AzureServiceAccountUtils.class);
 
     @Autowired
@@ -79,22 +80,6 @@ public class AzureServiceAccountUtils {
         return currentpolicies;
     }
 
-
-    /**
-     * To mock rotate Azure secret API.
-     * @param azureServicePrincipalRotateRequest
-     * @return
-     */
-    public AzureServiceAccountSecret rotateAzureServicePrincipalSecretMOCK(AzureServicePrincipalRotateRequest azureServicePrincipalRotateRequest) {
-        AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret();
-        azureServiceAccountSecret.setServicePrincipalId(azureServicePrincipalRotateRequest.getServicePrincipalId());
-        azureServiceAccountSecret.setTenantId(azureServicePrincipalRotateRequest.getTenantId());
-        azureServiceAccountSecret.setSecretKeyId(azureServicePrincipalRotateRequest.getSecretKeyId());
-        azureServiceAccountSecret.setSecretText("mocksecrettext_"+ new Date().getTime());
-        azureServiceAccountSecret.setExpiryDateEpoch(604800000L);
-        azureServiceAccountSecret.setExpiryDate(new Date(604800000L).toString());
-        return azureServiceAccountSecret;
-    }
     /**
      * To get response from rotate api.
      *
@@ -106,7 +91,7 @@ public class AzureServiceAccountUtils {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                     put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
-                    put(LogMessage.MESSAGE, "Invalid IAM Portal approle token").
+                    put(LogMessage.MESSAGE, "Invalid Azure Portal approle token").
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
             return null;
@@ -136,13 +121,15 @@ public class AzureServiceAccountUtils {
         }
 
         HttpPut httpPut = new HttpPut(api);
-
         String inputJson = JSONUtil.getJSON(azureServicePrincipalRotateRequest);
+        Gson gson = new Gson();
+        JsonElement jsonObj= gson.fromJson(inputJson, JsonElement.class);
+        jsonObj.getAsJsonObject().remove("azureSvcAccName");
         StringEntity entity;
-        String iamAuthToken = IAMServiceAccountConstants.IAM_AUTH_TOKEN_PREFIX + " " + Base64.getEncoder().encodeToString(iamApproleToken.getBytes());
+        String iamAuthToken = AzureServiceAccountConstants.AZURE_AUTH_TOKEN_PREFIX + " " + Base64.getEncoder().encodeToString(iamApproleToken.getBytes());
 
         try {
-            entity = new StringEntity(inputJson);
+            entity = new StringEntity(jsonObj.toString());
             httpPut.setEntity(entity);
             httpPut.setHeader("Authorization", iamAuthToken);
             httpPut.setHeader("Accept", "application/json");
@@ -159,49 +146,22 @@ public class AzureServiceAccountUtils {
             return null;
         }
 
-        String output = "";
-        StringBuffer jsonResponse = new StringBuffer();
 
+        StringBuilder jsonResponse = new StringBuilder();
         try {
             HttpResponse apiResponse = httpClient.execute(httpPut);
             if (apiResponse.getStatusLine().getStatusCode() != 200) {
-                BufferedReader r = new BufferedReader(new InputStreamReader(apiResponse.getEntity().getContent()));
-                StringBuilder total = new StringBuilder();
-                String line = null;
-                while ((line = r.readLine()) != null) {
-                    total.append(line);
-                }
-                r.close();
-                log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                        put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
-                        put(LogMessage.MESSAGE, "Failed to build StringEntity:"+total.toString()).
-                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                        build()));
+
+				StringBuilder total = new StringBuilder();
+				readFailedResponseContent(apiResponse, total);
                 return null;
             }
-            BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())));
-            while ((output = br.readLine()) != null) {
-                jsonResponse.append(output);
-            }
+
+            readResponseContent(jsonResponse, apiResponse, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION);
             AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret();
             JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
-            if (!responseJson.isJsonNull()) {
-                if (responseJson.has("servicePrincipalId")) {
-                    azureServiceAccountSecret.setServicePrincipalId(responseJson.get("servicePrincipalId").getAsString());
-                }
-                if (responseJson.has("tenantId")) {
-                    azureServiceAccountSecret.setTenantId(responseJson.get("tenantId").getAsString());
-                }
-                if (responseJson.has("secretKeyId")) {
-                    azureServiceAccountSecret.setSecretKeyId(responseJson.get("secretKeyId").getAsString());
-                }
-                if (responseJson.has("secretText")) {
-                    azureServiceAccountSecret.setSecretText(responseJson.get("secretText").getAsString());
-                }
-                if (responseJson.has("expiryDateEpoch")) {
-                    azureServiceAccountSecret.setExpiryDateEpoch(responseJson.get("expiryDateEpoch").getAsLong());
-                }
+            if (!responseJson.isJsonNull()) {            	
+            	azureServiceAccountSecret = addValuesToAzureServiceAccountSecret(azureServiceAccountSecret,responseJson);             
             }
             return azureServiceAccountSecret;
         } catch (IOException e) {
@@ -214,6 +174,34 @@ public class AzureServiceAccountUtils {
         }
         return null;
     }
+
+	/**
+	 * Method to read response
+	 * @param apiResponse
+	 * @param total
+	 */
+	private void readFailedResponseContent(HttpResponse apiResponse, StringBuilder total) {
+		try(BufferedReader r = new BufferedReader(new InputStreamReader(apiResponse.getEntity().getContent()))) {
+			String line = null;
+			while ((line = r.readLine()) != null) {
+			    total.append(line);
+			}
+
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+			        put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
+			        put(LogMessage.MESSAGE, "Failed to build StringEntity:"+total.toString()).
+			        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			        build()));
+		}catch(IOException ex) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+			        put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_SECRET_ACTION).
+			        put(LogMessage.MESSAGE, "Failed to read response").
+			        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			        build()));
+		}
+	}
 
     /**
      * To save Azure Service Principal Secret for a single SecretKeyId.
@@ -413,4 +401,44 @@ public class AzureServiceAccountUtils {
         }
         return null;
     }
+
+	/**
+	 * Method to read the response content
+	 * @param jsonResponse
+	 * @param apiResponse
+	 */
+	private void readResponseContent(StringBuilder jsonResponse, HttpResponse apiResponse, String actionMsg) {
+		String output = "";
+		try(BufferedReader br = new BufferedReader(new InputStreamReader((apiResponse.getEntity().getContent())))) {
+			while ((output = br.readLine()) != null) {
+				jsonResponse.append(output);
+			}
+		}catch(Exception ex) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		            put(LogMessage.ACTION, actionMsg).
+		            put(LogMessage.MESSAGE, "Failed to read the response").
+		            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		            build()));
+		}
+	}
+	
+	private AzureServiceAccountSecret addValuesToAzureServiceAccountSecret(AzureServiceAccountSecret azureServiceAccountSecret, JsonObject responseJson) {
+		   if (responseJson.has("servicePrincipalId")) {
+               azureServiceAccountSecret.setServicePrincipalId(responseJson.get("servicePrincipalId").getAsString());
+           }
+           if (responseJson.has("tenantId")) {
+               azureServiceAccountSecret.setTenantId(responseJson.get("tenantId").getAsString());
+           }
+           if (responseJson.has("secretKeyId")) {
+               azureServiceAccountSecret.setSecretKeyId(responseJson.get("secretKeyId").getAsString());
+           }
+           if (responseJson.has("secretText")) {
+               azureServiceAccountSecret.setSecretText(responseJson.get("secretText").getAsString());
+           }
+           if (responseJson.has("expiryDateEpoch")) {
+               azureServiceAccountSecret.setExpiryDateEpoch(responseJson.get("expiryDateEpoch").getAsLong());
+           }
+           return azureServiceAccountSecret;
+	}
 }

@@ -109,6 +109,24 @@ public class SecretControllerV2Test {
     }
 
     @Test
+    public void test_write_with_Delete_Flag() throws Exception {
+
+        String inputJson ="{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        String responseMessage = "{\"messages\":[\"Secret saved to vault\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+
+        when(secretService.write(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), Mockito.any(),Mockito.any())).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/write")
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .header("delete-flag", "true")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseMessage)));
+    }
+
+    @Test
     public void test_deleteFromVault() throws Exception {
 
         String responseMessage = "{\"messages\":[\"Secrets deleted\"]}";
@@ -121,5 +139,43 @@ public class SecretControllerV2Test {
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(responseMessage)));
+    }
+
+    @Test
+    public void test_getSecretCount() throws Exception {
+
+        String responseMessage = "{\n" +
+                "  \"totalSecrets\": 9,\n" +
+                "  \"userSafeSecretCount\": {\n" +
+                "    \"totalCount\": 2,\n" +
+                "    \"safeSecretCount\": {\n" +
+                "      \"testsafe1\": 0,\n" +
+                "\t  \"testsafe2\": 2,\n" +
+                "    }\n" +
+                "  },\n" +
+                "  \"sharedSafeSecretCount\": {\n" +
+                "    \"totalCount\": 3,\n" +
+                "    \"safeSecretCount\": {\n" +
+                "      \"testsafe3\": 1,\n" +
+                "\t  \"testsafe4\": 2,\n" +
+                "    }\n" +
+                "  },\n" +
+                "  \"appsSafeSecretCount\": {\n" +
+                "    \"totalCount\": 4,\n" +
+                "    \"safeSecretCount\": {\n" +
+                "      \"testsafe5\": 2,\n" +
+                "\t  \"testsafe6\": 2,\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+
+        when(secretService.getSecretCount(eq("5PDrOhsy4ig8L3EpsJZSLAMg"))).thenReturn(responseEntityExpected);
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/safes/count")
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseMessage)));
+
     }
 }

@@ -15,9 +15,8 @@
 // See the readme.txt file for additional language around disclaimer of warranties.
 // =========================================================================
 
-package com.tmobile.cso.vault.api.controller;
+package com.tmobile.cso.vault.api.exception;
 
-import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -31,8 +30,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
-
-import java.util.Objects;
 
 @ControllerAdvice
 public class ResponseExceptionHandler {

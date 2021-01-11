@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.ArrayList;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -46,16 +47,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.main.Application;
-import com.tmobile.cso.vault.api.model.AWSIAMRole;
-import com.tmobile.cso.vault.api.model.AWSLoginRole;
-import com.tmobile.cso.vault.api.model.AWSRole;
-import com.tmobile.cso.vault.api.model.AppRole;
-import com.tmobile.cso.vault.api.model.AppRoleAccessorIds;
-import com.tmobile.cso.vault.api.model.Safe;
-import com.tmobile.cso.vault.api.model.SafeBasicDetails;
-import com.tmobile.cso.vault.api.model.SafeGroup;
-import com.tmobile.cso.vault.api.model.SafeUser;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.SelfSupportService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -72,6 +63,9 @@ public class SelfSupportControllerTest {
 
     @InjectMocks
     private SelfSupportController selfSupportController;
+    
+    @Mock
+    UserDetails userDetails;
 
     @Before
     public void setUp() {
@@ -169,7 +163,7 @@ public class SelfSupportControllerTest {
 
     @Test
     public void test_createSafe() throws Exception {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String inputJson =new ObjectMapper().writeValueAsString(safe);
@@ -202,7 +196,7 @@ public class SelfSupportControllerTest {
 
     @Test
     public void test_updateSafe() throws Exception {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String inputJson =new ObjectMapper().writeValueAsString(safe);
@@ -677,5 +671,91 @@ public class SelfSupportControllerTest {
                 .header("Content-Type", "application/json;charset=UTF-8"))
         		.andExpect(status().isOk())
         		.andExpect(content().string(containsString(responseMessage.toString())));
+    }
+
+    @Test
+    public void test_transferSafe() throws Exception {
+        String responseJson = "{\"messages\":[\"Safe transfer successful\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
+
+        String inputJson =new ObjectMapper().writeValueAsString(safeTransferRequest);
+        when(selfSupportService.transferSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(SafeTransferRequest.class), eq(userDetails))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/transfersafe").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
+
+    @Test
+    public void testUpdateAppRoleSuccess() throws Exception {
+
+        String[] policies = {"default"};
+        AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0,0,0);
+
+        String inputJson =new ObjectMapper().writeValueAsString(appRole);
+        String responseMessage = "{\"messages\":[\"AppRole updated successfully \"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.updateAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AppRole.class), eq(userDetails))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/v2/ss/approle").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseMessage)));
+    }
+    @Test
+    public void test_listRoles() throws Exception {
+
+        String responseMessage = "{ \"keys\": [\"mytestawsrole\"]}";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        userDetails.setUsername("adminuser");
+        userDetails.setAdmin(false);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token); 
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+
+        when(selfSupportService.listRoles(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), eq(userDetails))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/roles")
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8"))
+                .andExpect(status().isOk());
+    }
+    @Test
+    public void testcreateAwsIAMRole() throws Exception {
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("iam");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+
+        String responseMessage = "{\"messages\":[\"AWS IAM Role created successfully \"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.createAwsiamRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSIAMRole.class))).thenReturn(responseEntityExpected);
+
+    }
+    @Test
+    public void testcreateAwsEc2Role() throws Exception {
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        String responseMessage = "{\"messages\":[\"AWS Role created \"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.createAwsec2Role(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),Mockito.any(AWSLoginRole.class))).thenReturn(responseEntityExpected);
+
     }
 }

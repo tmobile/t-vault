@@ -17,6 +17,7 @@
 
 package com.tmobile.cso.vault.api.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,8 +25,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
+import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
+import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.utils.*;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -40,20 +47,6 @@ import org.springframework.util.ObjectUtils;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
-import com.tmobile.cso.vault.api.model.AWSIAMRole;
-import com.tmobile.cso.vault.api.model.AWSLoginRole;
-import com.tmobile.cso.vault.api.model.AWSRole;
-import com.tmobile.cso.vault.api.model.AppRole;
-import com.tmobile.cso.vault.api.model.AppRoleAccessorIds;
-import com.tmobile.cso.vault.api.model.Safe;
-import com.tmobile.cso.vault.api.model.SafeAppRoleAccess;
-import com.tmobile.cso.vault.api.model.SafeGroup;
-import com.tmobile.cso.vault.api.model.SafeUser;
-import com.tmobile.cso.vault.api.model.UserDetails;
-import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
-import com.tmobile.cso.vault.api.utils.JSONUtil;
-import com.tmobile.cso.vault.api.utils.PolicyUtils;
-import com.tmobile.cso.vault.api.utils.SafeUtils;
 
 
 @Component
@@ -92,7 +85,14 @@ public class  SelfSupportService {
 	@Autowired
 	private RequestProcessor reqProcessor;
 
+	@Autowired
+	private TokenUtils tokenUtils;
+
+	@Autowired
+	private DirectoryService directoryService;
+
 	private static Logger log = LogManager.getLogger(SelfSupportService.class);
+	private static final String PATHSTR = "{\"path\":\"";
 
 	/**
 	 * Creates a safe by the user with least privileges, Requires an AppRole which can perform Safe Creation 
@@ -131,7 +131,7 @@ public class  SelfSupportService {
 				safeUser.setAccess(TVaultConstants.SUDO_POLICY);
 				safeUser.setPath(safe.getPath());
 				safeUser.setUsername(userDetails.getUsername());
-				safesService.addUserToSafe(token, safeUser, null);
+				safesService.addUserToSafe(token, safeUser, userDetails, true);
 			}
 			return safe_creation_response;
 		}
@@ -143,7 +143,7 @@ public class  SelfSupportService {
 	 * @return
 	 */
 	private boolean isSafeValid(Safe safe) {
-		return safe != null && safe.getPath() != null && safe.getPath() != "";
+		return safe != null && safe.getPath() != null && !safe.getPath().equals("");
 	}
 
 	/**
@@ -174,10 +174,10 @@ public class  SelfSupportService {
 		boolean canAddUser = safeUtils.canAddOrRemoveUser(userDetails, safeUser, TVaultConstants.ADD_USER);
 		if (canAddUser) {
 			if (userDetails.isAdmin()) {
-				return safesService.addUserToSafe(userDetails.getClientToken(), safeUser, userDetails);
+				return safesService.addUserToSafe(userDetails.getClientToken(), safeUser, userDetails, false);
 			}
 			else {
-				return safesService.addUserToSafe(userDetails.getSelfSupportToken(), safeUser, userDetails);
+				return safesService.addUserToSafe(userDetails.getSelfSupportToken(), safeUser, userDetails, false);
 			}
 		}
 		else {
@@ -449,7 +449,7 @@ public class  SelfSupportService {
 				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
-				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to remove AWS role from the safe\"]}");
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Either AWS role doesn't exist or you don't have enough permission to remove this AWS role from Safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
 			return safesService.removeAWSRoleFromSafe(token, awsRole, detachOnly, userDetails);
@@ -890,5 +890,402 @@ public class  SelfSupportService {
 	 */
 	public ResponseEntity<String> updateAppRole(String userToken, AppRole appRole, UserDetails userDetails) {
 		return appRoleService.updateAppRole(userToken, appRole, userDetails);
+	}
+
+	/**
+	 * Transfer safe ownership to a user.
+	 * @param token
+	 * @param safeTransferRequest
+	 * @return
+	 */
+	public ResponseEntity<String> transferSafe(String token, SafeTransferRequest safeTransferRequest, UserDetails userDetails) {
+
+		String powerToken = token;
+		if (!userDetails.isAdmin()) {
+			powerToken = tokenUtils.getSelfServiceToken();
+		}
+		String path = safeTransferRequest.getSafeType() + '/' + safeTransferRequest.getSafeName();
+
+		//get current owner NT id
+		Safe safeMetaData = safeUtils.getSafeMetaData(powerToken, safeTransferRequest.getSafeType(), safeTransferRequest.getSafeName());
+		if (safeMetaData == null) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Either Safe doesn't exist or you don't have enough permission to access this safe\"]}");
+		}
+		String currentOwnerNtid = safeMetaData.getSafeBasicDetails().getOwnerid();
+
+		if (userDetails.isAdmin() || (currentOwnerNtid != null && currentOwnerNtid.equalsIgnoreCase(userDetails.getUsername()))) {
+			String newOwnerEmail = safeTransferRequest.getNewOwnerEmail();
+
+			String newOwnerNtid = directoryService.getNtidForUser(newOwnerEmail);
+
+			if (StringUtils.isEmpty(newOwnerNtid)) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "transferSafe").
+						put(LogMessage.MESSAGE, String.format("Failed to get NTid for [%s]", newOwnerEmail)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid email provided for new owner\"]}");
+			}
+
+			if (newOwnerNtid.equalsIgnoreCase(currentOwnerNtid)) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "transferSafe").
+						put(LogMessage.MESSAGE, String.format("New owner email id [%s] should not be same as current owner email id [%s]", newOwnerEmail, currentOwnerNtid)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"New owner email id should not be same as current owner email id\"]}");
+			}
+
+			boolean hasCurrentOwner = true;
+			if (StringUtils.isEmpty(currentOwnerNtid) || TVaultConstants.NULL_STRING.equalsIgnoreCase(currentOwnerNtid) || currentOwnerNtid.equalsIgnoreCase(TVaultConstants.APPROLE)) {
+				hasCurrentOwner = false;
+			}
+			if (hasCurrentOwner) {
+				// remove current owner sudo permission from safe
+				SafeUser safeUser = new SafeUser(path, currentOwnerNtid, TVaultConstants.SUDO_POLICY);
+				ResponseEntity<String> removeUserResponse = removeSudoUserFromSafe(powerToken, safeUser, userDetails);
+				if (!HttpStatus.OK.equals(removeUserResponse.getStatusCode())) {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "transferSafe").
+							put(LogMessage.MESSAGE, String.format("Failed to remove current owner [%s] from safe [%s]", currentOwnerNtid, path)).
+							put(LogMessage.STATUS, removeUserResponse.getStatusCode().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove current owner from safe\"]}");
+				}
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "transferSafe").
+						put(LogMessage.MESSAGE, String.format("Removed current owner [%s] from safe [%s]", currentOwnerNtid, path)).
+						put(LogMessage.STATUS, removeUserResponse.getStatusCode().toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			} else {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "transferSafe").
+						put(LogMessage.MESSAGE, String.format("Current owner NTid not available in safe metadata for [%s]", path)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+
+			// add sudo permission to new user to this safe
+			SafeUser safeUser = new SafeUser(path, newOwnerNtid, TVaultConstants.SUDO_POLICY);
+			ResponseEntity<String> addUserResponse = safesService.addUserToSafe(powerToken, safeUser, userDetails, true);
+			if (!HttpStatus.OK.equals(addUserResponse.getStatusCode())) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "transferSafe").
+						put(LogMessage.MESSAGE, String.format("Failed to add new owner [%s] to safe [%s]", newOwnerNtid, path)).
+						put(LogMessage.STATUS, addUserResponse.getStatusCode().toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to add new owner to the safe\"]}");
+			}
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "transferSafe").
+					put(LogMessage.MESSAGE, String.format("New owner added to the safe [%s]", path)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+
+
+			// Update metadata with new owner information
+			String safeMetadataPath = "metadata/" + path;
+			Response response = reqProcessor.process("/read", "{\"path\":\"" + safeMetadataPath + "\"}", powerToken);
+			Map<String, Object> responseMap = null;
+			if (HttpStatus.OK.equals(response.getHttpstatus())) {
+				responseMap = ControllerUtil.parseJson(response.getResponse());
+				if (responseMap.isEmpty()) {
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error fetching safe metadata\"]}");
+				}
+
+				responseMap.put("path", safeMetadataPath);
+				((Map<String, Object>) responseMap.get("data")).put("ownerid", newOwnerNtid);
+				((Map<String, Object>) responseMap.get("data")).put("owner", newOwnerEmail);
+
+				String metadataJson = ControllerUtil.convetToJson(responseMap);
+				response = reqProcessor.process("/sdb/update", metadataJson, powerToken);
+				if (response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "transferSafe").
+							put(LogMessage.MESSAGE, "Safe transfer successful").
+							put(LogMessage.STATUS, response.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe transfer successful \"]}");
+				} else {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "transferSafe").
+							put(LogMessage.MESSAGE, "Safe transfer failed").
+							put(LogMessage.RESPONSE, response.getResponse()).
+							put(LogMessage.STATUS, response.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Safe transfer failed\"]}");
+				}
+			}
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Safe transfer failed. Error fetching safe metadata\"]}");
+		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "transferSafe").
+					put(LogMessage.MESSAGE, String.format("Access denied to transfer this safe [%s]", path)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: No permission to transfer this safe. Only Owner and admin users can transfer safes\"]}");
+		}
+	}
+
+	/**
+	 * Removes an sudo user from Safe
+	 * @param token
+	 * @param safeUser
+	 * @param userDetails
+	 * @return
+	 */
+	public ResponseEntity<String> removeSudoUserFromSafe(String token, SafeUser safeUser, UserDetails userDetails) {
+		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+		ObjectMapper objMapper = new ObjectMapper();
+		String userName = safeUser.getUsername();
+		userName = (userName != null) ? userName.toLowerCase() : userName;
+		if (StringUtils.isEmpty(userName)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"User configuration failed. Invalid user\"]}");
+		}
+		String path = safeUser.getPath();
+		if (ControllerUtil.isValidSafePath(path)) {
+			String sudoPolicy = "s_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
+			String readPolicy = "r_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
+			String writePolicy = "w_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
+			String denyPolicy = "d_" + ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
+
+			Response userResponse = new Response();
+			if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+				userResponse = reqProcessor.process("/auth/userpass/read", "{\"username\":\"" + userName + "\"}",
+						token);
+			} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+				userResponse = reqProcessor.process("/auth/ldap/users", "{\"username\":\"" + userName + "\"}", token);
+			} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				// OIDC implementation changes
+				ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails, true);
+				if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND)
+							.body("{\"messages\":[\"User configuration failed. Invalid user\"]}");
+				}
+				oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
+				oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
+				userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
+				userResponse.setHttpstatus(responseEntity.getStatusCode());
+			}
+			String responseJson = "";
+			String groups = "";
+			List<String> policies = new ArrayList<>();
+			List<String> currentpolicies = new ArrayList<>();
+
+			if (HttpStatus.OK.equals(userResponse.getHttpstatus())) {
+				responseJson = userResponse.getResponse();
+				try {
+					if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+						currentpolicies.addAll(oidcEntityResponse.getPolicies());
+					} else {
+						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
+						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+							groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
+						}
+					}
+				} catch (IOException e) {
+					log.error(e);
+				}
+				policies.addAll(currentpolicies);
+				policies.remove(sudoPolicy);
+
+				String policiesString = StringUtils.join(policies, ",");
+				String currentpoliciesString = StringUtils.join(currentpolicies, ",");
+
+				Response ldapConfigresponse = new Response();
+				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+					ldapConfigresponse = ControllerUtil.configureUserpassUser(userName, policiesString, token);
+				} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+					ldapConfigresponse = ControllerUtil.configureLDAPUser(userName, policiesString, groups, token);
+				} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+					// OIDC Implementation : Entity Update
+					try {
+						ldapConfigresponse = oidcUtil.updateOIDCEntity(policies,
+								oidcEntityResponse.getEntityName());
+						oidcUtil.renewUserToken(userDetails.getClientToken());
+					} catch (Exception e) {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, "removeSudoUserFromSafe")
+								.put(LogMessage.MESSAGE, String.format("Exception while updating the identity for user [%s", userName))
+								.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
+								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+					}
+
+				}
+				if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+					// Updating metadata only when there is no read/write/deny permission exists to current owner
+					if (currentpolicies.contains(readPolicy) || currentpolicies.contains(writePolicy) || currentpolicies.contains(denyPolicy)) {
+						log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, "removeSudoUserFromSafe")
+								.put(LogMessage.MESSAGE, String.format("Successfully removed user[%s] from [%s]. No metadata update is required as metadata is updated with read/write/deny permission", safeUser.getUsername(), safeUser.getPath()))
+								.put(LogMessage.APIURL,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+						return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");
+					}
+					Map<String, String> params = new HashMap<>();
+					params.put("type", "users");
+					params.put("name", userName);
+					params.put("path", path);
+					params.put("access", TVaultConstants.DELETE);
+					Response metadataResponse = ControllerUtil.updateMetadata(params, token);
+					if (metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
+						log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, "removeSudoUserFromSafe")
+								.put(LogMessage.MESSAGE, String.format("Successfully removed user[%s] from [%s]", safeUser.getUsername(), safeUser.getPath()))
+								.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
+								.put(LogMessage.APIURL,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+						return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"User association is removed \"}");
+					} else {
+						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+								.put(LogMessage.USER,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, "removeSudoUserFromSafe")
+								.put(LogMessage.MESSAGE, "Meta data update failed")
+								.put(LogMessage.STATUS, metadataResponse != null ? metadataResponse.getHttpstatus().toString() : "")
+								.put(LogMessage.APIURL,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+						if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+							ldapConfigresponse = ControllerUtil.configureUserpassUser(userName,
+									currentpoliciesString, token);
+						} else if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
+							ldapConfigresponse = ControllerUtil.configureLDAPUser(userName, currentpoliciesString,
+									groups, token);
+						} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+							// OIDC changes
+							try {
+								ldapConfigresponse = oidcUtil.updateOIDCEntity(currentpolicies,
+										oidcEntityResponse.getEntityName());
+								oidcUtil.renewUserToken(userDetails.getClientToken());
+							} catch (Exception e2) {
+								log.error(e2);
+								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+										.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+										.put(LogMessage.ACTION, "removeSudoUserFromSafe")
+										.put(LogMessage.MESSAGE, "Exception while updating the identity")
+										.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+										.build()));
+							}
+						}
+						if (ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+									.put(LogMessage.ACTION, "removeSudoUserFromSafe")
+									.put(LogMessage.MESSAGE, "Reverting user policy update")
+									.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+									.build()));
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Please try again\"]}");
+						} else {
+							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+									.put(LogMessage.ACTION, "removeSudoUserFromSafe")
+									.put(LogMessage.MESSAGE, "Reverting user policy update failed")
+									.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+									.build()));
+							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed. Reverting user policy updation failed\"]}");
+						}
+					}
+				}
+				else {
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Try Again\"]}");
+				}
+			} else {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid user\"]}");
+			}
+		} else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+		}
+	}
+	
+	/**
+	 * List AWS and EC2 Roles
+	 * @param token
+	 * @param userDetails
+	 * @return
+	 */	
+	public ResponseEntity<String> listRoles(String token, UserDetails userDetails){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "listRoles").
+			      put(LogMessage.MESSAGE, "Trying to get list of AWS roles").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
+		String path = TVaultConstants.AWS_USERS_METADATA_MOUNT_PATH + "/" + userDetails.getUsername();
+		Response response = new Response();
+		if (userDetails.isAdmin()) {
+			return awsAuthService.listRoles(token);
+		}
+		else {
+			response = reqProcessor.process("/auth/aws/rolesbyuser/list",PATHSTR+path+"\"}",userDetails.getSelfSupportToken());
+		}
+		
+		if (response!=null && HttpStatus.OK.equals(response.getHttpstatus())) {			
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}
+		else if (response!=null && HttpStatus.NOT_FOUND.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(HttpStatus.OK).body("{\"keys\":[]}");
+		}		
+		return ResponseEntity.status(response==null?null:response.getHttpstatus()).body(response.getResponse());	
+	}
+	/**
+	 * Create AWS EC2 role
+	 * @param userDetails
+	 * @param userToken
+	 * @param awsLoginRole
+	 * @return
+	 * @throws TVaultValidationException
+	 */
+	
+	public ResponseEntity<String> createAwsec2Role(UserDetails userDetails, String token, AWSLoginRole awsLoginRole) throws TVaultValidationException {
+		String accesstoken;
+		if (userDetails.isAdmin()) {
+			 accesstoken = userDetails.getClientToken();
+		}
+		else {
+			accesstoken = userDetails.getSelfSupportToken();
+		}
+		return awsAuthService.createRole(accesstoken, awsLoginRole, userDetails);
+	}
+	/**
+	 * Create AWS IAM role
+	 * @param userDetails
+	 * @param userToken
+	 * @param awsLoginRole
+	 * @return
+	 * @throws TVaultValidationException
+	 */
+	public ResponseEntity<String> createAwsiamRole(UserDetails userDetails, String token, AWSIAMRole awsiamRole) throws TVaultValidationException {
+		String accesstoken;
+		if (userDetails.isAdmin()) {
+			accesstoken = userDetails.getClientToken();
+		}
+		else {
+			accesstoken = userDetails.getSelfSupportToken();
+		}
+		return awsiamAuthService.createIAMRole(awsiamRole, accesstoken, userDetails);
 	}
 }

@@ -316,6 +316,16 @@
                     return response;
                 });
             },
+            usersGetDataUsingNTID: function (payload, url) {
+                return ServiceEndpoint.usersGetDataUsingNTID.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            groupMailGetDataFromAAD: function (payload, url) {
+                return ServiceEndpoint.groupMailGetDataFromAAD.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             issueRevocationRequest: function (payload, url) {
                 return ServiceEndpoint.issueRevocationRequest.makeRequest(payload, url).then(function(response) {
                     return response;
@@ -585,6 +595,16 @@
             }, 
             detachAppRolePermissionFromAzureSvcacc: function(payload, url) {
                 return ServiceEndpoint.detachAppRolePermissionFromAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            transferSafe: function (payload, url) {
+                return ServiceEndpoint.transferSafe.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            searchByUPNInGsmAndCorp: function (payload, url) {
+                return ServiceEndpoint.searchByUPNInGsmAndCorp.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },

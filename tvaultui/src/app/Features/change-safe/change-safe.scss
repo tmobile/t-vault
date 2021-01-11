@@ -821,3 +821,17 @@ input.highlightBox {
 .group-permission-message {
   margin-bottom: 3vh;
 }
+
+.right .transfer-safe {
+  margin-right: 5px;
+}
+
+.right .transfer-safe .transfer-safe-btn {
+  margin-right: 5px;
+  background-image: linear-gradient(to bottom, #f6006e 0%, #f6006e 100%);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFF6006E', endColorstr='#FFF6006E', GradientType=0);
+  filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+  border-color: #f6006e;
+  color: #fff;
+}

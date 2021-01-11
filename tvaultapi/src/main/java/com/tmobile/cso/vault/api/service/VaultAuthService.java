@@ -1,19 +1,19 @@
-// =========================================================================
-// Copyright 2019 T-Mobile, US
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// See the readme.txt file for additional language around disclaimer of warranties.
-// =========================================================================
+/** *******************************************************************************
+*  Copyright 2020 T-Mobile, US
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*  See the readme.txt file for additional language around disclaimer of warranties.
+*********************************************************************************** */
 
 package com.tmobile.cso.vault.api.service;
 
@@ -36,7 +36,6 @@ import org.springframework.stereotype.Component;
 import com.tmobile.cso.vault.api.model.UserLogin;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
-import com.tmobile.cso.vault.api.utils.AuthorizationUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 
 import java.io.IOException;
@@ -47,9 +46,6 @@ public class  VaultAuthService {
 
 	@Autowired
 	private RequestProcessor reqProcessor;
-	
-	@Autowired
-	private AuthorizationUtils authorizationUtils;
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
@@ -83,18 +79,18 @@ public class  VaultAuthService {
 				responseMap = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
 			} catch (IOException e) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, "Login").
-						put(LogMessage.MESSAGE, String.format("Login check for duplicate safe permission failed")).
+						put(LogMessage.MESSAGE, "Login check for duplicate safe permission failed").
 						put(LogMessage.RESPONSE, "Invalid login response").
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
 			if(responseMap!=null && responseMap.get("access")!=null) {
 				Map<String,Object> access = (Map<String,Object>)responseMap.get("access");
 				access = ControllerUtil.filterDuplicateSafePermissions(access);
 				access = ControllerUtil.filterDuplicateSvcaccPermissions(access);
-                access = filterDuplicateCertPermissions(access);
+                filterDuplicateCertPermissions(access);
 				responseMap.put("access", access);
 				// set SS, AD password rotation enable status
 				Map<String,Object> feature = new HashMap<>();
@@ -116,42 +112,22 @@ public class  VaultAuthService {
 		}
 	}
 
+	/**
+	 * Method to filter duplicate permissions.
+	 * @param access
+	 * @return
+	 */
 	private Map<String, Object> filterDuplicateCertPermissions(Map<String, Object> access) {
 		if (!MapUtils.isEmpty(access)) {
 			List<Map<String,String>> certPermissions = (List<Map<String,String>>)access.get(TVaultConstants.CERT_POLICY_PREFIX);
 			List<Map<String,String>> externalCertPermissions = (List<Map<String,String>>)access.get(TVaultConstants.EXTERNAL_CERT_POLICY_PREFIX);
 			if (certPermissions != null) {
-				//map to check duplicate permission
-				Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
-				List<Map<String,String>> updatedPermissionList = new ArrayList<>();
-				for (Map<String,String> permissionMap: certPermissions) {
-					Set<String> keys = permissionMap.keySet();
-					String key = keys.stream().findFirst().orElse("");
-
-					if (!TVaultConstants.EMPTY.equals(key) && !filteredPermissions.containsKey(key)) {
-						filteredPermissions.put(key, permissionMap.get(key));
-						Map<String,String> permission = Collections.synchronizedMap(new HashMap());
-						permission.put(key, permissionMap.get(key));
-						updatedPermissionList.add(permission);
-					}
-				}
+				List<Map<String, String>> updatedPermissionList = populateInternalCertPermissions(certPermissions);
 				access.put(TVaultConstants.CERT_POLICY_PREFIX, updatedPermissionList);
 			}
 			if (externalCertPermissions != null) {
-				//map to check duplicate permission
-				Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
-				List<Map<String,String>> updatedPermissionList = new ArrayList<>();
-				for (Map<String,String> permissionMap: externalCertPermissions) {
-					Set<String> keys = permissionMap.keySet();
-					String key = keys.stream().findFirst().orElse("");
-
-					if (!TVaultConstants.EMPTY.equals(key) && !filteredPermissions.containsKey(key)) {
-						filteredPermissions.put(key, permissionMap.get(key));
-						Map<String,String> permission = Collections.synchronizedMap(new HashMap());
-						permission.put(key, permissionMap.get(key));
-						updatedPermissionList.add(permission);
-					}
-				}
+				List<Map<String, String>> updatedPermissionList = populateExternalCertPermissions(
+						externalCertPermissions);
 				access.put(TVaultConstants.EXTERNAL_CERT_POLICY_PREFIX, updatedPermissionList);
 			}
 		}
@@ -159,65 +135,50 @@ public class  VaultAuthService {
 	}
 
 	/**
-	 * To filter the duplicate safe permissions
-	 * @param access
+	 * Method to filter duplicate internal certificate permissions
+	 * @param certPermissions
 	 * @return
 	 */
-	public Map<String,Object> filterDuplicateSafePermissions(Map<String,Object> access) {
-		if (!MapUtils.isEmpty(access)) {
-			String[] safeTypes = {TVaultConstants.USERS, TVaultConstants.SHARED, TVaultConstants.APPS};
+	private List<Map<String, String>> populateInternalCertPermissions(List<Map<String, String>> certPermissions) {
+		//map to check duplicate permission
+		Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap<>());
+		List<Map<String,String>> updatedPermissionList = new ArrayList<>();
+		for (Map<String,String> permissionMap: certPermissions) {
+			Set<String> keys = permissionMap.keySet();
+			String key = keys.stream().findFirst().orElse("");
 
-			for (String type: safeTypes) {
-				List<Map<String,String>> safePermissions = (List<Map<String,String>>)access.get(type);
-				if (safePermissions != null) {
-					//map to check duplicate permission
-					Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
-					List<Map<String,String>> updatedPermissionList = new ArrayList<>();
-					for (Map<String,String> permissionMap: safePermissions) {
-						Set<String> keys = permissionMap.keySet();
-						String key = keys.stream().findFirst().orElse("");
-
-						if (!TVaultConstants.EMPTY.equals(key) && !filteredPermissions.containsKey(key)) {
-							filteredPermissions.put(key, permissionMap.get(key));
-							Map<String,String> permission = Collections.synchronizedMap(new HashMap());
-							permission.put(key, permissionMap.get(key));
-							updatedPermissionList.add(permission);
-						}
-					}
-					access.put(type, updatedPermissionList);
-				}
+			if (!TVaultConstants.EMPTY.equals(key) && !filteredPermissions.containsKey(key)) {
+				filteredPermissions.put(key, permissionMap.get(key));
+				Map<String,String> permission = Collections.synchronizedMap(new HashMap<>());
+				permission.put(key, permissionMap.get(key));
+				updatedPermissionList.add(permission);
 			}
 		}
-		return access;
+		return updatedPermissionList;
 	}
 
 	/**
-	 * To filter the duplicate Service account permissions
-	 * @param access
+	 * Method to filter duplicate external certificate permissions
+	 * @param externalCertPermissions
 	 * @return
 	 */
-	public Map<String,Object> filterDuplicateSvcaccPermissions(Map<String,Object> access) {
-		if (!MapUtils.isEmpty(access)) {
-			List<Map<String,String>> svcaccPermissions = (List<Map<String,String>>)access.get(TVaultConstants.SVC_ACC_PATH_PREFIX);
-			if (svcaccPermissions != null) {
-				//map to check duplicate permission
-				Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap());
-				List<Map<String,String>> updatedPermissionList = new ArrayList<>();
-				for (Map<String,String> permissionMap: svcaccPermissions) {
-					Set<String> keys = permissionMap.keySet();
-					String key = keys.stream().findFirst().orElse("");
+	private List<Map<String, String>> populateExternalCertPermissions(
+			List<Map<String, String>> externalCertPermissions) {
+		//map to check duplicate permission
+		Map<String,String> filteredPermissions = Collections.synchronizedMap(new HashMap<>());
+		List<Map<String,String>> updatedPermissionList = new ArrayList<>();
+		for (Map<String,String> permissionMap: externalCertPermissions) {
+			Set<String> keys = permissionMap.keySet();
+			String key = keys.stream().findFirst().orElse("");
 
-					if (!TVaultConstants.EMPTY.equals(key) && !filteredPermissions.containsKey(key)) {
-						filteredPermissions.put(key, permissionMap.get(key));
-						Map<String,String> permission = Collections.synchronizedMap(new HashMap());
-						permission.put(key, permissionMap.get(key));
-						updatedPermissionList.add(permission);
-					}
-				}
-				access.put(TVaultConstants.SVC_ACC_PATH_PREFIX, updatedPermissionList);
+			if (!TVaultConstants.EMPTY.equals(key) && !filteredPermissions.containsKey(key)) {
+				filteredPermissions.put(key, permissionMap.get(key));
+				Map<String,String> permission = Collections.synchronizedMap(new HashMap<>());
+				permission.put(key, permissionMap.get(key));
+				updatedPermissionList.add(permission);
 			}
 		}
-		return access;
+		return updatedPermissionList;
 	}
 
 	/**

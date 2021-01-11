@@ -57,7 +57,7 @@ public class TokenUtils {
 	private String selfServiceTokenGenerator;
 
 	public TokenUtils() {
-
+		/**empty constructor*/
 	}
 
 	public String getSelfServiceToken() {

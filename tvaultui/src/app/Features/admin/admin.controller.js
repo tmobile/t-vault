@@ -140,6 +140,7 @@
                 $state.go('/');
                 return;
             }
+            $scope.selectionValue = 'email';
             $scope.ifTargetServiceExisting=false;	
             $scope.ifTargetSystemExisting=false;
             $scope.enableSvcacc = true;
@@ -1574,7 +1575,8 @@
             });
         }
 
-        $scope.newCertificateConfiguration = function (size) {           
+        $scope.newCertificateConfiguration = function (size) {   
+            $scope.selectionValue = 'email';          
             $scope.hostNameErrorMessage = '';
             $scope.certNameErrorMessage = '';
             $scope.targetSysErrorMessage = '';
@@ -1707,8 +1709,9 @@
         }
         
         $scope.appNameSelect = function(){
+            $scope.appNameSelected =false;
+            $scope.notificationEmailErrorMessage = '';
             $scope.certObj.certDetails.notificationEmails="";
-            $scope.appNameSelected = false;
             $scope.selectedNotificationEmails = [];
             $scope.notificationEmails = [];
             clearNotificationEmails();
@@ -1831,6 +1834,7 @@
         }
 
         $scope.backToEdit = function () {
+            $scope.selectionValue = 'email';
             $scope.isCertificatePreview = false;
             $scope.isCertificateManagePreview = false;
         }
@@ -1903,7 +1907,6 @@
 
         $scope.successCancel = function () {
             Modal.close('');
-            $scope.selectedTab = 0;
             if($scope.selectedTab == 1){
               	 getCertificates("", null, null,"external");
             }else{
@@ -2090,7 +2093,129 @@
                 }
             }
         }
+        $scope.searchNtid = function (searchVal) {        	
+            if (searchVal.length > 2) {
+                $scope.isUserSearchLoading = true;
+                searchVal = searchVal.toLowerCase();
+                try {
+                    $scope.userSearchList = [];
 
+                    var queryParameters = searchVal;
+                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('usersGetDataUsingCorpID', queryParameters);
+                    return AdminSafesManagement.usersGetDataUsingCorpID(null, updatedUrlOfEndPoint).then(
+                        function(response) {
+                            $scope.isUserSearchLoading = false;
+                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                var filterdUserData = [];
+                                $scope.userSearchList = response.data.data.values;
+                                $scope.userSearchList.forEach(function (userData) {
+                                    if (userData.userName != null && userData.userName.substring(0, searchVal.length).toLowerCase() == searchVal) {
+                                        filterdUserData.push(userData);
+                                    }
+                                });
+                                return orderByFilter(filterFilter(filterdUserData, searchVal), 'userName', true);
+                            } else {
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
+                        },
+                        function(error) {
+                            // Error handling function
+                            console.log(error);
+                            $scope.isUserSearchLoading = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                    });
+                } catch (e) {
+                    console.log(e);
+                    $scope.isUserSearchLoading = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            }
+        }
+        $scope.searchGroupName = function (searchVal) {        	
+            if (searchVal.length > 2) {
+                $scope.isUserSearchLoading = true;
+                searchVal = searchVal.toLowerCase();
+                try {
+                    $scope.userSearchList = [];
+
+                    var queryParameters = searchVal;
+                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('groupMailGetDataFromAAD', queryParameters);
+                    return AdminSafesManagement.groupMailGetDataFromAAD(null, updatedUrlOfEndPoint).then(
+                        function(response) {
+                            $scope.isUserSearchLoading = false;
+                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                var filterdUserData = [];
+                                $scope.userSearchList = response.data.data.values;
+                                $scope.userSearchList.forEach(function (userData) {
+                                    if (userData.email != null && userData.email.substring(0, searchVal.length).toLowerCase() == searchVal) {
+                                        filterdUserData.push(userData);
+                                    }
+                                });
+                                return orderByFilter(filterFilter(filterdUserData, searchVal), 'email', true);
+                            } else {
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
+                        },
+                        function(error) {
+                            // Error handling function
+                            console.log(error);
+                            $scope.isUserSearchLoading = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                    });
+                } catch (e) {
+                    console.log(e);
+                    $scope.isUserSearchLoading = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            }
+        }
+        $scope.searchLastname = function (searchVal) {      	
+            if (searchVal.length > 2) {
+                $scope.isUserSearchLoading = true;
+                searchVal = searchVal.toLowerCase();
+                try {
+                    $scope.userSearchList = [];
+
+                    var queryParameters = searchVal;
+                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('usersGetDataUsingNTID', queryParameters);
+                    return AdminSafesManagement.usersGetDataUsingNTID(null, updatedUrlOfEndPoint).then(
+                        function(response) {
+                            $scope.isUserSearchLoading = false;
+                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                var filterdUserData = [];
+                                $scope.userSearchList = response.data.data.values;
+                                $scope.userSearchList.forEach(function (userData) {
+                                    if (userData.displayName != null && userData.displayName.substring(0, searchVal.length).toLowerCase() == searchVal) {
+                                        filterdUserData.push(userData);
+                                    }
+                                });
+                                return orderByFilter(filterFilter(filterdUserData, searchVal), 'displayName', true);
+                            } else {
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
+                        },
+                        function(error) {
+                            // Error handling function
+                            console.log(error);
+                            $scope.isUserSearchLoading = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                            $scope.error('md');
+                    });
+                } catch (e) {
+                    console.log(e);
+                    $scope.isUserSearchLoading = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            }
+        }
         $scope.selectOwner = function (ownerEmail) {
             if (ownerEmail != null) {
                 $scope.certObj.certDetails.ownerEmail = ownerEmail.userEmail;
@@ -2335,16 +2460,30 @@
             }
 
             $scope.deleteDns = function (id) {
-                var dnsElement = angular.element( document.querySelector( '#'+id ) );
-                dnsElement.remove();
                 var index = id.substring(3);
                 $scope.selectedMultiSan = [];
+                var deletedDns = "";
                 for (var i=0;i<$scope.multiSan.length;i++) {
                     if (index != $scope.multiSan[i].id) {
-                        $scope.selectedMultiSan.push($scope.multiSan[i]);
+                        var dnsId = $scope.selectedMultiSan.length;
+                        $scope.selectedMultiSan.push({ "id": dnsId, "name":$scope.multiSan[i].name});
+                    }
+                    if (index == $scope.multiSan[i].id) {
+                        deletedDns = $scope.multiSan[i].name;
                     }
                 }
                 $scope.multiSan = $scope.selectedMultiSan;
+                angular.element('#dnslist').html("");
+                var j = 0;
+                $scope.multiSan.forEach(function (multiSanDnsName) {
+                    var id = "dns"+ (j++);
+                    angular.element('#dnslist').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-8 col-md-8 col-sm-8 col-xs-8 ng-binding dns-name">'+multiSanDnsName.name+'</div><div class="container radio-inputs col-lg-4 col-md-4 col-sm-4 col-xs-4 dns-delete"><div class="down"><div ng-click="deleteDns(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+                });
+
+                if($scope.multiSanDnsName.name != "" && deletedDns.toLowerCase() == $scope.multiSanDnsName.name.toLowerCase()) {
+                    $scope.certDnsErrorMessage = '';
+                    $scope.dnsInvalid = false;
+                }
             }
             
             $scope.AddorRemoveDNS= function (id) {
@@ -2462,7 +2601,7 @@
                     if ($scope.certObj.certDetails.ownerEmail != null && $scope.certObj.certDetails.ownerEmail != undefined
                             && $scope.certObj.certDetails.ownerEmail != "") {
                             
-                            if ($rootScope.certDetails.certOwnerEmailId==$scope.certObj.certDetails.ownerEmail) {                            	
+                            if ($rootScope.certDetails.certOwnerEmailId.toLowerCase()==$scope.certObj.certDetails.ownerEmail.toLowerCase()) {
                                 $scope.certOwnerEmailErrorMessage = "New owner email id should not be same as owner email id"
                                 $scope.certTransferInValid = true;
                             } 
@@ -2583,6 +2722,7 @@
 
         $scope.showOnboardCertificatePopup = function(certificateToOnboard) {
             $scope.clearOnboardCert();
+            $scope.selectionValue = 'email';
             $scope.certificateToOnboard = certificateToOnboard;
             $scope.certificateToOnboard.ownerEmail = "";
             $scope.certificateToOnboard.ownerNtId = "";
@@ -2608,6 +2748,7 @@
         };
 
         $scope.toogleOnboardPreview = function() {
+            $scope.selectionValue='email';
             $scope.isCertificateOnboardPreview = !$scope.isCertificateOnboardPreview;
             $scope.notificationEmail.email = '';
             $scope.notificationEmailErrorMessage = '';
@@ -2641,38 +2782,66 @@
         }
 
         $scope.deleteNotificationEmail = function (id) {
-            var notificationEmailElement = angular.element( document.querySelector( '#'+id ) );
-            notificationEmailElement.remove();
             var index = id.substring(17);
             $scope.selectedNotificationEmails = [];
+            var deletedEmail = "";
             for (var i=0;i<$scope.notificationEmails.length;i++) {
                 if (index != $scope.notificationEmails[i].id) {
-                    $scope.selectedNotificationEmails.push($scope.notificationEmails[i]);
+                    var notifyId = $scope.selectedNotificationEmails.length;
+                    $scope.selectedNotificationEmails.push({ "id": notifyId, "email":$scope.notificationEmails[i].email});
+                }
+                if (index == $scope.notificationEmails[i].id) {
+                    deletedEmail = $scope.notificationEmails[i].email;
                 }
             }
+
             $scope.notificationEmails = $scope.selectedNotificationEmails;
+            angular.element('#notificationEmailList').html("");
+            var j = 0;
+            $scope.notificationEmails.forEach(function (email) {
+                var id = "notificationemail"+ (j++);
+                angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+            });
             $scope.isNotificationEmailSelected = false;
+            if($scope.notificationEmail.email != "" && deletedEmail.toLowerCase() == $scope.notificationEmail.email.toLowerCase()) {
+                $scope.notificationEmailErrorMessage = '';
+                $scope.isNotificationEmailSelected = true;
+            }
         }
 
-        $scope.deleteOnboardNotificationEmail = function (id) {
-            var notificationEmailElement = angular.element( document.querySelector( '#'+id ) );
-            notificationEmailElement.remove();
-            var index = id.substring(3);
+        $scope.deleteOnboardNotificationEmail = function (emailId) {
+            var index = emailId.substring(3);
             $scope.selectedNotificationEmails = [];
+            var deletedEmail = "";
             for (var i=0;i<$scope.notificationEmails.length;i++) {
                 if (index != $scope.notificationEmails[i].id) {
-                    $scope.selectedNotificationEmails.push($scope.notificationEmails[i]);
+                    var notifyId = $scope.selectedNotificationEmails.length;
+                    $scope.selectedNotificationEmails.push({ "id": notifyId, "email":$scope.notificationEmails[i].email});
+                }
+                if (index == $scope.notificationEmails[i].id) {
+                    deletedEmail = $scope.notificationEmails[i].email;
                 }
             }
             $scope.notificationEmails = $scope.selectedNotificationEmails;
+            angular.element('#notificationEmailList').html("");
+            var j = 0;
+            $scope.notificationEmails.forEach(function (email) {
+                var id = "dns"+ (j++);
+                angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteOnboardNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
+            });
             $scope.isNotificationEmailSelected = false;
+            if($scope.notificationEmail.email != "" && deletedEmail.toLowerCase() == $scope.notificationEmail.email.toLowerCase()) {
+                $scope.notificationEmailErrorMessage = '';
+                $scope.isNotificationEmailSelected = true;
+            }
         }
 
         $scope.clearOnboardOwnerEmail = function () {
             $scope.selectedNotificationEmails = [];
             for (var i=0;i<$scope.notificationEmails.length;i++) {
                 if ($scope.certificateToOnboard.ownerEmail !=="" && $scope.certificateToOnboard.ownerEmail.toLowerCase() !== $scope.notificationEmails[i].email.toLowerCase()) {
-                    $scope.selectedNotificationEmails.push($scope.notificationEmails[i]);
+                    var notifyId = $scope.selectedNotificationEmails.length;
+                    $scope.selectedNotificationEmails.push({ "id": notifyId, "email":$scope.notificationEmails[i].email});
                 }
             }
             $scope.notificationEmails = $scope.selectedNotificationEmails;
@@ -2691,6 +2860,7 @@
             $scope.notificationEmailErrorMessage='';
         }
         $scope.clearOnboardCert = function () {
+            $scope.selectionValue = 'email';
             $scope.certificateToOnboard = null;
             $scope.isOwnerSelectedForOnboard = false;
             $scope.appnameSelectedForOnboard = false;
@@ -2719,6 +2889,9 @@
         $scope.selectNotificationEmail = function (ownerEmail) {
             if (ownerEmail != null) {
                 $scope.notificationEmail.email = ownerEmail.userEmail;
+                if(ownerEmail.userEmail==""||ownerEmail.userEmail==undefined||ownerEmail.userEmail==null){
+                    $scope.notificationEmail.email = ownerEmail.email;
+                }
                 $scope.isNotificationEmailSelected = true;
                 $scope.isNotificationEmailSearch = false;
                 $scope.notificationEmailErrorMessage = '';
@@ -2801,13 +2974,30 @@
             }
         }
 
-        $scope.searchEmailForNotification = function (email) {
+        $scope.searchEmailForNotification = function (email,selectionValue) {
             if (!email.endsWith("\\")) {
                 $scope.isNotificationEmailSearch = true;
-                return $scope.searchEmail(email);
+                $scope.selectionValue=selectionValue;
+                if($scope.selectionValue == "email"){
+                    return $scope.searchEmail(email);
+                }
+                if($scope.selectionValue == "ntid"){
+                    return $scope.searchNtid(email);
+                }
+                if($scope.selectionValue == "lastname"){
+                    return $scope.searchLastname(email);
+                }
+                if($scope.selectionValue == "groupemail"){
+                    return $scope.searchGroupName(email);
+                }
             }
         }
-
+        $scope.notifDropdown = function(val){
+            $scope.selectionValue=val;
+            $scope.notificationEmail = { email:""};
+            $scope.isNotificationEmailSelected = false;
+            $scope.notificationEmailErrorMessage = '';
+        }
         $scope.searchOwnerEmailForOnboard = function (email) {
             if (!email.endsWith("\\")) {
                 $scope.isOwnerEmailSearch = true;
@@ -2848,7 +3038,7 @@
                 var sslcertType = 'PRIVATE_SINGLE_SAN';
                 $scope.appNameTagValue=$scope.certObj.certDetails.applicationName;
                 $scope.certObj.sslcertType = sslcertType;
-                var multiSanDns = [];
+                var multiSanDnsOnboard = [];
                 $scope.certificateToOnboard.notificationEmails = "";
                 $scope.notificationEmails.forEach(function (email) {
                     addNotificationEmailString(email.email);
@@ -2860,7 +3050,7 @@
                     "certOwnerEmailId":$scope.certificateToOnboard.ownerEmail,
                     "certOwnerNTId":$scope.certificateToOnboard.ownerNtId,
                     "notificationEmail": $scope.certificateToOnboard.notificationEmails,
-                    "dnsList": multiSanDns
+                    "dnsList": multiSanDnsOnboard
                 }
                 $scope.certificateOnboardMessage = '';
                 var url = '';
@@ -2952,6 +3142,13 @@
                 angular.element('#notificationEmailList').append($compile('<div class="row change-data item ng-scope" id="'+id+'"><div class="container name col-lg-10 col-md-10 col-sm-10 col-xs-10 ng-binding dns-name">'+email.email+'</div><div class="container radio-inputs col-lg-2 col-md-2 col-sm-2 col-xs-2 dns-delete"><div class="down"><div ng-click="deleteOnboardNotificationEmail(&quot;'+id+'&quot;)" class="list-icon icon-delete" role="button" tabindex="0"></div></div></div></div>')($scope));
             });
         }
+
+        $scope.successCancelOnboardCert = function () {
+            Modal.close('');
+            $scope.selectedTab = 0;
+            getCertificates("", null, null,"internal");
+            $window.scrollTo(0, angular.element(document.getElementById('certificateStart'))[0].offsetTop);
+        };
 
         $scope.offboardDecommissionedSvcacc = function (svcaccUserId) {
             if (svcaccUserId != '') {
