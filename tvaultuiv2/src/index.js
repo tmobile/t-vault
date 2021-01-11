@@ -2,19 +2,35 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import { BrowserRouter } from 'react-router-dom';
+import { MatomoProvider, createInstance } from '@datapunt/matomo-tracker-react';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import { StateProvider } from './contexts/globalState';
 import mainReducer from './stateManagement/reducer';
 import initialState from './stateManagement';
 
+const instance = createInstance({
+  urlBase: 'https://analytics.pacbot.t-mobile.com/',
+  siteId: 8,
+  linkTracking: false, // optional, default value: true
+  configurations: {
+    // optional, default value: {}
+    // any valid matomo configuration, all below are optional
+    disableCookies: true,
+    setSecureCookie: true,
+    setRequestMethod: 'POST',
+  },
+});
+
 ReactDOM.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <StateProvider reducer={mainReducer} state={initialState}>
-        <App />
-      </StateProvider>
-    </BrowserRouter>
+    <MatomoProvider value={instance}>
+      <BrowserRouter>
+        <StateProvider reducer={mainReducer} state={initialState}>
+          <App />
+        </StateProvider>
+      </BrowserRouter>
+    </MatomoProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );
