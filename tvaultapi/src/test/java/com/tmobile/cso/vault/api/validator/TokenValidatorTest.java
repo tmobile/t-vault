@@ -54,6 +54,7 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -175,6 +176,94 @@ public class TokenValidatorTest {
         VaultTokenLookupDetails lookupDetails = tokenValidator.getVaultTokenLookupDetails(token);
         assertEquals(JSONUtil.getJSON(expectedLookupDetails), JSONUtil.getJSON(lookupDetails));
     }
+
+
+    @Test
+    public void test_getVaultTokenLookupDetails_successfully_oidc_adding_corp_user() throws TVaultValidationException,
+            IOException {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"id\":\"7DXvbGXxu81LC724cRrrqYyq\", " +
+                "\"display_name\": \"oidc-user1-sprint@sprint.com\",\"last_renewal_time\":null,\"renewable\":false," +
+                "\"policies\":[\"default\"],\"creation_ttl\":0,\"username\":\"\",\"path\":\"auth/oidc/oidc/callback\"}");
+        VaultTokenLookupDetails expectedLookupDetails = new VaultTokenLookupDetails();
+        expectedLookupDetails.setAdmin(false);
+        expectedLookupDetails.setValid(true);
+        expectedLookupDetails.setToken(token);
+        expectedLookupDetails.setUsername("");
+        String [] policies = {"default"};
+        ArrayList<String> adminPolicies = new ArrayList<>();
+        adminPolicies.add("adminpolicy");
+        expectedLookupDetails.setPolicies(policies);
+        ReflectionTestUtils.setField(tokenValidator, "vaultAuthMethod", TVaultConstants.OIDC);
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("user1");
+        directoryUser.setGivenName("user1");
+        directoryUser.setUserEmail("testsprinttest.com");
+        directoryUser.setUserId("user1");
+        directoryUser.setUserName("");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> directoryObjectsResponseEntity = ResponseEntity.status(HttpStatus.OK).body(users);
+        when(directoryService.searchByUPN("user1@company.com")).thenReturn(directoryObjectsResponseEntity);
+        when(directoryService.searchByEmailInCorp(anyString())).thenReturn(directoryObjectsResponseEntity);
+
+        when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(response);
+        when(commonUtils.getPoliciesAsArray(Mockito.any(), eq(response.getResponse()))).thenReturn(policies);
+        when(policyUtils.getAdminPolicies()).thenReturn(adminPolicies);
+        when(authorizationUtils.containsAdminPolicies(Mockito.anyList(),  Mockito.anyList())).thenReturn(true);
+        VaultTokenLookupDetails lookupDetails = tokenValidator.getVaultTokenLookupDetails(token);
+        assertEquals(JSONUtil.getJSON(expectedLookupDetails), JSONUtil.getJSON(lookupDetails));
+    }
+
+    @Test
+    public void test_getVaultTokenLookupDetails_successfully_without_oidc_displayname() throws TVaultValidationException,
+            IOException {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"id\":\"7DXvbGXxu81LC724cRrrqYyq\", " +
+                "\"display_name\": \"user1-sprint@sprint.com\",\"last_renewal_time\":null,\"renewable\":false," +
+                "\"policies\":[\"default\"],\"creation_ttl\":0,\"username\":\"\",\"path\":\"auth/oidc/oidc/callback\"}");
+        VaultTokenLookupDetails expectedLookupDetails = new VaultTokenLookupDetails();
+        expectedLookupDetails.setAdmin(false);
+        expectedLookupDetails.setValid(true);
+        expectedLookupDetails.setToken(token);
+        expectedLookupDetails.setUsername("");
+        String [] policies = {"default"};
+        ArrayList<String> adminPolicies = new ArrayList<>();
+        adminPolicies.add("adminpolicy");
+        expectedLookupDetails.setPolicies(policies);
+        ReflectionTestUtils.setField(tokenValidator, "vaultAuthMethod", TVaultConstants.OIDC);
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("user1");
+        directoryUser.setGivenName("user1");
+        directoryUser.setUserEmail("testsprinttest.com");
+        directoryUser.setUserId("user1");
+        directoryUser.setUserName("");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> directoryObjectsResponseEntity = ResponseEntity.status(HttpStatus.OK).body(users);
+        when(directoryService.searchByUPN("user1@company.com")).thenReturn(directoryObjectsResponseEntity);
+        when(directoryService.searchByEmailInCorp(anyString())).thenReturn(directoryObjectsResponseEntity);
+
+        when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(response);
+        when(commonUtils.getPoliciesAsArray(Mockito.any(), eq(response.getResponse()))).thenReturn(policies);
+        when(policyUtils.getAdminPolicies()).thenReturn(adminPolicies);
+        when(authorizationUtils.containsAdminPolicies(Mockito.anyList(),  Mockito.anyList())).thenReturn(true);
+        VaultTokenLookupDetails lookupDetails = tokenValidator.getVaultTokenLookupDetails(token);
+        assertEquals(JSONUtil.getJSON(expectedLookupDetails), JSONUtil.getJSON(lookupDetails));
+    }
+
 
     @Test
     public void test_getVaultTokenLookupDetails_failure() throws TVaultValidationException, IOException {

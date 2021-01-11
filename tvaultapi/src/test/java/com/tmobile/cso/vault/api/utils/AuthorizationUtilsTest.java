@@ -18,6 +18,7 @@ package com.tmobile.cso.vault.api.utils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tmobile.cso.vault.api.model.SSLCertificateMetadataDetails;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -274,4 +276,70 @@ public class AuthorizationUtilsTest {
 		boolean actual = authorizationUtils.isAuthorized(userDetails, safeMetaData, latestPolicies, policiesTobeChecked, forceCapabilityCheck);
 		assertEquals(actual, true);
 	}
+
+	@Test
+	public void test_isAuthorizedCert_adminuser_success() {
+		String username = "testuser1";
+		String powerToken = "self_support_token";
+		String userToken = "ordinary_client_token";
+		boolean admin = true;
+		String safename = "mysafe01";
+		String safeType = "shared";
+		String path = "shared/mysafe01";
+		String latestPoliciesStr = "s_shared_mysafe01, safeadmin";
+		String policiesTobeCheckedStr = "s_shared_mysafe01";
+		String safeOwner = "owner@someorg.com";
+		String safeOwnerId = "normaluser";
+
+		UserDetails userDetails = createUserDetails(username, powerToken, userToken, admin);
+		SSLCertificateMetadataDetails safeMetaData = new SSLCertificateMetadataDetails();
+		safeMetaData.setCertOwnerNtid("testuser1");
+
+		String[] latestPolicies = createLatestPolicies(latestPoliciesStr);
+		ArrayList<String> policiesTobeChecked = createPoliciesTobeChecked(policiesTobeCheckedStr);
+
+		boolean forceCapabilityCheck = true;
+
+		boolean actual = authorizationUtils.isAuthorizedCert(userDetails, safeMetaData, latestPolicies,
+				policiesTobeChecked, forceCapabilityCheck);
+		assertEquals(actual, true);
+	}
+
+	@Test
+	public void test_isAuthorizedCert_normaluser_success() {
+		String username = "testuser1";
+		String powerToken = "self_support_token";
+		String userToken = "ordinary_client_token";
+		boolean admin = false;
+		String latestPoliciesStr = "s_shared_mysafe01, safeadmin";
+		String policiesTobeCheckedStr = "s_shared_mysafe01";
+		LinkedHashMap<String, Object> capRes = new LinkedHashMap<String, Object>();
+		LinkedHashMap<String, Object> pathsMap = new LinkedHashMap<String, Object>();
+		LinkedHashMap<String, Object> capPathMap = new  LinkedHashMap<String, Object>();
+		LinkedHashMap<String, Object> capMap = new  LinkedHashMap<String, Object>();
+		capMap.put("policy", "sudo");
+		capPathMap.put("metadata/shared/s1/*", capMap);
+		capPathMap.put("shared/s1/*", capMap);
+		pathsMap.put("path", capPathMap);
+		capRes.put("name", "s_shared_s1");
+		capRes.put("rules", getJSON(pathsMap));
+		String expectedBody = getJSON(capRes);
+		Response capabilitiesResponse = getMockResponse(HttpStatus.OK, true, expectedBody);
+
+		when(reqProcessor.process("/access","{\"accessid\":\""+"s_shared_mysafe01"+"\"}",powerToken)).thenReturn(capabilitiesResponse);
+
+		UserDetails userDetails = createUserDetails(username, powerToken, userToken, admin);
+		SSLCertificateMetadataDetails safeMetaData = new SSLCertificateMetadataDetails();
+		safeMetaData.setCertOwnerNtid("testuser1");
+
+		String[] latestPolicies = createLatestPolicies(latestPoliciesStr);
+		ArrayList<String> policiesTobeChecked = createPoliciesTobeChecked(policiesTobeCheckedStr);
+
+		boolean forceCapabilityCheck = true;
+
+		boolean actual = authorizationUtils.isAuthorizedCert(userDetails, safeMetaData, latestPolicies,
+				policiesTobeChecked, forceCapabilityCheck);
+		assertEquals(actual, false);
+	}
+
 }

@@ -114,7 +114,30 @@ public class OIDCUtilTest {
         String mountAccessor = oidcUtil.fetchMountAccessorForOidc(token);
         assertEquals("auth_oidc_8b51f292", mountAccessor);
     }
-    
+
+
+   @Test
+    public void test_tokenLookUp_success() {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String authMountResponse = "{ \"identity_policies\": [\"default\"]}";
+        Response response = getMockResponse(HttpStatus.OK, true, authMountResponse);
+        when(reqProcessor.process("/auth/tvault/lookup", "{}", token)).thenReturn(response);
+        List<String> policies = new ArrayList<>();
+        policies = oidcUtil.tokenLookUp(token);
+        assertNotNull(policies);
+    }
+
+    @Test
+    public void test_tokenLookUp_Failure() {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String authMountResponse = "{ \"identity_policies\": [\"default\"]}";
+        Response response = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, authMountResponse);
+        when(reqProcessor.process("/auth/tvault/lookup", "{}", token)).thenReturn(response);
+        List<String> policies = new ArrayList<>();
+        policies = oidcUtil.tokenLookUp(token);
+        assertNotNull(policies);
+    }
+
     @Test
     public void test_getEntityLookUpResponse() {
         String authMountResponse = "{\"data\":{\"name\":\"entity_63f119d2\",\"policies\":[\"safeadmin\"]}}";
@@ -226,6 +249,28 @@ public class OIDCUtilTest {
 
         String actualResponse = oidcUtil.getGroupObjectResponse(token, group);
         assertEquals("abcdefg", actualResponse);
+    }
+    @Test
+    public void test_getGroupObjectResponse_without_no_client_object() throws Exception {
+        String group = "group1";
+        String token = "test4ig8L3EpsJZSLAMg";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        when(httpUtils.getHttpClient()).thenReturn(null);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        String groupResponseString = "{\"value\": [ {\"id\": \"abcdefg\", \"onPremisesSyncEnabled\":null}]}";
+        when(mockHttpEntity.getContent()).thenReturn( new ByteArrayInputStream(groupResponseString.getBytes()));
+        ReflectionTestUtils.setField(oidcUtil, "ssoGroupsEndpoint", "testgroupurl");
+
+        String actualResponse = oidcUtil.getGroupObjectResponse(token, group);
+        assertNull(actualResponse);
     }
 
     @Test
@@ -693,6 +738,28 @@ public class OIDCUtilTest {
     }
 
     @Test
+    public void test_getGroupsFromAAD_With_null_HttpResponse() throws Exception {
+        String group = "testgroup";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        when(httpUtils.getHttpClient()).thenReturn(null);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        String groupResponseString = "{\"value\": [ {\"id\": \"abcdefg\", \"onPremisesSyncEnabled\":null, \"displayName\":\"testgroup1\"}]}";
+        when(mockHttpEntity.getContent()).thenReturn( new ByteArrayInputStream(groupResponseString.getBytes()));
+        ReflectionTestUtils.setField(oidcUtil, "ssoGroupsEndpoint", "testgroupurl");
+
+        List<DirectoryGroup> groups = oidcUtil.getGroupsFromAAD("testssotoken", group);
+        assertEquals(0, groups.size());
+    }
+
+    @Test
     public void test_getGroupsFromAAD_failed() throws Exception {
         String group = "testgroup";
         Response response = new Response();
@@ -805,6 +872,31 @@ public class OIDCUtilTest {
 
 	}
 
+    @Test
+    public void test_getSelfServiceGroupsFromAADById_With_Null_HttpResponse() throws Exception {
+        String userAADId = "abcdefg";
+        String userName = "testuser";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        when(httpUtils.getHttpClient()).thenReturn(null);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+
+        String groupResponseString = "{\"value\": [ {\"id\": \"abcdefg\", \"onPremisesSyncEnabled\":null, \"displayName\":\"r_selfservice_tvt_admin\"}]}";
+        when(mockHttpEntity.getContent()).thenReturn(new ByteArrayInputStream(groupResponseString.getBytes()));
+        ReflectionTestUtils.setField(oidcUtil, "ssoGetUserEndpoint", "testgroupurl");
+        ReflectionTestUtils.setField(oidcUtil, "ssoGetUserGroups", "groupurlvalue");
+        ReflectionTestUtils.setField(oidcUtil, "ssoGroupPattern", "r_selfservice_[a-z]{3}_admin");
+
+        List<String> groups = oidcUtil.getSelfServiceGroupsFromAADById("testssotoken", userAADId, userName);
+        assertEquals(0, groups.size());
+    }
+
 	@Test
 	public void test_getSelfServiceGroupsFromAADById_failed() throws Exception {
 		String userAADId = "abcdefg";
@@ -915,6 +1007,26 @@ public class OIDCUtilTest {
         response.setResponse(null);
 
         when(httpUtils.getHttpClient()).thenReturn(httpClient);
+        when(httpClient.execute(any())).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(400);
+
+        ReflectionTestUtils.setField(oidcUtil, "ssoGroupsEndpoint", "testgroupurl");
+
+        List<DirecotryGroupEmail> emails = oidcUtil.getGroupsEmailFromAAD("testssotoken", email);
+        assertEquals(0, emails.size());
+
+    }
+
+    @Test
+    public void testgetGroupEmailFromAADfailed_With_null_httpclient() throws Exception {
+        String email = "t-vault@t-mobile.com";
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setSuccess(true);
+        response.setResponse(null);
+
+        when(httpUtils.getHttpClient()).thenReturn(null);
         when(httpClient.execute(any())).thenReturn(httpResponse);
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(400);

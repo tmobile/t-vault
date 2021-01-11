@@ -49,6 +49,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -204,6 +205,42 @@ public class AWSIAMAuthServiceTest {
         }
     }
 
+
+    @Test
+    public void test_createIAMRole_revert_failure_with_error_code() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("iam");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+
+        String jsonStr = "{\"auth_type\": \"iam\",\"bound_iam_principal_arn\":" +
+                " [\"arn:aws:iam::123456789012:user/tst\"],\"policies\": " +
+                "[\"string\"],\"resolve_aws_unique_ids\": true,\"role\": \"string\"}";
+        Response response = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages" +
+                "\":[\"AWS IAM role created however metadata update failed. Please try with AWS role/update \"]}");
+
+
+        when(reqProcessor.process("/auth/aws/iam/role/create",jsonStr, token)).thenReturn(response);
+        when(JSONUtil.getJSON(awsiamRole)).thenReturn(jsonStr);
+        UserDetails userDetails = getMockUser(true);
+        when(ControllerUtil.createMetadata(Mockito.any(), eq(token))).thenReturn(false);
+        Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        when(reqProcessor.process("/auth/aws/iam/roles/delete","{\"role\":\""+awsiamRole.getRole()+"\"}",token)).thenReturn(response404);
+        try {
+            when(ControllerUtil.areAWSIAMRoleInputsValid(awsiamRole)).thenReturn(true);
+            ResponseEntity<String> responseEntity = awsIamAuthService.createIAMRole(awsiamRole, token, userDetails);
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+           } catch (TVaultValidationException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Test(expected = TVaultValidationException.class)
     public void test_createIAMRole_failure_400() throws TVaultValidationException{
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
@@ -295,6 +332,8 @@ public class AWSIAMAuthServiceTest {
             e.printStackTrace();
         }
     }
+
+
 
     @Test
     public void test_fetchIAMRole_successfully() {

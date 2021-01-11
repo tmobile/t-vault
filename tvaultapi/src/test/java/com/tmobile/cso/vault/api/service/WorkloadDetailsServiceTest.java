@@ -1,7 +1,9 @@
 package com.tmobile.cso.vault.api.service;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonNull;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -134,6 +136,91 @@ public class WorkloadDetailsServiceTest {
         assertEquals(responseEntityExpected, responseEntityActual);
 
     }
+
+
+    @Test(expected = Exception.class)
+    public void test_getWorkloadDetails_success_Without_Apiresponse() throws Exception {
+        String responseStr = "{\"items\": [{\"spec\": {\"id\": \"aac\",\"summary\": \"app1\"}}]}";
+        String workloadResponse = "[{\"appName\":\"Other\",\"appTag\":\"Other\",\"appID\":\"oth\"},{\"appName\":\"app1\",\"appTag\":\"aac\",\"appID\":\"aac\"}]";
+
+        ReflectionTestUtils.setField(workloadDetailsService, "workloadEndpoint", "http://appdetails.com");
+        when(ControllerUtil.getCwmToken()).thenReturn("dG9rZW4=");
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(any())).thenReturn(httpResponse);
+
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(null);
+        InputStream inputStream = new ByteArrayInputStream(responseStr.getBytes());
+        when(mockHttpEntity.getContent()).thenReturn(inputStream);
+        when(JSONUtil.getJSON(anyList())).thenReturn(workloadResponse);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("[{\"appName\":\"Other\",\"appTag\":\"Other\",\"appID\":\"oth\"},{\"appName\":\"app1\",\"appTag\":\"aac\",\"appID\":\"aac\"}]");
+        workloadDetailsService.getWorkloadDetails(token, userDetails);
+    }
+
+    @Test
+    public void test_getWorkloadDetails_success_WithoutDetails() throws Exception {
+        String responseStr = "{\"items\": []}";
+        String workloadResponse = "[{\"appName\":\"Other\",\"appTag\":\"Other\",\"appID\":\"oth\"},{\"appName\":\"app1\",\"appTag\":\"aac\",\"appID\":\"aac\"}]";
+
+        ReflectionTestUtils.setField(workloadDetailsService, "workloadEndpointToken", null);
+        when(ControllerUtil.getCwmToken()).thenReturn("dG9rZW4=");
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(any())).thenReturn(httpResponse);
+
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        InputStream inputStream = new ByteArrayInputStream(responseStr.getBytes());
+        when(mockHttpEntity.getContent()).thenReturn(inputStream);
+        when(JSONUtil.getJSON(anyList())).thenReturn(workloadResponse);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("[{\"appName\":\"Other\",\"appTag\":\"Other\",\"appID\":\"oth\"},{\"appName\":\"app1\",\"appTag\":\"aac\",\"appID\":\"aac\"}]");
+
+        ResponseEntity<String> responseEntityActual = workloadDetailsService.getWorkloadDetails(token, userDetails);
+        assertEquals(responseEntityExpected.getStatusCode(), responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_getWorkloadDetails_success_with_populate_null_details() throws Exception {
+        String responseStr = "{\"items\": [{\"spec\": {\"id\": "+ JsonNull.INSTANCE+",\"summary\": "+ JsonNull.INSTANCE+"}}]}";
+        String workloadResponse = "[{\"appName\":\"Other\",\"appTag\":\"Other\",\"appID\":\"oth\"},{\"appName\":\"app1\",\"appTag\":\"aac\",\"appID\":\"aac\"}]";
+
+        ReflectionTestUtils.setField(workloadDetailsService, "workloadEndpoint", "http://appdetails.com");
+        when(ControllerUtil.getCwmToken()).thenReturn("dG9rZW4=");
+        when(HttpClientBuilder.create()).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setSSLContext(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.setRedirectStrategy(any())).thenReturn(httpClientBuilder);
+        when(httpClientBuilder.build()).thenReturn(httpClient1);
+        when(httpClient1.execute(any())).thenReturn(httpResponse);
+
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(httpResponse.getEntity()).thenReturn(mockHttpEntity);
+        InputStream inputStream = new ByteArrayInputStream(responseStr.getBytes());
+        when(mockHttpEntity.getContent()).thenReturn(inputStream);
+        when(JSONUtil.getJSON(anyList())).thenReturn(workloadResponse);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("[{\"appName\":\"Other\",\"appTag\":\"Other\",\"appID\":\"oth\"},{\"appName\":\"app1\",\"appTag\":\"aac\",\"appID\":\"aac\"}]");
+
+        ResponseEntity<String> responseEntityActual = workloadDetailsService.getWorkloadDetails(token, userDetails);
+        assertEquals(responseEntityExpected.getStatusCode(), responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
 
     @Test
     public void test_getWorkloadDetails_failed() throws Exception {
