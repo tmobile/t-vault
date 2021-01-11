@@ -535,7 +535,7 @@ const CreateCertificates = (props) => {
     setOpenConfirmationModal(false);
   };
   const onSelected = (e, val) => {
-    const notifyUserEmail = val?.match(/\[(.*)\]/)[1].toLowerCase();
+    const notifyUserEmail = val?.match(/\[(.*)\]/)[1];
     setNotifyUserSelected(
       options.filter((i) => i.userEmail === notifyUserEmail)[0]
     );
