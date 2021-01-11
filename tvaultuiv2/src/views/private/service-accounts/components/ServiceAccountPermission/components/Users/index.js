@@ -225,7 +225,6 @@ const Users = (props) => {
           <AddUser
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
-            refresh={refresh}
             isSvcAccount
           />
         )}
@@ -235,7 +234,6 @@ const Users = (props) => {
             handleCancelClick={onCancelClicked}
             username={editUser}
             access={editAccess}
-            refresh={refresh}
             isSvcAccount
           />
         )}

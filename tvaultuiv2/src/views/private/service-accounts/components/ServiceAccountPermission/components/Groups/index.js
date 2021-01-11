@@ -56,10 +56,10 @@ const Groups = (props) => {
   const {
     accountDetail,
     accountMetaData,
-    fetchPermission,
     onNewGroupChange,
     newGroup,
     updateToastMessage,
+    refresh,
   } = props;
 
   const [editGroup, setEditGroup] = useState('');
@@ -110,7 +110,7 @@ const Groups = (props) => {
         if (res?.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -134,7 +134,7 @@ const Groups = (props) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -289,9 +289,9 @@ const Groups = (props) => {
 Groups.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
   newGroup: PropTypes.bool.isRequired,
   onNewGroupChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  refresh: PropTypes.func.isRequired,
 };
 export default Groups;

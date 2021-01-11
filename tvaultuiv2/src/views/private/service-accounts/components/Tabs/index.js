@@ -169,6 +169,7 @@ const AccountSelectionTabs = (props) => {
     setResponse({ status: 'loading' });
     setSecretResStatus({ status: 'loading' });
     setHasSvcAccountAcitve(false);
+    setValue(0);
     if (accountDetail?.name) {
       fetchPermission();
       getSecrets();
