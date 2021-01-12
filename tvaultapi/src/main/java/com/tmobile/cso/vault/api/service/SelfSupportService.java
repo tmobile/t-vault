@@ -105,7 +105,26 @@ public class  SelfSupportService {
 		
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
-			return safesService.createSafe(token, safe);
+			ResponseEntity<String> safeCreationResponse = safesService.createSafe(token, safe);
+			if (HttpStatus.OK.equals(safeCreationResponse.getStatusCode() )) {
+				// Associate admin user to the safe...
+				SafeUser safeUser = new SafeUser();
+				safeUser.setAccess(TVaultConstants.SUDO_POLICY);
+				safeUser.setPath(safe.getPath());
+				String ownerEmail = safe.getSafeBasicDetails().getOwner();
+				ResponseEntity<DirectoryObjects> responseEntity = directoryService.searchByUPNInGsmAndCorp(ownerEmail);
+				Object[] results =  responseEntity.getBody().getData().getValues();
+				String username = "";
+				for (Object tp : results) {
+					if (((DirectoryUser) tp).getUserEmail().equalsIgnoreCase(ownerEmail)) {
+						username = ((DirectoryUser) tp).getUserEmail();
+						break;
+					}
+				}
+				safeUser.setUsername(username);
+				safesService.addUserToSafe(token, safeUser, userDetails, true);
+			}
+			return safeCreationResponse;
 		}
 		else {
 			// Assign the owner (Infer from logged in user?)
@@ -124,8 +143,8 @@ public class  SelfSupportService {
 			if (!ObjectUtils.isEmpty(safe) && safe.getSafeBasicDetails() != null) {
 				safe.getSafeBasicDetails().setOwnerid(userDetails.getUsername());
 			}
-			ResponseEntity<String> safe_creation_response = safesService.createSafe(token, safe);
-			if (HttpStatus.OK.equals(safe_creation_response.getStatusCode() )) {
+			ResponseEntity<String> safeCreationResponse = safesService.createSafe(token, safe);
+			if (HttpStatus.OK.equals(safeCreationResponse.getStatusCode() )) {
 				// Associate admin user to the safe...
 				SafeUser safeUser = new SafeUser();
 				safeUser.setAccess(TVaultConstants.SUDO_POLICY);
@@ -133,7 +152,7 @@ public class  SelfSupportService {
 				safeUser.setUsername(userDetails.getUsername());
 				safesService.addUserToSafe(token, safeUser, userDetails, true);
 			}
-			return safe_creation_response;
+			return safeCreationResponse;
 		}
 	}
 

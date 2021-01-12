@@ -683,35 +683,6 @@ public class OIDCUtilTest {
 
         assertEquals(expectedResponse.getHttpstatus(), updateResponse.getHttpstatus());
     }
-    
-    
-    @Test
-    public void getUserName_Success(){
-		String username = "testuser";
-		String email = "testUser@t-mobile.com";
-		Response responsemock = getMockResponse(HttpStatus.OK, true, username);
-		
-		 DirectoryUser directoryUser = new DirectoryUser();
-         directoryUser.setDisplayName("testUser");
-         directoryUser.setGivenName("testUser");
-         directoryUser.setUserEmail("testUser@t-mobile.com");
-         directoryUser.setUserId("testuser01");
-         directoryUser.setUserName("testuser");
-
-         List<DirectoryUser> persons = new ArrayList<>();
-         persons.add(directoryUser);
-
-         DirectoryObjects users = new DirectoryObjects();
-         DirectoryObjectsList usersList = new DirectoryObjectsList();
-         usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
-         users.setData(usersList);
-         ResponseEntity<DirectoryObjects> responseEntity1 = ResponseEntity.status(HttpStatus.OK).body(users);
-
-         when(directoryService.searchByUPN(directoryUser.getUserEmail())).thenReturn(responseEntity1);
-
-		String originalUserName = oidcUtil.getUserName(email);
-		assertEquals(originalUserName, responsemock.getResponse().toString());
-    }
 
     @Test
     public void test_getGroupsFromAAD_success() throws Exception {

@@ -153,7 +153,9 @@
             Authentication.getUserName().then(function(response){
                 if(UtilityService.ifAPIRequestSuccessful(response)){
                     var username = response.data.data.username;
+                    var useremail = response.data.data.useremail;
                     SessionStore.setItem("username", username);
+                    SessionStore.setItem("useremail", useremail);
                     window.location.replace("/");
                     return; 
                 } else {

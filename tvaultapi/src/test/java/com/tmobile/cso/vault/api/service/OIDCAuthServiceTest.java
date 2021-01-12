@@ -478,11 +478,13 @@ public class OIDCAuthServiceTest {
     public void getUserName_Success() throws Exception {
         String token = "4EpPYDSfgN2D4Gf7UmNO3nuL";
         String username = "testuser";
+        String useremail = "testuser@t-mobile.com";
         Response response = getMockResponse(HttpStatus.OK, true, username);
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"data\":{\"username\": \"" + username.toLowerCase() + "\"}}");
-        when(OIDCUtil.getUserName(Mockito.anyString())).thenReturn(username);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"data\":{\"username\":\"" + username
+				+ "\",\"useremail\":\"" + useremail + "\"}}");
 		UserDetails userDetails = new UserDetails();
 		userDetails.setUsername("testuser");
+		userDetails.setEmail("testuser@t-mobile.com");
         ResponseEntity<String> responseEntity = oidcAuthService.getUserName(userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
