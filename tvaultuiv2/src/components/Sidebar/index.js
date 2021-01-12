@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { withRouter } from 'react-router-dom';
 import Link from '@material-ui/core/Link';
 import banner from '../../assets/mob-banner.svg';
@@ -56,6 +57,19 @@ const Sidebar = (props) => {
     EachLink,
   } = props;
 
+  const { trackPageView, trackEvent } = useMatomo();
+
+  useEffect(() => {
+    trackPageView();
+    return () => {
+      trackPageView();
+    };
+  }, [trackPageView]);
+
+  const handleOnClick = (label) => {
+    trackEvent({ category: `${label}-tab`, action: 'click-event' });
+  };
+
   return (
     <SideMenuWrapper>
       <Close src={close} alt="close" onClick={onClose} />
@@ -69,6 +83,7 @@ const Sidebar = (props) => {
               href={`/${item.path}`}
               key={item.label}
               active={currentTab === item.path ? 'true' : 'false'}
+              onClick={() => handleOnClick(item.path)}
             >
               {item.label}
             </NavLink>

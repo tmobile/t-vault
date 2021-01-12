@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { debounce } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
 import { Backdrop, Typography, InputLabel } from '@material-ui/core';
@@ -282,6 +283,16 @@ const CreateCertificates = (props) => {
   const isMobileScreen = useMediaQuery(small);
   const history = useHistory();
   const [state] = useStateValue();
+
+  const { trackPageView, trackEvent } = useMatomo();
+
+  useEffect(() => {
+    trackPageView();
+    return () => {
+      trackPageView();
+    };
+  }, [trackPageView]);
+
   const handleClose = () => {
     if (responseType !== 0) {
       setOpen(false);
@@ -473,6 +484,10 @@ const CreateCertificates = (props) => {
         .createCertificate(payload)
         .then(async (res) => {
           setResponseType(null);
+          trackEvent({
+            category: 'certificate-creation',
+            action: 'click-event',
+          });
           if (res.data.messages && res.data.messages[0]) {
             setOpenConfirmationModal(true);
             setResponseTitle('Successful');
@@ -536,7 +551,7 @@ const CreateCertificates = (props) => {
   const onSelected = (e, val) => {
     const notifyUserEmail = val?.split(', ')[0];
     setNotifyUserSelected(
-      options.filter((i) => i.userEmail.toLowerCase() === notifyUserEmail)[0]
+      options.filter((i) => i?.userEmail?.toLowerCase() === notifyUserEmail)[0]
     );
     setNotifyEmail(notifyUserEmail);
     setEmailError(false);
