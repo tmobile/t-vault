@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { debounce } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
 import { InputLabel, Typography } from '@material-ui/core';
@@ -106,7 +106,6 @@ const AddUser = (props) => {
     isIamAzureSvcAccount,
   } = props;
   const classes = useStyles();
-  const mountedRef = useRef(true);
   const [radioValue, setRadioValue] = useState('read');
   const [searchValue, setSearchValue] = useState('');
   const [options, setOptions] = useState([]);
@@ -247,12 +246,6 @@ const AddUser = (props) => {
       setRadioArray(['read', 'write', 'deny']);
     }
   }, [isIamAzureSvcAccount, isSvcAccount, isCertificate]);
-
-  useEffect(() => {
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
 
   return (
     <ComponentError>
