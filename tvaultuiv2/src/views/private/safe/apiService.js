@@ -41,6 +41,8 @@ const getOwnerTransferEmail = (value) =>
   api.get(`/tmo/users?UserPrincipalName=${value}`);
 const transferSafeOwner = (payload) => api.post('/ss/transfersafe', payload);
 
+const getApplicationName = () => api.get('/serviceaccounts/cwm/approles');
+
 export default {
   getSafes,
   deleteSafe,
@@ -71,4 +73,5 @@ export default {
   getUsersDetails,
   getOwnerTransferEmail,
   transferSafeOwner,
+  getApplicationName,
 };

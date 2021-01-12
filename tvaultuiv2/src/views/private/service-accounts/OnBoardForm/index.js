@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { debounce } from 'lodash';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import styled, { css } from 'styled-components';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 import {
   Backdrop,
   InputLabel,
@@ -258,6 +259,7 @@ const OnBoardForm = (props) => {
 
   const [open, setOpen] = useState(true);
   const [isSwitchOn, setIsSwitchOn] = useState(false);
+  const { trackPageView, trackEvent } = useMatomo();
 
   const history = useHistory();
   const classes = useStyles();
@@ -419,6 +421,13 @@ const OnBoardForm = (props) => {
     []
   );
 
+  useEffect(() => {
+    trackPageView();
+    return () => {
+      trackPageView();
+    };
+  }, [trackPageView]);
+
   /**
    *
    * @param {*} e
@@ -444,6 +453,10 @@ const OnBoardForm = (props) => {
     apiService
       .onBoardServiceAccount(payload)
       .then(async (res) => {
+        trackEvent({
+          category: 'onboard-service-account',
+          action: 'click-event',
+        });
         setStatus({
           status: 'success',
           message: res.data.messages[0],
@@ -600,6 +613,7 @@ const OnBoardForm = (props) => {
       );
     }
   };
+
   const handleConfirmationModalClose = () => {
     setOnBoardConfirmationModal(false);
     setIsActivateSvc(false);
@@ -657,15 +671,6 @@ const OnBoardForm = (props) => {
       serviceAccountDetails?.accountStatus?.toLowerCase() === 'expired'
     );
   };
-  // render grid row of service account details
-  //   const renderGridRow = (data) => {
-  //     data.map((item) => (
-  //       <Grid>
-  //         <div>{item.title}</div>
-  //         <div>{item.info}</div>
-  //       </Grid>
-  //     ));
-  //   };
 
   return (
     <ComponentError>
@@ -921,14 +926,12 @@ const OnBoardForm = (props) => {
                         </GridColumn>
                         <GridColumn customStyles={GridColumnStyles}>
                           <GridItem>
-                            {' '}
                             <CollapseTitle>Owner Email</CollapseTitle>
                             <CollapseTitle color="#fff">
                               {serviceAccountDetails?.managedBy?.userEmail}
                             </CollapseTitle>
                           </GridItem>
                           <GridItem>
-                            {' '}
                             <CollapseTitle>Password Expiry</CollapseTitle>
                             <CollapseTitle color="#fff">
                               {serviceAccountDetails?.passwordExpiry}
@@ -948,7 +951,6 @@ const OnBoardForm = (props) => {
                 </InputFieldLabelWrapper>
                 <ToggleWrap>
                   <TitleTwo extraCss="display:flex;align-items:center">
-                    {' '}
                     <SwitchComponent
                       checked={isSwitchOn}
                       handleChange={handleSwitch}
@@ -1057,7 +1059,6 @@ const OnBoardForm = (props) => {
                   !isActiveServiceAccount ? (
                     <OwnerActionsWrap>
                       <BtnWrap>
-                        {' '}
                         <ButtonComponent
                           label="Activate service Account"
                           disabled={getDisabledStatus()}

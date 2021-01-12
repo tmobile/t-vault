@@ -32,13 +32,10 @@ const SecretWrapper = styled.section`
 const FormWrapper = styled.form`
   margin-top: 4rem;
 `;
-
-const KeyIdInputRequirements = styled.p`
-  color: #fff;
-  opacity: 0.4;
-  font-size: 1.3rem;
-  margin-bottom: 2rem;
+const InputFieldWrapper = styled.div`
+  margin-top: 1.5rem;
 `;
+
 const CancelSaveWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
@@ -148,7 +145,6 @@ const CreateSecret = (props) => {
               <RequiredText>Required</RequiredText>
             </RequiredWrap>
           </LabelRequired>
-
           <TextFieldComponent
             placeholder="Key Id"
             value={keyId || ''}
@@ -158,24 +154,22 @@ const CreateSecret = (props) => {
             helperText={
               keyErrorMessage
                 ? 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.'
-                : ''
+                : 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.'
             }
           />
-          <KeyIdInputRequirements>
-            Please enter a minimum of 3 characters lowercase alphabets, number
-            and underscores only
-          </KeyIdInputRequirements>
-          <InputLabel>
-            Secret
-            <RequiredCircle margin="0.5rem" />
-          </InputLabel>
-          <TextFieldComponent
-            placeholder="Secret"
-            value={secret || ''}
-            onChange={(e) => handleValueChange(e.target.value)}
-            fullWidth
-            error={!!valueErrorMessage}
-          />
+          <InputFieldWrapper>
+            <InputLabel>
+              Secret
+              <RequiredCircle margin="0.5rem" />
+            </InputLabel>
+            <TextFieldComponent
+              placeholder="Secret"
+              value={secret || ''}
+              onChange={(e) => handleValueChange(e.target.value)}
+              fullWidth
+              error={!!valueErrorMessage}
+            />
+          </InputFieldWrapper>
           <CancelSaveWrapper>
             <CancelButton>
               <ButtonComponent
