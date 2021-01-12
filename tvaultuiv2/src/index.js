@@ -12,14 +12,8 @@ import initialState from './stateManagement';
 const instance = createInstance({
   urlBase: 'https://analytics.pacbot.t-mobile.com/',
   siteId: 8,
+  userId: localStorage.getItem('owner') || 'User',
   linkTracking: false, // optional, default value: true
-  configurations: {
-    // optional, default value: {}
-    // any valid matomo configuration, all below are optional
-    disableCookies: true,
-    setSecureCookie: true,
-    setRequestMethod: 'POST',
-  },
 });
 
 ReactDOM.render(
