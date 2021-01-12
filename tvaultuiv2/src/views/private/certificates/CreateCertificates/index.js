@@ -585,7 +585,6 @@ const CreateCertificates = (props) => {
   );
 
   const onNotifyEmailChange = (e) => {
-    console.log('chainging', e?.target?.value);
     if (e?.target?.value !== undefined) {
       setNotifyEmail(e.target.value);
       if (e.target.value && e.target.value?.length > 2) {

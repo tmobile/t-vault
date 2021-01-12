@@ -156,6 +156,8 @@ const useStyles = makeStyles((theme) => ({
 const CreateModal = (props) => {
   const { refresh } = props;
   const classes = useStyles();
+  const [applicationName, setApplicationName] = useState('');
+  const [allApplication, setAllApplication] = useState([]);
   const [open, setOpen] = useState(true);
   const [safeType, setSafeType] = useState('Users Safe');
   const [owner, setOwner] = useState('');
@@ -197,7 +199,12 @@ const CreateModal = (props) => {
       safeError ||
       name.length < 3 ||
       emailError ||
+      applicationName === '' ||
       !isValidEmail ||
+      (![...allApplication.map((item) => item.appName)].includes(
+        applicationName
+      ) &&
+        applicationName !== '') ||
       (safeDetails.owner === owner && safeDetails.description === description)
     ) {
       setDisabledSave(true);
@@ -205,6 +212,7 @@ const CreateModal = (props) => {
       setDisabledSave(false);
     }
   }, [
+    allApplication,
     name,
     description,
     owner,
@@ -213,6 +221,7 @@ const CreateModal = (props) => {
     editSafe,
     safeDetails,
     isValidEmail,
+    applicationName,
   ]);
 
   const [menu] = useState(['Users Safe', 'Shared Safe', 'Application Safe']);
@@ -223,6 +232,23 @@ const CreateModal = (props) => {
       history.goBack();
     }
   };
+
+  useEffect(() => {
+    setResponseType(0);
+    apiService
+      .getApplicationName()
+      .then((res) => {
+        setResponseType(null);
+        if (res) {
+          setAllApplication([...res?.data]);
+        }
+      })
+      .catch(() => {
+        setResponseType(-1);
+        setOpen(false);
+        history.goBack();
+      });
+  }, [history]);
 
   useEffect(() => {
     if (
@@ -240,6 +266,7 @@ const CreateModal = (props) => {
             setName(res.data.data.name);
             setDescription(res.data.data.description);
             setOwner(res.data.data.owner);
+            setApplicationName(res.data.data.appName);
             if (res.data.data.type === 'users') {
               setSafeType('Users Safe');
             } else if (res.data.data.type === 'apps') {
@@ -266,6 +293,7 @@ const CreateModal = (props) => {
     }
     const data = {
       data: {
+        appName: applicationName,
         name,
         description,
         type: '',
@@ -384,6 +412,7 @@ const CreateModal = (props) => {
     }
     setResponseType(null);
   };
+
   const InputValidation = (text) => {
     if (text) {
       const res = /^[A-Za-z0-9_.-]*?[a-z0-9]$/i;
@@ -437,6 +466,10 @@ const CreateModal = (props) => {
         }
         setResponseType(-1);
       });
+  };
+
+  const onChangeAppilcationName = (value) => {
+    setApplicationName(value);
   };
 
   return (
@@ -557,6 +590,37 @@ const CreateModal = (props) => {
                       readOnly={!!editSafe}
                       onChange={(e) => setSafeType(e.target.value)}
                       helperText={helperText}
+                    />
+                  </InputFieldLabelWrapper>
+                  <InputFieldLabelWrapper>
+                    <InputLabel>
+                      Application Name
+                      <RequiredCircle margin="1.3rem" />
+                    </InputLabel>
+                    <AutoCompleteComponent
+                      icon="search"
+                      options={[...allApplication.map((item) => item.appName)]}
+                      searchValue={applicationName}
+                      classes={classes}
+                      onChange={(e) =>
+                        onChangeAppilcationName(e?.target?.value)
+                      }
+                      onSelected={(event, value) => setApplicationName(value)}
+                      placeholder="Search for Application Name"
+                      error={
+                        applicationName !== '' &&
+                        ![
+                          ...allApplication.map((item) => item.appName),
+                        ].includes(applicationName)
+                      }
+                      helperText={
+                        applicationName !== '' &&
+                        ![
+                          ...allApplication.map((item) => item.appName),
+                        ].includes(applicationName)
+                          ? `Application ${applicationName} does not exist!`
+                          : ''
+                      }
                     />
                   </InputFieldLabelWrapper>
                   <InputFieldLabelWrapper>
