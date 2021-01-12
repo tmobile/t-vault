@@ -155,11 +155,20 @@ public class  SecretService {
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
 				}
+				else if (updateVersionInfoResponse.getHttpstatus().equals(HttpStatus.UNPROCESSABLE_ENTITY)) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "Write Secret").
+							put(LogMessage.MESSAGE, String.format("No changes made to the secrets in [%s]", path)).
+							put(LogMessage.STATUS, response.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
 				else {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, "Write Secret").
-							put(LogMessage.MESSAGE, String.format("Failed to update version infofor [%s]", path)).
+							put(LogMessage.MESSAGE, String.format("Failed to update version info for [%s]", path)).
 							put(LogMessage.STATUS, response.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -245,6 +254,15 @@ public class  SecretService {
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
 				}
+				else if (updateVersionInfoResponse.getHttpstatus().equals(HttpStatus.UNPROCESSABLE_ENTITY)) {
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "Write Secret").
+							put(LogMessage.MESSAGE, String.format("No changes made to the secrets in [%s]", path)).
+							put(LogMessage.STATUS, response.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
 				else {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -286,49 +304,64 @@ public class  SecretService {
 	 */
 	private Response saveVersionInfo(String token, String path, UserDetails userDetails, Secret secret, Response readResponse) {
 		List<String> modifiedKeys = getChangedSecretKeys(secret, readResponse);
-		Response versionCreationResponse = safeUtils.createVersionFolder(token, path, userDetails, false, modifiedKeys);
-		if (HttpStatus.NO_CONTENT.equals(versionCreationResponse.getHttpstatus())) {
-			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "createNestedfolder").
-					put(LogMessage.MESSAGE, String.format ("Created version folder for [%s]", path)).
-					put(LogMessage.STATUS, versionCreationResponse.getHttpstatus().toString()).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-					build()));
+		Response versionCreationResponse = new Response();
+		if (modifiedKeys.size() >0) {
+			versionCreationResponse = safeUtils.createVersionFolder(token, path, userDetails, false, modifiedKeys);
+			if (HttpStatus.NO_CONTENT.equals(versionCreationResponse.getHttpstatus())) {
+				log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "createNestedfolder").
+						put(LogMessage.MESSAGE, String.format ("Created version folder for [%s]", path)).
+						put(LogMessage.STATUS, versionCreationResponse.getHttpstatus().toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+			else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "createNestedfolder").
+						put(LogMessage.MESSAGE, String.format ("Failed to create version folder for [%s]", path)).
+						put(LogMessage.STATUS, versionCreationResponse.getHttpstatus().toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
 		}
 		else {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "createNestedfolder").
-					put(LogMessage.MESSAGE, String.format ("Failed to create version folder for [%s]", path)).
-					put(LogMessage.STATUS, versionCreationResponse.getHttpstatus().toString()).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-					build()));
+			versionCreationResponse.setHttpstatus(HttpStatus.UNPROCESSABLE_ENTITY);
+			versionCreationResponse.setResponse("{\"errors\":[\"No changes made to secrets\"]}");
 		}
 		return versionCreationResponse;
 	}
 
+	/**
+	 * To get the list of changed secrets in the write secret request
+	 * @param secret
+	 * @param readResponse
+	 * @return
+	 */
 	private List<String> getChangedSecretKeys(Secret secret, Response readResponse) {
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<String> modifiedSecretKeys = new ArrayList<>();
-		try {
-			Secret oldSecret = objectMapper.readValue(readResponse.getResponse(),	new TypeReference<Secret>() {});
-			if (oldSecret.getDetails() != null && oldSecret.getDetails().size() > 0) {
-				for (Map.Entry<String, String> entry : secret.getDetails().entrySet()) {
-					String key = entry.getKey();
-					String value = entry.getValue();
-					if (!oldSecret.getDetails().containsKey(key) || !value.equals(oldSecret.getDetails().get(entry.getKey()))) {
-						modifiedSecretKeys.add(key);
+		if (readResponse.getHttpstatus().equals(HttpStatus.OK)) {
+			try {
+				Secret oldSecret = objectMapper.readValue(readResponse.getResponse(),	new TypeReference<Secret>() {});
+				if (oldSecret.getDetails() != null && oldSecret.getDetails().size() > 0) {
+					for (Map.Entry<String, String> entry : secret.getDetails().entrySet()) {
+						String key = entry.getKey();
+						String value = entry.getValue();
+						if (!oldSecret.getDetails().containsKey(key) || !value.equals(oldSecret.getDetails().get(entry.getKey()))) {
+							modifiedSecretKeys.add(key);
+						}
 					}
 				}
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "getChangedSecretKeys").
+						put(LogMessage.MESSAGE, String.format("Failed to read current secret for [%s}", secret.getPath())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
 			}
-		} catch (IOException e) {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, "getChangedSecretKeys").
-					put(LogMessage.MESSAGE, String.format("Failed to read current secret for [%s}", secret.getPath())).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-					build()));
 		}
 		return modifiedSecretKeys;
 	}
