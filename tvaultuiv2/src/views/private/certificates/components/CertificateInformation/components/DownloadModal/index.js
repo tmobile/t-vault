@@ -111,14 +111,6 @@ const NonPrivateCancel = styled.div`
 `;
 
 const useStyles = makeStyles((theme) => ({
-  select: {
-    '&.MuiFilledInput-root.Mui-focused': {
-      backgroundColor: '#fff',
-    },
-  },
-  dropdownStyle: {
-    backgroundColor: '#fff',
-  },
   modal: {
     display: 'flex',
     alignItems: 'center',
@@ -149,7 +141,6 @@ const DownloadModal = (props) => {
   const [formatType, setFormatType] = useState('DER-P12');
   const [password, setPassword] = useState('');
   const isMobileScreen = useMediaQuery(small);
-  const [helperText] = useState('');
   const [issuerChain, setIssuerChain] = useState(true);
   const [selectItem] = useState([
     { name: 'DER-P12', value: 'pkcs12der' },
@@ -229,9 +220,7 @@ const DownloadModal = (props) => {
                   <SelectComponent
                     menu={[...selectItem.map((item) => item.name)]}
                     value={formatType}
-                    classes={classes}
-                    onChange={(e) => setFormatType(e.target.value)}
-                    helperText={helperText}
+                    onChange={(e) => setFormatType(e)}
                   />
                 </InputFieldLabelWrapper>
                 <IncludeChainWrap>
