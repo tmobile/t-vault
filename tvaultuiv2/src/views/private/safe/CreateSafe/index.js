@@ -362,7 +362,7 @@ const CreateModal = (props) => {
     []
   );
   const onOwnerChange = (e) => {
-    if (e && e.target.value) {
+    if (e && e?.target?.value !== undefined) {
       setOwner(e?.target?.value);
       if (e?.target?.value !== '' && e.target.value.length > 2) {
         callSearchApi(e.target.value);
@@ -372,7 +372,8 @@ const CreateModal = (props) => {
 
   const onSelected = (e, val) => {
     if (val) {
-      const ownerEmail = val?.match(/\[(.*)\]/)[1];
+      const res = /([a-zA-Z0-9+._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/;
+      const ownerEmail = val?.match(res)[1];
       setOwnerSelected(options.filter((i) => i.userEmail === ownerEmail)[0]);
       setOwner(ownerEmail);
     }
