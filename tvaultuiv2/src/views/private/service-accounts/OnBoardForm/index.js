@@ -1015,8 +1015,8 @@ const OnBoardForm = (props) => {
                           `${item.appName} (AppId: ${item.appID},AppTag:${item.appTag})`
                       ),
                     ]}
-                    icon="search"
                     name="inputApplicationName"
+                    icon="search"
                     classes={classes}
                     searchValue={inputApplicationName}
                     onSelected={(e, val) => onApplicationNameSelected(e, val)}

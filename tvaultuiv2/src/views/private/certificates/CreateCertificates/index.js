@@ -15,7 +15,6 @@ import PropTypes from 'prop-types';
 import ConfirmationModal from '../../../../components/ConfirmationModal';
 import TextFieldComponent from '../../../../components/FormFields/TextField';
 import ButtonComponent from '../../../../components/FormFields/ActionButton';
-import TextFieldSelect from '../../../../components/FormFields/TextFieldSelect';
 import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
 import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import removeIcon from '../../../../assets/close.svg';
@@ -307,9 +306,9 @@ const CreateCertificates = (props) => {
     setResponseType(null);
   };
   useEffect(() => {
-    if (notifyEmail?.length > 2) {
+    if (notifyEmail?.length > 2 && notifyUserSelected?.userEmail) {
       if (!autoLoader) {
-        if (notifyEmail !== notifyUserSelected?.userEmail) {
+        if (notifyEmail !== notifyUserSelected?.userEmail.toLowerCase()) {
           setIsValidEmail(false);
           setEmailErrorMsg(
             'Please enter a valid email address or not available!'
@@ -508,7 +507,7 @@ const CreateCertificates = (props) => {
     }
   };
 
-  const onChangeApplicationName = (appName) => {
+  const onSelectedApplicationName = (e, appName) => {
     setApplicationName(appName);
     setNotificationEmailList([]);
     const selectedApp = allApplication.find((item) => appName === item.appName);
@@ -550,12 +549,15 @@ const CreateCertificates = (props) => {
     setOpenConfirmationModal(false);
   };
   const onSelected = (e, val) => {
-    const notifyUserEmail = val?.match(/\[(.*)\]/)[1].toLowerCase();
+    const notifyUserEmail = val?.split(', ')[0];
     setNotifyUserSelected(
-      options.filter((i) => i.userEmail === notifyUserEmail)[0]
+      options.filter((i) => i.userEmail.toLowerCase() === notifyUserEmail)[0]
     );
     setNotifyEmail(notifyUserEmail);
     setEmailError(false);
+  };
+  const onChangeAppilcationName = (value) => {
+    setApplicationName(value);
   };
   const callSearchApi = useCallback(
     debounce(
@@ -597,7 +599,7 @@ const CreateCertificates = (props) => {
   );
 
   const onNotifyEmailChange = (e) => {
-    if (e && e.target && e.target.value) {
+    if (e?.target?.value !== undefined) {
       setNotifyEmail(e.target.value);
       if (e.target.value && e.target.value?.length > 2) {
         callSearchApi(e.target.value);
@@ -611,6 +613,18 @@ const CreateCertificates = (props) => {
         }
       }
     }
+  };
+
+  const getName = (displayName) => {
+    if (displayName?.match(/(.*)\[(.*)\]/)) {
+      const lastFirstName = displayName?.match(/(.*)\[(.*)\]/)[1].split(', ');
+      const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+      const optionalDetail = displayName?.match(/(.*)\[(.*)\]/)[2];
+      return `${name}, ${optionalDetail}`;
+    }
+    const lastFirstName = displayName?.split(', ');
+    const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+    return name;
   };
 
   const onAddEmailClicked = () => {
@@ -764,14 +778,32 @@ const CreateCertificates = (props) => {
                       Application Name
                       <RequiredCircle margin="1.3rem" />
                     </InputLabel>
-                    <TextFieldSelect
-                      menu={[...allApplication.map((item) => item.appName)]}
-                      value={applicationName}
+                    <AutoCompleteComponent
+                      icon="search"
+                      options={[...allApplication.map((item) => item.appName)]}
+                      searchValue={applicationName}
                       classes={classes}
-                      handleChange={(e) =>
-                        onChangeApplicationName(e?.target?.value)
+                      onChange={(e) =>
+                        onChangeAppilcationName(e?.target?.value)
                       }
-                      filledText="Select application name"
+                      onSelected={(event, value) =>
+                        onSelectedApplicationName(event, value)
+                      }
+                      placeholder="Search for Application Name"
+                      error={
+                        applicationName !== '' &&
+                        ![
+                          ...allApplication.map((item) => item.appName),
+                        ].includes(applicationName)
+                      }
+                      helperText={
+                        applicationName !== '' &&
+                        ![
+                          ...allApplication.map((item) => item.appName),
+                        ].includes(applicationName)
+                          ? `Application ${applicationName} does not exist!`
+                          : ''
+                      }
                     />
                   </InputFieldLabelWrapper>
                   <IncludeDnsWrap>
@@ -847,7 +879,9 @@ const CreateCertificates = (props) => {
                         <AutoCompleteComponent
                           options={options.map(
                             (item) =>
-                              `${item.displayName} [${item.userEmail}] (${item.userName})`
+                              `${item?.userEmail?.toLowerCase()}, ${getName(
+                                item?.displayName?.toLowerCase()
+                              )}, ${item?.userName?.toLowerCase()}`
                           )}
                           classes={classes}
                           searchValue={notifyEmail}

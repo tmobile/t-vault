@@ -17,6 +17,7 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import PreviewCertificate from '../../CreateCertificates/preview';
 import AutoCompleteComponent from '../../../../../components/FormFields/AutoComplete';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
+import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 import apiService from '../../apiService';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import Strings from '../../../../../resources';
@@ -143,9 +144,9 @@ const CreateCertificates = (props) => {
   const [disabledTransfer, setDisabledTransfer] = useState(true);
 
   useEffect(() => {
-    if (owner?.length > 2) {
+    if (owner?.length > 2 && ownerSelected?.userEmail) {
       if (!autoLoader) {
-        if (ownerSelected?.userEmail !== owner) {
+        if (ownerSelected?.userEmail.toLowerCase() !== owner) {
           setIsValidEmail(false);
         } else {
           setIsValidEmail(true);
@@ -248,7 +249,7 @@ const CreateCertificates = (props) => {
   );
 
   const onOwnerChange = (e) => {
-    if (e && e?.target?.value) {
+    if (e && e?.target?.value !== undefined) {
       setOwner(e.target.value);
       if (e.target.value && e.target.value?.length > 2) {
         callSearchApi(e.target.value);
@@ -262,8 +263,10 @@ const CreateCertificates = (props) => {
   };
 
   const onSelected = (e, val) => {
-    const ownerEmail = val?.match(/\[(.*)\]/)[1];
-    setOwnerSelected(options.filter((i) => i.userEmail === ownerEmail)[0]);
+    const ownerEmail = val?.split(', ')[0];
+    setOwnerSelected(
+      options.filter((i) => i.userEmail.toLowerCase() === ownerEmail)[0]
+    );
     setOwner(ownerEmail);
     setEmailError(false);
   };
@@ -283,6 +286,18 @@ const CreateCertificates = (props) => {
   const closeModal = () => {
     onCloseModal(transferOwnerSuccess);
     setOpenConfirmationModal(false);
+  };
+
+  const getName = (displayName) => {
+    if (displayName?.match(/(.*)\[(.*)\]/)) {
+      const lastFirstName = displayName?.match(/(.*)\[(.*)\]/)[1].split(', ');
+      const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+      const optionalDetail = displayName?.match(/(.*)\[(.*)\]/)[2];
+      return `${name}, ${optionalDetail}`;
+    }
+    const lastFirstName = displayName?.split(', ');
+    const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+    return name;
   };
 
   return (
@@ -330,7 +345,7 @@ const CreateCertificates = (props) => {
             <Fade in={open}>
               <GlobalModalWrapper>
                 {responseType === 0 && (
-                  <LoaderSpinner customStyle={loaderStyle} />
+                  <BackdropLoader customStyle={loaderStyle} />
                 )}
                 <HeaderWrapper>
                   <LeftIcon
@@ -358,7 +373,9 @@ const CreateCertificates = (props) => {
                   <AutoCompleteComponent
                     options={options.map(
                       (item) =>
-                        `${item.displayName} [${item.userEmail}] (${item.userName})`
+                        `${item?.userEmail?.toLowerCase()}, ${getName(
+                          item?.displayName?.toLowerCase()
+                        )}, ${item?.userName?.toLowerCase()}`
                     )}
                     classes={classes}
                     searchValue={owner}

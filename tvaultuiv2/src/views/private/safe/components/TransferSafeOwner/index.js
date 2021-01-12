@@ -127,9 +127,9 @@ const TransferSafeOwner = (props) => {
   const [disabledTransfer, setDisabledTransfer] = useState(true);
 
   useEffect(() => {
-    if (owner?.length > 2) {
+    if (owner?.length > 2 && ownerSelected?.userEmail) {
       if (!autoLoader) {
-        if (ownerSelected?.userEmail !== owner) {
+        if (ownerSelected?.userEmail.toLowerCase() !== owner) {
           setIsValidEmail(false);
         } else {
           setIsValidEmail(true);
@@ -159,9 +159,7 @@ const TransferSafeOwner = (props) => {
             if (responses[0]?.data?.data?.values?.length > 0) {
               responses[0].data.data.values.map((item) => {
                 if (item.userName) {
-                  return array.add(
-                    `${item.displayName} [${item.userEmail}] (${item.userName})`
-                  );
+                  return array.add(item);
                 }
                 return null;
               });
@@ -188,7 +186,7 @@ const TransferSafeOwner = (props) => {
   );
 
   const onOwnerChange = (e) => {
-    if (e && e?.target?.value) {
+    if (e && e?.target?.value !== undefined) {
       setOwner(e.target.value);
       if (e.target.value && e.target.value?.length > 2) {
         callSearchApi(e.target.value);
@@ -202,12 +200,13 @@ const TransferSafeOwner = (props) => {
   };
 
   const onSelected = (e, val) => {
-    const ownerEmail = val?.match(/\[(.*)\]/)[1];
-    setOwnerSelected(options.filter((i) => i.userEmail === ownerEmail)[0]);
+    const ownerEmail = val?.split(', ')[0];
+    setOwnerSelected(
+      options.filter((i) => i.userEmail.toLowerCase() === ownerEmail)[0]
+    );
     setOwner(ownerEmail);
     setEmailError(false);
   };
-  console.log(ownerSelected, owner);
   const onTransfer = () => {
     const payload = {
       newOwnerEmail: owner,
@@ -215,6 +214,18 @@ const TransferSafeOwner = (props) => {
       safeType: transferData.type,
     };
     onTransferOwnerConfirmationClicked(payload);
+  };
+
+  const getName = (displayName) => {
+    if (displayName?.match(/(.*)\[(.*)\]/)) {
+      const lastFirstName = displayName?.match(/(.*)\[(.*)\]/)[1].split(', ');
+      const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+      const optionalDetail = displayName?.match(/(.*)\[(.*)\]/)[2];
+      return `${name}, ${optionalDetail}`;
+    }
+    const lastFirstName = displayName?.split(', ');
+    const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+    return name;
   };
 
   return (
@@ -247,7 +258,9 @@ const TransferSafeOwner = (props) => {
         <AutoCompleteComponent
           options={options.map(
             (item) =>
-              `${item.displayName} [${item.userEmail}] (${item.userName})`
+              `${item?.userEmail?.toLowerCase()}, ${getName(
+                item?.displayName?.toLowerCase()
+              )}, ${item?.userName?.toLowerCase()}`
           )}
           classes={classes}
           searchValue={owner}
