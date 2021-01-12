@@ -1168,7 +1168,7 @@ public final class ControllerUtil {
 					}
 				}
 				 
-				String responseJson=TVaultConstants.EMPTY;
+				String responseJson="";
 				List<String> policies = new ArrayList<>();
 				List<String> currentpolicies = new ArrayList<>();
 				if(HttpStatus.OK.equals(response.getHttpstatus())){
@@ -1915,13 +1915,11 @@ public final class ControllerUtil {
 	
 	private static String getSecretKey(String jsonString) {
 		String secretKey = null ;
-		String secretValue = null;
 		try {
 			Map<String, Object> requestParams = new ObjectMapper().readValue(jsonString, new TypeReference<Map<String, Object>>(){});
 			LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) requestParams.get("data");
 			for (Object key : map.keySet()) {
 				secretKey = (String) key;
-				secretValue = (String) map.get(key);
 				if(secretKey != null) {
 					break;
 				}
@@ -2355,7 +2353,7 @@ public final class ControllerUtil {
 		log.debug("Trying to read sscred file");
 		try {
 			ssFile = new File(fileLocation+"/sscred");
-			if (ssFile != null && ssFile.exists()) {
+			if (ssFile.exists()) {
 				sscred = new SSCred();
 				setSscred(sscred);
 				Scanner sc = new Scanner(ssFile);
@@ -2555,7 +2553,7 @@ public final class ControllerUtil {
 		log.debug("Trying to read IAM cred file");
 		try {
 			iamCredFile = new File(fileLocation+"/iamportalcred");
-			if (iamCredFile != null && iamCredFile.exists()) {
+			if ( iamCredFile.exists()) {
 				iamPortalCred = new IAMPortalCred();
 				Scanner sc = new Scanner(iamCredFile);
 				while (sc.hasNextLine()) {
@@ -2577,7 +2575,7 @@ public final class ControllerUtil {
 			log.error(String.format("Unable to read IAM cred file: [%s]", e.getMessage()));
 		}
 		try {
-			if (iamCredFile != null && iamCredFile.exists() && isDelete) {
+			if (iamCredFile.exists() && isDelete) {
 				if (iamCredFile.delete()) {
 					log.debug("Successfully deleted IAM cred file");
 				}
@@ -2663,7 +2661,6 @@ public final class ControllerUtil {
         }
         if (null != requestMap.get("keys")) {
 			List<String> policyList = new ArrayList<>(Arrays.asList((String[]) requestMap.get("keys")));
-			//policyList.remove(TVaultConstants.MASTER_APPROLES);
 			policyList.removeAll(Arrays.asList(TVaultConstants.MASTER_APPROLES));
 			String policies = policyList.stream().collect(Collectors.joining("\", \""));
 			if (StringUtils.isEmpty(policies)) {
@@ -2702,7 +2699,7 @@ public final class ControllerUtil {
     	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, UPDATEMETADATASTR).
-				put(LogMessage.MESSAGE, String.format ("Trying to upate metadata with params")).
+				put(LogMessage.MESSAGE, "Trying to upate metadata with params").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 
@@ -2848,11 +2845,10 @@ public final class ControllerUtil {
 	}
 
 	public static Response updateSslCertificateMetadata(Map<String,String> params,String token){
-		System.out.println("inside metadata");
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, UPDATEMETADATASTR).
-				put(LogMessage.MESSAGE, String.format ("Trying to update metadata with params")).
+				put(LogMessage.MESSAGE, "Trying to update metadata with params").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		String _type = params.get("type");
@@ -2973,7 +2969,7 @@ public final class ControllerUtil {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "updateMetaDataOnConfigChanges").
-					put(LogMessage.MESSAGE, String.format ("updateMetaDataOnConfigChanges failed ")).
+					put(LogMessage.MESSAGE, "updateMetaDataOnConfigChanges failed ").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			response.setHttpstatus(HttpStatus.MULTI_STATUS);
