@@ -17,6 +17,7 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import PreviewCertificate from '../../CreateCertificates/preview';
 import AutoCompleteComponent from '../../../../../components/FormFields/AutoComplete';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
+import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 import apiService from '../../apiService';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import Strings from '../../../../../resources';
@@ -344,7 +345,7 @@ const CreateCertificates = (props) => {
             <Fade in={open}>
               <GlobalModalWrapper>
                 {responseType === 0 && (
-                  <LoaderSpinner customStyle={loaderStyle} />
+                  <BackdropLoader customStyle={loaderStyle} />
                 )}
                 <HeaderWrapper>
                   <LeftIcon
