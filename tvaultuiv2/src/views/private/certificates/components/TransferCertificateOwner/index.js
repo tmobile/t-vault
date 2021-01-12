@@ -372,9 +372,9 @@ const CreateCertificates = (props) => {
                   <AutoCompleteComponent
                     options={options.map(
                       (item) =>
-                        `${item.userEmail.toLowerCase()}, ${getName(
-                          item.displayName.toLowerCase()
-                        )}, ${item.userName.toLowerCase()}`
+                        `${item?.userEmail?.toLowerCase()}, ${getName(
+                          item?.displayName?.toLowerCase()
+                        )}, ${item?.userName?.toLowerCase()}`
                     )}
                     classes={classes}
                     searchValue={owner}

@@ -549,9 +549,9 @@ const ViewCertificate = (props) => {
                   <AutoCompleteComponent
                     options={options.map(
                       (item) =>
-                        `${item.userEmail.toLowerCase()}, ${getName(
-                          item.displayName.toLowerCase()
-                        )}, ${item.userName.toLowerCase()}`
+                        `${item?.userEmail?.toLowerCase()}, ${getName(
+                          item?.displayName?.toLowerCase()
+                        )}, ${item?.userName?.toLowerCase()}`
                     )}
                     classes={classes}
                     searchValue={applicationOwner}
@@ -583,9 +583,9 @@ const ViewCertificate = (props) => {
                   <AutoCompleteComponent
                     options={projectLeadOptions.map(
                       (item) =>
-                        `${item.userEmail.toLowerCase()}, ${getName(
-                          item.displayName.toLowerCase()
-                        )}, ${item.userName.toLowerCase()}`
+                        `${item?.userEmail?.toLowerCase()}, ${getName(
+                          item?.displayName?.toLowerCase()
+                        )}, ${item?.userName?.toLowerCase()}`
                     )}
                     classes={classes}
                     searchValue={projectLeadEmail}
@@ -623,9 +623,9 @@ const ViewCertificate = (props) => {
                 <AutoCompleteComponent
                   options={notifyOptions.map(
                     (item) =>
-                      `${item.userEmail.toLowerCase()}, ${getName(
-                        item.displayName.toLowerCase()
-                      )}, ${item.userName.toLowerCase()}`
+                      `${item?.userEmail?.toLowerCase()}, ${getName(
+                        item?.displayName?.toLowerCase()
+                      )}, ${item?.userName?.toLowerCase()}`
                   )}
                   classes={classes}
                   searchValue={notifyEmail}

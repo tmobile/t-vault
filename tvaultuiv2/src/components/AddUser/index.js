@@ -146,7 +146,7 @@ const AddUser = (props) => {
         }
       }
     }
-  }, [searchValue, searchLoader, selectedUser?.displayName]);
+  }, [searchValue, searchLoader, selectedUser.displayName]);
 
   useEffect(() => {
     if (configData.AD_USERS_AUTOCOMPLETE) {
@@ -267,9 +267,9 @@ const AddUser = (props) => {
               <AutoCompleteComponent
                 options={options.map(
                   (item) =>
-                    `${item.userEmail.toLowerCase()}, ${getName(
-                      item.displayName.toLowerCase()
-                    )}, ${item.userName.toLowerCase()}`
+                    `${item?.userEmail?.toLowerCase()}, ${getName(
+                      item?.displayName?.toLowerCase()
+                    )}, ${item?.userName?.toLowerCase()}`
                 )}
                 icon="search"
                 classes={classes}
