@@ -144,9 +144,9 @@ const CreateCertificates = (props) => {
   const [disabledTransfer, setDisabledTransfer] = useState(true);
 
   useEffect(() => {
-    if (owner?.length > 2) {
+    if (owner?.length > 2 && ownerSelected?.userEmail) {
       if (!autoLoader) {
-        if (ownerSelected?.userEmail !== owner) {
+        if (ownerSelected?.userEmail.toLowerCase() !== owner) {
           setIsValidEmail(false);
         } else {
           setIsValidEmail(true);
@@ -263,9 +263,10 @@ const CreateCertificates = (props) => {
   };
 
   const onSelected = (e, val) => {
-    const emailRegx = /([a-zA-Z0-9+._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/;
-    const ownerEmail = val?.match(emailRegx)[1];
-    setOwnerSelected(options.filter((i) => i.userEmail === ownerEmail)[0]);
+    const ownerEmail = val?.split(', ')[0];
+    setOwnerSelected(
+      options.filter((i) => i.userEmail.toLowerCase() === ownerEmail)[0]
+    );
     setOwner(ownerEmail);
     setEmailError(false);
   };
@@ -285,6 +286,18 @@ const CreateCertificates = (props) => {
   const closeModal = () => {
     onCloseModal(transferOwnerSuccess);
     setOpenConfirmationModal(false);
+  };
+
+  const getName = (displayName) => {
+    if (displayName?.match(/(.*)\[(.*)\]/)) {
+      const lastFirstName = displayName?.match(/(.*)\[(.*)\]/)[1].split(', ');
+      const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+      const optionalDetail = displayName?.match(/(.*)\[(.*)\]/)[2];
+      return `${name}, ${optionalDetail}`;
+    }
+    const lastFirstName = displayName?.split(', ');
+    const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+    return name;
   };
 
   return (
@@ -360,7 +373,9 @@ const CreateCertificates = (props) => {
                   <AutoCompleteComponent
                     options={options.map(
                       (item) =>
-                        `${item.displayName} [${item.userEmail}] (${item.userName})`
+                        `${item?.userEmail?.toLowerCase()}, ${getName(
+                          item?.displayName?.toLowerCase()
+                        )}, ${item?.userName?.toLowerCase()}`
                     )}
                     classes={classes}
                     searchValue={owner}

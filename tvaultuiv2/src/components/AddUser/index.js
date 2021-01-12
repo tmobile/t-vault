@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { debounce } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
 import { InputLabel, Typography } from '@material-ui/core';
@@ -106,7 +106,6 @@ const AddUser = (props) => {
     isIamAzureSvcAccount,
   } = props;
   const classes = useStyles();
-  const mountedRef = useRef(true);
   const [radioValue, setRadioValue] = useState('read');
   const [searchValue, setSearchValue] = useState('');
   const [options, setOptions] = useState([]);
@@ -122,10 +121,25 @@ const AddUser = (props) => {
     setRadioValue(access);
   }, [username, access]);
 
+  const getName = (displayName) => {
+    if (displayName?.match(/(.*)\[(.*)\]/)) {
+      const lastFirstName = displayName?.match(/(.*)\[(.*)\]/)[1].split(', ');
+      const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+      const optionalDetail = displayName?.match(/(.*)\[(.*)\]/)[2];
+      return `${name}, ${optionalDetail}`;
+    }
+    const lastFirstName = displayName?.split(', ');
+    const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+    return name;
+  };
+
   useEffect(() => {
-    if (searchValue?.length > 2) {
+    if (searchValue?.length > 2 && selectedUser?.displayName) {
       if (!searchLoader) {
-        if (selectedUser.displayName !== searchValue) {
+        if (
+          getName(selectedUser?.displayName.toLowerCase())?.split(', ')[0] !==
+          searchValue
+        ) {
           setIsValidUserName(false);
         } else {
           setIsValidUserName(true);
@@ -206,9 +220,11 @@ const AddUser = (props) => {
 
   const onSelected = (e, val) => {
     if (val) {
-      setSearchValue(val?.match(/([A-z]+),\s([A-z]+)/)[0]);
+      setSearchValue(val?.split(', ')[1]);
       setSelectedUser(
-        options.filter((i) => i.userEmail === val?.match(/\[(.*)\]/)[1])[0]
+        options.filter(
+          (i) => i.userEmail.toLowerCase() === val?.split(', ')[0]
+        )[0]
       );
       setOptions([]);
     }
@@ -231,12 +247,6 @@ const AddUser = (props) => {
     }
   }, [isIamAzureSvcAccount, isSvcAccount, isCertificate]);
 
-  useEffect(() => {
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
   return (
     <ComponentError>
       <PermissionWrapper>
@@ -257,7 +267,9 @@ const AddUser = (props) => {
               <AutoCompleteComponent
                 options={options.map(
                   (item) =>
-                    `${item.displayName} [${item.userEmail}] (${item.userName})`
+                    `${item?.userEmail?.toLowerCase()}, ${getName(
+                      item?.displayName?.toLowerCase()
+                    )}, ${item?.userName?.toLowerCase()}`
                 )}
                 icon="search"
                 classes={classes}

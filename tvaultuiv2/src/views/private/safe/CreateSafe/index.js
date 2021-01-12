@@ -180,9 +180,9 @@ const CreateModal = (props) => {
   const [ownerSelected, setOwnerSelected] = useState(false);
 
   useEffect(() => {
-    if (owner?.length > 2) {
+    if (owner?.length > 2 && ownerSelected?.userEmail) {
       if (!autoLoader) {
-        if (ownerSelected?.userEmail !== owner) {
+        if (ownerSelected?.userEmail.toLowerCase() !== owner) {
           setIsValidEmail(false);
         } else {
           setIsValidEmail(true);
@@ -400,9 +400,10 @@ const CreateModal = (props) => {
 
   const onSelected = (e, val) => {
     if (val) {
-      const res = /([a-zA-Z0-9+._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/;
-      const ownerEmail = val?.match(res)[1];
-      setOwnerSelected(options.filter((i) => i.userEmail === ownerEmail)[0]);
+      const ownerEmail = val?.split(', ')[0];
+      setOwnerSelected(
+        options.filter((i) => i.userEmail.toLowerCase() === ownerEmail)[0]
+      );
       setOwner(ownerEmail);
     }
   };
@@ -470,6 +471,18 @@ const CreateModal = (props) => {
 
   const onChangeAppilcationName = (value) => {
     setApplicationName(value);
+  };
+
+  const getName = (displayName) => {
+    if (displayName?.match(/(.*)\[(.*)\]/)) {
+      const lastFirstName = displayName?.match(/(.*)\[(.*)\]/)[1].split(', ');
+      const finalName = `${lastFirstName[1]} ${lastFirstName[0]}`;
+      const optionalDetail = displayName?.match(/(.*)\[(.*)\]/)[2];
+      return `${finalName}, ${optionalDetail}`;
+    }
+    const lastFirstName = displayName?.split(', ');
+    const finalName = `${lastFirstName[1]} ${lastFirstName[0]}`;
+    return finalName;
   };
 
   return (
@@ -554,7 +567,9 @@ const CreateModal = (props) => {
                     <AutoCompleteComponent
                       options={options.map(
                         (item) =>
-                          `${item.displayName} [${item.userEmail}] (${item.userName})`
+                          `${item?.userEmail?.toLowerCase()}, ${getName(
+                            item?.displayName?.toLowerCase()
+                          )}, ${item?.userName?.toLowerCase()}`
                       )}
                       classes={classes}
                       searchValue={owner}

@@ -295,9 +295,9 @@ const CreateCertificates = (props) => {
     setResponseType(null);
   };
   useEffect(() => {
-    if (notifyEmail?.length > 2) {
+    if (notifyEmail?.length > 2 && notifyUserSelected?.userEmail) {
       if (!autoLoader) {
-        if (notifyEmail !== notifyUserSelected?.userEmail) {
+        if (notifyEmail !== notifyUserSelected?.userEmail.toLowerCase()) {
           setIsValidEmail(false);
           setEmailErrorMsg(
             'Please enter a valid email address or not available!'
@@ -534,10 +534,9 @@ const CreateCertificates = (props) => {
     setOpenConfirmationModal(false);
   };
   const onSelected = (e, val) => {
-    const res = /([a-zA-Z0-9+._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/;
-    const notifyUserEmail = val?.match(res)[0];
+    const notifyUserEmail = val?.split(', ')[0];
     setNotifyUserSelected(
-      options.filter((i) => i.userEmail === notifyUserEmail)[0]
+      options.filter((i) => i.userEmail.toLowerCase() === notifyUserEmail)[0]
     );
     setNotifyEmail(notifyUserEmail);
     setEmailError(false);
@@ -599,6 +598,18 @@ const CreateCertificates = (props) => {
         }
       }
     }
+  };
+
+  const getName = (displayName) => {
+    if (displayName?.match(/(.*)\[(.*)\]/)) {
+      const lastFirstName = displayName?.match(/(.*)\[(.*)\]/)[1].split(', ');
+      const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+      const optionalDetail = displayName?.match(/(.*)\[(.*)\]/)[2];
+      return `${name}, ${optionalDetail}`;
+    }
+    const lastFirstName = displayName?.split(', ');
+    const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+    return name;
   };
 
   const onAddEmailClicked = () => {
@@ -853,7 +864,9 @@ const CreateCertificates = (props) => {
                         <AutoCompleteComponent
                           options={options.map(
                             (item) =>
-                              `${item.displayName} [${item.userEmail}] (${item.userName})`
+                              `${item?.userEmail?.toLowerCase()}, ${getName(
+                                item?.displayName?.toLowerCase()
+                              )}, ${item?.userName?.toLowerCase()}`
                           )}
                           classes={classes}
                           searchValue={notifyEmail}
