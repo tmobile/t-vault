@@ -28,6 +28,7 @@
         scope: {
           index: '=',
           item: '=',
+          lastChanged: '=',
           parent: '=',
           loading: '=',
           write: '='
@@ -39,7 +40,12 @@
           vm.isSecret = vm.item.type === 'secret';
           if (!vm.isSecret) {
             vm.folderName = vm.item.id.split('/').pop();
+            vm.lastChangedDetails = vm.getLastChangeDetailsForFolder();
           }
+          else {
+            vm.lastChangedDetails = vm.getLastChangeDetailsForSecret();
+          }
+          console.log( vm.lastChangedDetails)
         },
         controller: 'folderContentsRowController as vm',
         bindToController: true
@@ -58,7 +64,63 @@
     vm.deleteSecret = deleteSecret;
     vm.deleteFolder = deleteFolder;
     vm.copyToClipboard = copyToClipboard;
+    vm.getLastChangeDetailsForFolder = getLastChangeDetailsForFolder;
+    vm.getLastChangeDetailsForSecret = getLastChangeDetailsForSecret;
 
+    function getLastChangeDetailsForFolder() {
+      var lastChangedDetails = "";
+      for (var i=0; i<vm.lastChanged.length; i++) {
+        if (vm.lastChanged[i].folderPath == vm.item.id) {
+          lastChangedDetails = vm.lastChanged[i];
+          lastChangedDetails.folderModifiedAtFormatted = formatTime(lastChangedDetails.folderModifiedAt);
+        }
+      }
+      return lastChangedDetails;
+    }
+
+    function getLastChangeDetailsForSecret() {
+      var lastChangedDetails = "";
+      for (var i=0; i<vm.lastChanged.length; i++) {
+        if (vm.lastChanged[i].folderPath == vm.item.parentId && vm.lastChanged[i].secretVersions && vm.lastChanged[i].secretVersions[vm.item.id]) {
+          lastChangedDetails = vm.lastChanged[i].secretVersions[vm.item.id][0];
+          lastChangedDetails.modifiedAtFormatted = formatTime(lastChangedDetails.modifiedAt);
+        }
+      }
+      return lastChangedDetails;
+    }
+
+    function formatTime(timestamp) {
+      if (isNaN(timestamp)) {
+        timestamp = new Date().getTime();
+      }
+
+      var current = new Date();
+      var msPerMinute = 60 * 1000;
+      var msPerHour = msPerMinute * 60;
+      var msPerDay = msPerHour * 24;
+      var msPerMonth = msPerDay * 30;
+      var msPerYear = msPerDay * 365;
+
+      var elapsed = current.getTime() - timestamp;
+      if (elapsed < msPerMinute) {
+           return Math.round(elapsed/1000) + ' seconds ago';
+      }
+      else if (elapsed < msPerHour) {
+           return Math.round(elapsed/msPerMinute) + ' minutes ago';
+      }
+      else if (elapsed < msPerDay ) {
+           return Math.round(elapsed/msPerHour ) + ' hours ago';
+      }
+      else if (elapsed < msPerMonth) {
+          return 'approximately ' + Math.round(elapsed/msPerDay) + ' days ago';
+      }
+      else if (elapsed < msPerYear) {
+          return 'approximately ' + Math.round(elapsed/msPerMonth) + ' months ago';
+      }
+      else {
+          return 'approximately ' + Math.round(elapsed/msPerYear ) + ' years ago';
+      }
+    }
 
     function edit() {
       editSecret(vm.item.key, vm.item.value);

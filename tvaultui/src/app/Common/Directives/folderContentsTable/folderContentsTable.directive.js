@@ -27,6 +27,7 @@
                 templateUrl: 'app/Common/Directives/folderContentsTable/folderContentsTable.html',
                 scope: {
                     folderContent: '=',
+                    folderLastChangedDetails: '=',
                     loading: '=',
                     write: '='
                 },

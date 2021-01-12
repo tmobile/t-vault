@@ -12,6 +12,7 @@
             saveFolder: saveFolder,
             deleteFolder: deleteFolder,
             getFolderContent: getFolderContent,
+            folderLastChangedDetails: folderLastChangedDetails,
             itemIsValidToSave: itemIsValidToSave,
             getAllowedSafes: getAllowedSafes
         };
@@ -45,6 +46,17 @@
                     response.data.children = contents;
                     return response.data;
                 }).catch(catchError);
+        }
+
+        function folderLastChangedDetails(path) {
+            var url = RestEndpoints.baseURL + '/v2/safes/folders/versioninfo?path=' + path;
+            return $http({
+                method: 'GET',
+                url: url,
+                headers: getHeaders()
+            }).then(function (response) {
+                return response.data;
+            }).catch(catchError);
         }
 
         function getAllowedSafes() {

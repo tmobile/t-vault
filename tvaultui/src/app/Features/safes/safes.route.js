@@ -47,6 +47,12 @@
                 return error;
               });
           },
+          folderLastChangedDetails: function (safesService, SafesManagement, $state, $stateParams, $q, $timeout) {
+            return safesService.folderLastChangedDetails($stateParams.path)
+              .catch(function (error) {
+                return error;
+              });
+          },
           writeAccess: function (folderContent, SessionStore) {
             if(!folderContent.id) return;
             var safeType = folderContent.id.split('/')[0];
