@@ -130,14 +130,6 @@ const autoLoaderStyle = css`
 `;
 
 const useStyles = makeStyles((theme) => ({
-  select: {
-    '&.MuiFilledInput-root.Mui-focused': {
-      backgroundColor: '#fff',
-    },
-  },
-  dropdownStyle: {
-    backgroundColor: '#fff',
-  },
   modal: {
     display: 'flex',
     alignItems: 'center',
@@ -170,7 +162,6 @@ const CreateModal = (props) => {
   const [openModal, setOpenModal] = useState({ status: 'edit' });
   const [options, setOptions] = useState([]);
   const isMobileScreen = useMediaQuery(small);
-  const [helperText] = useState('');
   const [emailError, setEmailError] = useState(false);
   const [safeError, setSafeError] = useState(false);
   const [editSafe, setEditSafe] = useState(false);
@@ -205,7 +196,9 @@ const CreateModal = (props) => {
         applicationName
       ) &&
         applicationName !== '') ||
-      (safeDetails.owner === owner && safeDetails.description === description)
+      (safeDetails.owner === owner &&
+        safeDetails.description === description &&
+        safeDetails.appName === applicationName)
     ) {
       setDisabledSave(true);
     } else {
@@ -601,10 +594,8 @@ const CreateModal = (props) => {
                     <SelectComponent
                       menu={menu}
                       value={safeType}
-                      classes={classes}
                       readOnly={!!editSafe}
-                      onChange={(e) => setSafeType(e.target.value)}
-                      helperText={helperText}
+                      onChange={(e) => setSafeType(e)}
                     />
                   </InputFieldLabelWrapper>
                   <InputFieldLabelWrapper>
