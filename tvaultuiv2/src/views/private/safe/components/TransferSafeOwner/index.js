@@ -223,9 +223,12 @@ const TransferSafeOwner = (props) => {
       const optionalDetail = displayName?.match(/(.*)\[(.*)\]/)[2];
       return `${name}, ${optionalDetail}`;
     }
-    const lastFirstName = displayName?.split(', ');
-    const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
-    return name;
+    if (displayName?.match(/(.*), (.*)/)) {
+      const lastFirstName = displayName?.split(', ');
+      const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+      return name;
+    }
+    return displayName;
   };
 
   return (

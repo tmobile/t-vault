@@ -484,9 +484,12 @@ const CreateModal = (props) => {
       const optionalDetail = displayName?.match(/(.*)\[(.*)\]/)[2];
       return `${finalName}, ${optionalDetail}`;
     }
-    const lastFirstName = displayName?.split(', ');
-    const finalName = `${lastFirstName[1]} ${lastFirstName[0]}`;
-    return finalName;
+    if (displayName?.match(/(.*), (.*)/)) {
+      const lastFirstName = displayName?.split(', ');
+      const finalName = `${lastFirstName[1]} ${lastFirstName[0]}`;
+      return finalName;
+    }
+    return displayName;
   };
 
   return (
