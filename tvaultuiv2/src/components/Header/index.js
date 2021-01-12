@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import DescriptionIcon from '@material-ui/icons/Description';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { withRouter, Link as RRDLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Link from '@material-ui/core/Link';
@@ -143,6 +144,19 @@ const Header = (props) => {
     { label: 'Service Accounts', path: 'service-accounts' },
   ];
 
+  const { trackPageView, trackEvent } = useMatomo();
+
+  useEffect(() => {
+    trackPageView();
+    return () => {
+      trackPageView();
+    };
+  }, [trackPageView]);
+
+  const handleOnClick = (label) => {
+    trackEvent({ category: `${label}-tab`, action: 'click-event' });
+  };
+
   const toggleDrawer = (anchor, open) => (event) => {
     if (
       event &&
@@ -224,6 +238,7 @@ const Header = (props) => {
                   <NavLink
                     key={item.label}
                     to={`/${item.path}`}
+                    onClick={() => handleOnClick(item.path)}
                     component={RRDLink}
                     active={currentTab === item.path ? 'true' : 'false'}
                   >

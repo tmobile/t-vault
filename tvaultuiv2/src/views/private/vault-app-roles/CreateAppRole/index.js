@@ -6,7 +6,7 @@ import { useHistory } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
 import { Backdrop, Typography, InputLabel } from '@material-ui/core';
 import Tooltip from '@material-ui/core/Tooltip';
-
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 import Fade from '@material-ui/core/Fade';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -172,6 +172,7 @@ const CreateAppRole = (props) => {
   const [status, setStatus] = useState({});
   const history = useHistory();
   const [stateVal] = useStateValue();
+  const { trackPageView, trackEvent } = useMatomo();
 
   const admin = Boolean(stateVal.isAdmin);
 
@@ -398,6 +399,13 @@ const CreateAppRole = (props) => {
       });
   };
 
+  useEffect(() => {
+    trackPageView();
+    return () => {
+      trackPageView();
+    };
+  }, [trackPageView]);
+
   const onCreateApprole = () => {
     const payload = constructPayload();
     setResponseType(0);
@@ -406,6 +414,10 @@ const CreateAppRole = (props) => {
       .then(async (res) => {
         if (res) {
           setResponseType(1);
+          trackEvent({
+            category: 'vault-approle-creation',
+            action: 'click-event',
+          });
           setStatus({ status: 'success', message: res.data.messages[0] });
           await refresh();
           setTimeout(() => {

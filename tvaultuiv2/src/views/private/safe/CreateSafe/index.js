@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { debounce } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 import Modal from '@material-ui/core/Modal';
 import { Backdrop, Typography, InputLabel } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
@@ -179,6 +180,15 @@ const CreateModal = (props) => {
   const history = useHistory();
   const [ownerSelected, setOwnerSelected] = useState(false);
 
+  const { trackPageView, trackEvent } = useMatomo();
+
+  useEffect(() => {
+    trackPageView();
+    return () => {
+      trackPageView();
+    };
+  }, [trackPageView]);
+
   useEffect(() => {
     if (owner?.length > 2 && ownerSelected?.userEmail) {
       if (!autoLoader) {
@@ -338,6 +348,7 @@ const CreateModal = (props) => {
         await refresh();
         if (res) {
           setResponseType(1);
+          trackEvent({ category: 'safe-creation', action: 'click-event' });
           setTimeout(() => {
             setOpen(false);
             history.goBack();
