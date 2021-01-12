@@ -202,7 +202,7 @@ const TransferSafeOwner = (props) => {
   const onSelected = (e, val) => {
     const ownerEmail = val?.split(', ')[0];
     setOwnerSelected(
-      options.filter((i) => i.userEmail.toLowerCase() === ownerEmail)[0]
+      options.filter((i) => i?.userEmail?.toLowerCase() === ownerEmail)[0]
     );
     setOwner(ownerEmail);
     setEmailError(false);

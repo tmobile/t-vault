@@ -223,7 +223,7 @@ const AddUser = (props) => {
       setSearchValue(val?.split(', ')[1]);
       setSelectedUser(
         options.filter(
-          (i) => i.userEmail.toLowerCase() === val?.split(', ')[0]
+          (i) => i?.userEmail?.toLowerCase() === val?.split(', ')[0]
         )[0]
       );
       setOptions([]);
@@ -231,8 +231,8 @@ const AddUser = (props) => {
   };
 
   const onSaveClick = () => {
-    const result = selectedUser.userName;
-    handleSaveClick(result.toLowerCase(), radioValue);
+    const result = selectedUser?.userName;
+    handleSaveClick(result?.toLowerCase(), radioValue);
   };
 
   useEffect(() => {
