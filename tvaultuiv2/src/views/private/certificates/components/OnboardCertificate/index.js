@@ -13,7 +13,6 @@ import PropTypes from 'prop-types';
 import { useStateValue } from '../../../../../contexts/globalState';
 import removeIcon from '../../../../../assets/close.svg';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
-import TextFieldSelect from '../../../../../components/FormFields/TextFieldSelect';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import leftArrowIcon from '../../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
@@ -240,37 +239,48 @@ const OnboardCertificates = (props) => {
   const [disabledTransfer, setDisabledTransfer] = useState(true);
   const [certOwnerNTId, setCertOwnerNTId] = useState('');
 
+  const [ownerSelected, setOwnerselected] = useState({});
+
+  const [notifyUserSelected, setNotifyUserselected] = useState({});
+
+  const getName = (displayName) => {
+    if (displayName?.match(/(.*)\[(.*)\]/)) {
+      const lastFirstName = displayName?.match(/(.*)\[(.*)\]/)[1].split(', ');
+      const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+      const optionalDetail = displayName?.match(/(.*)\[(.*)\]/)[2];
+      return `${name}, ${optionalDetail}`;
+    }
+    if (displayName?.match(/(.*), (.*)/)) {
+      const lastFirstName = displayName?.split(', ');
+      const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+      return name;
+    }
+    return displayName;
+  };
+
   useEffect(() => {
-    if (owner?.length > 2) {
+    if (owner?.length > 2 && ownerSelected?.userEmail) {
       if (!autoLoader) {
-        if (
-          options.length === 0 ||
-          !options.find(
-            (item) => item?.userEmail?.toLowerCase() === owner.toLowerCase()
-          )
-        ) {
+        if (ownerSelected?.userEmail.toLowerCase() !== owner) {
           setIsValidEmail(false);
         } else {
           setIsValidEmail(true);
         }
       }
     }
-  }, [owner, autoLoader, options]);
+  }, [owner, ownerSelected, autoLoader, options]);
 
   useEffect(() => {
-    if (notifyEmail?.length > 2) {
+    if (notifyEmail?.length > 2 && notifyUserSelected?.userEmail) {
       if (!notifyAutoLoader) {
-        if (
-          notifyOptions.length === 0 ||
-          !notifyOptions.includes(notifyEmail)
-        ) {
+        if (notifyUserSelected?.userEmail.toLowerCase() !== notifyEmail) {
           setIsValidNotifyEmail(false);
         } else {
           setIsValidNotifyEmail(true);
         }
       }
     }
-  }, [notifyEmail, notifyAutoLoader, notifyOptions]);
+  }, [notifyEmail, notifyUserSelected, notifyAutoLoader, notifyOptions]);
 
   useEffect(() => {
     if (
@@ -325,58 +335,37 @@ const OnboardCertificates = (props) => {
 
   const callSearchApi = useCallback(
     debounce(
-      (value) => {
-        setAutoLoader(true);
-        apiService
-          .getOwnerTransferEmail(value)
-          .then((res) => {
-            setOptions([]);
-            const array = [];
-            setAutoLoader(false);
-            if (res?.data?.data?.values?.length > 0) {
-              res.data.data.values.map((item) => {
-                if (item.userEmail) {
-                  return array.push(item);
+      (value, type) => {
+        const userNameSearch = apiService.getUserName(value);
+        const emailSearch = apiService.getOwnerTransferEmail(value);
+        Promise.all([userNameSearch, emailSearch])
+          .then((responses) => {
+            const array = new Set([]);
+            if (responses[0]?.data?.data?.values?.length > 0) {
+              responses[0].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(item);
                 }
                 return null;
               });
-              setOptions([...array]);
             }
-          })
-          .catch(() => {
-            setAutoLoader(false);
-            setResponseType(-1);
-            setToastMessage('Something went wrong while fetching emails!');
-          });
-      },
-      1000,
-      true
-    ),
-    []
-  );
-
-  const callNotifySearchApi = useCallback(
-    debounce(
-      (value) => {
-        setNotifyAutoLoader(true);
-        setNotifyOptions([]);
-        apiService
-          .getOwnerTransferEmail(value)
-          .then((res) => {
-            const array = [];
-            setNotifyAutoLoader(false);
-            if (res?.data?.data?.values?.length > 0) {
-              res.data.data.values.map((item) => {
-                if (item.userEmail) {
-                  return array.push(item.userEmail);
+            if (responses[1]?.data?.data?.values?.length > 0) {
+              responses[1].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(item);
                 }
                 return null;
               });
+            }
+            if (type === 'applicationOwner') {
+              setAutoLoader(false);
+              setOptions([...array]);
+            } else {
+              setNotifyAutoLoader(false);
               setNotifyOptions([...array]);
             }
           })
           .catch(() => {
-            setNotifyAutoLoader(false);
             setResponseType(-1);
             setToastMessage('Something went wrong while fetching emails!');
           });
@@ -388,10 +377,12 @@ const OnboardCertificates = (props) => {
   );
 
   const onOwnerChange = (e) => {
-    if (e) {
-      setOwner(e.target.value);
-      if (e.target.value && e.target.value?.length > 2) {
-        callSearchApi(e.target.value);
+    if (e && e?.target?.value !== undefined) {
+      setOwner(e?.target?.value);
+      if (e?.target?.value && e?.target?.value?.length > 2) {
+        setOptions([]);
+        setAutoLoader(true);
+        callSearchApi(e.target.value, 'applicationOwner');
         if (validateEmail(owner)) {
           setEmailError(false);
         } else {
@@ -403,29 +394,50 @@ const OnboardCertificates = (props) => {
 
   const onSelected = (e, val) => {
     if (val) {
-      setOwner(val);
+      const applicationOwnerEmail = val?.split(', ')[0];
+      setOwnerselected(
+        options.filter(
+          (i) => i?.userEmail?.toLowerCase() === applicationOwnerEmail
+        )[0]
+      );
+      setEmailError(false);
+      setOwner(applicationOwnerEmail);
       const obj = options.find(
-        (item) => item?.userEmail?.toLowerCase() === val?.toLowerCase()
+        (item) =>
+          item?.userEmail?.toLowerCase() ===
+          applicationOwnerEmail?.toLowerCase()
       );
       if (obj && obj.userName) {
         setCertOwnerNTId(obj.userName);
       }
       const existsOwner = notificationEmailList.find(
-        (item) => item.toLowerCase() === val?.toLowerCase()
+        (item) => item.toLowerCase() === applicationOwnerEmail?.toLowerCase()
       );
       if (!existsOwner) {
-        setNotificationEmailList((prev) => [...prev, val]);
+        setNotificationEmailList((prev) => [...prev, applicationOwnerEmail]);
       }
       setEmailError(false);
     }
   };
 
   const onNotifyEmailSelected = (e, val) => {
-    setNotifyEmail(val);
-    setNotifyEmailError(false);
+    if (val) {
+      const notifyUserEmail = val?.split(', ')[0];
+      setNotifyUserselected(
+        notifyOptions.filter(
+          (i) => i?.userEmail?.toLowerCase() === notifyUserEmail
+        )[0]
+      );
+      setNotifyEmail(notifyUserEmail);
+      setNotifyEmailError(false);
+    }
   };
 
-  const onChangeApplicationName = (appName) => {
+  const onChangeAppilcationName = (value) => {
+    setApplicationName(value);
+  };
+
+  const onSelectedApplicationName = (e, appName) => {
     setApplicationName(appName);
     setNotificationEmailList([]);
     const selectedApp = allApplication.find((item) => appName === item.appName);
@@ -487,21 +499,19 @@ const OnboardCertificates = (props) => {
   };
 
   const onNotifyEmailChange = (e) => {
-    if (e && e?.target?.value) {
+    if (e && e?.target?.value !== undefined) {
       setNotifyEmail(e?.target?.value);
       if (e.target.value && e.target.value?.length > 2) {
-        callNotifySearchApi(e.target.value);
+        setNotifyOptions([]);
+        setNotifyAutoLoader(true);
+        callSearchApi(e.target.value, 'notifyUser');
         if (validateEmail(notifyEmail)) {
           setNotifyEmailError(false);
         } else {
           setNotifyEmailError(true);
-          setEmailErrorMsg(
-            'Please enter a valid email address or not available!'
-          );
+          setEmailErrorMsg('Please enter a valid value or not available!');
         }
       }
-    } else {
-      setNotifyEmail('');
     }
   };
   const onRemoveEmailsClicked = (email) => {
@@ -581,22 +591,27 @@ const OnboardCertificates = (props) => {
                 </EachValueWrap>
                 <InputFieldLabelWrapper postion>
                   <InputLabel>
-                    Owner Email ID
+                    Owner
                     <RequiredCircle margin="0.5rem" />
                   </InputLabel>
                   <AutoCompleteComponent
-                    options={[...options.map((item) => item.userEmail)]}
+                    options={options.map(
+                      (item) =>
+                        `${item?.userEmail?.toLowerCase()}, ${getName(
+                          item?.displayName?.toLowerCase()
+                        )}, ${item?.userName?.toLowerCase()}`
+                    )}
                     classes={classes}
                     searchValue={owner}
                     icon="search"
                     name="owner"
                     onSelected={(e, val) => onSelected(e, val)}
                     onChange={(e) => onOwnerChange(e)}
-                    placeholder="Email address- Enter min 3 characters"
+                    placeholder="Search by NTID, Email or Name "
                     error={owner?.length > 2 && (emailError || !isValidEmail)}
                     helperText={
                       owner?.length > 2 && (emailError || !isValidEmail)
-                        ? 'Please enter a valid email address or not available!'
+                        ? 'Please enter a valid value or not available!'
                         : ''
                     }
                   />
@@ -609,20 +624,36 @@ const OnboardCertificates = (props) => {
                     Application Name
                     <RequiredCircle margin="1.3rem" />
                   </InputLabel>
-                  <TextFieldSelect
-                    menu={[...allApplication.map((item) => item.appName)]}
-                    value={applicationName}
+                  <AutoCompleteComponent
+                    icon="search"
+                    options={[...allApplication.map((item) => item.appName)]}
+                    searchValue={applicationName}
                     classes={classes}
-                    handleChange={(e) =>
-                      onChangeApplicationName(e?.target?.value)
+                    onChange={(e) => onChangeAppilcationName(e?.target?.value)}
+                    onSelected={(event, value) =>
+                      onSelectedApplicationName(event, value)
                     }
-                    filledText="Select application name"
+                    placeholder="Search for Application Name"
+                    error={
+                      applicationName !== '' &&
+                      ![...allApplication.map((item) => item.appName)].includes(
+                        applicationName
+                      )
+                    }
+                    helperText={
+                      applicationName !== '' &&
+                      ![...allApplication.map((item) => item.appName)].includes(
+                        applicationName
+                      )
+                        ? `Application ${applicationName} does not exist!`
+                        : ''
+                    }
                   />
                 </InputFieldLabelWrapper>
                 <NotificationEmailsWrap>
                   {!searchNotificationsEmail && (
                     <InputLabel>
-                      Add Emails to Notify
+                      Add Users to Notify
                       <RequiredCircle margin="1.3rem" />
                     </InputLabel>
                   )}
@@ -637,7 +668,12 @@ const OnboardCertificates = (props) => {
                   <NotificationAutoWrap>
                     <AutoInputFieldLabelWrapper>
                       <AutoCompleteComponent
-                        options={notifyOptions}
+                        options={notifyOptions.map(
+                          (item) =>
+                            `${item?.userEmail?.toLowerCase()}, ${getName(
+                              item?.displayName?.toLowerCase()
+                            )}, ${item?.userName?.toLowerCase()}`
+                        )}
                         classes={classes}
                         searchValue={notifyEmail}
                         disabled={
@@ -649,7 +685,7 @@ const OnboardCertificates = (props) => {
                         onSelected={(e, val) => onNotifyEmailSelected(e, val)}
                         onKeyDown={(e) => onEmailKeyDownClicked(e)}
                         onChange={(e) => onNotifyEmailChange(e)}
-                        placeholder="Email address- Enter min 3 characters"
+                        placeholder="Search by NTID, Email or Name "
                         error={
                           notifyEmail?.length > 2 &&
                           (notifyEmailError || !isValidNotifyEmail)
