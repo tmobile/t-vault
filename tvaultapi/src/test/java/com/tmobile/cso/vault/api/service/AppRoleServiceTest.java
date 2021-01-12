@@ -18,6 +18,12 @@ package com.tmobile.cso.vault.api.service;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.InvocationTargetException;
@@ -55,8 +61,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.model.AppRole;
+import com.tmobile.cso.vault.api.model.AppRoleAccessorIds;
+import com.tmobile.cso.vault.api.model.AppRoleDetails;
+import com.tmobile.cso.vault.api.model.AppRoleIdSecretId;
+import com.tmobile.cso.vault.api.model.AppRoleMetadata;
+import com.tmobile.cso.vault.api.model.AppRoleMetadataDetails;
+import com.tmobile.cso.vault.api.model.AppRoleNameSecretId;
+import com.tmobile.cso.vault.api.model.AppRoleSecretData;
+import com.tmobile.cso.vault.api.model.SafeAppRoleAccess;
+import com.tmobile.cso.vault.api.model.SecretData;
+import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -2298,4 +2316,128 @@ public class AppRoleServiceTest {
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
 
     }
+    
+    @Test
+    public void test_updateAppRole_failure() throws Exception{
+    	  String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+    	 AppRole appRole = new AppRole();
+    	 UserDetails userDetails = getMockUser("testuser1", false);
+        ResponseEntity<String> responseEntityActual = appRoleService.updateAppRole(token, appRole, userDetails);
+        assertNotNull(responseEntityActual);	
+
+    }
+    
+	@Test
+	public void test_updateAppRole_failure1() throws Exception {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		String rolename = "azure_master_approle";
+		ArrayList<String> policiesList = new ArrayList<String>();
+		policiesList.add("r_shared_safe01");
+		String[] policies = policiesList.toArray(new String[policiesList.size()]);
+		AppRole appRole = new AppRole(rolename, policies, true, 0, 0, 0);
+		UserDetails userDetails = getMockUser("testuser1", false);
+		ResponseEntity<String> responseEntityActual = appRoleService.updateAppRole(token, appRole, userDetails);
+		assertNotNull(responseEntityActual);
+
+	}
+	
+	@Test
+	public void test_updateAppRole_failure2() throws Exception {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		String rolename = "rolename";
+		ArrayList<String> policiesList = new ArrayList<String>();
+		policiesList.add("r_shared_safe01");
+		String[] policies = policiesList.toArray(new String[policiesList.size()]);
+		AppRole appRole = new AppRole(rolename, policies, true, 0, 0, 0);
+		UserDetails userDetails = getMockUser("testuser1", false);
+		Response response3 = new Response();
+		response3.setHttpstatus(HttpStatus.OK);
+		response3.setResponse("success");
+		when(reqProcessor.process(eq("/auth/approle/role/read"), anyString(), anyString())).thenReturn(response3);
+		ResponseEntity<String> responseEntityActual = appRoleService.updateAppRole(token, appRole, userDetails);
+		assertNotNull(responseEntityActual);
+
+	}
+	
+	@Test
+	public void test_deleteSecretIds_failure() {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		UserDetails userDetails = getMockUser("testuser1", false);
+		AppRoleAccessorIds appRoleAccessorIds = new AppRoleAccessorIds();
+		String[] accessorIds = {"1", "2"};
+		appRoleAccessorIds.setAccessorIds(accessorIds);
+		appRoleAccessorIds.setRole_name("rolename");
+		Response response = new Response();
+		response.setHttpstatus(HttpStatus.OK);
+		when(reqProcessor.process(eq("/read"), anyString(), anyString())).thenReturn(response);
+		ResponseEntity<String> responseEntityActual = appRoleService.deleteSecretIds(token, appRoleAccessorIds, userDetails);
+		assertNotNull(responseEntityActual);
+	}
+	
+	@Test
+	public void test_deleteSecretIds_failure1() {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		UserDetails userDetails = getMockUser("testuser1", false);
+		AppRoleAccessorIds appRoleAccessorIds = new AppRoleAccessorIds();
+		String[] accessorIds = {"1", "2"};
+		appRoleAccessorIds.setAccessorIds(accessorIds);
+		appRoleAccessorIds.setRole_name("azure_master_approle");
+		Response response = new Response();
+		response.setHttpstatus(HttpStatus.OK);
+		when(reqProcessor.process(eq("/read"), anyString(), anyString())).thenReturn(response);
+		ResponseEntity<String> responseEntityActual = appRoleService.deleteSecretIds(token, appRoleAccessorIds, userDetails);
+		assertNotNull(responseEntityActual);
+	}
+	
+	@Test
+	public void test_deleteSecretIds_success() {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		UserDetails userDetails = getMockUser("safeadmin", false);
+		AppRoleAccessorIds appRoleAccessorIds = new AppRoleAccessorIds();
+		String[] accessorIds = {"1", "2"};
+		appRoleAccessorIds.setAccessorIds(accessorIds);
+		appRoleAccessorIds.setRole_name("rolename");
+		Response response = new Response();
+		response.setHttpstatus(HttpStatus.OK);
+        String jsonStr = "{\"role_name\":\"approle1\",\"policies\":null,\"bind_secret_id\":false,\"secret_id_num_uses\":null,\"secret_id_ttl\":null,\"token_num_uses\":null,\"token_ttl\":null,\"token_max_ttl\":null}";
+
+		response.setResponse(jsonStr);
+		when(reqProcessor.process(eq("/read"), anyString(), anyString())).thenReturn(response);
+		Map<String, Object> appRoleMetadataMap = new HashMap<>();
+		Map<String, Object> appRoleResponseMap = new HashMap<>();
+		String approleusername="safeadmin";
+		appRoleMetadataMap.put("createdBy", approleusername);
+		appRoleResponseMap.put("data", appRoleMetadataMap);
+		when(ControllerUtil.parseJson(response.getResponse())).thenReturn(appRoleResponseMap);
+		when(reqProcessor.process(eq("/auth/approle/role/delete/secretids"), anyString(), anyString())).thenReturn(response);
+		ResponseEntity<String> responseEntityActual = appRoleService.deleteSecretIds(token, appRoleAccessorIds, userDetails);
+		assertNotNull(responseEntityActual);
+	}
+	
+	@Test
+	public void test_deleteSecretIds_success1() {
+		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+		UserDetails userDetails = getMockUser("safeadmin", false);
+		AppRoleAccessorIds appRoleAccessorIds = new AppRoleAccessorIds();
+		String[] accessorIds = {"1", "2"};
+		appRoleAccessorIds.setAccessorIds(accessorIds);
+		appRoleAccessorIds.setRole_name("rolename");
+		Response response = new Response();
+		response.setHttpstatus(HttpStatus.OK);
+        String jsonStr = "{\"role_name\":\"approle1\",\"policies\":null,\"bind_secret_id\":false,\"secret_id_num_uses\":null,\"secret_id_ttl\":null,\"token_num_uses\":null,\"token_ttl\":null,\"token_max_ttl\":null}";
+
+		response.setResponse(jsonStr);
+		when(reqProcessor.process(eq("/read"), anyString(), anyString())).thenReturn(response);
+		Map<String, Object> appRoleMetadataMap = new HashMap<>();
+		Map<String, Object> appRoleResponseMap = new HashMap<>();
+		String approleusername="safeadmin";
+		appRoleMetadataMap.put("createdBy", approleusername);
+		appRoleResponseMap.put("data", appRoleMetadataMap);
+		when(ControllerUtil.parseJson(response.getResponse())).thenReturn(appRoleResponseMap);
+		Response response1 = new Response();
+		response1.setHttpstatus(HttpStatus.NO_CONTENT);
+		when(reqProcessor.process(eq("/auth/approle/role/delete/secretids"), anyString(), anyString())).thenReturn(response);
+		ResponseEntity<String> responseEntityActual = appRoleService.deleteSecretIds(token, appRoleAccessorIds, userDetails);
+		assertNotNull(responseEntityActual);
+	}
 }

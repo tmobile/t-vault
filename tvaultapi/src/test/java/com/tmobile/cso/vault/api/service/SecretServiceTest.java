@@ -20,6 +20,9 @@ import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.model.*;
+import com.tmobile.cso.vault.api.model.SafeNode;
+import com.tmobile.cso.vault.api.model.Secret;
+import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.CommonUtils;
@@ -78,7 +81,6 @@ public class SecretServiceTest {
 
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
         when(JSONUtil.getJSON(Mockito.any(ImmutableMap.class))).thenReturn("log");
-
         Map<String, String> currentMap = new HashMap<>();
         currentMap.put("apiurl", "http://localhost:8080/vault/v2/sdb");
         currentMap.put("user", "");
@@ -358,22 +360,83 @@ public class SecretServiceTest {
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+    
+    @Test
+    public void test_write_success() {
 
- /*   @Test
-    public void test_readFromVaultRecursive() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String path = "shared/mysafe01/myfolder";
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
 
-        Response response = new Response();
-        SafeNode safeNode = new SafeNode();
-        safeNode.setType("safe");
-        when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
-        ResponseEntity<String> responseEntity = secretService.readFromVaultRecursive(token, path);
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
+        when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
+
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        String policies[] = {"w_shared_mysafe01"};
+        UserDetails userDetails = getMockUser(false);
+        userDetails.setPolicies(policies);
+        String deleteFlag = "true";
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails, deleteFlag);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test
+    public void test_write1_failure_no_explicit_permission() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"No permisison to write secret in this safe\"]}");
+
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
+        when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
+
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        String policies[] = {"s_shared_mysafe01"};
+        UserDetails userDetails = getMockUser(false);
+        userDetails.setPolicies(policies);
+        String deleteFlag = "true";
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails, deleteFlag);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_write1_failure_invalidPath() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
+        String deleteFlag = "true";
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(false);
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, getMockUser(false), deleteFlag);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
-
-    }*/
+    }
 
     @Test
     public void test_getSecretCount_successfully() {

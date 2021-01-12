@@ -244,6 +244,7 @@
         }
         // function call on input keyup 
         $scope.onKeyUp = function(newVal, variableChanged, forOwner) {
+            console.log("onKeyUp");
             if (newVal.length === 0) {
                 return;
             }
@@ -817,8 +818,8 @@
 
         $scope.requestDataFrChangeSafe = function () {
             $scope.isLoadingData = true;
+            $scope.isEmailEditable = true;
             if ($stateParams.safeObject) {
-
                 // Prefilled values when editing
                 $scope.changeSafeHeader = "EDIT SAFE";
                 $scope.isEditSafe = true;
@@ -886,7 +887,10 @@
 
                                     getUserDisplayNameDetails();
                                     $scope.isUserEmailSelected = true;
+                                    $scope.isAdmin = false;
+                                    $scope.isEmailEditable = false;
                                 }
+                               
                                 catch (e) {
                                     console.log(e);
                                     $scope.isLoadingData = false;
@@ -926,15 +930,16 @@
 
             }
             else {
+                console.log($scope.isAdmin);
                 $scope.changeSafeHeader = "CREATE SAFE";
                 $scope.isEditSafe = false;
                 $scope.checkOwnerEmailHasValue('details');
                 // Refreshing the data while adding/deleting/editing permissions when creating safe (not edit-safe)
-
                 try {
                     $rootScope.AwsPermissionsData = {}
                     $rootScope.AppRolePermissionsData = {}
                     if (($scope.safe.name !== '') && ($scope.safe.owner !== '')) {
+                        console.log("STARTT::");
                         var queryParameters = "path=" + $scope.getPath();
                         var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSafeInfo', queryParameters);
                         AdminSafesManagement.getSafeInfo(null, updatedUrlOfEndPoint).then(
@@ -975,6 +980,7 @@
                                         }
 
                                         getUserDisplayNameDetails();
+                                       
                                     }
                                     catch (e) {
                                         console.log(e);
@@ -997,7 +1003,15 @@
 
                             });
                     }
+                   
                     else {
+                        if (JSON.parse(SessionStore.getItem("isAdmin")) == false) { 
+                            $scope.safe.owner = SessionStore.getItem("useremail");
+                            $scope.isAdmin = false;
+                            $scope.isUserEmailSelected = true;
+                        }else{
+                            $scope.isAdmin = true;
+                        }
                         $scope.isLoadingData = false;
                     }
                 } catch (e) {
@@ -1453,6 +1467,7 @@
         }
 
         $scope.searchEmail = function (searchVal) {
+            console.log("SEARCHEMAIL");
             if (searchVal.length > 2) {
                 $scope.isUserSearchLoading = true;
                 searchVal = searchVal.toLowerCase();
