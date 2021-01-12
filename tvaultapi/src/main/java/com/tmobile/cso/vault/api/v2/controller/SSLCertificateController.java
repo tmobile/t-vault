@@ -332,7 +332,7 @@ public class SSLCertificateController {
 	@ApiOperation(value = "${SSLCertificateController.deleteCertificate.value}", notes = "${SSLCertificateController.deleteCertificate.notes}", hidden = false)
 	@DeleteMapping(value = "/v2/certificates/{certificate_name}/{certificate_type}", produces = "application/json")
 	public ResponseEntity<String> deleteCertificate(HttpServletRequest request,
-			@RequestHeader(value = "vault-token") String token, @PathVariable("certificate_type") String certType, @PathVariable("certificate_name") String certName) throws Exception {
+			@RequestHeader(value = "vault-token") String token, @PathVariable("certificate_type") String certType, @PathVariable("certificate_name") String certName)  {
 		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
 		return sslCertificateService.deleteCertificate(token, certType, certName, userDetails);
 	}

@@ -271,9 +271,6 @@ public class AzureServiceAccountUtils {
 
         String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(servicePrincipalName).toString();
 
-        List<AzureSvccAccMetadata> secretData = new ArrayList<>();
-
-
         String typeSecret = "secret";
         path = "metadata/"+path;
 
@@ -348,7 +345,7 @@ public class AzureServiceAccountUtils {
                 build()));
 
         String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(servicePrincipalName).toString();
-        Map<String,String> isActivatedParams = new Hashtable<>();
+        Map<String,String> isActivatedParams = new HashMap<>();
         isActivatedParams.put("type", "isActivated");
         isActivatedParams.put("path",path);
         isActivatedParams.put("value","true");
