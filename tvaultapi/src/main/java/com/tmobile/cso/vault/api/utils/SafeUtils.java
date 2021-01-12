@@ -277,9 +277,23 @@ public class SafeUtils {
 
 			String versionJsonStr ="{\"path\":\""+versionFolderPath +"\",\"data\":"+ JSONUtil.getJSON(folderVersionData)+"}";
 			if (!readVersionFolderResponse.getHttpstatus().equals(HttpStatus.OK)) {
+				// No version folder exists. Creating one
+				log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "createVersionFolder").
+						put(LogMessage.MESSAGE, String.format("Creating version folder for [%s}", path)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
 				return reqProcessor.process("/sdb/createfolder",versionJsonStr,token);
 			}
 			else {
+				// Version folder already exists. Writing to it.
+				log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "createVersionFolder").
+						put(LogMessage.MESSAGE, String.format("Version folder exists for [%s}. Adding details to existing version folder", path)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
 				return reqProcessor.process("/write",versionJsonStr,token);
 			}
 		}
@@ -304,6 +318,7 @@ public class SafeUtils {
 		folderVersionData.setFolderModifiedBy(modifiedBy);
 
 		if (!isPartOfFolderCreation) {
+			// if part of folder creation, there might exist version info for this folder
 			List<SecretVersionDetails> newSecretVersionDetails = new ArrayList<>();
 			newSecretVersionDetails.add(new SecretVersionDetails(modifiedAt, modifiedBy));
 
@@ -315,7 +330,6 @@ public class SafeUtils {
 			for (int i=0; i< modifiedKeys.size(); i++) {
 				currentSecretVersionDetails.put(modifiedKeys.get(i), newSecretVersionDetails);
 			}
-
 			folderVersionData.setSecretVersions(currentSecretVersionDetails);
 		}
 		return folderVersionData;
