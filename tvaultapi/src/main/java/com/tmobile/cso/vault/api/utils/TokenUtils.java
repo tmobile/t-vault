@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -64,7 +64,7 @@ public class TokenUtils {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "getSelfServiceToken").
-				put(LogMessage.MESSAGE, String.format ("Trying to generate SelfServiceToken")).
+				put(LogMessage.MESSAGE, "Trying to generate SelfServiceToken").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if (TVaultConstants.APPROLE.equals(selfServiceTokenGenerator)) {
@@ -88,7 +88,7 @@ public class TokenUtils {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "getSelfServiceToken").
-					put(LogMessage.MESSAGE, String.format ("SelfService token successfully created")).
+					put(LogMessage.MESSAGE, "SelfService token successfully created").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			String res = response.getResponse();
@@ -100,7 +100,7 @@ public class TokenUtils {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "getSelfServiceToken").
-					put(LogMessage.MESSAGE, String.format ("SelfService token failed")).
+					put(LogMessage.MESSAGE, "SelfService token failed").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 		}
@@ -115,7 +115,7 @@ public class TokenUtils {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "getSelfServiceTokenWithAppRole").
-				put(LogMessage.MESSAGE, String.format ("Trying to generate SelfServiceTokenWithAppRole")).
+				put(LogMessage.MESSAGE, "Trying to generate SelfServiceTokenWithAppRole").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		String selfServiceToken = null;
@@ -136,7 +136,7 @@ public class TokenUtils {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "getSelfServiceTokenWithAppRole").
-					put(LogMessage.MESSAGE, String.format ("SelfService token successfully created using AppRole")).
+					put(LogMessage.MESSAGE, "SelfService token successfully created using AppRole").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			String res = response.getResponse();
@@ -150,7 +150,7 @@ public class TokenUtils {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "getSelfServiceTokenWithAppRole").
-					put(LogMessage.MESSAGE, String.format ("SelfService token failed")).
+					put(LogMessage.MESSAGE, "SelfService token failed").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 		}
@@ -167,7 +167,7 @@ public class TokenUtils {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "revokePowerToken").
-					put(LogMessage.MESSAGE, String.format ("SelfService token successfully revoked")).
+					put(LogMessage.MESSAGE, "SelfService token successfully revoked").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 		}
@@ -175,7 +175,7 @@ public class TokenUtils {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "revokePowerToken").
-					put(LogMessage.MESSAGE, String.format ("SelfService token revoke failed")).
+					put(LogMessage.MESSAGE, "SelfService token revoke failed").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 		}

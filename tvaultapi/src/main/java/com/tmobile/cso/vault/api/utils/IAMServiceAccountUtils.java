@@ -141,13 +141,12 @@ public class IAMServiceAccountUtils {
             readResponseContent(jsonResponse, apiResponse, "getIAMApproleToken");
             String iamPortalToken = null;
             JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
-            if (!responseJson.isJsonNull()) {
-                if (responseJson.has("auth")) {
+            if ((!responseJson.isJsonNull()) && responseJson.has("auth")) {               
                     JsonObject authJson = responseJson.get("auth").getAsJsonObject();
                     if (authJson.has("client_token")) {
                         iamPortalToken = authJson.get("client_token").getAsString();
                     }
-                }
+                
             }
             return iamPortalToken;
         } catch (IOException e) {
@@ -363,7 +362,7 @@ public class IAMServiceAccountUtils {
 
         String uniqueIAMSvcaccName = awsAccountId + "_" + iamServiceAccountName;
         String path = new StringBuffer(IAMServiceAccountConstants.IAM_SVCC_ACC_PATH).append(uniqueIAMSvcaccName).toString();
-        Map<String,String> isActivatedParams = new Hashtable<>();
+        Map<String,String> isActivatedParams = new HashMap<>();
         isActivatedParams.put("type", "isActivated");
         isActivatedParams.put("path",path);
         isActivatedParams.put("value","true");

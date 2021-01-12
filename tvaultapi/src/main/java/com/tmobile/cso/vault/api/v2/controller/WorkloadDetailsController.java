@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2020 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -60,7 +60,6 @@ public class WorkloadDetailsController {
 	public ResponseEntity<String> getWorkloadDetailsByAPIName(HttpServletRequest request,
 															  @RequestHeader(value="vault-token") String token, @RequestParam(
 			"appName" ) String appName){
-		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return workloadDetailsService.getWorkloadDetailsByAppName(appName);
 	}
 }
