@@ -536,7 +536,7 @@ const CreateCertificates = (props) => {
   const onSelected = (e, val) => {
     const notifyUserEmail = val?.split(', ')[0];
     setNotifyUserSelected(
-      options.filter((i) => i.userEmail.toLowerCase() === notifyUserEmail)[0]
+      options.filter((i) => i?.userEmail?.toLowerCase() === notifyUserEmail)[0]
     );
     setNotifyEmail(notifyUserEmail);
     setEmailError(false);

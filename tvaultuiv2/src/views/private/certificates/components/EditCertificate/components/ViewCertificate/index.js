@@ -380,7 +380,7 @@ const ViewCertificate = (props) => {
       setApplicationOwner(applicationOwnerEmail);
       setOwnerselected(
         options.filter(
-          (i) => i.userEmail.toLowerCase() === applicationOwnerEmail
+          (i) => i?.userEmail?.toLowerCase() === applicationOwnerEmail
         )[0]
       );
       setEmailError(false);
@@ -392,7 +392,7 @@ const ViewCertificate = (props) => {
       const notifyUserEmail = val?.split(', ')[0];
       setNotifyUserselected(
         notifyOptions.filter(
-          (i) => i.userEmail.toLowerCase() === notifyUserEmail
+          (i) => i?.userEmail?.toLowerCase() === notifyUserEmail
         )[0]
       );
       setNotifyEmail(notifyUserEmail);
@@ -460,7 +460,7 @@ const ViewCertificate = (props) => {
     const projectLeadUserEmail = val?.split(', ')[0];
     setProjectLeadselected(
       projectLeadOptions.filter(
-        (i) => i.userEmail.toLowerCase() === projectLeadUserEmail
+        (i) => i?.userEmail?.toLowerCase() === projectLeadUserEmail
       )[0]
     );
     setProjectLeadEmail(projectLeadUserEmail);
