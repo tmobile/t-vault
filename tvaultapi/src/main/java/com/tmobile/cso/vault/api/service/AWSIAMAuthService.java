@@ -115,7 +115,6 @@ public class AWSIAMAuthService {
 	 */
 	public ResponseEntity<String> updateIAMRole(String token, AWSIAMRole awsiamRole) throws TVaultValidationException{
 		if (!ControllerUtil.areAWSIAMRoleInputsValid(awsiamRole)) {
-			//return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
 			throw new TVaultValidationException("Invalid inputs for the given aws login type");
 		}
 		String jsonStr = JSONUtil.getJSON(awsiamRole);

@@ -47,13 +47,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.filter.AndFilter;
+import org.springframework.ldap.filter.EqualsFilter;
+import org.springframework.ldap.filter.Filter;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import javax.naming.directory.Attributes;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
@@ -327,6 +328,36 @@ public class DirectoryServiceTest {
     }
 
     @Test
+    public void test_searchByUPNInGsmAndCorp_successfully_from_corp_With_Both_Persons() {
+
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        List<DirectoryUser> personsEmpty = new ArrayList<>();
+        personsEmpty.add(directoryUser);
+        persons.add(directoryUser);
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(users);
+
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(personsEmpty);
+        when(adUserLdapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(persons);
+
+        ResponseEntity<DirectoryObjects> responseEntity = directoryService.searchByUPNInGsmAndCorp("test_corpid");
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected.getBody().getData().getValues()[0], responseEntity.getBody().getData().getValues()[0]);
+    }
+
+    @Test
     public void test_searchByUPNInGsmAndCorp_successfully_from_corp() {
 
         DirectoryUser directoryUser = new DirectoryUser();
@@ -367,6 +398,8 @@ public class DirectoryServiceTest {
 
         List<DirectoryUser> persons = new ArrayList<>();
         persons.add(directoryUser);
+
+
 
         DirectoryObjects users = new DirectoryObjects();
         DirectoryObjectsList usersList = new DirectoryObjectsList();
