@@ -122,17 +122,32 @@ const AddUser = (props) => {
     setRadioValue(access);
   }, [username, access]);
 
+  const getName = (displayName) => {
+    if (displayName?.match(/(.*)\[(.*)\]/)) {
+      const lastFirstName = displayName?.match(/(.*)\[(.*)\]/)[1].split(', ');
+      const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+      const optionalDetail = displayName?.match(/(.*)\[(.*)\]/)[2];
+      return `${name}, ${optionalDetail}`;
+    }
+    const lastFirstName = displayName?.split(', ');
+    const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+    return name;
+  };
+
   useEffect(() => {
-    if (searchValue?.length > 2) {
+    if (searchValue?.length > 2 && selectedUser?.displayName) {
       if (!searchLoader) {
-        if (selectedUser.displayName !== searchValue) {
+        if (
+          getName(selectedUser?.displayName.toLowerCase())?.split(', ')[0] !==
+          searchValue
+        ) {
           setIsValidUserName(false);
         } else {
           setIsValidUserName(true);
         }
       }
     }
-  }, [searchValue, searchLoader, selectedUser.displayName]);
+  }, [searchValue, searchLoader, selectedUser?.displayName]);
 
   useEffect(() => {
     if (configData.AD_USERS_AUTOCOMPLETE) {
@@ -206,9 +221,11 @@ const AddUser = (props) => {
 
   const onSelected = (e, val) => {
     if (val) {
-      setSearchValue(val?.match(/([A-z]+),\s([A-z]+)/)[0]);
+      setSearchValue(val?.split(', ')[1]);
       setSelectedUser(
-        options.filter((i) => i.userEmail === val?.match(/\[(.*)\]/)[1])[0]
+        options.filter(
+          (i) => i.userEmail.toLowerCase() === val?.split(', ')[0]
+        )[0]
       );
       setOptions([]);
     }
@@ -257,7 +274,9 @@ const AddUser = (props) => {
               <AutoCompleteComponent
                 options={options.map(
                   (item) =>
-                    `${item.displayName} [${item.userEmail}] (${item.userName})`
+                    `${item.userEmail.toLowerCase()}, ${getName(
+                      item.displayName.toLowerCase()
+                    )}, ${item.userName.toLowerCase()}`
                 )}
                 icon="search"
                 classes={classes}
