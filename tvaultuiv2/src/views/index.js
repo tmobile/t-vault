@@ -4,11 +4,13 @@ import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { Route, Switch, Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import { useIdleTimer } from 'react-idle-timer';
+import * as msal from '@azure/msal-browser';
 import Safe from './private/safe';
 import ScaledLoader from '../components/Loaders/ScaledLoader';
 import { UserContextProvider } from '../contexts';
 import { revokeToken, renewToken } from './public/HomePage/utils';
 import configData from '../config/config';
+import configUrl from '../config/index';
 
 const Home = lazy(() => import('./public/HomePage'));
 const VaultAppRoles = lazy(() => import('./private/vault-app-roles'));
@@ -71,6 +73,16 @@ const PrivateRoutes = () => {
     document.title = 'Your session has expired.';
     timer.cancelCountdown();
     if (configData.AUTH_TYPE === 'oidc') {
+      const config = {
+        auth: {
+          clientId: localStorage.getItem('clientId'),
+          redirectUri: configUrl.redirectUrl, // defaults to application start page
+          postLogoutRedirectUri: configUrl.redirectUrl,
+        },
+      };
+
+      const myMsal = new msal.PublicClientApplication(config);
+      myMsal.logout();
       await revokeToken();
     }
     window.location.href = '/';
