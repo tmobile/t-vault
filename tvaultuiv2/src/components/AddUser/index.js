@@ -111,7 +111,7 @@ const AddUser = (props) => {
   const [options, setOptions] = useState([]);
   const [disabledSave, setDisabledSave] = useState(true);
   const [searchLoader, setSearchLoader] = useState(false);
-  const [isValidUserName, setIsValidUserName] = useState(false);
+  const [isValidUserName, setIsValidUserName] = useState(true);
   const [radioArray, setRadioArray] = useState([]);
   const isMobileScreen = useMediaQuery(small);
   const [selectedUser, setSelectedUser] = useState({});
@@ -135,21 +135,6 @@ const AddUser = (props) => {
     }
     return displayName;
   };
-
-  useEffect(() => {
-    if (searchValue?.length > 2 && selectedUser?.displayName) {
-      if (!searchLoader) {
-        if (
-          getName(selectedUser?.displayName.toLowerCase())?.split(', ')[0] !==
-          searchValue
-        ) {
-          setIsValidUserName(false);
-        } else {
-          setIsValidUserName(true);
-        }
-      }
-    }
-  }, [searchValue, searchLoader, selectedUser.displayName]);
 
   useEffect(() => {
     if (configData.AD_USERS_AUTOCOMPLETE) {
@@ -215,6 +200,7 @@ const AddUser = (props) => {
   const onSearchChange = (e) => {
     if (e && e?.target?.value !== undefined) {
       setSearchValue(e?.target?.value);
+      setIsValidUserName(true);
       if (e?.target?.value !== '' && e?.target?.value?.length > 2) {
         callSearchApi(e.target.value);
       }
@@ -234,8 +220,20 @@ const AddUser = (props) => {
   };
 
   const onSaveClick = () => {
-    const result = selectedUser?.userName;
-    handleSaveClick(result?.toLowerCase(), radioValue);
+    if (username && access) {
+      const result = username?.match(/\((.*)\)/)[1];
+      handleSaveClick(result?.toLowerCase(), radioValue);
+    }
+    if (
+      getName(selectedUser?.displayName?.toLowerCase())?.split(', ')[0] !==
+      searchValue
+    ) {
+      setIsValidUserName(false);
+    } else {
+      setIsValidUserName(true);
+      const result = selectedUser?.userName;
+      handleSaveClick(result?.toLowerCase(), radioValue);
+    }
   };
 
   useEffect(() => {
