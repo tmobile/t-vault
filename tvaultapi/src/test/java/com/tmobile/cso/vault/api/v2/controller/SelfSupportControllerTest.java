@@ -758,4 +758,35 @@ public class SelfSupportControllerTest {
         when(selfSupportService.createAwsec2Role(eq(userDetails), Mockito.any(AWSLoginRole.class))).thenReturn(responseEntityExpected);
 
     }
+    @Test
+    public void testUpdateEC2Role() throws Exception {
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        String responseMessage = "{\"messages\":[\"AWS  EC2 Role updated \"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.updateAwsEc2Role(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),Mockito.any(AWSLoginRole.class))).thenReturn(responseEntityExpected);
+
+    }
+    @Test
+    public void testUpdateIAMRole() throws Exception {
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("iam");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+
+        String responseMessage = "{\"messages\":[\"AWS IAM Role updated \"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.updateAwsIamRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSIAMRole.class))).thenReturn(responseEntityExpected);
+
+    }
+
 }
