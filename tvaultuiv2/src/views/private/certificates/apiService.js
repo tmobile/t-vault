@@ -63,6 +63,8 @@ const updateCert = (payload) => api.put('/sslcert/', payload);
 const onOnboardcertificate = (payload) =>
   api.post('/sslcert/onboardSSLcertificate', payload);
 
+const searchByGroupEmail = (name) => api.get(`/azure/email?mail=${name}`);
+
 export default {
   getAllAdminCertInternal,
   getAllNonAdminCertInternal,
@@ -98,4 +100,5 @@ export default {
   getOnboardCertificates,
   updateCert,
   onOnboardcertificate,
+  searchByGroupEmail,
 };
