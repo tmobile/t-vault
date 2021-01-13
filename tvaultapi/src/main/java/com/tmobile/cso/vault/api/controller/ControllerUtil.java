@@ -306,15 +306,17 @@ public final class ControllerUtil {
 				try {
 					JsonNode folders = objMapper.readTree(lisresp.getResponse()).get("keys");
 					for(JsonNode node : folders){
-						jsonstr = PATHSTR+path+"/"+node.asText()+"\"}";
-						SafeNode sn = new SafeNode();
-						sn.setId(path+"/"+node.asText());
-						sn.setValue(path+"/"+node.asText());
-						sn.setType(TVaultConstants.FOLDER);
-						sn.setParentId(safeNode.getId());
-						safeNode.addChild(sn);
-						/* Recursively read the folders for the given folder/sub folders */
-						recursiveRead ( jsonstr,token,responseVO, sn);
+						if (!node.asText().startsWith(TVaultConstants.VERSION_FOLDER_PREFIX)) {
+							jsonstr = PATHSTR + path + "/" + node.asText() + "\"}";
+							SafeNode sn = new SafeNode();
+							sn.setId(path + "/" + node.asText());
+							sn.setValue(path + "/" + node.asText());
+							sn.setType(TVaultConstants.FOLDER);
+							sn.setParentId(safeNode.getId());
+							safeNode.addChild(sn);
+							/* Recursively read the folders for the given folder/sub folders */
+							recursiveRead(jsonstr, token, responseVO, sn);
+						}
 					}
 
 				} catch (IOException e) {

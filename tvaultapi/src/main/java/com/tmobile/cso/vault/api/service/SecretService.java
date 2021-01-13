@@ -120,7 +120,7 @@ public class  SecretService {
 		} catch (IOException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request.Check json data\"]}");
 		}
-		if(ControllerUtil.isPathValid(path)){
+		if(ControllerUtil.isPathValid(path) && !path.contains(TVaultConstants.VERSION_FOLDER_PREFIX)){
 		    // Check if the user has explicit write permission. Safe owners (implicit write permission) will be denied from write operation
 			if (!hasExplicitWritePermission(token, userDetails, secret.getPath())) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -221,7 +221,7 @@ public class  SecretService {
 		} catch (IOException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request.Check json data\"]}");
 		}
-		if(ControllerUtil.isPathValid(path)){
+		if(ControllerUtil.isPathValid(path) && !path.contains(TVaultConstants.VERSION_FOLDER_PREFIX)){
 			// Check if the user has explicit write permission. Safe owners (implicit write permission) will be denied from write operation
 			if (!hasExplicitWritePermission(token, userDetails, secret.getPath())) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -304,9 +304,10 @@ public class  SecretService {
 	 */
 	private Response saveVersionInfo(String token, String path, UserDetails userDetails, Secret secret, Response readResponse) {
 		List<String> modifiedKeys = getChangedSecretKeys(secret, readResponse);
+		List<String> deletedKeys = getDeletedSecretKeys(secret, readResponse);
 		Response versionCreationResponse = new Response();
-		if (modifiedKeys.size() >0) {
-			versionCreationResponse = safeUtils.createVersionFolder(token, path, userDetails, false, modifiedKeys);
+		if (modifiedKeys.size() >0 || deletedKeys.size() >0) {
+			versionCreationResponse = safeUtils.createVersionFolder(token, path, userDetails, false, modifiedKeys, deletedKeys);
 			if (HttpStatus.NO_CONTENT.equals(versionCreationResponse.getHttpstatus())) {
 				log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -331,6 +332,39 @@ public class  SecretService {
 			versionCreationResponse.setResponse("{\"errors\":[\"No changes made to secrets\"]}");
 		}
 		return versionCreationResponse;
+	}
+
+	/**
+	 * To get the list of deleted secrets in the write secret request
+	 * @param secret
+	 * @param readResponse
+	 * @return
+	 */
+	private List<String> getDeletedSecretKeys(Secret secret, Response readResponse) {
+		ObjectMapper objectMapper = new ObjectMapper();
+		List<String> deletedSecretKeys = new ArrayList<>();
+		if (readResponse.getHttpstatus().equals(HttpStatus.OK)) {
+			try {
+				Secret oldSecret = objectMapper.readValue(readResponse.getResponse(),	new TypeReference<Secret>() {});
+				if (oldSecret.getDetails() != null && oldSecret.getDetails().size() > 0) {
+					for (Map.Entry<String, String> entry : oldSecret.getDetails().entrySet()) {
+						String key = entry.getKey();
+						String value = entry.getValue();
+						if (!secret.getDetails().containsKey(key)) {
+							deletedSecretKeys.add(key);
+						}
+					}
+				}
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "getDeletedSecretKeys").
+						put(LogMessage.MESSAGE, String.format("Failed to read current secret for [%s}", secret.getPath())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+		}
+		return deletedSecretKeys;
 	}
 
 	/**

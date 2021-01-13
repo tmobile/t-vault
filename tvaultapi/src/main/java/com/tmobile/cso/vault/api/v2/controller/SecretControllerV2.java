@@ -113,7 +113,7 @@ public class SecretControllerV2 {
 	 * @param path
 	 * @return
 	 */
-	@ApiOperation(value = "${SecretControllerV2.getFolderVersionInfo.value}", notes = "${SecretControllerV2.getFolderVersionInfo.notes}")
+	@ApiOperation(value = "${SecretControllerV2.getFolderVersionInfo.value}", notes = "${SecretControllerV2.getFolderVersionInfo.notes}", hidden=true)
 	@GetMapping(value="/v2/safes/folders/versioninfo",produces="application/json")
 	public ResponseEntity<String> getFolderVersionInfo(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		return secretService.getFolderVersionInfo(token, path);

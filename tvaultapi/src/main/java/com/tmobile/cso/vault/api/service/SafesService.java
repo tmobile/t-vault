@@ -2363,7 +2363,7 @@ public class  SafesService {
 					build()));
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 				// create version folder
-				Response versionCreationResponse = safeUtils.createVersionFolder(token, path, userDetails, true, new ArrayList<>());
+				Response versionCreationResponse = safeUtils.createVersionFolder(token, path, userDetails, true, null, null);
 				if (HttpStatus.NO_CONTENT.equals(versionCreationResponse.getHttpstatus())) {
 					log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
