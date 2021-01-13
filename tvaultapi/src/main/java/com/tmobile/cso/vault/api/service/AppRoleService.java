@@ -111,9 +111,7 @@ public class  AppRoleService {
 		if (!ControllerUtil.areAppRoleInputsValid(appRole)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values for AppRole creation\"]}");
 		}
-//		if (appRole.getRole_name().equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to create an approle named "+TVaultConstants.SELF_SERVICE_APPROLE_NAME+"\"]}");
-//		}
+
 		
 		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(appRole.getRole_name())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -194,9 +192,7 @@ public class  AppRoleService {
 	 * @return
 	 */
 	public ResponseEntity<String> readAppRole(String token, String rolename){
-//		if (TVaultConstants.HIDEMASTERAPPROLE && rolename.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to read this AppRole\"]}");
-//		}
+
 		if (TVaultConstants.HIDEMASTERAPPROLE && Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(rolename)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to read this AppRole\"]}");
 		}
@@ -247,7 +243,7 @@ public class  AppRoleService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "readAppRoles").
-			      put(LogMessage.MESSAGE, String.format("Trying to get list of AppRole")).
+			      put(LogMessage.MESSAGE, "Trying to get list of AppRole").
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		Response response = reqProcessor.process("/auth/approle/role/list","{}",token);
@@ -308,9 +304,7 @@ public class  AppRoleService {
 	 * @return
 	 */
 	public ResponseEntity<String> readAppRoleRoleId(String token, String rolename){
-//		if (rolename.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to read roleID of this AppRole\"]}");
-//		}
+
 		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(rolename)) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to read roleID of this AppRole\"]}");
 		}
@@ -338,7 +332,6 @@ public class  AppRoleService {
 	 */
 	public String readRoleId(String token, String rolename){
 		String roleId = null;
-//		if (rolename.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
 		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(rolename)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
@@ -390,7 +383,6 @@ public class  AppRoleService {
 	 */
 	public List<String> readAccessorIds(String token, String rolename) {
 		ArrayList<String> accessorIds = null;
-//		if (rolename.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
 		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(rolename)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
@@ -491,7 +483,6 @@ public class  AppRoleService {
 	 */
 	public AppRole readAppRoleBasicDetails(String token, String rolename) {
 		AppRole appRole = null;
-//		if (TVaultConstants.HIDEMASTERAPPROLE && rolename.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
 		if (TVaultConstants.HIDEMASTERAPPROLE && Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(rolename)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
@@ -560,16 +551,16 @@ public class  AppRoleService {
 			if (appRoleMetadata != null && appRoleMetadata.getAppRoleMetadataDetails() != null) {
 				appRoleOwner = appRoleMetadata.getAppRoleMetadataDetails().getCreatedBy();
 			}
-			if (Objects.equals(userDetails.getUsername(), appRoleOwner)) {
-				if (TVaultConstants.APPROLE_READ_OPERATION.equals(operation)
+			
+				if ( (Objects.equals(userDetails.getUsername(), appRoleOwner)) && (TVaultConstants.APPROLE_READ_OPERATION.equals(operation)
 						|| TVaultConstants.APPROLE_DELETE_OPERATION.equals(operation)
 						|| TVaultConstants.APPROLE_UPDATE_OPERATION.equals(operation)
-						) {
+						)) {
 					// As a owner of the AppRole, I can read, delete, update my AppRole
 					isAllowed = true;
 				}
 				
-			}
+			
 		}
 		return isAllowed;
 	}
