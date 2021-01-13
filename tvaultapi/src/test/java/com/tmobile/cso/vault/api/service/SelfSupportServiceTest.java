@@ -163,7 +163,7 @@ public class SelfSupportServiceTest {
         when(safeUtils.getManagedSafes(policies, "shared")).thenReturn(safes);
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
+        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -185,7 +185,7 @@ public class SelfSupportServiceTest {
         when(safeUtils.getManagedSafes(policies, "shared")).thenReturn(safes);
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
+        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -199,7 +199,7 @@ public class SelfSupportServiceTest {
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 
-        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
+        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -216,7 +216,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
+        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

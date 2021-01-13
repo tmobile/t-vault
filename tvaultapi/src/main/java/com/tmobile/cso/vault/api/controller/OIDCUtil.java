@@ -640,7 +640,7 @@ public class OIDCUtil {
         JsonObject object = ((JsonObject) jsonParser.parse(authMountResponse));
         metaDataParams = new Gson().fromJson(object.toString(), Map.class);
         List<String> policies = new ArrayList<>();
-        for (Map.Entry<String, String> m : metaDataParams.entrySet()) {
+        for (Map.Entry m : metaDataParams.entrySet()) {
             if (m.getKey().equals(TVaultConstants.IDENTITY_POLICIES) && m.getValue() != null && m.getValue() != "") {
                 String policy = m.getValue().toString().replace("[", "").replace("]", "").replaceAll("\\s", "");
                 policies = new ArrayList<>(Arrays.asList(policy.split(",")));
