@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -150,7 +150,6 @@ public class  SafesService {
 
 		path = (path != null) ? path.toLowerCase() : path;
 		if(ControllerUtil.isPathValid(path)){
-			//if(ControllerUtil.isValidSafe(path, token)){
 			String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -170,9 +169,7 @@ public class  SafesService {
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder created \"]}");
 			}
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-			//}else{
-			//	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid safe\"]}");
-			//}
+			
 		}else{
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -456,14 +453,14 @@ public class  SafesService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "UpdateSDB").
-				put(LogMessage.MESSAGE, String.format ("Trying to Update SDB ")).
+				put(LogMessage.MESSAGE, "Trying to Update SDB ").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if (!ControllerUtil.areSDBInputsValidForUpdate(requestParams)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "UpdateSDB").
-					put(LogMessage.MESSAGE, String.format ("Invalid input values ")).
+					put(LogMessage.MESSAGE, "Invalid input values ").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
@@ -484,7 +481,7 @@ public class  SafesService {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Update SDB").
-					put(LogMessage.MESSAGE, String.format ("Safe can't be updated since duplicate safe names are found")).
+					put(LogMessage.MESSAGE, "Safe can't be updated since duplicate safe names are found").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Safe can't be updated since duplicate safe names are found\"]}");
@@ -695,7 +692,7 @@ public class  SafesService {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, "Add User to SDB").
-						put(LogMessage.MESSAGE, String.format ("Incorrect access requested. Valid values are read,write,deny")).
+						put(LogMessage.MESSAGE, "Incorrect access requested. Valid values are read,write,deny").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
@@ -751,7 +748,7 @@ public class  SafesService {
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 								.put(LogMessage.ACTION, "Add User to SDB")
 								.put(LogMessage.MESSAGE,
-										String.format("Trying to fetch OIDC user policies, failed"))
+										"Trying to fetch OIDC user policies, failed")
 								.put(LogMessage.APIURL,
 										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 								.build()));
@@ -796,19 +793,16 @@ public class  SafesService {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, "Add User to SDB").
-							put(LogMessage.MESSAGE, String.format ("Exception while creating currentpolicies or groups")).
+							put(LogMessage.MESSAGE,"Exception while creating currentpolicies or groups").
 							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
 				}
-				/*if (currentpolicies.contains("s_"+folders[0].toLowerCase()+"_"+folders[1])) {
-					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Owner Permission cannot be changed\"]}");
-				}*/
+				
 				policies.addAll(currentpolicies);
 				policies.remove(r_policy);
 				policies.remove(w_policy);
 				policies.remove(d_policy);
-				//policies = policies.replaceAll(s_policy, "");
 				policies.add(policy);
 			}else{
 				// New user to be configured

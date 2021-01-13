@@ -393,7 +393,7 @@ public final class ControllerUtil {
 					JsonNode folders = objMapper.readTree(lisresp.getResponse()).get("keys");
 					for(JsonNode node : folders){
 						jsonstr = PATHSTR+path+"/"+node.asText()+"\"}";
-						SafeNode sn = new SafeNode();
+						SafeNode sn ;
 						/* Recursively read the folders for the given folder/sub folders */
 						sn = recursiveReadForCount( jsonstr,token,responseVO, path+"/"+node.asText(), TVaultConstants.FOLDER);
 						sn.setId(path+"/"+node.asText());

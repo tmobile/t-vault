@@ -5084,7 +5084,7 @@ public class SSLCertificateServiceTest {
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
         
         ResponseEntity<?> transferCertResponse =
-                sSLCertificateService.updateCertOwner(token,"internal","certificatename.t-mobile.com","owneremail@test.com",userDetails);
+                sSLCertificateService.updateCertOwner("internal","certificatename.t-mobile.com","owneremail@test.com",userDetails);
 
         //Assert
         assertNotNull(transferCertResponse);        
@@ -5162,7 +5162,7 @@ public class SSLCertificateServiceTest {
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
 
         ResponseEntity<?> transferCertResponse =
-                sSLCertificateService.updateCertOwner(token,"internal","certificatename.t-mobile.com","owneremail@t" +
+                sSLCertificateService.updateCertOwner("internal","certificatename.t-mobile.com","owneremail@t" +
                         "-mobile.com" ,userDetails);
 
         //Assert
@@ -5224,7 +5224,7 @@ public class SSLCertificateServiceTest {
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
         ResponseEntity<?> transferCertResponse =
-                sSLCertificateService.updateCertOwner(token,"internal","certificatename.t-mobile.com","owneremail@test.com",userDetails);
+                sSLCertificateService.updateCertOwner("internal","certificatename.t-mobile.com","owneremail@test.com",userDetails);
 
         //Assert
         assertNotNull(transferCertResponse);   
@@ -5285,7 +5285,7 @@ public class SSLCertificateServiceTest {
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
         ResponseEntity<?> transferCertResponse =
-                sSLCertificateService.updateCertOwner(token,"external","certificatename.t-mobile.com","owneremail@test.com",userDetails);
+                sSLCertificateService.updateCertOwner("external","certificatename.t-mobile.com","owneremail@test.com",userDetails);
 
         //Assert
         assertNotNull(transferCertResponse);   
@@ -6607,7 +6607,7 @@ public class SSLCertificateServiceTest {
 
         when(reqProcessor.process(eq("/access/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
 
-        ResponseEntity<?> enrollResponse = sSLCertificateService.unLinkCertificate(userInfo, token, "test.t-mobile" +
+        ResponseEntity<?> enrollResponse = sSLCertificateService.unLinkCertificate(userInfo,  "test.t-mobile" +
                 ".com", "internal","Test");
         assertEquals(enrollResponse.getStatusCode(), HttpStatus.OK);
 
@@ -6646,7 +6646,7 @@ public class SSLCertificateServiceTest {
 
         when(reqProcessor.process(eq("/access/delete"), anyObject(), anyString())).thenReturn(metadataDeleteResponse);
 
-        ResponseEntity<?> enrollResponse = sSLCertificateService.unLinkCertificate(userInfo, token, "test.t-mobile" +
+        ResponseEntity<?> enrollResponse = sSLCertificateService.unLinkCertificate(userInfo,  "test.t-mobile" +
                 ".com", "internal","Test");
         assertEquals(enrollResponse.getStatusCode(), HttpStatus.UNAUTHORIZED);
 

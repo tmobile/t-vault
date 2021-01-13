@@ -241,7 +241,7 @@ public class AzureServicePrincipalAccountsService {
 	 */
 	private boolean isAuthorizedForAzureOnboardAndOffboard(String token) {
 		ObjectMapper objectMapper = new ObjectMapper();
-		List<String> currentPolicies = new ArrayList<>();
+		List<String> currentPolicies ;
 		Response response = reqProcessor.process("/auth/tvault/lookup", "{}", token);
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
 			String responseJson = response.getResponse();
@@ -1207,10 +1207,9 @@ public class AzureServicePrincipalAccountsService {
 		} else if (policy.startsWith("d_")) {
 			azurePolicy.put(azureName, "deny");
 		}
-		if (!azurePolicy.isEmpty()) {
-			if (azureType.equals(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH_PREFIX)) {
+		if ((!azurePolicy.isEmpty()) && (azureType.equals(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH_PREFIX))) {
+			
 				azureListUsers.add(azurePolicy);
-			}
 		}
 		return azureListUsers;
 	}
@@ -1723,7 +1722,7 @@ public class AzureServicePrincipalAccountsService {
 					}
 				}
 
-				String responseJson = TVaultConstants.EMPTY;
+				String responseJson = "";
 				List<String> policies = new ArrayList<>();
 				List<String> currentpolicies = new ArrayList<>();
 				if (HttpStatus.OK.equals(response.getHttpstatus())) {
@@ -1900,8 +1899,8 @@ public class AzureServicePrincipalAccountsService {
 
 		JsonObject azureMetadataJson = getAzureMetadata(token, azureSvcAccName);
 
-		if (null!= azureMetadataJson && azureMetadataJson.has(TVaultConstants.SECRET)) {
-			if (!azureMetadataJson.get(SECRETSTR).isJsonNull()) {
+		if ((null!= azureMetadataJson && azureMetadataJson.has(TVaultConstants.SECRET)) && (!azureMetadataJson.get(SECRETSTR).isJsonNull())) {
+			
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, "DeleteAzureSvcAccountSecretFolders").
@@ -1949,7 +1948,7 @@ public class AzureServicePrincipalAccountsService {
 						return false;
 					}
 				}
-			}
+			
 		}
 		return true;
 	}
