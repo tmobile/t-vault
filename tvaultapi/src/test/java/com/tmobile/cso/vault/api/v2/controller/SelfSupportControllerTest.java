@@ -170,7 +170,7 @@ public class SelfSupportControllerTest {
         String responseJson = "{\"messages\":[\"Safe updated \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.createSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(Safe.class))).thenReturn(responseEntityExpected);
+        when(selfSupportService.createSafe(eq(userDetails), Mockito.any(Safe.class))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/sdb").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")

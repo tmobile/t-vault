@@ -125,7 +125,7 @@ public class SelfSupportController {
 	@PostMapping(value="/v2/ss/sdb", consumes="application/json",produces="application/json")
 	public ResponseEntity<String> createSafe(HttpServletRequest request, @RequestHeader(value="vault-token" ) String token, @RequestBody Safe safe) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.createSafe(userDetails, token, safe);
+		return selfSupportService.createSafe(userDetails, safe);
 	}
 	/**
 	 * 

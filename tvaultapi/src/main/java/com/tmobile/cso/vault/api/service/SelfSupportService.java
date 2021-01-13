@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -101,7 +101,7 @@ public class  SelfSupportService {
 	 * @param safe
 	 * @return
 	 */
-	public ResponseEntity<String> createSafe(UserDetails userDetails, String userToken, Safe safe) {
+	public ResponseEntity<String> createSafe(UserDetails userDetails, Safe safe) {
 		
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
