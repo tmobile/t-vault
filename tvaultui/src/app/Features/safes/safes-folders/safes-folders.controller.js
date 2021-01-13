@@ -62,6 +62,7 @@
                 vm.loading(false);
                 vm.folderContent.children = [newSecret].concat(folderContent.children);
                 Notifications.toast('Added successfully');
+                $state.reload();
               }).catch(catchError);
           })
           .catch(function (error) {
