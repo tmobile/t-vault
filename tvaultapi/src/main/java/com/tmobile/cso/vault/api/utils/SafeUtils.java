@@ -251,7 +251,7 @@ public class SafeUtils {
 	 * @param isPartOfFolderCreation
 	 * @return
 	 */
-	public Response createVersionFolder(String token, String path, UserDetails userDetails, boolean isPartOfFolderCreation, List<String> modifiedKeys) {
+	public Response createVersionFolder(String token, String path, UserDetails userDetails, boolean isPartOfFolderCreation, List<String> modifiedKeys, List<String> deletedKeys) {
 		if (ControllerUtil.isPathValid(path)) {
 			String actualFolderName = path.substring(path.lastIndexOf('/') + 1);
 			String versionFolderName = TVaultConstants.VERSION_FOLDER_PREFIX + actualFolderName;
@@ -273,7 +273,7 @@ public class SafeUtils {
 				}
 			}
 
-			FolderVersion folderVersionData = getFolderVersionData(path, userDetails, isPartOfFolderCreation, currentVersionData!=null?currentVersionData.getData():null, modifiedKeys);
+			FolderVersion folderVersionData = getFolderVersionData(path, userDetails, isPartOfFolderCreation, currentVersionData!=null?currentVersionData.getData():null, modifiedKeys, deletedKeys);
 
 			String versionJsonStr ="{\"path\":\""+versionFolderPath +"\",\"data\":"+ JSONUtil.getJSON(folderVersionData)+"}";
 			if (!readVersionFolderResponse.getHttpstatus().equals(HttpStatus.OK)) {
@@ -309,9 +309,9 @@ public class SafeUtils {
 	 * @param isPartOfFolderCreation
 	 * @return
 	 */
-	private FolderVersion getFolderVersionData(String path, UserDetails userDetails, boolean isPartOfFolderCreation, FolderVersion currentFolderVersionData, List<String> modifiedKeys) {
+	private FolderVersion getFolderVersionData(String path, UserDetails userDetails, boolean isPartOfFolderCreation, FolderVersion currentFolderVersionData, List<String> modifiedKeys, List<String> deletedKeys) {
 		Long modifiedAt = new Date().getTime();
-		String modifiedBy = userDetails.getEmail();
+		String modifiedBy = userDetails.getEmail()!=null?userDetails.getEmail():userDetails.getUsername();
 		FolderVersion folderVersionData = new FolderVersion();
 		folderVersionData.setFolderPath(path);
 		folderVersionData.setFolderModifiedAt(modifiedAt);
@@ -327,8 +327,15 @@ public class SafeUtils {
 				currentSecretVersionDetails = currentFolderVersionData.getSecretVersions();
 			}
 
-			for (int i=0; i< modifiedKeys.size(); i++) {
-				currentSecretVersionDetails.put(modifiedKeys.get(i), newSecretVersionDetails);
+			if (modifiedKeys != null) {
+				for (int i=0; i< modifiedKeys.size(); i++) {
+					currentSecretVersionDetails.put(modifiedKeys.get(i), newSecretVersionDetails);
+				}
+			}
+			if (deletedKeys != null) {
+				for (int i=0; i< deletedKeys.size(); i++) {
+					currentSecretVersionDetails.remove(deletedKeys.get(i));
+				}
 			}
 			folderVersionData.setSecretVersions(currentSecretVersionDetails);
 		}
