@@ -318,7 +318,7 @@ public class SSLCertificateController {
 	public ResponseEntity<String> transferCertOwner(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,  @PathVariable("certType") String certType, @PathVariable("certName") String certName,@PathVariable("certOwnerEmailId") String certOwnerEmailId) throws Exception {
 		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
-		return sslCertificateService.updateCertOwner(token, certType,certName,certOwnerEmailId, userDetails);
+		return sslCertificateService.updateCertOwner(certType,certName,certOwnerEmailId, userDetails);
 	}
 	
 	/**
@@ -332,7 +332,7 @@ public class SSLCertificateController {
 	@ApiOperation(value = "${SSLCertificateController.deleteCertificate.value}", notes = "${SSLCertificateController.deleteCertificate.notes}", hidden = false)
 	@DeleteMapping(value = "/v2/certificates/{certificate_name}/{certificate_type}", produces = "application/json")
 	public ResponseEntity<String> deleteCertificate(HttpServletRequest request,
-			@RequestHeader(value = "vault-token") String token, @PathVariable("certificate_type") String certType, @PathVariable("certificate_name") String certName) throws Exception {
+			@RequestHeader(value = "vault-token") String token, @PathVariable("certificate_type") String certType, @PathVariable("certificate_name") String certName)  {
 		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
 		return sslCertificateService.deleteCertificate(token, certType, certName, userDetails);
 	}
@@ -518,7 +518,7 @@ public class SSLCertificateController {
 													@PathVariable(value="certificate-type") String certificateType,
 													@PathVariable(value="release-reason") String releaseReason) {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return sslCertificateService.unLinkCertificate(userDetails, token, certificateName,certificateType,releaseReason);
+		return sslCertificateService.unLinkCertificate(userDetails, certificateName,certificateType,releaseReason);
 	}
 
 	/**

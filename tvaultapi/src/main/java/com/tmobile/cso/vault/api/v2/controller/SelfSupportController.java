@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -53,7 +53,7 @@ public class SelfSupportController {
 	@ApiOperation(value = "${SelfSupportController.getFolders.value}", notes = "${SelfSupportController.getFolders.notes}")
 	public ResponseEntity<String> getFoldersRecursively(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.getFoldersRecursively(userDetails, token, path);
+		return selfSupportService.getFoldersRecursively(userDetails,  path);
 	}
 	/**
 	 * Gets the list of all available safe names
@@ -77,7 +77,7 @@ public class SelfSupportController {
 	@GetMapping(value="/v2/ss/sdb",produces="application/json")
 	public ResponseEntity<String> getSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.getSafe(userDetails, token, path);
+		return selfSupportService.getSafe(userDetails, path);
 	}
 	/**
 	 * Adds user with a Safe as Power User
@@ -89,7 +89,7 @@ public class SelfSupportController {
 	@PostMapping(value="/v2/ss/sdb/user",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addUsertoSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.addUserToSafe(userDetails, token, safeUser);
+		return selfSupportService.addUserToSafe(userDetails,  safeUser);
 	}
 	/**
 	 * 
@@ -101,7 +101,7 @@ public class SelfSupportController {
 	@DeleteMapping(value="/v2/ss/sdb/user")
 	public ResponseEntity<String> deleteUserFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.removeUserFromSafe(userDetails, token, safeUser);
+		return selfSupportService.removeUserFromSafe(userDetails, safeUser);
 	}
 	/**
 	 * Gets information about SDB
@@ -113,7 +113,7 @@ public class SelfSupportController {
 	@GetMapping(value="/v2/ss/sdb/folder/{path}",produces="application/json")
 	public ResponseEntity<String> getInfo(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.getInfo(userDetails, token, path);
+		return selfSupportService.getInfo(userDetails, path);
 	}
 	/**
 	 * 
@@ -125,7 +125,7 @@ public class SelfSupportController {
 	@PostMapping(value="/v2/ss/sdb", consumes="application/json",produces="application/json")
 	public ResponseEntity<String> createSafe(HttpServletRequest request, @RequestHeader(value="vault-token" ) String token, @RequestBody Safe safe) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.createSafe(userDetails, token, safe);
+		return selfSupportService.createSafe(userDetails, safe);
 	}
 	/**
 	 * 
@@ -151,7 +151,7 @@ public class SelfSupportController {
 	@PutMapping(value="/v2/ss/sdb", consumes="application/json",produces="application/json")
 	public ResponseEntity<String> updateSafe(HttpServletRequest request, @RequestHeader(value="vault-token" ) String token, @RequestBody Safe safe) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.updateSafe(userDetails, token, safe);
+		return selfSupportService.updateSafe(userDetails,  safe);
 	}
 	/**
 	 * Deletes a SDB folder
@@ -163,7 +163,7 @@ public class SelfSupportController {
 	@DeleteMapping(value="/v2/ss/sdb/delete",produces="application/json")
 	public ResponseEntity<String> deleteFolder(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.deletefolder(userDetails, token, path);
+		return selfSupportService.deletefolder(userDetails,path);
 	}
 
 	/**
@@ -176,7 +176,7 @@ public class SelfSupportController {
 	@PostMapping(value="/v2/ss/sdb/group",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addGrouptoSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeGroup safeGroup){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.addGroupToSafe(userDetails, token, safeGroup);
+		return selfSupportService.addGroupToSafe(userDetails,  safeGroup);
 	}
 	/**
 	 * Removes a group from safe
@@ -188,7 +188,7 @@ public class SelfSupportController {
 	@DeleteMapping (value="/v2/ss/sdb/group",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> deleteGroupFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeGroup safeGroup){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.removeGroupFromSafe(userDetails, token, safeGroup);
+		return selfSupportService.removeGroupFromSafe(userDetails, safeGroup);
 	}
 
 	/**
@@ -201,7 +201,7 @@ public class SelfSupportController {
 	@PostMapping (value="/v2/ss/sdb/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addAwsRoleToSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.addAwsRoleToSafe(userDetails, token, awsRole);
+		return selfSupportService.addAwsRoleToSafe(userDetails,  awsRole);
 	}
 
 	/**
@@ -214,7 +214,7 @@ public class SelfSupportController {
 	@DeleteMapping (value="/v2/ss/sdb/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> deleteAwsRoleFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, false);
+		return selfSupportService.removeAWSRoleFromSafe(userDetails, awsRole, false);
 	}
 
 	/**
@@ -227,7 +227,7 @@ public class SelfSupportController {
 	@PutMapping (value="/v2/ss/sdb/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> detachAwsRoleFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, true);
+		return selfSupportService.removeAWSRoleFromSafe(userDetails,awsRole, true);
 	}
 
 	/**
@@ -240,7 +240,7 @@ public class SelfSupportController {
 	@PostMapping(value="/v2/ss/sdb/approle",consumes="application/json",produces="application/json")
 	public ResponseEntity<String>associateApproletoSDB(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeAppRoleAccess safeAppRoleAccess) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.associateApproletoSDB(userDetails, token, safeAppRoleAccess);
+		return selfSupportService.associateApproletoSDB(userDetails, safeAppRoleAccess);
 	}
 
 	/**
@@ -253,7 +253,7 @@ public class SelfSupportController {
 	@DeleteMapping(value="/v2/ss/sdb/approle",consumes="application/json",produces="application/json")
 	public ResponseEntity<String>deleteApproleFromSDB(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeAppRoleAccess safeAppRoleAccess) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
+		return selfSupportService.deleteApproleFromSDB(userDetails, safeAppRoleAccess);
 	}
 	/**
 	 * Method to create an EC2 AWS  role
@@ -265,7 +265,7 @@ public class SelfSupportController {
 	@PostMapping(value="/v2/ss/auth/aws/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> createRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole, @RequestParam("path") String path) throws TVaultValidationException {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.createRole(userDetails, token, awsLoginRole, path);
+		return selfSupportService.createRole(userDetails,awsLoginRole, path);
 	}
 	/**
 	 * Method to update an aws app role.
@@ -277,7 +277,7 @@ public class SelfSupportController {
 	@PutMapping(value="/v2/ss/auth/aws/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> updateRole(HttpServletRequest request,@RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole, @RequestParam("path") String path) throws TVaultValidationException {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.updateRole(userDetails, token, awsLoginRole, path);
+		return selfSupportService.updateRole(userDetails,awsLoginRole, path);
 	}
 
 	/**
@@ -290,7 +290,7 @@ public class SelfSupportController {
 	@PostMapping(value="/v2/ss/auth/aws/iam/role",produces="application/json")
 	public ResponseEntity<String> createIAMRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSIAMRole awsiamRole, @RequestParam("path") String path) throws TVaultValidationException{
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.createIAMRole(userDetails, token, awsiamRole, path);
+		return selfSupportService.createIAMRole(userDetails, awsiamRole, path);
 	}
 
 	/**
@@ -304,7 +304,7 @@ public class SelfSupportController {
 	@PutMapping(value="/v2/ss/auth/aws/iam/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> updateRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSIAMRole awsiamRole, @RequestParam("path") String path) throws TVaultValidationException {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.updateIAMRole(userDetails, token, awsiamRole, path);
+		return selfSupportService.updateIAMRole(userDetails,  awsiamRole, path);
 	}
 
 	/**
@@ -318,7 +318,7 @@ public class SelfSupportController {
 	@PostMapping(value="/v2/ss/auth/approle/role", consumes="application/json", produces="application/json")
 	public ResponseEntity<String> createAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @Valid @RequestBody AppRole appRole){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.createAppRole(token, appRole, userDetails);
+		return selfSupportService.createAppRole(appRole, userDetails);
 	}
 
 	/**
@@ -334,7 +334,7 @@ public class SelfSupportController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		AppRole appRole = new AppRole();
 		appRole.setRole_name(rolename);
-		return selfSupportService.deleteAppRole(token, appRole, userDetails);
+		return selfSupportService.deleteAppRole( appRole, userDetails);
 	}
 	
 	/**
@@ -374,7 +374,7 @@ public class SelfSupportController {
 	@GetMapping(value="/v2/ss/approle/{role_name}/secret_id",produces="application/json")
 	public ResponseEntity<String> readAppRoleSecretId(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("role_name" ) String rolename){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.readAppRoleSecretId(token, rolename, userDetails);
+		return selfSupportService.readAppRoleSecretId( rolename, userDetails);
 	}
 	
 	/**
@@ -413,7 +413,7 @@ public class SelfSupportController {
 	@ApiOperation(value = "${SelfSupportController.getsafes.value}", notes = "${SelfSupportController.getsafes.notes}")
 	public ResponseEntity<String> getsafes(HttpServletRequest request, @RequestHeader(value="vault-token") String token) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.getSafes(userDetails, token);
+		return selfSupportService.getSafes(userDetails);
 	}
 
 	/**
@@ -439,7 +439,7 @@ public class SelfSupportController {
 	@GetMapping (value="/v2/ss/approle/role",produces="application/json")
 	public ResponseEntity<String> getAppRoles(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.readAppRoles(token, userDetails);
+		return selfSupportService.readAppRoles( userDetails);
 	}
 	/**
 	 * READ APPROLE
@@ -451,7 +451,7 @@ public class SelfSupportController {
 	@GetMapping(value="/v2/ss/approle/role/{role_name}",produces="application/json")
 	public ResponseEntity<String> readAppRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @PathVariable("role_name" ) String rolename){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.readAppRole(token, rolename, userDetails);
+		return selfSupportService.readAppRole( rolename, userDetails);
 	}
 	
 	/**
@@ -504,7 +504,7 @@ public class SelfSupportController {
 	@PostMapping(value="/v2/ss/auth/aws/awsec2/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> createAwsec2Role(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSLoginRole awsLoginRole) throws TVaultValidationException {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.createAwsec2Role(userDetails, token, awsLoginRole);
+		return selfSupportService.createAwsec2Role(userDetails, awsLoginRole);
 	}
 	/**
 	 * Method to create AWS IAM role in new UI
@@ -516,6 +516,6 @@ public class SelfSupportController {
 	@PostMapping(value="/v2/ss/auth/aws/awsiam/role",produces="application/json")
 	public ResponseEntity<String> createAwsiamRole(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody AWSIAMRole awsiamRole) throws TVaultValidationException{
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.createAwsiamRole(userDetails, token, awsiamRole);
+		return selfSupportService.createAwsiamRole(userDetails, awsiamRole);
 	}
 }

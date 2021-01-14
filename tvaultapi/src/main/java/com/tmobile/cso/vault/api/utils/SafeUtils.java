@@ -59,9 +59,8 @@ public class SafeUtils {
 	 */
 	public List<String> getPoliciesForManagedSafes(JsonNode policiesNode) throws JsonProcessingException, IOException {
 		List<String> adminPolicies = new ArrayList<>();
-		if (!ObjectUtils.isEmpty(policiesNode)) {
-			// Policies is supposed to be a container node.
-			if (policiesNode.isContainerNode()) {
+		if ((!ObjectUtils.isEmpty(policiesNode)) && (policiesNode.isContainerNode())) {
+			// Policies is supposed to be a container node.			
 				Iterator<JsonNode> elementsIterator = policiesNode.elements();
 			       while (elementsIterator.hasNext()) {
 			    	   JsonNode element = elementsIterator.next();
@@ -70,7 +69,7 @@ public class SafeUtils {
 			    		   adminPolicies.add(element.asText());
 			    	   }
 			       }
-			}
+			
 		}
 		return adminPolicies;
 	}

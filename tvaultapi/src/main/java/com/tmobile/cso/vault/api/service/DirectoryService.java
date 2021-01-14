@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -136,7 +136,7 @@ public class  DirectoryService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "GetAllUsers").
-				put(LogMessage.MESSAGE, String.format("Trying to get list of users from directory server")).
+				put(LogMessage.MESSAGE, "Trying to get list of users from directory server").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		return ldapTemplate.search("", filter.encode(), new AttributesMapper<DirectoryUser>() {
@@ -201,7 +201,7 @@ public class  DirectoryService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "GetAllGroups").
-				put(LogMessage.MESSAGE, String.format("Trying to get list of groups from directory server")).
+				put(LogMessage.MESSAGE, "Trying to get list of groups from directory server").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		return ldapTemplate.search("", filter.encode(), new AttributesMapper<DirectoryGroup>() {
@@ -338,7 +338,7 @@ public class  DirectoryService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "GetAllUsers").
-				put(LogMessage.MESSAGE, String.format("Trying to get list of users from directory server")).
+				put(LogMessage.MESSAGE, "Trying to get list of users from directory server").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		return adUserLdapTemplate.search("", filter.encode(), new AttributesMapper<DirectoryUser>() {

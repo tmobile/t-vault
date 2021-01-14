@@ -84,7 +84,7 @@ public class TokenValidationFilter extends GenericFilterBean {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "TokenValidationFilter - doFilter").
-				put(LogMessage.MESSAGE, String.format ("Validating token")).
+				put(LogMessage.MESSAGE, "Validating token").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if (!StringUtils.isEmpty(clientToken) && !"null".equalsIgnoreCase(clientToken)) {
