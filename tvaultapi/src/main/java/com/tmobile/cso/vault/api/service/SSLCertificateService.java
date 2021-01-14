@@ -18,6 +18,8 @@
 package com.tmobile.cso.vault.api.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -9831,5 +9833,65 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 					.body(ERRORS + e.getMessage() + "\"]}");
 		}
 		}
+    }
+
+    /**
+     * To get metadata for a certificate path.
+     * @param token
+     * @param certPath
+     * @return
+     */
+    public SSLCertMetadataResponse getCertMetadata(String token, String certPath) {
+	    ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        SSLCertMetadataResponse sslCertMetadataResponse = null;
+        Response response = reqProcessor.process("/read", "{\"path\":\"" + certPath + "\"}", token);
+	    if (HttpStatus.OK.equals(response.getHttpstatus())) {
+            try {
+                sslCertMetadataResponse = objectMapper.readValue(response.getResponse(), new TypeReference<SSLCertMetadataResponse>() {});
+                log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "getCertMetadata").
+                        put(LogMessage.MESSAGE, String.format("Parsed metadata for certificate [%s]", certPath)).
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+            }
+            catch (IOException e) {
+                log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "getCertMetadata").
+                        put(LogMessage.MESSAGE, String.format("Failed to parse metadata for certificate [%s]", certPath)).
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+            }
+        }
+        return sslCertMetadataResponse;
+    }
+
+    /**
+     * To update certificate metadata on application change in clm.
+     * @param token
+     * @param certPath
+     * @param sslCertificateMetadataDetails
+     * @return
+     */
+    public Response udapteCertMetadataOnAppliationChange(String token, String certPath, SSLCertificateMetadataDetails sslCertificateMetadataDetails) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Response response;
+        try {
+            String metadataJson = objectMapper.writeValueAsString(sslCertificateMetadataDetails);
+            String writeJson =  "{\"path\":\""+certPath+"\",\"data\":"+ metadataJson +"}";
+            return reqProcessor.process("/write", writeJson, token);
+        } catch (JsonProcessingException e) {
+            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, "udapteCertMetadataOnAppliationChange").
+                    put(LogMessage.MESSAGE, String.format("Failed to stringify metadata object for certificate [%s]", certPath)).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
+        }
+        response = new Response();
+        response.setHttpstatus(HttpStatus.UNPROCESSABLE_ENTITY);
+        return response;
     }
 }

@@ -174,4 +174,7 @@ public class TVaultConstants {
     public static final String GROUP_EMAIL_FROM_AAD = "getGroupEmailFromAAD";
     public static final String ROOT_POLICY = "root";
     public static final String DEFAULT_SECRET = "default";
+    public static final String VERSION_FOLDER_PREFIX = "$_versions_";
+    public static final String SCHEDULED_ACTION_APP_METADATA_CHECK = "checkApplicationMetaDataChanges(Scheduler)";
+    public static final String TMO_APP_METADATA_PATH = "metadata/tmo-applications";
 }
