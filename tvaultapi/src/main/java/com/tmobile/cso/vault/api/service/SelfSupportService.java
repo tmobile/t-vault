@@ -102,7 +102,18 @@ public class  SelfSupportService {
 	 * @return
 	 */
 	public ResponseEntity<String> createSafe(UserDetails userDetails, Safe safe) {
-		
+		String ownerEmail = safe.getSafeBasicDetails().getOwner();
+		ResponseEntity<DirectoryObjects> responseEntity = directoryService.searchByUPNInGsmAndCorp(ownerEmail);
+		Object[] results =  responseEntity.getBody().getData().getValues();
+		String username = "";
+		for (Object tp : results) {
+			if (((DirectoryUser) tp).getUserEmail().equalsIgnoreCase(ownerEmail)) {
+				username = ((DirectoryUser) tp).getUserName();
+				break;
+			}
+		}
+		SafeBasicDetails safeBasicDetails = safe.getSafeBasicDetails();
+		safeBasicDetails.setOwnerid(username);
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			ResponseEntity<String> safeCreationResponse = safesService.createSafe(token, safe);
@@ -110,17 +121,7 @@ public class  SelfSupportService {
 				// Associate admin user to the safe...
 				SafeUser safeUser = new SafeUser();
 				safeUser.setAccess(TVaultConstants.SUDO_POLICY);
-				safeUser.setPath(safe.getPath());
-				String ownerEmail = safe.getSafeBasicDetails().getOwner();
-				ResponseEntity<DirectoryObjects> responseEntity = directoryService.searchByUPNInGsmAndCorp(ownerEmail);
-				Object[] results =  responseEntity.getBody().getData().getValues();
-				String username = "";
-				for (Object tp : results) {
-					if (((DirectoryUser) tp).getUserEmail().equalsIgnoreCase(ownerEmail)) {
-						username = ((DirectoryUser) tp).getUserEmail();
-						break;
-					}
-				}
+				safeUser.setPath(safe.getPath());			
 				safeUser.setUsername(username);
 				safesService.addUserToSafe(token, safeUser, userDetails, true);
 			}
@@ -132,6 +133,10 @@ public class  SelfSupportService {
 			// Assign the policies
 			// Modify should work the same
 			// Delete safe - clean up of all items, paths, permissions, policies
+			if(!safe.getSafeBasicDetails().getOwner().equals(userDetails.getEmail())){
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("{\"errors\":[\"Invalid owner email\"]}");
+			}
 			token = userDetails.getSelfSupportToken();
 			if (!isSafeValid(safe)) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
@@ -339,6 +344,10 @@ public class  SelfSupportService {
 		}
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, safe.getPath());
+			if(!safe.getSafeBasicDetails().getOwner().equals(userDetails.getEmail())){
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("{\"errors\":[\"Invalid owner email\"]}");
+			}
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
