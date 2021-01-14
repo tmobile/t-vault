@@ -235,7 +235,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Owner
                                       span *
-                                    input.form-control.input-box-style(id="addOwnerEmail" ng-model="safe.owner"  autofocus='!showInputLoader.show' ng-change="searchValue.userName = safe.owner" ng-keyup='onKeyUp(searchValue, "userName", true)' ng-class="{highlightBox: inputSelected.select}" name="ownerEmail" placeholder="Email address - Enter min 3 characters" required)
+                                    input.form-control.input-box-style(id="addOwnerEmail" ng-model="safe.owner" autofocus='!showInputLoader.show' ng-change="searchValue.userName = safe.owner" ng-keyup='onKeyUp(searchValue, "userName", true)' ng-class="{highlightBox: inputSelected.select}" name="ownerEmail" placeholder="Email address - Enter min 3 characters" ng-disabled="!isAdmin" required)
                                     div.loader.owner-mail(ng-if='showInputLoader.show && safe.owner.length > 0')
                                         div.ball-spin-fade-loader
                                             div
@@ -248,7 +248,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                             div
                                     div.input-cross.owner-mail(ng-if='inputSelected.select && safe.owner.length > 0' ng-click="clearOwnerEmailInputValue('addOwnerEmail')")                                                
                                         div.delete-title
-                                            img.delete-icon(src="../../assets/images/delete.png")
+                                            img.delete-icon(ng-if="isEmailEditable" src="../../assets/images/delete.png")
                                     span.invalid-form(ng-show="createSafeDetails.ownerEmail.$dirty && createSafeDetails.ownerEmail.$invalid && createSafeDetails.ownerEmail.$error.required") Please enter this field
                                     span.invalid-form(ng-if="invalidEmail") Please enter valid email address
                           .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()

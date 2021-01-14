@@ -210,11 +210,25 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(true);
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("youremail@yourcompany.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+        DirectoryObjects users = new DirectoryObjects();
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> readResponse1 = ResponseEntity.status(HttpStatus.OK).body(users);
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
+        when(directoryService.searchByUPNInGsmAndCorp(safe.getSafeBasicDetails().getOwner())).thenReturn(readResponse1);
 
         ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
