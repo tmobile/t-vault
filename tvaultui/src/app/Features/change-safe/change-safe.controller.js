@@ -684,8 +684,8 @@
             $scope.appNameSelected =false;
             if($scope.dropdownApplicationName !==undefined){
                 var appId = $scope.dropdownApplicationName.selectedGroupOption.id;
-            $scope.dropdownApplicationName.selectedGroupOption.type;
-            $scope.appName = $scope.dropdownApplicationName.selectedGroupOption.type;
+            $scope.dropdownApplicationName.selectedGroupOption.tag;
+            $scope.appName = $scope.dropdownApplicationName.selectedGroupOption.tag;
              $scope.safe.appName=$scope.appName;
             $scope.appNameSelected = true;
             }
@@ -868,7 +868,7 @@
                                         owner: object.owner || $stateParams.safeObject.owner || '',
                                         description: object.description || $stateParams.safeObject.description || '',
                                         type: $stateParams.safeObject.type || object.type ||$scope.dropDownOptions.selectedGroupOption.type || '',
-                                        appName:$stateParams.safeObject.appName|| ''
+                                        appName: object.appName || $stateParams.safeObject.appName|| ''
                                     }
                                     $scope.safePrevious = angular.copy($scope.safe);
                                     $scope.selectedGroupOption = $scope.safe;
