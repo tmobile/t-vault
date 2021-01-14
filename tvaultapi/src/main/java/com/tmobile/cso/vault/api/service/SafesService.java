@@ -59,6 +59,9 @@ public class  SafesService {
 	
 	@Autowired
 	private TokenUtils tokenUtils;
+	
+	@Autowired
+	private WorkloadDetailsService workloadDetailsService;
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
@@ -197,7 +200,13 @@ public class  SafesService {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if (!ControllerUtil.areSDBInputsValid(safe)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values for creating safe\"]}");
+		}
+		SafeBasicDetails basicDetails = safe.getSafeBasicDetails();
+		ResponseEntity<String> applicationNameResponse  =getValidAppName(basicDetails);
+		
+		if(applicationNameResponse.getStatusCode() == HttpStatus.BAD_REQUEST) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Application name\"]}");
 		}
 		if (safe.getSafeBasicDetails().getName().endsWith("_")) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Safe name: unexpected character _ in the end\"]}");
@@ -340,6 +349,28 @@ public class  SafesService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+		}
+	}
+	/**
+	 * Method to get the application name
+	 *
+	 * @param safeBasicDetails
+	 * @return
+	 */
+	public ResponseEntity<String>  getValidAppName(SafeBasicDetails basicDetails) {
+		String appName = basicDetails.getAppName();
+		ResponseEntity<String> appResponse = workloadDetailsService
+				.getWorkloadDetailsByAppName(appName);
+		if (HttpStatus.OK.equals(appResponse.getStatusCode())) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "CreateSafe").
+					put(LogMessage.MESSAGE, "Checking appname is available or not").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Appname exist \"]}");
+		}else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Appname does not exist \"]}");
 		}
 	}
 	/**
