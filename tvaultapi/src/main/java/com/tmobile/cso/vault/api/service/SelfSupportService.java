@@ -1286,4 +1286,40 @@ public class  SelfSupportService {
 		}
 		return awsiamAuthService.createIAMRole(awsiamRole, accesstoken, userDetails);
 	}
+	/**
+	 * Update AWS EC2 role
+	 * @param userDetails
+	 * @param userToken
+	 * @param awsiamRole
+	 * @return
+	 * @throws TVaultValidationException
+	 */
+	public ResponseEntity<String> updateAwsEc2Role(UserDetails userDetails, String token, AWSLoginRole awsLoginRole) throws TVaultValidationException {
+		String accesstoken;
+		if (userDetails.isAdmin()) {
+			 accesstoken = userDetails.getClientToken();
+		}
+		else {
+			accesstoken = userDetails.getSelfSupportToken();
+		}
+		return awsAuthService.updateRole(accesstoken, awsLoginRole);
+	}
+	/**
+	 * Update AWS IAM role
+	 * @param userDetails
+	 * @param userToken
+	 * @param awsiamRole
+	 * @return
+	 * @throws TVaultValidationException
+	 */
+	public ResponseEntity<String> updateAwsIamRole(UserDetails userDetails, String token, AWSIAMRole awsiamRole) throws TVaultValidationException {
+		String accesstoken;
+		if (userDetails.isAdmin()) {
+			 accesstoken = userDetails.getClientToken();
+		}
+		else {
+			accesstoken = userDetails.getSelfSupportToken();
+		}
+		return awsiamAuthService.updateIAMRole(accesstoken, awsiamRole);
+	}
 }

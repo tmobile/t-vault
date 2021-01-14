@@ -183,6 +183,7 @@ public class SafeUtils {
 		safe.getSafeBasicDetails().setName(dataNode.get("name").asText());
 		safe.getSafeBasicDetails().setDescription(dataNode.get("description").asText());
 		safe.getSafeBasicDetails().setOwner(dataNode.get("owner").asText());
+		safe.getSafeBasicDetails().setAppName(dataNode.get("appName").asText());
 		String ownerId = null;
 		if (null != dataNode.get("ownerid")) {
 			ownerId = dataNode.get("ownerid").asText();
