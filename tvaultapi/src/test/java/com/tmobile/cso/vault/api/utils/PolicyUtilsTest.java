@@ -16,8 +16,12 @@
 // =========================================================================
 package com.tmobile.cso.vault.api.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.controller.OIDCUtil;
+import com.tmobile.cso.vault.api.model.OIDCEntityResponse;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
@@ -37,6 +41,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
@@ -60,6 +65,9 @@ public class PolicyUtilsTest {
 
     @Mock
     RequestProcessor reqProcessor;
+    
+    @Mock
+    OIDCUtil OIDCUtil;
 
     @Mock
     Response response;
@@ -142,6 +150,47 @@ public class PolicyUtilsTest {
         expectedPolicies.add("safeadmin");
         expectedPolicies.add("s_users_mysafe01");
         List<String> policies = policyUtils.getPoliciesTobeCheked("users", "mysafe01");
+        assertEquals(expectedPolicies, policies);
+    }
+    
+    @Test
+    public void test_getCertPoliciesTobeCheked() {
+        List<String> expectedPolicies = new ArrayList<>();
+        expectedPolicies.add("safeadmin");
+        expectedPolicies.add("s_metadata/sslcerts_cert@t-mobile.com");
+        String certname = "cert@t-mobile.com";
+        ArrayList<String> policies = policyUtils.getCertPoliciesTobeCheked(certname);
+        assertEquals(expectedPolicies, policies);
+    }
+    
+    @Test
+    public void test_getIdentityPoliciesAsListFromTokenLookupJson() throws JsonProcessingException, IOException{
+    	 List<String> expectedPolicies = new ArrayList<>();
+         expectedPolicies.add("d_cert_certest040911.t-mobile.com");
+         ObjectMapper objectMapper = new ObjectMapper();
+         String policyJson = "{\"identity_policies\":[\"d_cert_certest040911.t-mobile.com\"]}";
+    	 List<String> policies = policyUtils.getIdentityPoliciesAsListFromTokenLookupJson(objectMapper, policyJson);
+    	 assertEquals(expectedPolicies, policies);
+    }
+    
+    @Test
+    public void test_getCurrentPolicies_oidc_successfully() throws IOException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        ReflectionTestUtils.setField(policyUtils, "vaultAuthMethod", "oidc");
+        String[] expectedPolicies = {"safeadmin"};
+    	// oidc mock
+		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+		oidcEntityResponse.setEntityName("entity");
+		List<String> policies1 = new ArrayList<>();
+		policies1.add("safeadmin");
+		oidcEntityResponse.setPolicies(policies1);
+		ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
+				.body(oidcEntityResponse);
+		when(OIDCUtil.oidcFetchEntityDetails(Mockito.any(), Mockito.any(), Mockito.any(), eq(false))).thenReturn(responseEntity2);
+
+        Response response =  getMockResponse(HttpStatus.OK, true, "{\"data\":{\"policies\":\"s_shared_mysafe01,s_shared_mysafe02\"}}");
+        when(ControllerUtil.getPoliciesAsStringFromJson(Mockito.any(), eq("{\"data\":{\"policies\":\"s_shared_mysafe01,s_shared_mysafe02\"}}"))).thenReturn("s_shared_mysafe01,s_shared_mysafe02");
+        String[] policies = policyUtils.getCurrentPolicies(token, "normaluser", getMockUser(true));
         assertEquals(expectedPolicies, policies);
     }
 }

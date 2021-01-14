@@ -244,7 +244,6 @@
         }
         // function call on input keyup 
         $scope.onKeyUp = function(newVal, variableChanged, forOwner) {
-            console.log("onKeyUp");
             if (newVal.length === 0) {
                 return;
             }
@@ -930,7 +929,6 @@
 
             }
             else {
-                console.log($scope.isAdmin);
                 $scope.changeSafeHeader = "CREATE SAFE";
                 $scope.isEditSafe = false;
                 $scope.checkOwnerEmailHasValue('details');
@@ -939,7 +937,6 @@
                     $rootScope.AwsPermissionsData = {}
                     $rootScope.AppRolePermissionsData = {}
                     if (($scope.safe.name !== '') && ($scope.safe.owner !== '')) {
-                        console.log("STARTT::");
                         var queryParameters = "path=" + $scope.getPath();
                         var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSafeInfo', queryParameters);
                         AdminSafesManagement.getSafeInfo(null, updatedUrlOfEndPoint).then(
@@ -1467,7 +1464,6 @@
         }
 
         $scope.searchEmail = function (searchVal) {
-            console.log("SEARCHEMAIL");
             if (searchVal.length > 2) {
                 $scope.isUserSearchLoading = true;
                 searchVal = searchVal.toLowerCase();
