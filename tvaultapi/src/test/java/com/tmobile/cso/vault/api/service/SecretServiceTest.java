@@ -131,6 +131,8 @@ public class SecretServiceTest {
         userDetails.setPolicies(policies);
 
         when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        Response readResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"secret1\":\"value1\"}}");
+        when(reqProcessor.process("/read","{\"path\":\""+secret.getPath()+"\"}",token)).thenReturn(readResponse);
         ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -160,6 +162,8 @@ public class SecretServiceTest {
         userDetails.setPolicies(policies);
 
         when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        Response readResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"secret1\":\"value1\"}}");
+        when(reqProcessor.process("/read","{\"path\":\""+secret.getPath()+"\"}",token)).thenReturn(readResponse);
         ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails,"true");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
