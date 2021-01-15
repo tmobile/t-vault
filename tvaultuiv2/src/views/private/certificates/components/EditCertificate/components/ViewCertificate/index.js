@@ -460,7 +460,11 @@ const ViewCertificate = (props) => {
   const onEmailKeyDownClicked = (e) => {
     if (e?.keyCode === 13) {
       e.preventDefault();
-      onAddEmailClicked();
+      if (validateEmail(notifyEmail)) {
+        onAddEmailClicked();
+      } else {
+        setIsValidNotifyEmail(false);
+      }
     }
   };
 
@@ -682,7 +686,7 @@ const ViewCertificate = (props) => {
                     icon="search"
                     name="notifyEmail"
                     onSelected={(e, val) => onNotifyEmailSelected(e, val)}
-                    onKeyDown={(e) => onEmailKeyDownClicked(e)}
+                    onKeyDownClick={(e) => onEmailKeyDownClicked(e)}
                     onChange={(e) => onNotifyEmailChange(e)}
                     placeholder={
                       searchBy === 'GroupEmail'
@@ -703,12 +707,12 @@ const ViewCertificate = (props) => {
                   {notifyAutoLoader && (
                     <LoaderSpinner customStyle={notifyAutoLoaderStyle} />
                   )}
-                  <EndingBox width="4rem">
-                    <ReturnIcon onClick={() => onAddEmailClicked()}>
-                      <KeyboardReturnIcon />
-                    </ReturnIcon>
-                  </EndingBox>
                 </TypeAheadWrap>
+                <EndingBox width="4rem">
+                  <ReturnIcon onClick={() => onAddEmailClicked()}>
+                    <KeyboardReturnIcon />
+                  </ReturnIcon>
+                </EndingBox>
               </AutoInputFieldLabelWrapper>
             </NotificationAutoWrap>
             <ArrayList>

@@ -12,6 +12,7 @@ import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import KeyboardReturnIcon from '@material-ui/icons/KeyboardReturn';
 import PropTypes from 'prop-types';
+import { validateEmail } from '../../../../services/helper-function';
 import ConfirmationModal from '../../../../components/ConfirmationModal';
 import TextFieldComponent from '../../../../components/FormFields/TextField';
 import ButtonComponent from '../../../../components/FormFields/ActionButton';
@@ -688,7 +689,14 @@ const CreateCertificates = (props) => {
   const onEmailKeyDownClicked = (e) => {
     if (e?.keyCode === 13) {
       e.preventDefault();
-      onAddEmailClicked();
+      if (e?.keyCode === 13) {
+        e.preventDefault();
+        if (validateEmail(notifyEmail)) {
+          onAddEmailClicked();
+        } else {
+          setIsValidEmail(false);
+        }
+      }
     }
   };
 
@@ -947,7 +955,7 @@ const CreateCertificates = (props) => {
                             icon="search"
                             name="notifyUser"
                             onSelected={(e, val) => onSelected(e, val)}
-                            onKeyDown={(e) => onEmailKeyDownClicked(e)}
+                            onKeyDownClick={(e) => onEmailKeyDownClicked(e)}
                             onChange={(e) => onNotifyEmailChange(e)}
                             placeholder={
                               searchBy === 'GroupEmail'
