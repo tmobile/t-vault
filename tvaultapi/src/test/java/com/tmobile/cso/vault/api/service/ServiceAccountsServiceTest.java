@@ -1558,14 +1558,18 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
-        String expectedOutput = getJSON(adServiceAccountCreds);
+        ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+        adServiceAccountResetDetails.setModifiedBy("modifiedBy");
+        adServiceAccountResetDetails.setModifiedAt(1610615328268l);
+        adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+        String expectedOutput = getJSON(adServiceAccountResetDetails);
         Response pwdReadResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
         Response pwdResetResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
-        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountResetDetails.class))).thenReturn(expectedOutput);
 
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
-
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/readpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdReadResponse);
+        when(ControllerUtil.updateMetadataOnSvcPwdReset(Mockito.any(),eq(adServiceAccountResetDetails), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,expectedOutput));
         when(ControllerUtil.updateMetadataOnSvcaccPwdReset(Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,expectedOutput));
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
@@ -1665,10 +1669,14 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
-        String expectedOutput = getJSON(adServiceAccountCreds);
+        ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+        adServiceAccountResetDetails.setModifiedBy("modifiedAt");
+        adServiceAccountResetDetails.setModifiedAt(1610615328268l);
+        adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+        String expectedOutput = getJSON(adServiceAccountResetDetails);
         Response pwdReadResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
         Response pwdResetResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
-        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountResetDetails.class))).thenReturn(expectedOutput);
 
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
 
@@ -1740,10 +1748,14 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
-        String expectedOutput = getJSON(adServiceAccountCreds);
+        ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+        adServiceAccountResetDetails.setModifiedBy("modifiedBy");
+        adServiceAccountResetDetails.setModifiedAt(1610615328268l);
+        adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+        String expectedOutput = getJSON(adServiceAccountResetDetails);
         Response pwdReadResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
         Response pwdResetResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
-        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountResetDetails.class))).thenReturn(expectedOutput);
 
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
 
@@ -2028,11 +2040,15 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
-        String expectedOutput = getJSON(adServiceAccountCreds);
+        ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+        adServiceAccountResetDetails.setModifiedBy("modifiedBy");
+        adServiceAccountResetDetails.setModifiedAt(1610615328268l);
+        adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+        String expectedOutput = getJSON(adServiceAccountResetDetails);
         Response pwdReadResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
-        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountResetDetails.class))).thenReturn(expectedOutput);
         when(reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(pwdReadResponse);
-        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountResetDetails.class))).thenReturn(expectedOutput);
 
         List<ADServiceAccount> list = new ArrayList<>();
         ADServiceAccount adServiceAccount = generateADServiceAccountWithName("testacc04");
@@ -2057,11 +2073,15 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
-        String expectedOutput = getJSON(adServiceAccountCreds);
+        ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+        adServiceAccountResetDetails.setModifiedBy("modifiedBy");
+        adServiceAccountResetDetails.setModifiedAt(1610608701279l);
+        adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+        String expectedOutput = getJSON(adServiceAccountResetDetails);
         Response pwdReadResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
-        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountResetDetails.class))).thenReturn(expectedOutput);
         when(reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(pwdReadResponse);
-        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountResetDetails.class))).thenReturn(expectedOutput);
 
         List<ADServiceAccount> list = new ArrayList<>();
         ADServiceAccount adServiceAccount = generateADServiceAccountWithName(svcAccName);

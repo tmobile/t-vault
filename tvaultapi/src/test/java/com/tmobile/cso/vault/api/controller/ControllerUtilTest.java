@@ -1184,4 +1184,24 @@ public class ControllerUtilTest {
         Boolean isUpdated = ControllerUtil.updateMetaDataOnPath(path, params, token);
         assertEquals(Boolean.FALSE, isUpdated);
     }
+    
+    @Test
+    public void test_updateMetadataOnSvcPwdReset_successfully() {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String path = TVaultConstants.SVC_ACC_ROLES_PATH + "testacc02";
+        ADServiceAccountCreds adServiceAccountCreds = new ADServiceAccountCreds();
+        adServiceAccountCreds.setCurrent_password("current_password");
+        adServiceAccountCreds.setLast_password("last_password");
+        adServiceAccountCreds.setUsername("username");
+        ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+        adServiceAccountResetDetails.setModifiedBy("modifiedBy");
+        adServiceAccountResetDetails.setModifiedAt(1610607707296l);
+        adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+ 
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{ \"initialPasswordReset\": false,\"modifiedBy\":\"modifiedby\",\"modifiedAt\":\"modifiedAt\",\"managedBy\": \"svcuser2\",\"name\": \"svc_vault_test2\",\"users\": {\"svcuser1\": \"sudo\"}}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(metaResponse);
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
+        Response actualResponse = ControllerUtil.updateMetadataOnSvcPwdReset(path, adServiceAccountResetDetails, token);
+        assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
+    }
 }
