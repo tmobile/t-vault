@@ -1,7 +1,6 @@
 /* eslint-disable no-nested-ternary */
 
 import React, { useState, useEffect } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import { InputLabel, Typography } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled, { css } from 'styled-components';
@@ -17,7 +16,7 @@ import {
   RequiredText,
   RequiredWrap,
 } from '../../styles/GlobalStyles';
-import TextFieldSelect from '../FormFields/TextFieldSelect';
+import TextFieldSelect from '../FormFields/SelectFields';
 
 const { small, smallAndMedium } = mediaBreakpoints;
 
@@ -28,6 +27,7 @@ const PermissionWrapper = styled.div`
   flex-direction: column;
   margin-top: 2rem;
   position: relative;
+  overflow: hidden;
   ${small} {
     padding: 2.2rem 2.4rem 2.4rem 2.4rem;
   }
@@ -102,20 +102,7 @@ const customStyle = css`
   transform: translate(-50%, -50%);
 `;
 
-const useStyles = makeStyles(() => ({
-  select: {
-    '&.MuiFilledInput-root.Mui-focused': {
-      backgroundColor: '#fff',
-    },
-  },
-  dropdownStyle: {
-    backgroundColor: '#fff',
-    height: '20rem',
-  },
-}));
-
 const AddAppRole = (props) => {
-  const classes = useStyles();
   const {
     handleSaveClick,
     handleCancelClick,
@@ -204,10 +191,9 @@ const AddAppRole = (props) => {
           <TextFieldSelect
             menu={menu}
             value={selectedValue}
-            classes={classes}
             disabled={editClicked}
             readOnly={menu.length === 0 || editClicked}
-            handleChange={(e) => setSelectedValue(e.target.value)}
+            onChange={(e) => setSelectedValue(e)}
             filledText="Select role name"
           />
         </InputWrapper>

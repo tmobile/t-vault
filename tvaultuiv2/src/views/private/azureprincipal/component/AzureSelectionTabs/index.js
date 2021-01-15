@@ -205,7 +205,7 @@ const AzureSelectionTabs = (props) => {
             indicatorColor="secondary"
             textColor="primary"
           >
-            <Tab className={classes.tab} label="Secret" {...a11yProps(0)} />
+            <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
             {hasPermission && <Tab label="Permissions" {...a11yProps(1)} />}
           </Tabs>
         </AppBar>

@@ -32,6 +32,7 @@ import {
   RequiredWrap,
 } from '../../../../styles/GlobalStyles';
 import TransferSafeOwner from '../components/TransferSafeOwner';
+import TypeAheadComponent from '../../../../components/TypeAheadComponent';
 
 const { small } = mediaBreakpoints;
 
@@ -131,14 +132,6 @@ const autoLoaderStyle = css`
 `;
 
 const useStyles = makeStyles((theme) => ({
-  select: {
-    '&.MuiFilledInput-root.Mui-focused': {
-      backgroundColor: '#fff',
-    },
-  },
-  dropdownStyle: {
-    backgroundColor: '#fff',
-  },
   modal: {
     display: 'flex',
     alignItems: 'center',
@@ -171,7 +164,6 @@ const CreateModal = (props) => {
   const [openModal, setOpenModal] = useState({ status: 'edit' });
   const [options, setOptions] = useState([]);
   const isMobileScreen = useMediaQuery(small);
-  const [helperText] = useState('');
   const [emailError, setEmailError] = useState(false);
   const [safeError, setSafeError] = useState(false);
   const [editSafe, setEditSafe] = useState(false);
@@ -199,7 +191,7 @@ const CreateModal = (props) => {
         }
       }
     }
-  }, [owner, ownerSelected, autoLoader, options]);
+  }, [owner, ownerSelected, autoLoader]);
 
   useEffect(() => {
     if (
@@ -215,7 +207,9 @@ const CreateModal = (props) => {
         applicationName
       ) &&
         applicationName !== '') ||
-      (safeDetails.owner === owner && safeDetails.description === description)
+      (safeDetails.owner === owner &&
+        safeDetails.description === description &&
+        safeDetails.appName === applicationName)
     ) {
       setDisabledSave(true);
     } else {
@@ -491,9 +485,12 @@ const CreateModal = (props) => {
       const optionalDetail = displayName?.match(/(.*)\[(.*)\]/)[2];
       return `${finalName}, ${optionalDetail}`;
     }
-    const lastFirstName = displayName?.split(', ');
-    const finalName = `${lastFirstName[1]} ${lastFirstName[0]}`;
-    return finalName;
+    if (displayName?.match(/(.*), (.*)/)) {
+      const lastFirstName = displayName?.split(', ');
+      const finalName = `${lastFirstName[1]} ${lastFirstName[0]}`;
+      return finalName;
+    }
+    return displayName;
   };
 
   return (
@@ -575,15 +572,14 @@ const CreateModal = (props) => {
                       Owner
                       <RequiredCircle margin="0.5rem" />
                     </InputLabel>
-                    <AutoCompleteComponent
+                    <TypeAheadComponent
                       options={options.map(
                         (item) =>
                           `${item?.userEmail?.toLowerCase()}, ${getName(
                             item?.displayName?.toLowerCase()
                           )}, ${item?.userName?.toLowerCase()}`
                       )}
-                      classes={classes}
-                      searchValue={owner}
+                      userInput={owner}
                       name="owner"
                       onSelected={(e, val) => onSelected(e, val)}
                       onChange={(e) => onOwnerChange(e)}
@@ -612,10 +608,8 @@ const CreateModal = (props) => {
                     <SelectComponent
                       menu={menu}
                       value={safeType}
-                      classes={classes}
                       readOnly={!!editSafe}
-                      onChange={(e) => setSafeType(e.target.value)}
-                      helperText={helperText}
+                      onChange={(e) => setSafeType(e)}
                     />
                   </InputFieldLabelWrapper>
                   <InputFieldLabelWrapper>

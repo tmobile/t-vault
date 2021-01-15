@@ -1,14 +1,12 @@
 /* eslint-disable no-nested-ternary */
 import React, { useState, useEffect, useCallback } from 'react';
 import { debounce } from 'lodash';
-import { makeStyles } from '@material-ui/core/styles';
 import { InputLabel, Typography } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../breakpoints';
-import AutoCompleteComponent from '../FormFields/AutoComplete';
 import ButtonComponent from '../FormFields/ActionButton';
 import apiService from '../../views/private/safe/apiService';
 import LoaderSpinner from '../Loaders/LoaderSpinner';
@@ -20,6 +18,7 @@ import {
   RequiredCircle,
   RequiredText,
 } from '../../styles/GlobalStyles';
+import TypeAheadComponent from '../TypeAheadComponent';
 
 const { small, smallAndMedium } = mediaBreakpoints;
 
@@ -88,12 +87,7 @@ const customStyle = css`
   color: red;
 `;
 
-const useStyles = makeStyles(() => ({
-  icon: {
-    color: '#5e627c',
-    fontSize: '2rem',
-  },
-}));
+
 
 const AddUser = (props) => {
   const {
@@ -105,13 +99,12 @@ const AddUser = (props) => {
     isCertificate,
     isIamAzureSvcAccount,
   } = props;
-  const classes = useStyles();
   const [radioValue, setRadioValue] = useState('read');
   const [searchValue, setSearchValue] = useState('');
   const [options, setOptions] = useState([]);
   const [disabledSave, setDisabledSave] = useState(true);
   const [searchLoader, setSearchLoader] = useState(false);
-  const [isValidUserName, setIsValidUserName] = useState(false);
+  const [isValidUserName, setIsValidUserName] = useState(true);
   const [radioArray, setRadioArray] = useState([]);
   const isMobileScreen = useMediaQuery(small);
   const [selectedUser, setSelectedUser] = useState({});
@@ -128,25 +121,13 @@ const AddUser = (props) => {
       const optionalDetail = displayName?.match(/(.*)\[(.*)\]/)[2];
       return `${name}, ${optionalDetail}`;
     }
-    const lastFirstName = displayName?.split(', ');
-    const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
-    return name;
-  };
-
-  useEffect(() => {
-    if (searchValue?.length > 2 && selectedUser?.displayName) {
-      if (!searchLoader) {
-        if (
-          getName(selectedUser?.displayName.toLowerCase())?.split(', ')[0] !==
-          searchValue
-        ) {
-          setIsValidUserName(false);
-        } else {
-          setIsValidUserName(true);
-        }
-      }
+    if (displayName?.match(/(.*), (.*)/)) {
+      const lastFirstName = displayName?.split(', ');
+      const name = `${lastFirstName[1]} ${lastFirstName[0]}`;
+      return name;
     }
-  }, [searchValue, searchLoader, selectedUser.displayName]);
+    return displayName;
+  };
 
   useEffect(() => {
     if (configData.AD_USERS_AUTOCOMPLETE) {
@@ -212,6 +193,7 @@ const AddUser = (props) => {
   const onSearchChange = (e) => {
     if (e && e?.target?.value !== undefined) {
       setSearchValue(e?.target?.value);
+      setIsValidUserName(true);
       if (e?.target?.value !== '' && e?.target?.value?.length > 2) {
         callSearchApi(e.target.value);
       }
@@ -231,8 +213,20 @@ const AddUser = (props) => {
   };
 
   const onSaveClick = () => {
-    const result = selectedUser?.userName;
-    handleSaveClick(result?.toLowerCase(), radioValue);
+    if (username && access) {
+      const result = username?.match(/\((.*)\)/)[1];
+      handleSaveClick(result?.toLowerCase(), radioValue);
+    }
+    if (
+      getName(selectedUser?.displayName?.toLowerCase())?.split(', ')[0] !==
+      searchValue
+    ) {
+      setIsValidUserName(false);
+    } else {
+      setIsValidUserName(true);
+      const result = selectedUser?.userName;
+      handleSaveClick(result?.toLowerCase(), radioValue);
+    }
   };
 
   useEffect(() => {
@@ -264,7 +258,27 @@ const AddUser = (props) => {
           </InputLabel>
           {configData.AD_USERS_AUTOCOMPLETE ? (
             <>
-              <AutoCompleteComponent
+              <TypeAheadComponent
+                options={options.map(
+                  (item) =>
+                    `${item?.userEmail?.toLowerCase()}, ${getName(
+                      item?.displayName?.toLowerCase()
+                    )}, ${item?.userName?.toLowerCase()}`
+                )}
+                icon="search"
+                disabled={!!(access && username)}
+                placeholder="Search by NTID, Email or Name "
+                userInput={searchValue}
+                error={username !== searchValue && !isValidUserName}
+                helperText={
+                  username !== searchValue && !isValidUserName
+                    ? `User ${searchValue} does not exist!`
+                    : ''
+                }
+                onSelected={(e, val) => onSelected(e, val)}
+                onChange={(e) => onSearchChange(e)}
+              />
+              {/* <AutoCompleteComponent
                 options={options.map(
                   (item) =>
                     `${item?.userEmail?.toLowerCase()}, ${getName(
@@ -284,7 +298,7 @@ const AddUser = (props) => {
                     ? `User ${searchValue} does not exist!`
                     : ''
                 }
-              />
+              /> */}
               <InstructionText>
                 Search the T-Mobile system to add users
               </InstructionText>

@@ -95,7 +95,7 @@ const extraCss = css`
 const OnboardButton = styled.button`
   width: 8.3rem;
   height: 2.6rem;
-  padding: 0.5rem 1.2rem;
+  padding: 0.5rem 1.2rem !important;
   border: solid 0.1rem #c70369;
   color: #c70369;
   font-size: 1.4rem;
