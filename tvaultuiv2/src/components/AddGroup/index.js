@@ -92,13 +92,6 @@ const customStyle = css`
   color: red;
 `;
 
-const useStyles = makeStyles(() => ({
-  icon: {
-    color: '#5e627c',
-    fontSize: '2rem',
-  },
-}));
-
 const AddGroup = (props) => {
   const {
     handleCancelClick,

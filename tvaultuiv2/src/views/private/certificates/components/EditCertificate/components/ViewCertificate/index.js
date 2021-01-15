@@ -1,7 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { debounce } from 'lodash';
-import { makeStyles } from '@material-ui/core/styles';
 import styled, { css } from 'styled-components';
 import { InputLabel, Typography } from '@material-ui/core';
 import KeyboardReturnIcon from '@material-ui/icons/KeyboardReturn';
@@ -15,7 +14,6 @@ import CertificateHeader from '../../../CertificateHeader';
 import SnackbarComponent from '../../../../../../../components/Snackbar';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import removeIcon from '../../../../../../../assets/close.svg';
-import AutoCompleteComponent from '../../../../../../../components/FormFields/AutoComplete';
 import {
   GlobalModalWrapper,
   RequiredCircle,
@@ -117,7 +115,7 @@ const AutoInputFieldLabelWrapper = styled.div`
   width: 100%;
   display: flex%;
   .MuiTextField-root {
-    width: 100%
+    width: 100%;
   }
 `;
 
@@ -166,21 +164,6 @@ const notifyAutoLoaderStyle = css`
   right: 4rem;
 `;
 
-const useStyles = makeStyles(() => ({
-  select: {
-    '&.MuiFilledInput-root.Mui-focused': {
-      backgroundColor: '#fff',
-    },
-  },
-  dropdownStyle: {
-    backgroundColor: '#fff',
-  },
-  icon: {
-    color: '#5e627c',
-    fontSize: '2rem',
-  },
-}));
-
 const ViewCertificate = (props) => {
   const {
     onCertRenewClicked,
@@ -194,7 +177,6 @@ const ViewCertificate = (props) => {
   const [applicationOwner, setApplicationOwner] = useState('');
   const [options, setOptions] = useState([]);
   const [autoLoader, setAutoLoader] = useState(false);
-  const classes = useStyles();
   const [responseType, setResponseType] = useState(null);
   const [notificationEmailList, setNotificationEmailList] = useState([]);
   const [notifyEmail, setNotifyEmail] = useState('');

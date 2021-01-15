@@ -15,7 +15,6 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import leftArrowIcon from '../../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
 import PreviewCertificate from '../../CreateCertificates/preview';
-import AutoCompleteComponent from '../../../../../components/FormFields/AutoComplete';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 import apiService from '../../apiService';
