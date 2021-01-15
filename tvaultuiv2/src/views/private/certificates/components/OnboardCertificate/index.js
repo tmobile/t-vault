@@ -564,7 +564,11 @@ const OnboardCertificates = (props) => {
   const onEmailKeyDownClicked = (e) => {
     if (e?.keyCode === 13) {
       e.preventDefault();
-      onAddEmailClicked();
+      if (validateEmail(notifyEmail)) {
+        onAddEmailClicked();
+      } else {
+        setIsValidNotifyEmail(false);
+      }
     }
   };
 
@@ -760,7 +764,7 @@ const OnboardCertificates = (props) => {
                           icon="search"
                           name="notifyEmail"
                           onSelected={(e, val) => onNotifyEmailSelected(e, val)}
-                          onKeyDown={(e) => onEmailKeyDownClicked(e)}
+                          onKeyDownClick={(e) => onEmailKeyDownClicked(e)}
                           onChange={(e) => onNotifyEmailChange(e)}
                           placeholder="Search by NTID, Email or Name "
                           error={
