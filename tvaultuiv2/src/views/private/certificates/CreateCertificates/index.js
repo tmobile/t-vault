@@ -203,6 +203,10 @@ const FetchingWrap = styled.div`
   }
 `;
 
+const SearchInputFieldLabelWrapper = styled.div`
+  margin-bottom: 2rem;
+`;
+
 const NotificationAutoWrap = styled.div`
   display: flex;
 `;
@@ -308,9 +312,7 @@ const CreateCertificates = (props) => {
       if (notifyUserSelected?.userEmail && searchBy !== 'GroupEmail') {
         if (notifyEmail !== notifyUserSelected?.userEmail.toLowerCase()) {
           setIsValidEmail(false);
-          setEmailErrorMsg(
-            'Please enter a valid email address or not available!'
-          );
+          setEmailErrorMsg('Please enter a valid user or not available!');
         } else {
           setIsValidEmail(true);
         }
@@ -321,9 +323,7 @@ const CreateCertificates = (props) => {
         )
       ) {
         setIsValidEmail(false);
-        setEmailErrorMsg(
-          'Please enter a valid email address or not available!'
-        );
+        setEmailErrorMsg('Please enter a valid group email or not available!');
       } else {
         setIsValidEmail(true);
       }
@@ -912,7 +912,7 @@ const CreateCertificates = (props) => {
                     )}
                     {notifyEmailStatus.status === 'available' && (
                       <>
-                        <InputFieldLabelWrapper>
+                        <SearchInputFieldLabelWrapper>
                           <InputLabel>Search By:</InputLabel>
                           <RadioButtonComponent
                             menu={['User', 'GroupEmail']}
@@ -922,7 +922,7 @@ const CreateCertificates = (props) => {
                             }}
                             value={searchBy}
                           />
-                        </InputFieldLabelWrapper>
+                        </SearchInputFieldLabelWrapper>
                         <InputLabel>
                           Add User to Notify
                           <RequiredCircle margin="1.3rem" />
@@ -957,7 +957,11 @@ const CreateCertificates = (props) => {
                             onSelected={(e, val) => onSelected(e, val)}
                             onKeyDownClick={(e) => onEmailKeyDownClicked(e)}
                             onChange={(e) => onNotifyEmailChange(e)}
-                            placeholder="Search by NTID, Email or Name "
+                            placeholder={
+                              searchBy === 'GroupEmail'
+                                ? 'Search by GroupEmail'
+                                : 'Search by NTID, Email or Name'
+                            }
                             error={
                               notifyEmail?.length > 2 &&
                               (emailError || !isValidEmail)

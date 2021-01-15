@@ -3,7 +3,6 @@
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState, useCallback, useEffect } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import { debounce } from 'lodash';
 import { Typography, InputLabel } from '@material-ui/core';
 import styled, { css } from 'styled-components';
@@ -94,7 +93,6 @@ const Label = styled.p`
 const Value = styled.p`
   text-transform: ${(props) => props.capitalize || ''};
 `;
-
 
 const TransferSafeOwner = (props) => {
   const {
