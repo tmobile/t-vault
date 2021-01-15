@@ -150,6 +150,7 @@ public class SelfSupportServiceTest {
     public void test_createSafe_successfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
+        userDetails.setEmail("youremail@yourcompany.com");
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
@@ -162,6 +163,22 @@ public class SelfSupportServiceTest {
         String [] safes = {"s1"};
         when(safeUtils.getManagedSafes(policies, "shared")).thenReturn(safes);
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
+        
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("youremail@yourcompany.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+        DirectoryObjects users = new DirectoryObjects();
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> readResponse1 = ResponseEntity.status(HttpStatus.OK).body(users);
+        when(directoryService.searchByUPNInGsmAndCorp(safe.getSafeBasicDetails().getOwner())).thenReturn(readResponse1);
+
 
         ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -172,6 +189,7 @@ public class SelfSupportServiceTest {
     public void test_createSafe_failure() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
+        userDetails.setEmail("youremail@yourcompany.com");
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
@@ -185,6 +203,21 @@ public class SelfSupportServiceTest {
         when(safeUtils.getManagedSafes(policies, "shared")).thenReturn(safes);
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
 
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("youremail@yourcompany.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+        DirectoryObjects users = new DirectoryObjects();
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> readResponse1 = ResponseEntity.status(HttpStatus.OK).body(users);
+        when(directoryService.searchByUPNInGsmAndCorp(safe.getSafeBasicDetails().getOwner())).thenReturn(readResponse1);
+
         ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -197,7 +230,21 @@ public class SelfSupportServiceTest {
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("",safeBasicDetails);
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid owner email\"]}");
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("youremail@yourcompany.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+        DirectoryObjects users = new DirectoryObjects();
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> readResponse1 = ResponseEntity.status(HttpStatus.OK).body(users);
+        when(directoryService.searchByUPNInGsmAndCorp(safe.getSafeBasicDetails().getOwner())).thenReturn(readResponse1);
 
         ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
@@ -529,6 +576,7 @@ public class SelfSupportServiceTest {
     public void test_updateSafe_successfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
+        userDetails.setEmail("youremail@yourcompany.com");
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
@@ -562,6 +610,7 @@ public class SelfSupportServiceTest {
     public void test_updateSafe_failure_403() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
+        userDetails.setEmail("youremail@yourcompany.com");
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
@@ -578,6 +627,7 @@ public class SelfSupportServiceTest {
     public void test_updateSafe_failure_400() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
+        userDetails.setEmail("youremail@yourcompany.com");
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
