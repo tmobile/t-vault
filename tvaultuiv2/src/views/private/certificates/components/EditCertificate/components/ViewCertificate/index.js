@@ -1,7 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { debounce } from 'lodash';
-import { makeStyles } from '@material-ui/core/styles';
 import styled, { css } from 'styled-components';
 import { InputLabel, Typography } from '@material-ui/core';
 import KeyboardReturnIcon from '@material-ui/icons/KeyboardReturn';
@@ -15,12 +14,12 @@ import CertificateHeader from '../../../CertificateHeader';
 import SnackbarComponent from '../../../../../../../components/Snackbar';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import removeIcon from '../../../../../../../assets/close.svg';
-import AutoCompleteComponent from '../../../../../../../components/FormFields/AutoComplete';
 import {
   GlobalModalWrapper,
   RequiredCircle,
 } from '../../../../../../../styles/GlobalStyles';
 import apiService from '../../../../apiService';
+import TypeAheadComponent from '../../../../../../../components/TypeAheadComponent';
 import RadioButtonComponent from '../../../../../../../components/FormFields/RadioButton';
 
 const { small } = mediaBreakpoints;
@@ -115,9 +114,9 @@ const NotificationAutoWrap = styled.div`
 const AutoInputFieldLabelWrapper = styled.div`
   position: relative;
   width: 100%;
-  display: flex%;
-  .MuiAutocomplete-root {
-    width: calc(100% - 4rem);
+  display: flex;
+  .MuiTextField-root {
+    width: 100%;
   }
 `;
 
@@ -166,20 +165,9 @@ const notifyAutoLoaderStyle = css`
   right: 4rem;
 `;
 
-const useStyles = makeStyles(() => ({
-  select: {
-    '&.MuiFilledInput-root.Mui-focused': {
-      backgroundColor: '#fff',
-    },
-  },
-  dropdownStyle: {
-    backgroundColor: '#fff',
-  },
-  icon: {
-    color: '#5e627c',
-    fontSize: '2rem',
-  },
-}));
+const TypeAheadWrap = styled.div`
+  width: 100%;
+`;
 
 const ViewCertificate = (props) => {
   const {
@@ -194,7 +182,6 @@ const ViewCertificate = (props) => {
   const [applicationOwner, setApplicationOwner] = useState('');
   const [options, setOptions] = useState([]);
   const [autoLoader, setAutoLoader] = useState(false);
-  const classes = useStyles();
   const [responseType, setResponseType] = useState(null);
   const [notificationEmailList, setNotificationEmailList] = useState([]);
   const [notifyEmail, setNotifyEmail] = useState('');
@@ -597,15 +584,14 @@ const ViewCertificate = (props) => {
                     Application Owner
                     <RequiredCircle margin="0.5rem" />
                   </InputLabel>
-                  <AutoCompleteComponent
+                  <TypeAheadComponent
                     options={options.map(
                       (item) =>
                         `${item?.userEmail?.toLowerCase()}, ${getName(
                           item?.displayName?.toLowerCase()
                         )}, ${item?.userName?.toLowerCase()}`
                     )}
-                    classes={classes}
-                    searchValue={applicationOwner}
+                    userInput={applicationOwner}
                     icon="search"
                     name="applicationOwner"
                     onSelected={(e, val) => onSelected(e, val)}
@@ -631,15 +617,14 @@ const ViewCertificate = (props) => {
                     Project Lead
                     <RequiredCircle margin="0.5rem" />
                   </InputLabel>
-                  <AutoCompleteComponent
+                  <TypeAheadComponent
                     options={projectLeadOptions.map(
                       (item) =>
                         `${item?.userEmail?.toLowerCase()}, ${getName(
                           item?.displayName?.toLowerCase()
                         )}, ${item?.userName?.toLowerCase()}`
                     )}
-                    classes={classes}
-                    searchValue={projectLeadEmail}
+                    userInput={projectLeadEmail}
                     icon="search"
                     name="applicationOwner"
                     onSelected={(e, val) => onProjectLeadSelected(e, val)}
@@ -681,44 +666,45 @@ const ViewCertificate = (props) => {
             </NotificationEmailsWrap>
             <NotificationAutoWrap>
               <AutoInputFieldLabelWrapper>
-                <AutoCompleteComponent
-                  options={
-                    searchBy === 'GroupEmail'
-                      ? notifyOptions
-                      : notifyOptions.map(
-                          (item) =>
-                            `${item?.userEmail?.toLowerCase()}, ${getName(
-                              item?.displayName?.toLowerCase()
-                            )}, ${item?.userName?.toLowerCase()}`
-                        )
-                  }
-                  classes={classes}
-                  searchValue={notifyEmail}
-                  icon="search"
-                  name="notifyEmail"
-                  onSelected={(e, val) => onNotifyEmailSelected(e, val)}
-                  onKeyDown={(e) => onEmailKeyDownClicked(e)}
-                  onChange={(e) => onNotifyEmailChange(e)}
-                  placeholder="Search by NTID, Email or Name "
-                  error={
-                    notifyEmail?.length > 2 &&
-                    (notifyEmailError || !isValidNotifyEmail)
-                  }
-                  helperText={
-                    notifyEmail?.length > 2 &&
-                    (notifyEmailError || !isValidNotifyEmail)
-                      ? emailErrorMsg
-                      : ''
-                  }
-                />
-                {notifyAutoLoader && (
-                  <LoaderSpinner customStyle={notifyAutoLoaderStyle} />
-                )}
-                <EndingBox width="4rem">
-                  <ReturnIcon onClick={() => onAddEmailClicked()}>
-                    <KeyboardReturnIcon />
-                  </ReturnIcon>
-                </EndingBox>
+                <TypeAheadWrap>
+                  <TypeAheadComponent
+                    options={
+                      searchBy === 'GroupEmail'
+                        ? notifyOptions
+                        : notifyOptions.map(
+                            (item) =>
+                              `${item?.userEmail?.toLowerCase()}, ${getName(
+                                item?.displayName?.toLowerCase()
+                              )}, ${item?.userName?.toLowerCase()}`
+                          )
+                    }
+                    userInput={notifyEmail}
+                    icon="search"
+                    name="notifyEmail"
+                    onSelected={(e, val) => onNotifyEmailSelected(e, val)}
+                    onKeyDown={(e) => onEmailKeyDownClicked(e)}
+                    onChange={(e) => onNotifyEmailChange(e)}
+                    placeholder="Search by NTID, Email or Name "
+                    error={
+                      notifyEmail?.length > 2 &&
+                      (notifyEmailError || !isValidNotifyEmail)
+                    }
+                    helperText={
+                      notifyEmail?.length > 2 &&
+                      (notifyEmailError || !isValidNotifyEmail)
+                        ? emailErrorMsg
+                        : ''
+                    }
+                  />
+                  {notifyAutoLoader && (
+                    <LoaderSpinner customStyle={notifyAutoLoaderStyle} />
+                  )}
+                  <EndingBox width="4rem">
+                    <ReturnIcon onClick={() => onAddEmailClicked()}>
+                      <KeyboardReturnIcon />
+                    </ReturnIcon>
+                  </EndingBox>
+                </TypeAheadWrap>
               </AutoInputFieldLabelWrapper>
             </NotificationAutoWrap>
             <ArrayList>

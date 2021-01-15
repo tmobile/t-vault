@@ -15,7 +15,6 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import leftArrowIcon from '../../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
 import PreviewCertificate from '../../CreateCertificates/preview';
-import AutoCompleteComponent from '../../../../../components/FormFields/AutoComplete';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 import apiService from '../../apiService';
@@ -28,6 +27,7 @@ import {
   GlobalModalWrapper,
   RequiredCircle,
 } from '../../../../../styles/GlobalStyles';
+import TypeAheadComponent from '../../../../../components/TypeAheadComponent';
 
 const { small } = mediaBreakpoints;
 
@@ -373,15 +373,14 @@ const CreateCertificates = (props) => {
                     New Owner
                     <RequiredCircle margin="0.5rem" />
                   </InputLabel>
-                  <AutoCompleteComponent
+                  <TypeAheadComponent
                     options={options.map(
                       (item) =>
                         `${item?.userEmail?.toLowerCase()}, ${getName(
                           item?.displayName?.toLowerCase()
                         )}, ${item?.userName?.toLowerCase()}`
                     )}
-                    classes={classes}
-                    searchValue={owner}
+                    userInput={owner}
                     icon="search"
                     name="owner"
                     onSelected={(e, val) => onSelected(e, val)}
