@@ -21,6 +21,7 @@ import {
   RequiredCircle,
 } from '../../../../../../../styles/GlobalStyles';
 import apiService from '../../../../apiService';
+import TypeAheadComponent from '../../../../../../../components/TypeAheadComponent';
 
 const { small } = mediaBreakpoints;
 
@@ -115,8 +116,8 @@ const AutoInputFieldLabelWrapper = styled.div`
   position: relative;
   width: 100%;
   display: flex%;
-  .MuiAutocomplete-root {
-    width: calc(100% - 4rem);
+  .MuiTextField-root {
+    width: 100%
   }
 `;
 
@@ -549,15 +550,14 @@ const ViewCertificate = (props) => {
                     Application Owner
                     <RequiredCircle margin="0.5rem" />
                   </InputLabel>
-                  <AutoCompleteComponent
+                  <TypeAheadComponent
                     options={options.map(
                       (item) =>
                         `${item?.userEmail?.toLowerCase()}, ${getName(
                           item?.displayName?.toLowerCase()
                         )}, ${item?.userName?.toLowerCase()}`
                     )}
-                    classes={classes}
-                    searchValue={applicationOwner}
+                    userInput={applicationOwner}
                     icon="search"
                     name="applicationOwner"
                     onSelected={(e, val) => onSelected(e, val)}
@@ -583,15 +583,14 @@ const ViewCertificate = (props) => {
                     Project Lead
                     <RequiredCircle margin="0.5rem" />
                   </InputLabel>
-                  <AutoCompleteComponent
+                  <TypeAheadComponent
                     options={projectLeadOptions.map(
                       (item) =>
                         `${item?.userEmail?.toLowerCase()}, ${getName(
                           item?.displayName?.toLowerCase()
                         )}, ${item?.userName?.toLowerCase()}`
                     )}
-                    classes={classes}
-                    searchValue={projectLeadEmail}
+                    userInput={projectLeadEmail}
                     icon="search"
                     name="applicationOwner"
                     onSelected={(e, val) => onProjectLeadSelected(e, val)}
@@ -623,15 +622,14 @@ const ViewCertificate = (props) => {
             </NotificationEmailsWrap>
             <NotificationAutoWrap>
               <AutoInputFieldLabelWrapper>
-                <AutoCompleteComponent
+                <TypeAheadComponent
                   options={notifyOptions.map(
                     (item) =>
                       `${item?.userEmail?.toLowerCase()}, ${getName(
                         item?.displayName?.toLowerCase()
                       )}, ${item?.userName?.toLowerCase()}`
                   )}
-                  classes={classes}
-                  searchValue={notifyEmail}
+                  userInput={notifyEmail}
                   icon="search"
                   name="notifyEmail"
                   onSelected={(e, val) => onNotifyEmailSelected(e, val)}

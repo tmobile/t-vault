@@ -42,6 +42,7 @@ import ConfirmationModal from '../../../../components/ConfirmationModal';
 import BackdropLoader from '../../../../components/Loaders/BackdropLoader';
 import svcHeaderBgimg from '../../../../assets/icon-service-account.svg';
 import Strings from '../../../../resources';
+import TypeAheadComponent from '../../../../components/TypeAheadComponent';
 
 const useStyles = makeStyles((theme) => ({
   select: {
@@ -865,14 +866,14 @@ const OnBoardForm = (props) => {
                       </RequiredText>
                     </Span>
                   </LabelRequired>
-                  <AutoCompleteComponent
+                  <TypeAheadComponent
                     options={[
                       ...serviceAccountsList.map((item) => item.userId),
                     ]}
                     icon="search"
                     classes={classes}
                     name="inputServiceName"
-                    searchValue={inputServiceName}
+                    userInput={inputServiceName}
                     onSelected={(e, val) => onServiceAccountSelected(e, val)}
                     onChange={(e) => onServiceAccountNameChange(e)}
                     placeholder="Search for service account"

@@ -20,6 +20,7 @@ import {
   InstructionText,
   RequiredCircle,
 } from '../../../../../styles/GlobalStyles';
+import TypeAheadComponent from '../../../../../components/TypeAheadComponent';
 
 const { small } = mediaBreakpoints;
 
@@ -258,15 +259,14 @@ const TransferSafeOwner = (props) => {
           New Owner
           <RequiredCircle margin="0.5rem" />
         </InputLabel>
-        <AutoCompleteComponent
+        <TypeAheadComponent
           options={options.map(
             (item) =>
               `${item?.userEmail?.toLowerCase()}, ${getName(
                 item?.displayName?.toLowerCase()
               )}, ${item?.userName?.toLowerCase()}`
           )}
-          classes={classes}
-          searchValue={owner}
+          userInput={owner}
           icon="search"
           name="owner"
           onSelected={(e, val) => onSelected(e, val)}

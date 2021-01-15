@@ -35,6 +35,7 @@ import {
   RequiredText,
 } from '../../../../styles/GlobalStyles';
 import AutoCompleteComponent from '../../../../components/FormFields/AutoComplete';
+import TypeAheadComponent from '../../../../components/TypeAheadComponent';
 
 const { small } = mediaBreakpoints;
 
@@ -76,9 +77,9 @@ const InputFieldLabelWrapper = styled.div`
 const AutoInputFieldLabelWrapper = styled.div`
   position: relative;
   width: 100%;
-  display: flex%;
-  .MuiAutocomplete-root {
-    width: calc(100% - 4rem);
+  display: flex;
+  .MuiTextField-root {
+    width: 100%
   }
 `;
 const ContainerOwnerWrap = styled.div`
@@ -211,7 +212,6 @@ const FetchingWrap = styled.div`
 `;
 
 const NotificationAutoWrap = styled.div`
-  display: flex;
 `;
 
 const autoLoaderStyle = css`
@@ -879,15 +879,14 @@ const CreateCertificates = (props) => {
                   {applicationName && !searchNotificationsEmail && (
                     <NotificationAutoWrap>
                       <AutoInputFieldLabelWrapper>
-                        <AutoCompleteComponent
+                        <TypeAheadComponent
                           options={options.map(
                             (item) =>
                               `${item?.userEmail?.toLowerCase()}, ${getName(
                                 item?.displayName?.toLowerCase()
                               )}, ${item?.userName?.toLowerCase()}`
                           )}
-                          classes={classes}
-                          searchValue={notifyEmail}
+                          userInput={notifyEmail}
                           icon="search"
                           name="notifyUser"
                           onSelected={(e, val) => onSelected(e, val)}

@@ -32,6 +32,7 @@ import {
   RequiredWrap,
 } from '../../../../styles/GlobalStyles';
 import TransferSafeOwner from '../components/TransferSafeOwner';
+import TypeAheadComponent from '../../../../components/TypeAheadComponent';
 
 const { small } = mediaBreakpoints;
 
@@ -190,7 +191,7 @@ const CreateModal = (props) => {
         }
       }
     }
-  }, [owner, ownerSelected, autoLoader, options]);
+  }, [owner, ownerSelected, autoLoader]);
 
   useEffect(() => {
     if (
@@ -571,15 +572,14 @@ const CreateModal = (props) => {
                       Owner
                       <RequiredCircle margin="0.5rem" />
                     </InputLabel>
-                    <AutoCompleteComponent
+                    <TypeAheadComponent
                       options={options.map(
                         (item) =>
                           `${item?.userEmail?.toLowerCase()}, ${getName(
                             item?.displayName?.toLowerCase()
                           )}, ${item?.userName?.toLowerCase()}`
                       )}
-                      classes={classes}
-                      searchValue={owner}
+                      userInput={owner}
                       name="owner"
                       onSelected={(e, val) => onSelected(e, val)}
                       onChange={(e) => onOwnerChange(e)}

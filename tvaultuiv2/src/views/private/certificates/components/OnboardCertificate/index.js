@@ -26,6 +26,7 @@ import {
   GlobalModalWrapper,
   RequiredCircle,
 } from '../../../../../styles/GlobalStyles';
+import TypeAheadComponent from '../../../../../components/TypeAheadComponent';
 
 const { small } = mediaBreakpoints;
 
@@ -594,15 +595,14 @@ const OnboardCertificates = (props) => {
                     Owner
                     <RequiredCircle margin="0.5rem" />
                   </InputLabel>
-                  <AutoCompleteComponent
+                  <TypeAheadComponent
                     options={options.map(
                       (item) =>
                         `${item?.userEmail?.toLowerCase()}, ${getName(
                           item?.displayName?.toLowerCase()
                         )}, ${item?.userName?.toLowerCase()}`
                     )}
-                    classes={classes}
-                    searchValue={owner}
+                    userInput={owner}
                     icon="search"
                     name="owner"
                     onSelected={(e, val) => onSelected(e, val)}
@@ -667,15 +667,14 @@ const OnboardCertificates = (props) => {
                 {!searchNotificationsEmail && (
                   <NotificationAutoWrap>
                     <AutoInputFieldLabelWrapper>
-                      <AutoCompleteComponent
+                      <TypeAheadComponent
                         options={notifyOptions.map(
                           (item) =>
                             `${item?.userEmail?.toLowerCase()}, ${getName(
                               item?.displayName?.toLowerCase()
                             )}, ${item?.userName?.toLowerCase()}`
                         )}
-                        classes={classes}
-                        searchValue={notifyEmail}
+                        userInput={notifyEmail}
                         disabled={
                           applicationName === '' &&
                           notificationEmailList.length === 0

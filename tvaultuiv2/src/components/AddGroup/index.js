@@ -8,7 +8,6 @@ import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../breakpoints';
-import AutoCompleteComponent from '../FormFields/AutoComplete';
 import ButtonComponent from '../FormFields/ActionButton';
 import apiService from '../../views/private/safe/apiService';
 import LoaderSpinner from '../Loaders/LoaderSpinner';
@@ -20,6 +19,7 @@ import {
   RequiredCircle,
   RequiredText,
 } from '../../styles/GlobalStyles';
+import TypeAheadComponent from '../TypeAheadComponent';
 
 const { small, smallAndMedium } = mediaBreakpoints;
 
@@ -109,7 +109,6 @@ const AddGroup = (props) => {
     isCertificate,
     isIamAzureSvcAccount,
   } = props;
-  const classes = useStyles();
   const [radioValue, setRadioValue] = useState('read');
   const [searchValue, setSearchValue] = useState('');
   const [options, setOptions] = useState([]);
@@ -230,12 +229,11 @@ const AddGroup = (props) => {
           </InputLabel>
           {configData.AD_GROUP_AUTOCOMPLETE ? (
             <>
-              <AutoCompleteComponent
+              <TypeAheadComponent
                 options={options}
                 icon="search"
-                classes={classes}
                 disabled={!!(groupname && access)}
-                searchValue={searchValue}
+                userInput={searchValue}
                 onSelected={(e, val) => onSelected(e, val)}
                 onChange={(e) => onSearchChange(e)}
                 placeholder="Groupname - Enter min 3 characters"
