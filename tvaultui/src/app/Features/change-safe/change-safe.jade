@@ -253,7 +253,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                     span.invalid-form(ng-if="invalidEmail") Please enter valid email address
                           .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                             .details-input-group
-                              .certificate-form-label(uib-tooltip="Name of the Cloud application this safe will be used for. Only applications you have self-service rights to will be shown.") Application Name*
+                              .certificate-form-label(uib-tooltip="Name of the Cloud application this safe will be used for. Only applications you have self-service rights to will be shown." required) Application Name*
                               drop-down(drop-down-options="dropdownApplicationName" name="safeApplicationName" id="applicationNameforSafe"  ng-click="appNameSelect()")
                           .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
                             .details-input-group
@@ -273,7 +273,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                   .clearfix.btn-section
                     .right.col-lg-6.col-md-6.col-sm-6.col-xs-12.bottom-lg-sep.top-lg-sep
                       .right
-                        button.common-btn.btn.btn-primary.btn-lg(type='submit' ng-disabled="createSafeDetails.ownerEmail.$invalid || createSafeDetails.ownerName.$invalid || createSafeDetails.description.$invalid || createSafeDetails.dropdown.$invalid || !isUserEmailSelected") Next
+                        button.common-btn.btn.btn-primary.btn-lg(type='submit' ng-disabled="createSafeDetails.ownerEmail.$invalid || createSafeDetails.ownerName.$invalid || createSafeDetails.description.$invalid || createSafeDetails.dropdown.$invalid || !isUserEmailSelected || !appNameSelected") Next
                       .right.transfer-safe
                         button.common-btn.btn.btn-lg.transfer-safe-btn(type='button' ng-if="isEditSafe" ng-click="transferSafeConfirmation()") Transfer Safe
                       .right.right-sm-sepshowInputLoader

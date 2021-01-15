@@ -39,6 +39,7 @@ import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.Safe;
 import com.tmobile.cso.vault.api.model.SafeBasicDetails;
+import com.tmobile.cso.vault.api.model.SafeSecretCount;
 import com.tmobile.cso.vault.api.model.SafeUser;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.Response;
@@ -183,7 +184,16 @@ public class SafeUtils {
 		safe.getSafeBasicDetails().setName(dataNode.get("name").asText());
 		safe.getSafeBasicDetails().setDescription(dataNode.get("description").asText());
 		safe.getSafeBasicDetails().setOwner(dataNode.get("owner").asText());
-		safe.getSafeBasicDetails().setAppName(dataNode.get("appName").asText());
+		String applicationName=null;
+		if (null != dataNode.get("appName")) {
+			applicationName = dataNode.get("appName").asText();
+		}
+		safe.getSafeBasicDetails().setAppName(applicationName);
+		String apptag=null;
+		if (null != dataNode.get("applicationTag")) {
+			apptag = dataNode.get("applicationTag").asText();
+		}
+		safe.getSafeBasicDetails().setApplicationTag(apptag);
 		String ownerId = null;
 		if (null != dataNode.get("ownerid")) {
 			ownerId = dataNode.get("ownerid").asText();

@@ -55,9 +55,11 @@ public class SafeBasicDetails implements Serializable{
 	/**	
 	 * 	
 	 */	
-	@NotNull	
-	@NotEmpty	
 	private String appName;	
+	/**	
+	 * 	
+	 */
+	private String applicationTag;
 	/**	
 	 * 	
 	 */
@@ -70,17 +72,18 @@ public class SafeBasicDetails implements Serializable{
 	 * @param type
 	 * @param description
 	 */
-	public SafeBasicDetails(String name, String owner, String type, String description,String appName) {
+	public SafeBasicDetails(String name, String owner, String type, String description,String appName,String applicationTag) {
 		super();
 		this.name = name;
 		this.owner = owner;
 		this.type = type;
 		this.description = description;
 		this.appName = appName;
+		this.applicationTag = applicationTag;
 	}
 	
 	public SafeBasicDetails(String name, String owner, String type, String description, String ownerid,
-			String appName) {
+			String appName,String applicationTag) {
 		super();
 		this.name = name;
 		this.owner = owner;
@@ -88,6 +91,7 @@ public class SafeBasicDetails implements Serializable{
 		this.description = description;
 		this.ownerid = ownerid;
 		this.appName = appName;
+		this.applicationTag = applicationTag;
 	}
 	/**
 	 * @return the name
@@ -157,7 +161,7 @@ public class SafeBasicDetails implements Serializable{
 	/**
 	 * @return the appName
 	 */
-	@ApiModelProperty(example="T-Vault")
+	@ApiModelProperty(example="tvt")
 	public String getAppName() {
 		return appName;
 	}
@@ -166,6 +170,19 @@ public class SafeBasicDetails implements Serializable{
 	 */
 	public void setAppName(String appName) {
 		this.appName = appName;
+	}
+	/**
+	 * @return the applicationTag
+	 */
+	@ApiModelProperty(example="tvt", hidden=true)
+	public String getApplicationTag() {
+		return applicationTag;
+	}
+	/**
+	 * @param applicationTag the applicationTag to set
+	 */
+	public void setApplicationTag(String applicationTag) {
+		this.applicationTag = applicationTag;
 	}
 	
 

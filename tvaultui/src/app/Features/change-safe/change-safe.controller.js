@@ -681,7 +681,7 @@
             }
         }
         $scope.appNameSelect = function(){
-            $scope.appNameSelected =false;
+            $scope.appNameSelected = false;
             if($scope.dropdownApplicationName !==undefined){
                 var appId = $scope.dropdownApplicationName.selectedGroupOption.id;
             $scope.dropdownApplicationName.selectedGroupOption.tag;
@@ -738,13 +738,15 @@
         }
         $scope.getAppnames = function () {
             if($scope.appNameTableOptions!==undefined){
+                    if($scope.safe.appName !== null && $scope.safe.appName !== undefined){
                 $scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort(function (a, b) {
                     return (a.name > b.name ? 1 : -1);
                 });   
                 $scope.dropdownApplicationName = {
-                        'selectedGroupOption': {"type": "Select Application Name"},       // As initial placeholder
+                        'selectedGroupOption': {"type": $scope.safe.appName|| "Select Application Name"},    
                         'tableOptions':  $scope.appNameTableOptionsSort 
-                    } 
+                    }
+                }
                 }
         }
         $scope.editSafe = function () {
@@ -855,6 +857,8 @@
                                             })
                                             object.users = data;
                                     }
+                                    $scope.appNameSelected=true;
+
                                     $scope.UsersPermissionsData = object.users;
                                     $scope.GroupsPermissionsData = object.groups;
                                     $rootScope.AwsPermissionsData = {
@@ -868,7 +872,7 @@
                                         owner: object.owner || $stateParams.safeObject.owner || '',
                                         description: object.description || $stateParams.safeObject.description || '',
                                         type: $stateParams.safeObject.type || object.type ||$scope.dropDownOptions.selectedGroupOption.type || '',
-                                        appName: object.appName || $stateParams.safeObject.appName|| ''
+                                        appName: object.appName|| ''
                                     }
                                     $scope.safePrevious = angular.copy($scope.safe);
                                     $scope.selectedGroupOption = $scope.safe;
@@ -877,7 +881,7 @@
                                         'tableOptions': $scope.tableOptions
                                     }
                                     $scope.dropdownApplicationName = {
-                                        'selectedGroupOption': $scope.selectedGroupOption,
+                                        'selectedGroupOption': {"type": object.appName, "name":object.applicationTag ,"tag": object.appName, "id": object.applicationTag},
                                         'tableOptions': $scope.appNameTableOptionsSort
                                     }
                                     if($scope.activeDetailsTab === 'details') {
@@ -1080,9 +1084,7 @@
                 $state.go('/');
                 return;
             }
-            getWorkloadDetails();
             $scope.appNameTableOptionsSort=[]
-            $scope.certApplicationName = "";
             $scope.appNameSelected = false;
             var feature = JSON.parse(SessionStore.getItem("feature"));
             if (feature.selfservice == false && JSON.parse(SessionStore.getItem("isAdmin")) == false) {
@@ -1095,6 +1097,7 @@
                 type: '',
                 appName:''
             };
+            getWorkloadDetails();
             $scope.dropDownOptions = {
                 'selectedGroupOption': {"type": "Select Type"},       // As initial placeholder
                 'tableOptions': $scope.tableOptions
