@@ -20,6 +20,7 @@ import {
 } from '../../../../../../../styles/GlobalStyles';
 import apiService from '../../../../apiService';
 import TypeAheadComponent from '../../../../../../../components/TypeAheadComponent';
+import RadioButtonComponent from '../../../../../../../components/FormFields/RadioButton';
 
 const { small } = mediaBreakpoints;
 
@@ -185,7 +186,7 @@ const ViewCertificate = (props) => {
   const [notificationEmailList, setNotificationEmailList] = useState([]);
   const [notifyEmail, setNotifyEmail] = useState('');
   const [notifyEmailError, setNotifyEmailError] = useState(false);
-  const [emailErrorMsg, setEmailErrorMsg] = useState(false);
+  const [emailErrorMsg, setEmailErrorMsg] = useState('');
   const [toastMessage, setToastMessage] = useState('');
   const [notifyOptions, setNotifyOptions] = useState([]);
   const [notifyAutoLoader, setNotifyAutoLoader] = useState(false);
@@ -200,6 +201,7 @@ const ViewCertificate = (props) => {
   const [disabledUpdate, setDisabledUpdate] = useState(true);
   const [isAdmin, setIsAdmin] = useState(true);
   const [ownerSelected, setOwnerselected] = useState({});
+  const [searchBy, setSearchBy] = useState('User');
 
   const [projectLeadSelected, setProjectLeadselected] = useState({});
 
@@ -216,7 +218,9 @@ const ViewCertificate = (props) => {
     if (Object.keys(certificateData).length > 0) {
       setApplicationOwner(certificateData?.applicationOwnerEmailId);
       setProjectLeadEmail(certificateData?.projectLeadEmailId);
-      const array = certificateData?.notificationEmails?.split(',');
+      const array = certificateData?.notificationEmails
+        ? certificateData?.notificationEmails?.split(',')
+        : [];
       if (array?.length > 0) {
         setNotificationEmailList([...array]);
       }
@@ -267,16 +271,37 @@ const ViewCertificate = (props) => {
   }, [applicationOwner, ownerSelected, autoLoader, certificateData]);
 
   useEffect(() => {
-    if (notifyEmail?.length > 2 && notifyUserSelected?.userEmail) {
-      if (!notifyAutoLoader) {
+    if (!notifyAutoLoader && notifyEmail?.length > 2) {
+      if (notifyUserSelected?.userEmail && searchBy !== 'GroupEmail') {
         if (notifyUserSelected?.userEmail.toLowerCase() !== notifyEmail) {
           setIsValidNotifyEmail(false);
+          setEmailErrorMsg(
+            'Please enter a valid email address or not available!'
+          );
         } else {
           setIsValidNotifyEmail(true);
         }
+      } else if (
+        searchBy === 'GroupEmail' &&
+        !notifyOptions?.find(
+          (item) => item?.toLowerCase() === notifyEmail?.toLowerCase()
+        )
+      ) {
+        setIsValidNotifyEmail(false);
+        setEmailErrorMsg(
+          'Please enter a valid email address or not available!'
+        );
+      } else {
+        setIsValidNotifyEmail(true);
       }
     }
-  }, [notifyEmail, notifyUserSelected, notifyOptions, notifyAutoLoader]);
+  }, [
+    notifyEmail,
+    notifyUserSelected,
+    notifyOptions,
+    notifyAutoLoader,
+    searchBy,
+  ]);
 
   useEffect(() => {
     if (projectLeadEmail?.length > 2 && projectLeadSelected?.userEmail) {
@@ -298,6 +323,36 @@ const ViewCertificate = (props) => {
     projectLeadAutoLoader,
     certificateData,
   ]);
+
+  const callSearchByGroupemailApi = useCallback(
+    debounce(
+      (value) => {
+        setNotifyAutoLoader(true);
+        apiService
+          .searchByGroupEmail(value)
+          .then((response) => {
+            setNotifyOptions([]);
+            const array = [];
+            if (response?.data?.data?.values?.length > 0) {
+              response.data.data.values.map((item) => {
+                if (item.email) {
+                  return array.push(item.email);
+                }
+                return null;
+              });
+              setNotifyOptions([...array]);
+            }
+            setNotifyAutoLoader(false);
+          })
+          .catch(() => {
+            setNotifyAutoLoader(false);
+          });
+      },
+      1000,
+      true
+    ),
+    []
+  );
 
   const callSearchApi = useCallback(
     debounce(
@@ -391,18 +446,13 @@ const ViewCertificate = (props) => {
     const obj = notificationEmailList.find(
       (item) => item.toLowerCase() === notifyEmail.toLowerCase()
     );
-    if (
-      !notifyEmailError &&
-      isValidNotifyEmail &&
-      notifyEmail !== '' &&
-      validateEmail(notifyEmail)
-    ) {
+    if (!notifyEmailError && isValidNotifyEmail && notifyEmail !== '') {
       if (!obj) {
         setNotificationEmailList((prev) => [...prev, notifyEmail]);
         setNotifyEmail('');
       } else {
         setNotifyEmailError(true);
-        setEmailErrorMsg('Duplicate Email!');
+        setEmailError('Duplicate Email!');
       }
     }
   };
@@ -420,12 +470,10 @@ const ViewCertificate = (props) => {
       if (e.target.value && e.target.value?.length > 2) {
         setNotifyOptions([]);
         setNotifyAutoLoader(true);
-        callSearchApi(e.target.value, 'notifyUser');
-        if (validateEmail(notifyEmail)) {
-          setNotifyEmailError(false);
+        if (searchBy === 'GroupEmail') {
+          callSearchByGroupemailApi(e.target.value);
         } else {
-          setNotifyEmailError(true);
-          setEmailErrorMsg('Please enter a valid value or not available!');
+          callSearchApi(e.target.value, 'notifyUser');
         }
       }
     }
@@ -599,7 +647,17 @@ const ViewCertificate = (props) => {
                 </InputFieldLabelWrapper>
               </>
             )}
-
+            <InputFieldLabelWrapper>
+              <InputLabel>Search By:</InputLabel>
+              <RadioButtonComponent
+                menu={['User', 'GroupEmail']}
+                handleChange={(e) => {
+                  setSearchBy(e.target.value);
+                  setNotifyOptions([]);
+                }}
+                value={searchBy}
+              />
+            </InputFieldLabelWrapper>
             <NotificationEmailsWrap>
               <InputLabel>
                 Add Emails to Notify
@@ -610,12 +668,16 @@ const ViewCertificate = (props) => {
               <AutoInputFieldLabelWrapper>
                 <TypeAheadWrap>
                   <TypeAheadComponent
-                    options={notifyOptions.map(
-                      (item) =>
-                        `${item?.userEmail?.toLowerCase()}, ${getName(
-                          item?.displayName?.toLowerCase()
-                        )}, ${item?.userName?.toLowerCase()}`
-                    )}
+                    options={
+                      searchBy === 'GroupEmail'
+                        ? notifyOptions
+                        : notifyOptions.map(
+                            (item) =>
+                              `${item?.userEmail?.toLowerCase()}, ${getName(
+                                item?.displayName?.toLowerCase()
+                              )}, ${item?.userName?.toLowerCase()}`
+                          )
+                    }
                     userInput={notifyEmail}
                     icon="search"
                     name="notifyEmail"
@@ -645,20 +707,20 @@ const ViewCertificate = (props) => {
                 </TypeAheadWrap>
               </AutoInputFieldLabelWrapper>
             </NotificationAutoWrap>
-
             <ArrayList>
-              {notificationEmailList.map((item) => {
-                return (
-                  <EachItem key={item}>
-                    <Name>{item}</Name>
-                    <RemoveIcon
-                      src={removeIcon}
-                      alt="remove"
-                      onClick={() => onRemoveEmailsClicked(item)}
-                    />
-                  </EachItem>
-                );
-              })}
+              {notificationEmailList.length > 0 &&
+                notificationEmailList.map((item) => {
+                  return (
+                    <EachItem key={item}>
+                      <Name>{item}</Name>
+                      <RemoveIcon
+                        src={removeIcon}
+                        alt="remove"
+                        onClick={() => onRemoveEmailsClicked(item)}
+                      />
+                    </EachItem>
+                  );
+                })}
             </ArrayList>
           </EditableFormWrap>
           <EachDetail>

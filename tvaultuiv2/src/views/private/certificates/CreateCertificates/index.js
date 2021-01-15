@@ -21,6 +21,7 @@ import removeIcon from '../../../../assets/close.svg';
 import mediaBreakpoints from '../../../../breakpoints';
 import SnackbarComponent from '../../../../components/Snackbar';
 import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
+import BackdropLoader from '../../../../components/Loaders/BackdropLoader';
 import { useStateValue } from '../../../../contexts/globalState';
 import apiService from '../apiService';
 import PreviewCertificate from './preview';
@@ -28,7 +29,6 @@ import SwitchComponent from '../../../../components/FormFields/SwitchComponent';
 import RadioButtonComponent from '../../../../components/FormFields/RadioButton';
 import CertificateHeader from '../components/CertificateHeader';
 import configData from '../../../../config/config';
-import { validateEmail } from '../../../../services/helper-function';
 import {
   GlobalModalWrapper,
   RequiredCircle,
@@ -179,15 +179,6 @@ const ReturnIcon = styled.span`
   cursor: pointer;
 `;
 
-const loaderStyle = css`
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  color: red;
-  z-index: 1;
-`;
-
 const IncludeDnsWrap = styled.div`
   display: flex;
   align-items: center;
@@ -274,17 +265,18 @@ const CreateCertificates = (props) => {
   const [autoLoader, setAutoLoader] = useState(false);
   const [allApplication, setAllApplication] = useState([]);
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
-  const [searchNotificationsEmail, setSearchNotificationsEmail] = useState(
-    false
-  );
   const [notificationEmailList, setNotificationEmailList] = useState([]);
   const [isValidEmail, setIsValidEmail] = useState(false);
   const [options, setOptions] = useState([]);
   const [notifyEmail, setNotifyEmail] = useState('');
-
+  const [searchBy, setSearchBy] = useState('User');
   const [notifyUserSelected, setNotifyUserSelected] = useState(false);
   const [emailError, setEmailError] = useState(false);
   const [isDns, setIsDns] = useState(false);
+  const [applicationNameError, setApplicationNameError] = useState(false);
+  const [notifyEmailStatus, setNotifyEmailStatus] = useState({
+    status: 'not-available',
+  });
   const isMobileScreen = useMediaQuery(small);
   const history = useHistory();
   const [state] = useStateValue();
@@ -311,8 +303,8 @@ const CreateCertificates = (props) => {
     setResponseType(null);
   };
   useEffect(() => {
-    if (notifyEmail?.length > 2 && notifyUserSelected?.userEmail) {
-      if (!autoLoader) {
+    if (!autoLoader && notifyEmail?.length > 2) {
+      if (notifyUserSelected?.userEmail && searchBy !== 'GroupEmail') {
         if (notifyEmail !== notifyUserSelected?.userEmail.toLowerCase()) {
           setIsValidEmail(false);
           setEmailErrorMsg(
@@ -321,9 +313,21 @@ const CreateCertificates = (props) => {
         } else {
           setIsValidEmail(true);
         }
+      } else if (
+        searchBy === 'GroupEmail' &&
+        !options?.find(
+          (item) => item?.toLowerCase() === notifyEmail?.toLowerCase()
+        )
+      ) {
+        setIsValidEmail(false);
+        setEmailErrorMsg(
+          'Please enter a valid email address or not available!'
+        );
+      } else {
+        setIsValidEmail(true);
       }
     }
-  }, [notifyEmail, notifyUserSelected, autoLoader, options]);
+  }, [notifyEmail, notifyUserSelected, autoLoader, options, searchBy]);
 
   useEffect(() => {
     if (allApplication?.length > 0) {
@@ -516,34 +520,36 @@ const CreateCertificates = (props) => {
     setApplicationName(appName);
     setNotificationEmailList([]);
     const selectedApp = allApplication.find((item) => appName === item.appName);
-    setSearchNotificationsEmail(true);
-    apiService
-      .getNotificationEmails(selectedApp?.appID)
-      .then((res) => {
-        if (res?.data?.spec) {
-          const array = [];
-          array.push(ownerEmail.toLowerCase());
-          if (
-            res.data.spec.projectLeadEmail &&
-            array.indexOf(res.data.spec.projectLeadEmail?.toLowerCase()) === -1
-          ) {
-            array.push(res.data.spec.projectLeadEmail.toLowerCase());
+    if (selectedApp !== undefined) {
+      setNotifyEmailStatus({ status: 'searching' });
+      apiService
+        .getNotificationEmails(selectedApp?.appID)
+        .then((res) => {
+          if (res?.data?.spec) {
+            const array = [];
+            array.push(ownerEmail.toLowerCase());
+            if (
+              res.data.spec.projectLeadEmail &&
+              array.indexOf(res.data.spec.projectLeadEmail?.toLowerCase()) ===
+                -1
+            ) {
+              array.push(res.data.spec.projectLeadEmail.toLowerCase());
+            }
+            if (
+              res.data.spec.opsContactEmail &&
+              array.indexOf(res.data.spec.opsContactEmail?.toLowerCase()) === -1
+            ) {
+              array.push(res.data.spec.opsContactEmail.toLowerCase());
+            }
+            setNotificationEmailList([...array]);
           }
-          if (
-            res.data.spec.opsContactEmail &&
-            array.indexOf(res.data.spec.opsContactEmail?.toLowerCase()) === -1
-          ) {
-            array.push(res.data.spec.opsContactEmail.toLowerCase());
-          }
-          setNotificationEmailList([...array]);
-        }
-        setSearchNotificationsEmail(false);
-      })
-      .catch(() => {
-        setSearchNotificationsEmail(false);
-        setResponseType(-1);
-        setToastMessage('Something went wrong while fetching emails list!');
-      });
+          setNotifyEmailStatus({ status: 'available' });
+        })
+        .catch(() => {
+          setResponseType(-1);
+          setToastMessage('Something went wrong while fetching emails list!');
+        });
+    }
   };
   const handleCloseConfirmationModal = () => {
     setOpenConfirmationModal(false);
@@ -553,6 +559,7 @@ const CreateCertificates = (props) => {
   const errorHandleClose = () => {
     setOpenConfirmationModal(false);
   };
+
   const onSelected = (e, val) => {
     const notifyUserEmail = val?.split(', ')[0];
     setNotifyUserSelected(
@@ -561,9 +568,41 @@ const CreateCertificates = (props) => {
     setNotifyEmail(notifyUserEmail);
     setEmailError(false);
   };
+
   const onChangeAppilcationName = (value) => {
     setApplicationName(value);
   };
+
+  const callSearchByGroupemailApi = useCallback(
+    debounce(
+      (value) => {
+        setAutoLoader(true);
+        apiService
+          .searchByGroupEmail(value)
+          .then((response) => {
+            setOptions([]);
+            const array = [];
+            if (response?.data?.data?.values?.length > 0) {
+              response.data.data.values.map((item) => {
+                if (item.email) {
+                  return array.push(item.email);
+                }
+                return null;
+              });
+              setOptions([...array]);
+            }
+            setAutoLoader(false);
+          })
+          .catch(() => {
+            setAutoLoader(false);
+          });
+      },
+      1000,
+      true
+    ),
+    []
+  );
+
   const callSearchApi = useCallback(
     debounce(
       (value) => {
@@ -607,14 +646,10 @@ const CreateCertificates = (props) => {
     if (e?.target?.value !== undefined) {
       setNotifyEmail(e.target.value);
       if (e.target.value && e.target.value?.length > 2) {
-        callSearchApi(e.target.value);
-        if (validateEmail(notifyEmail)) {
-          setEmailError(false);
+        if (searchBy === 'GroupEmail') {
+          callSearchByGroupemailApi(e.target.value);
         } else {
-          setEmailError(true);
-          setEmailErrorMsg(
-            'Please enter a valid email address or not available!'
-          );
+          callSearchApi(e.target.value);
         }
       }
     }
@@ -639,12 +674,7 @@ const CreateCertificates = (props) => {
     const obj = notificationEmailList.find(
       (item) => item.toLowerCase() === notifyEmail.toLowerCase()
     );
-    if (
-      !emailError &&
-      isValidEmail &&
-      notifyEmail !== '' &&
-      validateEmail(notifyEmail)
-    ) {
+    if (!emailError && isValidEmail && notifyEmail !== '') {
       if (!obj) {
         setNotificationEmailList((prev) => [...prev, notifyEmail]);
         setNotifyEmail('');
@@ -661,6 +691,20 @@ const CreateCertificates = (props) => {
       onAddEmailClicked();
     }
   };
+
+  useEffect(() => {
+    if (
+      applicationName !== '' &&
+      ![...allApplication.map((item) => item.appName)].includes(applicationName)
+    ) {
+      setApplicationNameError(true);
+      setNotifyEmailStatus({ status: 'not-available' });
+      setNotificationEmailList([]);
+      setSearchBy('User');
+    } else {
+      setApplicationNameError(false);
+    }
+  }, [allApplication, applicationName]);
 
   return (
     <ComponentError>
@@ -697,9 +741,7 @@ const CreateCertificates = (props) => {
           >
             <Fade in={open}>
               <GlobalModalWrapper>
-                {responseType === 0 && (
-                  <LoaderSpinner customStyle={loaderStyle} />
-                )}
+                {responseType === 0 && <BackdropLoader />}
                 <HeaderWrapper>
                   <LeftIcon
                     src={leftArrowIcon}
@@ -798,17 +840,9 @@ const CreateCertificates = (props) => {
                         onSelectedApplicationName(event, value)
                       }
                       placeholder="Search for Application Name"
-                      error={
-                        applicationName !== '' &&
-                        ![
-                          ...allApplication.map((item) => item.appName),
-                        ].includes(applicationName)
-                      }
+                      error={applicationNameError}
                       helperText={
-                        applicationName !== '' &&
-                        ![
-                          ...allApplication.map((item) => item.appName),
-                        ].includes(applicationName)
+                        applicationNameError
                           ? `Application ${applicationName} does not exist!`
                           : ''
                       }
@@ -862,36 +896,53 @@ const CreateCertificates = (props) => {
                     </InputFieldLabelWrapper>
                   )}
                   <NotificationEmailsWrap>
-                    {applicationName === '' && (
+                    {notifyEmailStatus.status === 'not-available' && (
                       <FieldInstruction>
                         Select application name and add/update notification
                         emails.
                       </FieldInstruction>
                     )}
-                    {applicationName && !searchNotificationsEmail && (
-                      <InputLabel>
-                        Add User to Notify
-                        <RequiredCircle margin="1.3rem" />
-                      </InputLabel>
+                    {notifyEmailStatus.status === 'available' && (
+                      <>
+                        <InputFieldLabelWrapper>
+                          <InputLabel>Search By:</InputLabel>
+                          <RadioButtonComponent
+                            menu={['User', 'GroupEmail']}
+                            handleChange={(e) => {
+                              setSearchBy(e.target.value);
+                              setOptions([]);
+                            }}
+                            value={searchBy}
+                          />
+                        </InputFieldLabelWrapper>
+                        <InputLabel>
+                          Add User to Notify
+                          <RequiredCircle margin="1.3rem" />
+                        </InputLabel>
+                      </>
                     )}
-                    {searchNotificationsEmail && (
+                    {notifyEmailStatus.status === 'searching' && (
                       <FetchingWrap>
                         <span>Fetching notification list...</span>
                         <LoaderSpinner />
                       </FetchingWrap>
                     )}
                   </NotificationEmailsWrap>
-                  {applicationName && !searchNotificationsEmail && (
+                  {notifyEmailStatus.status === 'available' && (
                     <NotificationAutoWrap>
                       <AutoInputFieldLabelWrapper>
                         <TypeAheadWrap>
                           <TypeAheadComponent
-                            options={options.map(
-                              (item) =>
-                                `${item?.userEmail?.toLowerCase()}, ${getName(
-                                  item?.displayName?.toLowerCase()
-                                )}, ${item?.userName?.toLowerCase()}`
-                            )}
+                            options={
+                              searchBy === 'GroupEmail'
+                                ? options
+                                : options.map(
+                                    (item) =>
+                                      `${item?.userEmail?.toLowerCase()}, ${getName(
+                                        item?.displayName?.toLowerCase()
+                                      )}, ${item?.userName?.toLowerCase()}`
+                                  )
+                            }
                             userInput={notifyEmail}
                             icon="search"
                             name="notifyUser"
@@ -923,7 +974,7 @@ const CreateCertificates = (props) => {
                       </AutoInputFieldLabelWrapper>
                     </NotificationAutoWrap>
                   )}
-                  {!searchNotificationsEmail &&
+                  {notifyEmailStatus.status === 'available' &&
                     notificationEmailList.length > 0 && (
                       <ArrayList>
                         {notificationEmailList.map((item) => {

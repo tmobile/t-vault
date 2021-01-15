@@ -694,7 +694,7 @@ const CertificatesDashboard = () => {
       .then((res) => {
         if (res?.data?.messages && res.data.messages[0]) {
           setDeleteModalDetail({
-            title: 'Successfull',
+            title: 'Successful',
             description: res.data.messages[0],
           });
         }
