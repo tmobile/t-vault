@@ -89,11 +89,6 @@ const CancelButton = styled.div`
   }
 `;
 
-const ErrorMessage = styled.p`
-  color: ${(props) => props.theme.palette.error.main || 'red'};
-  font-size: 1.4rem;
-  margin: 0;
-`;
 const customStyle = css`
   position: absolute;
   top: 50%;
@@ -122,9 +117,11 @@ const AddAppRole = (props) => {
   const [loader, setLoader] = useState(false);
 
   useEffect(() => {
-    setSelectedValue(role);
-    setMenu([role]);
-    setRadioValue(access);
+    if (role && access) {
+      setSelectedValue(role);
+      setMenu([role]);
+      setRadioValue(access);
+    }
   }, [role, access]);
 
   useEffect(() => {
@@ -192,14 +189,15 @@ const AddAppRole = (props) => {
             menu={menu}
             value={selectedValue}
             disabled={editClicked}
-            readOnly={menu.length === 0 || editClicked}
+            readOnly={(menu.length === 0 && !loader) || editClicked}
             onChange={(e) => setSelectedValue(e)}
-            filledText="Select role name"
+            filledText={
+              menu.length === 0 && !loader
+                ? 'No app role available'
+                : 'Select role name'
+            }
           />
         </InputWrapper>
-        {menu.length === 0 && !editClicked && (
-          <ErrorMessage>No app role is available</ErrorMessage>
-        )}
         <RadioButtonWrapper>
           <RadioButtonComponent
             menu={radioArray}

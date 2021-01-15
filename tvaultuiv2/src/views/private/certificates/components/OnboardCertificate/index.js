@@ -186,6 +186,10 @@ const notifyAutoLoaderStyle = css`
   right: 4rem;
 `;
 
+const SearchInputFieldLabelWrapper = styled.div`
+  margin-bottom: 2rem;
+`;
+
 const useStyles = makeStyles((theme) => ({
   select: {
     '&.MuiFilledInput-root.Mui-focused': {
@@ -278,9 +282,7 @@ const OnboardCertificates = (props) => {
       if (notifyUserSelected?.userEmail && searchBy !== 'GroupEmail') {
         if (notifyUserSelected?.userEmail.toLowerCase() !== notifyEmail) {
           setIsValidNotifyEmail(false);
-          setEmailErrorMsg(
-            'Please enter a valid email address or not available!'
-          );
+          setEmailErrorMsg('Please enter a user or not available!');
         } else {
           setIsValidNotifyEmail(true);
         }
@@ -291,9 +293,7 @@ const OnboardCertificates = (props) => {
         )
       ) {
         setIsValidNotifyEmail(false);
-        setEmailErrorMsg(
-          'Please enter a valid email address or not available!'
-        );
+        setEmailErrorMsg('Please enter a valid group email or not available!');
       } else {
         setIsValidNotifyEmail(true);
       }
@@ -564,7 +564,11 @@ const OnboardCertificates = (props) => {
   const onEmailKeyDownClicked = (e) => {
     if (e?.keyCode === 13) {
       e.preventDefault();
-      onAddEmailClicked();
+      if (validateEmail(notifyEmail)) {
+        onAddEmailClicked();
+      } else {
+        setIsValidNotifyEmail(false);
+      }
     }
   };
 
@@ -713,7 +717,7 @@ const OnboardCertificates = (props) => {
                 <NotificationEmailsWrap>
                   {notifyEmailStatus.status === 'available' && (
                     <>
-                      <InputFieldLabelWrapper>
+                      <SearchInputFieldLabelWrapper>
                         <InputLabel>Search By:</InputLabel>
                         <RadioButtonComponent
                           menu={['User', 'GroupEmail']}
@@ -723,7 +727,7 @@ const OnboardCertificates = (props) => {
                           }}
                           value={searchBy}
                         />
-                      </InputFieldLabelWrapper>
+                      </SearchInputFieldLabelWrapper>
                       <InputLabel>
                         Add Users to Notify
                         <RequiredCircle margin="1.3rem" />
@@ -760,9 +764,13 @@ const OnboardCertificates = (props) => {
                           icon="search"
                           name="notifyEmail"
                           onSelected={(e, val) => onNotifyEmailSelected(e, val)}
-                          onKeyDown={(e) => onEmailKeyDownClicked(e)}
+                          onKeyDownClick={(e) => onEmailKeyDownClicked(e)}
                           onChange={(e) => onNotifyEmailChange(e)}
-                          placeholder="Search by NTID, Email or Name "
+                          placeholder={
+                            searchBy === 'GroupEmail'
+                              ? 'Search by GroupEmail'
+                              : 'Search by NTID, Email or Name '
+                          }
                           error={
                             notifyEmail?.length > 2 &&
                             (notifyEmailError || !isValidNotifyEmail)

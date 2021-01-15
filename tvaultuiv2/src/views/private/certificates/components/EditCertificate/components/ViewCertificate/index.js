@@ -120,6 +120,10 @@ const AutoInputFieldLabelWrapper = styled.div`
   }
 `;
 
+const SearchInputFieldLabelWrapper = styled.div`
+  margin-bottom: 2rem;
+`;
+
 const EndingBox = styled.div`
   background-color: ${(props) =>
     props.theme.customColor.primary.backgroundColor};
@@ -275,9 +279,7 @@ const ViewCertificate = (props) => {
       if (notifyUserSelected?.userEmail && searchBy !== 'GroupEmail') {
         if (notifyUserSelected?.userEmail.toLowerCase() !== notifyEmail) {
           setIsValidNotifyEmail(false);
-          setEmailErrorMsg(
-            'Please enter a valid email address or not available!'
-          );
+          setEmailErrorMsg('Please enter a valid user or not available!');
         } else {
           setIsValidNotifyEmail(true);
         }
@@ -288,9 +290,7 @@ const ViewCertificate = (props) => {
         )
       ) {
         setIsValidNotifyEmail(false);
-        setEmailErrorMsg(
-          'Please enter a valid email address or not available!'
-        );
+        setEmailErrorMsg('Please enter a valid group email or not available!');
       } else {
         setIsValidNotifyEmail(true);
       }
@@ -460,7 +460,11 @@ const ViewCertificate = (props) => {
   const onEmailKeyDownClicked = (e) => {
     if (e?.keyCode === 13) {
       e.preventDefault();
-      onAddEmailClicked();
+      if (validateEmail(notifyEmail)) {
+        onAddEmailClicked();
+      } else {
+        setIsValidNotifyEmail(false);
+      }
     }
   };
 
@@ -647,7 +651,7 @@ const ViewCertificate = (props) => {
                 </InputFieldLabelWrapper>
               </>
             )}
-            <InputFieldLabelWrapper>
+            <SearchInputFieldLabelWrapper>
               <InputLabel>Search By:</InputLabel>
               <RadioButtonComponent
                 menu={['User', 'GroupEmail']}
@@ -657,7 +661,7 @@ const ViewCertificate = (props) => {
                 }}
                 value={searchBy}
               />
-            </InputFieldLabelWrapper>
+            </SearchInputFieldLabelWrapper>
             <NotificationEmailsWrap>
               <InputLabel>
                 Add Emails to Notify
@@ -682,9 +686,13 @@ const ViewCertificate = (props) => {
                     icon="search"
                     name="notifyEmail"
                     onSelected={(e, val) => onNotifyEmailSelected(e, val)}
-                    onKeyDown={(e) => onEmailKeyDownClicked(e)}
+                    onKeyDownClick={(e) => onEmailKeyDownClicked(e)}
                     onChange={(e) => onNotifyEmailChange(e)}
-                    placeholder="Search by NTID, Email or Name "
+                    placeholder={
+                      searchBy === 'GroupEmail'
+                        ? 'Search by GroupEmail'
+                        : 'Search by NTID, Email or Name'
+                    }
                     error={
                       notifyEmail?.length > 2 &&
                       (notifyEmailError || !isValidNotifyEmail)
@@ -699,12 +707,12 @@ const ViewCertificate = (props) => {
                   {notifyAutoLoader && (
                     <LoaderSpinner customStyle={notifyAutoLoaderStyle} />
                   )}
-                  <EndingBox width="4rem">
-                    <ReturnIcon onClick={() => onAddEmailClicked()}>
-                      <KeyboardReturnIcon />
-                    </ReturnIcon>
-                  </EndingBox>
                 </TypeAheadWrap>
+                <EndingBox width="4rem">
+                  <ReturnIcon onClick={() => onAddEmailClicked()}>
+                    <KeyboardReturnIcon />
+                  </ReturnIcon>
+                </EndingBox>
               </AutoInputFieldLabelWrapper>
             </NotificationAutoWrap>
             <ArrayList>

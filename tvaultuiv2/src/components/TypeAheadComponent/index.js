@@ -49,12 +49,13 @@ const TypeAheadComponent = ({
   userInput,
   icon,
   placeholder,
+  onKeyDownClick,
   name,
   error,
   helperText,
   onInputBlur,
 }) => {
-  const [position, setPosition] = useState(-1);
+  const [position, setPosition] = useState(0);
   const [filteredList, setFilteredList] = useState([]);
   const [showOptions, setShowOptions] = useState(false);
 
@@ -66,7 +67,7 @@ const TypeAheadComponent = ({
   useEffect(() => {}, [error, helperText]);
   useEffect(() => {
     const filteredOption = options.filter((option) =>
-      option.toLowerCase().includes(userInput.toLowerCase())
+      option?.toLowerCase().includes(userInput?.toLowerCase())
     );
     setFilteredList(filteredOption);
   }, [options, userInput]);
@@ -77,20 +78,10 @@ const TypeAheadComponent = ({
   };
 
   const onKeyDown = (e) => {
+    setPosition(0);
     if (e.keyCode === 13) {
       onSelected(e, filteredList[position]);
-    } else if (e.keyCode === 38) {
-      if (position === 0) {
-        return;
-      }
-      setPosition(position - 1);
-    }
-    // User pressed the down arrow, increment the index
-    else if (e.keyCode === 40) {
-      if (position - 1 === filteredList.length) {
-        return;
-      }
-      setPosition(position + 1);
+      onKeyDownClick(e);
     }
     setShowOptions(true);
   };
@@ -130,7 +121,9 @@ const TypeAheadComponent = ({
           fullWidth
           name={name}
           readOnly={disabled}
-          onKeyDown={(e) => onKeyDown(e)}
+          onKeyDown={(e) =>
+            onKeyDownClick !== undefined ? onKeyDownClick(e) : onKeyDown(e)
+          }
           onChange={(e) => handleChange(e)}
           onInputBlur={onInputBlur}
           error={error && !showOptions}
@@ -154,6 +147,7 @@ TypeAheadComponent.propTypes = {
   name: PropType.string,
   disabled: PropType.bool,
   onInputBlur: PropType.func,
+  onKeyDownClick: PropType.func,
 };
 
 TypeAheadComponent.defaultProps = {
@@ -164,5 +158,6 @@ TypeAheadComponent.defaultProps = {
   disabled: false,
   helperText: '',
   onInputBlur: () => {},
+  onKeyDownClick: () => {},
 };
 export default TypeAheadComponent;

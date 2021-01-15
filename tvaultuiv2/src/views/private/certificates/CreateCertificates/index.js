@@ -12,6 +12,7 @@ import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import KeyboardReturnIcon from '@material-ui/icons/KeyboardReturn';
 import PropTypes from 'prop-types';
+import { validateEmail } from '../../../../services/helper-function';
 import ConfirmationModal from '../../../../components/ConfirmationModal';
 import TextFieldComponent from '../../../../components/FormFields/TextField';
 import ButtonComponent from '../../../../components/FormFields/ActionButton';
@@ -202,6 +203,10 @@ const FetchingWrap = styled.div`
   }
 `;
 
+const SearchInputFieldLabelWrapper = styled.div`
+  margin-bottom: 2rem;
+`;
+
 const NotificationAutoWrap = styled.div`
   display: flex;
 `;
@@ -307,9 +312,7 @@ const CreateCertificates = (props) => {
       if (notifyUserSelected?.userEmail && searchBy !== 'GroupEmail') {
         if (notifyEmail !== notifyUserSelected?.userEmail.toLowerCase()) {
           setIsValidEmail(false);
-          setEmailErrorMsg(
-            'Please enter a valid email address or not available!'
-          );
+          setEmailErrorMsg('Please enter a valid user or not available!');
         } else {
           setIsValidEmail(true);
         }
@@ -320,9 +323,7 @@ const CreateCertificates = (props) => {
         )
       ) {
         setIsValidEmail(false);
-        setEmailErrorMsg(
-          'Please enter a valid email address or not available!'
-        );
+        setEmailErrorMsg('Please enter a valid group email or not available!');
       } else {
         setIsValidEmail(true);
       }
@@ -688,7 +689,14 @@ const CreateCertificates = (props) => {
   const onEmailKeyDownClicked = (e) => {
     if (e?.keyCode === 13) {
       e.preventDefault();
-      onAddEmailClicked();
+      if (e?.keyCode === 13) {
+        e.preventDefault();
+        if (validateEmail(notifyEmail)) {
+          onAddEmailClicked();
+        } else {
+          setIsValidEmail(false);
+        }
+      }
     }
   };
 
@@ -904,7 +912,7 @@ const CreateCertificates = (props) => {
                     )}
                     {notifyEmailStatus.status === 'available' && (
                       <>
-                        <InputFieldLabelWrapper>
+                        <SearchInputFieldLabelWrapper>
                           <InputLabel>Search By:</InputLabel>
                           <RadioButtonComponent
                             menu={['User', 'GroupEmail']}
@@ -914,7 +922,7 @@ const CreateCertificates = (props) => {
                             }}
                             value={searchBy}
                           />
-                        </InputFieldLabelWrapper>
+                        </SearchInputFieldLabelWrapper>
                         <InputLabel>
                           Add User to Notify
                           <RequiredCircle margin="1.3rem" />
@@ -947,9 +955,13 @@ const CreateCertificates = (props) => {
                             icon="search"
                             name="notifyUser"
                             onSelected={(e, val) => onSelected(e, val)}
-                            onKeyDown={(e) => onEmailKeyDownClicked(e)}
+                            onKeyDownClick={(e) => onEmailKeyDownClicked(e)}
                             onChange={(e) => onNotifyEmailChange(e)}
-                            placeholder="Search by NTID, Email or Name "
+                            placeholder={
+                              searchBy === 'GroupEmail'
+                                ? 'Search by GroupEmail'
+                                : 'Search by NTID, Email or Name'
+                            }
                             error={
                               notifyEmail?.length > 2 &&
                               (emailError || !isValidEmail)
