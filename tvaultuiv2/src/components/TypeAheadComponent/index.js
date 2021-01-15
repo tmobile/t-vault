@@ -6,6 +6,7 @@ import TextFieldComponent from '../FormFields/TextField';
 
 const Wrapper = styled.div`
   position: relative;
+  width: 100%;
 `;
 
 const OptionList = styled.ul`

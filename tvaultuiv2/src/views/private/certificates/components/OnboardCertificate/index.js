@@ -48,6 +48,10 @@ const PreviewWrap = styled.div`
   display: ${(props) => (props.showPreviewData ? 'block' : 'none')};
 `;
 
+const TypeAheadWrap = styled.div`
+  width: 100%;
+`;
+
 const LeftIcon = styled.img`
   display: none;
   ${small} {
@@ -114,8 +118,8 @@ const AutoInputFieldLabelWrapper = styled.div`
   position: relative;
   width: 100%;
   display: flex%;
-  .MuiAutocomplete-root {
-    width: calc(100% - 4rem);
+  .MuiTextField-root {
+    width: 100%;
   }
 `;
 
@@ -667,38 +671,40 @@ const OnboardCertificates = (props) => {
                 {!searchNotificationsEmail && (
                   <NotificationAutoWrap>
                     <AutoInputFieldLabelWrapper>
-                      <TypeAheadComponent
-                        options={notifyOptions.map(
-                          (item) =>
-                            `${item?.userEmail?.toLowerCase()}, ${getName(
-                              item?.displayName?.toLowerCase()
-                            )}, ${item?.userName?.toLowerCase()}`
+                      <TypeAheadWrap>
+                        <TypeAheadComponent
+                          options={notifyOptions.map(
+                            (item) =>
+                              `${item?.userEmail?.toLowerCase()}, ${getName(
+                                item?.displayName?.toLowerCase()
+                              )}, ${item?.userName?.toLowerCase()}`
+                          )}
+                          userInput={notifyEmail}
+                          disabled={
+                            applicationName === '' &&
+                            notificationEmailList.length === 0
+                          }
+                          icon="search"
+                          name="notifyEmail"
+                          onSelected={(e, val) => onNotifyEmailSelected(e, val)}
+                          onKeyDown={(e) => onEmailKeyDownClicked(e)}
+                          onChange={(e) => onNotifyEmailChange(e)}
+                          placeholder="Search by NTID, Email or Name "
+                          error={
+                            notifyEmail?.length > 2 &&
+                            (notifyEmailError || !isValidNotifyEmail)
+                          }
+                          helperText={
+                            notifyEmail?.length > 2 &&
+                            (notifyEmailError || !isValidNotifyEmail)
+                              ? emailErrorMsg
+                              : ''
+                          }
+                        />
+                        {notifyAutoLoader && (
+                          <LoaderSpinner customStyle={notifyAutoLoaderStyle} />
                         )}
-                        userInput={notifyEmail}
-                        disabled={
-                          applicationName === '' &&
-                          notificationEmailList.length === 0
-                        }
-                        icon="search"
-                        name="notifyEmail"
-                        onSelected={(e, val) => onNotifyEmailSelected(e, val)}
-                        onKeyDown={(e) => onEmailKeyDownClicked(e)}
-                        onChange={(e) => onNotifyEmailChange(e)}
-                        placeholder="Search by NTID, Email or Name "
-                        error={
-                          notifyEmail?.length > 2 &&
-                          (notifyEmailError || !isValidNotifyEmail)
-                        }
-                        helperText={
-                          notifyEmail?.length > 2 &&
-                          (notifyEmailError || !isValidNotifyEmail)
-                            ? emailErrorMsg
-                            : ''
-                        }
-                      />
-                      {notifyAutoLoader && (
-                        <LoaderSpinner customStyle={notifyAutoLoaderStyle} />
-                      )}
+                      </TypeAheadWrap>
                       <EndingBox
                         width="4rem"
                         applicationName={

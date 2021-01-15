@@ -79,7 +79,7 @@ const AutoInputFieldLabelWrapper = styled.div`
   width: 100%;
   display: flex;
   .MuiTextField-root {
-    width: 100%
+    width: 100%;
   }
 `;
 const ContainerOwnerWrap = styled.div`
@@ -212,12 +212,17 @@ const FetchingWrap = styled.div`
 `;
 
 const NotificationAutoWrap = styled.div`
+  display: flex;
 `;
 
 const autoLoaderStyle = css`
   position: absolute;
   top: 1rem;
   right: 4rem;
+`;
+
+const TypeAheadWrap = styled.div`
+  width: 100%;
 `;
 
 const useStyles = makeStyles((theme) => ({
@@ -879,34 +884,37 @@ const CreateCertificates = (props) => {
                   {applicationName && !searchNotificationsEmail && (
                     <NotificationAutoWrap>
                       <AutoInputFieldLabelWrapper>
-                        <TypeAheadComponent
-                          options={options.map(
-                            (item) =>
-                              `${item?.userEmail?.toLowerCase()}, ${getName(
-                                item?.displayName?.toLowerCase()
-                              )}, ${item?.userName?.toLowerCase()}`
+                        <TypeAheadWrap>
+                          <TypeAheadComponent
+                            options={options.map(
+                              (item) =>
+                                `${item?.userEmail?.toLowerCase()}, ${getName(
+                                  item?.displayName?.toLowerCase()
+                                )}, ${item?.userName?.toLowerCase()}`
+                            )}
+                            userInput={notifyEmail}
+                            icon="search"
+                            name="notifyUser"
+                            onSelected={(e, val) => onSelected(e, val)}
+                            onKeyDown={(e) => onEmailKeyDownClicked(e)}
+                            onChange={(e) => onNotifyEmailChange(e)}
+                            placeholder="Search by NTID, Email or Name "
+                            error={
+                              notifyEmail?.length > 2 &&
+                              (emailError || !isValidEmail)
+                            }
+                            helperText={
+                              notifyEmail?.length > 2 &&
+                              (emailError || !isValidEmail)
+                                ? emailErrorMsg
+                                : ''
+                            }
+                          />
+                          {autoLoader && (
+                            <LoaderSpinner customStyle={autoLoaderStyle} />
                           )}
-                          userInput={notifyEmail}
-                          icon="search"
-                          name="notifyUser"
-                          onSelected={(e, val) => onSelected(e, val)}
-                          onKeyDown={(e) => onEmailKeyDownClicked(e)}
-                          onChange={(e) => onNotifyEmailChange(e)}
-                          placeholder="Search by NTID, Email or Name "
-                          error={
-                            notifyEmail?.length > 2 &&
-                            (emailError || !isValidEmail)
-                          }
-                          helperText={
-                            notifyEmail?.length > 2 &&
-                            (emailError || !isValidEmail)
-                              ? emailErrorMsg
-                              : ''
-                          }
-                        />
-                        {autoLoader && (
-                          <LoaderSpinner customStyle={autoLoaderStyle} />
-                        )}
+                        </TypeAheadWrap>
+
                         <EndingBox width="4rem">
                           <ReturnIcon onClick={() => onAddEmailClicked()}>
                             <KeyboardReturnIcon />
