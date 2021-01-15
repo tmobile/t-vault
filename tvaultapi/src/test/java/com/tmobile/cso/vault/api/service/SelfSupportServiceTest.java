@@ -151,7 +151,6 @@ public class SelfSupportServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         userDetails.setEmail("youremail@yourcompany.com");
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
@@ -577,12 +576,8 @@ public class SelfSupportServiceTest {
     public void test_updateSafe_successfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-<<<<<<< HEAD
         userDetails.setEmail("youremail@yourcompany.com");
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
-=======
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
->>>>>>> COCICCS-6024:Edit safe:Application name selected is not getting displayed
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe updated \"]}");
@@ -615,12 +610,8 @@ public class SelfSupportServiceTest {
     public void test_updateSafe_failure_403() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-<<<<<<< HEAD
         userDetails.setEmail("youremail@yourcompany.com");
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
-=======
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
->>>>>>> COCICCS-6024:Edit safe:Application name selected is not getting displayed
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update this safe\"]}");
@@ -636,12 +627,8 @@ public class SelfSupportServiceTest {
     public void test_updateSafe_failure_400() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-<<<<<<< HEAD
         userDetails.setEmail("youremail@yourcompany.com");
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
-=======
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
->>>>>>> COCICCS-6024:Edit safe:Application name selected is not getting displayed
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path specified\"]}");
