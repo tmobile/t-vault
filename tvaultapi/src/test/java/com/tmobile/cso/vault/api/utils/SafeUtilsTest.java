@@ -203,7 +203,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
-                "\"appName\":\"tvt\","+
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -219,7 +220,8 @@ public class SafeUtilsTest {
 		Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":"
 				+ "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"},"
 				+ "\"description\":\"asd\",\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"ownerid\":\"normaluser\","
-				+ "\"appName\":\"tvt\","
+				+ "\"appName\":\"T-Vault\","
+	            +   "\"applicationTag\":\"tvt\","
 				+ "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 		SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null,
 				"My first safe", "normaluser","tvt");
@@ -244,7 +246,7 @@ public class SafeUtilsTest {
 				+ "\"description\":\"asd\",\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"ownerid\":\"normaluser\","
 				+ "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 		SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null,
-				"My first safe", "normaluser");
+				"My first safe", "normaluser","tvt");
 		Safe safe = new Safe("users/mysafe01", safeBasicDetails);
 
 		when(ControllerUtil.getSafeType("users/mysafe01")).thenReturn("users");
@@ -273,7 +275,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
-                "\"appName\":\"tvt\","+
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -291,7 +294,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
-                "\"appName\":\"tvt\","+
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -309,7 +313,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
-                "\"appName\":\"tvt\","+
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -327,7 +332,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\"," +
-                "\"appName\":\"tvt\","+
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -345,7 +351,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser1\"," +
-                "\"appName\":\"tvt\","+
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -363,7 +370,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser1\"," +
-                "\"appName\":\"tvt\","+
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -381,7 +389,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
-                "\"appName\":\"tvt\","+
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");

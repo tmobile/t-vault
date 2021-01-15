@@ -1507,6 +1507,12 @@ public final class ControllerUtil {
 				) {
 			return false;
 		}
+		if(appName != null ) {
+			String applicationName=appName.trim();
+			if(StringUtils.isEmpty(applicationName)) {
+				return false;
+			}
+		}
 		if (!isSdbNameValid(sdbName) || sdbName.length() > 40 || !sdbName.equals(sdbName.toLowerCase())) {
 			return false;
 		}
@@ -1534,13 +1540,21 @@ public final class ControllerUtil {
 		String sdbName = (String) map.get("name");
 		String sdbOwner = (String) map.get("owner");
 		String sdbDescription = (String) map.get("description");
+		String sdbAppName = (String) map.get("appName");
 		String path = (String) requestParams.get("path");
 		if (StringUtils.isEmpty(sdbName) 
 				|| StringUtils.isEmpty(sdbOwner) 
 				|| StringUtils.isEmpty(sdbDescription) 
 				|| StringUtils.isEmpty(path) 
+				|| StringUtils.isEmpty(sdbAppName)
 				) {
 			return false;
+		}
+		if(sdbAppName != null ) {
+			String applicationName=sdbAppName.trim();
+			if(StringUtils.isEmpty(applicationName)) {
+				return false;
+			}
 		}
 		if (sdbName.length() > 40) {
 			return false;
