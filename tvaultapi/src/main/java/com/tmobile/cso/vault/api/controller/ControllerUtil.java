@@ -826,7 +826,7 @@ public final class ControllerUtil {
 		return null;
 
 	}
-
+	
 	/**
 	 * Update metadata for the service account on password reset
 	 * @param params
@@ -889,6 +889,59 @@ public final class ControllerUtil {
             return metadataResponse;
 		}
 		return null;
+	}
+	
+	/**
+	 * Update metadata on service account password reset - modifiedBy and modifiedAt
+	 * @param params
+	 * @param token
+	 * @return
+	 */
+	public static Response updateMetadataOnSvcPwdReset(String path, ADServiceAccountResetDetails adServiceAccountResetDetails, String token) {
+		String _path = METADATASTR + path;
+		ObjectMapper objMapper = new ObjectMapper();
+		String pathjson =PATHSTR+_path+"\"}";
+
+		Response metadataResponse = reqProcessor.process(READSTR,pathjson,token);
+		Map<String,Object> _metadataMap = null;
+		if(HttpStatus.OK.equals(metadataResponse.getHttpstatus())){
+			try {
+				_metadataMap = objMapper.readValue(metadataResponse.getResponse(), new TypeReference<Map<String,Object>>() {});
+			} catch (IOException e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, UPDATEMETADATASTR).
+						put(LogMessage.MESSAGE, String.format ("Error creating _metadataMap for type service account update, message [%s]", e.getMessage())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+
+			@SuppressWarnings("unchecked")
+			Map<String,Object> metadataMap = (Map<String,Object>) _metadataMap.get("data");
+
+			metadataMap.put("modifiedBy", adServiceAccountResetDetails.getModifiedBy());
+			metadataMap.put("modifiedAt", adServiceAccountResetDetails.getModifiedAt());
+			
+			String metadataJson = "";
+			try {
+				metadataJson = objMapper.writeValueAsString(metadataMap);
+			} catch (JsonProcessingException e) {
+				log.error(e);
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, UPDATEMETADATASTR).
+						put(LogMessage.MESSAGE, String.format ("Error creating _metadataMap for type service account update, message [%s]", e.getMessage())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
+			}
+
+			String writeJson =  PATHSTR+_path+DATASTR+ metadataJson +"}";
+			metadataResponse = reqProcessor.process(WRITESTR,writeJson,token);
+			return metadataResponse;
+		}
+		return null;
+
 	}
 	/**
 	 * 

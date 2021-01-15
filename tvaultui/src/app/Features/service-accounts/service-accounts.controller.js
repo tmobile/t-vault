@@ -107,7 +107,7 @@
             $scope.isLoadingData = true;
             $scope.decommitionMessage = "";
             $scope.write = false;
-            $scope.svcaccSecretData = {"secret":"", "svcaccname":svcaccname, "permission":""};
+            $scope.svcaccSecretData = {"secret":"", "svcaccname":svcaccname, "permission":"", "modifiedBy":"", "modifiedAt":""};
             var queryParameters = "serviceAccountName="+svcaccname;
             var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSecretForSvcacc',queryParameters);
             AdminSafesManagement.getSecretForSvcacc(null, updatedUrlOfEndPoint).then(function (response) {
@@ -115,7 +115,10 @@
                     $scope.isLoadingData = false;
                     $scope.viewPassword = true;
                     $scope.ifSecret = true;
-                    $scope.svcaccSecretData.secret = response.data.current_password;
+                    $scope.svcaccSecretData.secret = response.data.adServiceAccountCreds.current_password;
+                    $scope.svcaccSecretData.modifiedBy = response.data.modifiedBy;
+                    $scope.svcaccSecretData.modifiedAt = response.data.modifiedAt;
+                    $scope.modifiedTime = moment($scope.svcaccSecretData.modifiedAt).fromNow();
                     if (getPermission(svcaccname) == "write") {
                         $scope.write = true;
                     }
@@ -165,7 +168,10 @@
                 AdminSafesManagement.resetPasswordForSvcacc(null, updatedUrlOfEndPoint).then(function (response) {                
                     if (UtilityService.ifAPIRequestSuccessful(response)) {
                         $scope.isLoadingData = false;
-                        $scope.svcaccSecretData.secret = response.data.current_password;
+                        $scope.svcaccSecretData.secret = response.data.adServiceAccountCreds.current_password;
+                        $scope.svcaccSecretData.modifiedBy = response.data.modifiedBy;
+                        $scope.svcaccSecretData.modifiedAt = response.data.modifiedAt;
+                        $scope.modifiedTime = moment($scope.svcaccSecretData.modifiedAt).fromNow();
                         var notification = UtilityService.getAParticularSuccessMessage("MESSAGE_RESET_SUCCESS");
                         Notifications.toast("Password "+notification);
                         $scope.svcaccToReset = '';
