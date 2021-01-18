@@ -77,7 +77,7 @@ public class SSLCertificateController {
 	@ApiOperation(value = "${SSLCertificateController.getssl.value}", notes = "${SSLCertificateController.getssl.notes}")
 	@GetMapping(value="/v2/sslcert", produces="application/json")
 	public ResponseEntity<String> getCertificates(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam(name="certificateName", required = false) String certName,@RequestParam(name = "limit", required = false) Integer limit,
-			@RequestParam(name = "offset", required = false) Integer offset, @RequestParam(name = "certType", required = true) String certType)throws Exception{
+			@RequestParam(name = "offset", required = false) Integer offset, @RequestParam(name = "certType", required = true) String certType){
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.getServiceCertificates(token, userDetails, certName, limit, offset,certType);
      }

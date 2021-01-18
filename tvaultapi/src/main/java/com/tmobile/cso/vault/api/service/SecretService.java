@@ -119,7 +119,7 @@ public class  SecretService {
 		}
 		if(ControllerUtil.isPathValid(path) && !path.contains(TVaultConstants.VERSION_FOLDER_PREFIX)){
 		    // Check if the user has explicit write permission. Safe owners (implicit write permission) will be denied from write operation
-			if (!hasExplicitWritePermission(token, userDetails, secret.getPath())) {
+			if (!hasExplicitWritePermission(userDetails, secret.getPath())) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "Write Secret").
@@ -220,7 +220,7 @@ public class  SecretService {
 		}
 		if(ControllerUtil.isPathValid(path) && !path.contains(TVaultConstants.VERSION_FOLDER_PREFIX)){
 			// Check if the user has explicit write permission. Safe owners (implicit write permission) will be denied from write operation
-			if (!hasExplicitWritePermission(token, userDetails, secret.getPath())) {
+			if (!hasExplicitWritePermission( userDetails, secret.getPath())) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "Write Secret").
@@ -404,7 +404,7 @@ public class  SecretService {
 	 * @param path
 	 * @return
 	 */
-	private boolean hasExplicitWritePermission(String token, UserDetails userDetails, String path) {
+	private boolean hasExplicitWritePermission(UserDetails userDetails, String path) {
 		String policy = "w_"+ ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
 		if (Arrays.stream(userDetails.getPolicies()).anyMatch(policy::equals)) {
 			return true;
@@ -420,7 +420,6 @@ public class  SecretService {
 	 */
 	public ResponseEntity<String> deleteFromVault(String token, String path){
 		if(ControllerUtil.isValidDataPath(path)){
-			//if(ControllerUtil.isValidSafe(path,token)){
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Delete Secret").
@@ -439,9 +438,7 @@ public class  SecretService {
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secrets deleted\"]}");
 				}
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-			//}else{
-			//	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid safe\"]}");
-			//}
+			
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -640,7 +637,7 @@ public class  SecretService {
 	 */
 	private boolean isAuthorizedToGetSecretCount(String token) {
 		ObjectMapper objectMapper = new ObjectMapper();
-		List<String> currentPolicies = new ArrayList<>();
+		List<String> currentPolicies;
 		Response response = reqProcessor.process("/auth/tvault/lookup","{}", token);
 		if(HttpStatus.OK.equals(response.getHttpstatus())) {
 			String responseJson = response.getResponse();
