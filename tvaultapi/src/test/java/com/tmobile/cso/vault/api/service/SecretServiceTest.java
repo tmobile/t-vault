@@ -389,6 +389,8 @@ public class SecretServiceTest {
         userDetails.setPolicies(policies);
         String deleteFlag = "true";
         when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        Response readResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"secret1\":\"value1\"}}");
+        when(reqProcessor.process("/read","{\"path\":\""+secret.getPath()+"\"}",token)).thenReturn(readResponse);
         ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails, deleteFlag);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
