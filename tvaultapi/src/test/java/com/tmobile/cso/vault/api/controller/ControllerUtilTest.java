@@ -574,7 +574,7 @@ public class ControllerUtilTest {
 
     @Test
     public void testareSDBInputsValidsafe()  {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/safe01",safeBasicDetails);
 
         boolean valid = ControllerUtil.areSDBInputsValid(safe);
@@ -590,6 +590,7 @@ public class ControllerUtilTest {
         dataParam.put("description", "Safe 01");
         requestParams.put("data", dataParam);
         requestParams.put("path", "users/safe01");
+        dataParam.put("appName", "t-vault");
 
         boolean valid = ControllerUtil.areSDBInputsValidForUpdate(requestParams);
         assertTrue(valid);
@@ -663,7 +664,7 @@ public class ControllerUtilTest {
 
     @Test
     public void testconverSDBInputsToLowerCase() throws IOException {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("Safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("Safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("Shared/safe01",safeBasicDetails);
         String jsonStr = "{\"path\":\"Shared/Safe01\",\"safeBasicDetails\":{\"name\":\"Safe01\",\"ownwe\":\"youremail@yourcompany.com\", \"description\":\"My first safe\"}}";
         String jsonStrlowercase = "{\"path\":\"shared/safe01\",\"safeBasicDetails\":{\"name\":\"safe01\",\"ownwe\":\"youremail@yourcompany.com\", \"description\":\"My first safe\"}}";
@@ -677,7 +678,7 @@ public class ControllerUtilTest {
 
     @Test
     public void testconverSDBInputsToLowerCasesafe()  {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("Safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("Safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("Shared/safe01",safeBasicDetails);
         ControllerUtil.converSDBInputsToLowerCase(safe);
         assertEquals("shared/safe01", safe.getPath());

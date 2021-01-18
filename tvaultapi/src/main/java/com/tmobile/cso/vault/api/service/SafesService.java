@@ -38,6 +38,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
@@ -203,9 +205,13 @@ public class  SafesService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values for creating safe\"]}");
 		}
 		SafeBasicDetails basicDetails = safe.getSafeBasicDetails();
-		ResponseEntity<String> applicationNameResponse  =getValidAppName(basicDetails);
-		
-		if(applicationNameResponse.getStatusCode() == HttpStatus.BAD_REQUEST) {
+		String applicationTag=basicDetails.getAppName();
+		basicDetails.setApplicationTag(applicationTag);
+		safe.setSafeBasicDetails(basicDetails);
+		String applicationName  =getValidAppName(basicDetails);
+		basicDetails.setAppName(applicationName);
+		safe.setSafeBasicDetails(basicDetails);
+		if(applicationName == null) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Application name\"]}");
 		}
 		if (safe.getSafeBasicDetails().getName().endsWith("_")) {
@@ -357,22 +363,41 @@ public class  SafesService {
 	 * @param safeBasicDetails
 	 * @return
 	 */
-	public ResponseEntity<String>  getValidAppName(SafeBasicDetails basicDetails) {
+	public String  getValidAppName(SafeBasicDetails basicDetails) {
 		String appName = basicDetails.getAppName();
 		ResponseEntity<String> appResponse = workloadDetailsService
 				.getWorkloadDetailsByAppName(appName);
 		if (HttpStatus.OK.equals(appResponse.getStatusCode())) {
-			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "CreateSafe").
-					put(LogMessage.MESSAGE, "Checking appname is available or not").
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-					build()));
-			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Appname exist \"]}");
-		}else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Appname does not exist \"]}");
+			JsonParser jsonParser = new JsonParser();
+			JsonObject response = (JsonObject) jsonParser.parse(appResponse.getBody());
+			JsonObject jsonElement = null;
+			if (Objects.nonNull(response)) {
+				//String str=org.springframework.util.StringUtils.isEmpty(jsonElement.get("tag"));
+				jsonElement = response.get("spec").getAsJsonObject();
+				//org.springframework.util.StringUtils.isEmpty(jsonElement.get("tag"));
+				if (Objects.nonNull(jsonElement)) {
+					appName = jsonElement.get("summary").getAsString();					
+				}
+			}
 		}
-	}
+			else {
+				appName = null;
+			}
+		
+			return appName;
+		}
+//			}
+//			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+//					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+//					put(LogMessage.ACTION, "CreateSafe").
+//					put(LogMessage.MESSAGE, "Checking appname is available or not").
+//					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+//					build()));
+//			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Appname exist \"]}");
+//		}else {
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Appname does not exist \"]}");
+//		}
+
 	/**
 	 * Gets Safe
 	 */
@@ -496,10 +521,10 @@ public class  SafesService {
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
+		
         if (safe.getSafeBasicDetails().getDescription().length() > 1024) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values: Description too long\"]}");
         }
-
 		@SuppressWarnings("unchecked")
 		Map<Object,Object> data = (Map<Object,Object>)requestParams.get("data");
 		String path = safe.getPath();
@@ -560,6 +585,12 @@ public class  SafesService {
 			data.put(TVaultConstants.USERS,users);
 			data.put(TVaultConstants.APP_ROLES,approles);
 			requestParams.put("path",pathToBeUpdated);
+			SafeBasicDetails basicDetails = safe.getSafeBasicDetails();
+			String applicationTag=basicDetails.getAppName();
+			String applicationName  =getValidAppName(basicDetails);
+			((Map<String,Object>)requestParams.get("data")).put("appName",(String)applicationName);
+			((Map<String,Object>)requestParams.get("data")).put("applicationTag",(String) applicationTag);
+			
 			// Do not alter the name of the safe
 			((Map<String,Object>)requestParams.get("data")).put("name",(String) metadataMap.get("name"));
 			// Do not alter the owner of the safe
