@@ -19,12 +19,10 @@ package com.tmobile.cso.vault.api.model;
 
 import java.io.Serializable;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 public class ADServiceAccountResetDetails implements Serializable {
 	
 	/**
-	 * 
+	 * serialVersionUID
 	 */
 	private static final long serialVersionUID = 8812522610377802443L;
 	
@@ -99,9 +97,4 @@ public class ADServiceAccountResetDetails implements Serializable {
 		return "ADServiceAccountResetDetails [modifiedBy=" + modifiedBy + ", modifiedAt=" + modifiedAt
 				+ ", adServiceAccountCreds=" + adServiceAccountCreds + "]";
 	}
-	
-	
-	
-	
-
 }
