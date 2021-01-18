@@ -901,15 +901,15 @@ public final class ControllerUtil {
 	 */
 	public static Response updateMetadataOnSvcPwdReset(String path,
 			ADServiceAccountResetDetails adServiceAccountResetDetails, String token) {
-		String _path = METADATASTR + path;
+		String svcPath = METADATASTR + path;
 		ObjectMapper objMapper = new ObjectMapper();
-		String pathjson = PATHSTR + _path + "\"}";
+		String pathjson = PATHSTR + svcPath + "\"}";
 
 		Response metadataResponse = reqProcessor.process(READSTR, pathjson, token);
-		Map<String, Object> _metadataMap = null;
+		Map<String, Object> svcMetadataMap = null;
 		if (HttpStatus.OK.equals(metadataResponse.getHttpstatus())) {
 			try {
-				_metadataMap = objMapper.readValue(metadataResponse.getResponse(),
+				svcMetadataMap = objMapper.readValue(metadataResponse.getResponse(),
 						new TypeReference<Map<String, Object>>() {
 						});
 			} catch (IOException e) {
@@ -929,7 +929,7 @@ public final class ControllerUtil {
 			}
 
 			@SuppressWarnings("unchecked")
-			Map<String, Object> metadataMap = (Map<String, Object>) _metadataMap.get("data");
+			Map<String, Object> metadataMap = (Map<String, Object>) svcMetadataMap.get("data");
 
 			metadataMap.put("modifiedBy", adServiceAccountResetDetails.getModifiedBy());
 			metadataMap.put("modifiedAt", adServiceAccountResetDetails.getModifiedAt());
@@ -953,7 +953,7 @@ public final class ControllerUtil {
 								.build()));
 			}
 
-			String writeJson = PATHSTR + _path + DATASTR + metadataJson + "}";
+			String writeJson = PATHSTR + svcPath + DATASTR + metadataJson + "}";
 			metadataResponse = reqProcessor.process(WRITESTR, writeJson, token);
 			return metadataResponse;
 		}
