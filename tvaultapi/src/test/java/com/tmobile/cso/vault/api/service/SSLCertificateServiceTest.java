@@ -8477,4 +8477,98 @@ public class SSLCertificateServiceTest {
 		 ResponseEntity<String> responseEntityActual = sSLCertificateService.onboardCertificate(sslCertificateRequest, userDetails, containerId, tagsOwner);
 		assertNotNull(responseEntityActual);	
 	}
+
+    @Test
+    public void test_getCertMetadata_success() {
+        String metadataResponseString = "{ \"data\": {\n" +
+                "  \"actionId\": 0,\n" +
+                "  \"akmid\": \"123\",\n" +
+                "  \"applicationName\": \"other\",\n" +
+                "  \"applicationOwnerEmailId\": \"owner@company.com\",\n" +
+                "  \"applicationTag\": \"Other\",\n" +
+                "  \"authority\": \"company\",\n" +
+                "  \"certCreatedBy\": \"user1\",\n" +
+                "  \"certOwnerEmailId\": \"certowner1@company.com\",\n" +
+                "  \"certOwnerNtid\": \"certowner1\",\n" +
+                "  \"certType\": \"internal\",\n" +
+                "  \"certificateId\": 1231,\n" +
+                "  \"certificateName\": \"certtest.company.com\",\n" +
+                "  \"certificateStatus\": \"Active\",\n" +
+                "  \"containerId\": 456,\n" +
+                "  \"containerName\": \"Other-Test\",\n" +
+                "  \"createDate\": \"2021-01-06T20:23:24-08:00\",\n" +
+                "  \"dnsNames\": [\n" +
+                "    \"certtest.company.com\"\n" +
+                "  ],\n" +
+                "  \"expiryDate\": \"2022-01-06T20:23:24-08:00\",\n" +
+                "  \"notificationEmails\": \"\",\n" +
+                "  \"onboardFlag\": true,\n" +
+                "  \"projectLeadEmailId\": \"lead@company.com\"\n" +
+                "}}";
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("user1");
+        certDetails.setCertificateName("certtest.company.com");
+        certDetails.setCertOwnerNtid("certowner1");
+        certDetails.setCertOwnerEmailId("ocertowner1@company.com");
+        certDetails.setExpiryDate("2022-01-06T20:23:24-08:00");
+        certDetails.setCreateDate("2021-01-06T20:23:24-08:00");
+        certDetails.setNotificationEmails("");
+        certDetails.setOnboardFlag(Boolean.FALSE);
+        when(reqProcessor.process(eq("/read"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, metadataResponseString));
+        SSLCertMetadataResponse sslCertMetadataResponse = sSLCertificateService.getCertMetadata(token, "testpath/certtest");
+        assertEquals(certDetails.getCertificateName(), sslCertMetadataResponse.getSslCertificateMetadataDetails().getCertificateName());
+    }
+
+    @Test
+    public void test_getCertMetadata_failed() {
+        String metadataResponseString = "{ \"data1\": {\n" +
+                "  \"actionId\": 0,\n" +
+                "  \"akmid\": \"123\",\n" +
+                "  \"applicationName\": \"other\",\n" +
+                "  \"applicationOwnerEmailId\": \"owner@company.com\",\n" +
+                "  \"applicationTag\": \"Other\",\n" +
+                "  \"authority\": \"company\",\n" +
+                "  \"certCreatedBy\": \"user1\",\n" +
+                "  \"certOwnerEmailId\": \"certowner1@company.com\",\n" +
+                "  \"certOwnerNtid\": \"certowner1\",\n" +
+                "  \"certType\": \"internal\",\n" +
+                "  \"certificateId\": 1231,\n" +
+                "  \"certificateName\": \"certtest.company.com\",\n" +
+                "  \"certificateStatus\": \"Active\",\n" +
+                "  \"containerId\": 456,\n" +
+                "  \"containerName\": \"Other-Test\",\n" +
+                "  \"createDate\": \"2021-01-06T20:23:24-08:00\",\n" +
+                "  \"dnsNames\": [\n" +
+                "    \"certtest.company.com\"\n" +
+                "  ],\n" +
+                "  \"expiryDate\": \"2022-01-06T20:23:24-08:00\",\n" +
+                "  \"notificationEmails\": \"\",\n" +
+                "  \"onboardFlag\": true,\n" +
+                "  \"projectLeadEmailId\": \"lead@company.com\"\n" +
+                "}}";
+
+        when(reqProcessor.process(eq("/read"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, metadataResponseString));
+        SSLCertMetadataResponse sslCertMetadataResponse = sSLCertificateService.getCertMetadata(token, "testpath/certtest");
+        assertNull(sslCertMetadataResponse.getSslCertificateMetadataDetails());
+    }
+
+    @Test
+    public void test_udapteCertMetadataOnAppliationChange_success() {
+        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
+        certDetails.setCertType("internal");
+        certDetails.setCertCreatedBy("user1");
+        certDetails.setCertificateName("certtest.company.com");
+        certDetails.setCertOwnerNtid("certowner1");
+        certDetails.setCertOwnerEmailId("ocertowner1@company.com");
+        certDetails.setExpiryDate("2022-01-06T20:23:24-08:00");
+        certDetails.setCreateDate("2021-01-06T20:23:24-08:00");
+        certDetails.setNotificationEmails("");
+        certDetails.setOnboardFlag(Boolean.FALSE);
+
+        when(reqProcessor.process(eq("/write"), Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
+
+        Response actualResponse = sSLCertificateService.udapteCertMetadataOnAppliationChange(token, "testpath/certtest", certDetails);
+        assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
+    }
 }
