@@ -179,14 +179,13 @@ const IamServiceAccountDashboard = () => {
   );
   const [listItemDetails, setListItemDetails] = useState({});
   const [iamServiceAccountList, setIamServiceAccountList] = useState([]);
-  const [status, setStatus] = useState({});
-  const [getResponse, setGetResponse] = useState(null);
-  //   const [allIamServiceAccountList, setAllIamServiceAccountList] = useState([]);
+  const [response, setResponse] = useState({});
   const [
     selectedIamServiceAccountDetails,
     setSelectedIamServiceAccountDetails,
   ] = useState(null);
   const [viewDetails, setViewDetails] = useState(false);
+  const [responseType, setResponseType] = useState(null);
   const [isIamSvcAccountActive, setIsIamSvcAccountActive] = useState(false);
   const [accountSecretData, setAccountSecretData] = useState({});
   const [permissionResponse, setPermissionResponse] = useState({
@@ -217,17 +216,17 @@ const IamServiceAccountDashboard = () => {
    * @description function call all the manage and safe api.
    */
   const fetchData = useCallback(async () => {
-    setStatus({ status: 'loading', message: 'Loading...' });
+    setResponse({ status: 'loading' });
     setListItemDetails({});
     setInputSearchValue('');
     const serviceList = await apiService.getIamServiceAccountList();
     const iamServiceAccounts = await apiService.getIamServiceAccounts();
     const allApiResponse = Promise.all([serviceList, iamServiceAccounts]);
     allApiResponse
-      .then((response) => {
+      .then((result) => {
         const listArray = [];
-        if (response[0] && response[0].data && response[0].data.iamsvcacc) {
-          response[0].data.iamsvcacc.map((item) => {
+        if (result[0] && result[0]?.data?.iamsvcacc) {
+          result[0].data.iamsvcacc.map((item) => {
             const svcName = Object.keys(item)[0].split('_');
             svcName.splice(0, 1);
             const data = {
@@ -239,8 +238,8 @@ const IamServiceAccountDashboard = () => {
             return listArray.push(data);
           });
         }
-        if (response[1] && response[1].data?.keys) {
-          response[1].data.keys.map((svcitem) => {
+        if (result[1] && result[1].data?.keys) {
+          result[1].data.keys.map((svcitem) => {
             if (!listArray.some((list) => list.name === svcitem.userName)) {
               const data = {
                 name: svcitem.userName,
@@ -257,12 +256,10 @@ const IamServiceAccountDashboard = () => {
           type: 'GET_ALL_IAM_SERVICE_ACCOUNT_LIST',
           payload: [...listArray],
         });
-        setStatus({});
-        setGetResponse(1);
+        setResponse({ status: 'success' });
       })
       .catch(() => {
-        setStatus({ status: 'failed', message: 'failed' });
-        setGetResponse(-1);
+        setResponse({ status: 'failed' });
       });
   }, [dispatch]);
 
@@ -271,8 +268,7 @@ const IamServiceAccountDashboard = () => {
    */
   useEffect(() => {
     fetchData().catch(() => {
-      setStatus({ status: 'failed', message: 'failed' });
-      setGetResponse(-1);
+      setResponse({ status: 'failed' });
     });
   }, [fetchData]);
 
@@ -318,11 +314,11 @@ const IamServiceAccountDashboard = () => {
     apiService
       .fetchIamServiceAccountDetails(svcname)
       .then((res) => {
-        setGetResponse(1);
         setSelectedIamServiceAccountDetails(res?.data);
       })
       .catch(() => {
-        setGetResponse(-1);
+        setResponseType(-1);
+        setViewDetails(false);
       });
   };
 
@@ -417,7 +413,7 @@ const IamServiceAccountDashboard = () => {
 
   // toast close handler
   const onToastClose = () => {
-    setStatus({});
+    setResponseType(null);
   };
 
   const renderList = () => {
@@ -490,26 +486,23 @@ const IamServiceAccountDashboard = () => {
                 />
               </SearchWrap>
             </ColumnHeader>
-            {status.status === 'loading' && (
+            {response.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
-            {getResponse === -1 && (
+            {response === 'failed' && (
               <EmptyContentBox>
                 <Error description="Error while fetching service accounts!" />
               </EmptyContentBox>
             )}
-
-            {getResponse === 1 && (
+            {response.status === 'success' && (
               <>
                 {iamServiceAccountList && iamServiceAccountList.length > 0 ? (
                   <ListContainer>
                     <ListContent>{renderList()}</ListContent>
                   </ListContainer>
                 ) : (
-                  iamServiceAccountList?.length === 0 &&
-                  getResponse === 1 && (
+                  iamServiceAccountList?.length === 0 && (
                     <>
-                      {' '}
                       {inputSearchValue ? (
                         <NoDataWrapper>
                           No Iam Service Account found with name:
@@ -517,7 +510,6 @@ const IamServiceAccountDashboard = () => {
                         </NoDataWrapper>
                       ) : (
                         <NoDataWrapper>
-                          {' '}
                           <NoListWrap>
                             <NoData
                               imageSrc={NoSafesIcon}
@@ -606,7 +598,7 @@ const IamServiceAccountDashboard = () => {
               />
             </Switch>
           </RightColumnSection>
-          {(status.status === 'success') === 'failed' && (
+          {responseType === -1 && (
             <SnackbarComponent
               open
               onClose={() => onToastClose()}
@@ -615,7 +607,7 @@ const IamServiceAccountDashboard = () => {
               message="Something went wrong!"
             />
           )}
-          {status.status === 'success' && (
+          {responseType === 1 && (
             <SnackbarComponent
               open
               onClose={() => onToastClose()}
