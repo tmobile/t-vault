@@ -114,6 +114,11 @@ const AccountSelectionTabs = (props) => {
     }
   }, [accountDetail, fetchPermission, getSecrets, isIamSvcAccountActive]);
 
+  const accountName = accountDetail?.name;
+  useEffect(() => {
+    setValue(0);
+  }, [accountName]);
+
   return (
     <ComponentError>
       <div className={classes.root}>
