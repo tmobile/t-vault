@@ -4,7 +4,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import { Link, Route, Switch, useHistory, Redirect } from 'react-router-dom';
+import {
+  Link,
+  Route,
+  Switch,
+  useHistory,
+  Redirect,
+  useLocation,
+} from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import VisibilityIcon from '@material-ui/icons/Visibility';
@@ -97,8 +104,8 @@ const ListFolderWrap = styled(Link)`
   padding: 1.2rem 1.8rem 1.2rem 3.8rem;
   cursor: pointer;
   background-image: ${(props) =>
-    props.active ? props.theme.gradients.list : 'none'};
-  color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
+    props.active === 'true' ? props.theme.gradients.list : 'none'};
+  color: ${(props) => (props.active === 'true' ? '#fff' : '#4a4a4a')};
   ${mediaBreakpoints.belowLarge} {
     padding: 2rem 1.1rem;
   }
@@ -172,16 +179,20 @@ const IamServiceAccountDashboard = () => {
   );
   const [listItemDetails, setListItemDetails] = useState({});
   const [iamServiceAccountList, setIamServiceAccountList] = useState([]);
-  const [status, setStatus] = useState({});
-  const [getResponse, setGetResponse] = useState(null);
-  //   const [allIamServiceAccountList, setAllIamServiceAccountList] = useState([]);
+  const [response, setResponse] = useState({});
   const [
     selectedIamServiceAccountDetails,
     setSelectedIamServiceAccountDetails,
   ] = useState(null);
   const [viewDetails, setViewDetails] = useState(false);
-  const [isIamSvcAccountActive, setIsIamSvcAccountActive] = useState(false);
-  const [accountSecretData, setAccountSecretData] = useState(null);
+  const [responseType, setResponseType] = useState(null);
+  const [accountSecretData, setAccountSecretData] = useState({});
+  const [permissionResponse, setPermissionResponse] = useState({
+    status: 'loading',
+  });
+  const [secretResponse, setSecretResponse] = useState({
+    status: '',
+  });
   const [accountSecretError, setAccountSecretError] = useState('');
   const [disabledPermission, setDisabledPermission] = useState(true);
   const [accountMetaData, setAccountMetaData] = useState({
@@ -195,6 +206,7 @@ const IamServiceAccountDashboard = () => {
   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
+  const location = useLocation();
 
   const introduction = Strings.Resources.iamServiceAccountDesc;
 
@@ -203,17 +215,17 @@ const IamServiceAccountDashboard = () => {
    * @description function call all the manage and safe api.
    */
   const fetchData = useCallback(async () => {
-    setStatus({ status: 'loading', message: 'Loading...' });
+    setResponse({ status: 'loading' });
     setListItemDetails({});
     setInputSearchValue('');
     const serviceList = await apiService.getIamServiceAccountList();
     const iamServiceAccounts = await apiService.getIamServiceAccounts();
     const allApiResponse = Promise.all([serviceList, iamServiceAccounts]);
     allApiResponse
-      .then((response) => {
+      .then((result) => {
         const listArray = [];
-        if (response[0] && response[0].data && response[0].data.iamsvcacc) {
-          response[0].data.iamsvcacc.map((item) => {
+        if (result[0] && result[0]?.data?.iamsvcacc) {
+          result[0].data.iamsvcacc.map((item) => {
             const svcName = Object.keys(item)[0].split('_');
             svcName.splice(0, 1);
             const data = {
@@ -225,8 +237,8 @@ const IamServiceAccountDashboard = () => {
             return listArray.push(data);
           });
         }
-        if (response[1] && response[1].data?.keys) {
-          response[1].data.keys.map((svcitem) => {
+        if (result[1] && result[1].data?.keys) {
+          result[1].data.keys.map((svcitem) => {
             if (!listArray.some((list) => list.name === svcitem.userName)) {
               const data = {
                 name: svcitem.userName,
@@ -243,12 +255,10 @@ const IamServiceAccountDashboard = () => {
           type: 'GET_ALL_IAM_SERVICE_ACCOUNT_LIST',
           payload: [...listArray],
         });
-        setStatus({});
-        setGetResponse(1);
+        setResponse({ status: 'success' });
       })
       .catch(() => {
-        setStatus({ status: 'failed', message: 'failed' });
-        setGetResponse(-1);
+        setResponse({ status: 'failed' });
       });
   }, [dispatch]);
 
@@ -257,8 +267,7 @@ const IamServiceAccountDashboard = () => {
    */
   useEffect(() => {
     fetchData().catch(() => {
-      setStatus({ status: 'failed', message: 'failed' });
-      setGetResponse(-1);
+      setResponse({ status: 'failed' });
     });
   }, [fetchData]);
 
@@ -283,8 +292,7 @@ const IamServiceAccountDashboard = () => {
    * @description function to check if mobile screen the make safeClicked true
    * based on that value display left and right side.
    */
-  const onLinkClicked = (item) => {
-    setListItemDetails(item);
+  const onLinkClicked = () => {
     if (isMobileScreen) {
       setIamServiceAccountClicked(true);
     }
@@ -305,11 +313,11 @@ const IamServiceAccountDashboard = () => {
     apiService
       .fetchIamServiceAccountDetails(svcname)
       .then((res) => {
-        setGetResponse(1);
         setSelectedIamServiceAccountDetails(res?.data);
       })
       .catch(() => {
-        setGetResponse(-1);
+        setResponseType(-1);
+        setViewDetails(false);
       });
   };
 
@@ -324,48 +332,17 @@ const IamServiceAccountDashboard = () => {
     }
   };
 
-  // Function to get the secret of the given service account.
-  const getSecrets = useCallback(() => {
-    setStatus({ status: 'secrets-loading' });
-    setAccountSecretError('');
-    setAccountSecretData({});
-    if (isIamSvcAccountActive) {
-      apiService
-        .getIamSvcAccountSecrets(
-          `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`
-        )
-        .then((res) => {
-          setStatus({});
-          if (res?.data) {
-            setAccountSecretData(res.data);
-          }
-          setAccountSecretError('');
-        })
-        .catch((err) => {
-          if (
-            err?.response &&
-            err.response.data?.errors &&
-            err.response.data.errors[0]
-          ) {
-            setAccountSecretError(err.response.data.errors[0]);
-          }
-          setStatus({ status: 'error' });
-        });
-    }
-  }, [listItemDetails, isIamSvcAccountActive]);
-
   // Function to get the metadata of the given service account
   const fetchPermission = useCallback(async () => {
-    setAccountSecretData({});
-    setIsIamSvcAccountActive(listItemDetails.active);
+    setAccountMetaData({ response: {}, error: '' });
     if (listItemDetails?.permission === 'write') {
-      setStatus({ status: 'secrets-loading' });
+      setPermissionResponse({ status: 'loading' });
       try {
         const res = await apiService.fetchIamServiceAccountDetails(
           `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`
         );
         if (res?.data) {
-          setStatus({ status: 'secret-success' });
+          setPermissionResponse({ status: 'success' });
           setAccountMetaData({ response: res.data, error: '' });
           if (
             res.data.owner_ntid.toLowerCase() === state.username.toLowerCase()
@@ -375,11 +352,13 @@ const IamServiceAccountDashboard = () => {
             if (eachUsersDetails !== null) {
               setUserDetails([...eachUsersDetails]);
             }
+          } else {
+            setDisabledPermission(true);
           }
         }
       } catch (err) {
-        setStatus({ status: 'error' });
-        if (err) {
+        setPermissionResponse({ status: 'error' });
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setAccountSecretError(err?.response?.data?.errors[0]);
           setAccountMetaData({ response: {}, error: 'Something went wrong' });
         }
@@ -387,22 +366,52 @@ const IamServiceAccountDashboard = () => {
     }
   }, [listItemDetails, state]);
 
+  // Function to get the secret of the given service account.
+  const getSecrets = useCallback(() => {
+    setAccountSecretError('');
+    if (listItemDetails.active) {
+      setSecretResponse({ status: 'loading' });
+      apiService
+        .getIamSvcAccountSecrets(
+          `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`
+        )
+        .then(async (res) => {
+          setSecretResponse({ status: 'success' });
+          if (res?.data) {
+            setAccountSecretData(res.data);
+          }
+          setAccountSecretError('');
+        })
+        .catch((err) => {
+          if (err?.response?.data?.errors && err.response.data.errors[0]) {
+            setAccountSecretError(err.response.data.errors[0]);
+          }
+          setSecretResponse({ status: 'error' });
+        });
+    }
+  }, [listItemDetails]);
+
   useEffect(() => {
     if (iamServiceAccountList?.length > 0) {
-      iamServiceAccountList.map((item) => {
-        if (
-          history.location.pathname === `/iam-service-accounts/${item.name}`
-        ) {
-          return setListItemDetails(item);
+      const val = location.pathname.split('/');
+      const svcName = val[val.length - 1];
+      const obj = iamServiceAccountList.find((svc) => svc.name === svcName);
+      if (obj) {
+        if (listItemDetails.name !== obj.name) {
+          setListItemDetails({ ...obj });
+          setAccountSecretData({});
         }
-        return null;
-      });
+      } else {
+        setListItemDetails(iamServiceAccountList[0]);
+        history.push(`/iam-service-accounts/${iamServiceAccountList[0].name}`);
+      }
     }
-  }, [iamServiceAccountList, listItemDetails, history]);
+    // eslint-disable-next-line
+  }, [iamServiceAccountList, location, history]);
 
   // toast close handler
   const onToastClose = () => {
-    setStatus({});
+    setResponseType(null);
   };
 
   const renderList = () => {
@@ -413,9 +422,11 @@ const IamServiceAccountDashboard = () => {
           pathname: `/iam-service-accounts/${account.name}`,
           state: { data: account },
         }}
-        onClick={() => onLinkClicked(account)}
+        onClick={() => onLinkClicked()}
         active={
           history.location.pathname === `/iam-service-accounts/${account.name}`
+            ? 'true'
+            : 'false'
         }
       >
         <ListItem
@@ -426,27 +437,24 @@ const IamServiceAccountDashboard = () => {
           listIconStyles={listIconStyles}
         />
         <BorderLine />
-        {account.name && !isMobileScreen && account.permission === 'write' ? (
+        {account.permission === 'write' && !isMobileScreen ? (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <ViewIcon
               onClick={(e) =>
                 onViewClicked(e, `${account.iamAccountId}_${account.name}`)
               }
             >
-              {' '}
               <VisibilityIcon />
             </ViewIcon>
           </PopperWrap>
         ) : null}
-        {isMobileScreen && account.name && account.permission === 'write' && (
+        {isMobileScreen && account.permission === 'write' && (
           <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
-            {' '}
             <ViewIcon
               onClick={(e) =>
                 onViewClicked(e, `${account.iamAccountId}_${account.name}`)
               }
             >
-              {' '}
               <VisibilityIcon />
             </ViewIcon>
           </EditDeletePopperWrap>
@@ -476,27 +484,23 @@ const IamServiceAccountDashboard = () => {
                 />
               </SearchWrap>
             </ColumnHeader>
-            {status.status === 'loading' && (
+            {response.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
-            {getResponse === -1 && (
+            {response === 'failed' && (
               <EmptyContentBox>
-                {' '}
                 <Error description="Error while fetching service accounts!" />
               </EmptyContentBox>
             )}
-
-            {getResponse === 1 && (
+            {response.status === 'success' && (
               <>
                 {iamServiceAccountList && iamServiceAccountList.length > 0 ? (
                   <ListContainer>
                     <ListContent>{renderList()}</ListContent>
                   </ListContainer>
                 ) : (
-                  iamServiceAccountList?.length === 0 &&
-                  getResponse === 1 && (
+                  iamServiceAccountList?.length === 0 && (
                     <>
-                      {' '}
                       {inputSearchValue ? (
                         <NoDataWrapper>
                           No Iam Service Account found with name:
@@ -504,7 +508,6 @@ const IamServiceAccountDashboard = () => {
                         </NoDataWrapper>
                       ) : (
                         <NoDataWrapper>
-                          {' '}
                           <NoListWrap>
                             <NoData
                               imageSrc={NoSafesIcon}
@@ -550,7 +553,8 @@ const IamServiceAccountDashboard = () => {
                         refresh={() => fetchData()}
                         fetchPermission={fetchPermission}
                         getSecrets={getSecrets}
-                        status={status}
+                        secretResponse={secretResponse}
+                        permissionResponse={permissionResponse}
                         accountMetaData={accountMetaData}
                         accountSecretData={accountSecretData}
                         accountSecretError={accountSecretError}
@@ -562,6 +566,7 @@ const IamServiceAccountDashboard = () => {
                   />
                 )}
               />
+
               <Route
                 path="/iam-service-accounts"
                 render={(routerProps) => (
@@ -576,8 +581,9 @@ const IamServiceAccountDashboard = () => {
                         accountDetail={listItemDetails}
                         refresh={() => fetchData()}
                         fetchPermission={fetchPermission}
+                        permissionResponse={permissionResponse}
                         getSecrets={getSecrets}
-                        status={status}
+                        secretResponse={secretResponse}
                         accountMetaData={accountMetaData}
                         accountSecretData={accountSecretData}
                         accountSecretError={accountSecretError}
@@ -591,7 +597,7 @@ const IamServiceAccountDashboard = () => {
               />
             </Switch>
           </RightColumnSection>
-          {(status.status === 'success') === 'failed' && (
+          {responseType === -1 && (
             <SnackbarComponent
               open
               onClose={() => onToastClose()}
@@ -600,7 +606,7 @@ const IamServiceAccountDashboard = () => {
               message="Something went wrong!"
             />
           )}
-          {status.status === 'success' && (
+          {responseType === 1 && (
             <SnackbarComponent
               open
               onClose={() => onToastClose()}

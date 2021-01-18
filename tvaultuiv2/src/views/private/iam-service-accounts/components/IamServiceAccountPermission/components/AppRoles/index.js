@@ -56,10 +56,11 @@ const AppRoles = (props) => {
   const {
     accountDetail,
     accountMetaData,
-    fetchPermission,
+    refresh,
     onNewAppRoleChange,
     newAppRole,
     updateToastMessage,
+    permissionResponse,
   } = props;
 
   const [response, setResponse] = useState({ status: 'loading' });
@@ -71,17 +72,8 @@ const AppRoles = (props) => {
 
   // on iam svc account meta data is available.
   useEffect(() => {
-    if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
-      if (Object.keys(accountMetaData?.response).length !== 0) {
-        setResponse({ status: 'success' });
-      } else if (accountMetaData.error !== '') {
-        setResponse({ status: 'error' });
-      }
-    } else {
-      setResponse({ status: '' });
-    }
-  }, [accountMetaData]);
-
+    setResponse({ status: permissionResponse });
+  }, [permissionResponse]);
   // When add app role button is clicked.
   useEffect(() => {
     if (newAppRole) {
@@ -114,7 +106,7 @@ const AppRoles = (props) => {
         if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -138,7 +130,7 @@ const AppRoles = (props) => {
         if (res?.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -287,9 +279,10 @@ const AppRoles = (props) => {
 AppRoles.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
+  refresh: PropTypes.func.isRequired,
   newAppRole: PropTypes.bool.isRequired,
   onNewAppRoleChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  permissionResponse: PropTypes.string.isRequired,
 };
 export default AppRoles;
