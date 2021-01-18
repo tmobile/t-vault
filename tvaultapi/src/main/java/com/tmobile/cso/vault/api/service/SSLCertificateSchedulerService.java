@@ -61,9 +61,15 @@ public class SSLCertificateSchedulerService {
 
     @Scheduled(cron = "${SSLExternalCertificate.schedule.crontime}")
     public void checkApplicationMetaDataChanges() {
+        ThreadLocalContext.getCurrentMap().put(LogMessage.APIURL, "ssl application change Scheduler");
+        ThreadLocalContext.getCurrentMap().put(LogMessage.USER, "SSLCertificateSchedulerService");
         if (isSSLMetadataRefreshEnabled) {
-            ThreadLocalContext.getCurrentMap().put(LogMessage.APIURL, "ssl application change Scheduler");
-            ThreadLocalContext.getCurrentMap().put(LogMessage.USER, "SSLCertificateSchedulerService");
+            log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                    put(LogMessage.ACTION, TVaultConstants.SCHEDULED_ACTION_APP_METADATA_CHECK).
+                    put(LogMessage.MESSAGE, String.format("Starting Certificate metadata refresh scheduler at [%s]", new Date().toString())).
+                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                    build()));
             String token = tokenUtils.getSelfServiceTokenWithAppRole();
 
             List<TMOAppMetadataDetails> tmoAppMetadataListFromCLM = workloadDetailsService.getAllApplicationDetailsFromCLM();
