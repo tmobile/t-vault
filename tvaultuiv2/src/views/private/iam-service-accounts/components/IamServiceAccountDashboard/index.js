@@ -186,13 +186,12 @@ const IamServiceAccountDashboard = () => {
   ] = useState(null);
   const [viewDetails, setViewDetails] = useState(false);
   const [responseType, setResponseType] = useState(null);
-  const [isIamSvcAccountActive, setIsIamSvcAccountActive] = useState(false);
   const [accountSecretData, setAccountSecretData] = useState({});
   const [permissionResponse, setPermissionResponse] = useState({
     status: 'loading',
   });
   const [secretResponse, setSecretResponse] = useState({
-    status: 'loading',
+    status: '',
   });
   const [accountSecretError, setAccountSecretError] = useState('');
   const [disabledPermission, setDisabledPermission] = useState(true);
@@ -336,7 +335,6 @@ const IamServiceAccountDashboard = () => {
   // Function to get the metadata of the given service account
   const fetchPermission = useCallback(async () => {
     setAccountMetaData({ response: {}, error: '' });
-    setIsIamSvcAccountActive(listItemDetails.active);
     if (listItemDetails?.permission === 'write') {
       setPermissionResponse({ status: 'loading' });
       try {
@@ -360,7 +358,7 @@ const IamServiceAccountDashboard = () => {
         }
       } catch (err) {
         setPermissionResponse({ status: 'error' });
-        if (err) {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setAccountSecretError(err?.response?.data?.errors[0]);
           setAccountMetaData({ response: {}, error: 'Something went wrong' });
         }
@@ -371,7 +369,7 @@ const IamServiceAccountDashboard = () => {
   // Function to get the secret of the given service account.
   const getSecrets = useCallback(() => {
     setAccountSecretError('');
-    if (isIamSvcAccountActive) {
+    if (listItemDetails.active) {
       setSecretResponse({ status: 'loading' });
       apiService
         .getIamSvcAccountSecrets(
@@ -391,7 +389,7 @@ const IamServiceAccountDashboard = () => {
           setSecretResponse({ status: 'error' });
         });
     }
-  }, [listItemDetails, isIamSvcAccountActive]);
+  }, [listItemDetails]);
 
   useEffect(() => {
     if (iamServiceAccountList?.length > 0) {
@@ -555,7 +553,7 @@ const IamServiceAccountDashboard = () => {
                         refresh={() => fetchData()}
                         fetchPermission={fetchPermission}
                         getSecrets={getSecrets}
-                        status={secretResponse}
+                        secretResponse={secretResponse}
                         permissionResponse={permissionResponse}
                         accountMetaData={accountMetaData}
                         accountSecretData={accountSecretData}
@@ -568,6 +566,7 @@ const IamServiceAccountDashboard = () => {
                   />
                 )}
               />
+
               <Route
                 path="/iam-service-accounts"
                 render={(routerProps) => (
@@ -584,7 +583,7 @@ const IamServiceAccountDashboard = () => {
                         fetchPermission={fetchPermission}
                         permissionResponse={permissionResponse}
                         getSecrets={getSecrets}
-                        status={secretResponse}
+                        secretResponse={secretResponse}
                         accountMetaData={accountMetaData}
                         accountSecretData={accountSecretData}
                         accountSecretError={accountSecretError}
