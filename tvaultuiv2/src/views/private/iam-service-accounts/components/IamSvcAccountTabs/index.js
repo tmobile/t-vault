@@ -126,6 +126,11 @@ const AccountSelectionTabs = (props) => {
     }
   }, [disabledPermission]);
 
+  const accountName = accountDetail?.name;
+  useEffect(() => {
+    setValue(0);
+  }, [accountName]);
+
   return (
     <ComponentError>
       <div className={classes.root}>

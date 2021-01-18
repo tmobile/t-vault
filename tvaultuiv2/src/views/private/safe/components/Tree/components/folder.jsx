@@ -126,6 +126,7 @@ const Folder = (props) => {
   };
 
   const handlePopperClick = (e, type) => {
+    getChildNodes(id);
     setInputType(type);
     setIsAddInput(e);
     setIsOpen(e);

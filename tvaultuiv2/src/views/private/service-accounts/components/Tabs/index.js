@@ -101,6 +101,11 @@ const AccountSelectionTabs = (props) => {
     setValue(newValue);
   };
 
+  const accountName = accountDetail?.name;
+  useEffect(() => {
+    setValue(0);
+  }, [accountName]);
+
   // Function to get the secret of the given service account.
   const getSecrets = useCallback(() => {
     setSecretResStatus({ status: 'loading' });

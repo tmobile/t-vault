@@ -135,6 +135,7 @@ const ServiceAccountSecrets = (props) => {
     if (accountSecretData) {
       setSecretsData({ ...accountSecretData });
     }
+    setShowSecret(false);
   }, [accountSecretData]);
 
   /**
@@ -143,6 +144,9 @@ const ServiceAccountSecrets = (props) => {
    */
   const onViewSecretsCliked = () => {
     setShowSecret(!showSecret);
+    if (!showSecret) {
+      setTimeout(() => setShowSecret(false), 5000);
+    }
   };
 
   /**
