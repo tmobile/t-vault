@@ -14,6 +14,7 @@ import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner
 import Strings from '../../../../../../../resources';
 import { checkAccess } from '../../../../../../../services/helper-function';
 import UserPermissionsList from '../../../../../../../components/UserPermissionsList';
+import Error from '../../../../../../../components/Error';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -61,6 +62,7 @@ const Users = (props) => {
     updateToastMessage,
     refresh,
     userDetails,
+    permissionResponse,
   } = props;
 
   const [editUser, setEditUser] = useState('');
@@ -70,14 +72,8 @@ const Users = (props) => {
 
   // on iam svc account meta data is available.
   useEffect(() => {
-    if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
-      if (Object.keys(accountMetaData?.response).length !== 0) {
-        setResponse({ status: 'success' });
-      }
-    } else {
-      setResponse({ status: '' });
-    }
-  }, [accountMetaData]);
+    setResponse({ status: permissionResponse });
+  }, [permissionResponse]);
 
   // When add permission button is clicked.
   useEffect(() => {
@@ -228,7 +224,6 @@ const Users = (props) => {
           <AddUser
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
-            refresh={refresh}
             isIamAzureSvcAccount
           />
         )}
@@ -238,15 +233,14 @@ const Users = (props) => {
             handleCancelClick={onCancelClicked}
             username={editUser}
             access={editAccess}
-            refresh={refresh}
             isIamAzureSvcAccount
           />
         )}
         {response.status === 'success' &&
-          accountMetaData &&
-          accountMetaData.response && (
+          accountMetaData?.response &&
+          Object.keys(accountMetaData?.response).length > 0 && (
             <>
-              {Object.keys(accountMetaData.response?.users).length > 0 &&
+              {Object.keys(accountMetaData?.response?.users).length > 0 &&
                 userDetails?.length > 0 && (
                   <UserPermissionsList
                     list={accountMetaData.response.users}
@@ -256,7 +250,7 @@ const Users = (props) => {
                     userDetails={userDetails}
                   />
                 )}
-              {(!accountMetaData.response.users ||
+              {(!accountMetaData?.response?.users ||
                 userDetails.length === 0 ||
                 Object.keys(accountMetaData.response.users).length === 0) && (
                 <NoDataWrapper>
@@ -280,6 +274,11 @@ const Users = (props) => {
               )}
             </>
           )}
+        {response.status === 'error' && (
+          <Error
+            description={accountMetaData.error || 'Something went wrong!'}
+          />
+        )}
       </>
     </ComponentError>
   );
@@ -293,5 +292,6 @@ Users.propTypes = {
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
   userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
+  permissionResponse: PropTypes.string.isRequired,
 };
 export default Users;
