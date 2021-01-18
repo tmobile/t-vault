@@ -181,7 +181,7 @@ AccountSelectionTabs.propTypes = {
   accountSecretData: PropTypes.objectOf(PropTypes.any),
   accountSecretError: PropTypes.string.isRequired,
   disabledPermission: PropTypes.bool.isRequired,
-  secretResponse: PropTypes.objectOf(PropTypes.any).isRequired,
+  secretResponse: PropTypes.objectOf(PropTypes.any),
   permissionResponse: PropTypes.objectOf(PropTypes.any).isRequired,
   userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
@@ -189,6 +189,7 @@ AccountSelectionTabs.defaultProps = {
   accountDetail: {},
   accountSecretData: {},
   isIamSvcAccountActive: false,
+  secretResponse: {},
 };
 
 export default AccountSelectionTabs;

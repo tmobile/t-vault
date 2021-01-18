@@ -4,7 +4,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import { Link, Route, Switch, useHistory, Redirect } from 'react-router-dom';
+import {
+  Link,
+  Route,
+  Switch,
+  useHistory,
+  Redirect,
+  useLocation,
+} from 'react-router-dom';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import VisibilityIcon from '@material-ui/icons/Visibility';
@@ -97,8 +104,8 @@ const ListFolderWrap = styled(Link)`
   padding: 1.2rem 1.8rem 1.2rem 3.8rem;
   cursor: pointer;
   background-image: ${(props) =>
-    props.active ? props.theme.gradients.list : 'none'};
-  color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
+    props.active === 'true' ? props.theme.gradients.list : 'none'};
+  color: ${(props) => (props.active === 'true' ? '#fff' : '#4a4a4a')};
   ${mediaBreakpoints.belowLarge} {
     padding: 2rem 1.1rem;
   }
@@ -201,6 +208,7 @@ const IamServiceAccountDashboard = () => {
   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
+  const location = useLocation();
 
   const introduction = Strings.Resources.iamServiceAccountDesc;
 
@@ -289,8 +297,7 @@ const IamServiceAccountDashboard = () => {
    * @description function to check if mobile screen the make safeClicked true
    * based on that value display left and right side.
    */
-  const onLinkClicked = (item) => {
-    setListItemDetails(item);
+  const onLinkClicked = () => {
     if (isMobileScreen) {
       setIamServiceAccountClicked(true);
     }
@@ -368,7 +375,6 @@ const IamServiceAccountDashboard = () => {
   // Function to get the secret of the given service account.
   const getSecrets = useCallback(() => {
     setAccountSecretError('');
-    setAccountSecretData({});
     if (isIamSvcAccountActive) {
       setSecretResponse({ status: 'loading' });
       apiService
@@ -393,16 +399,21 @@ const IamServiceAccountDashboard = () => {
 
   useEffect(() => {
     if (iamServiceAccountList?.length > 0) {
-      iamServiceAccountList.map((item) => {
-        if (
-          history.location.pathname === `/iam-service-accounts/${item.name}`
-        ) {
-          return setListItemDetails(item);
+      const val = location.pathname.split('/');
+      const svcName = val[val.length - 1];
+      const obj = iamServiceAccountList.find((svc) => svc.name === svcName);
+      if (obj) {
+        if (listItemDetails.name !== obj.name) {
+          setListItemDetails({ ...obj });
+          setAccountSecretData({});
         }
-        return null;
-      });
+      } else {
+        setListItemDetails(iamServiceAccountList[0]);
+        history.push(`/iam-service-accounts/${iamServiceAccountList[0].name}`);
+      }
     }
-  }, [iamServiceAccountList, listItemDetails, history]);
+    // eslint-disable-next-line
+  }, [iamServiceAccountList, location, history]);
 
   // toast close handler
   const onToastClose = () => {
@@ -417,9 +428,11 @@ const IamServiceAccountDashboard = () => {
           pathname: `/iam-service-accounts/${account.name}`,
           state: { data: account },
         }}
-        onClick={() => onLinkClicked(account)}
+        onClick={() => onLinkClicked()}
         active={
           history.location.pathname === `/iam-service-accounts/${account.name}`
+            ? 'true'
+            : 'false'
         }
       >
         <ListItem

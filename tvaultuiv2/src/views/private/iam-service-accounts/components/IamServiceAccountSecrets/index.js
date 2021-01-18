@@ -492,7 +492,7 @@ const IamServiceAccountSecrets = (props) => {
 
 IamServiceAccountSecrets.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
-  secretResponse: PropTypes.string.isRequired,
+  secretResponse: PropTypes.string,
   accountSecretError: PropTypes.string,
   accountSecretData: PropTypes.objectOf(PropTypes.any),
   getSecrets: PropTypes.func,
@@ -504,6 +504,7 @@ IamServiceAccountSecrets.defaultProps = {
   accountSecretError: 'Something went wrong!',
   accountSecretData: {},
   getSecrets: () => {},
+  secretResponse: '',
 };
 
 export default IamServiceAccountSecrets;
