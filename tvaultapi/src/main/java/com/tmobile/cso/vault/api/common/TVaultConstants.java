@@ -177,4 +177,7 @@ public class TVaultConstants {
     public static final String VERSION_FOLDER_PREFIX = "$_versions_";
     public static final String SCHEDULED_ACTION_APP_METADATA_CHECK = "checkApplicationMetaDataChanges(Scheduler)";
     public static final String TMO_APP_METADATA_PATH = "metadata/tmo-applications";
+    public static final String LAST_PASSWORD = "last_password";
+    public static final String CURRENT_PASSWORD = "current_password";
+    public static final String USERNAME = "username";
 }

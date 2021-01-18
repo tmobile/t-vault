@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.service;
 
 import java.io.*;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -1457,89 +1458,171 @@ public class  ServiceAccountsService {
 								build()));
 						try {
 							ADServiceAccountCreds adServiceAccountCreds = new ADServiceAccountCreds();
-							Map<String, Object> requestParams = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
-							if (requestParams.get("current_password") != null) {
-								adServiceAccountCreds.setCurrent_password((String) requestParams.get("current_password"));
+							Map<String, Object> requestParams = new ObjectMapper().readValue(response.getResponse(),
+									new TypeReference<Map<String, Object>>() {
+									});
+							if (requestParams.get(TVaultConstants.CURRENT_PASSWORD) != null) {
+								adServiceAccountCreds
+										.setCurrent_password((String) requestParams.get(TVaultConstants.CURRENT_PASSWORD));
 							}
-							if (requestParams.get("username") != null) {
-								adServiceAccountCreds.setUsername((String) requestParams.get("username"));
+							if (requestParams.get(TVaultConstants.USERNAME) != null) {
+								adServiceAccountCreds.setUsername((String) requestParams.get(TVaultConstants.USERNAME));
 							}
-							if (requestParams.get("last_password") != null ) {
-								adServiceAccountCreds.setLast_password((String) requestParams.get("last_password"));
+							if (requestParams.get(TVaultConstants.LAST_PASSWORD) != null) {
+								adServiceAccountCreds.setLast_password((String) requestParams.get(TVaultConstants.LAST_PASSWORD));
+							}
+
+							ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+							if (userDetails.getEmail() != null) {
+								adServiceAccountResetDetails.setModifiedBy(userDetails.getEmail());
+							} else {
+								adServiceAccountResetDetails.setModifiedBy(userDetails.getUsername());
+							}
+							Long modifiedAt = new Date().getTime();
+							adServiceAccountResetDetails.setModifiedAt(modifiedAt);
+							adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+
+							// Update metadata for password reset with
+							// modifiedBy and modifiedAt details
+							Response metadataRestResponse = ControllerUtil.updateMetadataOnSvcPwdReset(
+									TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName, adServiceAccountResetDetails,
+									token);
+							if (metadataRestResponse != null
+									&& (HttpStatus.NO_CONTENT.equals(metadataRestResponse.getHttpstatus())
+											|| HttpStatus.OK.equals(metadataRestResponse.getHttpstatus()))) {
+								log.debug(
+										JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+												.put(LogMessage.USER,
+														ThreadLocalContext.getCurrentMap().get(LogMessage.USER)
+																.toString())
+												.put(LogMessage.ACTION, "update metadata on password reset")
+												.put(LogMessage.MESSAGE, "Metadata update Success")
+												.put(LogMessage.APIURL,
+														ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+												.build()));
+							} else {
+								log.debug(
+										JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+												.put(LogMessage.USER,
+														ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+												.put(LogMessage.ACTION, "update metadata on password reset")
+												.put(LogMessage.MESSAGE, "Metadata update Failed")
+												.put(LogMessage.APIURL,
+														ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+												.build()));
 							}
 
 							// Check metadata to get the owner information
-							Response metaDataResponse = getMetadata(token, userDetails, TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName);
-							if (metaDataResponse!=null) {
+							Response metaDataResponse = getMetadata(token, userDetails,
+									TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName);
+							if (metaDataResponse != null) {
 								try {
-									JsonNode metaNode = new ObjectMapper().readTree(metaDataResponse.getResponse()).get("data").get("initialPasswordReset");
+									JsonNode metaNode = new ObjectMapper().readTree(metaDataResponse.getResponse())
+											.get("data").get("initialPasswordReset");
 									if (metaNode != null) {
 										boolean initialResetStatus = false;
 
 										initialResetStatus = Boolean.parseBoolean(metaNode.asText());
 										if (!initialResetStatus) {
 
-											// update metadata for initial password reset
-											String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
-											Map<String,String> params = new HashMap<>();
+											// update metadata for initial
+											// password reset
+											String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH)
+													.append(svcAccName).toString();
+											Map<String, String> params = new HashMap<>();
 											params.put("type", "initialPasswordReset");
-											params.put("path",path);
-											params.put("value","true");
-											Response metadataResponse = ControllerUtil.updateMetadataOnSvcaccPwdReset(params,token);
-											if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
-												log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-														put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-														put(LogMessage.ACTION, "Update metadata on password reset").
-														put(LogMessage.MESSAGE, "Metadata update Success.").
-														put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-														put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-														build()));
-											}
-											else {
-												log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-														put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-														put(LogMessage.ACTION, "Update metadata on password reset").
-														put(LogMessage.MESSAGE, "Metadata update failed.").
-														put(LogMessage.STATUS, metadataResponse!=null?metadataResponse.getHttpstatus().toString():HttpStatus.BAD_REQUEST.toString()).
-														put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-														build()));
+											params.put("path", path);
+											params.put("value", "true");
+											Response metadataResponse = ControllerUtil
+													.updateMetadataOnSvcaccPwdReset(params, token);
+											if (metadataResponse != null && (HttpStatus.NO_CONTENT
+													.equals(metadataResponse.getHttpstatus())
+													|| HttpStatus.OK.equals(metadataResponse.getHttpstatus()))) {
+												log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+														.put(LogMessage.USER,
+																ThreadLocalContext.getCurrentMap().get(LogMessage.USER)
+																		.toString())
+														.put(LogMessage.ACTION, "Update metadata on password reset")
+														.put(LogMessage.MESSAGE, "Metadata update Success.")
+														.put(LogMessage.STATUS,
+																metadataResponse.getHttpstatus().toString())
+														.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap()
+																.get(LogMessage.APIURL).toString())
+														.build()));
+											} else {
+												log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+														.put(LogMessage.USER,
+																ThreadLocalContext.getCurrentMap().get(LogMessage.USER)
+																		.toString())
+														.put(LogMessage.ACTION, "Update metadata on password reset")
+														.put(LogMessage.MESSAGE, "Metadata update failed.")
+														.put(LogMessage.STATUS,
+																metadataResponse != null
+																		? metadataResponse.getHttpstatus().toString()
+																		: HttpStatus.BAD_REQUEST.toString())
+														.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap()
+																.get(LogMessage.APIURL).toString())
+														.build()));
 											}
 
-											metaNode = new ObjectMapper().readTree(metaDataResponse.getResponse()).get("data").get("managedBy");
+											metaNode = new ObjectMapper().readTree(metaDataResponse.getResponse())
+													.get("data").get("managedBy");
 											String svcOwner = metaNode.asText();
-											// Adding read and reset permisison to Service account by default. (At the time of initial password reset)
-											ServiceAccountUser serviceAccountOwner = new ServiceAccountUser(svcAccName, svcOwner, TVaultConstants.RESET_POLICY);
-											ResponseEntity<String> addOwnerWriteToServiceAccountResponse = addUserToServiceAccount(token, serviceAccountOwner, userDetails, false);
-											if (addOwnerWriteToServiceAccountResponse!= null && HttpStatus.NO_CONTENT.equals(addOwnerWriteToServiceAccountResponse.getStatusCode())) {
-												log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-														put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-														put(LogMessage.ACTION, "readSvcAccPassword").
-														put(LogMessage.MESSAGE, "Updated write permission to Service account owner as part of initial reset.").
-														put(LogMessage.STATUS, addOwnerWriteToServiceAccountResponse.getStatusCode().toString()).
-														put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-														build()));
+											// Adding read and reset permisison
+											// to Service account by default.
+											// (At the time of initial password
+											// reset)
+											ServiceAccountUser serviceAccountOwner = new ServiceAccountUser(svcAccName,
+													svcOwner, TVaultConstants.RESET_POLICY);
+											ResponseEntity<String> addOwnerWriteToServiceAccountResponse = addUserToServiceAccount(
+													token, serviceAccountOwner, userDetails, false);
+											if (addOwnerWriteToServiceAccountResponse != null && HttpStatus.NO_CONTENT
+													.equals(addOwnerWriteToServiceAccountResponse.getStatusCode())) {
+												log.debug(
+														JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+																.put(LogMessage.USER,
+																		ThreadLocalContext.getCurrentMap()
+																				.get(LogMessage.USER).toString())
+																.put(LogMessage.ACTION, "readSvcAccPassword")
+																.put(LogMessage.MESSAGE,
+																		"Updated write permission to Service account owner as part of initial reset.")
+																.put(LogMessage.STATUS,
+																		addOwnerWriteToServiceAccountResponse
+																				.getStatusCode().toString())
+																.put(LogMessage.APIURL,
+																		ThreadLocalContext.getCurrentMap()
+																				.get(LogMessage.APIURL).toString())
+																.build()));
 											}
 										}
 
 									}
 								} catch (IOException e) {
-									log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-											put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-											put(LogMessage.ACTION, "resetSvcAccPassword").
-											put(LogMessage.MESSAGE, String.format ("Failed to get metadata for the Service account [%s]", svcAccName)).
-											put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-											build()));
+									log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+											.put(LogMessage.USER,
+													ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+											.put(LogMessage.ACTION, "resetSvcAccPassword")
+											.put(LogMessage.MESSAGE,
+													String.format("Failed to get metadata for the Service account [%s]",
+															svcAccName))
+											.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap()
+													.get(LogMessage.APIURL).toString())
+											.build()));
 								}
+							} else {
+								log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+										.put(LogMessage.USER,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+										.put(LogMessage.ACTION, "resetSvcAccPassword")
+										.put(LogMessage.MESSAGE,
+												String.format("Failed to get metadata for the Service account [%s]",
+														svcAccName))
+										.put(LogMessage.APIURL,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+										.build()));
 							}
-							else {
-								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-										put(LogMessage.ACTION, "resetSvcAccPassword").
-										put(LogMessage.MESSAGE, String.format ("Failed to get metadata for the Service account [%s]", svcAccName)).
-										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-										build()));
-							}
-							return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(adServiceAccountCreds));
+							return ResponseEntity.status(HttpStatus.OK)
+									.body(JSONUtil.getJSON(adServiceAccountResetDetails));
 						}
 						catch(Exception ex) {
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1620,10 +1703,10 @@ public class  ServiceAccountsService {
 		ServiceAccountMetadataDetails metadataDetails = getServiceAccountMetadataDetails(token, userDetails, svcAccName);
 		if (userDetails.getUsername().equalsIgnoreCase(metadataDetails.getManagedBy()) && !metadataDetails.getInitialPasswordReset()) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "readSvcAccPassword").
 					put(LogMessage.MESSAGE, "Failed to read service account password. Initial password reset is pending for this Service Account.").
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to read service account password. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
 		}
@@ -1648,10 +1731,10 @@ public class  ServiceAccountsService {
 		ADServiceAccountCreds adServiceAccountCreds = null;
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "readSvcAccPassword").
 					put(LogMessage.MESSAGE, String.format("Successfully read the password details for the service account [%s]", svcAccName)).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			try {
 				adServiceAccountCreds = new ADServiceAccountCreds();
@@ -1665,7 +1748,19 @@ public class  ServiceAccountsService {
 				if (requestParams.get("last_password") != null ) {
 					adServiceAccountCreds.setLast_password((String) requestParams.get("last_password"));
 				}
-				return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(adServiceAccountCreds));
+				
+				ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+				if (metadataDetails.getModifiedBy() != null) {
+					adServiceAccountResetDetails.setModifiedBy(metadataDetails.getModifiedBy());
+					
+				}
+				if (metadataDetails.getModifiedAt() != null ) {
+					adServiceAccountResetDetails.setModifiedAt(metadataDetails.getModifiedAt());
+					
+				}
+				adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+				
+				return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(adServiceAccountResetDetails));
 			}
 			catch(Exception ex) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -3768,8 +3863,8 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	private ServiceAccountMetadataDetails getServiceAccountMetadataDetails(String token, UserDetails userDetails, String svcAccName) {
-		String _path = TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName;
-		Response metaResponse = getMetadata(token, userDetails, _path);
+		String svcPath = TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName;
+		Response metaResponse = getMetadata(token, userDetails, svcPath);
 		ServiceAccountMetadataDetails serviceAccountMetadataDetails = new ServiceAccountMetadataDetails();
 		if (metaResponse !=null && metaResponse.getHttpstatus().equals(HttpStatus.OK)) {
 			try {
@@ -3801,12 +3896,20 @@ public class  ServiceAccountsService {
 				if (jsonNode != null) {
 					serviceAccountMetadataDetails.setName(jsonNode.asText());
 				}
+				jsonNode = new ObjectMapper().readTree(metaResponse.getResponse()).get("data").get("modifiedBy");
+				if (jsonNode != null) {
+					serviceAccountMetadataDetails.setModifiedBy(jsonNode.asText());
+				}
+				jsonNode = new ObjectMapper().readTree(metaResponse.getResponse()).get("data").get("modifiedAt");
+				if (jsonNode != null) {
+					serviceAccountMetadataDetails.setModifiedAt(jsonNode.asLong());
+				}
 			} catch (IOException e) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, "getServiceAccountMetadataDetails").
 						put(LogMessage.MESSAGE, String.format ("Failed to parse service account metadata [%s]", svcAccName)).
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
 		}
