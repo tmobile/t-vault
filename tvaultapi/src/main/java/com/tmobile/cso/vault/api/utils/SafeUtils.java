@@ -39,7 +39,6 @@ import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.Safe;
 import com.tmobile.cso.vault.api.model.SafeBasicDetails;
-import com.tmobile.cso.vault.api.model.SafeSecretCount;
 import com.tmobile.cso.vault.api.model.SafeUser;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.Response;
