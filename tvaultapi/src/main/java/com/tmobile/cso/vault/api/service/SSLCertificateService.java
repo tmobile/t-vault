@@ -765,6 +765,22 @@ public class SSLCertificateService {
                                 build()));
                     }
 
+                    boolean sslApplicationMetaDataSaveStatus;
+                    //save certificate name into application metadata path
+                    if (userDetails.isAdmin()) {
+                    	sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(sslCertificateRequest, token);
+					} else {
+						sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(sslCertificateRequest,
+								userDetails.getSelfSupportToken());
+					}
+                    
+                    if (sslApplicationMetaDataSaveStatus) {
+                        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                                put(LogMessage.ACTION, String.format("Certificate details added to Application Metadata for SSL certificate name [%s]",
+                                        sslCertificateRequest.getCertificateName())).
+                                build()));
+                    }
 
                     //Send failed certificate response in case of any issues in Policy/Meta data creation
                     if ((!isPoliciesCreated) || (!sslMetaDataCreationStatus)) {
@@ -9894,4 +9910,41 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
         response.setHttpstatus(HttpStatus.UNPROCESSABLE_ENTITY);
         return response;
     }
+	
+	 private boolean certificateMetadataForApplicationDetails(SSLCertificateRequest sslCertificateRequest, String token) {
+			SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
+			String certPath = SSLCertificateConstants.APPLICATION_DETAILS_PATH;
+	    	sslCertificateMetadataDetails.setApplicationName(sslCertificateRequest.getAppName());
+	    	sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
+	    	sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
+	    	sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
+
+	    	SSLCertMetadata sslCertMetadata = new SSLCertMetadata(certPath, sslCertificateMetadataDetails);
+	        String jsonStr = JSONUtil.getJSON(sslCertMetadata);
+	        Map<String, Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+	        rqstParams.put("path", certPath);
+	        String certDataJson = ControllerUtil.convetToJson(rqstParams);
+
+			Response response = reqProcessor.process("/write", certDataJson, token);
+
+			boolean isCertDataUpdated = false;
+
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+		                    put(LogMessage.MESSAGE, "SSL certificate metadata creation success for policy creation").
+		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                    build()));
+				 isCertDataUpdated = true;
+			}else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+						put(LogMessage.MESSAGE, "SSL certificate metadata creation failed for policy creation").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+			return isCertDataUpdated;
+		}
 }
