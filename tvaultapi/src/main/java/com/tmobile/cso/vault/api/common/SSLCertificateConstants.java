@@ -131,4 +131,9 @@ public final class SSLCertificateConstants {
 	public static final String AWS_ROLES = "aws-roles";
 	public static final String COMMON_NAME = "commonname";
 	public static final String ONBOARD_SSL_CERTIFICATE = "onboardSSLcertificate";
+    public static final String REQUEST_STATUS = "requestStatus";
+    public static final String PROCESS_APPROVED_CERTIFICATES ="processApprovedExternalCertificates";
+    public static final String CERTIFICATE_NAME="certificateName";
+    public static final String GET_PENDING_APPROVAL_CERT_PROCESS="getPendApprovalCertsAndProcess";
+    public static final String STATUS_WAITING = "waiting";
 }

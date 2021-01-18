@@ -6056,7 +6056,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
     }
 
 
-    private String getExternalCertReqStatus(SSLCertificateMetadataDetails certificateMetaData) throws Exception {
+    public String getExternalCertReqStatus(SSLCertificateMetadataDetails certificateMetaData) throws Exception {
 	    String status= null;
         String actionRequest = "/certmanager/actionRequestStatus";
         String reqStatusUrl = requestStatusUrl.replace(SSLCertificateConstants.ACTION_ID, String.valueOf(certificateMetaData.getActionId()));

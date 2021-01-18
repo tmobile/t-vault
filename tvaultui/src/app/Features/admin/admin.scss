@@ -476,6 +476,14 @@
     font-weight: normal;
     font-size: x-small;
   }
+    .waiting-cert {
+      background-color: #FFFF00;
+      border-radius: 2px;
+      padding: 4px;
+      color: #000000!important;
+      font-weight: normal;
+      font-size: x-small;
+    }
   
   .revoked-cert {
     background-color: #f0ad4e;
