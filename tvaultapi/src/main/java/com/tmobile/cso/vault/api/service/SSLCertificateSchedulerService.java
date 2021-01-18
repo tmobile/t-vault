@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +39,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@EnableScheduling
 public class SSLCertificateSchedulerService {
 
     @Value("${SSL.metadatarefresh.enable}")
@@ -57,7 +59,7 @@ public class SSLCertificateSchedulerService {
 
     private static Logger log = LogManager.getLogger(SSLCertificateSchedulerService.class);
 
-    @Scheduled(cron = "0 0/30 23 * * *")
+    @Scheduled(cron = "${SSLExternalCertificate.schedule.crontime}")
     public void checkApplicationMetaDataChanges() {
         if (isSSLMetadataRefreshEnabled) {
             ThreadLocalContext.getCurrentMap().put(LogMessage.APIURL, "ssl application change Scheduler");
@@ -283,7 +285,7 @@ public class SSLCertificateSchedulerService {
                     log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                             put(LogMessage.ACTION, "updateOutdatedMetadataForCert").
-                            put(LogMessage.MESSAGE, String.format("Trying to update metadata for certificate [%s]", certificateName)).
+                            put(LogMessage.MESSAGE, String.format("Trying to update metadata for certificate [%s] in application [%s]", certificateName, clmApp.getApplicationName())).
                             put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                             build()));
                     Response response = sslCertificateService.udapteCertMetadataOnAppliationChange(token, certPath, sslCertMetadataResponse.getSslCertificateMetadataDetails());
@@ -291,7 +293,7 @@ public class SSLCertificateSchedulerService {
                         log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                                 put(LogMessage.ACTION, "updateOutdatedMetadataForCert").
-                                put(LogMessage.MESSAGE, String.format("Successfully updated cert metadata with updates from CLM for [%s]", certPath)).
+                                put(LogMessage.MESSAGE, String.format("Successfully updated cert metadata with updates from CLM for [%s] in application [%s]", certPath, clmApp.getApplicationName())).
                                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                                 build()));
                         successfulUpdateCount++;
@@ -309,7 +311,7 @@ public class SSLCertificateSchedulerService {
                     log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                             put(LogMessage.ACTION, "updateOutdatedMetadataForCert").
-                            put(LogMessage.MESSAGE, String.format("Either certificate not found or Certificate metadata update is not required for [%s]", certificateName)).
+                            put(LogMessage.MESSAGE, String.format("Either certificate not found or Certificate metadata update is not required for [%s] for application [%s]", certificateName, clmApp.getApplicationName())).
                             put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                             build()));
                     successfulUpdateCount++;
