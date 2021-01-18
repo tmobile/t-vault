@@ -57,10 +57,11 @@ const AwsApplications = (props) => {
   const {
     accountDetail,
     accountMetaData,
-    fetchPermission,
+    refresh,
     onNewAwsChange,
     newAwsApplication,
     updateToastMessage,
+    permissionResponse,
   } = props;
 
   const [editAws, setEditAws] = useState('');
@@ -71,16 +72,8 @@ const AwsApplications = (props) => {
 
   // on iam svc account meta data is available.
   useEffect(() => {
-    if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
-      if (Object.keys(accountMetaData?.response).length !== 0) {
-        setResponse({ status: 'success' });
-      } else if (accountMetaData.error !== '') {
-        setResponse({ status: 'error' });
-      }
-    } else {
-      setResponse({ status: 'success' });
-    }
-  }, [accountMetaData]);
+    setResponse({ status: permissionResponse });
+  }, [permissionResponse]);
 
   // When add group button is clicked.
   useEffect(() => {
@@ -115,7 +108,7 @@ const AwsApplications = (props) => {
         if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -140,7 +133,7 @@ const AwsApplications = (props) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -308,9 +301,10 @@ const AwsApplications = (props) => {
 AwsApplications.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
+  refresh: PropTypes.func.isRequired,
   newAwsApplication: PropTypes.bool.isRequired,
   onNewAwsChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  permissionResponse: PropTypes.string.isRequired,
 };
 export default AwsApplications;

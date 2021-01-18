@@ -95,7 +95,8 @@ const AccountSelectionTabs = (props) => {
     accountSecretError,
     disabledPermission,
     accountMetaData,
-    status,
+    permissionResponse,
+    secretResponse,
     userDetails,
   } = props;
   const classes = useStyles();
@@ -108,11 +109,22 @@ const AccountSelectionTabs = (props) => {
   useEffect(() => {
     if (accountDetail?.name) {
       fetchPermission();
+    }
+  }, [accountDetail, fetchPermission]);
+
+  useEffect(() => {
+    if (accountDetail?.name) {
       if (isIamSvcAccountActive && accountDetail?.permission !== 'deny') {
         getSecrets();
       }
     }
-  }, [accountDetail, fetchPermission, getSecrets, isIamSvcAccountActive]);
+  }, [accountDetail, getSecrets, isIamSvcAccountActive]);
+
+  useEffect(() => {
+    if (disabledPermission) {
+      setValue(0);
+    }
+  }, [disabledPermission]);
 
   return (
     <ComponentError>
@@ -126,12 +138,8 @@ const AccountSelectionTabs = (props) => {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            {accountDetail?.name && !disabledPermission && (
-              <Tab
-                label="Permissions"
-                {...a11yProps(1)}
-                disabled={disabledPermission}
-              />
+            {!disabledPermission && (
+              <Tab label="Permissions" {...a11yProps(1)} />
             )}
           </Tabs>
         </AppBar>
@@ -144,15 +152,15 @@ const AccountSelectionTabs = (props) => {
               accountSecretError={accountSecretError}
               getSecrets={getSecrets}
               isIamSvcAccountActive={isIamSvcAccountActive}
-              status={status}
+              secretResponse={secretResponse?.status}
+              refresh={refresh}
             />
           </TabPanel>
           <TabPanel value={value} index={1}>
             <IamServiceAccountPermission
               accountDetail={accountDetail}
               accountMetaData={accountMetaData}
-              parentStatus={status?.status}
-              refresh={refresh}
+              permissionResponse={permissionResponse?.status}
               fetchPermission={fetchPermission}
               isIamSvcAccountActive={isIamSvcAccountActive}
               userDetails={userDetails}
@@ -173,7 +181,8 @@ AccountSelectionTabs.propTypes = {
   accountSecretData: PropTypes.objectOf(PropTypes.any),
   accountSecretError: PropTypes.string.isRequired,
   disabledPermission: PropTypes.bool.isRequired,
-  status: PropTypes.objectOf(PropTypes.any).isRequired,
+  secretResponse: PropTypes.objectOf(PropTypes.any).isRequired,
+  permissionResponse: PropTypes.objectOf(PropTypes.any).isRequired,
   userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 AccountSelectionTabs.defaultProps = {

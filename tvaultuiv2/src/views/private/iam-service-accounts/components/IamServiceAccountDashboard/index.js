@@ -181,7 +181,13 @@ const IamServiceAccountDashboard = () => {
   ] = useState(null);
   const [viewDetails, setViewDetails] = useState(false);
   const [isIamSvcAccountActive, setIsIamSvcAccountActive] = useState(false);
-  const [accountSecretData, setAccountSecretData] = useState(null);
+  const [accountSecretData, setAccountSecretData] = useState({});
+  const [permissionResponse, setPermissionResponse] = useState({
+    status: 'loading',
+  });
+  const [secretResponse, setSecretResponse] = useState({
+    status: 'loading',
+  });
   const [accountSecretError, setAccountSecretError] = useState('');
   const [disabledPermission, setDisabledPermission] = useState(true);
   const [accountMetaData, setAccountMetaData] = useState({
@@ -324,48 +330,18 @@ const IamServiceAccountDashboard = () => {
     }
   };
 
-  // Function to get the secret of the given service account.
-  const getSecrets = useCallback(() => {
-    setStatus({ status: 'secrets-loading' });
-    setAccountSecretError('');
-    setAccountSecretData({});
-    if (isIamSvcAccountActive) {
-      apiService
-        .getIamSvcAccountSecrets(
-          `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`
-        )
-        .then((res) => {
-          setStatus({});
-          if (res?.data) {
-            setAccountSecretData(res.data);
-          }
-          setAccountSecretError('');
-        })
-        .catch((err) => {
-          if (
-            err?.response &&
-            err.response.data?.errors &&
-            err.response.data.errors[0]
-          ) {
-            setAccountSecretError(err.response.data.errors[0]);
-          }
-          setStatus({ status: 'error' });
-        });
-    }
-  }, [listItemDetails, isIamSvcAccountActive]);
-
   // Function to get the metadata of the given service account
   const fetchPermission = useCallback(async () => {
-    setAccountSecretData({});
+    setAccountMetaData({ response: {}, error: '' });
     setIsIamSvcAccountActive(listItemDetails.active);
     if (listItemDetails?.permission === 'write') {
-      setStatus({ status: 'secrets-loading' });
+      setPermissionResponse({ status: 'loading' });
       try {
         const res = await apiService.fetchIamServiceAccountDetails(
           `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`
         );
         if (res?.data) {
-          setStatus({ status: 'secret-success' });
+          setPermissionResponse({ status: 'success' });
           setAccountMetaData({ response: res.data, error: '' });
           if (
             res.data.owner_ntid.toLowerCase() === state.username.toLowerCase()
@@ -375,10 +351,12 @@ const IamServiceAccountDashboard = () => {
             if (eachUsersDetails !== null) {
               setUserDetails([...eachUsersDetails]);
             }
+          } else {
+            setDisabledPermission(true);
           }
         }
       } catch (err) {
-        setStatus({ status: 'error' });
+        setPermissionResponse({ status: 'error' });
         if (err) {
           setAccountSecretError(err?.response?.data?.errors[0]);
           setAccountMetaData({ response: {}, error: 'Something went wrong' });
@@ -386,6 +364,32 @@ const IamServiceAccountDashboard = () => {
       }
     }
   }, [listItemDetails, state]);
+
+  // Function to get the secret of the given service account.
+  const getSecrets = useCallback(() => {
+    setAccountSecretError('');
+    setAccountSecretData({});
+    if (isIamSvcAccountActive) {
+      setSecretResponse({ status: 'loading' });
+      apiService
+        .getIamSvcAccountSecrets(
+          `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`
+        )
+        .then(async (res) => {
+          setSecretResponse({ status: 'success' });
+          if (res?.data) {
+            setAccountSecretData(res.data);
+          }
+          setAccountSecretError('');
+        })
+        .catch((err) => {
+          if (err?.response?.data?.errors && err.response.data.errors[0]) {
+            setAccountSecretError(err.response.data.errors[0]);
+          }
+          setSecretResponse({ status: 'error' });
+        });
+    }
+  }, [listItemDetails, isIamSvcAccountActive]);
 
   useEffect(() => {
     if (iamServiceAccountList?.length > 0) {
@@ -426,27 +430,24 @@ const IamServiceAccountDashboard = () => {
           listIconStyles={listIconStyles}
         />
         <BorderLine />
-        {account.name && !isMobileScreen && account.permission === 'write' ? (
+        {account.permission === 'write' && !isMobileScreen ? (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <ViewIcon
               onClick={(e) =>
                 onViewClicked(e, `${account.iamAccountId}_${account.name}`)
               }
             >
-              {' '}
               <VisibilityIcon />
             </ViewIcon>
           </PopperWrap>
         ) : null}
-        {isMobileScreen && account.name && account.permission === 'write' && (
+        {isMobileScreen && account.permission === 'write' && (
           <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
-            {' '}
             <ViewIcon
               onClick={(e) =>
                 onViewClicked(e, `${account.iamAccountId}_${account.name}`)
               }
             >
-              {' '}
               <VisibilityIcon />
             </ViewIcon>
           </EditDeletePopperWrap>
@@ -481,7 +482,6 @@ const IamServiceAccountDashboard = () => {
             )}
             {getResponse === -1 && (
               <EmptyContentBox>
-                {' '}
                 <Error description="Error while fetching service accounts!" />
               </EmptyContentBox>
             )}
@@ -550,7 +550,8 @@ const IamServiceAccountDashboard = () => {
                         refresh={() => fetchData()}
                         fetchPermission={fetchPermission}
                         getSecrets={getSecrets}
-                        status={status}
+                        status={secretResponse}
+                        permissionResponse={permissionResponse}
                         accountMetaData={accountMetaData}
                         accountSecretData={accountSecretData}
                         accountSecretError={accountSecretError}
@@ -576,8 +577,9 @@ const IamServiceAccountDashboard = () => {
                         accountDetail={listItemDetails}
                         refresh={() => fetchData()}
                         fetchPermission={fetchPermission}
+                        permissionResponse={permissionResponse}
                         getSecrets={getSecrets}
-                        status={status}
+                        status={secretResponse}
                         accountMetaData={accountMetaData}
                         accountSecretData={accountSecretData}
                         accountSecretError={accountSecretError}
