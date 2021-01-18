@@ -22,17 +22,17 @@
     /*inject:constant*/
     app.constant('AppConstant', {
         'FORGOT_PASSWORD_LINK': '',
-        'AD_USERS_AUTOCOMPLETE': true,
-        'AD_GROUP_AUTOCOMPLETE': true,
-        'AUTH_TYPE': 'ldap',  /*'userpass' or 'ldap' or 'ldap1900' */
+        'AD_USERS_AUTOCOMPLETE': false,
+        'AD_GROUP_AUTOCOMPLETE': false,
+        'AUTH_TYPE': 'userpass',  /*'userpass' or 'ldap' or 'ldap1900' */
         'DOMAIN_NAME': '@T-Mobile.com',
         'SLACK_LINK' : '',
         'EMAIL_LINK' : '',
         'SIGN_UP_LINK' : '',
         'DOCS_LINK' : '',
         'REPO_LINK' : 'https://github.com/tmobile/t-vault/blob/master/README.md',
-        'OIDC_ROLE' : 'default',
-        'OIDC_REDIRECT_URL' : 'http://localhost:3000',
+        'OIDC_ROLE' : '',
+        'OIDC_REDIRECT_URL' : '',
         'SSL_EXT_CERTIFICATE' : true,
         'VALID_RENEW_DAYS': 50,
         'PAGE_SIZE' : 2
