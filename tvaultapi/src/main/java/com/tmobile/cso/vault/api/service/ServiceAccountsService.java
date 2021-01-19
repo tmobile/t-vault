@@ -1476,7 +1476,11 @@ public class  ServiceAccountsService {
 							if (userDetails.getEmail() != null) {
 								adServiceAccountResetDetails.setModifiedBy(userDetails.getEmail());
 							} else {
-								adServiceAccountResetDetails.setModifiedBy(userDetails.getUsername());
+								if (userDetails.getUsername() != null && userDetails.getUsername().startsWith("aws")) {
+									adServiceAccountResetDetails.setModifiedBy(TVaultConstants.AWS_ROLES);
+								} else {
+									adServiceAccountResetDetails.setModifiedBy(userDetails.getUsername());
+								}
 							}
 							Long modifiedAt = new Date().getTime();
 							adServiceAccountResetDetails.setModifiedAt(modifiedAt);
