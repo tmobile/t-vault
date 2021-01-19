@@ -324,7 +324,7 @@ const SafeDashboard = () => {
       {
         name: 'User Safes',
         count:
-          safeList?.filter(
+          allSafeList?.filter(
             (item) =>
               item?.safeType?.toLowerCase() === 'User Safe'.toLowerCase()
           ).length || 0,
@@ -332,7 +332,7 @@ const SafeDashboard = () => {
       {
         name: 'Shared Safes',
         count:
-          safeList?.filter(
+          allSafeList?.filter(
             (item) =>
               item?.safeType?.toLowerCase() === 'Shared Safe'.toLowerCase()
           ).length || 0,
@@ -340,13 +340,13 @@ const SafeDashboard = () => {
       {
         name: 'Application Safes',
         count:
-          safeList?.filter(
+          allSafeList?.filter(
             (item) =>
               item?.safeType?.toLowerCase() === 'Application Safe'.toLowerCase()
           ).length || 0,
       },
     ]);
-  }, [safeList, safes]);
+  }, [allSafeList, safes, safeList]);
 
   useEffect(() => {
     if (allSafeList.length > 0) {
@@ -374,6 +374,7 @@ const SafeDashboard = () => {
    */
   const onSearchChange = (value) => {
     setInputSearchValue(value);
+    setSafeType('All Safes');
     if (value !== '') {
       const array = allSafeList?.filter((item) => {
         return item?.name?.toLowerCase().includes(value?.toLowerCase().trim());
@@ -391,9 +392,9 @@ const SafeDashboard = () => {
    */
   const onSelectChange = (value) => {
     setSafeType(value);
+    setInputSearchValue('');
     if (value !== 'All Safes') {
       const obj = selectList?.find((item) => item.selected === value);
-
       setSafeList([...safes[obj.path]]);
     } else {
       setSafeList([...allSafeList]);
@@ -618,12 +619,6 @@ const SafeDashboard = () => {
                       <NoResultFound>
                         No safe found with name
                         <div>{inputSearchValue}</div>
-                        {safeType !== 'All Safes' && (
-                          <>
-                            and filter by
-                            <div>{safeType}</div>
-                          </>
-                        )}
                       </NoResultFound>
                     ) : (
                       <NoDataWrapper>

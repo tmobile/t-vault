@@ -159,7 +159,7 @@ const AddAwsApplication = (props) => {
       } else {
         setDisabledSave(false);
       }
-    } else if (roleName?.length < 3 || count > 5) {
+    } else if (roleName?.length < 3 || count > 6) {
       setDisabledSave(true);
     } else {
       setDisabledSave(false);
