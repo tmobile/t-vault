@@ -1200,44 +1200,38 @@ public class AzureServicePrincipalAccountsService {
 		if (!userDetails.isAdmin()) {
 			token = userDetails.getSelfSupportToken();
 		}
-		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
+		String[] currentPolicies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
 
-		policies = filterPoliciesBasedOnPrecedence(Arrays.asList(policies));
+		currentPolicies = filterPoliciesBasedOnPrecedence(Arrays.asList(currentPolicies));
 
 		List<Map<String, String>> azureListUsers = new ArrayList<>();
 		Map<String, List<Map<String, String>>> azureList = new HashMap<>();
-		if (policies != null) {
-			for (String policy : policies) {
+		if (currentPolicies != null) {
+			for (String policy : currentPolicies) {
 				Map<String, String> azurePolicy = new HashMap<>();
-				String[] Policies = policy.split("_", -1);
-				if (Policies.length >= 3) {
-					String[] policyName = Arrays.copyOfRange(Policies, 2, Policies.length);
+				String[] policies = policy.split("_", -1);
+				if (policies.length >= 3) {
+					String[] policyName = Arrays.copyOfRange(policies, 2, policies.length);
 					String azureName = String.join("_", policyName);
-					String azureType = Policies[1];
+					String azureType = policies[1];
 
-					azureListUsers = addAzurePolicy(azurePolicy,azureName,policy,azureType);				
+					if (policy.startsWith("r_")) {
+						azurePolicy.put(azureName, "read");
+					} else if (policy.startsWith("w_")) {
+						azurePolicy.put(azureName, "write");
+					} else if (policy.startsWith("d_")) {
+						azurePolicy.put(azureName, "deny");
+					}
+					if (!azurePolicy.isEmpty()) {
+						if (azureType.equals(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH_PREFIX)) {
+							azureListUsers.add(azurePolicy);
+						}
+					}
 				}
 			}
 			azureList.put(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH_PREFIX, azureListUsers);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(azureList));
-	}
-	
-	private List<Map<String, String>> addAzurePolicy(Map<String, String> azurePolicy,String azureName, String policy, String azureType) {
-		List<Map<String, String>> azureListUsers = new ArrayList<>();
-		if (policy.startsWith("r_")) {
-			azurePolicy.put(azureName, "read");
-		} else if (policy.startsWith("w_")) {
-			azurePolicy.put(azureName, "write");
-		} else if (policy.startsWith("d_")) {
-			azurePolicy.put(azureName, "deny");
-		}
-		if (!azurePolicy.isEmpty()) {
-			if (azureType.equals(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH_PREFIX)) {
-				azureListUsers.add(azurePolicy);
-			}
-		}
-		return azureListUsers;
 	}
 	
 	/**
@@ -3179,10 +3173,11 @@ public class AzureServicePrincipalAccountsService {
 											.put(LogMessage.APIURL,
 													ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 											.build()));
+							Long expiryDurationMs = Long.valueOf(azureSecret.get(AzureServiceAccountConstants.EXPIRY_DURATION).getAsString());
 							// Rotate Azure Service Principal secret for each secret key id in metadata
 							rotationStatus = rotateAzureServicePrincipalSecret(token, servicePrincipalName,
 									secretKeyId, azureServicePrincipalRotateRequest.getServicePrincipalId(),
-									azureServicePrincipalRotateRequest.getTenantId(), azureServicePrincipalRotateRequest.getExpiryDurationMs(), i+1);
+									azureServicePrincipalRotateRequest.getTenantId(), expiryDurationMs, i+1);
 							break;
 						}
 					}
