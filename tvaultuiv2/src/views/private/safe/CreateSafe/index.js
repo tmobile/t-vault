@@ -292,12 +292,13 @@ const CreateModal = (props) => {
 
   const constructPayload = () => {
     let value = safeType.split(' ')[0].toLowerCase();
+    const obj = allApplication.find((item) => applicationName === item.appName);
     if (value === 'application') {
       value = 'apps';
     }
     const data = {
       data: {
-        appName: applicationName,
+        appName: obj.appID,
         name,
         description,
         type: '',
