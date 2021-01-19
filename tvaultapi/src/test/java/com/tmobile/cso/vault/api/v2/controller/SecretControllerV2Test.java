@@ -16,6 +16,7 @@
 // =========================================================================
 package com.tmobile.cso.vault.api.v2.controller;
 
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.main.Application;
 import com.tmobile.cso.vault.api.service.SecretService;
 import org.junit.Before;
@@ -170,8 +171,8 @@ public class SecretControllerV2Test {
                 "}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
 
-        when(secretService.getSecretCount(eq("5PDrOhsy4ig8L3EpsJZSLAMg"))).thenReturn(responseEntityExpected);
-        mockMvc.perform(MockMvcRequestBuilders.get("/v2/safes/count")
+        when(secretService.getSecretCount(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), eq(TVaultConstants.SHARED), eq(0))).thenReturn(responseEntityExpected);
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/safes/count?safeType=shared&offset=0")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk())

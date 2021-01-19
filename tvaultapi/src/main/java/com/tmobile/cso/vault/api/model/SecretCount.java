@@ -18,6 +18,7 @@
 package com.tmobile.cso.vault.api.model;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * 
@@ -29,61 +30,54 @@ public class SecretCount implements Serializable{
 
 	private static final long serialVersionUID = -5213054737388883528L;
 
-	int totalSecrets;
-	SafeSecretCount userSafeSecretCount;
-	SafeSecretCount sharedSafeSecretCount;
-	SafeSecretCount appsSafeSecretCount;
+	int totalSafes;
+	int totalSecretCount;
+	Map<String, Integer> safeSecretCount;
+	int next;
 
 	public SecretCount() {
 		super();
 	}
 
-	public SecretCount(SafeSecretCount userSafeSecretCount, SafeSecretCount sharedSafeSecretCount, SafeSecretCount appsSafeSecretCount, int totalSecrets) {
-		this.userSafeSecretCount = userSafeSecretCount;
-		this.sharedSafeSecretCount = sharedSafeSecretCount;
-		this.appsSafeSecretCount = appsSafeSecretCount;
-		this.totalSecrets = totalSecrets;
+	public int getTotalSecretCount() {
+		return totalSecretCount;
 	}
 
-	public SafeSecretCount getUserSafeSecretCount() {
-		return userSafeSecretCount;
+	public void setTotalSecretCount(int totalSecretCount) {
+		this.totalSecretCount = totalSecretCount;
 	}
 
-	public void setUserSafeSecretCount(SafeSecretCount userSafeSecretCount) {
-		this.userSafeSecretCount = userSafeSecretCount;
+	public Map<String, Integer> getSafeSecretCount() {
+		return safeSecretCount;
 	}
 
-	public SafeSecretCount getSharedSafeSecretCount() {
-		return sharedSafeSecretCount;
+	public void setSafeSecretCount(Map<String, Integer> safeSecretCount) {
+		this.safeSecretCount = safeSecretCount;
 	}
 
-	public void setSharedSafeSecretCount(SafeSecretCount sharedSafeSecretCount) {
-		this.sharedSafeSecretCount = sharedSafeSecretCount;
+	public int getTotalSafes() {
+		return totalSafes;
 	}
 
-	public SafeSecretCount getAppsSafeSecretCount() {
-		return appsSafeSecretCount;
+	public void setTotalSafes(int totalSafes) {
+		this.totalSafes = totalSafes;
 	}
 
-	public void setAppsSafeSecretCount(SafeSecretCount appsSafeSecretCount) {
-		this.appsSafeSecretCount = appsSafeSecretCount;
+	public int getNext() {
+		return next;
 	}
 
-	public int getTotalSecrets() {
-		return totalSecrets;
-	}
-
-	public void setTotalSecrets(int totalSecrets) {
-		this.totalSecrets = totalSecrets;
+	public void setNext(int next) {
+		this.next = next;
 	}
 
 	@Override
 	public String toString() {
 		return "SecretCount{" +
-				"totalSecrets=" + totalSecrets +
-				", userSafeSecretCount=" + userSafeSecretCount +
-				", sharedSafeSecretCount=" + sharedSafeSecretCount +
-				", appsSafeSecretCount=" + appsSafeSecretCount +
+				"safeSecretCount=" + safeSecretCount +
+				", totalSecretCount=" + totalSecretCount +
+				", totalSafes=" + totalSafes +
+				", next=" + next +
 				'}';
 	}
 }
