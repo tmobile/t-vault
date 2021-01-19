@@ -39,7 +39,7 @@ const ButtonWrapper = styled.div`
 `;
 
 const CancelButtonWrap = styled.div`
-  margin-right: 1rem;
+  margin-right: 0.5rem;
   ${mediaBreakpoints.small} {
     width: 100%;
   }

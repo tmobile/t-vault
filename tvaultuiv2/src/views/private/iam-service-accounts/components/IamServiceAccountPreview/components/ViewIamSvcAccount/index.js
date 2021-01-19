@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 import { Typography } from '@material-ui/core';
@@ -8,7 +8,6 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import leftArrowIcon from '../../../../../../../assets/left-arrow.svg';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import CollapsibleDropdown from '../../../../../../../components/CollapsibleDropdown';
-import { useStateValue } from '../../../../../../../contexts/globalState';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -131,9 +130,8 @@ const ViewIamSvcAccountDetails = (props) => {
     isRotateSecret,
     isActivateIamSvcAcc,
     setViewDetails,
+    viewAccountData,
   } = props;
-  const [writePermission, setWritePermission] = useState(false);
-  const [state] = useStateValue();
   const onRotateClicked = () => {
     isRotateSecret(true);
   };
@@ -145,19 +143,6 @@ const ViewIamSvcAccountDetails = (props) => {
   const onCancelViewDetails = (val) => {
     setViewDetails(val);
   };
-  useEffect(() => {
-    if (iamSvcAccountData?.users) {
-      Object.entries(iamSvcAccountData.users).map(([key, value]) => {
-        if (
-          key.toLowerCase() === state.username.toLowerCase() &&
-          value === 'write'
-        ) {
-          return setWritePermission(true);
-        }
-        return null;
-      });
-    }
-  }, [iamSvcAccountData, state]);
 
   return (
     <ComponentError>
@@ -190,7 +175,7 @@ const ViewIamSvcAccountDetails = (props) => {
               <CollapsibleContainer>
                 <InfoLine>
                   <Span>
-                    <strong>Step 1: On-Boarding:</strong>
+                    <strong>Step 1: On-Boarding: </strong>
                   </Span>
                   This step brings the IAM service account into T-Vault so that
                   the secrets can be read or rotated through T-Vault. This is a
@@ -256,8 +241,7 @@ const ViewIamSvcAccountDetails = (props) => {
               width={isMobileScreen ? '100%' : ''}
             />
           </CancelButton>
-
-          {writePermission && (
+          {viewAccountData.permission === 'write' && (
             <CancelButton>
               <ButtonComponent
                 label="Rotate"
@@ -289,6 +273,7 @@ ViewIamSvcAccountDetails.propTypes = {
   isRotateSecret: PropTypes.func,
   isActivateIamSvcAcc: PropTypes.func,
   setViewDetails: PropTypes.func,
+  viewAccountData: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 ViewIamSvcAccountDetails.defaultProps = {
