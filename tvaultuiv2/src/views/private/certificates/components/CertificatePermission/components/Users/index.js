@@ -211,6 +211,7 @@ const Users = (props) => {
         )}
         {response.status === 'add' && (
           <AddUser
+            users={certificateMetaData.users}
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
             refresh={refresh}

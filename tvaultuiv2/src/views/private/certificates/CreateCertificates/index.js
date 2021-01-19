@@ -394,7 +394,13 @@ const CreateCertificates = (props) => {
   const InputValidation = (text) => {
     if (text) {
       const res = /^[A-Za-z0-9.-]*?[a-z0-9]$/i;
-      return res.test(text) && /^[A-z0-9]/.test(text) && /[a-z0-9]$/.test(text);
+      return (
+        res.test(text) &&
+        /^[A-z0-9]/.test(text) &&
+        /[a-z0-9]$/.test(text) &&
+        !/(--)/.test(text) &&
+        !/(\.\.)/.test(text)
+      );
     }
     return null;
   };

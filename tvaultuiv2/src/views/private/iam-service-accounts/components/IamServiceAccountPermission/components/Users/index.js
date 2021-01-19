@@ -222,6 +222,7 @@ const Users = (props) => {
         )}
         {response.status === 'add' && (
           <AddUser
+            users={accountMetaData?.response?.users}
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
             isIamAzureSvcAccount
