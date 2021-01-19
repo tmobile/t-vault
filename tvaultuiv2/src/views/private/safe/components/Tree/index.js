@@ -30,7 +30,7 @@ const StyledTree = styled.div`
   }
 `;
 const Tree = (props) => {
-  const { data, userHavePermission, getSecretDetails } = props;
+  const { data, userHavePermission, getSecretDetails, value } = props;
   const [secretsFolder, setSecretsFolder] = useState([]);
   const [isAddInput, setIsAddInput] = useState(false);
   const [inputType, setInputType] = useState({});
@@ -58,11 +58,15 @@ const Tree = (props) => {
    * @param {*} id id of item to update
    * @param {*} parentId parent id
    * @param {*} type type of action
+   * @param {*} loader if loading to be set
    */
 
-  const getChildrenData = (id, idOfItem, type) => {
+  const getChildrenData = (id, idOfItem, type, loader = true) => {
     const tempFolders = [...secretsFolder] || [];
-    setStatus({ status: 'loading', message: 'loading...' });
+
+    if (loader) {
+      setStatus({ status: 'loading', message: 'loading...' });
+    }
     if (id) {
       apiService
         .getSecret(id)
@@ -316,6 +320,7 @@ const Tree = (props) => {
       <StyledTree>
         <TreeRecursive
           data={(secretsFolder?.length && secretsFolder[0].children) || []}
+          value={value}
           saveSecretsToFolder={saveSecretsToFolder}
           setCreateSecretBox={setCreateSecretBox}
           handleCancelClick={handleCancelClick}
@@ -379,6 +384,7 @@ Tree.propTypes = {
   data: PropTypes.arrayOf(PropTypes.any),
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
   getSecretDetails: PropTypes.func.isRequired,
+  value: PropTypes.number.isRequired,
 };
 
 Tree.defaultProps = {

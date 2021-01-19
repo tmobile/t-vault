@@ -87,10 +87,9 @@ const customStyle = css`
   color: red;
 `;
 
-
-
 const AddUser = (props) => {
   const {
+    users,
     handleCancelClick,
     handleSaveClick,
     username,
@@ -108,6 +107,7 @@ const AddUser = (props) => {
   const [radioArray, setRadioArray] = useState([]);
   const isMobileScreen = useMediaQuery(small);
   const [selectedUser, setSelectedUser] = useState({});
+  const [existingUser, setExistingUser] = useState(false);
 
   useEffect(() => {
     setSearchValue(username);
@@ -223,6 +223,10 @@ const AddUser = (props) => {
     ) {
       setIsValidUserName(false);
     } else {
+      if (Object.keys(users).includes(selectedUser?.userName?.toLowerCase())) {
+        setExistingUser(true);
+        return;
+      }
       setIsValidUserName(true);
       const result = selectedUser?.userName;
       handleSaveClick(result?.toLowerCase(), radioValue);
@@ -269,36 +273,19 @@ const AddUser = (props) => {
                 disabled={!!(access && username)}
                 placeholder="Search by NTID, Email or Name "
                 userInput={searchValue}
-                error={username !== searchValue && !isValidUserName}
+                error={
+                  (username !== searchValue && !isValidUserName) || existingUser
+                }
                 helperText={
                   username !== searchValue && !isValidUserName
                     ? `User ${searchValue} does not exist!`
+                    : existingUser
+                    ? 'Permission already exists!'
                     : ''
                 }
                 onSelected={(e, val) => onSelected(e, val)}
                 onChange={(e) => onSearchChange(e)}
               />
-              {/* <AutoCompleteComponent
-                options={options.map(
-                  (item) =>
-                    `${item?.userEmail?.toLowerCase()}, ${getName(
-                      item?.displayName?.toLowerCase()
-                    )}, ${item?.userName?.toLowerCase()}`
-                )}
-                icon="search"
-                classes={classes}
-                disabled={!!(access && username)}
-                searchValue={searchValue}
-                onSelected={(e, val) => onSelected(e, val)}
-                onChange={(e) => onSearchChange(e)}
-                placeholder="Search by NTID, Email or Name "
-                error={username !== searchValue && !isValidUserName}
-                helperText={
-                  username !== searchValue && !isValidUserName
-                    ? `User ${searchValue} does not exist!`
-                    : ''
-                }
-              /> */}
               <InstructionText>
                 Search the T-Mobile system to add users
               </InstructionText>
@@ -348,6 +335,7 @@ AddUser.propTypes = {
   handleCancelClick: PropTypes.func.isRequired,
   username: PropTypes.string,
   access: PropTypes.string,
+  users: PropTypes.objectOf(PropTypes.any),
   isSvcAccount: PropTypes.bool,
   isCertificate: PropTypes.bool,
   isIamAzureSvcAccount: PropTypes.bool,
@@ -356,6 +344,7 @@ AddUser.propTypes = {
 AddUser.defaultProps = {
   username: '',
   access: 'read',
+  users: {},
   isSvcAccount: false,
   isCertificate: false,
   isIamAzureSvcAccount: false,

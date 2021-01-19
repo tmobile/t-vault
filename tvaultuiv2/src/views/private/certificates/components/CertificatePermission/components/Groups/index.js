@@ -210,6 +210,7 @@ const Groups = (props) => {
         )}
         {response.status === 'add' && (
           <AddGroup
+            groups={certificateMetaData?.groups}
             handleSaveClick={(group, access) => onSubmit(group, access)}
             handleCancelClick={onCancelClicked}
             isCertificate

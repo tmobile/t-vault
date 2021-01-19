@@ -183,6 +183,7 @@ const User = (props) => {
         )}
         {response.status === 'add' && (
           <AddUser
+            users={safeData?.response?.users}
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
           />

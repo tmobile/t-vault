@@ -95,6 +95,7 @@ const AddGroup = (props) => {
   const {
     handleCancelClick,
     handleSaveClick,
+    groups,
     groupname,
     access,
     isSvcAccount,
@@ -109,6 +110,7 @@ const AddGroup = (props) => {
   const [isValidGroupName, setIsValidGroupName] = useState(false);
   const [radioArray, setRadioArray] = useState([]);
   const isMobileScreen = useMediaQuery(small);
+  const [existingGroup, setExistingGroup] = useState(false);
 
   useEffect(() => {
     setSearchValue(groupname);
@@ -129,21 +131,35 @@ const AddGroup = (props) => {
 
   useEffect(() => {
     if (configData.AD_GROUP_AUTOCOMPLETE) {
-      if (groupname) {
-        if (access === radioValue) {
+      if (!Object.keys(groups).includes(searchValue.toLowerCase())) {
+        setExistingGroup(false);
+        if (groupname) {
+          if (access === radioValue) {
+            setDisabledSave(true);
+          } else {
+            setDisabledSave(false);
+          }
+        } else if (!isValidGroupName || searchValue === '') {
           setDisabledSave(true);
         } else {
           setDisabledSave(false);
         }
-      } else if (!isValidGroupName || searchValue === '') {
-        setDisabledSave(true);
       } else {
-        setDisabledSave(false);
+        setExistingGroup(true);
+        setDisabledSave(true);
       }
     } else {
       setDisabledSave(false);
     }
-  }, [searchValue, radioValue, access, groupname, isValidGroupName]);
+  }, [
+    searchValue,
+    existingGroup,
+    groups,
+    radioValue,
+    access,
+    groupname,
+    isValidGroupName,
+  ]);
 
   const callSearchApi = useCallback(
     debounce(
@@ -229,10 +245,15 @@ const AddGroup = (props) => {
                 onSelected={(e, val) => onSelected(e, val)}
                 onChange={(e) => onSearchChange(e)}
                 placeholder="Groupname - Enter min 3 characters"
-                error={groupname !== searchValue && !isValidGroupName}
+                error={
+                  (groupname !== searchValue && !isValidGroupName) ||
+                  existingGroup
+                }
                 helperText={
                   groupname !== searchValue && !isValidGroupName
                     ? `Group name ${searchValue} does not exist!`
+                    : existingGroup
+                    ? 'Permission already exists!'
                     : ''
                 }
               />
@@ -287,12 +308,14 @@ AddGroup.propTypes = {
   access: PropTypes.string,
   isSvcAccount: PropTypes.bool,
   isCertificate: PropTypes.bool,
+  groups: PropTypes.objectOf(PropTypes.any),
   isIamAzureSvcAccount: PropTypes.bool,
 };
 
 AddGroup.defaultProps = {
   groupname: '',
   access: 'read',
+  groups: {},
   isSvcAccount: false,
   isCertificate: false,
   isIamAzureSvcAccount: false,

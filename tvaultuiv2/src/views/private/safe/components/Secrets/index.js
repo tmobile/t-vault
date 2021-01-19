@@ -80,6 +80,7 @@ const Secrets = (props) => {
     setEnableAddFolder,
     userHavePermission,
     safeDetail,
+    value,
     getSecretDetails,
   } = props;
   // resolution handlers
@@ -114,6 +115,7 @@ const Secrets = (props) => {
                   {secretsFolder[0]?.children?.length > 0 ? (
                     <Tree
                       data={secretsFolder}
+                      value={value}
                       getSecretDetails={getSecretDetails}
                       userHavePermission={userHavePermission}
                     />
@@ -188,6 +190,7 @@ Secrets.propTypes = {
   setEnableAddFolder: PropTypes.func,
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
   safeDetail: PropTypes.objectOf(PropTypes.any).isRequired,
+  value: PropTypes.number.isRequired,
   getSecretDetails: PropTypes.func.isRequired,
 };
 Secrets.defaultProps = {
