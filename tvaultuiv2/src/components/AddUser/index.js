@@ -280,7 +280,7 @@ const AddUser = (props) => {
                   username !== searchValue && !isValidUserName
                     ? `User ${searchValue} does not exist!`
                     : existingUser
-                    ? 'Permission already exists! Select edit icon for update'
+                    ? 'Permission already exists!'
                     : ''
                 }
                 onSelected={(e, val) => onSelected(e, val)}
