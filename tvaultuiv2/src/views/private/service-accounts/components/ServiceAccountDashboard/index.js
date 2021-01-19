@@ -103,8 +103,8 @@ const ListFolderWrap = styled(Link)`
   padding: 1.2rem 1.8rem 1.2rem 3.8rem;
   cursor: pointer;
   background-image: ${(props) =>
-    props.active ? props.theme.gradients.list : 'none'};
-  color: ${(props) => (props.active ? '#fff' : '#4a4a4a')};
+    props.active === 'true' ? props.theme.gradients.list : 'none'};
+  color: ${(props) => (props.active === 'true' ? '#fff' : '#4a4a4a')};
   ${mediaBreakpoints.belowLarge} {
     padding: 2rem 1.1rem;
   }
@@ -509,6 +509,8 @@ const ServiceAccountDashboard = () => {
         onClick={() => onLinkClicked(account)}
         active={
           history.location.pathname === `/service-accounts/${account.name}`
+            ? 'true'
+            : 'false'
         }
       >
         <ListItem

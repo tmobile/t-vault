@@ -98,7 +98,8 @@ TextFieldComponent.propTypes = {
   placeholder: PropTypes.string.isRequired,
   onChange: PropTypes.func,
   onInputBlur: PropTypes.func,
-  value: PropTypes.string,
+  // eslint-disable-next-line react/forbid-prop-types
+  value: PropTypes.any.isRequired,
   multiline: PropTypes.bool,
   fullWidth: PropTypes.bool,
   color: PropTypes.string,
@@ -115,7 +116,6 @@ TextFieldComponent.propTypes = {
 
 TextFieldComponent.defaultProps = {
   icon: '',
-  value: '',
   name: '',
   multiline: false,
   fullWidth: false,
