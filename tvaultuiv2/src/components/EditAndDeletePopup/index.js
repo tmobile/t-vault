@@ -54,9 +54,11 @@ const PsudoPopper = (props) => {
             <SyncAltIcon style={{ fill: '#fff' }} />
           </TransferOwnerWrap>
         )}
-        <Icon onClick={onEditListItemClicked}>
-          <IconEdit />
-        </Icon>
+        {admin && (
+          <Icon onClick={onEditListItemClicked}>
+            <IconEdit />
+          </Icon>
+        )}
         {admin && (
           <Icon onClick={onDeletListItemClicked}>
             <IconDeleteActive />

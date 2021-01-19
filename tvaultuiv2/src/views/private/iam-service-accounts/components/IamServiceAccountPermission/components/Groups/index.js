@@ -56,9 +56,10 @@ const Groups = (props) => {
   const {
     accountDetail,
     accountMetaData,
-    fetchPermission,
+    refresh,
     onNewGroupChange,
     newGroup,
+    permissionResponse,
     updateToastMessage,
   } = props;
 
@@ -70,19 +71,8 @@ const Groups = (props) => {
 
   // on iam svc account meta data is available.
   useEffect(() => {
-    if (
-      accountMetaData?.response &&
-      Object.keys(accountMetaData.response).length !== 0
-    ) {
-      if (Object.keys(accountMetaData?.response).length !== 0) {
-        setResponse({ status: 'success' });
-      } else if (accountMetaData.error !== '') {
-        setResponse({ status: 'error' });
-      }
-    } else {
-      setResponse({ status: '' });
-    }
-  }, [accountMetaData]);
+    setResponse({ status: permissionResponse });
+  }, [permissionResponse]);
 
   // When add group button is clicked.
   useEffect(() => {
@@ -111,7 +101,7 @@ const Groups = (props) => {
         if (res?.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -135,7 +125,7 @@ const Groups = (props) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -292,9 +282,10 @@ const Groups = (props) => {
 Groups.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
+  refresh: PropTypes.func.isRequired,
   newGroup: PropTypes.bool.isRequired,
   onNewGroupChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  permissionResponse: PropTypes.string.isRequired,
 };
 export default Groups;

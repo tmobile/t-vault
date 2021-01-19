@@ -231,6 +231,11 @@ const SelectionTabs = (props) => {
     }
   }, [safeDetail, fetchPermission, getSecretDetails]);
 
+  const safePath = safeDetail?.path;
+  useEffect(() => {
+    setValue(0);
+  }, [safePath]);
+
   return (
     <ComponentError>
       <div className={classes.root}>

@@ -252,6 +252,12 @@ const CertificateSelectionTabs = (props) => {
     }
   }, [certificateMetaData, state]);
 
+  const certName = certificateDetail?.certificateName;
+
+  useEffect(() => {
+    setValue(0);
+  }, [certName]);
+
   const onDownloadChange = (status, val) => {
     setResponse({ status });
     setToastResponse(val);

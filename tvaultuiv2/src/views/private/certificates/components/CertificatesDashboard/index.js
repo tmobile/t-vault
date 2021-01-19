@@ -410,10 +410,10 @@ const CertificatesDashboard = () => {
   }, [fetchAdminData, fetchNonAdminData, admin]);
 
   useEffect(() => {
-    const internalArray = certificateList?.filter(
+    const internalArray = allCertList?.filter(
       (item) => item?.certType === 'internal' && !item.isOnboardCert
     );
-    const externalArray = certificateList?.filter(
+    const externalArray = allCertList?.filter(
       (item) => item?.certType === 'external' && !item.isOnboardCert
     );
     const array = [
@@ -422,16 +422,14 @@ const CertificatesDashboard = () => {
       { name: 'External Certificates', count: externalArray?.length || 0 },
     ];
     if (admin) {
-      const onboardArray = certificateList?.filter(
-        (item) => item.isOnboardCert
-      );
+      const onboardArray = allCertList?.filter((item) => item.isOnboardCert);
       array.push({
         name: 'Onboard Certificates',
         count: onboardArray?.length || 0,
       });
     }
     setMenu([...array]);
-  }, [certificateList, admin]);
+  }, [certificateList, admin, allCertList]);
 
   /**
    * @function onLinkClicked
@@ -485,6 +483,7 @@ const CertificatesDashboard = () => {
    */
   const onSelectChange = (value) => {
     setCertificateType(value);
+    setInputSearchValue('');
     if (value !== 'All Certificates' && value !== 'Onboard Certificates') {
       const filterArray = allCertList.filter(
         (cert) =>
@@ -508,6 +507,7 @@ const CertificatesDashboard = () => {
    */
   const onSearchChange = (value) => {
     if (value !== '') {
+      setCertificateType('All Certificates');
       const searchArray = allCertList.filter((item) =>
         item?.certificateName
           ?.toLowerCase()
@@ -525,6 +525,7 @@ const CertificatesDashboard = () => {
       const array = certificateList.filter((cert) =>
         cert?.certificateName?.includes(inputSearchValue?.toLowerCase().trim())
       );
+      setCertificateType('All Certificates');
       setCertificateList([...array]);
     } else if (certificateType === 'All Certificates' && inputSearchValue) {
       onSearchChange(inputSearchValue);
@@ -815,13 +816,6 @@ const CertificatesDashboard = () => {
                         <SearchFilterNotAvailable>
                           No certificate found with name
                           <span>{inputSearchValue}</span>
-                          {certificateType !== 'All Certificates' && (
-                            <>
-                              and filter by
-                              <span>{certificateType}</span>
-                            </>
-                          )}
-                          {' . '}
                         </SearchFilterNotAvailable>
                       </NoDataWrapper>
                     ) : (
