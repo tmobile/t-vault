@@ -406,62 +406,66 @@ const IamServiceAccountSecrets = (props) => {
             )}
           </>
         )}
-        {response.status === 'success' && Object.keys(secretsData).length > 0 && (
-          <UserList>
-            <Icon src={lock} alt="lock" />
-            <Span>{secretsData.accessKeyId}</Span>
-            <Secret type="password" viewSecret={showSecret}>
-              {secretsData.accessKeySecret}
-            </Secret>
-            <span className="expirationDate">
-              <div>Expires: </div>
-              {formatDate(secretsData.expiryDate)}
-            </span>
-            <FolderIconWrap>
-              <PopperElement
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-              >
-                <PopperItem onClick={() => onViewSecretsCliked()}>
-                  {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  <span>
-                    {showSecret ? 'Hide Secret key' : 'View Secret key'}
-                  </span>
-                </PopperItem>
-                {accountDetail.permission === 'write' && (
-                  <PopperItem onClick={() => onRotateClicked()}>
-                    <img alt="refersh-ic" src={refreshIcon} />
-                    <span>Rotate Secret</span>
-                  </PopperItem>
-                )}
-                <CopyToClipboard
-                  text={secretsData.accessKeySecret}
-                  onCopy={() => onCopyClicked()}
+        {response.status === 'success' &&
+          Object.keys(secretsData).length > 0 &&
+          accountDetail.name && (
+            <UserList>
+              <Icon src={lock} alt="lock" />
+              <Span>{secretsData.accessKeyId}</Span>
+              <Secret type="password" viewSecret={showSecret}>
+                {secretsData.accessKeySecret}
+              </Secret>
+              <span className="expirationDate">
+                <div>Expires: </div>
+                {formatDate(secretsData.expiryDate)}
+              </span>
+              <FolderIconWrap>
+                <PopperElement
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
                 >
-                  <PopperItem>
-                    <FileCopyIcon />
-                    <span>Copy Secret Key</span>
+                  <PopperItem onClick={() => onViewSecretsCliked()}>
+                    {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    <span>
+                      {showSecret ? 'Hide Secret key' : 'View Secret key'}
+                    </span>
                   </PopperItem>
-                </CopyToClipboard>
-                <CopyToClipboard
-                  text={secretsData.accessKeyId}
-                  onCopy={() => onCopyClicked('Copied Access Id To Clipboard!')}
-                >
-                  <PopperItem>
-                    <FileCopyIcon />
-                    <span>Copy Access Key</span>
-                  </PopperItem>
-                </CopyToClipboard>
-              </PopperElement>
-            </FolderIconWrap>
-          </UserList>
-        )}
+                  {accountDetail.permission === 'write' && (
+                    <PopperItem onClick={() => onRotateClicked()}>
+                      <img alt="refersh-ic" src={refreshIcon} />
+                      <span>Rotate Secret</span>
+                    </PopperItem>
+                  )}
+                  <CopyToClipboard
+                    text={secretsData.accessKeySecret}
+                    onCopy={() => onCopyClicked()}
+                  >
+                    <PopperItem>
+                      <FileCopyIcon />
+                      <span>Copy Secret Key</span>
+                    </PopperItem>
+                  </CopyToClipboard>
+                  <CopyToClipboard
+                    text={secretsData.accessKeyId}
+                    onCopy={() =>
+                      onCopyClicked('Copied Access Id To Clipboard!')
+                    }
+                  >
+                    <PopperItem>
+                      <FileCopyIcon />
+                      <span>Copy Access Key</span>
+                    </PopperItem>
+                  </CopyToClipboard>
+                </PopperElement>
+              </FolderIconWrap>
+            </UserList>
+          )}
         {response.status === 'error' && (
           <Error
             description={

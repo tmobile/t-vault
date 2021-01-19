@@ -65,6 +65,7 @@ const ViewIamServiceAccount = (props) => {
     setViewDetails,
     getSecrets,
     getSvcAccDetails,
+    viewAccountData,
   } = props;
   const classes = useStyles();
   const [open] = useState(true);
@@ -169,7 +170,7 @@ const ViewIamServiceAccount = (props) => {
         if (res?.data) {
           setStatus({ status: 'success', message: res.data.messages[0] });
         }
-        await getSecrets();
+        setViewDetails(false);
         await refresh();
       })
       .catch((err) => {
@@ -239,6 +240,7 @@ const ViewIamServiceAccount = (props) => {
                     isRotateSecret={rotateSecret}
                     isActivateIamSvcAcc={isActivateIamSvcAcc}
                     setViewDetails={setViewDetails}
+                    viewAccountData={viewAccountData}
                   />
                 )}
               </Fade>
@@ -282,6 +284,7 @@ ViewIamServiceAccount.propTypes = {
   iamServiceAccountDetails: PropTypes.objectOf(PropTypes.any),
   getSecrets: PropTypes.func.isRequired,
   getSvcAccDetails: PropTypes.func.isRequired,
+  viewAccountData: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 ViewIamServiceAccount.defaultProps = {
