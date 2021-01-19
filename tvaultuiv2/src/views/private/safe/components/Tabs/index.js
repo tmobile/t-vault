@@ -273,6 +273,7 @@ const SelectionTabs = (props) => {
             )}
             <Secrets
               secretsFolder={secretsFolder}
+              value={value}
               secretsStatus={response}
               safeDetail={safeDetail}
               userHavePermission={userHavePermission}

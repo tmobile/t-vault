@@ -22,6 +22,7 @@ const SecretsError = styled.div`
 const TreeRecursive = (props) => {
   const {
     data,
+    value,
     saveSecretsToFolder,
     saveFolder,
     handleCancelClick,
@@ -81,6 +82,7 @@ const TreeRecursive = (props) => {
         <Folder
           folderInfo={item}
           setInputType={setInputType}
+          value={value}
           setIsAddInput={setIsAddInput}
           getChildNodes={getChildrenData}
           setCurrentNode={setCurrentNode}

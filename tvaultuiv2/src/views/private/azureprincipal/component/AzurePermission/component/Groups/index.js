@@ -213,6 +213,7 @@ const Groups = (props) => {
         )}
         {response.status === 'add' && (
           <AddGroup
+            groups={azureMetaData?.groups}
             handleSaveClick={(group, access) => onSubmit(group, access)}
             handleCancelClick={onCancelClicked}
             isIamAzureSvcAccount

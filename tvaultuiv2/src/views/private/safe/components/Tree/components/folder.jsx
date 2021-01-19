@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 
@@ -107,6 +107,7 @@ const Folder = (props) => {
   const {
     folderInfo,
     children,
+    value,
     setInputType,
     setIsAddInput,
     getChildNodes,
@@ -115,6 +116,7 @@ const Folder = (props) => {
     setCurrentNode,
     userHavePermission,
   } = props;
+
   const [isOpen, setIsOpen] = useState(false);
   const [activeSecrets, setActiveSecrets] = useState([]);
 
@@ -125,8 +127,10 @@ const Folder = (props) => {
     if (!isOpen) getChildNodes(id);
   };
 
+  useEffect(() => setIsOpen(false), [value]);
+
   const handlePopperClick = (e, type) => {
-    getChildNodes(id);
+    getChildNodes(id, undefined, undefined, false);
     setInputType(type);
     setIsAddInput(e);
     setIsOpen(e);
@@ -234,6 +238,7 @@ Folder.propTypes = {
   setCurrentNode: PropTypes.func,
   id: PropTypes.string,
   onDeleteTreeItem: PropTypes.func,
+  value: PropTypes.number.isRequired,
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 Folder.defaultProps = {
