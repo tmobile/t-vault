@@ -238,7 +238,6 @@ const useStylesBootstrap = makeStyles((theme) => ({
 // Render component goes here
 const OnBoardForm = (props) => {
   const { refresh } = props;
-  const [timeError, setTimeError] = useState(null);
   const [svcPasswordDetails, setSvcPasswordDetails] = useState(null);
   const [isAppNameFetchig, setIsAppNameFetching] = useState(false);
   const [isServiceFetching, setIsServiceFetching] = useState(false);
@@ -558,21 +557,13 @@ const OnBoardForm = (props) => {
     onChange(e);
   };
   const onApplicationNameChange = (e) => {
-    // fetchAppRoles();
     onChange(e);
   };
-  /**
-   *@function validateTime
-   * @param {string} value value of input time in seconds
-   */
-  const validateTime = (value) => {
-    setTimeError(value.match(/^[a-zA-Z]*$/g));
-  };
+
   const onExpiryTimeChange = (e) => {
-    setTimeError(null);
-    validateTime(e.target.value);
     onChange(e);
   };
+
   useEffect(() => {
     if (
       history?.location?.pathname ===
@@ -589,6 +580,13 @@ const OnBoardForm = (props) => {
 
   const handleSwitch = (e) => {
     setIsSwitchOn(e.target.checked);
+    if (!e.target.checked) {
+      dispatch({
+        type: 'INPUT_FORM_FIELDS',
+        field: 'inputExpiryTime',
+        value: '',
+      });
+    }
   };
   const handleCancelClick = () => {
     handleClose();
@@ -599,15 +597,23 @@ const OnBoardForm = (props) => {
     if (!isSwitchOn) {
       if (history?.location?.pathname.includes('/edit-service-accounts')) {
         setOnboardUpdateConfirmationMsg(
-          Strings.Resources.svcNotEnableUpdateMsg
+          `The password for this service account will expire in ${
+            serviceAccountDetails?.maxPwdAge === 7776000 ? '90 ' : '365 '
+          } ${Strings.Resources.svcNotEnableUpdateMsg}`
         );
       } else {
         setOnboardUpdateConfirmationMsg(
-          Strings.Resources.svcNotEnableOnboardMsg
+          `The password for this service account will expire in ${
+            serviceAccountDetails?.maxPwdAge === 7776000 ? '90 ' : '365 '
+          }
+         ${Strings.Resources.svcNotEnableOnboardMsg}`
         );
       }
     } else if (!inputExpiryTime) {
-      setOnboardUpdateConfirmationMsg(Strings.Resources.svcPwdEnableNoValueMsg);
+      setOnboardUpdateConfirmationMsg(`The password for this service account will expire in ${
+        serviceAccountDetails?.maxPwdAge === 7776000 ? '90 ' : '365 '
+      }
+     ${Strings.Resources.svcPwdEnableNoValueMsg}`);
     } else {
       setOnboardUpdateConfirmationMsg(
         `The password for this service account will expire in ${inputExpiryTime} ${Strings.Resources.svcPwdEnableWithValueMsg}`
@@ -666,7 +672,6 @@ const OnBoardForm = (props) => {
 
   const getDisabledStatus = () => {
     return (
-      timeError ||
       !inputServiceName ||
       !inputApplicationName ||
       serviceAccountDetails?.accountStatus?.toLowerCase() === 'expired'
@@ -740,7 +745,7 @@ const OnBoardForm = (props) => {
           description={
             // eslint-disable-next-line no-nested-ternary
             svcPasswordDetails
-              ? `<p>Service account <strong>${svcPasswordDetails?.username}</strong> has been activated successfully!</br></br>
+              ? `<p>Service account has been activated successfully!</br></br>
                Please click "Copy Password" button to copy the password and update the dependent services. You may also want to assign permissions for other users or groups to view or modify this service account. Please do so by visiting the "Permission" tab on the right screen.</p>`
               : history?.location?.pathname.includes('/edit-service-accounts')
               ? 'Password rotation configuration for the service account has been updated successfully.'
@@ -971,7 +976,6 @@ const OnBoardForm = (props) => {
                     >
                       <InputLabel>Password Expiration Time</InputLabel>
                     </Tooltip>
-
                     <TextFieldComponent
                       placeholder={
                         serviceAccountDetails?.maxPwdAge === 7776000
@@ -982,14 +986,10 @@ const OnBoardForm = (props) => {
                       name="inputExpiryTime"
                       readOnly={!isSwitchOn}
                       fullWidth
+                      type="number"
                       onChange={(val, e) => onExpiryTimeChange(val, e)}
                       value={inputExpiryTime || ''}
-                      error={timeError}
-                      helperText={
-                        timeError
-                          ? 'Please enter valid expiry time in seconds'
-                          : 'Enter your custom password expiration time here. Once the expiration time has passed, the password will be rotated the next time it is requested.'
-                      }
+                      helperText="Enter your custom password expiration time here. Once the expiration time has passed, the password will be rotated the next time it is requested."
                     />
                   </InputFieldLabelWrapper>
                 </ToggleWrap>

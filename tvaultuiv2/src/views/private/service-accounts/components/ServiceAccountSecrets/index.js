@@ -122,7 +122,6 @@ const ServiceAccountSecrets = (props) => {
   const handleClose = () => {
     setOpenConfirmationModal(false);
   };
-
   /**
    * @description function to get the secret once the component loads.
    */
@@ -235,7 +234,9 @@ const ServiceAccountSecrets = (props) => {
             <Icon src={lock} alt="lock" />
 
             <Secret type="password" viewSecret={showSecret}>
-              {secretsData.current_password}
+              {secretsData.adServiceAccountCreds?.current_password
+                ? secretsData.adServiceAccountCreds?.current_password
+                : 'Secret not available!'}
             </Secret>
 
             <FolderIconWrap>
