@@ -19,7 +19,7 @@ import leftArrowIcon from '../../../../assets/left-arrow.svg';
 import mediaBreakpoints from '../../../../breakpoints';
 import SnackbarComponent from '../../../../components/Snackbar';
 import { useStateValue } from '../../../../contexts/globalState';
-import LoaderSpinner from '../../../../components/Loaders/LoaderSpinner';
+import BackdropLoader from '../../../../components/Loaders/BackdropLoader';
 import apiService from '../apiService';
 import {
   GlobalModalWrapper,
@@ -100,15 +100,6 @@ const CancelButton = styled.div`
     margin-right: 1rem;
     width: 100%;
   }
-`;
-
-const loaderStyle = css`
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  color: red;
-  z-index: 1;
 `;
 
 const InputLabelWrap = styled.div`
@@ -472,7 +463,7 @@ const CreateAppRole = (props) => {
       >
         <Fade in={open}>
           <GlobalModalWrapper>
-            {responseType === 0 && <LoaderSpinner customStyle={loaderStyle} />}
+            {responseType === 0 && <BackdropLoader />}
             <HeaderWrapper>
               <LeftIcon
                 src={leftArrowIcon}
