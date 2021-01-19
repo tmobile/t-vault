@@ -768,9 +768,9 @@ public class SSLCertificateService {
                     boolean sslApplicationMetaDataSaveStatus;
                     //save certificate name into application metadata path
                     if (userDetails.isAdmin()) {
-                    	sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(sslCertificateRequest, token);
+                    	sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(metadataJson, token);
 					} else {
-						sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(sslCertificateRequest,
+						sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(metadataJson,
 								userDetails.getSelfSupportToken());
 					}
                     
@@ -9911,13 +9911,14 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
         return response;
     }
 	
-	 private boolean certificateMetadataForApplicationDetails(SSLCertificateRequest sslCertificateRequest, String token) {
-			SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
+	 private boolean certificateMetadataForApplicationDetails(String sslCertificateJson, String token) {
+		 TMOAppMetadataDetails tmoAppMetadataDetails = new TMOAppMetadataDetails();
+		 SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
 			String certPath = SSLCertificateConstants.APPLICATION_DETAILS_PATH;
-	    	sslCertificateMetadataDetails.setApplicationName(sslCertificateRequest.getAppName());
-	    	sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
-	    	sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
-	    	sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
+//			tmoAppMetadataDetails.setApplicationName(sslCertificateRequest.getAppName());
+//			tmoAppMetadataDetails.setApplicationOwnerEmailId(sslCertificateRequest.getAppName()());
+//			tmoAppMetadataDetails.setCertType(sslCertificateRequest.getCertType());
+//			tmoAppMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
 
 	    	SSLCertMetadata sslCertMetadata = new SSLCertMetadata(certPath, sslCertificateMetadataDetails);
 	        String jsonStr = JSONUtil.getJSON(sslCertMetadata);
