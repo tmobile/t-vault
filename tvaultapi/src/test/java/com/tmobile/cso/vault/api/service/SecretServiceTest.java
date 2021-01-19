@@ -440,6 +440,9 @@ public class SecretServiceTest {
 
     @Test
     public void test_getSecretCount_successfully() {
+        ReflectionTestUtils.setField(secretService, "safeListLimit", 50);
+
+
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String responsejson = "{\"id\":\"5PDrOhsy4ig8L3EpsJZSLAMg\",\"policies\":[\"root\"]}";
         ReflectionTestUtils.setField(secretService, "safeVersionFolderPrefix", "$_versions_");
@@ -484,88 +487,15 @@ public class SecretServiceTest {
         folders.add(folder1);
         userSafeNode.setChildren(folders);
 
-        when(ControllerUtil.recursiveReadForCount(eq("{\"path\":\""+TVaultConstants.USERS+"\"}"),eq(token),Mockito.any(), Mockito.any(), eq(TVaultConstants.SAFE))).thenReturn(userSafeNode);
-
-        SafeNode sharedSafeNode = new SafeNode();
-        sharedSafeNode.setId(TVaultConstants.SHARED);
-        sharedSafeNode.setType(TVaultConstants.SAFE);
-
-        SafeNode sharedSafe = new SafeNode();
-        sharedSafe.setId(TVaultConstants.SHARED + "/safe1");
-        sharedSafe.setValue(TVaultConstants.SHARED + "/safe1");
-        sharedSafe.setType(TVaultConstants.FOLDER);
-
-        SafeNode sharedFolder = new SafeNode();
-        sharedFolder.setId(TVaultConstants.SHARED + "/safe1/folder1");
-        sharedFolder.setValue(TVaultConstants.SHARED + "/safe1/folder1");
-        sharedFolder.setType(TVaultConstants.FOLDER);
-        sharedFolder.setParentId(TVaultConstants.SHARED + "/folder1");
-
-        SafeNode sharedSecret = new SafeNode();
-        sharedSecret.setId(TVaultConstants.SHARED + "/safe1/folder1/secret1");
-        sharedSecret.setValue("{\"data\":{\"123\":\"222\"}}");
-        sharedSecret.setType(TVaultConstants.SECRET);
-        sharedSecret.setParentId(TVaultConstants.SHARED + "/safe1/folder1");
-
-        List<SafeNode> sharedSecrets = new ArrayList<>();
-        sharedSecrets.add(sharedSecret);
-        sharedSafe.setChildren(sharedSecrets);
-
-        List<SafeNode> sharedFolders = new ArrayList<>();
-        sharedFolders.add(sharedSafe);
-        sharedSafeNode.setChildren(sharedFolders);
-
-        when(ControllerUtil.recursiveReadForCount(eq("{\"path\":\""+TVaultConstants.SHARED+"\"}"),eq(token),Mockito.any(), Mockito.any(), eq(TVaultConstants.SAFE))).thenReturn(sharedSafeNode);
-
-        SafeNode appsSafeNode = new SafeNode();
-        appsSafeNode.setId(TVaultConstants.APPS);
-        appsSafeNode.setType(TVaultConstants.SAFE);
-
-        SafeNode appsSafe = new SafeNode();
-        appsSafe.setId(TVaultConstants.APPS + "/safea1");
-        appsSafe.setValue(TVaultConstants.APPS + "/safea1");
-        appsSafe.setType(TVaultConstants.FOLDER);
-        appsSafe.setParentId(TVaultConstants.APPS);
-
-        SafeNode appsFolder = new SafeNode();
-        appsFolder.setId(TVaultConstants.APPS + "/safea1/folder1");
-        appsFolder.setValue(TVaultConstants.APPS + "/safea1/folder1");
-        appsFolder.setType(TVaultConstants.FOLDER);
-        appsFolder.setParentId(TVaultConstants.APPS + "/safea1");
-
-        SafeNode appsSecret = new SafeNode();
-        appsSecret.setId(TVaultConstants.APPS + "/safea1/folder1/secret1");
-        appsSecret.setValue("{\"data\":{\"abc\":\"abc\"}}");
-        appsSecret.setType(TVaultConstants.SECRET);
-        appsSecret.setParentId(TVaultConstants.APPS + "/safea1/folder1");
-
-        List<SafeNode> appsSecrets = new ArrayList<>();
-        appsSecrets.add(appsSecret);
-        appsFolder.setChildren(appsSecrets);
-
-        List<SafeNode> appsFolders = new ArrayList<>();
-        appsFolders.add(appsFolder);
-        appsSafeNode.setChildren(appsFolders);
-
-        when(ControllerUtil.recursiveReadForCount(eq("{\"path\":\""+TVaultConstants.APPS+"\"}"),eq(token),Mockito.any(), Mockito.any(), eq(TVaultConstants.SAFE))).thenReturn(appsSafeNode);
+        when(ControllerUtil.recursiveReadForCount(Mockito.any(),eq(token),Mockito.any(), Mockito.any(), eq(TVaultConstants.SAFE))).thenReturn(userSafeNode);
 
         SecretCount secretCount = new SecretCount();
         Map<String, Integer> userSecretCount = new HashMap<>();
-        userSecretCount.put("folder1", 1);
-        SafeSecretCount userSafeSecretCount = new SafeSecretCount(2, userSecretCount);
-        secretCount.setUserSafeSecretCount(userSafeSecretCount);
+        userSecretCount.put("safe1", 3);
+        userSecretCount.put("safe2", 3);
+        secretCount.setSafeSecretCount(userSecretCount);
 
-        Map<String, Integer> sharedSecretCount = new HashMap<>();
-        sharedSecretCount.put("folder1", 1);
-        SafeSecretCount sharedSafeSecretCount = new SafeSecretCount(1, sharedSecretCount);
-        secretCount.setSharedSafeSecretCount(sharedSafeSecretCount);
-
-        Map<String, Integer> appsSecretCount = new HashMap<>();
-        appsSecretCount.put("folder1", 1);
-        SafeSecretCount appsSafeSecretCount = new SafeSecretCount(3, appsSecretCount);
-        secretCount.setAppsSafeSecretCount(appsSafeSecretCount);
-
-        secretCount.setTotalSecrets(6);
+        secretCount.setTotalSafes(6);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(secretCount));
 
@@ -579,8 +509,33 @@ public class SecretServiceTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        ResponseEntity<String> responseEntity = secretService.getSecretCount(token);
+        when(reqProcessor.process(eq("/sdb/list"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"users/safe1\",\"users/safe2\"]}"));
+        ResponseEntity<String> responseEntity = secretService.getSecretCount(token, TVaultConstants.USERS, 0);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_getSecretCount_faile_400() {
+        ReflectionTestUtils.setField(secretService, "safeListLimit", 50);
+
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String responsejson = "{\"id\":\"5PDrOhsy4ig8L3EpsJZSLAMg\",\"policies\":[\"root\"]}";
+
+        Response response = getMockResponse(HttpStatus.OK, true, responsejson);
+
+        when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(response);
+        String[] policies = {"root"};
+        try {
+            when(commonUtils.getPoliciesAsArray(Mockito.any(), Mockito.any())).thenReturn(policies);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path or offset\"]}");
+
+        ResponseEntity<String> responseEntity = secretService.getSecretCount(token, TVaultConstants.USERS, -1);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -602,7 +557,7 @@ public class SecretServiceTest {
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access Denied: No enough permission to access this API\"]}");
 
-        ResponseEntity<String> responseEntity = secretService.getSecretCount(token);
+        ResponseEntity<String> responseEntity = secretService.getSecretCount(token, TVaultConstants.USERS, 0);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

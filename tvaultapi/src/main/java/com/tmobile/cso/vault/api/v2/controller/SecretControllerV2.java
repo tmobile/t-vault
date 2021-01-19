@@ -20,6 +20,7 @@ package com.tmobile.cso.vault.api.v2.controller;
 import com.tmobile.cso.vault.api.model.Secret;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -37,6 +38,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 
 @RestController
@@ -101,8 +103,8 @@ public class SecretControllerV2 {
 	 */
 	@ApiOperation(value = "${SecretControllerV2.getSecretCount.value}", notes = "${SecretControllerV2.getSecretCount.notes}")
 	@GetMapping(value="/v2/safes/count",produces="application/json")
-	public ResponseEntity<String> getSecretCount(@RequestHeader(value="vault-token") String token){
-		return secretService.getSecretCount(token);
+	public ResponseEntity<String> getSecretCount(@RequestHeader(value="vault-token") String token, @RequestParam("safeType") String safeType, @Valid @RequestParam("offset") int offset){
+		return secretService.getSecretCount(token, safeType, offset);
 	}
 }
 
