@@ -253,7 +253,7 @@ const AddGroup = (props) => {
                   groupname !== searchValue && !isValidGroupName
                     ? `Group name ${searchValue} does not exist!`
                     : existingGroup
-                    ? 'Permission already exists! Select edit icon for update'
+                    ? 'Permission already exists!'
                     : ''
                 }
               />
