@@ -58,11 +58,15 @@ const Tree = (props) => {
    * @param {*} id id of item to update
    * @param {*} parentId parent id
    * @param {*} type type of action
+   * @param {*} loader if loading to be set
    */
 
-  const getChildrenData = (id, idOfItem, type) => {
+  const getChildrenData = (id, idOfItem, type, loader = true) => {
     const tempFolders = [...secretsFolder] || [];
-    setStatus({ status: 'loading', message: 'loading...' });
+
+    if (loader) {
+      setStatus({ status: 'loading', message: 'loading...' });
+    }
     if (id) {
       apiService
         .getSecret(id)

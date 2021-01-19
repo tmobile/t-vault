@@ -440,15 +440,15 @@ const CreateModal = (props) => {
     setName(value);
   };
 
-  const onInputBlur = (e) => {
-    if (e?.target?.name === 'owner') {
+  useEffect(() => {
+    if (ownerSelected) {
       if (validateEmail(owner)) {
         setEmailError(false);
       } else {
         setEmailError(true);
       }
     }
-  };
+  }, [owner, ownerSelected]);
 
   const onTransferCancelClicked = () => {
     setOpenModal({ status: 'edit' });
@@ -588,7 +588,7 @@ const CreateModal = (props) => {
                         emailError ||
                         (!isValidEmail && safeDetails.owner !== owner)
                       }
-                      onInputBlur={(e) => onInputBlur(e)}
+                      // onInputBlur={(e) => onInputBlur(e)}
                       helperText={
                         (!isValidEmail && safeDetails.owner !== owner) ||
                         emailError

@@ -130,7 +130,7 @@ const Folder = (props) => {
   useEffect(() => setIsOpen(false), [value]);
 
   const handlePopperClick = (e, type) => {
-    getChildNodes(id);
+    getChildNodes(id, undefined, undefined, false);
     setInputType(type);
     setIsAddInput(e);
     setIsOpen(e);
