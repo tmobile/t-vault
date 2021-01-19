@@ -184,6 +184,7 @@ const IamServiceAccountDashboard = () => {
     selectedIamServiceAccountDetails,
     setSelectedIamServiceAccountDetails,
   ] = useState(null);
+  const [viewAccountData, setViewAccountData] = useState({});
   const [viewDetails, setViewDetails] = useState(false);
   const [responseType, setResponseType] = useState(null);
   const [accountSecretData, setAccountSecretData] = useState({});
@@ -308,8 +309,9 @@ const IamServiceAccountDashboard = () => {
     e.preventDefault();
   };
 
-  const onViewClicked = (e, svcname) => {
+  const onViewClicked = (svcname, account) => {
     setViewDetails(true);
+    setViewAccountData(account);
     apiService
       .fetchIamServiceAccountDetails(svcname)
       .then((res) => {
@@ -440,8 +442,11 @@ const IamServiceAccountDashboard = () => {
         {account.permission === 'write' && !isMobileScreen ? (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <ViewIcon
-              onClick={(e) =>
-                onViewClicked(e, `${account.iamAccountId}_${account.name}`)
+              onClick={() =>
+                onViewClicked(
+                  `${account.iamAccountId}_${account.name}`,
+                  account
+                )
               }
             >
               <VisibilityIcon />
@@ -451,8 +456,11 @@ const IamServiceAccountDashboard = () => {
         {isMobileScreen && account.permission === 'write' && (
           <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
             <ViewIcon
-              onClick={(e) =>
-                onViewClicked(e, `${account.iamAccountId}_${account.name}`)
+              onClick={() =>
+                onViewClicked(
+                  `${account.iamAccountId}_${account.name}`,
+                  account
+                )
               }
             >
               <VisibilityIcon />
@@ -617,6 +625,7 @@ const IamServiceAccountDashboard = () => {
             <ViewIamServiceAccount
               iamServiceAccountDetails={selectedIamServiceAccountDetails}
               open={viewDetails}
+              viewAccountData={viewAccountData}
               setViewDetails={setViewDetails}
               refresh={fetchData}
               getSecrets={getSecrets}
