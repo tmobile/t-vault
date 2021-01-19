@@ -90,7 +90,7 @@ public class SSLExternalCertificateSchedulerTest {
         when(JSONUtil.getJSON(any(ImmutableMap.class))).thenReturn("log");
 
         Map<String, String> currentMap = new HashMap<>();
-        currentMap.put("apiurl", "ssl application change Scheduler");
+        currentMap.put("apiurl", "ssl external certificate process scheduler");
         currentMap.put("user", "");
         ThreadLocalContext.setCurrentMap(currentMap);
     }
