@@ -219,6 +219,7 @@ const AppRoles = (props) => {
         )}
         {response.status === 'add' && (
           <AddAppRole
+            roles={accountMetaData?.response['app-roles']}
             handleSaveClick={(role, access) => onSubmit(role, access)}
             handleCancelClick={() => onCancelClicked()}
             isSvcAccount
