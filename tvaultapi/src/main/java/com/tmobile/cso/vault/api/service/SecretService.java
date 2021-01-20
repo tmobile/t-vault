@@ -19,7 +19,9 @@ package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.CommonUtils;
@@ -47,6 +49,9 @@ public class  SecretService {
 
 	@Value("${vault.port}")
 	private String vaultPort;
+
+	@Value("${secretcount.safelist.limit}")
+	private int safeListLimit;
 
 	@Autowired
 	private RequestProcessor reqProcessor;
@@ -336,7 +341,7 @@ public class  SecretService {
 	 * @param token
 	 * @return
 	 */
-	public ResponseEntity<String> getSecretCount(String token) {
+	public ResponseEntity<String> getSecretCount(String token, String safeType, int offset) {
 		if (!isAuthorizedToGetSecretCount(token)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -347,81 +352,87 @@ public class  SecretService {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access Denied: No enough permission to access this API\"]}");
 		}
 
+		if (StringUtils.isEmpty(safeType) || offset < 0) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "getSecretCount").
+					put(LogMessage.MESSAGE, "Invalid path or offset").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path or offset\"]}");
+		}
 		SecretCount secretCount = new SecretCount();
-		String userSafePath = TVaultConstants.USERS;
-		String sharedSafePath = TVaultConstants.SHARED;
-		String appsSafePath = TVaultConstants.APPS;
+		String safePath = safeType;
 
 		Response response = new Response();
 
-		// User safes
 		SafeNode safeNode = new SafeNode();
-		safeNode.setId(userSafePath);
+		safeNode.setId(safePath);
 		safeNode.setType(TVaultConstants.SAFE);
 		log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "getSecretCount").
-				put(LogMessage.MESSAGE, "Trying to get safe nodes in user safes").
+				put(LogMessage.MESSAGE, "Trying to get safe nodes in the given path").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		safeNode = ControllerUtil.recursiveReadForCount("{\"path\":\""+userSafePath+"\"}",token,response, userSafePath, TVaultConstants.SAFE);
-		Map<String, Integer> userSecretCount = new HashMap<>();
-		int userSecretTotalCount = 0;
-		for (int i=0;i< safeNode.getChildren().size(); i++) {
-			SafeNode safe = safeNode.getChildren().get(i);
-			int count = getSecretCountInSafe(safe.getChildren(), safe.getId());
-			userSecretCount.put(ControllerUtil.getSafeName(safe.getId()), count>0?count:0);
-			userSecretTotalCount+=(count>0?count:0);
-		}
-		SafeSecretCount userSafeSecretCount = new SafeSecretCount(userSecretTotalCount, userSecretCount);
-		secretCount.setUserSafeSecretCount(userSafeSecretCount);
 
-		// Shared safes
-		SafeNode sharedSafeNode = new SafeNode();
-		sharedSafeNode.setId(sharedSafePath);
-		sharedSafeNode.setType(TVaultConstants.SAFE);
-		log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION, "getSecretCount").
-				put(LogMessage.MESSAGE, "Trying to get safe nodes in shared safes").
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-				build()));
-		sharedSafeNode = ControllerUtil.recursiveReadForCount("{\"path\":\""+sharedSafePath+"\"}",token,response, sharedSafePath, TVaultConstants.SAFE);
-		Map<String, Integer> sharedSecretCount = new HashMap<>();
-		int sharedSecretTotalCount = 0;
-		for (int i=0;i< sharedSafeNode.getChildren().size(); i++) {
-			SafeNode safe = sharedSafeNode.getChildren().get(i);
-			int count = getSecretCountInSafe(safe.getChildren(), safe.getId());
-			sharedSecretCount.put(ControllerUtil.getSafeName(safe.getId()), count>0?count:0);
-			sharedSecretTotalCount+=(count>0?count:0);
-		}
-		SafeSecretCount sharedSafeSecretCount = new SafeSecretCount(sharedSecretTotalCount, sharedSecretCount);
-		secretCount.setSharedSafeSecretCount(sharedSafeSecretCount);
+		List<String> safePathList = getSafeListInPath(token, safePath);
+		List<String> offsetSafePahtList = safePathList.stream().skip(offset).limit(safeListLimit).collect(Collectors.toList());
+		int safeTypeSecretTotalCount = 0;
+		Map<String, Integer> safeSecretCount = new HashMap<>();
 
-		// Application safes
-		SafeNode appsSafeNode = new SafeNode();
-		appsSafeNode.setId(appsSafePath);
-		appsSafeNode.setType(TVaultConstants.SAFE);
-		log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION, "getSecretCount").
-				put(LogMessage.MESSAGE, "Trying to get safe nodes in application safes").
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-				build()));
-		appsSafeNode = ControllerUtil.recursiveReadForCount("{\"path\":\""+appsSafePath+"\"}",token,response, appsSafePath, TVaultConstants.SAFE);
-		Map<String, Integer> appsSecretCount = new HashMap<>();
-		int appsSecretTotalCount = 0;
-		for (int i=0;i< appsSafeNode.getChildren().size(); i++) {
-			SafeNode safe = appsSafeNode.getChildren().get(i);
-			int count = getSecretCountInSafe(safe.getChildren(), safe.getId());
-			appsSecretCount.put(ControllerUtil.getSafeName(safe.getId()), count>0?count:0);
-			appsSecretTotalCount+=(count>0?count:0);
-		}
-		SafeSecretCount appsSafeSecretCount = new SafeSecretCount(appsSecretTotalCount, appsSecretCount);
-		secretCount.setAppsSafeSecretCount(appsSafeSecretCount);
+		for(String path: offsetSafePahtList) {
+			safeNode = ControllerUtil.recursiveReadForCount("{\"path\":\""+path+"\"}",token,response, path, TVaultConstants.SAFE);
 
-		secretCount.setTotalSecrets(userSecretTotalCount + sharedSecretTotalCount + appsSecretTotalCount);
+			for (int i=0;i< safeNode.getChildren().size(); i++) {
+				SafeNode safe = safeNode.getChildren().get(i);
+				int count = getSecretCountInSafe(safe.getChildren(), safe.getParentId());
+				safeSecretCount.put(ControllerUtil.getSafeName(safe.getId()), count>0?count:0);
+				safeTypeSecretTotalCount+=(count>0?count:0);
+			}
+			if (safeNode.getChildren().size() == 0) {
+				safeSecretCount.put(ControllerUtil.getSafeName(safeNode.getId()), 0);
+			}
+		}
+
+		secretCount.setSafeSecretCount(safeSecretCount);
+		secretCount.setTotalSecretCount(safeTypeSecretTotalCount);
+		secretCount.setTotalSafes(safePathList.size());
+		secretCount.setNext(-1);
+		if (secretCount.getSafeSecretCount().size() > 0 && secretCount.getSafeSecretCount().size() == safeListLimit && secretCount.getSafeSecretCount().size() + offset < secretCount.getTotalSafes()) {
+			secretCount.setNext(offset + safeListLimit);
+		}
 		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(secretCount));
+	}
+
+	/**
+	 * To get the safe path list for a path.
+	 * @param token
+	 * @param safePath
+	 * @return
+	 */
+	private List<String> getSafeListInPath(String token, String safePath) {
+		ObjectMapper objMapper =  new ObjectMapper();
+		List<String> safePathList = new ArrayList<>();
+		Response lisresp = reqProcessor.process("/sdb/list", "{\"path\":\""+safePath+"\"}", token);
+		if(HttpStatus.OK.equals(lisresp.getHttpstatus())){
+			try {
+				JsonNode folders = objMapper.readTree(lisresp.getResponse()).get("keys");
+				int i = 1;
+				for(JsonNode node : folders){
+					safePathList.add(safePath + "/" + node.asText());
+				}
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "getSafeListInPath").
+						put(LogMessage.MESSAGE, String.format ("Failed to get safe list for [%s]", safePath)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+		}
+		Collections.sort(safePathList);
+		return safePathList;
 	}
 
 	/**
@@ -437,9 +448,7 @@ public class  SecretService {
 			if (safe.getType().equalsIgnoreCase("secret") && !safe.getParentId().equalsIgnoreCase(patentId) && !safe.getId().contains(safeVersionFolderPrefix)) {
 				try {
 					Secret data = (Secret)JSONUtil.getObj(safe.getValue(), Secret.class);
-					if (data.getDetails().size() > 1 || (data.getDetails().size() == 1 && !TVaultConstants.DEFAULT_SECRET.equals(data.getDetails().get(TVaultConstants.DEFAULT_SECRET)))) {
-						count += data.getDetails().size();
-					}
+					count += data.getDetails().size();
 				} catch (IOException e) {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
