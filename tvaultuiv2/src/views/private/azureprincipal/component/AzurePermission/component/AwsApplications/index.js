@@ -230,6 +230,7 @@ const AwsApplications = (props) => {
         {response.status === 'add' && (
           <AddAwsApplicationModal
             open
+            roles={azureMetaData['aws-roles']}
             handleSaveClick={(data, access) => onSubmit(data, access)}
             handleCancelClick={onCancelClicked}
             handleModalClose={() => onCancelClicked()}

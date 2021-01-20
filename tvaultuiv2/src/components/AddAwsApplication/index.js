@@ -80,6 +80,7 @@ const RadioWrapper = styled.div``;
 
 const AddAwsApplication = (props) => {
   const {
+    roles,
     handleSaveClick,
     handleCancelClick,
     isSvcAccount,
@@ -96,6 +97,7 @@ const AddAwsApplication = (props) => {
   const [principalError, setPrincipalError] = useState(false);
   const [count, setCount] = useState(0);
   const [radioArray, setRadioArray] = useState([]);
+  const [existingRole, setExistingRole] = useState(false);
 
   const initialState = {
     vpcId: '',
@@ -153,18 +155,25 @@ const AddAwsApplication = (props) => {
   };
 
   useEffect(() => {
-    if (!isEC2) {
-      if (roleName?.length < 3 || principalError || iamPrincipalArn === '') {
+    if (!Object.keys(roles).includes(roleName.toLowerCase())) {
+      if (!isEC2) {
+        if (roleName?.length < 3 || principalError || iamPrincipalArn === '') {
+          setDisabledSave(true);
+        } else {
+          setDisabledSave(false);
+        }
+      } else if (roleName?.length < 3 || count > 6) {
         setDisabledSave(true);
       } else {
         setDisabledSave(false);
       }
-    } else if (roleName?.length < 3 || count > 6) {
-      setDisabledSave(true);
+
+      setExistingRole(false);
     } else {
-      setDisabledSave(false);
+      setDisabledSave(true);
+      setExistingRole(true);
     }
-  }, [roleName, isEC2, iamPrincipalArn, principalError, count]);
+  }, [roleName, roles, isEC2, iamPrincipalArn, principalError, count]);
 
   const handleAwsRadioChange = (event) => {
     setAwsAuthenticationType(event.target.value);
@@ -286,6 +295,8 @@ const AddAwsApplication = (props) => {
           fullWidth
           name="roleName"
           onChange={(e) => setRoleName(e.target.value)}
+          error={existingRole}
+          helperText={existingRole ? 'Permission Alerady Exists' : ''}
         />
         {isEC2 && <p>**Please fill atleast one of the followings.</p>}
         <InputAwsWrapper>
@@ -427,11 +438,13 @@ AddAwsApplication.propTypes = {
   isSvcAccount: PropTypes.bool,
   isCertificate: PropTypes.bool,
   isIamAzureSvcAccount: PropTypes.bool,
+  roles: PropTypes.objectOf(PropTypes.any),
 };
 
 AddAwsApplication.defaultProps = {
   isSvcAccount: false,
   isCertificate: false,
   isIamAzureSvcAccount: false,
+  roles: {},
 };
 export default AddAwsApplication;

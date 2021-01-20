@@ -119,7 +119,7 @@ const TransferSafeOwner = (props) => {
         }
       }
     }
-  }, [owner, ownerSelected, autoLoader, options]);
+  }, [owner, ownerSelected, autoLoader]);
 
   useEffect(() => {
     if (emailError || !isValidEmail) {
