@@ -303,6 +303,7 @@ public class SafeUtils {
 			}
 		}
 		Response failedResponse = new Response();
+		failedResponse.setHttpstatus(HttpStatus.BAD_REQUEST);
 		failedResponse.setResponse("{\"errors\":[\"Invalid path\"]}");
 		return failedResponse;
 	}

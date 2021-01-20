@@ -743,7 +743,12 @@ public class  SecretService {
 				try {
 					folderVersiondata = objMapper.readValue(versionResp.getResponse(), new TypeReference<FolderVersionData>() {});
 				} catch (IOException e) {
-					e.printStackTrace();
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "getVersionSafeNode").
+							put(LogMessage.MESSAGE, String.format ("Unable to get version folder details [%s]", path)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
 				}
 			}
 			if (folderVersiondata != null) {
