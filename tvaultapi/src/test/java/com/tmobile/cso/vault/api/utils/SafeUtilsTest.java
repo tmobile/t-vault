@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
@@ -64,6 +65,9 @@ public class SafeUtilsTest {
 
     @Mock
     RequestProcessor reqProcessor;
+
+    @Mock
+    CommonUtils commonUtils;
 
     @Mock
     Response response;
@@ -436,4 +440,121 @@ public class SafeUtilsTest {
         assertFalse(canAdd);
     }
 
+    @Test
+    public void test_createVersionFolder_success() {
+        String responseStr = "{\"data\":{" +
+                "  \"folderModifiedAt\": 1611148845423," +
+                "  \"folderModifiedBy\": \"role1 (AppRole)\"," +
+                "  \"folderPath\": \"users/123safe/fld1\"," +
+                "  \"secretVersions\": {" +
+                "    \"secret2\": [" +
+                "      {" +
+                "        \"modifiedAt\": 1611148845423," +
+                "        \"modifiedBy\": \"role1 (AppRole)\"" +
+                "      }" +
+                "    ]," +
+                "    \"secret3\": [" +
+                "      {" +
+                "        \"modifiedAt\": 1611148845423," +
+                "        \"modifiedBy\": \"role1 (AppRole)\"" +
+                "      }" +
+                "    ]" +
+                "  }" +
+                "}}";
+        Response response = getMockResponse(HttpStatus.OK, true, responseStr);
+        String versionFolderPath = "users/123safe/$_versions_fld1";
+        String path = "users/123safe/fld1";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        when(reqProcessor.process("/read","{\"path\":\""+versionFolderPath+"\"}",token)).thenReturn(response);
+        when(ControllerUtil.isPathValid(path)).thenReturn(true);
+        UserDetails userDetails = getMockUser(false);
+        when(commonUtils.getModifiedByInfo(userDetails)).thenReturn("username1");
+        List<String> modifiedKeys = new ArrayList<>();
+        modifiedKeys.add("secret2");
+        List<String> deletedKeys = new ArrayList<>();
+        deletedKeys.add("secret3");
+        Response expectedResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(expectedResponse);
+        Response actualResponse = safeUtils.createVersionFolder(token, path, userDetails, false, modifiedKeys, deletedKeys);
+        assertEquals(expectedResponse.getHttpstatus(), actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void test_createVersionFolder_success_version_data_parse_failed() {
+        String responseStr = "{\"data1\":{" +
+                "  \"folderModifiedAt\": 1611148845423," +
+                "  \"folderModifiedBy\": \"role1 (AppRole)\"," +
+                "  \"folderPath\": \"users/123safe/fld1\"," +
+                "  \"secretVersions\": {" +
+                "    \"secret2\": [" +
+                "      {" +
+                "        \"modifiedAt\": 1611148845423," +
+                "        \"modifiedBy\": \"role1 (AppRole)\"" +
+                "      }" +
+                "    ]," +
+                "    \"secret3\": [" +
+                "      {" +
+                "        \"modifiedAt\": 1611148845423," +
+                "        \"modifiedBy\": \"role1 (AppRole)\"" +
+                "      }" +
+                "    ]" +
+                "  }" +
+                "}}";
+        Response response = getMockResponse(HttpStatus.OK, true, responseStr);
+        String versionFolderPath = "users/123safe/$_versions_fld1";
+        String path = "users/123safe/fld1";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        when(reqProcessor.process("/read","{\"path\":\""+versionFolderPath+"\"}",token)).thenReturn(response);
+        when(ControllerUtil.isPathValid(path)).thenReturn(true);
+        UserDetails userDetails = getMockUser(false);
+        when(commonUtils.getModifiedByInfo(userDetails)).thenReturn("username1");
+        List<String> modifiedKeys = new ArrayList<>();
+        modifiedKeys.add("secret2");
+        List<String> deletedKeys = new ArrayList<>();
+        deletedKeys.add("secret3");
+        Response expectedResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(expectedResponse);
+        Response actualResponse = safeUtils.createVersionFolder(token, path, userDetails, false, modifiedKeys, deletedKeys);
+        assertEquals(expectedResponse.getHttpstatus(), actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void test_createVersionFolder_success_create_version_folder() {
+        Response response = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        String versionFolderPath = "users/123safe/$_versions_fld1";
+        String path = "users/123safe/fld1";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        when(reqProcessor.process("/read","{\"path\":\""+versionFolderPath+"\"}",token)).thenReturn(response);
+        when(ControllerUtil.isPathValid(path)).thenReturn(true);
+        UserDetails userDetails = getMockUser(false);
+        when(commonUtils.getModifiedByInfo(userDetails)).thenReturn("username1");
+        List<String> modifiedKeys = new ArrayList<>();
+        modifiedKeys.add("secret2");
+        List<String> deletedKeys = new ArrayList<>();
+        deletedKeys.add("secret3");
+        Response expectedResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(reqProcessor.process(eq("/sdb/createfolder"),Mockito.any(),eq(token))).thenReturn(expectedResponse);
+        Response actualResponse = safeUtils.createVersionFolder(token, path, userDetails, false, modifiedKeys, deletedKeys);
+        assertEquals(expectedResponse.getHttpstatus(), actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void test_createVersionFolder_failed() {
+        String path = "users/123safe/fld1";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        when(ControllerUtil.isPathValid(path)).thenReturn(false);
+        List<String> modifiedKeys = new ArrayList<>();
+        modifiedKeys.add("secret2");
+        List<String> deletedKeys = new ArrayList<>();
+        deletedKeys.add("secret3");
+        Response expectedResponse = getMockResponse(HttpStatus.BAD_REQUEST, false, "{\"errors\":[\"Invalid path\"]}");
+
+        when(reqProcessor.process(eq("/sdb/createfolder"),Mockito.any(),eq(token))).thenReturn(expectedResponse);
+        Response actualResponse = safeUtils.createVersionFolder(token, path, userDetails, false, modifiedKeys, deletedKeys);
+        assertEquals(expectedResponse.getHttpstatus(), actualResponse.getHttpstatus());
+    }
 }

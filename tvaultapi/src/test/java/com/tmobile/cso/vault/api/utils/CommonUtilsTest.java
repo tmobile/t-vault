@@ -17,14 +17,22 @@
 package com.tmobile.cso.vault.api.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tmobile.cso.vault.api.model.UserDetails;
+import com.tmobile.cso.vault.api.process.RequestProcessor;
+import com.tmobile.cso.vault.api.process.Response;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.http.HttpStatus;
+
+import static org.junit.Assert.assertEquals;
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
@@ -34,6 +42,9 @@ public class CommonUtilsTest {
 
     @InjectMocks
     CommonUtils commonUtils;
+
+    @Mock
+    RequestProcessor reqProcessor;
 
 	@Test
     public void test_getPoliciesAsArray() throws Exception {
@@ -51,6 +62,68 @@ public class CommonUtilsTest {
         String[] expectedPolicies = {"approle_normal_user"};
         String[] policies = commonUtils.getPoliciesAsArray(objMapper, jsonStr);
 
+    }
+
+    @Test
+    public void test_getModifiedByInfo() throws Exception {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("normaluser");
+        userDetails.setEmail("normaluser@company.com");
+        userDetails.setAdmin(true);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+        String modifiedBy = commonUtils.getModifiedByInfo(userDetails);
+        assertEquals("normaluser@company.com", modifiedBy);
+    }
+
+    @Test
+    public void test_getModifiedByInfo_approle() throws Exception {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("approle");
+        userDetails.setAdmin(true);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse("{\"meta\": {\"role_name\": \"role1\"}}");
+        Mockito.when(reqProcessor.process("/auth/tvault/lookup", "{}", token)).thenReturn(response);
+
+        String modifiedBy = commonUtils.getModifiedByInfo(userDetails);
+        assertEquals("role1 (AppRole)", modifiedBy);
+    }
+
+    @Test
+    public void test_getModifiedByInfo_approle_empty() throws Exception {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("approle");
+        userDetails.setAdmin(true);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse("{\"meta\": {}}");
+        Mockito.when(reqProcessor.process("/auth/tvault/lookup", "{}", token)).thenReturn(response);
+
+        String modifiedBy = commonUtils.getModifiedByInfo(userDetails);
+        assertEquals("AppRole", modifiedBy);
+    }
+
+    @Test
+    public void test_getModifiedByInfo_awsrole() throws Exception {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("aws");
+        userDetails.setAdmin(true);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+
+        String modifiedBy = commonUtils.getModifiedByInfo(userDetails);
+        assertEquals("AWS Role", modifiedBy);
     }
 
 }
