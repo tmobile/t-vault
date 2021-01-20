@@ -179,4 +179,37 @@ public class SecretControllerV2Test {
                 .andExpect(content().string(containsString(responseMessage)));
 
     }
+
+    @Test
+    public void test_getFolderVersionInfo() throws Exception {
+
+        String responseMessage = "{\n" +
+                "  \"folderModifiedAt\": 1611148845423,\n" +
+                "  \"folderModifiedBy\": \"role1 (AppRole)\",\n" +
+                "  \"folderPath\": \"users/123safe/fld1\",\n" +
+                "  \"secretVersions\": {\n" +
+                "    \"secret2\": [\n" +
+                "      {\n" +
+                "        \"modifiedAt\": 1611148845423,\n" +
+                "        \"modifiedBy\": \"role1 (AppRole)\"\n" +
+                "      }\n" +
+                "    ],\n" +
+                "    \"secret3\": [\n" +
+                "      {\n" +
+                "        \"modifiedAt\": 1611148845423,\n" +
+                "        \"modifiedBy\": \"role1 (AppRole)\"\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+
+        when(secretService.getFolderVersionInfo(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), eq("users/123safe/fld1"))).thenReturn(responseEntityExpected);
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/safes/folders/versioninfo?path=users/123safe/fld1")
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseMessage)));
+
+    }
 }
