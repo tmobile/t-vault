@@ -422,14 +422,16 @@ const AddAwsApplication = (props) => {
   );
 };
 AddAwsApplication.propTypes = {
-  handleCancelClick: PropTypes.func.isRequired,
-  handleSaveClick: PropTypes.func.isRequired,
+  handleCancelClick: PropTypes.func,
+  handleSaveClick: PropTypes.func,
   isSvcAccount: PropTypes.bool,
   isCertificate: PropTypes.bool,
   isIamAzureSvcAccount: PropTypes.bool,
 };
 
 AddAwsApplication.defaultProps = {
+  handleCancelClick: () => {},
+  handleSaveClick: () => {},
   isSvcAccount: false,
   isCertificate: false,
   isIamAzureSvcAccount: false,

@@ -245,6 +245,7 @@ const AddGroup = (props) => {
                 onSelected={(e, val) => onSelected(e, val)}
                 onChange={(e) => onSearchChange(e)}
                 placeholder="Groupname - Enter min 3 characters"
+                name="grpVal"
                 error={
                   (groupname !== searchValue && !isValidGroupName) ||
                   existingGroup
@@ -302,8 +303,8 @@ const AddGroup = (props) => {
 };
 
 AddGroup.propTypes = {
-  handleSaveClick: PropTypes.func.isRequired,
-  handleCancelClick: PropTypes.func.isRequired,
+  handleSaveClick: PropTypes.func,
+  handleCancelClick: PropTypes.func,
   groupname: PropTypes.string,
   access: PropTypes.string,
   isSvcAccount: PropTypes.bool,
@@ -313,6 +314,8 @@ AddGroup.propTypes = {
 };
 
 AddGroup.defaultProps = {
+  handleSaveClick: () => {},
+  handleCancelClick: () => {},
   groupname: '',
   access: 'read',
   groups: {},
