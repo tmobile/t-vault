@@ -39,12 +39,17 @@ import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.process.Response;
+import sun.swing.StringUIClientPropertyKey;
+
 @Component
 public class SafeUtils {
 	private Logger log = LogManager.getLogger(SafeUtils.class);
 
 	@Autowired
 	private RequestProcessor reqProcessor;
+
+	@Autowired
+	private CommonUtils commonUtils;
 
 	public SafeUtils() {
 		// empty constructor
@@ -311,7 +316,8 @@ public class SafeUtils {
 	 */
 	private FolderVersion getFolderVersionData(String path, UserDetails userDetails, boolean isPartOfFolderCreation, FolderVersion currentFolderVersionData, List<String> modifiedKeys, List<String> deletedKeys) {
 		Long modifiedAt = new Date().getTime();
-		String modifiedBy = userDetails.getEmail()!=null?userDetails.getEmail():userDetails.getUsername();
+		String modifiedBy = commonUtils.getModifiedByInfo(userDetails);
+
 		FolderVersion folderVersionData = new FolderVersion();
 		folderVersionData.setFolderPath(path);
 		folderVersionData.setFolderModifiedAt(modifiedAt);
