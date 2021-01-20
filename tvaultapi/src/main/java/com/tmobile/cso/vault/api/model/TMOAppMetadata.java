@@ -29,6 +29,8 @@ public class TMOAppMetadata implements Serializable {
 
 
 	private static final long serialVersionUID = 452505456427580623L;
+	
+	private String path;
 
 	@JsonProperty("data")
 	private TMOAppMetadataDetails tmoAppMetadataDetails;
@@ -36,6 +38,12 @@ public class TMOAppMetadata implements Serializable {
 	public TMOAppMetadata() {
 		super();
 	}
+	
+	 public TMOAppMetadata(String path, TMOAppMetadataDetails tmoMetadataDetails) {
+	        super();
+	        this.path = path;
+	        this.tmoAppMetadataDetails = tmoMetadataDetails;
+	    }
 
 	public TMOAppMetadata(TMOAppMetadataDetails tmoAppMetadataDetails) {
 		this.tmoAppMetadataDetails = tmoAppMetadataDetails;

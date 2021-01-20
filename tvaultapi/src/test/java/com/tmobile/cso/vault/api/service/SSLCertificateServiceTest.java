@@ -456,7 +456,8 @@ public class SSLCertificateServiceTest {
         createTargetSystemServiceMap.put("targetSystemId", 12);
 
         String metaDataStr = "{ \"data\": {\"certificateName\": \"certificatename.t-mobile.com\", \"appName\": \"tvt\", \"certType\": \"internal\", \"certOwnerNtid\": \"testusername1\"}, \"path\": \"sslcerts/certificatename.t-mobile.com\"}";
-        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"appName\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"applicationName\":\"tvt\",\"applicationTag\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        
         Map<String, Object> createCertPolicyMap = new HashMap<>();
         createCertPolicyMap.put("certificateName", "CertificateName.t-mobile.com");
         createCertPolicyMap.put("appName", "tvt");
@@ -500,6 +501,13 @@ public class SSLCertificateServiceTest {
 
         when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
 
+        Response responseObj = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(metaDataStr);
+        response.setSuccess(true);
+
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(responseObj);
+        
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
         when(ControllerUtil.parseJson(metaDataStr)).thenReturn(createCertPolicyMap);
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
@@ -591,7 +599,7 @@ public class SSLCertificateServiceTest {
         createTargetSystemServiceMap.put("targetSystemGroupId", 11);
         createTargetSystemServiceMap.put("targetSystemId", 12);
         String metaDataStr = "{ \"data\": {\"certificateName\": \"certificatename.t-mobile.com\", \"appName\": \"tvt\", \"certType\": \"internal\", \"certOwnerNtid\": \"testusername1\"}, \"path\": \"sslcerts/certificatename.t-mobile.com\"}";
-        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"appName\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"applicationName\":\"tvt\",\"applicationTag\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
         Map<String, Object> createCertPolicyMap = new HashMap<>();
         createCertPolicyMap.put("certificateName", "certificatename.t-mobile.com");
         createCertPolicyMap.put("appName", "tvt");
@@ -871,8 +879,14 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser2\"}",token)).thenReturn(userResponse);
 
         String metaDataStr = "{ \"data\": {\"certificateName\": \"certificatename.t-mobile.com\", \"appName\": \"tvt\", \"certType\": \"internal\", \"certOwnerNtid\": \"testusername1\"}, \"path\": \"sslcerts/certificatename.t-mobile.com\"}";
-        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"appName\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"applicationName\":\"tvt\",\"applicationTag\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        Response responseObj = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(metaDataStr);
+        response.setSuccess(true);
 
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(responseObj);
+        
         Map<String, Object> createCertPolicyMap = new HashMap<>();
         createCertPolicyMap.put("certificateName", "certificatename.t-mobile.com");
         createCertPolicyMap.put("appName", "tvt");
@@ -1045,7 +1059,9 @@ public class SSLCertificateServiceTest {
                 "\"tvt\", \"certType\": \"external\", \"certOwnerNtid\": \"testusername1\"}, \"path\": " +
                 "\"sslcerts/certificatename.t-mobile.com\"}";
         String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"appName\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
-
+        String metadatajsonStr = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"applicationName\":\"tvt\",\"applicationTag\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        
+        
         Map<String, Object> createCertPolicyMap = new HashMap<>();
         createCertPolicyMap.put("certificateName", "certificatename.t-mobile.com");
         createCertPolicyMap.put("appName", "tvt");
@@ -1054,8 +1070,15 @@ public class SSLCertificateServiceTest {
 
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
         when(ControllerUtil.parseJson(metaDataStr)).thenReturn(createCertPolicyMap);
-        when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
-        when(reqProcessor.process("/write", metadatajson, token)).thenReturn(responseNoContent);
+        when(ControllerUtil.convetToJson(any())).thenReturn(metadatajsonStr);
+        
+        Response responseObj = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(metaDataStr);
+        response.setSuccess(true);
+
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(responseObj);
+        when(reqProcessor.process("/write", metadatajsonStr, token)).thenReturn(responseNoContent);
         String metaDataStr1 = "{\"actionId\":111}";
         Map<String, Object> createCertPolicyMap1 = new HashMap<>();
         createCertPolicyMap1.put("actionId", 111);
@@ -1534,7 +1557,8 @@ public class SSLCertificateServiceTest {
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
 
         String metaDataStr = "{ \"data\": {\"certificateName\": \"certificatename.t-mobile.com\", \"appName\": \"tvt\", \"certType\": \"internal\", \"certOwnerNtid\": \"testusername1\"}, \"path\": \"sslcerts/certificatename.t-mobile.com\"}";
-        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"appName\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"applicationName\":\"tvt\",\"applicationTag\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        
         Map<String, Object> createCertPolicyMap = new HashMap<>();
         createCertPolicyMap.put("certificateName", "certificatename.t-mobile.com");
         createCertPolicyMap.put("appName", "tvt");
@@ -1544,6 +1568,8 @@ public class SSLCertificateServiceTest {
         Response responseOkContent = getMockResponse(HttpStatus.OK, true, "");
         when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
         when(reqProcessor.process(eq("/access/update"),any(),eq(userDetailToken))).thenReturn(responseOkContent);
+        
+        when(reqProcessor.process(eq("/write"),any(),eq(userDetailToken))).thenReturn(responseOkContent);
 
         when(ControllerUtil.parseJson(createTargetSystemServiceResponse)).thenReturn(createTargetSystemServiceMap);
         when(reqProcessor.processCert(eq("/certmanager/targetsystemservice/create"), anyObject(), anyString(), anyString())).thenReturn(response2);
@@ -1587,6 +1613,12 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
+        Response responseObj = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(metaDataStr);
+        response.setSuccess(true);
+
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(responseObj);
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
         when(ControllerUtil.parseJson(metaDataStr)).thenReturn(createCertPolicyMap);
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
@@ -1682,7 +1714,8 @@ public class SSLCertificateServiceTest {
         createTargetSystemServiceMap.put("targetSystemId", 12);
 
         String metaDataStr = "{ \"data\": {\"certificateName\": \"certificatename.t-mobile.com\", \"appName\": \"tvt\", \"certType\": \"internal\", \"certOwnerNtid\": \"testusername1\"}, \"path\": \"sslcerts/certificatename.t-mobile.com\"}";
-        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"appName\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"applicationName\":\"tvt\",\"applicationTag\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        
         Map<String, Object> createCertPolicyMap = new HashMap<>();
         createCertPolicyMap.put("certificateName", "certificatename.t-mobile.com");
         createCertPolicyMap.put("appName", "tvt");
@@ -1735,6 +1768,12 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
+        Response responseObj = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(metaDataStr);
+        response.setSuccess(true);
+
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(responseObj);
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
         when(ControllerUtil.parseJson(metaDataStr)).thenReturn(createCertPolicyMap);
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
@@ -5406,7 +5445,8 @@ public class SSLCertificateServiceTest {
         createTargetSystemServiceMap.put("targetSystemGroupId", 11);
         createTargetSystemServiceMap.put("targetSystemId", 12);
         String metaDataStr = "{ \"data\": {\"certificateName\": \"certificatename.t-mobile.com\", \"appName\": \"tvt\", \"certType\": \"internal\", \"certOwnerNtid\": \"testusername1\"}, \"path\": \"sslcerts/certificatename.t-mobile.com\"}";
-        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"appName\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"applicationName\":\"tvt\",\"applicationTag\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        
         Map<String, Object> createCertPolicyMap = new HashMap<>();
         createCertPolicyMap.put("certificateName", "certificatename.t-mobile.com");
         createCertPolicyMap.put("appName", "tvt");
@@ -5430,6 +5470,13 @@ public class SSLCertificateServiceTest {
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
         when(ControllerUtil.parseJson(metaDataStr)).thenReturn(createCertPolicyMap);
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
+       
+        Response responseObj = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(metaDataStr);
+        response.setSuccess(true);
+
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(responseObj);
         when(reqProcessor.process("/write", metadatajson, token)).thenReturn(responseNoContent);
         List<String> resList = new ArrayList<>();
         resList.add("default");
@@ -6861,13 +6908,15 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(findCertResponse);
 
         String metaDataStr = "{ \"data\": {\"certificateName\": \"certificatename.t-mobile.com\", \"appName\": \"tvt\", \"certType\": \"internal\", \"certOwnerNtid\": \"testusername1\"}, \"path\": \"sslcerts/certificatename.t-mobile.com\"}";
-        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"appName\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"applicationName\":\"tvt\",\"applicationTag\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        
         Map<String, Object> createCertPolicyMap = new HashMap<>();
         createCertPolicyMap.put("certificateName", "certificateName.t-mobile.com");
         createCertPolicyMap.put("appName", "tvt");
         createCertPolicyMap.put("certType", "internal");
         createCertPolicyMap.put("certOwnerNtid", "testusername1");
-        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"SpectrumClearingTools@T-Mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"internal\",\"certificateId\":59880,\"containerId\":123,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+        String metaDataJson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"applicationName\":\"tvt\",\"applicationTag\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        
         Response responseMetadata = new Response();
         responseMetadata.setHttpstatus(HttpStatus.FORBIDDEN);
         responseMetadata.setResponse(metaDataJson);
@@ -6894,6 +6943,12 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser\"}",token)).thenReturn(userResponse);
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 
+        Response responseObj = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(metaDataStr);
+        response.setSuccess(true);
+
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(responseObj);
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
         when(ControllerUtil.parseJson(metaDataStr)).thenReturn(createCertPolicyMap);
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
@@ -6978,15 +7033,17 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.processCert(eq("/certmanager/findCertificate"), anyObject(), anyString(), anyString())).thenReturn(findCertResponse);
 
         String metaDataStr = "{ \"data\": {\"certificateName\": \"certificatename.t-mobile.com\", \"appName\": \"tvt\", \"certType\": \"external\", \"certOwnerNtid\": \"testusername1\"}, \"path\": \"sslcerts/certificatename.t-mobile.com\"}";
-        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"appName\":\"tvt\",\"certType\":\"external\",\"certOwnerNtid\":\"testusername1\"}}";
+        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"applicationName\":\"tvt\",\"applicationTag\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        
         Map<String, Object> createCertPolicyMap = new HashMap<>();
         createCertPolicyMap.put("certificateName", "certificateName.t-mobile.com");
         createCertPolicyMap.put("appName", "tvt");
         createCertPolicyMap.put("certType", "external");
         createCertPolicyMap.put("certOwnerNtid", "testusername1");
-        String metaDataJson = "{\"data\":{\"akmid\":\"102463\",\"applicationName\":\"tvs\",\"applicationOwnerEmailId\":\"SpectrumClearingTools@T-Mobile.com\",\"applicationTag\":\"TVS\",\"authority\":\"T-Mobile Issuing CA 01 - SHA2\",\"certCreatedBy\":\"nnazeer1\",\"certOwnerEmailId\":\"ltest@smail.com\",\"certType\":\"external\",\"certificateId\":59880,\"containerId\":99,\"certificateName\":\"certtest260630.t-mobile.com\",\"certificateStatus\":\"Revoked\",\"containerName\":\"VenafiBin_12345\",\"createDate\":\"2020-06-26T05:10:41-07:00\",\"expiryDate\":\"2021-06-26T05:10:41-07:00\",\"projectLeadEmailId\":\"Daniel.Urrutia@T-Mobile.Com\",\"users\":{\"normaluser\":\"write\",\"certuser\":\"read\",\"safeadmin\":\"deny\",\"testsafeuser\":\"write\",\"testuser1\":\"deny\",\"testuser2\":\"read\"}}}";
+        String metaDataJson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"applicationName\":\"tvt\",\"applicationTag\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+        
         Response responseMetadata = new Response();
-        responseMetadata.setHttpstatus(HttpStatus.FORBIDDEN);
+        responseMetadata.setHttpstatus(HttpStatus.OK);
         responseMetadata.setResponse(metaDataJson);
         responseMetadata.setSuccess(true);
         when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(responseMetadata);
@@ -7011,6 +7068,12 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.process("/auth/userpass/read","{\"username\":\"testuser\"}",token)).thenReturn(userResponse);
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
 
+        Response responseObj = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+        response.setResponse(metaDataStr);
+        response.setSuccess(true);
+
+        when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(responseObj);
         when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
         when(ControllerUtil.parseJson(metaDataStr)).thenReturn(createCertPolicyMap);
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
