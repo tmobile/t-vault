@@ -68,9 +68,6 @@ public class  SecretService {
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
 
-	@Value("${safe.version.folderPrefix}")
-	private String safeVersionFolderPrefix;
-
 	private static Logger log = LogManager.getLogger(SecretService.class);
 	/**
 	 * To read secret from vault
@@ -616,7 +613,7 @@ public class  SecretService {
 		int count = 0;
 		for (int i=0;i< safeNode.size(); i++) {
 			SafeNode safe = safeNode.get(i);
-			if (safe.getType().equalsIgnoreCase("secret") && !safe.getParentId().equalsIgnoreCase(patentId) && !safe.getId().contains(safeVersionFolderPrefix)) {
+			if (safe.getType().equalsIgnoreCase("secret") && !safe.getParentId().equalsIgnoreCase(patentId) && !safe.getId().contains(TVaultConstants.VERSION_FOLDER_PREFIX)) {
 				try {
 					Secret data = (Secret)JSONUtil.getObj(safe.getValue(), Secret.class);
 					count += data.getDetails().size();
