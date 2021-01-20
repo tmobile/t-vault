@@ -123,6 +123,8 @@ public class SSLExternalCertificateScheduler {
         JsonParser jsonParser = new JsonParser();
         JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
         JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
+        printLogMessage("filterExternalCertsAndProcess", String.format("External Certificates to process   " +
+                "[%s] =", jsonArray));
         //Iterate the certificate list and validate the status
         for (int i = 0; i < jsonArray.size(); i++) {
             String metaDataPath =
@@ -170,6 +172,8 @@ public class SSLExternalCertificateScheduler {
                     metadataDetails.setActionId(actionId);
                     metadataDetails.setCertificateName(certName);
                     String approvalStatus = sslCertificateService.getExternalCertReqStatus(metadataDetails);
+                    printLogMessage(SSLCertificateConstants.GET_PENDING_APPROVAL_CERT_PROCESS, String.format(
+                            "Approval status in NCLM is  [%s] for certificate  = [%s] ==  ", approvalStatus,certName));
                     if ((!StringUtils.isEmpty(approvalStatus)) && (SSLCertificateConstants.APPROVED.equalsIgnoreCase(approvalStatus))) {
                         ResponseEntity<String> responseEntity =
                                 sslCertificateService.validateApprovalStatusAndGetCertificateDetails(certName,
