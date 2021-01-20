@@ -248,7 +248,6 @@ const AddAwsApplication = (props) => {
     if (event.target?.value === '' || re.test(event.target.value)) {
       onChange(event);
     }
-    return false;
   };
   return (
     <ComponentError>
