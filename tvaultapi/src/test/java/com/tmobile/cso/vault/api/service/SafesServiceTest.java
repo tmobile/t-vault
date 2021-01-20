@@ -1183,7 +1183,7 @@ public class SafesServiceTest {
 
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response responseNotFound = getMockResponse(HttpStatus.NOT_FOUND, true, "");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"Message\":\"Group not available or deleted from AD, removed the group assignment and permissions \"}");
         when(JSONUtil.getJSON(safeGroup)).thenReturn(jsonstr);
         when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
         when(ControllerUtil.isValidSafe(path, token)).thenReturn(true);
@@ -1202,7 +1202,7 @@ public class SafesServiceTest {
         when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 
         ResponseEntity<String> responseEntity = safesService.removeGroupFromSafe(token, safeGroup, getMockUser(true));
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
