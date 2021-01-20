@@ -168,7 +168,7 @@ const CreateModal = (props) => {
   const [safeError, setSafeError] = useState(false);
   const [editSafe, setEditSafe] = useState(false);
   const [safeDetails, setSafeDetails] = useState({});
-  const [isValidEmail, setIsValidEmail] = useState(true);
+  const [isValidEmail, setIsValidEmail] = useState(false);
   const history = useHistory();
   const [ownerSelected, setOwnerSelected] = useState(false);
 
@@ -587,7 +587,9 @@ const CreateModal = (props) => {
                       placeholder="Search by NTID, Email or Name "
                       error={
                         emailError ||
-                        (!isValidEmail && safeDetails.owner !== owner)
+                        (owner?.length > 2 &&
+                          !isValidEmail &&
+                          safeDetails.owner !== owner)
                       }
                       // onInputBlur={(e) => onInputBlur(e)}
                       helperText={

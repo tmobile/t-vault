@@ -214,6 +214,7 @@ const AppRoles = (props) => {
         )}
         {response.status === 'add' && (
           <AddAppRole
+            roles={certificateMetaData['app-roles']}
             handleSaveClick={(role, access) => onSubmit(role, access)}
             handleCancelClick={() => onCancelClicked()}
             isCertificate
