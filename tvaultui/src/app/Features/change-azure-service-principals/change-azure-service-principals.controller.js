@@ -500,18 +500,33 @@
                                 }
                             }
                             else {
-                                $scope.permissionChangeInProgress = false;
-                                $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                                $scope.error('md');
+                                if(response.status === 422){
+                                    $scope.permissionChangeInProgress = false;
+                                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                    $scope.error('md');
+                                    getAzureSvcaccInfo(svcaccname);
+                                }else {
+                                    $scope.permissionChangeInProgress = false;
+                                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                    $scope.error('md');
+                                }
                             }
                         },
                         function (error) {
-                            // Error handling function
-                            console.log(error);
-                            $scope.permissionChangeInProgress = false;
-                            $scope.isLoadingData = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                            $scope.error('md');
+                            if(error.status === 422) {
+                                $scope.permissionChangeInProgress = false;
+                                var errors = error.data.Message;
+                                $scope.errorMessage = errors;
+                                $scope.error('md');
+                                getAzureSvcaccInfo(svcaccname);
+                            }else {
+                                // Error handling function
+                                console.log(error);
+                                $scope.permissionChangeInProgress = false;
+                                $scope.isLoadingData = false;
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
                         })
                 } catch (e) {
                     console.log(e);
