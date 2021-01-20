@@ -22,7 +22,7 @@ const SecretWrapper = styled.section`
   display: flex;
   flex-direction: column;
   background-color: ${(props) =>
-    props.theme.palette.background.paper || '#20232e'};
+    props.theme.palette?.background?.paper || '#20232e'};
   ${mediaBreakpoints.small} {
     padding: 2rem;
     height: 100%;
@@ -132,7 +132,7 @@ const CreateSecret = (props) => {
               <ColorBackArrow />
             </BackButton>
           )}
-          Add Secrets
+          Add Secret
         </SubHeading>
         <FormWrapper>
           <LabelRequired>
@@ -148,6 +148,7 @@ const CreateSecret = (props) => {
           <TextFieldComponent
             placeholder="Key Id"
             value={keyId || ''}
+            name="keyId"
             onChange={(e) => handleKeyChange(e.target.value)}
             fullWidth
             error={!!keyErrorMessage}
@@ -164,6 +165,7 @@ const CreateSecret = (props) => {
             </InputLabel>
             <TextFieldComponent
               placeholder="Secret"
+              name="safeSecret"
               value={secret || ''}
               onChange={(e) => handleValueChange(e.target.value)}
               fullWidth

@@ -271,8 +271,9 @@ const AddUser = (props) => {
                 )}
                 icon="search"
                 disabled={!!(access && username)}
-                placeholder="Search by NTID, Email or Name "
+                placeholder="Search by NTID, Email or Name"
                 userInput={searchValue}
+                name="userVal"
                 error={
                   (username !== searchValue && !isValidUserName) || existingUser
                 }
@@ -331,8 +332,8 @@ const AddUser = (props) => {
 };
 
 AddUser.propTypes = {
-  handleSaveClick: PropTypes.func.isRequired,
-  handleCancelClick: PropTypes.func.isRequired,
+  handleSaveClick: PropTypes.func,
+  handleCancelClick: PropTypes.func,
   username: PropTypes.string,
   access: PropTypes.string,
   users: PropTypes.objectOf(PropTypes.any),
@@ -344,6 +345,8 @@ AddUser.propTypes = {
 AddUser.defaultProps = {
   username: '',
   access: 'read',
+  handleCancelClick: () => {},
+  handleSaveClick: () => {},
   users: {},
   isSvcAccount: false,
   isCertificate: false,

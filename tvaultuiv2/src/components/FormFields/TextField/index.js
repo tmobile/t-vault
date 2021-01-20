@@ -80,7 +80,7 @@ const TextFieldComponent = (props) => {
       onBlur={onInputBlur}
       onKeyDown={onKeyDown}
       autoComplete="off"
-      inputProps={{ maxLength: characterLimit }}
+      inputProps={{ maxLength: characterLimit, 'data-testid': `${name}` }}
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">

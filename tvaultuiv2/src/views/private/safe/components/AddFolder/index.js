@@ -13,7 +13,10 @@ import { ColorBackArrow } from '../../../../../assets/SvgIcons';
 
 const AddFolderNameWrapper = styled.div`
   padding: 5.5rem 6rem 6rem 6rem;
-  background-color: ${(props) => props.theme.palette.background.modal};
+  background-color: ${(props) =>
+    props.theme?.palette?.background?.modal
+      ? props.theme.palette.background.modal
+      : '#2a2e3e'};
   width: 70rem;
   ${mediaBreakpoints.semiLarge} {
     padding: 4.5rem 5rem 5rem 5rem;
@@ -116,6 +119,7 @@ const AddFolder = (props) => {
             onChange={(e) => handleChange(e)}
             value={inputValue || ''}
             fullWidth
+            name="folderName"
             error={error}
             helperText={
               errorMessage && errorMessage.includes('Folder already exist')

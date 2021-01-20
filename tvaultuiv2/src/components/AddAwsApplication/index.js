@@ -243,6 +243,12 @@ const AddAwsApplication = (props) => {
     }
   }, [isIamAzureSvcAccount, isSvcAccount, isCertificate]);
 
+  const testIfNumberInput = (event) => {
+    const re = /^[0-9\b]+$/;
+    if (event.target?.value === '' || re.test(event.target.value)) {
+      onChange(event);
+    }
+  };
   return (
     <ComponentError>
       <ContainerWrapper>
@@ -306,10 +312,9 @@ const AddAwsApplication = (props) => {
               value={accountId}
               placeholder="Account ID"
               fullWidth
-              type="number"
               readOnly={!isEC2}
               name="accountId"
-              onChange={(e) => onChange(e)}
+              onChange={(event) => testIfNumberInput(event)}
             />
           </EachInputField>
           <EachInputField>
@@ -433,8 +438,8 @@ const AddAwsApplication = (props) => {
   );
 };
 AddAwsApplication.propTypes = {
-  handleCancelClick: PropTypes.func.isRequired,
-  handleSaveClick: PropTypes.func.isRequired,
+  handleCancelClick: PropTypes.func,
+  handleSaveClick: PropTypes.func,
   isSvcAccount: PropTypes.bool,
   isCertificate: PropTypes.bool,
   isIamAzureSvcAccount: PropTypes.bool,
@@ -442,6 +447,8 @@ AddAwsApplication.propTypes = {
 };
 
 AddAwsApplication.defaultProps = {
+  handleCancelClick: () => {},
+  handleSaveClick: () => {},
   isSvcAccount: false,
   isCertificate: false,
   isIamAzureSvcAccount: false,
