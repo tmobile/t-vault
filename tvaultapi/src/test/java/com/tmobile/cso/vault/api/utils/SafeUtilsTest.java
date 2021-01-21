@@ -16,6 +16,7 @@
 // =========================================================================
 package com.tmobile.cso.vault.api.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -66,7 +67,7 @@ public class SafeUtilsTest {
 
     @Mock
     Response response;
-
+    
     @Before
     public void setUp() {
         PowerMockito.mockStatic(JSONUtil.class);
@@ -202,6 +203,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -212,22 +215,27 @@ public class SafeUtilsTest {
     }
 
 	@Test
-	public void testGetSafeMetaDataSuccess() {
+	public void testGetSafeMetaDataSuccess() throws JsonProcessingException, IOException {
 		String responseJson = "{  \"keys\": [ \"mysafe01\" ]}";
 		Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":"
 				+ "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"},"
 				+ "\"description\":\"asd\",\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"ownerid\":\"normaluser\","
+				+ "\"appName\":\"T-Vault\","
+	            +   "\"applicationTag\":\"tvt\","
 				+ "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 		SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null,
-				"My first safe", "normaluser");
+				"My first safe", "normaluser","tvt");
 		Safe safe = new Safe("users/mysafe01", safeBasicDetails);
 
 		when(ControllerUtil.getSafeType("users/mysafe01")).thenReturn("users");
 		when(ControllerUtil.getSafeName("users/mysafe01")).thenReturn("mysafe01");
 		when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/mysafe01\"}",
 				"5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+		ObjectMapper objMapper = new ObjectMapper();
+		JsonNode dataNode = objMapper.readTree(response.getResponse().toString()).get("data");
+		Safe safeInfo=safeUtils.getSafeInfo(dataNode);
 		Safe safeRes = safeUtils.getSafeMetaData("5PDrOhsy4ig8L3EpsJZSLAMg", "users", "mysafe01");
-		assertEquals(safe.getSafeBasicDetails().getName(), safeRes.getSafeBasicDetails().getName());
+		assertEquals(safe.getSafeBasicDetails().getName(), safeInfo.getSafeBasicDetails().getName());
 	}
 
 	@Test
@@ -238,7 +246,7 @@ public class SafeUtilsTest {
 				+ "\"description\":\"asd\",\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"ownerid\":\"normaluser\","
 				+ "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 		SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null,
-				"My first safe", "normaluser");
+				"My first safe", "normaluser","tvt");
 		Safe safe = new Safe("users/mysafe01", safeBasicDetails);
 
 		when(ControllerUtil.getSafeType("users/mysafe01")).thenReturn("users");
@@ -267,6 +275,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -284,6 +294,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -301,6 +313,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -318,6 +332,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -335,6 +351,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser1\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -352,6 +370,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser1\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -369,6 +389,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");

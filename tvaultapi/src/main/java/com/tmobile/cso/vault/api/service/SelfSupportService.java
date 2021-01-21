@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -101,11 +101,31 @@ public class  SelfSupportService {
 	 * @param safe
 	 * @return
 	 */
-	public ResponseEntity<String> createSafe(UserDetails userDetails, String userToken, Safe safe) {
-		
+	public ResponseEntity<String> createSafe(UserDetails userDetails, Safe safe) {
+		String ownerEmail = safe.getSafeBasicDetails().getOwner();
+		ResponseEntity<DirectoryObjects> responseEntity = directoryService.searchByUPNInGsmAndCorp(ownerEmail);
+		Object[] results =  responseEntity.getBody().getData().getValues();
+		String username = "";
+		for (Object tp : results) {
+			if (((DirectoryUser) tp).getUserEmail().equalsIgnoreCase(ownerEmail)) {
+				username = ((DirectoryUser) tp).getUserName();
+				break;
+			}
+		}
+		SafeBasicDetails safeBasicDetails = safe.getSafeBasicDetails();
+		safeBasicDetails.setOwnerid(username);
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
-			return safesService.createSafe(token, safe);
+			ResponseEntity<String> safeCreationResponse = safesService.createSafe(token, safe);
+			if (HttpStatus.OK.equals(safeCreationResponse.getStatusCode() )) {
+				// Associate admin user to the safe...
+				SafeUser safeUser = new SafeUser();
+				safeUser.setAccess(TVaultConstants.SUDO_POLICY);
+				safeUser.setPath(safe.getPath());			
+				safeUser.setUsername(username);
+				safesService.addUserToSafe(token, safeUser, userDetails, true);
+			}
+			return safeCreationResponse;
 		}
 		else {
 			// Assign the owner (Infer from logged in user?)
@@ -113,6 +133,10 @@ public class  SelfSupportService {
 			// Assign the policies
 			// Modify should work the same
 			// Delete safe - clean up of all items, paths, permissions, policies
+			if(!safe.getSafeBasicDetails().getOwner().equals(userDetails.getEmail())){
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("{\"errors\":[\"Invalid owner email\"]}");
+			}
 			token = userDetails.getSelfSupportToken();
 			if (!isSafeValid(safe)) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
@@ -121,11 +145,11 @@ public class  SelfSupportService {
 			if (isSafeQuotaReached(token, userDetails.getUsername(), ControllerUtil.getSafeType(safe.getPath()), userDetails)) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"You have reached the limit of number of allowed safes that can be created\"]}");
 			}
-			if (safe != null && safe.getSafeBasicDetails() != null) {
+			if (!ObjectUtils.isEmpty(safe) && safe.getSafeBasicDetails() != null) {
 				safe.getSafeBasicDetails().setOwnerid(userDetails.getUsername());
 			}
-			ResponseEntity<String> safe_creation_response = safesService.createSafe(token, safe);
-			if (HttpStatus.OK.equals(safe_creation_response.getStatusCode() )) {
+			ResponseEntity<String> safeCreationResponse = safesService.createSafe(token, safe);
+			if (HttpStatus.OK.equals(safeCreationResponse.getStatusCode() )) {
 				// Associate admin user to the safe...
 				SafeUser safeUser = new SafeUser();
 				safeUser.setAccess(TVaultConstants.SUDO_POLICY);
@@ -133,7 +157,7 @@ public class  SelfSupportService {
 				safeUser.setUsername(userDetails.getUsername());
 				safesService.addUserToSafe(token, safeUser, userDetails, true);
 			}
-			return safe_creation_response;
+			return safeCreationResponse;
 		}
 	}
 
@@ -170,7 +194,7 @@ public class  SelfSupportService {
 	 * @param safeUser
 	 * @return
 	 */
-	public ResponseEntity<String> addUserToSafe(UserDetails userDetails, String userToken, SafeUser safeUser) {
+	public ResponseEntity<String> addUserToSafe(UserDetails userDetails, SafeUser safeUser) {
 		boolean canAddUser = safeUtils.canAddOrRemoveUser(userDetails, safeUser, TVaultConstants.ADD_USER);
 		if (canAddUser) {
 			if (userDetails.isAdmin()) {
@@ -190,7 +214,7 @@ public class  SelfSupportService {
 	 * @param path
 	 * @return
 	 */
-	public ResponseEntity<String> getInfo(UserDetails userDetails, String userToken, String path){
+	public ResponseEntity<String> getInfo(UserDetails userDetails, String path){
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return safesService.getInfo(token, path);
@@ -213,7 +237,7 @@ public class  SelfSupportService {
 	 * @param path
 	 * @return
 	 */
-	public ResponseEntity<String> getSafe(UserDetails userDetails, String userToken, String path) {
+	public ResponseEntity<String> getSafe(UserDetails userDetails, String path) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return safesService.getSafe(token, path);
@@ -245,7 +269,7 @@ public class  SelfSupportService {
 	 * @param safeUser
 	 * @return
 	 */
-	public ResponseEntity<String> removeUserFromSafe(UserDetails userDetails, String userToken, SafeUser safeUser) {
+	public ResponseEntity<String> removeUserFromSafe(UserDetails userDetails, SafeUser safeUser) {
 		String token = userDetails.getClientToken();
 		boolean isAuthorized = safeUtils.canAddOrRemoveUser(userDetails, safeUser, TVaultConstants.REMOVE_USER);
 		if (!isAuthorized) {
@@ -265,7 +289,7 @@ public class  SelfSupportService {
 	 * @param path
 	 * @return
 	 */
-	public ResponseEntity<String> getFoldersRecursively(UserDetails userDetails, String userToken, String path) {
+	public ResponseEntity<String> getFoldersRecursively(UserDetails userDetails, String path) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return safesService.getFoldersRecursively(token, path);
@@ -313,13 +337,17 @@ public class  SelfSupportService {
 	 * @param safe
 	 * @return
 	 */
-	public ResponseEntity<String> updateSafe(UserDetails userDetails, String userToken, Safe safe) {
+	public ResponseEntity<String> updateSafe(UserDetails userDetails, Safe safe) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return safesService.updateSafe(token, safe);
 		}
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, safe.getPath());
+			if(!safe.getSafeBasicDetails().getOwner().equals(userDetails.getEmail())){
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("{\"errors\":[\"Invalid owner email\"]}");
+			}
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
@@ -339,7 +367,7 @@ public class  SelfSupportService {
 	 * @param path
 	 * @return
 	 */
-	public ResponseEntity<String> deletefolder(UserDetails userDetails, String userToken, String path) {
+	public ResponseEntity<String> deletefolder(UserDetails userDetails, String path) {
 		if (userDetails.isAdmin()) {
 			//Taking self service token for safe deletion by admin to avoid the read/deny restriction to admin
 			return safesService.deletefolder(userDetails.getSelfSupportToken(), path, userDetails);
@@ -363,7 +391,7 @@ public class  SelfSupportService {
 	 * @param safeGroup
 	 * @return
 	 */
-	public ResponseEntity<String> addGroupToSafe(UserDetails userDetails, String userToken, SafeGroup safeGroup) {
+	public ResponseEntity<String> addGroupToSafe(UserDetails userDetails, SafeGroup safeGroup) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return safesService.addGroupToSafe(token, safeGroup, userDetails);
@@ -387,7 +415,7 @@ public class  SelfSupportService {
 	 * @param safeGroup
 	 * @return
 	 */
-	public ResponseEntity<String> removeGroupFromSafe(UserDetails userDetails, String userToken, SafeGroup safeGroup) {
+	public ResponseEntity<String> removeGroupFromSafe(UserDetails userDetails, SafeGroup safeGroup) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return safesService.removeGroupFromSafe(token, safeGroup, userDetails);
@@ -412,7 +440,7 @@ public class  SelfSupportService {
 	 * @param awsRole
 	 * @return
 	 */
-	public ResponseEntity<String> addAwsRoleToSafe(UserDetails userDetails, String userToken, AWSRole awsRole) {
+	public ResponseEntity<String> addAwsRoleToSafe(UserDetails userDetails, AWSRole awsRole) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return safesService.addAwsRoleToSafe(token, awsRole);
@@ -438,7 +466,7 @@ public class  SelfSupportService {
 	 * @param detachOnly
 	 * @return
 	 */
-	public ResponseEntity<String> removeAWSRoleFromSafe(UserDetails userDetails, String userToken, AWSRole awsRole, boolean detachOnly) {
+	public ResponseEntity<String> removeAWSRoleFromSafe(UserDetails userDetails,  AWSRole awsRole, boolean detachOnly) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return safesService.removeAWSRoleFromSafe(token, awsRole, detachOnly, userDetails);
@@ -463,7 +491,7 @@ public class  SelfSupportService {
 	 * @param jsonstr
 	 * @return
 	 */
-	public ResponseEntity<String> associateApproletoSDB(UserDetails userDetails, String userToken, SafeAppRoleAccess safeAppRoleAccess) {
+	public ResponseEntity<String> associateApproletoSDB(UserDetails userDetails, SafeAppRoleAccess safeAppRoleAccess) {
 		String jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
@@ -494,10 +522,8 @@ public class  SelfSupportService {
 	 * @param jsonstr
 	 * @return
 	 */
-	public ResponseEntity<String> deleteApproleFromSDB(UserDetails userDetails, String userToken, SafeAppRoleAccess safeAppRoleAccess) {
-//		if (TVaultConstants.SELF_SERVICE_APPROLE_NAME.equals(safeAppRoleAccess.getRole_name())) {
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to delete this approle\"]}");
-//		}
+	public ResponseEntity<String> deleteApproleFromSDB(UserDetails userDetails, SafeAppRoleAccess safeAppRoleAccess) {
+
 		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(safeAppRoleAccess.getRole_name())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body("{\"errors\":[\"Access denied: no permission to delete this approle\"]}");
@@ -534,7 +560,7 @@ public class  SelfSupportService {
 	 * @return
 	 * @throws TVaultValidationException
 	 */
-	public ResponseEntity<String> createRole(UserDetails userDetails, String userToken, AWSLoginRole awsLoginRole, String path) throws TVaultValidationException {
+	public ResponseEntity<String> createRole(UserDetails userDetails, AWSLoginRole awsLoginRole, String path) throws TVaultValidationException {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return awsAuthService.createRole(token, awsLoginRole, userDetails);
@@ -561,7 +587,7 @@ public class  SelfSupportService {
 	 * @return
 	 * @throws TVaultValidationException
 	 */
-	public ResponseEntity<String> updateRole(UserDetails userDetails, String userToken, AWSLoginRole awsLoginRole, String path) throws TVaultValidationException {
+	public ResponseEntity<String> updateRole(UserDetails userDetails, AWSLoginRole awsLoginRole, String path) throws TVaultValidationException {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return awsAuthService.updateRole(token, awsLoginRole);
@@ -588,7 +614,7 @@ public class  SelfSupportService {
 	 * @return
 	 * @throws TVaultValidationException
 	 */
-	public ResponseEntity<String> createIAMRole(UserDetails userDetails, String userToken, AWSIAMRole awsiamRole, String path) throws TVaultValidationException {
+	public ResponseEntity<String> createIAMRole(UserDetails userDetails, AWSIAMRole awsiamRole, String path) throws TVaultValidationException {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return awsiamAuthService.createIAMRole(awsiamRole, token, userDetails);
@@ -615,7 +641,7 @@ public class  SelfSupportService {
 	 * @return
 	 * @throws TVaultValidationException
 	 */
-	public ResponseEntity<String> updateIAMRole(UserDetails userDetails, String userToken, AWSIAMRole awsiamRole, String path) throws TVaultValidationException {
+	public ResponseEntity<String> updateIAMRole(UserDetails userDetails, AWSIAMRole awsiamRole, String path) throws TVaultValidationException {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return awsiamAuthService.updateIAMRole(token, awsiamRole);
@@ -654,7 +680,7 @@ public class  SelfSupportService {
 	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> createAppRole(String userToken, AppRole appRole, UserDetails userDetails) {
+	public ResponseEntity<String> createAppRole(AppRole appRole, UserDetails userDetails) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return appRoleService.createAppRole(token, appRole, userDetails);
@@ -672,7 +698,7 @@ public class  SelfSupportService {
 	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> deleteAppRole(String userToken, AppRole appRole, UserDetails userDetails) {
+	public ResponseEntity<String> deleteAppRole(AppRole appRole, UserDetails userDetails) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return appRoleService.deleteAppRole(token, appRole, userDetails);
@@ -689,7 +715,7 @@ public class  SelfSupportService {
 	 * @param token
 	 * @return
 	 */
-	public ResponseEntity<String> getSafes(UserDetails userDetails, String userToken) {
+	public ResponseEntity<String> getSafes(UserDetails userDetails) {
 		oidcUtil.renewUserToken(userDetails.getClientToken());
 		String token = userDetails.getClientToken();
 		if (!userDetails.isAdmin()) {
@@ -789,7 +815,7 @@ public class  SelfSupportService {
 	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> readAppRoles(String userToken, UserDetails userDetails) {
+	public ResponseEntity<String> readAppRoles(UserDetails userDetails) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return appRoleService.readAppRoles(token);
@@ -817,7 +843,7 @@ public class  SelfSupportService {
 	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> readAppRole(String userToken, String rolename, UserDetails userDetails) {
+	public ResponseEntity<String> readAppRole(String rolename, UserDetails userDetails) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
 			return appRoleService.readAppRole(token, rolename);
@@ -844,7 +870,7 @@ public class  SelfSupportService {
 	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> readAppRoleSecretId(String userToken, String rolename, UserDetails userDetails) {
+	public ResponseEntity<String> readAppRoleSecretId(String rolename, UserDetails userDetails) {
 		String token = userDetails.getClientToken();
 		if (!userDetails.isAdmin()) {
 			token = userDetails.getSelfSupportToken();
@@ -1235,7 +1261,7 @@ public class  SelfSupportService {
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		String path = TVaultConstants.AWS_USERS_METADATA_MOUNT_PATH + "/" + userDetails.getUsername();
-		Response response = new Response();
+		Response response ;
 		if (userDetails.isAdmin()) {
 			return awsAuthService.listRoles(token);
 		}
@@ -1249,7 +1275,7 @@ public class  SelfSupportService {
 		else if (response!=null && HttpStatus.NOT_FOUND.equals(response.getHttpstatus())) {
 			return ResponseEntity.status(HttpStatus.OK).body("{\"keys\":[]}");
 		}		
-		return ResponseEntity.status(response==null?null:response.getHttpstatus()).body(response.getResponse());	
+		return ResponseEntity.status(response==null?null:response.getHttpstatus()).body(response==null?null:response.getResponse());	
 	}
 	/**
 	 * Create AWS EC2 role
@@ -1260,7 +1286,7 @@ public class  SelfSupportService {
 	 * @throws TVaultValidationException
 	 */
 	
-	public ResponseEntity<String> createAwsec2Role(UserDetails userDetails, String token, AWSLoginRole awsLoginRole) throws TVaultValidationException {
+	public ResponseEntity<String> createAwsec2Role(UserDetails userDetails, AWSLoginRole awsLoginRole) throws TVaultValidationException {
 		String accesstoken;
 		if (userDetails.isAdmin()) {
 			 accesstoken = userDetails.getClientToken();
@@ -1278,7 +1304,7 @@ public class  SelfSupportService {
 	 * @return
 	 * @throws TVaultValidationException
 	 */
-	public ResponseEntity<String> createAwsiamRole(UserDetails userDetails, String token, AWSIAMRole awsiamRole) throws TVaultValidationException {
+	public ResponseEntity<String> createAwsiamRole(UserDetails userDetails, AWSIAMRole awsiamRole) throws TVaultValidationException {
 		String accesstoken;
 		if (userDetails.isAdmin()) {
 			accesstoken = userDetails.getClientToken();
@@ -1287,5 +1313,41 @@ public class  SelfSupportService {
 			accesstoken = userDetails.getSelfSupportToken();
 		}
 		return awsiamAuthService.createIAMRole(awsiamRole, accesstoken, userDetails);
+	}
+	/**
+	 * Update AWS EC2 role
+	 * @param userDetails
+	 * @param userToken
+	 * @param awsiamRole
+	 * @return
+	 * @throws TVaultValidationException
+	 */
+	public ResponseEntity<String> updateAwsEc2Role(UserDetails userDetails, String token, AWSLoginRole awsLoginRole) throws TVaultValidationException {
+		String accesstoken;
+		if (userDetails.isAdmin()) {
+			 accesstoken = userDetails.getClientToken();
+		}
+		else {
+			accesstoken = userDetails.getSelfSupportToken();
+		}
+		return awsAuthService.updateRole(accesstoken, awsLoginRole);
+	}
+	/**
+	 * Update AWS IAM role
+	 * @param userDetails
+	 * @param userToken
+	 * @param awsiamRole
+	 * @return
+	 * @throws TVaultValidationException
+	 */
+	public ResponseEntity<String> updateAwsIamRole(UserDetails userDetails, String token, AWSIAMRole awsiamRole) throws TVaultValidationException {
+		String accesstoken;
+		if (userDetails.isAdmin()) {
+			 accesstoken = userDetails.getClientToken();
+		}
+		else {
+			accesstoken = userDetails.getSelfSupportToken();
+		}
+		return awsiamAuthService.updateIAMRole(accesstoken, awsiamRole);
 	}
 }

@@ -574,7 +574,7 @@ public class ControllerUtilTest {
 
     @Test
     public void testareSDBInputsValidsafe()  {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/safe01",safeBasicDetails);
 
         boolean valid = ControllerUtil.areSDBInputsValid(safe);
@@ -590,6 +590,7 @@ public class ControllerUtilTest {
         dataParam.put("description", "Safe 01");
         requestParams.put("data", dataParam);
         requestParams.put("path", "users/safe01");
+        dataParam.put("appName", "t-vault");
 
         boolean valid = ControllerUtil.areSDBInputsValidForUpdate(requestParams);
         assertTrue(valid);
@@ -663,7 +664,7 @@ public class ControllerUtilTest {
 
     @Test
     public void testconverSDBInputsToLowerCase() throws IOException {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("Safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("Safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("Shared/safe01",safeBasicDetails);
         String jsonStr = "{\"path\":\"Shared/Safe01\",\"safeBasicDetails\":{\"name\":\"Safe01\",\"ownwe\":\"youremail@yourcompany.com\", \"description\":\"My first safe\"}}";
         String jsonStrlowercase = "{\"path\":\"shared/safe01\",\"safeBasicDetails\":{\"name\":\"safe01\",\"ownwe\":\"youremail@yourcompany.com\", \"description\":\"My first safe\"}}";
@@ -677,7 +678,7 @@ public class ControllerUtilTest {
 
     @Test
     public void testconverSDBInputsToLowerCasesafe()  {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("Safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("Safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("Shared/safe01",safeBasicDetails);
         ControllerUtil.converSDBInputsToLowerCase(safe);
         assertEquals("shared/safe01", safe.getPath());
@@ -1182,5 +1183,25 @@ public class ControllerUtilTest {
 
         Boolean isUpdated = ControllerUtil.updateMetaDataOnPath(path, params, token);
         assertEquals(Boolean.FALSE, isUpdated);
+    }
+    
+    @Test
+    public void test_updateMetadataOnSvcPwdReset_successfully() {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String path = TVaultConstants.SVC_ACC_ROLES_PATH + "testacc02";
+        ADServiceAccountCreds adServiceAccountCreds = new ADServiceAccountCreds();
+        adServiceAccountCreds.setCurrent_password("current_password");
+        adServiceAccountCreds.setLast_password("last_password");
+        adServiceAccountCreds.setUsername("username");
+        ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+        adServiceAccountResetDetails.setModifiedBy("modifiedBy");
+        adServiceAccountResetDetails.setModifiedAt(1610607707296l);
+        adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+ 
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{ \"initialPasswordReset\": false,\"modifiedBy\":\"modifiedby\",\"modifiedAt\":\"modifiedAt\",\"managedBy\": \"svcuser2\",\"name\": \"svc_vault_test2\",\"users\": {\"svcuser1\": \"sudo\"}}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(metaResponse);
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
+        Response actualResponse = ControllerUtil.updateMetadataOnSvcPwdReset(path, adServiceAccountResetDetails, token);
+        assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
     }
 }

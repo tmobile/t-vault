@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.service;
 
 import java.io.*;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -142,7 +143,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "getADServiceAccounts").
-							put(LogMessage.MESSAGE, String.format("There are no AD service accounts currently onboarded or error in retrieving onboarded service accounts")).
+							put(LogMessage.MESSAGE, "There are no AD service accounts currently onboarded or error in retrieving onboarded service accounts").
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 				}
@@ -164,7 +165,7 @@ public class  ServiceAccountsService {
 
 			// build the search query
 			if (!ownerlist.isEmpty()) {
-				StringBuffer filterQuery = new StringBuffer();
+				StringBuilder filterQuery = new StringBuilder();
 				filterQuery.append("(&(objectclass=user)(|");
 				for (String owner : ownerlist) {
 					filterQuery.append("(cn=" + owner + ")");
@@ -209,7 +210,7 @@ public class  ServiceAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "getAllAccounts").
-				put(LogMessage.MESSAGE, String.format("Trying to get list of user accounts from AD server")).
+				put(LogMessage.MESSAGE, "Trying to get list of user accounts from AD server").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		return ldapTemplate.search("", filter.encode(), new AttributesMapper<ADServiceAccount>() {
@@ -315,7 +316,7 @@ public class  ServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "onboardServiceAccount").
-					put(LogMessage.MESSAGE, String.format ("Auto-Rotate of password has been turned on")).
+					put(LogMessage.MESSAGE, "Auto-Rotate of password has been turned on").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
             if (null == serviceAccount.getMax_ttl()) {
@@ -347,7 +348,7 @@ public class  ServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "onboardServiceAccount").
-					put(LogMessage.MESSAGE, String.format ("Auto-Rotate of password has been turned off")).
+					put(LogMessage.MESSAGE, "Auto-Rotate of password has been turned off").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			// ttl defaults to configuration ttl
@@ -361,7 +362,7 @@ public class  ServiceAccountsService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "onboardServiceAccount").
-						put(LogMessage.MESSAGE, String.format ("Successfully created Metadata for the Service Account")).
+						put(LogMessage.MESSAGE, "Successfully created Metadata for the Service Account").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 			}
@@ -369,7 +370,7 @@ public class  ServiceAccountsService {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "onboardServiceAccount").
-						put(LogMessage.MESSAGE, String.format ("Successfully created Service Account Role. However creation of Metadata failed.")).
+						put(LogMessage.MESSAGE, "Successfully created Service Account Role. However creation of Metadata failed.").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 				return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Successfully created Service Account Role. However creation of Metadata failed.\"]}");
@@ -383,7 +384,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "onboardServiceAccount").
-							put(LogMessage.MESSAGE, String.format ("Successfully completed onboarding of AD service account into TVault for password rotation.")).
+							put(LogMessage.MESSAGE, "Successfully completed onboarding of AD service account into TVault for password rotation.").
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 
@@ -399,7 +400,7 @@ public class  ServiceAccountsService {
 						String groupContent = TVaultConstants.EMPTY;
 
 						// set template variables
-						Map<String, String> mailTemplateVariables = new Hashtable<>();
+						Map<String, String> mailTemplateVariables = new HashMap<>();
 						mailTemplateVariables.put("name", managerDetails.get(0).getDisplayName());
 						mailTemplateVariables.put("svcAccName", svcAccName);
 						if (serviceAccount.getAdGroup() != null && !serviceAccount.getAdGroup().equals("")) {
@@ -421,7 +422,7 @@ public class  ServiceAccountsService {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "onboardServiceAccount").
-							put(LogMessage.MESSAGE, String.format ("Successfully created Service Account Role and policies. However the association of owner information failed.")).
+							put(LogMessage.MESSAGE, "Successfully created Service Account Role and policies. However the association of owner information failed.").
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 					return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Successfully created Service Account Role and policies. However the association of owner information failed.\"]}");
@@ -431,7 +432,7 @@ public class  ServiceAccountsService {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "onboardServiceAccount").
-						put(LogMessage.MESSAGE, String.format ("Failed to onboard AD service account into TVault for password rotation.")).
+						put(LogMessage.MESSAGE, "Failed to onboard AD service account into TVault for password rotation.").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 				OnboardedServiceAccount serviceAccountToRevert = new OnboardedServiceAccount(serviceAccount.getName(),serviceAccount.getOwner());
@@ -447,7 +448,7 @@ public class  ServiceAccountsService {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "onboardServiceAccount").
-					put(LogMessage.MESSAGE, String.format ("Failed to onboard AD service account into TVault for password rotation.")).
+					put(LogMessage.MESSAGE, "Failed to onboard AD service account into TVault for password rotation.").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to onboard AD service account into TVault for password rotation.\"]}");
@@ -582,7 +583,7 @@ public class  ServiceAccountsService {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "offboardServiceAccount").
-					put(LogMessage.MESSAGE, String.format ("Failed to delete some of the policies for service account")).
+					put(LogMessage.MESSAGE, "Failed to delete some of the policies for service account").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 		}
@@ -612,7 +613,7 @@ public class  ServiceAccountsService {
 			}
 			updateUserPolicyAssociationOnSvcaccDelete(svcAccName, users, token, userDetails);
 			updateGroupPolicyAssociationOnSvcaccDelete(svcAccName,groups,token, userDetails);
-            deleteAwsRoleonOnSvcaccDelete(svcAccName,awsroles,token);
+            deleteAwsRoleonOnSvcaccDelete(awsroles,token);
             updateApprolePolicyAssociationOnSvcaccDelete(svcAccName,approles,token);
 		}
 		ResponseEntity<String> accountRoleDeletionResponse = deleteAccountRole(token, serviceAccount);
@@ -633,7 +634,7 @@ public class  ServiceAccountsService {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "offboardServiceAccount").
-						put(LogMessage.MESSAGE, String.format ("Unable to delete Metadata for the Service Account")).
+						put(LogMessage.MESSAGE, "Unable to delete Metadata for the Service Account").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 				return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to offboard AD service account from TVault for password rotation.\"]}");
@@ -643,7 +644,7 @@ public class  ServiceAccountsService {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "offboardServiceAccount").
-					put(LogMessage.MESSAGE, String.format ("Failed to offboard AD service account from TVault for password rotation.")).
+					put(LogMessage.MESSAGE, "Failed to offboard AD service account from TVault for password rotation.").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to offboard AD service account from TVault for password rotation.\"]}");
@@ -719,7 +720,7 @@ public class  ServiceAccountsService {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Failed to offboard AD service account from TVault. Access denied.\"]}");
 		}
 		updateGroupPolicyAssociationOnSvcaccDelete(svcAccName,groups,userDetails.isAdmin()?token:selfServiceToken, userDetails);
-		deleteAwsRoleonOnSvcaccDelete(svcAccName,awsroles,userDetails.isAdmin()?token:selfServiceToken);
+		deleteAwsRoleonOnSvcaccDelete(awsroles,userDetails.isAdmin()?token:selfServiceToken);
 		updateApprolePolicyAssociationOnSvcaccDelete(svcAccName,approles,userDetails.isAdmin()?token:selfServiceToken);
 
 		ResponseEntity<String> accountRoleDeletionResponse = deleteAccountRole(token, serviceAccount);
@@ -785,7 +786,7 @@ public class  ServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "createAccountRole").
-					put(LogMessage.MESSAGE, String.format ("Successfully created service account role.")).
+					put(LogMessage.MESSAGE, "Successfully created service account role.").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully created service account role.\"]}");
@@ -794,7 +795,7 @@ public class  ServiceAccountsService {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "createAccountRole").
-					put(LogMessage.MESSAGE, String.format ("Failed to create service account role.")).
+					put(LogMessage.MESSAGE, "Failed to create service account role.").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to create service account role.\"]}");
@@ -816,7 +817,7 @@ public class  ServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "deleteAccountRole").
-					put(LogMessage.MESSAGE, String.format ("Successfully deleted service account role.")).
+					put(LogMessage.MESSAGE, "Successfully deleted service account role.").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully deleted service account role.\"]}");
@@ -825,7 +826,7 @@ public class  ServiceAccountsService {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "deleteAccountRole").
-					put(LogMessage.MESSAGE, String.format ("Failed to delete service account role.")).
+					put(LogMessage.MESSAGE, "Failed to delete service account role.").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to delete service account role.\"]}");
@@ -866,7 +867,7 @@ public class  ServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "createServiceAccountPolicies").
-					put(LogMessage.MESSAGE, String.format ("Successfully created policies for service account.")).
+					put(LogMessage.MESSAGE, "Successfully created policies for service account.").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully created policies for service account\"]}");
@@ -874,7 +875,7 @@ public class  ServiceAccountsService {
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "createServiceAccountPolicies").
-				put(LogMessage.MESSAGE, String.format ("Failed to create some of the policies for service account.")).
+				put(LogMessage.MESSAGE, "Failed to create some of the policies for service account.").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Failed to create some of the policies for service account\"]}");
@@ -898,7 +899,7 @@ public class  ServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "deleteServiceAccountPolicies").
-					put(LogMessage.MESSAGE, String.format ("Successfully created policies for service account.")).
+					put(LogMessage.MESSAGE, "Successfully created policies for service account.").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully removed policies for service account\"]}");
@@ -906,7 +907,7 @@ public class  ServiceAccountsService {
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "deleteServiceAccountPolicies").
-				put(LogMessage.MESSAGE, String.format ("Failed to delete some of the policies for service account.")).
+				put(LogMessage.MESSAGE, "Failed to delete some of the policies for service account.").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"messages\":[\"Failed to delete some of the policies for service account\"]}");
@@ -926,7 +927,7 @@ public class  ServiceAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Add User to ServiceAccount").
-				put(LogMessage.MESSAGE, String.format ("Trying to add user to ServiceAccount")).
+				put(LogMessage.MESSAGE, "Trying to add user to ServiceAccount").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 
@@ -941,7 +942,6 @@ public class  ServiceAccountsService {
 		String svcAccName = serviceAccountUser.getSvcAccName();
 		String access = serviceAccountUser.getAccess();
 
-		// TODO: Validation for String expectedPath = TVaultConstants.SVC_ACC_CREDS_PATH+svcAccName;
 
 		userName = (userName !=null) ? userName.toLowerCase() : userName;
 		access = (access != null) ? access.toLowerCase(): access;
@@ -961,7 +961,7 @@ public class  ServiceAccountsService {
 						build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add user permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
 			}
-			String policy = TVaultConstants.EMPTY;
+			String policy = "";
 			policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -995,7 +995,7 @@ public class  ServiceAccountsService {
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
 								.put(LogMessage.ACTION, "Add User to SDB")
 								.put(LogMessage.MESSAGE,
-										String.format("Trying to fetch OIDC user policies, failed"))
+										"Trying to fetch OIDC user policies, failed")
 								.put(LogMessage.APIURL,
 										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 								.build()));
@@ -1034,7 +1034,7 @@ public class  ServiceAccountsService {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add User to ServiceAccount").
-							put(LogMessage.MESSAGE, String.format ("Exception while creating currentpolicies or groups")).
+							put(LogMessage.MESSAGE, "Exception while creating currentpolicies or groups").
 							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -1074,7 +1074,7 @@ public class  ServiceAccountsService {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, "Add User to SDB").
-							put(LogMessage.MESSAGE, String.format ("Exception while adding or updating the identity ")).
+							put(LogMessage.MESSAGE, "Exception while adding or updating the identity ").
 							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -1123,7 +1123,7 @@ public class  ServiceAccountsService {
 									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 									.put(LogMessage.ACTION, "Add User to AD")
 									.put(LogMessage.MESSAGE,
-											String.format("Exception while adding or updating the identity "))
+											"Exception while adding or updating the identity ")
 									.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
 									.put(LogMessage.APIURL,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
@@ -1238,7 +1238,7 @@ public class  ServiceAccountsService {
 																.toString())
 												.put(LogMessage.ACTION, "removeUserFromSafe")
 												.put(LogMessage.MESSAGE,
-														String.format("Trying to fetch OIDC user policies, failed"))
+														"Trying to fetch OIDC user policies, failed")
 												.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap()
 														.get(LogMessage.APIURL).toString())
 												.build()));
@@ -1263,14 +1263,12 @@ public class  ServiceAccountsService {
 			String groups="";
 			List<String> policies = new ArrayList<>();
 			List<String> currentpolicies = new ArrayList<>();
-			String policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
 			if(HttpStatus.OK.equals(userResponse.getHttpstatus())){
 				responseJson = userResponse.getResponse();	
 				try {
 					ObjectMapper objMapper = new ObjectMapper();
 					if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 						currentpolicies.addAll(oidcEntityResponse.getPolicies());
-						//groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
 					} else {
 						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
 						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
@@ -1282,13 +1280,12 @@ public class  ServiceAccountsService {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Remove User from ServiceAccount").
-							put(LogMessage.MESSAGE, String.format ("Exception while creating currentpolicies or groups")).
+							put(LogMessage.MESSAGE, "Exception while creating currentpolicies or groups").
 							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 				}
 				policies.addAll(currentpolicies);
-				//policies.remove(policy);
 				policies.remove(r_policy);
 				policies.remove(w_policy);
 				policies.remove(d_policy);
@@ -1314,7 +1311,7 @@ public class  ServiceAccountsService {
 													ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 											.put(LogMessage.ACTION, "Remove User to SVC")
 											.put(LogMessage.MESSAGE,
-													String.format("Exception while updating the identity"))
+													"Exception while updating the identity")
 											.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
 											.put(LogMessage.APIURL,
 													ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
@@ -1359,7 +1356,7 @@ public class  ServiceAccountsService {
 													ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 											.put(LogMessage.ACTION, "Remove User to SDB")
 											.put(LogMessage.MESSAGE,
-													String.format("Exception while updating the identity"))
+													"Exception while updating the identity")
 											.put(LogMessage.STACKTRACE, Arrays.toString(e2.getStackTrace()))
 											.put(LogMessage.APIURL,
 													ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
@@ -1461,89 +1458,171 @@ public class  ServiceAccountsService {
 								build()));
 						try {
 							ADServiceAccountCreds adServiceAccountCreds = new ADServiceAccountCreds();
-							Map<String, Object> requestParams = new ObjectMapper().readValue(response.getResponse(), new TypeReference<Map<String, Object>>(){});
-							if (requestParams.get("current_password") != null) {
-								adServiceAccountCreds.setCurrent_password((String) requestParams.get("current_password"));
+							Map<String, Object> requestParams = new ObjectMapper().readValue(response.getResponse(),
+									new TypeReference<Map<String, Object>>() {
+									});
+							if (requestParams.get(TVaultConstants.CURRENT_PASSWORD) != null) {
+								adServiceAccountCreds
+										.setCurrent_password((String) requestParams.get(TVaultConstants.CURRENT_PASSWORD));
 							}
-							if (requestParams.get("username") != null) {
-								adServiceAccountCreds.setUsername((String) requestParams.get("username"));
+							if (requestParams.get(TVaultConstants.USERNAME) != null) {
+								adServiceAccountCreds.setUsername((String) requestParams.get(TVaultConstants.USERNAME));
 							}
-							if (requestParams.get("last_password") != null ) {
-								adServiceAccountCreds.setLast_password((String) requestParams.get("last_password"));
+							if (requestParams.get(TVaultConstants.LAST_PASSWORD) != null) {
+								adServiceAccountCreds.setLast_password((String) requestParams.get(TVaultConstants.LAST_PASSWORD));
+							}
+
+							ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+							if (userDetails.getEmail() != null) {
+								adServiceAccountResetDetails.setModifiedBy(userDetails.getEmail());
+							} else {
+								adServiceAccountResetDetails.setModifiedBy(userDetails.getUsername());
+							}
+							Long modifiedAt = new Date().getTime();
+							adServiceAccountResetDetails.setModifiedAt(modifiedAt);
+							adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+
+							// Update metadata for password reset with
+							// modifiedBy and modifiedAt details
+							Response metadataRestResponse = ControllerUtil.updateMetadataOnSvcPwdReset(
+									TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName, adServiceAccountResetDetails,
+									token);
+							if (metadataRestResponse != null
+									&& (HttpStatus.NO_CONTENT.equals(metadataRestResponse.getHttpstatus())
+											|| HttpStatus.OK.equals(metadataRestResponse.getHttpstatus()))) {
+								log.debug(
+										JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+												.put(LogMessage.USER,
+														ThreadLocalContext.getCurrentMap().get(LogMessage.USER)
+																.toString())
+												.put(LogMessage.ACTION, "update metadata on password reset")
+												.put(LogMessage.MESSAGE, "Metadata update Success")
+												.put(LogMessage.APIURL,
+														ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+												.build()));
+							} else {
+								log.debug(
+										JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+												.put(LogMessage.USER,
+														ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+												.put(LogMessage.ACTION, "update metadata on password reset")
+												.put(LogMessage.MESSAGE, "Metadata update Failed")
+												.put(LogMessage.APIURL,
+														ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+												.build()));
 							}
 
 							// Check metadata to get the owner information
-							Response metaDataResponse = getMetadata(token, userDetails, TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName);
-							if (metaDataResponse!=null) {
+							Response metaDataResponse = getMetadata(token, userDetails,
+									TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName);
+							if (metaDataResponse != null) {
 								try {
-									JsonNode metaNode = new ObjectMapper().readTree(metaDataResponse.getResponse()).get("data").get("initialPasswordReset");
+									JsonNode metaNode = new ObjectMapper().readTree(metaDataResponse.getResponse())
+											.get("data").get("initialPasswordReset");
 									if (metaNode != null) {
 										boolean initialResetStatus = false;
 
 										initialResetStatus = Boolean.parseBoolean(metaNode.asText());
 										if (!initialResetStatus) {
 
-											// update metadata for initial password reset
-											String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH).append(svcAccName).toString();
-											Map<String,String> params = new Hashtable<>();
+											// update metadata for initial
+											// password reset
+											String path = new StringBuffer(TVaultConstants.SVC_ACC_ROLES_PATH)
+													.append(svcAccName).toString();
+											Map<String, String> params = new HashMap<>();
 											params.put("type", "initialPasswordReset");
-											params.put("path",path);
-											params.put("value","true");
-											Response metadataResponse = ControllerUtil.updateMetadataOnSvcaccPwdReset(params,token);
-											if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
-												log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-														put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-														put(LogMessage.ACTION, "Update metadata on password reset").
-														put(LogMessage.MESSAGE, "Metadata update Success.").
-														put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-														put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-														build()));
-											}
-											else {
-												log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-														put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-														put(LogMessage.ACTION, "Update metadata on password reset").
-														put(LogMessage.MESSAGE, "Metadata update failed.").
-														put(LogMessage.STATUS, metadataResponse!=null?metadataResponse.getHttpstatus().toString():HttpStatus.BAD_REQUEST.toString()).
-														put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-														build()));
+											params.put("path", path);
+											params.put("value", "true");
+											Response metadataResponse = ControllerUtil
+													.updateMetadataOnSvcaccPwdReset(params, token);
+											if (metadataResponse != null && (HttpStatus.NO_CONTENT
+													.equals(metadataResponse.getHttpstatus())
+													|| HttpStatus.OK.equals(metadataResponse.getHttpstatus()))) {
+												log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+														.put(LogMessage.USER,
+																ThreadLocalContext.getCurrentMap().get(LogMessage.USER)
+																		.toString())
+														.put(LogMessage.ACTION, "Update metadata on password reset")
+														.put(LogMessage.MESSAGE, "Metadata update Success.")
+														.put(LogMessage.STATUS,
+																metadataResponse.getHttpstatus().toString())
+														.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap()
+																.get(LogMessage.APIURL).toString())
+														.build()));
+											} else {
+												log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+														.put(LogMessage.USER,
+																ThreadLocalContext.getCurrentMap().get(LogMessage.USER)
+																		.toString())
+														.put(LogMessage.ACTION, "Update metadata on password reset")
+														.put(LogMessage.MESSAGE, "Metadata update failed.")
+														.put(LogMessage.STATUS,
+																metadataResponse != null
+																		? metadataResponse.getHttpstatus().toString()
+																		: HttpStatus.BAD_REQUEST.toString())
+														.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap()
+																.get(LogMessage.APIURL).toString())
+														.build()));
 											}
 
-											metaNode = new ObjectMapper().readTree(metaDataResponse.getResponse()).get("data").get("managedBy");
+											metaNode = new ObjectMapper().readTree(metaDataResponse.getResponse())
+													.get("data").get("managedBy");
 											String svcOwner = metaNode.asText();
-											// Adding read and reset permisison to Service account by default. (At the time of initial password reset)
-											ServiceAccountUser serviceAccountOwner = new ServiceAccountUser(svcAccName, svcOwner, TVaultConstants.RESET_POLICY);
-											ResponseEntity<String> addOwnerWriteToServiceAccountResponse = addUserToServiceAccount(token, serviceAccountOwner, userDetails, false);
-											if (addOwnerWriteToServiceAccountResponse!= null && HttpStatus.NO_CONTENT.equals(addOwnerWriteToServiceAccountResponse.getStatusCode())) {
-												log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-														put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-														put(LogMessage.ACTION, "readSvcAccPassword").
-														put(LogMessage.MESSAGE, "Updated write permission to Service account owner as part of initial reset.").
-														put(LogMessage.STATUS, addOwnerWriteToServiceAccountResponse.getStatusCode().toString()).
-														put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-														build()));
+											// Adding read and reset permisison
+											// to Service account by default.
+											// (At the time of initial password
+											// reset)
+											ServiceAccountUser serviceAccountOwner = new ServiceAccountUser(svcAccName,
+													svcOwner, TVaultConstants.RESET_POLICY);
+											ResponseEntity<String> addOwnerWriteToServiceAccountResponse = addUserToServiceAccount(
+													token, serviceAccountOwner, userDetails, false);
+											if (addOwnerWriteToServiceAccountResponse != null && HttpStatus.NO_CONTENT
+													.equals(addOwnerWriteToServiceAccountResponse.getStatusCode())) {
+												log.debug(
+														JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+																.put(LogMessage.USER,
+																		ThreadLocalContext.getCurrentMap()
+																				.get(LogMessage.USER).toString())
+																.put(LogMessage.ACTION, "readSvcAccPassword")
+																.put(LogMessage.MESSAGE,
+																		"Updated write permission to Service account owner as part of initial reset.")
+																.put(LogMessage.STATUS,
+																		addOwnerWriteToServiceAccountResponse
+																				.getStatusCode().toString())
+																.put(LogMessage.APIURL,
+																		ThreadLocalContext.getCurrentMap()
+																				.get(LogMessage.APIURL).toString())
+																.build()));
 											}
 										}
 
 									}
 								} catch (IOException e) {
-									log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-											put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-											put(LogMessage.ACTION, "resetSvcAccPassword").
-											put(LogMessage.MESSAGE, String.format ("Failed to get metadata for the Service account [%s]", svcAccName)).
-											put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-											build()));
+									log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+											.put(LogMessage.USER,
+													ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+											.put(LogMessage.ACTION, "resetSvcAccPassword")
+											.put(LogMessage.MESSAGE,
+													String.format("Failed to get metadata for the Service account [%s]",
+															svcAccName))
+											.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap()
+													.get(LogMessage.APIURL).toString())
+											.build()));
 								}
+							} else {
+								log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+										.put(LogMessage.USER,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+										.put(LogMessage.ACTION, "resetSvcAccPassword")
+										.put(LogMessage.MESSAGE,
+												String.format("Failed to get metadata for the Service account [%s]",
+														svcAccName))
+										.put(LogMessage.APIURL,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+										.build()));
 							}
-							else {
-								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-										put(LogMessage.ACTION, "resetSvcAccPassword").
-										put(LogMessage.MESSAGE, String.format ("Failed to get metadata for the Service account [%s]", svcAccName)).
-										put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-										build()));
-							}
-							return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(adServiceAccountCreds));
+							return ResponseEntity.status(HttpStatus.OK)
+									.body(JSONUtil.getJSON(adServiceAccountResetDetails));
 						}
 						catch(Exception ex) {
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1624,10 +1703,10 @@ public class  ServiceAccountsService {
 		ServiceAccountMetadataDetails metadataDetails = getServiceAccountMetadataDetails(token, userDetails, svcAccName);
 		if (userDetails.getUsername().equalsIgnoreCase(metadataDetails.getManagedBy()) && !metadataDetails.getInitialPasswordReset()) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "readSvcAccPassword").
 					put(LogMessage.MESSAGE, "Failed to read service account password. Initial password reset is pending for this Service Account.").
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to read service account password. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
 		}
@@ -1652,10 +1731,10 @@ public class  ServiceAccountsService {
 		ADServiceAccountCreds adServiceAccountCreds = null;
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "readSvcAccPassword").
 					put(LogMessage.MESSAGE, String.format("Successfully read the password details for the service account [%s]", svcAccName)).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			try {
 				adServiceAccountCreds = new ADServiceAccountCreds();
@@ -1669,7 +1748,19 @@ public class  ServiceAccountsService {
 				if (requestParams.get("last_password") != null ) {
 					adServiceAccountCreds.setLast_password((String) requestParams.get("last_password"));
 				}
-				return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(adServiceAccountCreds));
+				
+				ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+				if (metadataDetails.getModifiedBy() != null) {
+					adServiceAccountResetDetails.setModifiedBy(metadataDetails.getModifiedBy());
+					
+				}
+				if (metadataDetails.getModifiedAt() != null ) {
+					adServiceAccountResetDetails.setModifiedAt(metadataDetails.getModifiedAt());
+					
+				}
+				adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+				
+				return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(adServiceAccountResetDetails));
 			}
 			catch(Exception ex) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -1717,7 +1808,7 @@ public class  ServiceAccountsService {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "getOnboarderdServiceAccount").
-					put(LogMessage.MESSAGE, String.format("List of AD service accounts fetched successfully")).
+					put(LogMessage.MESSAGE, "List of AD service accounts fetched successfully").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body(onbSvcAccDtlsJson);
@@ -1735,7 +1826,7 @@ public class  ServiceAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "getOnboardedServiceAccountDetails").
-			      put(LogMessage.MESSAGE, String.format("Trying to get onboaded service account details")).
+			      put(LogMessage.MESSAGE, "Trying to get onboaded service account details").
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		Response svcAccDtlsresponse = reqProcessor.process("/ad/serviceaccount/details","{\"role_name\":\""+svcAccName+"\"}",token);
@@ -1767,7 +1858,7 @@ public class  ServiceAccountsService {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "getADServiceAccounts").
-						put(LogMessage.MESSAGE, String.format("There are no service accounts currently onboarded or error in retrieving onboarded service accounts")).
+						put(LogMessage.MESSAGE, "There are no service accounts currently onboarded or error in retrieving onboarded service accounts").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
 				
@@ -1808,7 +1899,7 @@ public class  ServiceAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "listOnboardedServiceAccounts").
-			      put(LogMessage.MESSAGE, String.format("Trying to get list of onboaded service accounts")).
+			      put(LogMessage.MESSAGE, "Trying to get list of onboaded service accounts").
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		Response response = null;
@@ -1906,7 +1997,7 @@ public class  ServiceAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Add Group to Service Account").
-				put(LogMessage.MESSAGE, String.format ("Trying to add Group to Service Account")).
+				put(LogMessage.MESSAGE, "Trying to add Group to Service Account").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
         if (!userDetails.isAdmin()) {
@@ -2000,7 +2091,7 @@ public class  ServiceAccountsService {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add Group to ServiceAccount").
-							put(LogMessage.MESSAGE, String.format ("Exception while creating currentpolicies")).
+							put(LogMessage.MESSAGE,"Exception while creating currentpolicies").
 							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -2117,7 +2208,6 @@ public class  ServiceAccountsService {
 		}
         String groupName = serviceAccountGroup.getGroupname();
         String svcAccName = serviceAccountGroup.getSvcAccName();
-        String access = serviceAccountGroup.getAccess();
 
 
         boolean isAuthorized = true;
@@ -2232,7 +2322,6 @@ public class  ServiceAccountsService {
                 }
 
                 policies.addAll(currentpolicies);
-                //policies.remove(policy);
 				policies.remove(readPolicy);
 				policies.remove(writePolicy);
 				policies.remove(denyPolicy);
@@ -2355,7 +2444,7 @@ public class  ServiceAccountsService {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                 put(LogMessage.ACTION, "Add Approle to Service Account").
-                put(LogMessage.MESSAGE, String.format ("Trying to add Approle to Service Account")).
+                put(LogMessage.MESSAGE, "Trying to add Approle to Service Account").
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
         if (!userDetails.isAdmin()) {
@@ -2437,7 +2526,7 @@ public class  ServiceAccountsService {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 							put(LogMessage.ACTION, "Add Approle to ServiceAccount").
-							put(LogMessage.MESSAGE, String.format("Exception while creating currentpolicies")).
+							put(LogMessage.MESSAGE, "Exception while creating currentpolicies").
 							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
@@ -2515,7 +2604,7 @@ public class  ServiceAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "Get metadata for Service Account").
-				put(LogMessage.MESSAGE, String.format ("Trying to get metadata for Service Account")).
+				put(LogMessage.MESSAGE, "Trying to get metadata for Service Account").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		Response response = getMetadata(token, userDetails, path);
@@ -2555,10 +2644,9 @@ public class  ServiceAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "updateUserPolicyAssociationOnSvcaccDelete").
-				put(LogMessage.MESSAGE, String.format ("trying updateUserPolicyAssociationOnSvcaccDelete")).
+				put(LogMessage.MESSAGE, String.format("trying updateUserPolicyAssociationOnSvcaccDelete for auth method [%s]",vaultAuthMethod)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-		log.debug ("updateUserPolicyAssociationOnSvcaccDelete...for auth method " + vaultAuthMethod);
 		if(acessInfo!=null){
 			String r_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
 			String w_policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
@@ -2584,7 +2672,7 @@ public class  ServiceAccountsService {
 									.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
 									.put(LogMessage.ACTION, "Add User to SDB")
 									.put(LogMessage.MESSAGE,
-											String.format("Trying to fetch OIDC user policies, failed"))
+											"Trying to fetch OIDC user policies, failed")
 									.put(LogMessage.APIURL,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
 									.build()));
@@ -2694,7 +2782,7 @@ public class  ServiceAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "updateGroupPolicyAssociationOnSvcaccDelete").
-				put(LogMessage.MESSAGE, String.format ("trying updateGroupPolicyAssociationOnSvcaccDelete")).
+				put(LogMessage.MESSAGE, "trying updateGroupPolicyAssociationOnSvcaccDelete").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
@@ -2723,7 +2811,7 @@ public class  ServiceAccountsService {
 					}
 				}
 				
-				String responseJson=TVaultConstants.EMPTY;
+				String responseJson="";
 				List<String> policies = new ArrayList<>();
 				List<String> currentpolicies = new ArrayList<>();
 				if(HttpStatus.OK.equals(response.getHttpstatus())){
@@ -2772,11 +2860,11 @@ public class  ServiceAccountsService {
      * @param acessInfo
      * @param token
      */
-    private void deleteAwsRoleonOnSvcaccDelete(String svcAccName, Map<String,String> acessInfo, String token) {
+    private void deleteAwsRoleonOnSvcaccDelete(Map<String,String> acessInfo, String token) {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                 put(LogMessage.ACTION, "deleteAwsRoleAssociateionOnSvcaccDelete").
-                put(LogMessage.MESSAGE, String.format ("Trying to delete AwsRole On Service Account offboarding")).
+                put(LogMessage.MESSAGE, "Trying to delete AwsRole On Service Account offboarding").
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
         if(acessInfo!=null){
@@ -2812,7 +2900,7 @@ public class  ServiceAccountsService {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                 put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSvcaccDelete").
-                put(LogMessage.MESSAGE, String.format ("trying updateApprolePolicyAssociationOnSvcaccDelete")).
+                put(LogMessage.MESSAGE, "trying updateApprolePolicyAssociationOnSvcaccDelete").
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
         if(acessInfo!=null) {
@@ -2871,7 +2959,7 @@ public class  ServiceAccountsService {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                 put(LogMessage.ACTION, "getServiceAccountManagerDetails").
-                put(LogMessage.MESSAGE, String.format("Trying to get manager details")).
+                put(LogMessage.MESSAGE, "Trying to get manager details").
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
                 build()));
         return adUserLdapTemplate.search("", filter, new AttributesMapper<ADUserAccount>() {
@@ -2977,7 +3065,6 @@ public class  ServiceAccountsService {
 					log.error(e);
 				}
 				policies.addAll(currentpolicies);
-				//policies.remove(policy);
 				policies.remove(r_policy);
 				policies.remove(w_policy);
 				policies.remove(d_policy);
@@ -3088,7 +3175,7 @@ public class  ServiceAccountsService {
 						build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to add awsrole permission to Service account. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
 			}
-			String policy = TVaultConstants.EMPTY;
+			String policy = "";
 			policy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(access)).append(TVaultConstants.SVC_ACC_PATH_PREFIX).append("_").append(svcAccName).toString();
 
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -3579,7 +3666,7 @@ public class  ServiceAccountsService {
 					// Add default reset permission to new owner. If initial password reset is not done, then reset permission will be added during initial reset.
 					if (serviceAccountMetadataDetails.getInitialPasswordReset()) {
 						serviceAccountNewOwner = new ServiceAccountUser(svcAccName, svcOwner, TVaultConstants.RESET_POLICY);
-						ResponseEntity<String> addOwnerWriteToServiceAccountResponse = addUserToServiceAccount(token, serviceAccountNewOwner, userDetails, true);
+						addUserToServiceAccount(token, serviceAccountNewOwner, userDetails, true);
 					}
 
 					removeOldUserPermissions(oldOwner, token, svcAccName, userDetails);
@@ -3656,8 +3743,7 @@ public class  ServiceAccountsService {
 		} else if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 			// OIDC implementation changes
 			ResponseEntity<OIDCEntityResponse> responseEntity = oidcUtil.oidcFetchEntityDetails(token, userName, userDetails, true);
-			if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
-				if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+			if ((!responseEntity.getStatusCode().equals(HttpStatus.OK)) && responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 					log.error(
 							JSONUtil.getJSON(
 									ImmutableMap.<String, String> builder()
@@ -3666,11 +3752,11 @@ public class  ServiceAccountsService {
 															.toString())
 											.put(LogMessage.ACTION, "removeUserFromSafe")
 											.put(LogMessage.MESSAGE,
-													String.format("Trying to fetch OIDC user policies, failed"))
+													"Trying to fetch OIDC user policies, failed")
 											.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap()
 													.get(LogMessage.APIURL).toString())
 											.build()));
-				}
+				
 			}
 			oidcEntityResponse.setEntityName(responseEntity.getBody().getEntityName());
 			oidcEntityResponse.setPolicies(responseEntity.getBody().getPolicies());
@@ -3689,7 +3775,6 @@ public class  ServiceAccountsService {
 				//OIDC changes
 				if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 					currentpolicies.addAll(oidcEntityResponse.getPolicies());
-					//groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
 				} else {
 					currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
 					if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
@@ -3759,7 +3844,7 @@ public class  ServiceAccountsService {
 											ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 									.put(LogMessage.ACTION, "removeOldUserPermissions")
 									.put(LogMessage.MESSAGE,
-											String.format("Exception while updating the identity"))
+											"Exception while updating the identity")
 									.put(LogMessage.STACKTRACE, Arrays.toString(e2.getStackTrace()))
 									.put(LogMessage.APIURL,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
@@ -3778,8 +3863,8 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	private ServiceAccountMetadataDetails getServiceAccountMetadataDetails(String token, UserDetails userDetails, String svcAccName) {
-		String _path = TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName;
-		Response metaResponse = getMetadata(token, userDetails, _path);
+		String svcPath = TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName;
+		Response metaResponse = getMetadata(token, userDetails, svcPath);
 		ServiceAccountMetadataDetails serviceAccountMetadataDetails = new ServiceAccountMetadataDetails();
 		if (metaResponse !=null && metaResponse.getHttpstatus().equals(HttpStatus.OK)) {
 			try {
@@ -3811,12 +3896,20 @@ public class  ServiceAccountsService {
 				if (jsonNode != null) {
 					serviceAccountMetadataDetails.setName(jsonNode.asText());
 				}
+				jsonNode = new ObjectMapper().readTree(metaResponse.getResponse()).get("data").get("modifiedBy");
+				if (jsonNode != null) {
+					serviceAccountMetadataDetails.setModifiedBy(jsonNode.asText());
+				}
+				jsonNode = new ObjectMapper().readTree(metaResponse.getResponse()).get("data").get("modifiedAt");
+				if (jsonNode != null) {
+					serviceAccountMetadataDetails.setModifiedAt(jsonNode.asLong());
+				}
 			} catch (IOException e) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, "getServiceAccountMetadataDetails").
 						put(LogMessage.MESSAGE, String.format ("Failed to parse service account metadata [%s]", svcAccName)).
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 			}
 		}

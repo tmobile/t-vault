@@ -161,7 +161,7 @@ public class AzureServiceAccountUtils {
             AzureServiceAccountSecret azureServiceAccountSecret = new AzureServiceAccountSecret();
             JsonObject responseJson = (JsonObject) jsonParser.parse(jsonResponse.toString());
             if (!responseJson.isJsonNull()) {            	
-            	azureServiceAccountSecret = addValuesToAzureServiceAccountSecret(azureServiceAccountSecret,responseJson);             
+            	azureServiceAccountSecret = addValuesToAzureServiceAccountSecret(azureServiceAccountSecret,responseJson);    
             }
             return azureServiceAccountSecret;
         } catch (IOException e) {
@@ -271,9 +271,6 @@ public class AzureServiceAccountUtils {
 
         String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(servicePrincipalName).toString();
 
-        List<AzureSvccAccMetadata> secretData = new ArrayList<>();
-
-
         String typeSecret = "secret";
         path = "metadata/"+path;
 
@@ -305,7 +302,6 @@ public class AzureServiceAccountUtils {
                     AzureSecretsMetadata azureSecretsMetadata = currentSecretData.get(i);
                     if (secretKeyId.equals(azureSecretsMetadata.getSecretKeyId())) {
                         azureSecretsMetadata.setSecretKeyId(azureServiceAccountSecret.getSecretKeyId());
-                        azureSecretsMetadata.setExpiryDuration(azureServiceAccountSecret.getExpiryDateEpoch());
                     }
                     newSecretData.add(azureSecretsMetadata);
                 }
@@ -348,7 +344,7 @@ public class AzureServiceAccountUtils {
                 build()));
 
         String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(servicePrincipalName).toString();
-        Map<String,String> isActivatedParams = new Hashtable<>();
+        Map<String,String> isActivatedParams = new HashMap<>();
         isActivatedParams.put("type", "isActivated");
         isActivatedParams.put("path",path);
         isActivatedParams.put("value","true");

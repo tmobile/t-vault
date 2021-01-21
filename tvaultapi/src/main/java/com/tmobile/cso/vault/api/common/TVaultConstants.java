@@ -125,6 +125,7 @@ public class TVaultConstants {
         EMAIL_TEMPLATE_IMAGE_IDS.put("permission", "templates/images/permission.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("permissiontab", "templates/images/permissiontab.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("adduser", "templates/images/adduser.png");
+        EMAIL_TEMPLATE_IMAGE_IDS.put("adadduser", "templates/images/adadduser.png");
         }
     public static final String HTTP_CONTENT_TYPE_JSON = "application/json";
     public static final String HTTP_CONTENT_TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
@@ -173,4 +174,10 @@ public class TVaultConstants {
     public static final String GROUP_EMAIL_FROM_AAD = "getGroupEmailFromAAD";
     public static final String ROOT_POLICY = "root";
     public static final String DEFAULT_SECRET = "default";
+    public static final String VERSION_FOLDER_PREFIX = "$_versions_";
+    public static final String SCHEDULED_ACTION_APP_METADATA_CHECK = "checkApplicationMetaDataChanges(Scheduler)";
+    public static final String TMO_APP_METADATA_PATH = "metadata/tmo-applications";
+    public static final String LAST_PASSWORD = "last_password";
+    public static final String CURRENT_PASSWORD = "current_password";
+    public static final String USERNAME = "username";
 }

@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -218,11 +218,9 @@ public class  UserPassService {
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		Response response = reqProcessor.process("/auth/userpass/login",jsonStr,"");
-		List<String> adminPolicies = null;
 		try {
 			ObjectMapper objMapper = new ObjectMapper();
 			JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
-			adminPolicies = safeUtils.getPoliciesForManagedSafes(policiesJsonNode);
 		} catch (Exception e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, user.getUsername()).

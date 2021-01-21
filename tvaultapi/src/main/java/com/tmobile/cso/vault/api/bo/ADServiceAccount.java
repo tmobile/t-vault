@@ -223,7 +223,8 @@ public class ADServiceAccount implements Serializable {
             // Default TTL
             sAccountExpiration = TVaultConstants.NEVER_EXPIRE;
         }
-        return accountExpiresFormatted = sAccountExpiration;
+         accountExpiresFormatted = sAccountExpiration;
+         return accountExpiresFormatted;
     }
 	/**
 	 * @return the passwordExpiry
@@ -263,7 +264,8 @@ public class ADServiceAccount implements Serializable {
 				}
 			}
 		}
-		return passwordExpiry = pwdExpiryDateTime;
+		passwordExpiry = pwdExpiryDateTime;
+		return passwordExpiry;
 	}
 	/**
 	 * @return the accountStatus
@@ -362,7 +364,8 @@ public class ADServiceAccount implements Serializable {
                 pwdLastSetDateTime = TVaultConstants.EMPTY;
             }
         }
-        return pwdLastSetFormatted = pwdLastSetDateTime;
+        pwdLastSetFormatted = pwdLastSetDateTime;
+        return pwdLastSetFormatted;
     }
 	/**
 	 * @return the managedBy
@@ -396,7 +399,8 @@ public class ADServiceAccount implements Serializable {
 				maxLife = TVaultConstants.SVC_ACC_STANDARD_MAXLIFE;
 			}
 		}
-		return maxPwdAge = (int)TimeUnit.DAYS.toSeconds(maxLife);
+		 maxPwdAge = (int)TimeUnit.DAYS.toSeconds(maxLife);
+		 return maxPwdAge;
 	}
 	/**
 	 * @param maxPwdAge the maxPwdAge to set

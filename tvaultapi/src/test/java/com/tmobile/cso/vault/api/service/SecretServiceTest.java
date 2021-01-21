@@ -20,6 +20,9 @@ import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.model.*;
+import com.tmobile.cso.vault.api.model.SafeNode;
+import com.tmobile.cso.vault.api.model.Secret;
+import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.CommonUtils;
@@ -78,7 +81,6 @@ public class SecretServiceTest {
 
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
         when(JSONUtil.getJSON(Mockito.any(ImmutableMap.class))).thenReturn("log");
-
         Map<String, String> currentMap = new HashMap<>();
         currentMap.put("apiurl", "http://localhost:8080/vault/v2/sdb");
         currentMap.put("user", "");
@@ -133,6 +135,141 @@ public class SecretServiceTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+
+    @Test
+    public void test_write_successWithDeleteFlag() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
+
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
+        when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
+
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        String policies[] = {"w_shared_mysafe01"};
+        UserDetails userDetails = getMockUser(false);
+        userDetails.setPolicies(policies);
+
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails,"true");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_write_successWithDeleteFlag_Test2() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        Response response = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
+
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
+        when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
+
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        String policies[] = {"w_shared_mysafe01"};
+        UserDetails userDetails = getMockUser(false);
+        userDetails.setPolicies(policies);
+
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails,"true");
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void test_write_Failure_Test2() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        Response response = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
+
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
+        when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
+
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        String policies[] = {"w_shared_mysafe01"};
+        UserDetails userDetails = getMockUser(false);
+        userDetails.setPolicies(policies);
+
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        //assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_write_failure_no_explicit_permission_Delete() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"No permisison to write secret in this safe\"]}");
+
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
+        when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
+
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        String policies[] = {"s_shared_mysafe01"};
+        UserDetails userDetails = getMockUser(false);
+        userDetails.setPolicies(policies);
+
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails,"true");
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_write_failure_invalidPath_Delete() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
+
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(false);
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, getMockUser(false),"true");
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
 
     @Test
     public void test_write_failure_no_explicit_permission() {
@@ -223,25 +360,89 @@ public class SecretServiceTest {
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+    
+    @Test
+    public void test_write_success() {
 
-    /*@Test
-    public void test_readFromVaultRecursive() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String path = "shared/mysafe01/myfolder";
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
 
-        Response response = new Response();
-        SafeNode safeNode = new SafeNode();
-        safeNode.setType("safe");
-        when(ControllerUtil.isValidSafePath(path)).thenReturn(true);
-        ResponseEntity<String> responseEntity = secretService.readFromVaultRecursive(token, path);
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
+        when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
+
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        String policies[] = {"w_shared_mysafe01"};
+        UserDetails userDetails = getMockUser(false);
+        userDetails.setPolicies(policies);
+        String deleteFlag = "true";
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails, deleteFlag);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    
+    @Test
+    public void test_write1_failure_no_explicit_permission() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"No permisison to write secret in this safe\"]}");
+
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
+        when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
+
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        String policies[] = {"s_shared_mysafe01"};
+        UserDetails userDetails = getMockUser(false);
+        userDetails.setPolicies(policies);
+        String deleteFlag = "true";
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails, deleteFlag);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_write1_failure_invalidPath() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path\"]}");
+        String deleteFlag = "true";
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(false);
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, getMockUser(false), deleteFlag);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
-
-    }*/
+    }
 
     @Test
     public void test_getSecretCount_successfully() {
+        ReflectionTestUtils.setField(secretService, "safeListLimit", 50);
+
+
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String responsejson = "{\"id\":\"5PDrOhsy4ig8L3EpsJZSLAMg\",\"policies\":[\"root\"]}";
         ReflectionTestUtils.setField(secretService, "safeVersionFolderPrefix", "$_versions_");
@@ -286,88 +487,15 @@ public class SecretServiceTest {
         folders.add(folder1);
         userSafeNode.setChildren(folders);
 
-        when(ControllerUtil.recursiveReadForCount(eq("{\"path\":\""+TVaultConstants.USERS+"\"}"),eq(token),Mockito.any(), Mockito.any(), eq(TVaultConstants.SAFE))).thenReturn(userSafeNode);
-
-        SafeNode sharedSafeNode = new SafeNode();
-        sharedSafeNode.setId(TVaultConstants.SHARED);
-        sharedSafeNode.setType(TVaultConstants.SAFE);
-
-        SafeNode sharedSafe = new SafeNode();
-        sharedSafe.setId(TVaultConstants.SHARED + "/safe1");
-        sharedSafe.setValue(TVaultConstants.SHARED + "/safe1");
-        sharedSafe.setType(TVaultConstants.FOLDER);
-
-        SafeNode sharedFolder = new SafeNode();
-        sharedFolder.setId(TVaultConstants.SHARED + "/safe1/folder1");
-        sharedFolder.setValue(TVaultConstants.SHARED + "/safe1/folder1");
-        sharedFolder.setType(TVaultConstants.FOLDER);
-        sharedFolder.setParentId(TVaultConstants.SHARED + "/folder1");
-
-        SafeNode sharedSecret = new SafeNode();
-        sharedSecret.setId(TVaultConstants.SHARED + "/safe1/folder1/secret1");
-        sharedSecret.setValue("{\"data\":{\"123\":\"222\"}}");
-        sharedSecret.setType(TVaultConstants.SECRET);
-        sharedSecret.setParentId(TVaultConstants.SHARED + "/safe1/folder1");
-
-        List<SafeNode> sharedSecrets = new ArrayList<>();
-        sharedSecrets.add(sharedSecret);
-        sharedSafe.setChildren(sharedSecrets);
-
-        List<SafeNode> sharedFolders = new ArrayList<>();
-        sharedFolders.add(sharedSafe);
-        sharedSafeNode.setChildren(sharedFolders);
-
-        when(ControllerUtil.recursiveReadForCount(eq("{\"path\":\""+TVaultConstants.SHARED+"\"}"),eq(token),Mockito.any(), Mockito.any(), eq(TVaultConstants.SAFE))).thenReturn(sharedSafeNode);
-
-        SafeNode appsSafeNode = new SafeNode();
-        appsSafeNode.setId(TVaultConstants.APPS);
-        appsSafeNode.setType(TVaultConstants.SAFE);
-
-        SafeNode appsSafe = new SafeNode();
-        appsSafe.setId(TVaultConstants.APPS + "/safea1");
-        appsSafe.setValue(TVaultConstants.APPS + "/safea1");
-        appsSafe.setType(TVaultConstants.FOLDER);
-        appsSafe.setParentId(TVaultConstants.APPS);
-
-        SafeNode appsFolder = new SafeNode();
-        appsFolder.setId(TVaultConstants.APPS + "/safea1/folder1");
-        appsFolder.setValue(TVaultConstants.APPS + "/safea1/folder1");
-        appsFolder.setType(TVaultConstants.FOLDER);
-        appsFolder.setParentId(TVaultConstants.APPS + "/safea1");
-
-        SafeNode appsSecret = new SafeNode();
-        appsSecret.setId(TVaultConstants.APPS + "/safea1/folder1/secret1");
-        appsSecret.setValue("{\"data\":{\"abc\":\"abc\"}}");
-        appsSecret.setType(TVaultConstants.SECRET);
-        appsSecret.setParentId(TVaultConstants.APPS + "/safea1/folder1");
-
-        List<SafeNode> appsSecrets = new ArrayList<>();
-        appsSecrets.add(appsSecret);
-        appsFolder.setChildren(appsSecrets);
-
-        List<SafeNode> appsFolders = new ArrayList<>();
-        appsFolders.add(appsFolder);
-        appsSafeNode.setChildren(appsFolders);
-
-        when(ControllerUtil.recursiveReadForCount(eq("{\"path\":\""+TVaultConstants.APPS+"\"}"),eq(token),Mockito.any(), Mockito.any(), eq(TVaultConstants.SAFE))).thenReturn(appsSafeNode);
+        when(ControllerUtil.recursiveReadForCount(Mockito.any(),eq(token),Mockito.any(), Mockito.any(), eq(TVaultConstants.SAFE))).thenReturn(userSafeNode);
 
         SecretCount secretCount = new SecretCount();
         Map<String, Integer> userSecretCount = new HashMap<>();
-        userSecretCount.put("folder1", 1);
-        SafeSecretCount userSafeSecretCount = new SafeSecretCount(2, userSecretCount);
-        secretCount.setUserSafeSecretCount(userSafeSecretCount);
+        userSecretCount.put("safe1", 3);
+        userSecretCount.put("safe2", 3);
+        secretCount.setSafeSecretCount(userSecretCount);
 
-        Map<String, Integer> sharedSecretCount = new HashMap<>();
-        sharedSecretCount.put("folder1", 1);
-        SafeSecretCount sharedSafeSecretCount = new SafeSecretCount(1, sharedSecretCount);
-        secretCount.setSharedSafeSecretCount(sharedSafeSecretCount);
-
-        Map<String, Integer> appsSecretCount = new HashMap<>();
-        appsSecretCount.put("folder1", 1);
-        SafeSecretCount appsSafeSecretCount = new SafeSecretCount(3, appsSecretCount);
-        secretCount.setAppsSafeSecretCount(appsSafeSecretCount);
-
-        secretCount.setTotalSecrets(6);
+        secretCount.setTotalSafes(6);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(secretCount));
 
@@ -381,8 +509,33 @@ public class SecretServiceTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        ResponseEntity<String> responseEntity = secretService.getSecretCount(token);
+        when(reqProcessor.process(eq("/sdb/list"), Mockito.any(), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"users/safe1\",\"users/safe2\"]}"));
+        ResponseEntity<String> responseEntity = secretService.getSecretCount(token, TVaultConstants.USERS, 0);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_getSecretCount_faile_400() {
+        ReflectionTestUtils.setField(secretService, "safeListLimit", 50);
+
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String responsejson = "{\"id\":\"5PDrOhsy4ig8L3EpsJZSLAMg\",\"policies\":[\"root\"]}";
+
+        Response response = getMockResponse(HttpStatus.OK, true, responsejson);
+
+        when(reqProcessor.process("/auth/tvault/lookup","{}", token)).thenReturn(response);
+        String[] policies = {"root"};
+        try {
+            when(commonUtils.getPoliciesAsArray(Mockito.any(), Mockito.any())).thenReturn(policies);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path or offset\"]}");
+
+        ResponseEntity<String> responseEntity = secretService.getSecretCount(token, TVaultConstants.USERS, -1);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -404,7 +557,7 @@ public class SecretServiceTest {
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access Denied: No enough permission to access this API\"]}");
 
-        ResponseEntity<String> responseEntity = secretService.getSecretCount(token);
+        ResponseEntity<String> responseEntity = secretService.getSecretCount(token, TVaultConstants.USERS, 0);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

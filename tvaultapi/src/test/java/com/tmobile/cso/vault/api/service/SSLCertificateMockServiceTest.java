@@ -4725,7 +4725,7 @@ public class SSLCertificateMockServiceTest {
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
         ResponseEntity<?> transferCertResponse =
-                sSLCertificateService.updateCertOwner(token,"internal","certificatename.t-mobile.com","owneremail@test.com",userDetails);
+                sSLCertificateService.updateCertOwner("internal","certificatename.t-mobile.com","owneremail@test.com",userDetails);
 
         //Assert
         assertNotNull(transferCertResponse);
@@ -4800,7 +4800,7 @@ public class SSLCertificateMockServiceTest {
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
 
         ResponseEntity<?> transferCertResponse =
-                sSLCertificateService.updateCertOwner(token,"internal","certificatename.t-mobile.com","owneremail@t" +
+                sSLCertificateService.updateCertOwner("internal","certificatename.t-mobile.com","owneremail@t" +
                         "-mobile.com" ,userDetails);
 
         //Assert
@@ -4862,7 +4862,7 @@ public class SSLCertificateMockServiceTest {
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
         ResponseEntity<?> transferCertResponse =
-                sSLCertificateService.updateCertOwner(token,"internal","certificatename.t-mobile.com","owneremail@test.com",userDetails);
+                sSLCertificateService.updateCertOwner("internal","certificatename.t-mobile.com","owneremail@test.com",userDetails);
 
         //Assert
         assertNotNull(transferCertResponse);
@@ -4923,7 +4923,7 @@ public class SSLCertificateMockServiceTest {
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
         ResponseEntity<?> transferCertResponse =
-                sSLCertificateService.updateCertOwner(token,"external","certificatename.t-mobile.com","owneremail@test.com",userDetails);
+                sSLCertificateService.updateCertOwner("external","certificatename.t-mobile.com","owneremail@test.com",userDetails);
 
         //Assert
         assertNotNull(transferCertResponse);

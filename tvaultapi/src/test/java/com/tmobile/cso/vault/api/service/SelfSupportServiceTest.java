@@ -136,7 +136,7 @@ public class SelfSupportServiceTest {
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
@@ -150,7 +150,8 @@ public class SelfSupportServiceTest {
     public void test_createSafe_successfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        userDetails.setEmail("youremail@yourcompany.com");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
@@ -162,8 +163,24 @@ public class SelfSupportServiceTest {
         String [] safes = {"s1"};
         when(safeUtils.getManagedSafes(policies, "shared")).thenReturn(safes);
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
+        
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("youremail@yourcompany.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+        DirectoryObjects users = new DirectoryObjects();
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> readResponse1 = ResponseEntity.status(HttpStatus.OK).body(users);
+        when(directoryService.searchByUPNInGsmAndCorp(safe.getSafeBasicDetails().getOwner())).thenReturn(readResponse1);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
+
+        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -172,6 +189,7 @@ public class SelfSupportServiceTest {
     public void test_createSafe_failure() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
+        userDetails.setEmail("youremail@yourcompany.com");
         SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","T-Vault");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
@@ -185,7 +203,22 @@ public class SelfSupportServiceTest {
         when(safeUtils.getManagedSafes(policies, "shared")).thenReturn(safes);
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("youremail@yourcompany.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+        DirectoryObjects users = new DirectoryObjects();
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> readResponse1 = ResponseEntity.status(HttpStatus.OK).body(users);
+        when(directoryService.searchByUPNInGsmAndCorp(safe.getSafeBasicDetails().getOwner())).thenReturn(readResponse1);
+
+        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -194,12 +227,26 @@ public class SelfSupportServiceTest {
     public void test_createSafe_failure_400() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("",safeBasicDetails);
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid owner email\"]}");
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("youremail@yourcompany.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+        DirectoryObjects users = new DirectoryObjects();
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> readResponse1 = ResponseEntity.status(HttpStatus.OK).body(users);
+        when(directoryService.searchByUPNInGsmAndCorp(safe.getSafeBasicDetails().getOwner())).thenReturn(readResponse1);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
+        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -208,15 +255,29 @@ public class SelfSupportServiceTest {
     public void test_createSafe_admin() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("youremail@yourcompany.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+        DirectoryObjects users = new DirectoryObjects();
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+        ResponseEntity<DirectoryObjects> readResponse1 = ResponseEntity.status(HttpStatus.OK).body(users);
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe and associated read/write/deny policies created \"]}");
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
         when(safesService.createSafe(token, safe)).thenReturn(readResponse);
+        when(directoryService.searchByUPNInGsmAndCorp(safe.getSafeBasicDetails().getOwner())).thenReturn(readResponse1);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, token, safe);
+        ResponseEntity<String> responseEntity = selfSupportService.createSafe(userDetails, safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -239,7 +300,7 @@ public class SelfSupportServiceTest {
         when(safeUtils.getManagedSafes(policies, path)).thenReturn(safes);
         when(safesService.getFoldersRecursively(token, path)).thenReturn(response);
         when(JSONUtil.getJSON(Mockito.any(HashMap.class))).thenReturn("{\"keys\":[\"mysafe01\"]}");
-        ResponseEntity<String> responseEntity = selfSupportService.getFoldersRecursively(userDetails, token, path);
+        ResponseEntity<String> responseEntity = selfSupportService.getFoldersRecursively(userDetails, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -255,7 +316,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         when(safesService.getFoldersRecursively(token, path)).thenReturn(response);
-        ResponseEntity<String> responseEntity = selfSupportService.getFoldersRecursively(userDetails, token, path);
+        ResponseEntity<String> responseEntity = selfSupportService.getFoldersRecursively(userDetails,  path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -273,7 +334,7 @@ public class SelfSupportServiceTest {
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
         when(safesService.addUserToSafe(token, safeUser, userDetails, false)).thenReturn(response);
 
-        ResponseEntity<String> responseEntity = selfSupportService.addUserToSafe(userDetails, token, safeUser);
+        ResponseEntity<String> responseEntity = selfSupportService.addUserToSafe(userDetails, safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -291,7 +352,7 @@ public class SelfSupportServiceTest {
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(true);
         when(safesService.addUserToSafe(token, safeUser, userDetails, false)).thenReturn(response);
 
-        ResponseEntity<String> responseEntity = selfSupportService.addUserToSafe(userDetails, token, safeUser);
+        ResponseEntity<String> responseEntity = selfSupportService.addUserToSafe(userDetails, safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -309,7 +370,7 @@ public class SelfSupportServiceTest {
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser")).thenReturn(false);
         when(safesService.addUserToSafe(token, safeUser, userDetails, false)).thenReturn(response);
 
-        ResponseEntity<String> responseEntity = selfSupportService.addUserToSafe(userDetails, token, safeUser);
+        ResponseEntity<String> responseEntity = selfSupportService.addUserToSafe(userDetails, safeUser);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -327,7 +388,7 @@ public class SelfSupportServiceTest {
         when(safesService.removeUserFromSafe(token, safeUser, userDetails)).thenReturn(response);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser")).thenReturn(true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.removeUserFromSafe(userDetails, token, safeUser);
+        ResponseEntity<String> responseEntity = selfSupportService.removeUserFromSafe(userDetails, safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -345,7 +406,7 @@ public class SelfSupportServiceTest {
         when(safesService.removeUserFromSafe(token, safeUser, userDetails)).thenReturn(response);
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser")).thenReturn(true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.removeUserFromSafe(userDetails, token, safeUser);
+        ResponseEntity<String> responseEntity = selfSupportService.removeUserFromSafe(userDetails,  safeUser);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -361,7 +422,7 @@ public class SelfSupportServiceTest {
 
         when(safeUtils.canAddOrRemoveUser(userDetails, safeUser, "removeUser")).thenReturn(false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.removeUserFromSafe(userDetails, token, safeUser);
+        ResponseEntity<String> responseEntity = selfSupportService.removeUserFromSafe(userDetails, safeUser);
         assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -377,7 +438,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         when(safesService.getInfo(token, path)).thenReturn(response);
         mockIsAuthorized(userDetails, true);
-        ResponseEntity<String> responseEntity = selfSupportService.getInfo(userDetails, token, path);
+        ResponseEntity<String> responseEntity = selfSupportService.getInfo(userDetails, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -392,7 +453,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         when(safesService.getInfo(token, path)).thenReturn(response);
-        ResponseEntity<String> responseEntity = selfSupportService.getInfo(userDetails, token, path);
+        ResponseEntity<String> responseEntity = selfSupportService.getInfo(userDetails, path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -408,7 +469,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseJson);
         when(safesService.getInfo(token, path)).thenReturn(response);
         mockIsAuthorized(userDetails, false);
-        ResponseEntity<String> responseEntity = selfSupportService.getInfo(userDetails, token, path);
+        ResponseEntity<String> responseEntity = selfSupportService.getInfo(userDetails, path);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -422,7 +483,7 @@ public class SelfSupportServiceTest {
         String responseJson = "{\"errors\":[\"Invalid path specified\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
         when(ControllerUtil.isPathValid(path)).thenReturn(false);
-        ResponseEntity<String> responseEntity = selfSupportService.getInfo(userDetails, token, path);
+        ResponseEntity<String> responseEntity = selfSupportService.getInfo(userDetails,  path);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -436,7 +497,7 @@ public class SelfSupportServiceTest {
         String responseJson = "{\"errors\":[\"Access denied: no permission to read this safe information\"]}";
 
         String[] policies = {"s_shared_mysafe01"};
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01", safeBasicDetails);
 
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseJson);
@@ -449,7 +510,7 @@ public class SelfSupportServiceTest {
         when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"), Mockito.any())).thenReturn(policies);
 
         when(authorizationUtils.isAuthorized(eq(userDetails),eq(safe),eq(policies),Mockito.any(), eq(false))).thenReturn(false);
-        ResponseEntity<String> responseEntity = selfSupportService.getSafe(userDetails, token, path);
+        ResponseEntity<String> responseEntity = selfSupportService.getSafe(userDetails,  path);
         assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -463,7 +524,7 @@ public class SelfSupportServiceTest {
         String responseJson = "{  \"keys\": [ \"mysafe01\" ]}";
 
         String[] policies = {"s_shared_mysafe01"};
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01", safeBasicDetails);
 
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body(responseJson);
@@ -474,7 +535,7 @@ public class SelfSupportServiceTest {
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("shared"), eq("mysafe01"))).thenReturn(safe);
         when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"), Mockito.any())).thenReturn(policies);
         when(authorizationUtils.isAuthorized(eq(userDetails),eq(safe),eq(policies),Mockito.any(), eq(false))).thenReturn(true);
-        ResponseEntity<String> responseEntity = selfSupportService.getSafe(userDetails, token, path);
+        ResponseEntity<String> responseEntity = selfSupportService.getSafe(userDetails,  path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -489,7 +550,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         when(safesService.getSafe(token, path)).thenReturn(response);
-        ResponseEntity<String> responseEntity = selfSupportService.getSafe(userDetails, token, path);
+        ResponseEntity<String> responseEntity = selfSupportService.getSafe(userDetails,  path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -506,7 +567,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.getSafeType(path)).thenReturn("");
         when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
 
-        ResponseEntity<String> responseEntity = selfSupportService.getSafe(userDetails, token, path);
+        ResponseEntity<String> responseEntity = selfSupportService.getSafe(userDetails,  path);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -515,7 +576,8 @@ public class SelfSupportServiceTest {
     public void test_updateSafe_successfully() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        userDetails.setEmail("youremail@yourcompany.com");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe updated \"]}");
@@ -523,7 +585,7 @@ public class SelfSupportServiceTest {
 
         when(safesService.updateSafe(token, safe)).thenReturn(readResponse);
         mockIsAuthorized(userDetails, true);
-        ResponseEntity<String> responseEntity = selfSupportService.updateSafe(userDetails, token, safe);
+        ResponseEntity<String> responseEntity = selfSupportService.updateSafe(userDetails,  safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -532,14 +594,14 @@ public class SelfSupportServiceTest {
     public void test_updateSafe_successfully_admin() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(true);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe updated \"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Safe updated \"]}");
 
         when(safesService.updateSafe(token, safe)).thenReturn(readResponse);
-        ResponseEntity<String> responseEntity = selfSupportService.updateSafe(userDetails, token, safe);
+        ResponseEntity<String> responseEntity = selfSupportService.updateSafe(userDetails,  safe);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -548,14 +610,15 @@ public class SelfSupportServiceTest {
     public void test_updateSafe_failure_403() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        userDetails.setEmail("youremail@yourcompany.com");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> readResponse = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update this safe\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update this safe\"]}");
 
         mockIsAuthorized(userDetails, false);
-        ResponseEntity<String> responseEntity = selfSupportService.updateSafe(userDetails, token, safe);
+        ResponseEntity<String> responseEntity = selfSupportService.updateSafe(userDetails,  safe);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -564,13 +627,14 @@ public class SelfSupportServiceTest {
     public void test_updateSafe_failure_400() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        userDetails.setEmail("youremail@yourcompany.com");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path specified\"]}");
 
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(false);
-        ResponseEntity<String> responseEntity = selfSupportService.updateSafe(userDetails, token, safe);
+        ResponseEntity<String> responseEntity = selfSupportService.updateSafe(userDetails,  safe);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -584,7 +648,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
         when(safesService.deletefolder(token, path, userDetails)).thenReturn(response);
         mockIsAuthorized(userDetails, true);
-        ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails, token, path);
+        ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails,  path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -598,7 +662,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
         when(safesService.deletefolder(token, path, userDetails)).thenReturn(response);
 
-        ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails, token, path);
+        ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails,  path);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -611,7 +675,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to delete this safe\"]}");
 
         mockIsAuthorized(userDetails, false);
-        ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails, token, path);
+        ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails,  path);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -624,7 +688,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid path specified\"]}");
 
         when(ControllerUtil.isPathValid(path)).thenReturn(false);
-        ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails, token, path);
+        ResponseEntity<String> responseEntity = selfSupportService.deletefolder(userDetails,  path);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -641,7 +705,7 @@ public class SelfSupportServiceTest {
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(ControllerUtil.isPathValid(path)).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
@@ -650,7 +714,7 @@ public class SelfSupportServiceTest {
         when(policyUtils.getPoliciesTobeCheked("shared", "mysafe01")).thenReturn(policiesTobeChecked);
         when(authorizationUtils.isAuthorized(userDetails, safe, policies, policiesTobeChecked, false)).thenReturn(true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.addGroupToSafe(userDetails, token, safeGroup);
+        ResponseEntity<String> responseEntity = selfSupportService.addGroupToSafe(userDetails,  safeGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -665,7 +729,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Safe\"]}");
         when(safesService.addGroupToSafe(token, safeGroup, userDetails)).thenReturn(response);
 
-        ResponseEntity<String> responseEntity = selfSupportService.addGroupToSafe(userDetails, token, safeGroup);
+        ResponseEntity<String> responseEntity = selfSupportService.addGroupToSafe(userDetails,  safeGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -683,7 +747,7 @@ public class SelfSupportServiceTest {
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(ControllerUtil.isPathValid(path)).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
@@ -692,7 +756,7 @@ public class SelfSupportServiceTest {
         when(policyUtils.getPoliciesTobeCheked("shared", "mysafe01")).thenReturn(policiesTobeChecked);
         when(authorizationUtils.isAuthorized(userDetails, safe, policies, policiesTobeChecked, false)).thenReturn(false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.addGroupToSafe(userDetails, token, safeGroup);
+        ResponseEntity<String> responseEntity = selfSupportService.addGroupToSafe(userDetails,  safeGroup);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -707,7 +771,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
         when(ControllerUtil.isPathValid(path)).thenReturn(false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.addGroupToSafe(userDetails, token, safeGroup);
+        ResponseEntity<String> responseEntity = selfSupportService.addGroupToSafe(userDetails,  safeGroup);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -725,7 +789,7 @@ public class SelfSupportServiceTest {
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
@@ -734,7 +798,7 @@ public class SelfSupportServiceTest {
         when(policyUtils.getPoliciesTobeCheked("shared", "mysafe01")).thenReturn(policiesTobeChecked);
         when(authorizationUtils.isAuthorized(userDetails, safe, policies, policiesTobeChecked, false)).thenReturn(true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.removeGroupFromSafe(userDetails, token, safeGroup);
+        ResponseEntity<String> responseEntity = selfSupportService.removeGroupFromSafe(userDetails, safeGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -752,7 +816,7 @@ public class SelfSupportServiceTest {
         String[] policies = {"s_shared_mysafe01"};
         ArrayList<String> policiesTobeChecked = new ArrayList<String>();
         policiesTobeChecked.add("s_shared_mysafe01");
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(true);
         when(ControllerUtil.getSafeType("shared/mysafe01")).thenReturn("shared");
@@ -761,7 +825,7 @@ public class SelfSupportServiceTest {
         when(policyUtils.getPoliciesTobeCheked("shared", "mysafe01")).thenReturn(policiesTobeChecked);
         when(authorizationUtils.isAuthorized(userDetails, safe, policies, policiesTobeChecked, false)).thenReturn(false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.removeGroupFromSafe(userDetails, token, safeGroup);
+        ResponseEntity<String> responseEntity = selfSupportService.removeGroupFromSafe(userDetails,  safeGroup);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -776,7 +840,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group association is removed \"]}");
 
         when(safesService.removeGroupFromSafe(token, safeGroup, userDetails)).thenReturn(response);
-        ResponseEntity<String> responseEntity = selfSupportService.removeGroupFromSafe(userDetails, token, safeGroup);
+        ResponseEntity<String> responseEntity = selfSupportService.removeGroupFromSafe(userDetails,  safeGroup);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -790,7 +854,7 @@ public class SelfSupportServiceTest {
         String responseJson = "{\"errors\":[\"Invalid path specified\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(false);
-        ResponseEntity<String> responseEntity = selfSupportService.removeGroupFromSafe(userDetails, token, safeGroup);
+        ResponseEntity<String> responseEntity = selfSupportService.removeGroupFromSafe(userDetails,  safeGroup);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -807,7 +871,7 @@ public class SelfSupportServiceTest {
         when(safesService.addAwsRoleToSafe(token, awsRole)).thenReturn(response);
         mockIsAuthorized(userDetails, true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.addAwsRoleToSafe(userDetails, token, awsRole);
+        ResponseEntity<String> responseEntity = selfSupportService.addAwsRoleToSafe(userDetails, awsRole);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -825,7 +889,7 @@ public class SelfSupportServiceTest {
         mockIsAuthorized(userDetails, false);
 
 
-        ResponseEntity<String> responseEntity = selfSupportService.addAwsRoleToSafe(userDetails, token, awsRole);
+        ResponseEntity<String> responseEntity = selfSupportService.addAwsRoleToSafe(userDetails,  awsRole);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -840,7 +904,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");
 
         when(safesService.addAwsRoleToSafe(token, awsRole)).thenReturn(response);
-        ResponseEntity<String> responseEntity = selfSupportService.addAwsRoleToSafe(userDetails, token, awsRole);
+        ResponseEntity<String> responseEntity = selfSupportService.addAwsRoleToSafe(userDetails,  awsRole);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -855,7 +919,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.addAwsRoleToSafe(userDetails, token, awsRole);
+        ResponseEntity<String> responseEntity = selfSupportService.addAwsRoleToSafe(userDetails,  awsRole);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -872,7 +936,7 @@ public class SelfSupportServiceTest {
         when(safesService.removeAWSRoleFromSafe(eq(token), eq(awsRole), eq(false), Mockito.any())).thenReturn(response);
         mockIsAuthorized(userDetails, true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, false);
+        ResponseEntity<String> responseEntity = selfSupportService.removeAWSRoleFromSafe(userDetails,  awsRole, false);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -889,7 +953,7 @@ public class SelfSupportServiceTest {
         when(safesService.removeAWSRoleFromSafe(eq(token), eq(awsRole), eq(false), Mockito.any())).thenReturn(response);
         mockIsAuthorized(userDetails, false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, false);
+        ResponseEntity<String> responseEntity = selfSupportService.removeAWSRoleFromSafe(userDetails, awsRole, false);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -905,7 +969,7 @@ public class SelfSupportServiceTest {
 
         when(safesService.removeAWSRoleFromSafe(eq(token), eq(awsRole), eq(true), Mockito.any())).thenReturn(response);
 
-        ResponseEntity<String> responseEntity = selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, true);
+        ResponseEntity<String> responseEntity = selfSupportService.removeAWSRoleFromSafe(userDetails,awsRole, true);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -920,7 +984,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.removeAWSRoleFromSafe(userDetails, token, awsRole, false);
+        ResponseEntity<String> responseEntity = selfSupportService.removeAWSRoleFromSafe(userDetails,awsRole, false);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -944,7 +1008,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(true);
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
         when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
-        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, safeAppRoleAccess);
+        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, safeAppRoleAccess);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -961,7 +1025,7 @@ public class SelfSupportServiceTest {
         when(safesService.associateApproletoSDB(eq(token), Mockito.any())).thenReturn(response);
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
         when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
-        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, safeAppRoleAccess);
+        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, safeAppRoleAccess);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -985,7 +1049,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(true);
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
         when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
-        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, safeAppRoleAccess);
+        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, safeAppRoleAccess);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1008,7 +1072,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(false);
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
         when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
-        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, token, safeAppRoleAccess);
+        ResponseEntity<String> responseEntity = selfSupportService.associateApproletoSDB(userDetails, safeAppRoleAccess);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1032,7 +1096,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(true);
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
         when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
-        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, safeAppRoleAccess);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1048,7 +1112,7 @@ public class SelfSupportServiceTest {
         mockIsAuthorized(userDetails, true);
 
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("selfservicesupportrole", "shared/mysafe01", "write");
-        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, safeAppRoleAccess);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1065,7 +1129,7 @@ public class SelfSupportServiceTest {
         when(safesService.removeApproleFromSafe(token, jsonStr)).thenReturn(response);
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
         when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
-        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, safeAppRoleAccess);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1088,7 +1152,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(true);
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
         when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
-        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, safeAppRoleAccess);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1110,7 +1174,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.areSafeAppRoleInputsValid(requestMap)).thenReturn(false);
         SafeAppRoleAccess safeAppRoleAccess = new SafeAppRoleAccess("aprole1", "shared/mysafe01", "write");
         when(JSONUtil.getJSON(Mockito.any(SafeAppRoleAccess.class))).thenReturn(jsonStr);
-        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, token, safeAppRoleAccess);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteApproleFromSDB(userDetails, safeAppRoleAccess);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1129,7 +1193,7 @@ public class SelfSupportServiceTest {
         when(awsAuthService.createRole(eq(token), eq(awsLoginRole), Mockito.any())).thenReturn(response);
         mockIsAuthorized(userDetails, true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createRole(userDetails, token, awsLoginRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.createRole(userDetails,  awsLoginRole,"shared/mysafe01");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1146,7 +1210,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
 
         when(awsAuthService.createRole(eq(token), eq(awsLoginRole), Mockito.any())).thenReturn(response);
-        ResponseEntity<String> responseEntity = selfSupportService.createRole(userDetails, token, awsLoginRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.createRole(userDetails, awsLoginRole,"shared/mysafe01");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1165,7 +1229,7 @@ public class SelfSupportServiceTest {
         when(awsAuthService.createRole(eq(token), eq(awsLoginRole), Mockito.any())).thenReturn(response);
         mockIsAuthorized(userDetails, false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createRole(userDetails, token, awsLoginRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.createRole(userDetails, awsLoginRole,"shared/mysafe01");
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1182,7 +1246,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createRole(userDetails, token, awsLoginRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.createRole(userDetails, awsLoginRole,"shared/mysafe01");
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1201,7 +1265,7 @@ public class SelfSupportServiceTest {
         when(awsAuthService.updateRole(token, awsLoginRole)).thenReturn(response);
         mockIsAuthorized(userDetails, true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.updateRole(userDetails, token, awsLoginRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.updateRole(userDetails, awsLoginRole,"shared/mysafe01");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1219,7 +1283,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{ \"messages\": [\"AWS Role updated \"]}");
 
         when(awsAuthService.updateRole(token, awsLoginRole)).thenReturn(response);
-        ResponseEntity<String> responseEntity = selfSupportService.updateRole(userDetails, token, awsLoginRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.updateRole(userDetails, awsLoginRole,"shared/mysafe01");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1239,7 +1303,7 @@ public class SelfSupportServiceTest {
         when(awsAuthService.updateRole(token, awsLoginRole)).thenReturn(response);
         mockIsAuthorized(userDetails, false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.updateRole(userDetails, token, awsLoginRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.updateRole(userDetails,awsLoginRole,"shared/mysafe01");
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1257,7 +1321,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.updateRole(userDetails, token, awsLoginRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.updateRole(userDetails, awsLoginRole,"shared/mysafe01");
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1281,7 +1345,7 @@ public class SelfSupportServiceTest {
         when(awsiamAuthService.createIAMRole(awsiamRole, token, userDetails)).thenReturn(response);
         mockIsAuthorized(userDetails, true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.createIAMRole(userDetails, awsiamRole,"shared/mysafe01");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1305,7 +1369,7 @@ public class SelfSupportServiceTest {
         when(awsiamAuthService.createIAMRole(awsiamRole, token, userDetails)).thenReturn(response);
         mockIsAuthorized(userDetails, false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.createIAMRole(userDetails,  awsiamRole,"shared/mysafe01");
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1328,7 +1392,7 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.createMetadata(Mockito.any(), eq(token))).thenReturn(true);
         when(awsiamAuthService.createIAMRole(awsiamRole, token, userDetails)).thenReturn(response);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.createIAMRole(userDetails, awsiamRole,"shared/mysafe01");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1349,7 +1413,7 @@ public class SelfSupportServiceTest {
         String responseJson = "{\"errors\":[\"Invalid path specified\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(false);
-        ResponseEntity<String> responseEntity = selfSupportService.createIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.createIAMRole(userDetails,  awsiamRole,"shared/mysafe01");
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1373,7 +1437,7 @@ public class SelfSupportServiceTest {
         when(awsiamAuthService.updateIAMRole(token, awsiamRole)).thenReturn(response);
         mockIsAuthorized(userDetails, true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.updateIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.updateIAMRole(userDetails, awsiamRole,"shared/mysafe01");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1397,7 +1461,7 @@ public class SelfSupportServiceTest {
         when(awsiamAuthService.updateIAMRole(token, awsiamRole)).thenReturn(response);
         mockIsAuthorized(userDetails, false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.updateIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.updateIAMRole(userDetails, awsiamRole,"shared/mysafe01");
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1420,7 +1484,7 @@ public class SelfSupportServiceTest {
 
         when(awsiamAuthService.updateIAMRole(token, awsiamRole)).thenReturn(response);
 
-        ResponseEntity<String> responseEntity = selfSupportService.updateIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.updateIAMRole(userDetails, awsiamRole,"shared/mysafe01");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1442,7 +1506,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseJson);
         when(ControllerUtil.isPathValid("shared/mysafe01")).thenReturn(false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.updateIAMRole(userDetails, token, awsiamRole,"shared/mysafe01");
+        ResponseEntity<String> responseEntity = selfSupportService.updateIAMRole(userDetails, awsiamRole,"shared/mysafe01");
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1501,7 +1565,7 @@ public class SelfSupportServiceTest {
         when(appRoleService.createAppRole(token, appRole, userDetails)).thenReturn(response);
         mockIsAuthorized(userDetails, true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createAppRole(token, appRole, userDetails);
+        ResponseEntity<String> responseEntity = selfSupportService.createAppRole(appRole, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1519,7 +1583,7 @@ public class SelfSupportServiceTest {
         when(appRoleService.createAppRole(token, appRole, userDetails)).thenReturn(response);
         mockIsAuthorized(userDetails, true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createAppRole(token, appRole, userDetails);
+        ResponseEntity<String> responseEntity = selfSupportService.createAppRole( appRole, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1536,7 +1600,7 @@ public class SelfSupportServiceTest {
         when(appRoleService.deleteAppRole(token, appRole, userDetails)).thenReturn(response);
         mockIsAuthorized(userDetails, true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.deleteAppRole(token, appRole, userDetails);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteAppRole( appRole, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1553,7 +1617,7 @@ public class SelfSupportServiceTest {
         when(appRoleService.deleteAppRole(token, appRole, userDetails)).thenReturn(response);
         mockIsAuthorized(userDetails, true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.deleteAppRole(token, appRole, userDetails);
+        ResponseEntity<String> responseEntity = selfSupportService.deleteAppRole( appRole, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1567,7 +1631,7 @@ public class SelfSupportServiceTest {
 
         when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         when(JSONUtil.getJSON(Mockito.any())).thenReturn("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}");
-        ResponseEntity<String> responseEntity = selfSupportService.getSafes(userDetails, token);
+        ResponseEntity<String> responseEntity = selfSupportService.getSafes(userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1606,7 +1670,7 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(false);
         when(appRoleService.readAppRole(token, appRole)).thenReturn(responseEntityExpected);
 
-        ResponseEntity<String> responseEntityActual = selfSupportService.readAppRole(token, appRole, userDetails);
+        ResponseEntity<String> responseEntityActual = selfSupportService.readAppRole( appRole, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
@@ -1622,7 +1686,7 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(true);
         when(appRoleService.readAppRole(token, appRole)).thenReturn(responseEntityExpected);
 
-        ResponseEntity<String> responseEntityActual = selfSupportService.readAppRole(token, appRole, userDetails);
+        ResponseEntity<String> responseEntityActual = selfSupportService.readAppRole( appRole, userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
@@ -1637,7 +1701,7 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(false);
         when(appRoleService.readAppRoles(token)).thenReturn(responseEntityExpected);
 
-        ResponseEntity<String> responseEntityActual = selfSupportService.readAppRoles(token, userDetails);
+        ResponseEntity<String> responseEntityActual = selfSupportService.readAppRoles( userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
@@ -1651,7 +1715,7 @@ public class SelfSupportServiceTest {
         UserDetails userDetails = getMockUser(true);
         when(appRoleService.readAppRoles(token)).thenReturn(responseEntityExpected);
 
-        ResponseEntity<String> responseEntityActual = selfSupportService.readAppRoles(token, userDetails);
+        ResponseEntity<String> responseEntityActual = selfSupportService.readAppRoles( userDetails);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
@@ -1677,7 +1741,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -1780,7 +1844,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", null);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", null,"tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -1835,7 +1899,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -1936,7 +2000,7 @@ public class SelfSupportServiceTest {
         String currentOwnerNtid = "normaluser1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -1957,7 +2021,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -1980,7 +2044,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2003,7 +2067,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2097,7 +2161,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2188,7 +2252,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2276,7 +2340,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2354,7 +2418,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2448,7 +2512,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2575,7 +2639,7 @@ public class SelfSupportServiceTest {
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2785,7 +2849,7 @@ public class SelfSupportServiceTest {
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2890,7 +2954,7 @@ public class SelfSupportServiceTest {
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -2994,7 +3058,7 @@ public class SelfSupportServiceTest {
         String path = "users/safe1";
         SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
 
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid);
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe", currentOwnerNtid,"tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
         when(safeUtils.getSafeMetaData(Mockito.any(), eq("users"), eq("safe1"))).thenReturn(safe);
 
@@ -3122,7 +3186,7 @@ public class SelfSupportServiceTest {
         when(awsAuthService.createRole(eq(token), eq(awsLoginRole), Mockito.any())).thenReturn(response);
         mockIsAuthorized(userDetails, true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createAwsec2Role(userDetails, token, awsLoginRole);
+        ResponseEntity<String> responseEntity = selfSupportService.createAwsec2Role(userDetails, awsLoginRole);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -3141,7 +3205,7 @@ public class SelfSupportServiceTest {
         when(awsAuthService.createRole(eq(token), eq(awsLoginRole), Mockito.any())).thenReturn(response);
         mockIsAuthorized(userDetails, false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createAwsec2Role(userDetails, token, awsLoginRole);
+        ResponseEntity<String> responseEntity = selfSupportService.createAwsec2Role(userDetails, awsLoginRole);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -3158,7 +3222,7 @@ public class SelfSupportServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
 
         when(awsAuthService.createRole(eq(token), eq(awsLoginRole), Mockito.any())).thenReturn(response);
-        ResponseEntity<String> responseEntity = selfSupportService.createAwsec2Role(userDetails, token, awsLoginRole);
+        ResponseEntity<String> responseEntity = selfSupportService.createAwsec2Role(userDetails, awsLoginRole);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -3181,7 +3245,7 @@ public class SelfSupportServiceTest {
         when(awsiamAuthService.createIAMRole(awsiamRole, token, userDetails)).thenReturn(response);
         mockIsAuthorized(userDetails, true);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createAwsiamRole(userDetails, token, awsiamRole);
+        ResponseEntity<String> responseEntity = selfSupportService.createAwsiamRole(userDetails, awsiamRole);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -3204,7 +3268,7 @@ public class SelfSupportServiceTest {
         when(awsiamAuthService.createIAMRole(awsiamRole, token, userDetails)).thenReturn(response);
         mockIsAuthorized(userDetails, false);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createAwsiamRole(userDetails, token, awsiamRole);
+        ResponseEntity<String> responseEntity = selfSupportService.createAwsiamRole(userDetails, awsiamRole);
         assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -3226,8 +3290,137 @@ public class SelfSupportServiceTest {
         when(ControllerUtil.createMetadata(Mockito.any(), eq(token))).thenReturn(true);
         when(awsiamAuthService.createIAMRole(awsiamRole, token, userDetails)).thenReturn(response);
 
-        ResponseEntity<String> responseEntity = selfSupportService.createAwsiamRole(userDetails, token, awsiamRole);
+        ResponseEntity<String> responseEntity = selfSupportService.createAwsiamRole(userDetails, awsiamRole);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+    @Test
+    public void testUpdateEC2Rolesuccessfully() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{ \"messages\": [\"AWS EC2 Role updated \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{ \"messages\": [\"AWS EC2 Role updated \"]}");
+
+        when(awsAuthService.updateRole(token, awsLoginRole)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+
+        ResponseEntity<String> responseEntity = selfSupportService.updateAwsEc2Role(userDetails, token, awsLoginRole);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testUpdateEC2RoleSuccessfullyadmin() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{ \"messages\": [\"AWS EC2 Role updated \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{ \"messages\": [\"AWS EC2 Role updated \"]}");
+
+        when(awsAuthService.updateRole(token, awsLoginRole)).thenReturn(response);
+        ResponseEntity<String> responseEntity = selfSupportService.updateAwsEc2Role(userDetails, token, awsLoginRole);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testUpdateEC2Rolefailure403() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update AWS role\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update AWS role\"]}");
+
+        when(awsAuthService.updateRole(token, awsLoginRole)).thenReturn(response);
+        mockIsAuthorized(userDetails, false);
+
+        ResponseEntity<String> responseEntity = selfSupportService.updateAwsEc2Role(userDetails, token, awsLoginRole);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+    @Test
+    public void testUpdateIAMRolesuccessfully() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("iam");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role updated \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role updated \"]}");
+
+        when(awsiamAuthService.updateIAMRole(token, awsiamRole)).thenReturn(response);
+        mockIsAuthorized(userDetails, true);
+
+        ResponseEntity<String> responseEntity = selfSupportService.updateAwsIamRole(userDetails, token, awsiamRole);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testUpdateIAMRolefailure403() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("iam");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update AWS IAM role\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update AWS IAM role\"]}");
+
+        when(awsiamAuthService.updateIAMRole(token, awsiamRole)).thenReturn(response);
+        mockIsAuthorized(userDetails, false);
+
+        ResponseEntity<String> responseEntity = selfSupportService.updateAwsIamRole(userDetails, token, awsiamRole);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testUpdateIAMRolesuccessfullyadmin() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("iam");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role updated \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role updated \"]}");
+
+        when(awsiamAuthService.updateIAMRole(token, awsiamRole)).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = selfSupportService.updateAwsIamRole(userDetails, token, awsiamRole);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+
 }

@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -38,6 +38,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
@@ -59,6 +61,9 @@ public class  SafesService {
 	
 	@Autowired
 	private TokenUtils tokenUtils;
+	
+	@Autowired
+	private WorkloadDetailsService workloadDetailsService;
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
@@ -150,7 +155,6 @@ public class  SafesService {
 
 		path = (path != null) ? path.toLowerCase() : path;
 		if(ControllerUtil.isPathValid(path)){
-			//if(ControllerUtil.isValidSafe(path, token)){
 			String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -170,9 +174,7 @@ public class  SafesService {
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder created \"]}");
 			}
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-			//}else{
-			//	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid safe\"]}");
-			//}
+			
 		}else{
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -200,7 +202,17 @@ public class  SafesService {
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if (!ControllerUtil.areSDBInputsValid(safe)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values for creating safe\"]}");
+		}
+		SafeBasicDetails basicDetails = safe.getSafeBasicDetails();
+		String applicationTag=basicDetails.getAppName();
+		basicDetails.setApplicationTag(applicationTag);
+		safe.setSafeBasicDetails(basicDetails);
+		String applicationName  =getValidAppName(basicDetails);
+		basicDetails.setAppName(applicationName);
+		safe.setSafeBasicDetails(basicDetails);
+		if(applicationName == null) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Application name\"]}");
 		}
 		if (safe.getSafeBasicDetails().getName().endsWith("_")) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Safe name: unexpected character _ in the end\"]}");
@@ -346,6 +358,47 @@ public class  SafesService {
 		}
 	}
 	/**
+	 * Method to get the application name
+	 *
+	 * @param safeBasicDetails
+	 * @return
+	 */
+	public String  getValidAppName(SafeBasicDetails basicDetails) {
+		String appName = basicDetails.getAppName();
+		ResponseEntity<String> appResponse = workloadDetailsService
+				.getWorkloadDetailsByAppName(appName);
+		if (HttpStatus.OK.equals(appResponse.getStatusCode())) {
+			JsonParser jsonParser = new JsonParser();
+			JsonObject response = (JsonObject) jsonParser.parse(appResponse.getBody());
+			JsonObject jsonElement = null;
+			if (Objects.nonNull(response)) {
+				//String str=org.springframework.util.StringUtils.isEmpty(jsonElement.get("tag"));
+				jsonElement = response.get("spec").getAsJsonObject();
+				//org.springframework.util.StringUtils.isEmpty(jsonElement.get("tag"));
+				if (Objects.nonNull(jsonElement)) {
+					appName = jsonElement.get("summary").getAsString();					
+				}
+			}
+		}
+			else {
+				appName = null;
+			}
+		
+			return appName;
+		}
+//			}
+//			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+//					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+//					put(LogMessage.ACTION, "CreateSafe").
+//					put(LogMessage.MESSAGE, "Checking appname is available or not").
+//					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+//					build()));
+//			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Appname exist \"]}");
+//		}else {
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Appname does not exist \"]}");
+//		}
+
+	/**
 	 * Gets Safe
 	 */
 	public ResponseEntity<String> getSafe(String token, String path) {
@@ -456,22 +509,22 @@ public class  SafesService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "UpdateSDB").
-				put(LogMessage.MESSAGE, String.format ("Trying to Update SDB ")).
+				put(LogMessage.MESSAGE, "Trying to Update SDB ").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if (!ControllerUtil.areSDBInputsValidForUpdate(requestParams)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "UpdateSDB").
-					put(LogMessage.MESSAGE, String.format ("Invalid input values ")).
+					put(LogMessage.MESSAGE, "Invalid input values ").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
+		
         if (safe.getSafeBasicDetails().getDescription().length() > 1024) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values: Description too long\"]}");
         }
-
 		@SuppressWarnings("unchecked")
 		Map<Object,Object> data = (Map<Object,Object>)requestParams.get("data");
 		String path = safe.getPath();
@@ -484,7 +537,7 @@ public class  SafesService {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Update SDB").
-					put(LogMessage.MESSAGE, String.format ("Safe can't be updated since duplicate safe names are found")).
+					put(LogMessage.MESSAGE, "Safe can't be updated since duplicate safe names are found").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Safe can't be updated since duplicate safe names are found\"]}");
@@ -532,6 +585,12 @@ public class  SafesService {
 			data.put(TVaultConstants.USERS,users);
 			data.put(TVaultConstants.APP_ROLES,approles);
 			requestParams.put("path",pathToBeUpdated);
+			SafeBasicDetails basicDetails = safe.getSafeBasicDetails();
+			String applicationTag=basicDetails.getAppName();
+			String applicationName  =getValidAppName(basicDetails);
+			((Map<String,Object>)requestParams.get("data")).put("appName",(String)applicationName);
+			((Map<String,Object>)requestParams.get("data")).put("applicationTag",(String) applicationTag);
+			
 			// Do not alter the name of the safe
 			((Map<String,Object>)requestParams.get("data")).put("name",(String) metadataMap.get("name"));
 			// Do not alter the owner of the safe
@@ -695,7 +754,7 @@ public class  SafesService {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, "Add User to SDB").
-						put(LogMessage.MESSAGE, String.format ("Incorrect access requested. Valid values are read,write,deny")).
+						put(LogMessage.MESSAGE, "Incorrect access requested. Valid values are read,write,deny").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Incorrect access requested. Valid values are read,write,deny \"]}");
@@ -751,7 +810,7 @@ public class  SafesService {
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 								.put(LogMessage.ACTION, "Add User to SDB")
 								.put(LogMessage.MESSAGE,
-										String.format("Trying to fetch OIDC user policies, failed"))
+										"Trying to fetch OIDC user policies, failed")
 								.put(LogMessage.APIURL,
 										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 								.build()));
@@ -796,19 +855,16 @@ public class  SafesService {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, "Add User to SDB").
-							put(LogMessage.MESSAGE, String.format ("Exception while creating currentpolicies or groups")).
+							put(LogMessage.MESSAGE,"Exception while creating currentpolicies or groups").
 							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
 				}
-				/*if (currentpolicies.contains("s_"+folders[0].toLowerCase()+"_"+folders[1])) {
-					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Owner Permission cannot be changed\"]}");
-				}*/
+				
 				policies.addAll(currentpolicies);
 				policies.remove(r_policy);
 				policies.remove(w_policy);
 				policies.remove(d_policy);
-				//policies = policies.replaceAll(s_policy, "");
 				policies.add(policy);
 			}else{
 				// New user to be configured

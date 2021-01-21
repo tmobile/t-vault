@@ -401,8 +401,8 @@ public class SSLCertificateControllerTest {
         targetSystemServiceRequest.setDescription("Target Service Description");
 
         sSLCertificateMetadataRequest.setCertificateName("CertificateName");
-        when(sslCertificateService.updateCertOwner("5PDrOhsy4ig8L3EpsJZSLAMg","internal","certificatename.t-mobile.com","owneremail@test.com",userDetails)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        assertEquals(HttpStatus.OK, sslCertificateService.updateCertOwner("5PDrOhsy4ig8L3EpsJZSLAMg","internal","certificatename.t-mobile.com","owneremail@test.com",userDetails).getStatusCode());
+        when(sslCertificateService.updateCertOwner("internal","certificatename.t-mobile.com","owneremail@test.com",userDetails)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        assertEquals(HttpStatus.OK, sslCertificateService.updateCertOwner("internal","certificatename.t-mobile.com","owneremail@test.com",userDetails).getStatusCode());
     }
 
 	@Test
@@ -583,7 +583,7 @@ public class SSLCertificateControllerTest {
 
     @Test
     public void test_releaseCertificate_success_Test() {
-        when(sslCertificateService.unLinkCertificate(userDetails,token,"test.t-mobile.com","internal","TEST")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(sslCertificateService.unLinkCertificate(userDetails,"test.t-mobile.com","internal","TEST")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
         assertEquals(HttpStatus.OK,
                 SslCertificateController.unlinkCertificate(httpServletRequest,token,"test.t-mobile.com","internal",
@@ -720,7 +720,7 @@ public class SSLCertificateControllerTest {
     public void testUpdateCertOwnerSuccess() throws Exception {
 		String responseJson = "{\"messages\":[\"Certificate Owner Transferred Successfully\"]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-		when(sslCertificateService.updateCertOwner(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyObject()))
+		when(sslCertificateService.updateCertOwner( Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyObject()))
 				.thenReturn(responseEntityExpected);
 		MvcResult result = mockMvc
 				.perform(MockMvcRequestBuilders.put("/v2/sslcert/internal/certificatename.t-mobile.com/owneremail@test.com/transferowner")

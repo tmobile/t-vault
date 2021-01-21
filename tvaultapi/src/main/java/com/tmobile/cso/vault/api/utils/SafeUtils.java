@@ -59,9 +59,8 @@ public class SafeUtils {
 	 */
 	public List<String> getPoliciesForManagedSafes(JsonNode policiesNode) throws JsonProcessingException, IOException {
 		List<String> adminPolicies = new ArrayList<>();
-		if (!ObjectUtils.isEmpty(policiesNode)) {
-			// Policies is supposed to be a container node.
-			if (policiesNode.isContainerNode()) {
+		if ((!ObjectUtils.isEmpty(policiesNode)) && (policiesNode.isContainerNode())) {
+			// Policies is supposed to be a container node.			
 				Iterator<JsonNode> elementsIterator = policiesNode.elements();
 			       while (elementsIterator.hasNext()) {
 			    	   JsonNode element = elementsIterator.next();
@@ -70,7 +69,7 @@ public class SafeUtils {
 			    		   adminPolicies.add(element.asText());
 			    	   }
 			       }
-			}
+			
 		}
 		return adminPolicies;
 	}
@@ -184,6 +183,16 @@ public class SafeUtils {
 		safe.getSafeBasicDetails().setName(dataNode.get("name").asText());
 		safe.getSafeBasicDetails().setDescription(dataNode.get("description").asText());
 		safe.getSafeBasicDetails().setOwner(dataNode.get("owner").asText());
+		String applicationName=null;
+		if (null != dataNode.get("appName")) {
+			applicationName = dataNode.get("appName").asText();
+		}
+		safe.getSafeBasicDetails().setAppName(applicationName);
+		String apptag=null;
+		if (null != dataNode.get("applicationTag")) {
+			apptag = dataNode.get("applicationTag").asText();
+		}
+		safe.getSafeBasicDetails().setApplicationTag(apptag);
 		String ownerId = null;
 		if (null != dataNode.get("ownerid")) {
 			ownerId = dataNode.get("ownerid").asText();

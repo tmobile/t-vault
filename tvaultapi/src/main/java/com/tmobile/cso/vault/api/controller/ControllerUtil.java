@@ -393,7 +393,7 @@ public final class ControllerUtil {
 					JsonNode folders = objMapper.readTree(lisresp.getResponse()).get("keys");
 					for(JsonNode node : folders){
 						jsonstr = PATHSTR+path+"/"+node.asText()+"\"}";
-						SafeNode sn = new SafeNode();
+						SafeNode sn ;
 						/* Recursively read the folders for the given folder/sub folders */
 						sn = recursiveReadForCount( jsonstr,token,responseVO, path+"/"+node.asText(), TVaultConstants.FOLDER);
 						sn.setId(path+"/"+node.asText());
@@ -826,7 +826,7 @@ public final class ControllerUtil {
 		return null;
 
 	}
-
+	
 	/**
 	 * Update metadata for the service account on password reset
 	 * @param params
@@ -890,6 +890,77 @@ public final class ControllerUtil {
 		}
 		return null;
 	}
+	
+	/**
+	 * Update metadata on service account password reset - modifiedBy and
+	 * modifiedAt
+	 * 
+	 * @param params
+	 * @param token
+	 * @return
+	 */
+	public static Response updateMetadataOnSvcPwdReset(String path,
+			ADServiceAccountResetDetails adServiceAccountResetDetails, String token) {
+		String svcPath = METADATASTR + path;
+		ObjectMapper objMapper = new ObjectMapper();
+		String pathjson = PATHSTR + svcPath + "\"}";
+
+		Response metadataResponse = reqProcessor.process(READSTR, pathjson, token);
+		Map<String, Object> svcMetadataMap = null;
+		if (HttpStatus.OK.equals(metadataResponse.getHttpstatus())) {
+			try {
+				svcMetadataMap = objMapper.readValue(metadataResponse.getResponse(),
+						new TypeReference<Map<String, Object>>() {
+						});
+			} catch (IOException e) {
+				log.error(e);
+				log.error(
+						JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+								.put(LogMessage.USER,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, UPDATEMETADATASTR)
+								.put(LogMessage.MESSAGE,
+										String.format(
+												"Error creating _metadataMap for type service account update, message [%s]",
+												e.getMessage()))
+								.put(LogMessage.APIURL,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+			}
+
+			@SuppressWarnings("unchecked")
+			Map<String, Object> metadataMap = (Map<String, Object>) svcMetadataMap.get("data");
+
+			metadataMap.put("modifiedBy", adServiceAccountResetDetails.getModifiedBy());
+			metadataMap.put("modifiedAt", adServiceAccountResetDetails.getModifiedAt());
+
+			String metadataJson = "";
+			try {
+				metadataJson = objMapper.writeValueAsString(metadataMap);
+			} catch (JsonProcessingException e) {
+				log.error(e);
+				log.error(
+						JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+								.put(LogMessage.USER,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+								.put(LogMessage.ACTION, UPDATEMETADATASTR)
+								.put(LogMessage.MESSAGE,
+										String.format(
+												"Error creating _metadataMap for type service account update, message [%s]",
+												e.getMessage()))
+								.put(LogMessage.APIURL,
+										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+								.build()));
+			}
+
+			String writeJson = PATHSTR + svcPath + DATASTR + metadataJson + "}";
+			metadataResponse = reqProcessor.process(WRITESTR, writeJson, token);
+			return metadataResponse;
+		}
+		return null;
+
+	}
+	
 	/**
 	 * 
 	 * @param jsonString
@@ -1168,7 +1239,7 @@ public final class ControllerUtil {
 					}
 				}
 				 
-				String responseJson=TVaultConstants.EMPTY;
+				String responseJson="";
 				List<String> policies = new ArrayList<>();
 				List<String> currentpolicies = new ArrayList<>();
 				if(HttpStatus.OK.equals(response.getHttpstatus())){
@@ -1507,6 +1578,12 @@ public final class ControllerUtil {
 				) {
 			return false;
 		}
+		if(appName != null ) {
+			String applicationName=appName.trim();
+			if(StringUtils.isEmpty(applicationName)) {
+				return false;
+			}
+		}
 		if (!isSdbNameValid(sdbName) || sdbName.length() > 40 || !sdbName.equals(sdbName.toLowerCase())) {
 			return false;
 		}
@@ -1534,13 +1611,21 @@ public final class ControllerUtil {
 		String sdbName = (String) map.get("name");
 		String sdbOwner = (String) map.get("owner");
 		String sdbDescription = (String) map.get("description");
+		String sdbAppName = (String) map.get("appName");
 		String path = (String) requestParams.get("path");
 		if (StringUtils.isEmpty(sdbName) 
 				|| StringUtils.isEmpty(sdbOwner) 
 				|| StringUtils.isEmpty(sdbDescription) 
 				|| StringUtils.isEmpty(path) 
+				|| StringUtils.isEmpty(sdbAppName)
 				) {
 			return false;
+		}
+		if(sdbAppName != null ) {
+			String applicationName=sdbAppName.trim();
+			if(StringUtils.isEmpty(applicationName)) {
+				return false;
+			}
 		}
 		if (sdbName.length() > 40) {
 			return false;
@@ -1915,13 +2000,11 @@ public final class ControllerUtil {
 	
 	private static String getSecretKey(String jsonString) {
 		String secretKey = null ;
-		String secretValue = null;
 		try {
 			Map<String, Object> requestParams = new ObjectMapper().readValue(jsonString, new TypeReference<Map<String, Object>>(){});
 			LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) requestParams.get("data");
 			for (Object key : map.keySet()) {
 				secretKey = (String) key;
-				secretValue = (String) map.get(key);
 				if(secretKey != null) {
 					break;
 				}
@@ -2355,7 +2438,7 @@ public final class ControllerUtil {
 		log.debug("Trying to read sscred file");
 		try {
 			ssFile = new File(fileLocation+"/sscred");
-			if (ssFile != null && ssFile.exists()) {
+			if (ssFile.exists()) {
 				sscred = new SSCred();
 				setSscred(sscred);
 				Scanner sc = new Scanner(ssFile);
@@ -2555,7 +2638,7 @@ public final class ControllerUtil {
 		log.debug("Trying to read IAM cred file");
 		try {
 			iamCredFile = new File(fileLocation+"/iamportalcred");
-			if (iamCredFile != null && iamCredFile.exists()) {
+			if ( iamCredFile.exists()) {
 				iamPortalCred = new IAMPortalCred();
 				Scanner sc = new Scanner(iamCredFile);
 				while (sc.hasNextLine()) {
@@ -2577,7 +2660,7 @@ public final class ControllerUtil {
 			log.error(String.format("Unable to read IAM cred file: [%s]", e.getMessage()));
 		}
 		try {
-			if (iamCredFile != null && iamCredFile.exists() && isDelete) {
+			if (iamCredFile.exists() && isDelete) {
 				if (iamCredFile.delete()) {
 					log.debug("Successfully deleted IAM cred file");
 				}
@@ -2663,7 +2746,6 @@ public final class ControllerUtil {
         }
         if (null != requestMap.get("keys")) {
 			List<String> policyList = new ArrayList<>(Arrays.asList((String[]) requestMap.get("keys")));
-			//policyList.remove(TVaultConstants.MASTER_APPROLES);
 			policyList.removeAll(Arrays.asList(TVaultConstants.MASTER_APPROLES));
 			String policies = policyList.stream().collect(Collectors.joining("\", \""));
 			if (StringUtils.isEmpty(policies)) {
@@ -2702,7 +2784,7 @@ public final class ControllerUtil {
     	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, UPDATEMETADATASTR).
-				put(LogMessage.MESSAGE, String.format ("Trying to upate metadata with params")).
+				put(LogMessage.MESSAGE, "Trying to upate metadata with params").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 
@@ -2848,11 +2930,10 @@ public final class ControllerUtil {
 	}
 
 	public static Response updateSslCertificateMetadata(Map<String,String> params,String token){
-		System.out.println("inside metadata");
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, UPDATEMETADATASTR).
-				put(LogMessage.MESSAGE, String.format ("Trying to update metadata with params")).
+				put(LogMessage.MESSAGE, "Trying to update metadata with params").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		String _type = params.get("type");
@@ -2973,7 +3054,7 @@ public final class ControllerUtil {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "updateMetaDataOnConfigChanges").
-					put(LogMessage.MESSAGE, String.format ("updateMetaDataOnConfigChanges failed ")).
+					put(LogMessage.MESSAGE, "updateMetaDataOnConfigChanges failed ").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			response.setHttpstatus(HttpStatus.MULTI_STATUS);
