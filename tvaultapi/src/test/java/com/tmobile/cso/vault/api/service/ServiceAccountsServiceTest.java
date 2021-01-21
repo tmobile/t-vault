@@ -103,7 +103,9 @@ public class ServiceAccountsServiceTest {
     @Mock
     OIDCUtil OIDCUtil;
 
-
+    @Mock 
+    CommonUtils commonUtils;
+    
     @Before
     public void setUp() {
         PowerMockito.mockStatic(ControllerUtil.class);
@@ -1558,8 +1560,9 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
+        when(commonUtils.getModifiedByInfo(Mockito.any())).thenReturn("test@t-mobile.com");
         ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
-        adServiceAccountResetDetails.setModifiedBy("modifiedBy");
+        adServiceAccountResetDetails.setModifiedBy("test@t-mobile.com");
         adServiceAccountResetDetails.setModifiedAt(1610615328268l);
         adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
         String expectedOutput = getJSON(adServiceAccountResetDetails);
@@ -1669,8 +1672,9 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
+        when(commonUtils.getModifiedByInfo(Mockito.any())).thenReturn("test@t-mobile.com");
         ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
-        adServiceAccountResetDetails.setModifiedBy("modifiedAt");
+        adServiceAccountResetDetails.setModifiedBy("test@t-mobile.com");
         adServiceAccountResetDetails.setModifiedAt(1610615328268l);
         adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
         String expectedOutput = getJSON(adServiceAccountResetDetails);
@@ -1748,8 +1752,9 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
+        when(commonUtils.getModifiedByInfo(Mockito.any())).thenReturn("test@t-mobile.com");
         ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
-        adServiceAccountResetDetails.setModifiedBy("modifiedBy");
+        adServiceAccountResetDetails.setModifiedBy("test@t-mobile.com");
         adServiceAccountResetDetails.setModifiedAt(1610615328268l);
         adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
         String expectedOutput = getJSON(adServiceAccountResetDetails);
@@ -2040,8 +2045,9 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
+        when(commonUtils.getModifiedByInfo(Mockito.any())).thenReturn("test@t-mobile.com");
         ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
-        adServiceAccountResetDetails.setModifiedBy("modifiedBy");
+        adServiceAccountResetDetails.setModifiedBy("test@t-mobile.com");
         adServiceAccountResetDetails.setModifiedAt(1610615328268l);
         adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
         String expectedOutput = getJSON(adServiceAccountResetDetails);
@@ -2073,8 +2079,9 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
+        when(commonUtils.getModifiedByInfo(Mockito.any())).thenReturn("test@t-mobile.com");
         ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
-        adServiceAccountResetDetails.setModifiedBy("modifiedBy");
+        adServiceAccountResetDetails.setModifiedBy("test@t-mobile.com");
         adServiceAccountResetDetails.setModifiedAt(1610608701279l);
         adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
         String expectedOutput = getJSON(adServiceAccountResetDetails);
