@@ -561,7 +561,10 @@ const OnBoardForm = (props) => {
   };
 
   const onExpiryTimeChange = (e) => {
-    onChange(e);
+    const re = /^[0-9\b]+$/;
+    if (e?.target?.value === '' || re.test(e?.target?.value)) {
+      onChange(e);
+    }
   };
 
   useEffect(() => {
@@ -986,7 +989,6 @@ const OnBoardForm = (props) => {
                       name="inputExpiryTime"
                       readOnly={!isSwitchOn}
                       fullWidth
-                      type="number"
                       onChange={(val, e) => onExpiryTimeChange(val, e)}
                       value={inputExpiryTime || ''}
                       helperText="Enter your custom password expiration time here. Once the expiration time has passed, the password will be rotated the next time it is requested."

@@ -172,75 +172,36 @@ const CertificateSelectionTabs = (props) => {
       });
   };
 
-  /**
-   * @function checkCertStatus
-   * @description function to check the status of revoked certificate.
-   */
-  const checkCertStatus = () => {
-    setResponse({ status: 'loading' });
-    let url = '';
-    if (certificateDetail.certificateStatus === 'Revoked') {
-      url = `/sslcert/checkstatus/${certificateDetail.certificateName}/${certificateDetail.certType}`;
-    } else {
-      url = `/sslcert/validate/${certificateDetail.certificateName}/${certificateDetail.certType}`;
-    }
-    apiService
-      .checkCertificateStatus(url)
-      .then(() => {
-        setCertificateMetaData({ ...certificateDetail });
-        getEachUser(certificateDetail.users);
-        setResponse({ status: 'success' });
-      })
-      .catch((err) => {
-        if (err?.response?.data?.errors && err.response.data.errors[0]) {
-          if (
-            err.response.data.errors[0] ===
-            'Certificate is in Revoke Requested status'
-          ) {
-            setCertificateMetaData({ ...certificateDetail });
-            getEachUser(certificateDetail.users);
-            setResponse({ status: 'success' });
-          } else {
-            setErrorMessage(err.response.data.errors[0]);
-            setResponse({ status: 'error' });
-            setHasPermission(false);
-            setValue(0);
-          }
-        }
-      });
-  };
-
   useEffect(() => {
     if (Object.keys(certificateDetail).length > 0) {
       if (
         !certificateDetail?.applicationName &&
         !certificateDetail.isOnboardCert
       ) {
+        setCertificateMetaData({});
         fetchCertificateDetail();
-      } else if (
-        certificateDetail.certificateStatus === 'Revoked' ||
-        !certificateDetail.certificateStatus
-      ) {
-        checkCertStatus();
       } else {
         setCertificateMetaData({ ...certificateDetail });
-        getEachUser(certificateDetail?.users);
+        if (
+          certificateDetail?.certOwnerNtid?.toLowerCase() ===
+          state?.username?.toLowerCase()
+        ) {
+          getEachUser(certificateDetail?.users);
+        } else {
+          setResponse({ status: 'success' });
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [certificateDetail]);
 
   useEffect(() => {
-    if (
-      certificateMetaData?.users &&
-      Object.keys(certificateMetaData.users).length > 0
-    ) {
-      const available = Object.keys(certificateMetaData.users).find(
-        (key) =>
-          certificateMetaData.users[key] === 'write' &&
-          key.toLowerCase() === state?.username?.toLowerCase()
-      );
-      if (available) {
+    if (certificateMetaData && Object.keys(certificateMetaData).length > 0) {
+      if (
+        certificateMetaData?.certOwnerNtid?.toLowerCase() ===
+          state?.username?.toLowerCase() &&
+        certificateMetaData?.certificateStatus?.toLowerCase() === 'active'
+      ) {
         setHasPermission(true);
       } else {
         setValue(0);
@@ -304,6 +265,7 @@ const CertificateSelectionTabs = (props) => {
               responseStatus={response.status}
               certificateMetaData={certificateMetaData}
               errorMessage={errorMessage}
+              certificateDetail={certificateDetail}
             />
           </TabPanel>
           <TabPanel value={value} index={1}>

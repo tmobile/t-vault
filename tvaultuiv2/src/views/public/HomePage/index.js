@@ -360,9 +360,9 @@ const LoginPage = () => {
 
   const checkAdmin = (value) => {
     if (value === 'yes') {
-      localStorage.setItem('isAdmin', true);
+      sessionStorage.setItem('isAdmin', true);
     } else {
-      localStorage.setItem('isAdmin', false);
+      sessionStorage.setItem('isAdmin', false);
     }
   };
 
@@ -372,11 +372,11 @@ const LoginPage = () => {
       .then((res) => {
         if (res.data.data.values && res.data.data.values[0]) {
           if (res.data.data.values[0].userEmail) {
-            localStorage.setItem(
+            sessionStorage.setItem(
               'owner',
               res.data.data.values[0].userEmail.toLowerCase()
             );
-            localStorage.setItem(
+            sessionStorage.setItem(
               'displayName',
               res.data.data.values[0].displayName.toLowerCase()
             );
@@ -395,7 +395,7 @@ const LoginPage = () => {
       .getUserName()
       .then(async (res) => {
         if (res.data && res.data.data?.username) {
-          localStorage.setItem(
+          sessionStorage.setItem(
             'username',
             res.data.data.username.toLowerCase()
           );
@@ -411,7 +411,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (urlParams?.code && urlParams?.state) {
-      localStorage.clear();
+      sessionStorage.clear();
       setResponse({ status: 'loading' });
       axios
         .get(
@@ -420,7 +420,7 @@ const LoginPage = () => {
         .then(async (res) => {
           if (res?.data) {
             setResponse({ status: 'loading' });
-            localStorage.setItem('token', res.data.client_token);
+            sessionStorage.setItem('token', res.data.client_token);
             checkAdmin(res?.data?.admin);
             await getLoggedInUserName();
             await renewToken();
@@ -465,10 +465,10 @@ const LoginPage = () => {
       .post(`${configUrl.baseUrl}/auth/tvault/login`, payload)
       .then(async (res) => {
         if (res?.data) {
-          localStorage.setItem('token', res.data.client_token);
+          sessionStorage.setItem('token', res.data.client_token);
           checkAdmin(res?.data?.admin);
-          localStorage.setItem('access', JSON.stringify(res.data.access));
-          localStorage.setItem('username', payload.username.toLowerCase());
+          sessionStorage.setItem('access', JSON.stringify(res.data.access));
+          sessionStorage.setItem('username', payload.username.toLowerCase());
           await getOwnerAllDetails(payload.username.toLowerCase());
           window.location = '/safes';
         }
@@ -486,10 +486,10 @@ const LoginPage = () => {
     axios
       .post(`${configUrl.baseUrl}/auth/tvault/login`, payload)
       .then(async (res) => {
-        localStorage.setItem('token', res.data.client_token);
+        sessionStorage.setItem('token', res.data.client_token);
         checkAdmin(res?.data?.admin);
-        localStorage.setItem('access', JSON.stringify(res.data.access));
-        localStorage.setItem('username', payload.username.toLowerCase());
+        sessionStorage.setItem('access', JSON.stringify(res.data.access));
+        sessionStorage.setItem('username', payload.username.toLowerCase());
         await getOwnerAllDetails(payload.username.toLowerCase());
         window.location = '/safes';
       })

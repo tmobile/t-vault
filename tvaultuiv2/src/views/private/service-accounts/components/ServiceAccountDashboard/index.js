@@ -237,7 +237,7 @@ const ServiceAccountDashboard = () => {
             });
           }
         } else {
-          const access = JSON.parse(localStorage.getItem('access'));
+          const access = JSON.parse(sessionStorage.getItem('access'));
           if (Object.keys(access).length > 0) {
             Object.keys(access).forEach((item) => {
               if (item === 'svcacct') {
@@ -694,7 +694,7 @@ const ServiceAccountDashboard = () => {
                 path="/service-accounts"
                 render={(routerProps) => (
                   <ListItemDetail
-                    listItemDetails={serviceAccountList}
+                    listItemDetails={listItemDetails}
                     params={routerProps}
                     backToLists={backToServiceAccounts}
                     ListDetailHeaderBg={

@@ -41,7 +41,7 @@ const TabContentsWrap = styled('div')`
 `;
 
 const NoDataWrapper = styled.div`
-  height: 100%;
+  height: calc(100% - 1.86rem);
   display: flex;
   justify-content: center;
   align-items: center;
