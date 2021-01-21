@@ -5,13 +5,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import {
-  Route,
-  Switch,
-  useHistory,
-  Redirect,
-  useLocation,
-} from 'react-router-dom';
+import { Route, Switch, useHistory, Redirect } from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import sectionHeaderBg from '../../../../../assets/certificate-banner.svg';
 import sectionMobHeaderBg from '../../../../../assets/mob-certbg.png';
@@ -180,7 +174,6 @@ const CertificatesDashboard = () => {
   const [deleteError, setDeleteError] = useState(false);
   const classes = useStyles();
   const history = useHistory();
-  const location = useLocation();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const isTabAndMobileScreen = useMediaQuery(mediaBreakpoints.smallAndMedium);
   const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
@@ -288,10 +281,17 @@ const CertificatesDashboard = () => {
           ...onboardCertArray,
         ]);
         setResponse({ status: 'success' });
+        if (internalCertArray.length > 0) {
+          setListItemDetails(internalCertArray[0]);
+          history.push(
+            `/certificates/${internalCertArray[0]?.certificateName}`
+          );
+        }
       })
       .catch(() => {
         setResponse({ status: 'failed' });
       });
+    // eslint-disable-next-line
   }, []);
 
   const fetchNonAdminData = useCallback(async () => {
@@ -380,11 +380,18 @@ const CertificatesDashboard = () => {
         );
         setCertificateList([...internalCertArray, ...externalCertArray]);
         setAllCertList([...internalCertArray, ...externalCertArray]);
+        if (internalCertArray.length > 0) {
+          setListItemDetails(internalCertArray[0]);
+          history.push(
+            `/certificates/${internalCertArray[0]?.certificateName}`
+          );
+        }
         setResponse({ status: 'success' });
       })
       .catch(() => {
         setResponse({ status: 'failed' });
       });
+    // eslint-disable-next-line
   }, []);
 
   /**
@@ -436,7 +443,8 @@ const CertificatesDashboard = () => {
    * @description function to check if mobile screen the make certificateClicked true
    * based on that value display left and right side.
    */
-  const onLinkClicked = () => {
+  const onLinkClicked = (cert) => {
+    setListItemDetails(cert);
     if (isMobileScreen) {
       setCertificateClicked(true);
     }
@@ -452,29 +460,6 @@ const CertificatesDashboard = () => {
       setCertificateClicked(false);
     }
   };
-
-  useEffect(() => {
-    if (allCertList.length > 0) {
-      const val = location.pathname.split('/');
-      const certName = val[val.length - 1];
-      if (
-        certName !== 'create-ceritificate' &&
-        certName !== 'edit-certificate'
-      ) {
-        const obj = allCertList.find(
-          (cert) => cert.certificateName === certName
-        );
-        if (obj) {
-          setListItemDetails({ ...obj });
-        } else {
-          setListItemDetails(allCertList[0]);
-          history.push(`/certificates/${allCertList[0].certificateName}`);
-        }
-      }
-    } else {
-      setListItemDetails({});
-    }
-  }, [allCertList, location, history]);
 
   /**
    * @function onSelectChange
