@@ -523,26 +523,36 @@
                                 }
                             }
                             else {
-                                $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                                error('md');
+                                if(response.status === 422){
+                                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                    $scope.error('md');
+                                    $scope.requestDataFrChangeSafe();
+                                }else {
+                                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                    console.log("Inside Else case: ", $scope.errorMessage);
+                                    $scope.error('md');
+                                }
                             }
                         },
                         function (error) {
-
-                            // Error handling function
-                            console.log(error);
-                            $scope.isLoadingData = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                            $scope.error('md');
-
+                            if(error.status === 422) {
+                                var errors = error.data.Message;
+                                $scope.errorMessage = errors;
+                                $scope.error('md');
+                                $scope.requestDataFrChangeSafe();
+                            }else {
+                                // Error handling function
+                                console.log(error);
+                                $scope.isLoadingData = false;
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
                         })
                 } catch (e) {
-
                     console.log(e);
                     $scope.isLoadingData = false;
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                     $scope.error('md');
-
                 }
             }
         }

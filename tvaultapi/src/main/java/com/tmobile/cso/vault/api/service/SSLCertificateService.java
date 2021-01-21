@@ -5485,7 +5485,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					put(LogMessage.MESSAGE, String.format ("Group [%s] is successfully removed from certificate [%s]", groupName, certificatePath)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-			return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"Message\":\"Group not available or deleted from AD, removed the group assignment and permissions \"}");
 		}else{
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try again \"]}");
 		}
@@ -6223,10 +6223,10 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, SSLCertificateConstants.VALIDATE_CERTIFICATE_DETAILS_MSG).
-					put(LogMessage.MESSAGE, "Certificate may not be approved  from NCLM").
+					put(LogMessage.MESSAGE, String.format("Failed to verify the certificate = [%s] approval status", certificateMetaData.getCertificateName())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Certificate may not be approved or rejected \"]}");
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to verify the certificate approval status \"]}");
 		}
 	}
 
