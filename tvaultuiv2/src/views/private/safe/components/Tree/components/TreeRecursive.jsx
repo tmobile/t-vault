@@ -43,9 +43,7 @@ const TreeRecursive = (props) => {
   const [secretEditData, setsecretEditData] = useState({});
   // loop through the data
   useEffect(() => {
-    if (Object.keys(secretprefilledData).length > 0) {
-      setsecretEditData(secretprefilledData);
-    }
+    setsecretEditData(secretprefilledData);
   }, [secretprefilledData]);
   let arr = [];
   // eslint-disable-next-line consistent-return
@@ -112,13 +110,15 @@ const TreeRecursive = (props) => {
                 secretprefilledData={secretEditData}
                 setOpenModal={setIsAddInput}
                 parentId={item.id}
-                handleSecretCancel={() => {
-                  handleCancelClick();
+                handleSecretCancel={(val) => {
                   setsecretEditData({});
+                  setSecretprefilledData({});
+                  handleCancelClick(val);
                 }}
                 handleSecretSave={(secret) => {
-                  saveFolder(secret, item.id);
                   setsecretEditData({});
+                  setSecretprefilledData({});
+                  saveFolder(secret, item.id);
                 }}
               />
             )}
