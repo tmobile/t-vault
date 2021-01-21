@@ -48,6 +48,11 @@ const HeaderWrapper = styled.div`
   }
 `;
 
+const HelperText = styled.div`
+  color: #ee4e4e;
+  font-size: 1.2rem;
+`;
+
 const InputWrapper = styled.div`
   margin-top: 4rem;
   margin-bottom: 2.4rem;
@@ -99,6 +104,7 @@ const customStyle = css`
 
 const AddAppRole = (props) => {
   const {
+    roles,
     handleSaveClick,
     handleCancelClick,
     editClicked,
@@ -115,6 +121,7 @@ const AddAppRole = (props) => {
   const isMobileScreen = useMediaQuery(small);
   const [radioArray, setRadioArray] = useState([]);
   const [loader, setLoader] = useState(false);
+  const [existingRole, setExistingRole] = useState(false);
 
   useEffect(() => {
     if (role && access) {
@@ -144,18 +151,24 @@ const AddAppRole = (props) => {
   }, [editClicked]);
 
   useEffect(() => {
-    if (editClicked) {
-      if (access === radioValue) {
+    if (!Object.keys(roles).includes(selectedValue.toLowerCase())) {
+      if (editClicked) {
+        if (access === radioValue) {
+          setDisabledSave(true);
+        } else {
+          setDisabledSave(false);
+        }
+      } else if (selectedValue === '' || menu.length === 0) {
         setDisabledSave(true);
       } else {
         setDisabledSave(false);
       }
-    } else if (selectedValue === '' || menu.length === 0) {
-      setDisabledSave(true);
+      setExistingRole(false);
     } else {
-      setDisabledSave(false);
+      setDisabledSave(true);
+      setExistingRole(true);
     }
-  }, [selectedValue, radioValue, menu, access, editClicked]);
+  }, [selectedValue, roles, radioValue, menu, access, editClicked]);
 
   useEffect(() => {
     if (isIamAzureSvcAccount) {
@@ -197,7 +210,13 @@ const AddAppRole = (props) => {
                 : 'Select role name'
             }
           />
+          {existingRole ? (
+            <HelperText>Permission Already exists!</HelperText>
+          ) : (
+            <HelperText />
+          )}
         </InputWrapper>
+
         <RadioButtonWrapper>
           <RadioButtonComponent
             menu={radioArray}
@@ -236,6 +255,7 @@ AddAppRole.propTypes = {
   isSvcAccount: PropTypes.bool,
   isCertificate: PropTypes.bool,
   isIamAzureSvcAccount: PropTypes.bool,
+  roles: PropTypes.objectOf(PropTypes.any),
 };
 
 AddAppRole.defaultProps = {
@@ -245,6 +265,7 @@ AddAppRole.defaultProps = {
   isSvcAccount: false,
   isCertificate: false,
   isIamAzureSvcAccount: false,
+  roles: {},
 };
 
 export default AddAppRole;

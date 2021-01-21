@@ -179,6 +179,7 @@ const AppRoles = (props) => {
         )}
         {response.status === 'add' && (
           <AddAppRole
+            roles={safeData?.response['app-roles']}
             handleSaveClick={(role, access) => onSubmit(role, access)}
             handleCancelClick={() => onCancelClicked()}
           />

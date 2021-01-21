@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-curly-newline */
 import React, { useEffect, useState } from 'react';
 import PropType from 'prop-types';
 import styled from 'styled-components';
