@@ -8615,23 +8615,4 @@ public class SSLCertificateServiceTest {
         SSLCertMetadataResponse sslCertMetadataResponse = sSLCertificateService.getCertMetadata(token, "testpath/certtest");
         assertNull(sslCertMetadataResponse.getSslCertificateMetadataDetails());
     }
-
-    @Test
-    public void test_udapteCertMetadataOnAppliationChange_success() {
-        SSLCertificateMetadataDetails certDetails = new SSLCertificateMetadataDetails();
-        certDetails.setCertType("internal");
-        certDetails.setCertCreatedBy("user1");
-        certDetails.setCertificateName("certtest.company.com");
-        certDetails.setCertOwnerNtid("certowner1");
-        certDetails.setCertOwnerEmailId("ocertowner1@company.com");
-        certDetails.setExpiryDate("2022-01-06T20:23:24-08:00");
-        certDetails.setCreateDate("2021-01-06T20:23:24-08:00");
-        certDetails.setNotificationEmails("");
-        certDetails.setOnboardFlag(Boolean.FALSE);
-
-        when(reqProcessor.process(eq("/write"), Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
-
-        Response actualResponse = sSLCertificateService.udapteCertMetadataOnAppliationChange(token, "testpath/certtest", certDetails);
-        assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
-    }
 }

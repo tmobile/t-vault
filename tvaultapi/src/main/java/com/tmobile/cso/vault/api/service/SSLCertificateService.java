@@ -9922,33 +9922,6 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
     }
 
     /**
-     * To update certificate metadata on application change in clm.
-     * @param token
-     * @param certPath
-     * @param sslCertificateMetadataDetails
-     * @return
-     */
-    public Response udapteCertMetadataOnAppliationChange(String token, String certPath, SSLCertificateMetadataDetails sslCertificateMetadataDetails) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Response response;
-        try {
-            String metadataJson = objectMapper.writeValueAsString(sslCertificateMetadataDetails);
-            String writeJson =  "{\"path\":\""+certPath+"\",\"data\":"+ metadataJson +"}";
-            return reqProcessor.process("/write", writeJson, token);
-        } catch (JsonProcessingException e) {
-            log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                    put(LogMessage.ACTION, "udapteCertMetadataOnAppliationChange").
-                    put(LogMessage.MESSAGE, String.format("Failed to stringify metadata object for certificate [%s]", certPath)).
-                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                    build()));
-        }
-        response = new Response();
-        response.setHttpstatus(HttpStatus.UNPROCESSABLE_ENTITY);
-        return response;
-    }
-	
-    /**
      * Application metadata creation
      * @param sslCertificateJson
      * @param token

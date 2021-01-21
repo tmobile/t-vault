@@ -125,15 +125,30 @@ public class SSLCertificateSchedulerServiceTest {
         tmoAppMetadataList.add(new TMOAppMetadataDetails("tst2", "oldwoner@company.com", "tst2-tag", "oldlead@company.com", new ArrayList<>(), new ArrayList<>(), false));
         when(workloadDetailsService.getAllAppMetadata(token)).thenReturn(tmoAppMetadataList);
 
-        SSLCertMetadataResponse sslCertMetadataResponse = new SSLCertMetadataResponse();
-        SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
-        sslCertificateMetadataDetails.setProjectLeadEmailId("oldlead@company.com");
-        sslCertificateMetadataDetails.setApplicationOwnerEmailId("oldwoner@company.com");
-        sslCertMetadataResponse.setSslCertificateMetadataDetails(sslCertificateMetadataDetails);
-        when(sslCertificateService.getCertMetadata(token, "metadata/sslcerts/cert1.company.com")).thenReturn(sslCertMetadataResponse);
-        when(sslCertificateService.getCertMetadata(token, "metadata/sslcerts/extcert1.company.com")).thenReturn(sslCertMetadataResponse);
-        when(sslCertificateService.udapteCertMetadataOnAppliationChange(token, "metadata/sslcerts/cert1.company.com", sslCertMetadataResponse.getSslCertificateMetadataDetails())).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
-        when(sslCertificateService.udapteCertMetadataOnAppliationChange(token, "metadata/sslcerts/extcert1.company.com", sslCertMetadataResponse.getSslCertificateMetadataDetails())).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"actionId\": 0,\n" +
+                "  \"akmid\": \"123\",\n" +
+                "  \"applicationName\": \"tst1\",\n" +
+                "  \"applicationOwnerEmailId\": \"owner11@company.com\",\n" +
+                "  \"applicationTag\": \"tst2-tag\",\n" +
+                "  \"certCreatedBy\": \"username1\",\n" +
+                "  \"certOwnerEmailId\": \"username11@company.com\",\n" +
+                "  \"certOwnerNtid\": \"username1\",\n" +
+                "  \"certType\": \"internal\",\n" +
+                "  \"certificateId\": 123123,\n" +
+                "  \"certificateName\": \"cert1.company.com\",\n" +
+                "  \"certificateStatus\": \"Active\",\n" +
+                "  \"containerId\": 222,\n" +
+                "  \"containerName\": \"test\",\n" +
+                "  \"createDate\": \"2021-01-21T02:49:30-08:00\",\n" +
+                "  \"expiryDate\": \"2022-01-21T02:49:30-08:00\",\n" +
+                "  \"notificationEmails\": \"lead11@company.com\",\n" +
+                "  \"onboardFlag\": false,\n" +
+                "  \"projectLeadEmailId\": \"lead11@company.com\"" +
+                "}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(metaResponse);
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
+
         when(workloadDetailsService.udpateApplicationMetadata(eq(token), Mockito.any(), Mockito.any())).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
         sslCertificateSchedulerService.checkApplicationMetaDataChanges();
         assertTrue(true);
@@ -210,14 +225,32 @@ public class SSLCertificateSchedulerServiceTest {
         tmoAppMetadataList.add(new TMOAppMetadataDetails("tst1", "owner1@company.com", "tst1-tag", "lead1@company.com", internalCertList, null, false));
         when(workloadDetailsService.getAllAppMetadata(token)).thenReturn(tmoAppMetadataList);
 
-        SSLCertMetadataResponse sslCertMetadataResponse = new SSLCertMetadataResponse();
-        SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
-        sslCertificateMetadataDetails.setProjectLeadEmailId("oldlead@company.com");
-        sslCertificateMetadataDetails.setApplicationOwnerEmailId("oldwoner@company.com");
-        sslCertMetadataResponse.setSslCertificateMetadataDetails(sslCertificateMetadataDetails);
-        when(sslCertificateService.getCertMetadata(token, "metadata/sslcerts/cert1.company.com")).thenReturn(sslCertMetadataResponse);
-        when(sslCertificateService.udapteCertMetadataOnAppliationChange(token, "metadata/sslcerts/cert1.company.com", sslCertMetadataResponse.getSslCertificateMetadataDetails())).thenReturn(getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, ""));
         when(workloadDetailsService.udpateApplicationMetadata(eq(token), Mockito.any(), Mockito.any())).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
+
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"actionId\": 0,\n" +
+                "  \"akmid\": \"123\",\n" +
+                "  \"applicationName\": \"tst1\",\n" +
+                "  \"applicationOwnerEmailId\": \"owner11@company.com\",\n" +
+                "  \"applicationTag\": \"tst2-tag\",\n" +
+                "  \"certCreatedBy\": \"username1\",\n" +
+                "  \"certOwnerEmailId\": \"username1@company.com\",\n" +
+                "  \"certOwnerNtid\": \"username1\",\n" +
+                "  \"certType\": \"internal\",\n" +
+                "  \"certificateId\": 123123,\n" +
+                "  \"certificateName\": \"cert1.company.com\",\n" +
+                "  \"certificateStatus\": \"Active\",\n" +
+                "  \"containerId\": 222,\n" +
+                "  \"containerName\": \"test\",\n" +
+                "  \"createDate\": \"2021-01-21T02:49:30-08:00\",\n" +
+                "  \"expiryDate\": \"2022-01-21T02:49:30-08:00\",\n" +
+                "  \"notificationEmails\": \"lead11@company.com\",\n" +
+                "  \"onboardFlag\": false,\n" +
+                "  \"projectLeadEmailId\": \"lead11@company.com\"" +
+                "}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(metaResponse);
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.BAD_REQUEST, true, ""));
+
         sslCertificateSchedulerService.checkApplicationMetaDataChanges();
         assertTrue(true);
     }
@@ -237,13 +270,49 @@ public class SSLCertificateSchedulerServiceTest {
         tmoAppMetadataList.add(new TMOAppMetadataDetails("tst1", "owner1@company.com", "tst1-tag", "lead1@company.com", internalCertList, null, false));
         when(workloadDetailsService.getAllAppMetadata(token)).thenReturn(tmoAppMetadataList);
 
-        SSLCertMetadataResponse sslCertMetadataResponse = new SSLCertMetadataResponse();
-        SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
-        sslCertificateMetadataDetails.setProjectLeadEmailId("oldlead@company.com");
-        sslCertificateMetadataDetails.setApplicationOwnerEmailId("oldwoner@company.com");
-        sslCertMetadataResponse.setSslCertificateMetadataDetails(sslCertificateMetadataDetails);
-        when(sslCertificateService.getCertMetadata(token, "metadata/sslcerts/cert1.company.com")).thenReturn(sslCertMetadataResponse);
-        when(sslCertificateService.udapteCertMetadataOnAppliationChange(token, "metadata/sslcerts/cert1.company.com", sslCertMetadataResponse.getSslCertificateMetadataDetails())).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"actionId\": 0,\n" +
+                "  \"akmid\": \"123\",\n" +
+                "  \"applicationName\": \"tst1\",\n" +
+                "  \"applicationOwnerEmailId\": \"owner1@company.com\",\n" +
+                "  \"applicationTag\": \"tst2-tag\",\n" +
+                "  \"certCreatedBy\": \"username1\",\n" +
+                "  \"certOwnerEmailId\": \"username1@company.com\",\n" +
+                "  \"certOwnerNtid\": \"username1\",\n" +
+                "  \"certType\": \"internal\",\n" +
+                "  \"certificateId\": 123123,\n" +
+                "  \"certificateName\": \"cert1.company.com\",\n" +
+                "  \"certificateStatus\": \"Active\",\n" +
+                "  \"containerId\": 222,\n" +
+                "  \"containerName\": \"test\",\n" +
+                "  \"createDate\": \"2021-01-21T02:49:30-08:00\",\n" +
+                "  \"expiryDate\": \"2022-01-21T02:49:30-08:00\",\n" +
+                "  \"notificationEmails\": \"lead1@company.com\",\n" +
+                "  \"onboardFlag\": false,\n" +
+                "  \"projectLeadEmailId\": \"lead1@company.com\"" +
+                "}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(metaResponse);
+        when(workloadDetailsService.udpateApplicationMetadata(eq(token), Mockito.any(), Mockito.any())).thenReturn(getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, ""));
+        sslCertificateSchedulerService.checkApplicationMetaDataChanges();
+        assertTrue(true);
+    }
+
+    @Test
+    public void checkApplicationMetaDataChanges_failed_to_read_metadata() throws Exception {
+
+        when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
+
+        List<TMOAppMetadataDetails> tmoAppMetadataListFromCLM = new ArrayList<>();
+        tmoAppMetadataListFromCLM.add(new TMOAppMetadataDetails("tst1", "owner1@company.com", "tst2-tag", "lead1@company.com", null, null, false));
+        when(workloadDetailsService.getAllApplicationDetailsFromCLM()).thenReturn(tmoAppMetadataListFromCLM);
+
+        List<TMOAppMetadataDetails> tmoAppMetadataList = new ArrayList<>();
+        List<String> internalCertList = new ArrayList<>();
+        internalCertList.add("cert1.company.com");
+        tmoAppMetadataList.add(new TMOAppMetadataDetails("tst1", "owner1@company.com", "tst1-tag", "lead1@company.com", internalCertList, null, false));
+        when(workloadDetailsService.getAllAppMetadata(token)).thenReturn(tmoAppMetadataList);
+
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.BAD_REQUEST, false, ""));
         when(workloadDetailsService.udpateApplicationMetadata(eq(token), Mockito.any(), Mockito.any())).thenReturn(getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, ""));
         sslCertificateSchedulerService.checkApplicationMetaDataChanges();
         assertTrue(true);
