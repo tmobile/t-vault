@@ -1,3 +1,4 @@
+/* eslint-disable react/no-array-index-key */
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
@@ -148,9 +149,9 @@ const LeftColumn = (props) => {
   return (
     <ComponentError>
       <>
-        {certificateList.map((certificate) => (
+        {certificateList.map((certificate, index) => (
           <ListFolderWrap
-            key={certificate.certificateName}
+            key={index}
             to={{
               pathname: `/certificates/${certificate.certificateName}`,
               state: { data: certificate },

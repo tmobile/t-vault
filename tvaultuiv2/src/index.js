@@ -12,7 +12,7 @@ import initialState from './stateManagement';
 const instance = createInstance({
   urlBase: 'https://analytics.pacbot.t-mobile.com/',
   siteId: 8,
-  userId: localStorage.getItem('owner') || 'User',
+  userId: sessionStorage.getItem('owner') || 'User',
   linkTracking: false, // optional, default value: true
 });
 
