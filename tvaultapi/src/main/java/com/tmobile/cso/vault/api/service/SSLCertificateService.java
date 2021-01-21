@@ -6111,10 +6111,10 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, SSLCertificateConstants.VALIDATE_CERTIFICATE_DETAILS_MSG).
-					put(LogMessage.MESSAGE, "Certificate may not be approved  from NCLM").
+					put(LogMessage.MESSAGE, String.format("Failed to verify the certificate = [%s] approval status", certificateMetaData.getCertificateName())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Certificate may not be approved or rejected \"]}");
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to verify the certificate approval status \"]}");
 		}
 	}
 
