@@ -4,10 +4,11 @@
 .table-container(ng-if="(vm.folderContent.children | filter : vm.filter).length")
     .table-header
         .row
-            .cell.col-lg-5.col-md-5.col-sm-5.col-xs-4.table-first-cell NAME
-            .cell.col-lg-5.col-md-5.col-sm-5.col-xs-5.invisible
+            .cell.col-lg-4.col-md-4.col-sm-4.col-xs-4.table-first-cell NAME
+            .cell.col-lg-4.col-md-4.col-sm-4.col-xs-4.invisible
             .cell.col-lg-2.col-md-2.col-sm-2.col-xs-3.block-3.action-header ACTION
+            .cell.col-lg-2.col-md-2.col-sm-2.col-xs-3.block-3.action-header LAST ACTIVITY
     .accordion-table-data-container
         ul.accordion-table-data
             li.accordian-list-item(ng-repeat="item in vm.folderContent.children | filter : vm.filter")
-                folder-contents-row(index="$index" item="item" parent="vm.folderContent" loading="vm.loading" write="vm.write" ng-click="vm.clickRow(item)")
+                folder-contents-row(index="$index" item="item" last-changed="vm.folderLastChangedDetails" parent="vm.folderContent" loading="vm.loading" write="vm.write" ng-click="vm.clickRow(item)")

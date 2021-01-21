@@ -18,14 +18,15 @@
 package com.tmobile.cso.vault.api.utils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.model.*;
+import com.tmobile.cso.vault.api.process.RequestProcessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -37,15 +38,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
-import com.tmobile.cso.vault.api.model.Safe;
-import com.tmobile.cso.vault.api.model.SafeBasicDetails;
-import com.tmobile.cso.vault.api.model.SafeUser;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.Response;
+import sun.swing.StringUIClientPropertyKey;
+
 @Component
 public class SafeUtils {
 	private Logger log = LogManager.getLogger(SafeUtils.class);
-	
+
+	@Autowired
+	private RequestProcessor reqProcessor;
+
+	@Autowired
+	private CommonUtils commonUtils;
+
 	public SafeUtils() {
 		// empty constructor
 	}
@@ -241,5 +246,106 @@ public class SafeUtils {
 					}
 					// other normal users will not have permission as they are not the owner
 					return false;
+	}
+
+	/**
+	 * To create version folder on a folder creation in safe
+	 * @param token
+	 * @param path
+	 * @param userDetails
+	 * @param isPartOfFolderCreation
+	 * @return
+	 */
+	public Response createVersionFolder(String token, String path, UserDetails userDetails, boolean isPartOfFolderCreation, List<String> modifiedKeys, List<String> deletedKeys) {
+		if (ControllerUtil.isPathValid(path)) {
+			String actualFolderName = path.substring(path.lastIndexOf('/') + 1);
+			String versionFolderName = TVaultConstants.VERSION_FOLDER_PREFIX + actualFolderName;
+			String versionFolderPath = path.substring(0, path.lastIndexOf('/')) + "/" + versionFolderName;
+
+			Response readVersionFolderResponse = reqProcessor.process("/read","{\"path\":\""+versionFolderPath+"\"}",token);
+			FolderVersionData currentVersionData = null;
+			if (readVersionFolderResponse.getHttpstatus().equals(HttpStatus.OK)) {
+				ObjectMapper objectMapper = new ObjectMapper();
+				try {
+					currentVersionData = objectMapper.readValue(readVersionFolderResponse.getResponse(), new TypeReference<FolderVersionData>() {});
+				} catch (IOException e) {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "createVersionFolder").
+							put(LogMessage.MESSAGE, String.format("Failed to extract Folder version info for [%s}", path)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
+			}
+
+			FolderVersion folderVersionData = getFolderVersionData(path, userDetails, isPartOfFolderCreation, currentVersionData!=null?currentVersionData.getData():null, modifiedKeys, deletedKeys);
+
+			String versionJsonStr ="{\"path\":\""+versionFolderPath +"\",\"data\":"+ JSONUtil.getJSON(folderVersionData)+"}";
+			if (!readVersionFolderResponse.getHttpstatus().equals(HttpStatus.OK)) {
+				// No version folder exists. Creating one
+				log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "createVersionFolder").
+						put(LogMessage.MESSAGE, String.format("Creating version folder for [%s}", path)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return reqProcessor.process("/sdb/createfolder",versionJsonStr,token);
+			}
+			else {
+				// Version folder already exists. Writing to it.
+				log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "createVersionFolder").
+						put(LogMessage.MESSAGE, String.format("Version folder exists for [%s}. Adding details to existing version folder", path)).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return reqProcessor.process("/write",versionJsonStr,token);
+			}
+		}
+		Response failedResponse = new Response();
+		failedResponse.setHttpstatus(HttpStatus.BAD_REQUEST);
+		failedResponse.setResponse("{\"errors\":[\"Invalid path\"]}");
+		return failedResponse;
+	}
+
+	/**
+	 * To get folder version information
+	 * @param path
+	 * @param userDetails
+	 * @param isPartOfFolderCreation
+	 * @return
+	 */
+	private FolderVersion getFolderVersionData(String path, UserDetails userDetails, boolean isPartOfFolderCreation, FolderVersion currentFolderVersionData, List<String> modifiedKeys, List<String> deletedKeys) {
+		Long modifiedAt = new Date().getTime();
+		String modifiedBy = commonUtils.getModifiedByInfo(userDetails);
+
+		FolderVersion folderVersionData = new FolderVersion();
+		folderVersionData.setFolderPath(path);
+		folderVersionData.setFolderModifiedAt(modifiedAt);
+		folderVersionData.setFolderModifiedBy(modifiedBy);
+
+		if (!isPartOfFolderCreation) {
+			// if part of folder creation, there might exist version info for this folder
+			List<SecretVersionDetails> newSecretVersionDetails = new ArrayList<>();
+			newSecretVersionDetails.add(new SecretVersionDetails(modifiedAt, modifiedBy));
+
+			Map<String, List<SecretVersionDetails>> currentSecretVersionDetails = new HashMap<>();
+			if (currentFolderVersionData != null && currentFolderVersionData.getSecretVersions() != null) {
+				currentSecretVersionDetails = currentFolderVersionData.getSecretVersions();
+			}
+
+			if (modifiedKeys != null) {
+				for (int i=0; i< modifiedKeys.size(); i++) {
+					currentSecretVersionDetails.put(modifiedKeys.get(i), newSecretVersionDetails);
+				}
+			}
+			if (deletedKeys != null) {
+				for (int i=0; i< deletedKeys.size(); i++) {
+					currentSecretVersionDetails.remove(deletedKeys.get(i));
+				}
+			}
+			folderVersionData.setSecretVersions(currentSecretVersionDetails);
+		}
+		return folderVersionData;
 	}
 }

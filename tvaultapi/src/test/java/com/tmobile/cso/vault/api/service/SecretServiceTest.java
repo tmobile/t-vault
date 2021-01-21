@@ -16,6 +16,8 @@
 // =========================================================================
 package com.tmobile.cso.vault.api.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
@@ -27,6 +29,7 @@ import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.CommonUtils;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
+import com.tmobile.cso.vault.api.utils.SafeUtils;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
@@ -74,6 +77,9 @@ public class SecretServiceTest {
     @Mock
     CommonUtils commonUtils;
 
+    @Mock
+    SafeUtils safeUtils;
+
     @Before
     public void setUp() {
         PowerMockito.mockStatic(ControllerUtil.class);
@@ -111,15 +117,16 @@ public class SecretServiceTest {
     public void test_write_successfully() {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret3\":\"value1\",\"secret2\":\"value2\"}}";
         HashMap<String, String> data = new HashMap<>();
-        data.put("secret1", "value1");
+        data.put("secret3", "value1");
+        data.put("secret2", "value2");
         Secret secret = new Secret("shared/mysafe01/myfolder", data);
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
 
-        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
-        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret3\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(Mockito.any())).thenReturn(true);
         when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
         when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
 
@@ -131,6 +138,75 @@ public class SecretServiceTest {
         userDetails.setPolicies(policies);
 
         when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        Response readResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"secret1\":\"value1\"}}");
+        when(reqProcessor.process("/read","{\"path\":\""+secret.getPath()+"\"}",token)).thenReturn(readResponse);
+        when(safeUtils.createVersionFolder(eq(token), eq(path), eq(userDetails), eq(false), Mockito.any(), Mockito.any())).thenReturn(response);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_write_successfully_no_version_modification() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret3\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret3", "value1");
+        data.put("secret2", "value2");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
+
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret3\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(Mockito.any())).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
+        when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
+
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        String policies[] = {"w_shared_mysafe01"};
+        UserDetails userDetails = getMockUser(false);
+        userDetails.setPolicies(policies);
+
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        Response readResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"secret3\":\"value1\",\"secret2\":\"value2\"}}");
+        when(reqProcessor.process("/read","{\"path\":\""+secret.getPath()+"\"}",token)).thenReturn(readResponse);
+        when(safeUtils.createVersionFolder(eq(token), eq(path), eq(userDetails), eq(false), Mockito.any(), Mockito.any())).thenReturn(response);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_write_successfully_but_version_update_failed() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret3\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret3", "value1");
+        data.put("secret2", "value2");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
+
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret3\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(Mockito.any())).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
+        when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
+
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        String policies[] = {"w_shared_mysafe01"};
+        UserDetails userDetails = getMockUser(false);
+        userDetails.setPolicies(policies);
+
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        Response readResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"secret3\":\"value1\",\"secret2\":\"value21\"}}");
+        when(reqProcessor.process("/read","{\"path\":\""+secret.getPath()+"\"}",token)).thenReturn(readResponse);
+        when(safeUtils.createVersionFolder(eq(token), eq(path), eq(userDetails), eq(false), Mockito.any(), Mockito.any())).thenReturn(getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, ""));
         ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -143,6 +219,7 @@ public class SecretServiceTest {
         String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
         HashMap<String, String> data = new HashMap<>();
         data.put("secret1", "value1");
+        data.put("secret2", "value2");
         Secret secret = new Secret("shared/mysafe01/myfolder", data);
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
@@ -160,6 +237,75 @@ public class SecretServiceTest {
         userDetails.setPolicies(policies);
 
         when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        Response readResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"secret1\":\"value1\"}}");
+        when(reqProcessor.process("/read","{\"path\":\""+secret.getPath()+"\"}",token)).thenReturn(readResponse);
+        when(safeUtils.createVersionFolder(eq(token), eq(path), eq(userDetails), eq(false), Mockito.any(), Mockito.any())).thenReturn(response);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails,"true");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_write_successWithDeleteFlag_no_version_modification() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        data.put("secret2", "value2");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
+
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
+        when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
+
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        String policies[] = {"w_shared_mysafe01"};
+        UserDetails userDetails = getMockUser(false);
+        userDetails.setPolicies(policies);
+
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        Response readResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(reqProcessor.process("/read","{\"path\":\""+secret.getPath()+"\"}",token)).thenReturn(readResponse);
+        when(safeUtils.createVersionFolder(eq(token), eq(path), eq(userDetails), eq(false), Mockito.any(), Mockito.any())).thenReturn(response);
+        ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails,"true");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_write_successWithDeleteFlag_but_version_update_failed() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String jsonStr = "{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}";
+        HashMap<String, String> data = new HashMap<>();
+        data.put("secret1", "value1");
+        data.put("secret2", "value2");
+        Secret secret = new Secret("shared/mysafe01/myfolder", data);
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
+
+        when(ControllerUtil.addDefaultSecretKey(jsonStr)).thenReturn("{\"path\":\"shared/mysafe01/myfolder\",\"data\":{\"secret1\":\"value1\",\"secret2\":\"value2\"}}");
+        when(ControllerUtil.areSecretKeysValid(jsonStr)).thenReturn(true);
+        when(ControllerUtil.isPathValid("shared/mysafe01/myfolder")).thenReturn(true);
+        when(reqProcessor.process("/write",jsonStr,token)).thenReturn(response);
+
+        String path ="shared/mysafe01/myfolder";
+        when(ControllerUtil.getSafeType(path)).thenReturn("shared");
+        when(ControllerUtil.getSafeName(path)).thenReturn("mysafe01");
+        String policies[] = {"w_shared_mysafe01"};
+        UserDetails userDetails = getMockUser(false);
+        userDetails.setPolicies(policies);
+
+        when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        Response readResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"secret1\":\"value1\"}}");
+        when(reqProcessor.process("/read","{\"path\":\""+secret.getPath()+"\"}",token)).thenReturn(readResponse);
+        when(safeUtils.createVersionFolder(eq(token), eq(path), eq(userDetails), eq(false), Mockito.any(), Mockito.any())).thenReturn(getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, ""));
         ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails,"true");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -385,6 +531,8 @@ public class SecretServiceTest {
         userDetails.setPolicies(policies);
         String deleteFlag = "true";
         when(JSONUtil.getJSON(secret)).thenReturn(jsonStr);
+        Response readResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"secret1\":\"value1\"}}");
+        when(reqProcessor.process("/read","{\"path\":\""+secret.getPath()+"\"}",token)).thenReturn(readResponse);
         ResponseEntity<String> responseEntity = secretService.write(token, secret, userDetails, deleteFlag);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -445,7 +593,6 @@ public class SecretServiceTest {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String responsejson = "{\"id\":\"5PDrOhsy4ig8L3EpsJZSLAMg\",\"policies\":[\"root\"]}";
-        ReflectionTestUtils.setField(secretService, "safeVersionFolderPrefix", "$_versions_");
 
         Response response = getMockResponse(HttpStatus.OK, true, responsejson);
 
@@ -543,7 +690,6 @@ public class SecretServiceTest {
     public void test_getSecretCount_failed_403() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String responsejson = "{\"id\":\"5PDrOhsy4ig8L3EpsJZSLAMg\",\"policies\":[\"root\"]}";
-        ReflectionTestUtils.setField(secretService, "safeVersionFolderPrefix", "$_versions_");
 
         Response response = getMockResponse(HttpStatus.OK, true, responsejson);
 
@@ -562,4 +708,39 @@ public class SecretServiceTest {
         assertEquals(responseEntityExpected, responseEntity);
     }
 
+    @Test
+    public void test_getFolderVersionInfo_success() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        String responsejson = "{\"keys\":[\"fld2\"]}";
+
+        Response response = getMockResponse(HttpStatus.OK, true, responsejson);
+        String path = "users/123safe/fld1";
+        String parentPath = "users/123safe";
+        String versionPath = "users/123safe/fld1/$_versions_fld2";
+        String jsonstr = "{\"path\":\"" + path + "\"}";
+        when(reqProcessor.process("/sdb/list", jsonstr, token)).thenReturn(response);
+
+        String jsonReadstr = "{\"path\":\"" + versionPath + "\"}";
+        String versionResponse = "{\"data\":{\"folderModifiedAt\":1611147018284,\"folderModifiedBy\":\"user1@company.com\",\"folderPath\":\"users/123safe/fld1/fld2\",\"secretVersions\":null}}";
+        when(reqProcessor.process("/read", jsonReadstr, token)).thenReturn(getMockResponse(HttpStatus.OK, true, versionResponse));
+
+        String responsejsonParent = "{\"keys\":[\"fld1\"]}";
+        Response responseParent = getMockResponse(HttpStatus.OK, true, responsejsonParent);
+        String jsonstrParent = "{\"path\":\"" + parentPath + "\"}";
+        when(reqProcessor.process("/sdb/list", jsonstrParent, token)).thenReturn(responseParent);
+        String versionPathParent = "users/123safe/$_versions_fld1";
+        String jsonReadstrParent = "{\"path\":\"" + versionPathParent + "\"}";
+        String versionResponseParent = "{\"data\":{\"folderModifiedAt\":1611148845423,\"folderModifiedBy\":\"role1 (AppRole)\",\"folderPath\":\"users/123safe/fld1\",\"secretVersions\":{\"secret2\":[{\"modifiedAt\":1611148845423,\"modifiedBy\":\"role1 (AppRole)\"}],\"secret3\":[{\"modifiedAt\":1611148845423,\"modifiedBy\":\"role1 (AppRole)\"}]}}}";
+        when(reqProcessor.process("/read", jsonReadstrParent, token)).thenReturn(getMockResponse(HttpStatus.OK, true, versionResponseParent));
+
+
+
+
+        String reposneString = "[{\"folderPath\":\"users/123safe/fld1/fld2\",\"folderModifiedAt\":1611147018284,\"folderModifiedBy\":\"user1@company.com\",\"secretVersions\":null},{\"folderPath\":\"users/123safe/fld1\",\"folderModifiedAt\":1611148845423,\"folderModifiedBy\":\"role1 (AppRole)\",\"secretVersions\":{\"secret2\":[{\"modifiedAt\":1611148845423,\"modifiedBy\":\"role1 (AppRole)\"}],\"secret3\":[{\"modifiedAt\":1611148845423,\"modifiedBy\":\"role1 (AppRole)\"}]}}]";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(reposneString);
+
+        ResponseEntity<String> responseEntity = secretService.getFolderVersionInfo(token, path);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
 }

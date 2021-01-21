@@ -3,13 +3,14 @@
     angular.module('vault.features.safes')
       .controller('safesFoldersController', safesFoldersController);
 
-    function safesFoldersController(folderContent, writeAccess, safesService, SAFES_CONSTANTS, $state, $rootScope, Modal, Notifications, SessionStore) {
+    function safesFoldersController(folderContent, folderLastChangedDetails, writeAccess, safesService, SAFES_CONSTANTS, $state, $rootScope, Modal, Notifications, SessionStore) {
       var vm = this;
       vm.safeCategories = safesService.getSafeTabs();
       vm.search = '';
       vm.folderPathArray = [];
       vm.currentFolder = null;
       vm.folderContent = folderContent;
+      vm.folderLastChangedDetails = folderLastChangedDetails;
       vm.writeAccess = writeAccess;
       vm.userViewingFolder = false;
       vm.root = null;
@@ -61,6 +62,7 @@
                 vm.loading(false);
                 vm.folderContent.children = [newSecret].concat(folderContent.children);
                 Notifications.toast('Added successfully');
+                $state.reload();
               }).catch(catchError);
           })
           .catch(function (error) {
