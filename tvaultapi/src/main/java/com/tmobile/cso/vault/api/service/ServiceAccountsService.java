@@ -120,6 +120,9 @@ public class  ServiceAccountsService {
     
     @Autowired
 	private OIDCUtil oidcUtil;
+    
+    @Autowired
+    private CommonUtils commonUtils;
 	/**
 	 * Gets the list of users from Directory Server based on UPN
 	 * @param UserPrincipalName
@@ -1473,16 +1476,9 @@ public class  ServiceAccountsService {
 							}
 
 							ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
-							if (userDetails.getEmail() != null) {
-								adServiceAccountResetDetails.setModifiedBy(userDetails.getEmail());
-							} else {
-								if (userDetails.getUsername() != null && userDetails.getUsername().startsWith("aws")) {
-									adServiceAccountResetDetails.setModifiedBy(TVaultConstants.AWS_ROLES);
-								} else {
-									adServiceAccountResetDetails.setModifiedBy(userDetails.getUsername());
-								}
-							}
+							String modifiedBy = commonUtils.getModifiedByInfo(userDetails);
 							Long modifiedAt = new Date().getTime();
+							adServiceAccountResetDetails.setModifiedBy(modifiedBy);
 							adServiceAccountResetDetails.setModifiedAt(modifiedAt);
 							adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
 
