@@ -765,6 +765,22 @@ public class SSLCertificateService {
                                 build()));
                     }
 
+                    boolean sslApplicationMetaDataSaveStatus;
+                    //save certificate name into application metadata path
+                    if (userDetails.isAdmin()) {
+                    	sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(metadataJson, token);
+					} else {
+						sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(metadataJson,
+								userDetails.getSelfSupportToken());
+					}
+                    
+                    if (sslApplicationMetaDataSaveStatus) {
+                        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                                put(LogMessage.ACTION, String.format("Certificate details added to Application Metadata for SSL certificate name [%s]",
+                                        sslCertificateRequest.getCertificateName())).
+                                build()));
+                    }
 
                     //Send failed certificate response in case of any issues in Policy/Meta data creation
                     if ((!isPoliciesCreated) || (!sslMetaDataCreationStatus)) {
@@ -6732,6 +6748,15 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 
             JsonParser jsonParser = new JsonParser();
             JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+            
+            //remove certificate name from application metadata
+            boolean appMetadataStatus = updatecertificateMetadataForApplicationDetails(object, authToken);
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "unLinkCertificate")
+                    .put(LogMessage.MESSAGE, String.format("delete details from application metadata status is [%s] for certificate " +
+                            "= [%s]", appMetadataStatus,certificateName))
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
             //remove user permissions
             deleteUserPermissionForCertificate(certType, certificateName, userDetails, jsonParser, object);
@@ -6898,6 +6923,10 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                    //remove Sudo permissions
                    removeSudoPermissionForPreviousOwner(certificateUserId.toLowerCase(), certificateName, userDetails, certType);
                    
+                 //delete certificate name from application metadata list
+                   boolean sslApplicationMetaDataSaveStatus;
+                   sslApplicationMetaDataSaveStatus = updatecertificateMetadataForApplicationDetails(object, authToken);
+                   
                    //Remove certificate policies
                    deletePolicies(certType, certificateName, authToken);
                    deleteApprolePolicyAssociationOnCertificate(certificateName, authToken, jsonParser, object);
@@ -6916,7 +6945,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
        							.build()));
                            return ResponseEntity.status(response.getHttpstatus())
                                    .body("{\"messages\":[\"Certificate metadata deletion failed\"]}");
-                       }
+                       }                   
+                       
 
                        String certOwnerEmailId = metaDataParams.get(SSLCertificateConstants.CERT_OWNER_EMAILID);
                        String certOwnerNtId = metaDataParams.get(SSLCertificateConstants.CERT_OWNER_NTID);
@@ -8158,6 +8188,19 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 											sslCertificateRequest.getCertificateName(), isPoliciesCreated))	.build()));
 		            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERRORS+enrollResponse.getResponse()+"\"]}");
 		        }
+		        
+		        boolean sslApplicationMetaDataSaveStatus;
+                //save certificate name into application metadata path
+                	sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(metadataJson, tokenUtils.getSelfServiceToken());
+				
+                
+                if (sslApplicationMetaDataSaveStatus) {
+                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+                            put(LogMessage.ACTION, String.format("Certificate details added to Application Metadata for SSL certificate name [%s]",
+                                    sslCertificateRequest.getCertificateName())).
+                            build()));
+                }
 
 
 		        //Send failed certificate response in case of any issues in Policy/Meta data creation
@@ -9398,6 +9441,16 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 									sslCertificateRequest.getCertificateName(), sslMetaDataCreationStatus,
 									metadataJson))
 					.build()));
+			
+			//add certificate name into application metadata list
+            boolean sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(metadataJson, tokenUtils.getSelfServiceToken());
+            log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION,
+							String.format(" [%s] - Applicatio Metadata creation status - [%s] for metadatajson - [%s]",
+									sslCertificateRequest.getCertificateName(), sslApplicationMetaDataSaveStatus,
+									metadataJson))
+					.build()));
 
 			if (sslMetaDataCreationStatus) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -9894,4 +9947,313 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
         response.setHttpstatus(HttpStatus.UNPROCESSABLE_ENTITY);
         return response;
     }
+	
+    /**
+     * Application metadata creation
+     * @param sslCertificateJson
+     * @param token
+     * @return
+     */
+    private boolean certificateMetadataForApplicationDetails(String sslCertificateJson, String token) {
+		 TMOAppMetadataDetails tmoAppMetadataDetails = new TMOAppMetadataDetails();
+			JsonParser jsonParser = new JsonParser();
+			
+			JsonObject object = ((JsonObject) jsonParser.parse(sslCertificateJson)).getAsJsonObject("data");
+			String appName = object.get("applicationName").getAsString();
+			String certType = object.get("certType").getAsString();
+			String certPath =  TVaultConstants.TMO_APP_METADATA_PATH + "/" + appName;
+			List<String> certList = new ArrayList<>();
+			
+			boolean isAppDetailsAvailable = true;
+			boolean isCertDataUpdated = false;
+			isAppDetailsAvailable = checkAppDetailsAvailable( appName, token);
+			
+			
+				tmoAppMetadataDetails.setApplicationName(object.get("applicationName").getAsString());
+				tmoAppMetadataDetails.setApplicationTag(object.get("applicationTag").getAsString());
+				tmoAppMetadataDetails.setApplicationOwnerEmailId(object.get("applicationOwnerEmailId")==null?null:object.get("applicationOwnerEmailId").getAsString());
+				tmoAppMetadataDetails.setProjectLeadEmailId(object.get("projectLeadEmailId")!=null?object.get("projectLeadEmailId").getAsString():null);
+				tmoAppMetadataDetails.setUpdateFlag(Boolean.TRUE);
+				certList.add(object.get("certificateName").getAsString());
+				if(!isAppDetailsAvailable) {
+				if(certType.equalsIgnoreCase(SSLCertificateConstants.EXTERNAL)) {
+					tmoAppMetadataDetails.setExternalCertificateList(certList);
+				}else {
+					tmoAppMetadataDetails.setInternalCertificateList(certList);
+				}			
+				}
+				else {
+					tmoAppMetadataDetails = addCertToAppList(tmoAppMetadataDetails,appName,certType,object.get("certificateName").getAsString(),
+							 token);
+				}
+			TMOAppMetadata sslCertMetadata = new TMOAppMetadata(certPath, tmoAppMetadataDetails);
+	        String jsonStr = JSONUtil.getJSON(sslCertMetadata);
+	        Map<String, Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+	        rqstParams.put("path", certPath);
+	        String certDataJson = ControllerUtil.convetToJson(rqstParams);
+			Response response = reqProcessor.process("/write", certDataJson, token);			
+
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+		                    put(LogMessage.MESSAGE, "SSL certificate metadata creation is success for application details creation ").
+		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                    build()));
+				 isCertDataUpdated = true;
+			}else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+						put(LogMessage.MESSAGE, "SSL certificate metadata creation failed for application details creation").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+			
+						
+			
+			return isCertDataUpdated;
+		}
+    
+    /**
+     * Method to check application metadata details is already available for given application
+     * @param appName
+     * @param token
+     * @return
+     */ 
+	 private boolean checkAppDetailsAvailable(String appName, String token) {
+		 String certPath =  TVaultConstants.TMO_APP_METADATA_PATH + "/" + appName;
+			Response response = new Response();
+			boolean isDataAvailable = true;
+			
+			try {
+					response = reqProcessor.process("/read", "{\"path\":\"" + certPath + "\"}", token);
+					
+			} catch (Exception e) {
+				log.error(
+						JSONUtil.getJSON(
+								ImmutableMap.<String, String> builder()
+										.put(LogMessage.USER,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+										.put(LogMessage.ACTION,
+												String.format("Exception = [%s] =  Message [%s]",
+														Arrays.toString(e.getStackTrace()), response.getResponse()))
+										.build()));				
+			}
+			if (!HttpStatus.OK.equals(response.getHttpstatus())) {
+				isDataAvailable = false;
+			}
+			return isDataAvailable;
+	 }
+	 
+	/**
+	 * Method to add certificate name into the certlist in application metadata
+	 * @param details
+	 * @param appName
+	 * @param certType
+	 * @param certName
+	 * @param token
+	 * @return
+	 */
+	 private TMOAppMetadataDetails addCertToAppList(TMOAppMetadataDetails details,String appName, String certType, String certName, String token) {
+		 String certPath =  TVaultConstants.TMO_APP_METADATA_PATH + "/" + appName;
+			Response response = new Response();
+			try {
+					response = reqProcessor.process("/read", "{\"path\":\"" + certPath + "\"}", token);
+					
+			} catch (Exception e) {
+				log.error(
+						JSONUtil.getJSON(
+								ImmutableMap.<String, String> builder()
+										.put(LogMessage.USER,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+										.put(LogMessage.ACTION,
+												String.format("Exception = [%s] =  Message [%s]",
+														Arrays.toString(e.getStackTrace()), response.getResponse()))
+										.build()));				
+			}
+			if (!HttpStatus.OK.equals(response.getHttpstatus())) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+	                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+	                    put(LogMessage.MESSAGE, "SSL certificate metadata is not avvailable for the given application ").
+	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+	                    build()));
+			}
+			JsonParser jsonParser = new JsonParser();
+			JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+			List<String> certList = new ArrayList<>();
+			List<String> certListOld = new ArrayList<>();
+			JsonArray jsonArr = new JsonArray();
+			 jsonArr = object.getAsJsonArray(certType+"CertificateList"); 			 
+			 if (jsonArr != null) { 
+				 jsonArr.add(certName);
+				   for (int i=0;i<jsonArr.size();i++){ 
+					   certList.add(jsonArr.get(i).toString().substring(1, jsonArr.get(i).toString().length() - 1));
+				   }
+			 }else {
+				 certList.add(certName);
+			 }
+			 if(certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
+				 details.setInternalCertificateList(certList);
+			 }else {
+				 details.setExternalCertificateList(certList);
+			 }
+			 
+			 String certListExist = certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)?"externalCertificateList":"internalCertificateList";
+			 JsonArray jsonArrExist = object.getAsJsonArray(certListExist); 
+			 if (jsonArrExist != null) { 
+				   for (int i=0;i<jsonArrExist.size();i++){ 
+					   certListOld.add(jsonArrExist.get(i).toString().substring(1, jsonArrExist.get(i).toString().length() - 1));
+				   }
+			 
+			 if(certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
+				 details.setExternalCertificateList(certListOld);
+			 }else {
+				 details.setInternalCertificateList(certListOld);
+			 }
+			 }
+			return details;
+	 }
+	 
+	 /**
+	  * Function to update the application metadata
+	  * @param object
+	  * @param token
+	  * @return
+	  */
+	 private boolean updatecertificateMetadataForApplicationDetails(JsonObject object, String token) {
+		 TMOAppMetadataDetails tmoAppMetadataDetails = new TMOAppMetadataDetails();
+			
+			String appName = object.get("applicationName").getAsString();
+			String certType = object.get("certType").getAsString();
+			String certPath =  TVaultConstants.TMO_APP_METADATA_PATH + "/" + appName;
+			List<String> certList = new ArrayList<>();
+			
+			boolean isCertDataUpdated = false;			
+			
+				tmoAppMetadataDetails.setApplicationName(object.get("applicationName").getAsString());
+				tmoAppMetadataDetails.setApplicationTag(object.get("applicationTag").getAsString());
+				tmoAppMetadataDetails.setApplicationOwnerEmailId(object.get("applicationOwnerEmailId")==null?null:object.get("applicationOwnerEmailId").getAsString());
+				tmoAppMetadataDetails.setProjectLeadEmailId(object.get("projectLeadEmailId")!=null?object.get("projectLeadEmailId").getAsString():null);
+				tmoAppMetadataDetails.setUpdateFlag(Boolean.TRUE);
+				certList.add(object.get("certificateName").getAsString());				
+				tmoAppMetadataDetails = deleteCertFromAppList(tmoAppMetadataDetails,appName,certType,object.get("certificateName").getAsString(),
+							 token);
+				if(tmoAppMetadataDetails!=null) {
+			TMOAppMetadata sslCertMetadata = new TMOAppMetadata(certPath, tmoAppMetadataDetails);
+	        String jsonStr = JSONUtil.getJSON(sslCertMetadata);
+	        Map<String, Object> rqstParams = ControllerUtil.parseJson(jsonStr);
+	        rqstParams.put("path", certPath);
+	        String certDataJson = ControllerUtil.convetToJson(rqstParams);
+			Response response = reqProcessor.process("/write", certDataJson, token);			
+
+			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+				 log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+		                    put(LogMessage.MESSAGE, "certificate name deletion success from application metadata path details ").
+		                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                    build()));
+				 isCertDataUpdated = true;
+			}else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+						put(LogMessage.MESSAGE, "certificate name deletion from application metadata path failed").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+			
+				}			
+			
+			return isCertDataUpdated;
+		}
+	 
+	 /**
+	  * Removes the given certificate name from the certlist in application metadata
+	  * @param details
+	  * @param appName
+	  * @param certType
+	  * @param certName
+	  * @param token
+	  * @return
+	  */
+	 private TMOAppMetadataDetails deleteCertFromAppList(TMOAppMetadataDetails details,String appName, String certType, String certName, String token) {
+		 String certPath =  TVaultConstants.TMO_APP_METADATA_PATH + "/" + appName;
+			Response response = new Response();
+			try {
+					response = reqProcessor.process("/read", "{\"path\":\"" + certPath + "\"}", token);
+					
+			} catch (Exception e) {
+				log.error(
+						JSONUtil.getJSON(
+								ImmutableMap.<String, String> builder()
+										.put(LogMessage.USER,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+										.put(LogMessage.ACTION,
+												String.format("Exception = [%s] =  Message [%s]",
+														Arrays.toString(e.getStackTrace()), response.getResponse()))
+										.build()));				
+			}
+			if (!HttpStatus.OK.equals(response.getHttpstatus())) {
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+	                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+	                    put(LogMessage.MESSAGE, "SSL certificate metadata is not avvailable for the given application ").
+	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+	                    build()));
+				return null;
+			}
+			JsonParser jsonParser = new JsonParser();
+			JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+			List<String> certList = new ArrayList<>();
+			List<String> certListOld = new ArrayList<>();
+			JsonArray jsonArr;
+			 jsonArr = object.getAsJsonArray(certType+"CertificateList"); 			 
+			 if (jsonArr != null) { 
+				   for (int i=0;i<jsonArr.size();i++){ 
+					   if(jsonArr.get(i).toString().substring(1, jsonArr.get(i).toString().length() - 1).equalsIgnoreCase(certName)) {
+						   continue;
+					   }else {
+					   certList.add(jsonArr.get(i).toString().substring(1, jsonArr.get(i).toString().length() - 1));
+					   }
+				   }
+			 }
+			 if(certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
+				 details.setInternalCertificateList(certList);
+			 }else {
+				 details.setExternalCertificateList(certList);
+			 }
+			 
+			 String certListExist = certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)?"externalCertificateList":"internalCertificateList";
+			 JsonArray jsonArrExist = object.getAsJsonArray(certListExist); 
+			 if (jsonArrExist != null) { 
+				   for (int i=0;i<jsonArrExist.size();i++){ 
+					   certListOld.add(jsonArrExist.get(i).toString().substring(1, jsonArrExist.get(i).toString().length() - 1));
+				   }
+			 
+			 if(certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
+				 details.setExternalCertificateList(certListOld);
+			 }else {
+				 details.setInternalCertificateList(certListOld);
+			 }
+			 }
+			 
+			 if(certListOld.isEmpty() && certList.isEmpty()) {
+				 Response responseObj = new Response();
+					try {
+						responseObj = reqProcessor.process("/delete", "{\"path\":\"" + certPath + "\"}", token);
+					} catch (Exception e) {
+						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, "Delete application metadata")
+							.put(LogMessage.MESSAGE, String.format("Exception = [%s] =  Message [%s]", Arrays.toString(e.getStackTrace()), responseObj.getResponse()))
+							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+							.build()));
+					}
+					return null;
+			 }
+			return details;
+	 }
 }
