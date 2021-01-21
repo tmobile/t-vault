@@ -6754,8 +6754,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
                     .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
                     .put(LogMessage.ACTION, "unLinkCertificate")
-                    .put(LogMessage.MESSAGE, String.format("delete details from application metadata Completed for certificate " +
-                            "= [%s]", certificateName))
+                    .put(LogMessage.MESSAGE, String.format("delete details from application metadata status is [%s] for certificate " +
+                            "= [%s]", appMetadataStatus,certificateName))
                     .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
             //remove user permissions
@@ -10015,9 +10015,12 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			return isCertDataUpdated;
 		}
     
-    
-    
-    
+    /**
+     * Method to check application metadata details is already available for given application
+     * @param appName
+     * @param token
+     * @return
+     */ 
 	 private boolean checkAppDetailsAvailable(String appName, String token) {
 		 String certPath =  TVaultConstants.TMO_APP_METADATA_PATH + "/" + appName;
 			Response response = new Response();
@@ -10043,9 +10046,15 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			return isDataAvailable;
 	 }
 	 
-		 
-	 
-	 
+	/**
+	 * Method to add certificate name into the certlist in application metadata
+	 * @param details
+	 * @param appName
+	 * @param certType
+	 * @param certName
+	 * @param token
+	 * @return
+	 */
 	 private TMOAppMetadataDetails addCertToAppList(TMOAppMetadataDetails details,String appName, String certType, String certName, String token) {
 		 String certPath =  TVaultConstants.TMO_APP_METADATA_PATH + "/" + appName;
 			Response response = new Response();
@@ -10107,7 +10116,12 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			return details;
 	 }
 	 
-	 
+	 /**
+	  * Function to update the application metadata
+	  * @param object
+	  * @param token
+	  * @return
+	  */
 	 private boolean updatecertificateMetadataForApplicationDetails(JsonObject object, String token) {
 		 TMOAppMetadataDetails tmoAppMetadataDetails = new TMOAppMetadataDetails();
 			
@@ -10156,6 +10170,15 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			return isCertDataUpdated;
 		}
 	 
+	 /**
+	  * Removes the given certificate name from the certlist in application metadata
+	  * @param details
+	  * @param appName
+	  * @param certType
+	  * @param certName
+	  * @param token
+	  * @return
+	  */
 	 private TMOAppMetadataDetails deleteCertFromAppList(TMOAppMetadataDetails details,String appName, String certType, String certName, String token) {
 		 String certPath =  TVaultConstants.TMO_APP_METADATA_PATH + "/" + appName;
 			Response response = new Response();
