@@ -694,7 +694,7 @@ const ServiceAccountDashboard = () => {
                 path="/service-accounts"
                 render={(routerProps) => (
                   <ListItemDetail
-                    listItemDetails={serviceAccountList}
+                    listItemDetails={listItemDetails}
                     params={routerProps}
                     backToLists={backToServiceAccounts}
                     ListDetailHeaderBg={

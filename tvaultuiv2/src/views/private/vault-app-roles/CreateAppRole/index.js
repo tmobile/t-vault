@@ -117,6 +117,7 @@ const Span = styled('span')`
   font-size: 1.3rem;
   color: #29bd51;
 `;
+
 const useStyles = makeStyles((theme) => ({
   modal: {
     display: 'flex',
@@ -131,6 +132,9 @@ const useStyles = makeStyles((theme) => ({
       height: '100%',
     },
   },
+}));
+
+const useTooltipStyles = makeStyles((theme) => ({
   arrow: {
     color: theme.palette.common.white,
   },
@@ -144,6 +148,7 @@ const useStyles = makeStyles((theme) => ({
 const CreateAppRole = (props) => {
   const { refresh } = props;
   const classes = useStyles();
+  const tooltipClasses = useTooltipStyles();
   const [open, setOpen] = useState(true);
   const [responseType, setResponseType] = useState(null);
   const isMobileScreen = useMediaQuery(small);
@@ -471,7 +476,7 @@ const CreateAppRole = (props) => {
                 )}
               </InputFieldLabelWrapper>
               <Tooltip
-                classes={classes}
+                classes={tooltipClasses}
                 arrow
                 title="Duration in seconds after which the issued token can no longer be renewed"
                 placement="top"
@@ -495,7 +500,7 @@ const CreateAppRole = (props) => {
                 </InputFieldLabelWrapper>
               </Tooltip>
               <Tooltip
-                classes={classes}
+                classes={tooltipClasses}
                 arrow
                 title="Duration in seconds to set as a TTL for issued tokens and at renewal time"
                 placement="top"
@@ -519,7 +524,7 @@ const CreateAppRole = (props) => {
                 </InputFieldLabelWrapper>
               </Tooltip>
               <Tooltip
-                classes={classes}
+                classes={tooltipClasses}
                 arrow
                 title="Number of times the secretID can be used to fetch a token from this approle"
                 placement="top"
@@ -543,7 +548,7 @@ const CreateAppRole = (props) => {
                 </InputFieldLabelWrapper>
               </Tooltip>
               <Tooltip
-                classes={classes}
+                classes={tooltipClasses}
                 arrow
                 title="Number of times the issued token can be used"
                 placement="top"
@@ -567,7 +572,7 @@ const CreateAppRole = (props) => {
                 </InputFieldLabelWrapper>
               </Tooltip>
               <Tooltip
-                classes={classes}
+                classes={tooltipClasses}
                 arrow
                 title="Duration in seconds after which the issued secretID expires"
                 placement="top"
@@ -591,7 +596,7 @@ const CreateAppRole = (props) => {
               </Tooltip>
               {tokenPolicies && (
                 <Tooltip
-                  classes={classes}
+                  classes={tooltipClasses}
                   arrow
                   title="List of permission allowed for this approle to access secrets and passwords"
                   placement="top"
