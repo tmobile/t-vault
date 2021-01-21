@@ -184,12 +184,13 @@ const AppRolesDashboard = () => {
   const [moreData] = useState(false);
   const [isLoading] = useState(false);
   const [appRoleList, setAppRoleList] = useState([]);
-  const [status, setStatus] = useState({});
-  const [getResponseType, setGetResponseType] = useState(null);
+  const [response, setResponse] = useState({});
+  const [responseType, setResponseType] = useState(null);
   const [deleteAppRoleName, setDeleteAppRoleName] = useState('');
   const [deleteAppRoleConfirmation, setDeleteAppRoleConfirmation] = useState(
     false
   );
+  const [toastMessage, setToastMessage] = useState('');
   const [state, dispatch] = useStateValue();
   let scrollParentRef = null;
   const listIconStyles = iconStyles();
@@ -198,6 +199,7 @@ const AppRolesDashboard = () => {
   const history = useHistory();
   const location = useLocation();
   const introduction = Strings.Resources.appRoles;
+
   const admin = Boolean(state.isAdmin);
   /**
    * @function fetchData
@@ -206,12 +208,11 @@ const AppRolesDashboard = () => {
   const fetchData = useCallback(async () => {
     setListItemDetails({});
     setInputSearchValue('');
-    setStatus({ status: 'loading', message: 'Loading...' });
+    setResponse({ status: 'loading' });
     apiService
       .getAppRole()
       .then((res) => {
-        setGetResponseType(1);
-        setStatus({});
+        setResponse({ status: 'success' });
         const appRolesArr = [];
         if (res?.data?.keys) {
           res.data.keys.map((item) => {
@@ -226,8 +227,7 @@ const AppRolesDashboard = () => {
         dispatch({ type: 'UPDATE_APP_ROLE_LIST', payload: [...appRolesArr] });
       })
       .catch(() => {
-        setStatus({});
-        setGetResponseType(-1);
+        setResponse({ status: 'failed' });
       });
   }, [admin, dispatch]);
 
@@ -236,7 +236,7 @@ const AppRolesDashboard = () => {
    */
   useEffect(() => {
     fetchData().catch(() => {
-      setStatus({ status: 'failed', message: 'failed' });
+      setResponse({ status: 'failed', message: 'failed' });
     });
   }, [fetchData]);
 
@@ -317,9 +317,11 @@ const AppRolesDashboard = () => {
   const loadMoreData = () => {};
 
   // toast close handler
-  const onToastClose = () => {
-    setStatus({});
-    setGetResponseType(null);
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
   };
 
   /**
@@ -353,18 +355,21 @@ const AppRolesDashboard = () => {
    */
   const onAppRoleDelete = () => {
     setDeleteAppRoleConfirmation(false);
-    setStatus({ status: 'loading' });
+    setResponse({ status: 'loading' });
     apiService
       .deleteAppRole(deleteAppRoleName)
       .then(async (res) => {
-        setStatus({ status: 'success', message: res?.data?.messages[0] });
+        setResponseType(1);
+        if (res?.data?.messages && res?.data?.messages[0]) {
+          setToastMessage(res?.data?.messages[0]);
+        }
         await fetchData();
       })
       .catch((err) => {
-        setStatus({
-          status: 'failed',
-          message: err?.response?.data?.errors[0],
-        });
+        setResponseType(-1);
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+          setToastMessage(err?.response?.data?.errors[0]);
+        }
       });
   };
 
@@ -461,18 +466,17 @@ const AppRolesDashboard = () => {
                 />
               </SearchWrap>
             </ColumnHeader>
-            {status.status === 'loading' && (
+            {response.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
-            {getResponseType === -1 && !appRoleList?.length && (
+            {response.status === 'failed' && !appRoleList?.length && (
               <EmptyContentBox>
-                {' '}
                 <Error description="Error while fetching app roles!" />
               </EmptyContentBox>
             )}
-            {getResponseType === 1 && (
+            {response.status === 'success' && (
               <>
-                {appRoleList && appRoleList.length > 0 ? (
+                {appRoleList?.length > 0 ? (
                   <ListContainer
                     // eslint-disable-next-line no-return-assign
                     ref={(ref) => (scrollParentRef = ref)}
@@ -601,20 +605,20 @@ const AppRolesDashboard = () => {
               />
             </Switch>
           </RightColumnSection>
-          {status.status === 'failed' && (
+          {responseType === -1 && (
             <SnackbarComponent
               open
               onClose={() => onToastClose()}
               severity="error"
               icon="error"
-              message="Something went wrong!"
+              message={toastMessage || 'Something went wrong!'}
             />
           )}
-          {status.status === 'success' && (
+          {responseType === 1 && (
             <SnackbarComponent
               open
               onClose={() => onToastClose()}
-              message={status.message}
+              message={toastMessage || 'Successful!'}
             />
           )}
         </SectionPreview>

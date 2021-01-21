@@ -242,7 +242,7 @@ const CertificatesDashboard = () => {
             });
           }
         } else {
-          const access = JSON.parse(localStorage.getItem('access'));
+          const access = JSON.parse(sessionStorage.getItem('access'));
           if (Object.keys(access).length > 0) {
             Object.keys(access).forEach((item) => {
               if (item === 'cert' || item === 'externalcerts') {
@@ -335,7 +335,7 @@ const CertificatesDashboard = () => {
             });
           }
         } else {
-          const access = JSON.parse(localStorage.getItem('access'));
+          const access = JSON.parse(sessionStorage.getItem('access'));
           if (Object.keys(access).length > 0) {
             Object.keys(access).forEach((item) => {
               if (item === 'cert' || item === 'externalcerts') {

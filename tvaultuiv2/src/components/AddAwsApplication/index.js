@@ -245,7 +245,7 @@ const AddAwsApplication = (props) => {
 
   const testIfNumberInput = (event) => {
     const re = /^[0-9\b]+$/;
-    if (event.target?.value === '' || re.test(event.target.value)) {
+    if (event?.target?.value === '' || re.test(event?.target?.value)) {
       onChange(event);
     }
   };

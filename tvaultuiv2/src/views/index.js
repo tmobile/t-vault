@@ -75,7 +75,7 @@ const PrivateRoutes = () => {
     if (configData.AUTH_TYPE === 'oidc') {
       const config = {
         auth: {
-          clientId: localStorage.getItem('clientId'),
+          clientId: sessionStorage.getItem('clientId'),
           redirectUri: configUrl.redirectUrl, // defaults to application start page
           postLogoutRedirectUri: configUrl.redirectUrl,
         },
@@ -86,7 +86,7 @@ const PrivateRoutes = () => {
       await revokeToken();
     }
     window.location.href = '/';
-    localStorage.clear();
+    sessionStorage.clear();
   };
 
   const handleOnIdle = () => {
