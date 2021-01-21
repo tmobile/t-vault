@@ -4059,7 +4059,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, SSLCertificateConstants.ADD_APPROLE_TO_CERT_MSG).
-					put(LogMessage.MESSAGE, String.format("Approle [%s] successfully associated with Certificate [%s]", approleName, certificatePath)).
+					put(LogMessage.MESSAGE, String.format("Approle [%s] successfully associated to Certificate [%s] with policy [%s]", approleName, certificatePath,access)).
 					put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -5150,7 +5150,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG).
-					put(LogMessage.MESSAGE, "User is successfully Removed from Certificate").
+					put(LogMessage.MESSAGE,String.format("User [%s] is successfully Removed from Certificate [%s]",userName,certificatePath)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Successfully removed user from the certificate\"]}");

@@ -288,8 +288,8 @@ public class SSLCertificateAWSRoleService {
 						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 						.put(LogMessage.ACTION, SSLCertificateConstants.ADD_AWS_ROLE_TO_CERT_MSG)
 						.put(LogMessage.MESSAGE,
-								String.format("AWS Role [%s] successfully associated with SSL Certificate [%s] ",
-										roleName, certificateName))
+								String.format("AWS Role [%s] successfully associated with SSL Certificate [%s] with policy [%s]",
+										roleName, certificateName,access))
 						.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 				return ResponseEntity.status(HttpStatus.OK)
