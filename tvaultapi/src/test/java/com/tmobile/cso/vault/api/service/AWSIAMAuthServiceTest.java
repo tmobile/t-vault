@@ -276,7 +276,7 @@ public class AWSIAMAuthServiceTest {
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response updateResponse = getMockResponse(HttpStatus.OK, true, "{\"messages\":[\"AWS Role updated \"]}");
 
-        String jsonGetStr = "{\"bound_ami_id\": [\"ami-fce3c696\"],\"role_tag\": \"\",\"policies\": " +
+        String jsonGetStr = "{\"bound_ami_id\": [\"ami-fce3c696\"],\"role_tag\": \"\", " +
                 "[\"\\\"[prod\", \"dev\\\"]\" ],\"bound_iam_principal_arn\": [],\"bound_iam_role_arn\":" +
                 "[ \"arn:aws:iam::8987887:role/test-role\"],\"max_ttl\": 0,\"disallow_reauthentication\": " +
                 "false,\"allow_instance_migration\": false}";
