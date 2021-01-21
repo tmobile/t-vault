@@ -340,11 +340,21 @@ public class SSLCertificateSchedulerService {
                     app.getApplicationName().equals(tmoAppMetadata.getApplicationName())).findFirst().orElse(null);
 
             // Check if owner email and project lead email is changed
-            if (tmoAppMetadataInCLM != null && (!tmoAppMetadata.getApplicationOwnerEmailId().equals(tmoAppMetadataInCLM.getApplicationOwnerEmailId())
-                    || !tmoAppMetadata.getProjectLeadEmailId().equals(tmoAppMetadataInCLM.getProjectLeadEmailId()))) {
-                modifiedAppNames.add(tmoAppMetadata);
+            if (tmoAppMetadataInCLM != null) {
+                if (tmoAppMetadataInCLM.getApplicationOwnerEmailId() != null && !tmoAppMetadataInCLM.getApplicationOwnerEmailId().equals(tmoAppMetadata.getApplicationOwnerEmailId())) {
+                    modifiedAppNames.add(tmoAppMetadata);
+                }
+                else if (tmoAppMetadataInCLM.getProjectLeadEmailId() != null && !tmoAppMetadataInCLM.getProjectLeadEmailId().equals(tmoAppMetadata.getProjectLeadEmailId())) {
+                    modifiedAppNames.add(tmoAppMetadata);
+                }
             }
         }
+        log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, "getModifiedApplicationList").
+                put(LogMessage.MESSAGE, String.format("Found [%d] outdated certificate metadata", modifiedAppNames.size())).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
         return modifiedAppNames;
     }
 }
