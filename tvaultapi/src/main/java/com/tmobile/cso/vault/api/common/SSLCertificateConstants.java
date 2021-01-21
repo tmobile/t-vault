@@ -136,5 +136,4 @@ public final class SSLCertificateConstants {
     public static final String CERTIFICATE_NAME="certificateName";
     public static final String GET_PENDING_APPROVAL_CERT_PROCESS="getPendApprovalCertsAndProcess";
     public static final String STATUS_WAITING = "waiting";
-	public static final String APPLICATION_DETAILS_PATH = "tmo-applications/";
 }
