@@ -2102,6 +2102,9 @@ public final class ControllerUtil {
 		if (awsLoginRole == null) {
 			return false;
 		}
+		if(StringUtils.isEmpty(awsLoginRole.getPolicies())) {
+			awsLoginRole.setPolicies("default");
+		}
 		if (StringUtils.isEmpty(awsLoginRole.getRole())) {
 			throw new TVaultValidationException(ROLESTR);
 		}
@@ -2161,6 +2164,10 @@ public final class ControllerUtil {
 	public static boolean areAWSIAMRoleInputsValid(AWSIAMRole awsiamRole) throws TVaultValidationException{
 		if (awsiamRole == null) {
 			return false;
+		}
+		String[] policyvalue= {"default"};
+		if(StringUtils.isEmpty(awsiamRole.getPolicies())) {
+			awsiamRole.setPolicies(policyvalue);
 		}
 		if (StringUtils.isEmpty(awsiamRole.getRole())) {
 			throw new TVaultValidationException(ROLESTR);

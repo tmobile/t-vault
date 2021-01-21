@@ -121,6 +121,7 @@ public class  AWSAuthService {
 			roleName = root.get("role").asText();
 			if(root.get("policies") != null)
 				latestPolicies = root.get("policies").asText();
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -179,15 +180,14 @@ public class  AWSAuthService {
 		}
 		String jsonStr = JSONUtil.getJSON(awsLoginRole);
 		ObjectMapper objMapper = new ObjectMapper();
-		String currentPolicies = "";
+		String  currentPolicies = "";
 		String latestPolicies = "";
 		String roleName = "" ;
 
 		try {
 			JsonNode root = objMapper.readTree(jsonStr);
 			roleName = root.get("role").asText();
-			if(root.get(POLICIESSTR) != null)
-				latestPolicies = root.get(POLICIESSTR).asText();
+			    
 		} catch (IOException e) {
 			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -206,8 +206,16 @@ public class  AWSAuthService {
 				Map<String,Object> responseMap; 
 				responseMap = objMapper.readValue(responseJson, new TypeReference<Map<String, Object>>(){});
 				@SuppressWarnings("unchecked")
+				//checking whether entered role is EC2 or IAM//
+				String authType=(String) responseMap.get("auth_type");
+				if(!authType.equalsIgnoreCase("ec2")) {
+					throw new TVaultValidationException("Please enter an AWS EC2 role");
+				}
 				List<String> policies  = (List<String>) responseMap.get(POLICIESSTR);
+				if(policies != null) {
 				currentPolicies = policies.stream().collect(Collectors.joining(",")).toString();
+				}
+				latestPolicies = currentPolicies;
 			} catch (IOException e) {
 				logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).

@@ -521,7 +521,11 @@ public class  SafesService {
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
-		
+		SafeBasicDetails bsafeBasicDetails = safe.getSafeBasicDetails();
+		String appName  =getValidAppName(bsafeBasicDetails);
+		if(appName == null) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Application name\"]}");
+		}
         if (safe.getSafeBasicDetails().getDescription().length() > 1024) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values: Description too long\"]}");
         }

@@ -18,6 +18,8 @@ package com.tmobile.cso.vault.api.model;
 
 import java.io.Serializable;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class AWSIAMRole implements Serializable {
 
 	/**
@@ -59,6 +61,7 @@ public class AWSIAMRole implements Serializable {
 	/**
 	 * @return the policies
 	 */
+	@ApiModelProperty(hidden=true)
 	public String[] getPolicies() {
 		return policies;
 	}

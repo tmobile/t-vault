@@ -126,8 +126,8 @@ public class AWSIAMAuthService {
 		try {
 			JsonNode root = objMapper.readTree(jsonStr);
 			roleName = root.get("role").asText();
-			if(root.get(POLICIESSTR) != null)
-				latestPolicies = root.get(POLICIESSTR).asText();
+//			if(root.get(POLICIESSTR) != null)
+//				latestPolicies = root.get(POLICIESSTR).asText();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -147,8 +147,15 @@ public class AWSIAMAuthService {
 				Map<String,Object> responseMap; 
 				responseMap = objMapper.readValue(responseJson, new TypeReference<Map<String, Object>>(){});
 				@SuppressWarnings("unchecked")
+				//checking whether entered role is EC2 or IAM//
+				String authType = (String) responseMap.get("auth_type");
+				if(!authType.equalsIgnoreCase("iam")) {
+					throw new TVaultValidationException("Please enter an AWS IAM role");
+				}
 				List<String> policies  = (List<String>) responseMap.get(POLICIESSTR);
 				currentPolicies = policies.stream().collect(Collectors.joining(",")).toString();
+				latestPolicies = currentPolicies;
+				 //String Str
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
