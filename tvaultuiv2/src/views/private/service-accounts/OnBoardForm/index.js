@@ -891,6 +891,7 @@ const OnBoardForm = (props) => {
                     options={[
                       ...serviceAccountsList.map((item) => item.userId),
                     ]}
+                    loader={isServiceFetching}
                     icon="search"
                     classes={classes}
                     name="inputServiceName"
