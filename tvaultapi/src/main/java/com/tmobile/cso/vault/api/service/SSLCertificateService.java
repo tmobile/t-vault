@@ -6198,6 +6198,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 						// Delete certificate metadata, policies and permission path details
 						deleteMetaDataAndPermissions(certificateMetaData, certificatePath, authToken);
 
+						//delete certificate name from application metadata list
+		                   boolean sslApplicationMetaDataSaveStatus;
+		                  String jsonStr = new ObjectMapper().writeValueAsString(certificateMetaData);
+		                  JsonParser jsonParser = new JsonParser();
+		                  JsonObject object = ((JsonObject) jsonParser.parse(jsonStr));
+		                   sslApplicationMetaDataSaveStatus = updatecertificateMetadataForApplicationDetails(object, authToken);
+						
                         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                                 put(LogMessage.ACTION, SSLCertificateConstants.GET_CERTIFICATE_DETAILS_PROCESS_METADATA).
@@ -10212,21 +10219,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 				 details.setInternalCertificateList(certListOld);
 			 }
 			 }
-			 
-			 if(certListOld.isEmpty() && certList.isEmpty()) {
-				 Response responseObj = new Response();
-					try {
-						responseObj = reqProcessor.process("/delete", "{\"path\":\"" + certPath + "\"}", token);
-					} catch (Exception e) {
-						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-							.put(LogMessage.ACTION, "Delete application metadata")
-							.put(LogMessage.MESSAGE, String.format("Exception = [%s] =  Message [%s]", Arrays.toString(e.getStackTrace()), responseObj.getResponse()))
-							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
-							.build()));
-					}
-					return null;
-			 }
+			
 			return details;
 	 }
 }
