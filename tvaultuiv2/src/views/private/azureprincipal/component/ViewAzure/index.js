@@ -114,9 +114,9 @@ const CancelSaveWrapper = styled.div`
 `;
 
 const CancelButton = styled.div`
-  margin-right: 0.8rem;
+  margin-left: 0.8rem;
   ${small} {
-    margin-right: 1rem;
+    margin-left: 1rem;
     width: 100%;
   }
 `;
@@ -364,19 +364,19 @@ const ViewAzure = (props) => {
                   </EachDetail>
                 </>
                 <CancelSaveWrapper>
-                  <CancelButton>
-                    <ButtonComponent
-                      label="Cancel"
-                      color="primary"
-                      onClick={() => onCloseModal()}
-                    />
-                  </CancelButton>
+                  <ButtonComponent
+                    label="Cancel"
+                    color="primary"
+                    onClick={() => onCloseModal()}
+                  />
                   {!azureDetail.isActivated && (
-                    <ButtonComponent
-                      label="Activate"
-                      color="secondary"
-                      onClick={() => onActivateClicked()}
-                    />
+                    <CancelButton>
+                      <ButtonComponent
+                        label="Activate"
+                        color="secondary"
+                        onClick={() => onActivateClicked()}
+                      />
+                    </CancelButton>
                   )}
                 </CancelSaveWrapper>
               </GlobalModalWrapper>

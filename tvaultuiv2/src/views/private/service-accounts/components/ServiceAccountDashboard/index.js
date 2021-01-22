@@ -528,19 +528,22 @@ const ServiceAccountDashboard = () => {
               onDeletListItemClicked={() => onDeleteClicked(account.name)}
               onEditListItemClicked={() => onServiceAccountEdit(account.name)}
               admin={admin}
-              isTransferOwner={admin}
+              manage={account?.manage}
+              isSvcAcct
               onTransferOwnerClicked={() =>
                 onTransferOwnerClicked(account.name)
               }
             />
           </PopperWrap>
         ) : null}
-        {isMobileScreen && account.name && (
+        {isMobileScreen && (account?.admin || account?.manage) && (
           <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
             <EditDeletePopper
               onDeleteClicked={() => onDeleteClicked(account.name)}
               onEditClicked={() => onServiceAccountEdit(account.name)}
               admin={admin}
+              manage={account?.manage}
+              isSvcAcct
               onTransferOwnerClicked={() =>
                 onTransferOwnerClicked(account.name)
               }

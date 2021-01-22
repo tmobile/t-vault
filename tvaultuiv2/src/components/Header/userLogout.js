@@ -11,6 +11,9 @@ import configUrl from '../../config/index';
 
 const LogoutWrapper = styled.div`
   position: relative;
+  @media (max-width: 1044px) {
+    margin-top: 1rem;
+  }
 `;
 
 const UserWrap = styled.div`
@@ -41,6 +44,7 @@ const VectorIcon = styled.img`
 const AdminLabel = styled.div`
   display: flex;
   font-weight: bold;
+  color: #fff;
 `;
 
 const LogoutPaper = styled.div`
