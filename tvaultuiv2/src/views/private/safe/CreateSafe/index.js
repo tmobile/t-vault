@@ -270,7 +270,7 @@ const CreateModal = (props) => {
             setName(res.data.data.name);
             setDescription(res.data.data.description);
             setOwner(res.data.data.owner);
-            setApplicationName(res.data.data.appName);
+            setApplicationName(res.data.data.appName || '');
             if (res.data.data.type === 'users') {
               setSafeType('Users Safe');
             } else if (res.data.data.type === 'apps') {
