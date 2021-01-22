@@ -126,6 +126,17 @@ const customStyle = css`
   transform: translate(-50%, -50%);
 `;
 
+const InfoWrapper = styled.div`
+  display: flex;
+  ${mediaBreakpoints.small} {
+    flex-direction: column;
+    span {
+      display: flex;
+      margin-top: 0.6rem 0;
+    }
+  }
+`;
+
 const IamServiceAccountSecrets = (props) => {
   const {
     accountDetail,
@@ -411,14 +422,16 @@ const IamServiceAccountSecrets = (props) => {
           accountDetail.name && (
             <UserList>
               <Icon src={lock} alt="lock" />
-              <Span>{secretsData.accessKeyId}</Span>
-              <Secret type="password" viewSecret={showSecret}>
-                {secretsData.accessKeySecret}
-              </Secret>
-              <span className="expirationDate">
-                <div>Expires: </div>
-                {formatDate(secretsData.expiryDate)}
-              </span>
+              <InfoWrapper>
+                <Span>{secretsData.accessKeyId}</Span>
+                <Secret type="password" viewSecret={showSecret}>
+                  {secretsData.accessKeySecret}
+                </Secret>
+                <span className="expirationDate">
+                  <div>Expires: </div>
+                  {formatDate(secretsData.expiryDate)}
+                </span>
+              </InfoWrapper>
               <FolderIconWrap>
                 <PopperElement
                   anchorOrigin={{

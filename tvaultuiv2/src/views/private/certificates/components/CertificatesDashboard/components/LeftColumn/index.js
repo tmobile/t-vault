@@ -15,6 +15,9 @@ import EditDeletePopper from '../../../EditDeletePopper';
 const EditDeletePopperWrap = styled.div`
   display: ${(props) =>
     props.certificate === props.selectedCert ? 'block' : 'none'};
+  ${mediaBreakpoints.small} {
+    display: block;
+  }
 `;
 
 const CertificateListItemWrap = styled.div`

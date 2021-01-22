@@ -380,6 +380,7 @@ const CreateCertificates = (props) => {
                           item?.displayName?.toLowerCase()
                         )}, ${item?.userName?.toLowerCase()}`
                     )}
+                    loader={autoLoader}
                     userInput={owner}
                     icon="search"
                     name="owner"

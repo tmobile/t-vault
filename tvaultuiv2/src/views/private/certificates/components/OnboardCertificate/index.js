@@ -674,6 +674,7 @@ const OnboardCertificates = (props) => {
                           item?.displayName?.toLowerCase()
                         )}, ${item?.userName?.toLowerCase()}`
                     )}
+                    loader={autoLoader}
                     userInput={owner}
                     icon="search"
                     name="owner"
@@ -756,6 +757,7 @@ const OnboardCertificates = (props) => {
                                     )}, ${item?.userName?.toLowerCase()}`
                                 )
                           }
+                          loader={notifyAutoLoader}
                           userInput={notifyEmail}
                           disabled={
                             applicationName === '' &&

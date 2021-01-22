@@ -25,7 +25,7 @@ const HeaderWrap = styled('header')`
   top: 0;
   width: 100%;
   z-index: 10;
-  ${smallAndMedium} {
+  @media (max-width: 1044px) {
     box-shadow: 0 5px 15px 0 rgba(226, 0, 116, 0.5);
   }
 `;
@@ -40,7 +40,7 @@ const Container = styled.div`
   ${semiLarge} {
     margin: 0 3.5rem;
   }
-  ${smallAndMedium} {
+  @media (max-width: 1044px) {
     justify-content: ${(props) => (props.isLogin ? 'center' : 'space-between')};
     padding: 0 2rem;
   }
@@ -48,7 +48,7 @@ const Container = styled.div`
 
 const MenuIcon = styled.img`
   display: none;
-  ${smallAndMedium} {
+  @media (max-width: 1044px) {
     display: block;
     position: absolute;
     left: 3.5rem;
@@ -68,7 +68,7 @@ const TVaultIcon = styled.img`
 
 const HeaderCenter = styled.div`
   display: flex;
-  ${smallAndMedium} {
+  @media (max-width: 1044px) {
     display: none;
   }
 `;
@@ -92,7 +92,7 @@ const ProfileIconWrap = styled('div')`
   display: flex;
   align-items: center;
   margin-left: auto;
-  ${smallAndMedium} {
+  @media (max-width: 1044px) {
     display: none;
   }
 `;
@@ -104,6 +104,9 @@ const EachLink = styled.a`
   align-items: center;
   font-weight: bold;
   text-decoration: underline;
+  @media (max-width: 768px) {
+    margin: 0 0.5rem;
+  }
   svg {
     margin-right: 0.5rem;
   }

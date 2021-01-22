@@ -100,7 +100,17 @@ const ListFolderWrap = styled(Link)`
     background-image: ${(props) => props.theme.gradients.list || 'none'};
     color: #fff;
     ${PopperWrap} {
-      display: block;
+      display: flex;
+      width: 3rem;
+      height: 3rem;
+      align-items: center;
+      justify-content: center;
+      margin-left: 0.75rem;
+      padding: 0.66rem 0.5rem 0.34rem 0.9rem;
+      border-radius: 50%;
+      :hover {
+        background-color: rgb(90, 99, 122);
+      }
     }
   }
 `;
@@ -281,9 +291,8 @@ const AzureDashboard = () => {
    * @description function to check if mobile screen the make azureClicked true
    * based on that value display left and right side.
    */
-  const onLinkClicked = (item) => {
+  const onLinkClicked = () => {
     if (isMobileScreen) {
-      setListItemDetails(item);
       setAzureAccountClicked(true);
     }
   };
@@ -301,7 +310,7 @@ const AzureDashboard = () => {
       <ListFolderWrap
         key={azure.name}
         to={`/azure-principal/${azure.name}`}
-        onClick={() => onLinkClicked(azure)}
+        onClick={() => onLinkClicked()}
         active={
           history.location.pathname === `/azure-principal/${azure.name}`
             ? 'true'

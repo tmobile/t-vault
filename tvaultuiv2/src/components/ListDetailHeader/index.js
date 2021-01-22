@@ -14,12 +14,15 @@ const ColumnHeader = styled('div')`
   height: 17.1rem;
   padding: 2rem;
   .list-title-wrap {
-    width: 75%;
+    width: 67%;
     z-index: 2;
     ${mediaBreakpoints.small} {
-      width: 70%;
+      width: 60%;
       margin-left: 11rem;
       margin-bottom: 2rem;
+    }
+    ${mediaBreakpoints.medium} {
+      width: 60%;
     }
   }
   ${mediaBreakpoints.small} {
@@ -45,7 +48,7 @@ const Description = styled.div`
     font-size: 1.2rem;
   }
   ${mediaBreakpoints.small} {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     p {
       margin: 0;
     }

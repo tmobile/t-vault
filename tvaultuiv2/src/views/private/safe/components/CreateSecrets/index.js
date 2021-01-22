@@ -15,7 +15,7 @@ import {
   RequiredWrap,
   SubHeading,
 } from '../../../../../styles/GlobalStyles';
-import { ColorBackArrow } from '../../../../../assets/SvgIcons';
+import { BackArrow } from '../../../../../assets/SvgIcons';
 
 const SecretWrapper = styled.section`
   padding: 4rem;
@@ -129,7 +129,7 @@ const CreateSecret = (props) => {
         <SubHeading extraCss={extraCss}>
           {isMobileScreen && (
             <BackButton onClick={() => handleSecretCancel(false)}>
-              <ColorBackArrow />
+              <BackArrow />
             </BackButton>
           )}
           Add Secret

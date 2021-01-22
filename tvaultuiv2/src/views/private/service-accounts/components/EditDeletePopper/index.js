@@ -41,6 +41,7 @@ const EditDeletePopper = (props) => {
     onEditClicked,
     admin,
     onTransferOwnerClicked,
+    manage,
   } = props;
   return (
     <div>
@@ -55,17 +56,19 @@ const EditDeletePopper = (props) => {
             horizontal: 'right',
           }}
         >
-          {admin && (
+          {(admin || manage) && (
             <PopperItem onClick={onTransferOwnerClicked}>
               <SyncAltIcon style={{ fill: '#fff' }} />
               <span>Transfer</span>
             </PopperItem>
           )}
-          <PopperItem onClick={onEditClicked}>
-            <IconEdit />
-            <span>Edit</span>
-          </PopperItem>
-          {admin && (
+          {(admin || manage) && (
+            <PopperItem onClick={onEditClicked}>
+              <IconEdit />
+              <span>Edit</span>
+            </PopperItem>
+          )}
+          {(admin || manage) && (
             <PopperItem onClick={onDeleteClicked}>
               <IconDeleteActive />
               <span> Delete</span>
@@ -82,10 +85,12 @@ EditDeletePopper.propTypes = {
   onDeleteClicked: PropTypes.func.isRequired,
   admin: PropTypes.bool,
   onTransferOwnerClicked: PropTypes.func,
+  manage: PropTypes.bool,
 };
 EditDeletePopper.defaultProps = {
   admin: false,
   onTransferOwnerClicked: () => {},
+  manage: false,
 };
 
 export default EditDeletePopper;

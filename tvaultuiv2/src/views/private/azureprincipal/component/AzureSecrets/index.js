@@ -50,6 +50,16 @@ const UserList = styled.div`
   }
 `;
 
+const InfoWrapper = styled.div`
+  display: flex;
+  ${mediaBreakpoints.small} {
+    flex-direction: column;
+    span {
+      display: flex;
+      margin-top: 0.6rem 0;
+    }
+  }
+`;
 const Secret = styled.div`
   -webkit-text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
   text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
@@ -366,14 +376,16 @@ const AzureSecrets = (props) => {
             {Object.keys(secretsData).length > 0 ? (
               <UserList>
                 <Icon src={lock} alt="lock" />
-                <Span>{secretsData.secretKeyId}</Span>
-                <Secret type="password" viewSecret={showSecret}>
-                  {secretsData.secretText}
-                </Secret>
-                <span className="expirationDate">
-                  <div>Expires: </div>
-                  {formatDate(secretsData.expiryDate)}
-                </span>
+                <InfoWrapper>
+                  <Span>{secretsData.secretKeyId}</Span>
+                  <Secret type="password" viewSecret={showSecret}>
+                    {secretsData.secretText}
+                  </Secret>
+                  <span className="expirationDate">
+                    <div>Expires: </div>
+                    {formatDate(secretsData.expiryDate)}
+                  </span>
+                </InfoWrapper>
 
                 <FolderIconWrap>
                   <PopperElement

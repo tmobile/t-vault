@@ -957,6 +957,7 @@ const CreateCertificates = (props) => {
                                       )}, ${item?.userName?.toLowerCase()}`
                                   )
                             }
+                            loader={autoLoader}
                             userInput={notifyEmail}
                             icon="search"
                             name="notifyUser"
