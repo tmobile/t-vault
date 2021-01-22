@@ -16,16 +16,16 @@ export const revokeToken = () => {
   const url = configUrl.baseUrl.replace('/v2', '');
   return axios
     .get(`${url}/auth/tvault/revoke`, {
-      headers: { 'vault-token': localStorage.getItem('token') },
+      headers: { 'vault-token': sessionStorage.getItem('token') },
     })
     .then((res) => console.log('res', res))
     .catch((e) => console.log('e', e));
 };
 
 export const renewToken = () => {
-  if (localStorage.getItem('token')) {
+  if (sessionStorage.getItem('token')) {
     return axios.get(`${configUrl.baseUrl}/auth/tvault/renew`, {
-      headers: { 'vault-token': localStorage.getItem('token') },
+      headers: { 'vault-token': sessionStorage.getItem('token') },
     });
   }
   return null;

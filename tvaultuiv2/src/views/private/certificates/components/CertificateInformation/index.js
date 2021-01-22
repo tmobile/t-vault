@@ -64,6 +64,15 @@ const NoPermission = styled.div`
   margin-top: 2rem;
 `;
 
+const NotOnboarded = styled.div`
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.3rem;
+  color: #5a637a;
+`;
+
 const CertificateInformation = (props) => {
   const { responseStatus, certificateMetaData, errorMessage } = props;
   const [response, setResponse] = useState({ status: 'loading' });
@@ -90,78 +99,83 @@ const CertificateInformation = (props) => {
       <>
         {response.status === 'loading' && <Loader customStyle={customStyle} />}
         {response.status === 'success' && (
-          <DetailsWrap>
-            {certificateMetaData?.containerName && (
-              <EachDetail>
-                <Label>Container:</Label>
-                <Value>{certificateMetaData.containerName || 'N/A'}</Value>
-              </EachDetail>
+          <>
+            {!certificateMetaData.isOnboardCert ? (
+              <DetailsWrap>
+                {certificateMetaData?.containerName && (
+                  <EachDetail>
+                    <Label>Container:</Label>
+                    <Value>{certificateMetaData.containerName || 'N/A'}</Value>
+                  </EachDetail>
+                )}
+                <EachDetail>
+                  <Label>Owner Email:</Label>
+                  <Value>{certificateMetaData.certOwnerEmailId || 'N/A'}</Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Certificate Type:</Label>
+                  <Value capitalize="capitalize">
+                    {certificateMetaData.certType || 'N/A'}
+                  </Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Certificate Name:</Label>
+                  <Value>{certificateMetaData.certificateName || 'N/A'}</Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Application Name:</Label>
+                  <Value>{certificateMetaData.applicationTag || 'N/A'}</Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Validity:</Label>
+                  {certificateMetaData?.createDate ? (
+                    <Value>
+                      {new Date(certificateMetaData?.createDate).toDateString()}
+                      {' - '}
+                      {new Date(certificateMetaData?.expiryDate).toDateString()}
+                    </Value>
+                  ) : (
+                    <Value>N/A</Value>
+                  )}
+                </EachDetail>
+                <EachDetail>
+                  <Label>Signature Algorithm:</Label>
+                  <Value>SHA256-RSA</Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Key Usage:</Label>
+                  <Value>digitalSignature, keyEncipherment</Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Extended Key Usage:</Label>
+                  <Value>serverAuth</Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Enroll Service:</Label>
+                  <Value>T-Mobile Issuing CA 01 - SHA2</Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Dns:</Label>
+                  {certificateMetaData.dnsNames && dnsNames.length > 0 ? (
+                    <>
+                      {dnsNames?.map((item) => {
+                        return (
+                          <DnsName key={item}>{item.replace(/"/g, '')}</DnsName>
+                        );
+                      })}
+                    </>
+                  ) : (
+                    'N/A'
+                  )}
+                </EachDetail>
+              </DetailsWrap>
+            ) : (
+              <NotOnboarded>Certificate is not onboarded!</NotOnboarded>
             )}
-            <EachDetail>
-              <Label>Owner Email:</Label>
-              <Value>{certificateMetaData.certOwnerEmailId || 'N/A'}</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Certificate Type:</Label>
-              <Value capitalize="capitalize">
-                {certificateMetaData.certType || 'N/A'}
-              </Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Certificate Name:</Label>
-              <Value>{certificateMetaData.certificateName || 'N/A'}</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Application Name:</Label>
-              <Value>{certificateMetaData.applicationTag || 'N/A'}</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Validity:</Label>
-              {certificateMetaData?.createDate ? (
-                <Value>
-                  {new Date(certificateMetaData?.createDate).toDateString()}
-                  {' - '}
-                  {new Date(certificateMetaData?.expiryDate).toDateString()}
-                </Value>
-              ) : (
-                <Value>N/A</Value>
-              )}
-            </EachDetail>
-            <EachDetail>
-              <Label>Signature Algorithm:</Label>
-              <Value>SHA256-RSA</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Key Usage:</Label>
-              <Value>digitalSignature, keyEncipherment</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Extended Key Usage:</Label>
-              <Value>serverAuth</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Enroll Service:</Label>
-              <Value>T-Mobile Issuing CA 01 - SHA2</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Dns:</Label>
-              {certificateMetaData.dnsNames && dnsNames.length > 0 ? (
-                <>
-                  {dnsNames?.map((item) => {
-                    return (
-                      <DnsName key={item}>{item.replace(/"/g, '')}</DnsName>
-                    );
-                  })}
-                </>
-              ) : (
-                'N/A'
-              )}
-            </EachDetail>
-          </DetailsWrap>
+          </>
         )}
         {response.status === 'error' && (
           <ErrorWrap>
-            {' '}
             <AccessDeniedIcon src={accessDeniedLogo} alt="accessDeniedLogo" />
             <NoPermission>{errorMessage}</NoPermission>
           </ErrorWrap>

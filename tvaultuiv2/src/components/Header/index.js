@@ -187,7 +187,7 @@ const Header = (props) => {
     } else {
       setIsLogin(true);
     }
-    const name = localStorage.getItem('username');
+    const name = sessionStorage.getItem('username');
     if (name !== null) {
       setUserName(`${name}` || 'User');
     }

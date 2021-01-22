@@ -74,7 +74,7 @@ const UserLogout = (props) => {
     setLogoutClicked(false);
     const config = {
       auth: {
-        clientId: localStorage.getItem('clientId'),
+        clientId: sessionStorage.getItem('clientId'),
         redirectUri: configUrl.redirectUrl, // defaults to application start page
         postLogoutRedirectUri: configUrl.redirectUrl,
       },
@@ -85,12 +85,12 @@ const UserLogout = (props) => {
     if (configData.AUTH_TYPE === 'oidc') {
       await revokeToken();
     }
-    localStorage.clear();
+    sessionStorage.clear();
     checkToken();
   };
 
   useEffect(() => {
-    const admin = localStorage.getItem('isAdmin');
+    const admin = sessionStorage.getItem('isAdmin');
     if (admin) {
       setIsAdmin(JSON.parse(admin));
     }

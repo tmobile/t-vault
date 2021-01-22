@@ -162,7 +162,7 @@ const AddAwsApplication = (props) => {
         } else {
           setDisabledSave(false);
         }
-      } else if (roleName?.length < 3 || count > 6) {
+      } else if (roleName?.length < 3 || count > 6 || accountId.length < 12) {
         setDisabledSave(true);
       } else {
         setDisabledSave(false);
@@ -173,7 +173,15 @@ const AddAwsApplication = (props) => {
       setDisabledSave(true);
       setExistingRole(true);
     }
-  }, [roleName, roles, isEC2, iamPrincipalArn, principalError, count]);
+  }, [
+    roleName,
+    roles,
+    isEC2,
+    iamPrincipalArn,
+    principalError,
+    count,
+    accountId,
+  ]);
 
   const handleAwsRadioChange = (event) => {
     setAwsAuthenticationType(event.target.value);
@@ -245,7 +253,7 @@ const AddAwsApplication = (props) => {
 
   const testIfNumberInput = (event) => {
     const re = /^[0-9\b]+$/;
-    if (event.target?.value === '' || re.test(event.target.value)) {
+    if (event?.target?.value === '' || re.test(event?.target?.value)) {
       onChange(event);
     }
   };
@@ -313,6 +321,7 @@ const AddAwsApplication = (props) => {
               placeholder="Account ID"
               fullWidth
               readOnly={!isEC2}
+              characterLimit={15}
               name="accountId"
               onChange={(event) => testIfNumberInput(event)}
             />

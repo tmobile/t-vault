@@ -344,8 +344,8 @@ const OnboardCertificates = (props) => {
   useEffect(() => {
     if (state) {
       if (state.applicationNameList?.length > 0) {
-        if (!JSON.parse(localStorage.getItem('isAdmin'))) {
-          const stringVal = localStorage.getItem('selfServiceAppNames');
+        if (!JSON.parse(sessionStorage.getItem('isAdmin'))) {
+          const stringVal = sessionStorage.getItem('selfServiceAppNames');
           const selfserviceAppName = stringVal?.split(',');
           const array = [];
           if (selfserviceAppName?.length > 0) {

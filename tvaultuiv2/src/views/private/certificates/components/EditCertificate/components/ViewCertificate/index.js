@@ -212,7 +212,7 @@ const ViewCertificate = (props) => {
   const [notifyUserSelected, setNotifyUserselected] = useState({});
 
   useEffect(() => {
-    const admin = localStorage.getItem('isAdmin');
+    const admin = sessionStorage.getItem('isAdmin');
     if (admin) {
       setIsAdmin(JSON.parse(admin));
     }

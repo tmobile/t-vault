@@ -12,12 +12,12 @@ const Certificates = (props) => {
   const [, dispatch] = useStateValue();
 
   useEffect(() => {
-    if (!JSON.parse(localStorage.getItem('isAdmin'))) {
+    if (!JSON.parse(sessionStorage.getItem('isAdmin'))) {
       apiService
         .getNonAdminAppNameList()
         .then((res) => {
           if (res) {
-            localStorage.setItem('selfServiceAppNames', res.data);
+            sessionStorage.setItem('selfServiceAppNames', res.data);
           }
         })
         .catch((err) => console.log('err', err));

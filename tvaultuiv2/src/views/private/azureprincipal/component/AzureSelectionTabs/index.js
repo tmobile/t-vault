@@ -121,7 +121,7 @@ const AzureSelectionTabs = (props) => {
         if (
           res?.data?.isActivated &&
           res?.data?.owner_ntid?.toLowerCase() ===
-            localStorage.getItem('username').toLowerCase()
+            sessionStorage.getItem('username').toLowerCase()
         ) {
           setHasPermission(true);
           getEachUser(res.data.users);

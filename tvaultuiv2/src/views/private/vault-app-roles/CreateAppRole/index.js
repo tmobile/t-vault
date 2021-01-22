@@ -117,15 +117,8 @@ const Span = styled('span')`
   font-size: 1.3rem;
   color: #29bd51;
 `;
+
 const useStyles = makeStyles((theme) => ({
-  select: {
-    '&.MuiFilledInput-root.Mui-focused': {
-      backgroundColor: '#fff',
-    },
-  },
-  dropdownStyle: {
-    backgroundColor: '#fff',
-  },
   modal: {
     display: 'flex',
     alignItems: 'center',
@@ -139,6 +132,9 @@ const useStyles = makeStyles((theme) => ({
       height: '100%',
     },
   },
+}));
+
+const useTooltipStyles = makeStyles((theme) => ({
   arrow: {
     color: theme.palette.common.white,
   },
@@ -152,12 +148,12 @@ const useStyles = makeStyles((theme) => ({
 const CreateAppRole = (props) => {
   const { refresh } = props;
   const classes = useStyles();
+  const tooltipClasses = useTooltipStyles();
   const [open, setOpen] = useState(true);
   const [responseType, setResponseType] = useState(null);
   const isMobileScreen = useMediaQuery(small);
   const [appRoleError, setApproleError] = useState(null);
   const [editApprole, setEditApprole] = useState(false);
-  const [numberError, setNumberError] = useState(false);
   const [allAppRoles, setAllAppRoles] = useState([]);
   const [nameAvailable, setNameAvailable] = useState(true);
   const [status, setStatus] = useState({});
@@ -245,15 +241,19 @@ const CreateAppRole = (props) => {
   const validateRoleName = (name) => {
     const itemExits = allAppRoles?.filter((approle) => approle.name === name);
     if (itemExits?.length) {
-      setApproleError({ error: true, type: 'role-exists' });
+      setApproleError({
+        error: true,
+        message: 'This approle name already exists, Please take another name.',
+      });
       setNameAvailable(false);
       return;
     }
     if (name.length < 3 || !name.match(/^[A-Za-z0-9_]*?[a-z0-9]$/i)) {
-      setApproleError({ error: true, type: 'invalid-role' });
+      setApproleError({ error: true, message: 'Please enter valid role name' });
       setNameAvailable(false);
       return;
     }
+    setApproleError({ error: false });
     setNameAvailable(true);
   };
 
@@ -263,44 +263,11 @@ const CreateAppRole = (props) => {
     onChange(e);
   };
 
-  const onMaxTokenChange = (e) => {
-    setNumberError(false);
-    if (!e?.target?.value.match(/^[0-9]*$/g)) {
-      setNumberError(true);
+  const onInputNumberChange = (e) => {
+    const re = /^[0-9\b]+$/;
+    if (e?.target?.value === '' || re.test(e?.target?.value)) {
+      onChange(e);
     }
-    onChange(e);
-  };
-
-  const onTokenTtlChange = (e) => {
-    setNumberError(false);
-    if (!e?.target?.value.match(/^[0-9]*$/g)) {
-      setNumberError(true);
-    }
-    onChange(e);
-  };
-
-  const onSecretIdNumUseChange = (e) => {
-    setNumberError(false);
-    if (!e?.target?.value.match(/^[0-9]*$/g)) {
-      setNumberError(true);
-    }
-    onChange(e);
-  };
-
-  const onTokenNumUseChange = (e) => {
-    setNumberError(false);
-    if (!e?.target?.value.match(/^[0-9]*$/g)) {
-      setNumberError(true);
-    }
-    onChange(e);
-  };
-
-  const onSecretIdTtl = (e) => {
-    setNumberError(false);
-    if (!e?.target?.value.match(/^[0-9]*$/g)) {
-      setNumberError(true);
-    }
-    onChange(e);
   };
 
   const splitString = (val) => {
@@ -433,8 +400,6 @@ const CreateAppRole = (props) => {
     setStatus({});
   };
 
-  const onInputBlur = () => {};
-
   const getDisabledState = () => {
     return (
       roleName === '' ||
@@ -443,8 +408,7 @@ const CreateAppRole = (props) => {
       sectetIdNumUses === '' ||
       tokenNumUses === '' ||
       secretIdTtl === '' ||
-      appRoleError ||
-      numberError
+      appRoleError?.error
     );
   };
   return (
@@ -495,25 +459,16 @@ const CreateAppRole = (props) => {
 
                   <InfoIcon src={infoIcon} alt="info-icon-role-name" />
                 </InputLabelWrap>
-
                 <TextFieldComponent
                   value={roleName}
-                  placeholder="Role_name"
+                  placeholder="Role name - enter minimum 3 characters"
                   fullWidth
                   readOnly={!!editApprole}
                   characterLimit={50}
                   name="roleName"
                   onChange={(e) => onRoleNameChange(e)}
-                  error={appRoleError}
-                  helperText={
-                    // eslint-disable-next-line no-nested-ternary
-                    roleName && appRoleError?.type === 'role-exists'
-                      ? 'This approle name already exists, Please take another name.'
-                      : roleName && appRoleError?.type === 'invalid-role'
-                      ? 'Please enter valid role name'
-                      : !nameAvailable && 'Please enter minimum 3 characters'
-                  }
-                  onInputBlur={(e) => onInputBlur(e)}
+                  error={appRoleError?.error}
+                  helperText={appRoleError?.message || ''}
                 />
 
                 {roleName && nameAvailable && !editApprole && (
@@ -521,7 +476,7 @@ const CreateAppRole = (props) => {
                 )}
               </InputFieldLabelWrapper>
               <Tooltip
-                classes={classes}
+                classes={tooltipClasses}
                 arrow
                 title="Duration in seconds after which the issued token can no longer be renewed"
                 placement="top"
@@ -539,28 +494,19 @@ const CreateAppRole = (props) => {
                     value={maxTokenTtl}
                     placeholder="Token Max TTL"
                     fullWidth
-                    type="number"
                     name="maxTokenTtl"
-                    onChange={(e) => onMaxTokenChange(e)}
-                    error={numberError}
-                    helperText={
-                      numberError
-                        ? 'Please enter a valid input(value must be number)'
-                        : ''
-                    }
-                    onInputBlur={(e) => onInputBlur(e)}
+                    onChange={(e) => onInputNumberChange(e)}
                   />
                 </InputFieldLabelWrapper>
               </Tooltip>
               <Tooltip
-                classes={classes}
+                classes={tooltipClasses}
                 arrow
                 title="Duration in seconds to set as a TTL for issued tokens and at renewal time"
                 placement="top"
               >
                 <InputFieldLabelWrapper>
                   <InputLabelWrap>
-                    {' '}
                     <InputLabel>
                       Token TTL
                       <RequiredCircle margin="0.5rem" />
@@ -573,20 +519,12 @@ const CreateAppRole = (props) => {
                     placeholder="Token_TTL"
                     fullWidth
                     name="tokenTtl"
-                    type="number"
-                    onChange={(e) => onTokenTtlChange(e)}
-                    error={numberError}
-                    helperText={
-                      numberError
-                        ? 'Please enter a valid input(value must be number)'
-                        : ''
-                    }
-                    onInputBlur={(e) => onInputBlur(e)}
+                    onChange={(e) => onInputNumberChange(e)}
                   />
                 </InputFieldLabelWrapper>
               </Tooltip>
               <Tooltip
-                classes={classes}
+                classes={tooltipClasses}
                 arrow
                 title="Number of times the secretID can be used to fetch a token from this approle"
                 placement="top"
@@ -597,7 +535,6 @@ const CreateAppRole = (props) => {
                       Secret ID Number Uses
                       <RequiredCircle margin="0.5rem" />
                     </InputLabel>
-
                     <InfoIcon src={infoIcon} alt="info-icon-sec" />
                   </InputLabelWrap>
 
@@ -606,20 +543,12 @@ const CreateAppRole = (props) => {
                     placeholder="secret_Id_Num_Uses"
                     fullWidth
                     name="sectetIdNumUses"
-                    type="number"
-                    onChange={(e) => onSecretIdNumUseChange(e)}
-                    error={numberError}
-                    helperText={
-                      numberError
-                        ? 'Please enter a valid input(value must be number)'
-                        : ''
-                    }
-                    onInputBlur={(e) => onInputBlur(e)}
+                    onChange={(e) => onInputNumberChange(e)}
                   />
                 </InputFieldLabelWrapper>
               </Tooltip>
               <Tooltip
-                classes={classes}
+                classes={tooltipClasses}
                 arrow
                 title="Number of times the issued token can be used"
                 placement="top"
@@ -638,20 +567,12 @@ const CreateAppRole = (props) => {
                     placeholder="token_num_uses"
                     fullWidth
                     name="tokenNumUses"
-                    type="number"
-                    onChange={(e) => onTokenNumUseChange(e)}
-                    error={numberError}
-                    helperText={
-                      numberError
-                        ? 'Please enter a valid input(value must be number)'
-                        : ''
-                    }
-                    onInputBlur={(e) => onInputBlur(e)}
+                    onChange={(e) => onInputNumberChange(e)}
                   />
                 </InputFieldLabelWrapper>
               </Tooltip>
               <Tooltip
-                classes={classes}
+                classes={tooltipClasses}
                 arrow
                 title="Duration in seconds after which the issued secretID expires"
                 placement="top"
@@ -662,7 +583,6 @@ const CreateAppRole = (props) => {
                       Secret ID TTL
                       <RequiredCircle margin="0.5rem" />
                     </InputLabel>
-
                     <InfoIcon src={infoIcon} alt="info-icon-secret-id" />
                   </InputLabelWrap>
                   <TextFieldComponent
@@ -670,21 +590,13 @@ const CreateAppRole = (props) => {
                     placeholder="secret_id_ttl"
                     fullWidth
                     name="secretIdTtl"
-                    type="number"
-                    onChange={(e) => onSecretIdTtl(e)}
-                    error={numberError}
-                    helperText={
-                      numberError
-                        ? 'Please enter a valid input(value must be number)'
-                        : ''
-                    }
-                    onInputBlur={(e) => onInputBlur(e)}
+                    onChange={(e) => onInputNumberChange(e)}
                   />
                 </InputFieldLabelWrapper>
               </Tooltip>
               {tokenPolicies && (
                 <Tooltip
-                  classes={classes}
+                  classes={tooltipClasses}
                   arrow
                   title="List of permission allowed for this approle to access secrets and passwords"
                   placement="top"

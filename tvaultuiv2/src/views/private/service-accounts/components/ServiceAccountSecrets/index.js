@@ -232,45 +232,45 @@ const ServiceAccountSecrets = (props) => {
         {response.status === 'success' && secretsData && (
           <UserList>
             <Icon src={lock} alt="lock" />
-
             <Secret type="password" viewSecret={showSecret}>
-              {secretsData.adServiceAccountCreds?.current_password
+              {secretsData?.adServiceAccountCreds?.current_password
                 ? secretsData.adServiceAccountCreds?.current_password
                 : 'Secret not available!'}
             </Secret>
-
-            <FolderIconWrap>
-              <PopperElement
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-              >
-                <PopperItem onClick={() => onViewSecretsCliked()}>
-                  {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  <span>{showSecret ? 'Hide Secret' : 'View Secret'}</span>
-                </PopperItem>
-                {accountDetail?.access === 'write' && (
-                  <PopperItem onClick={() => onResetClicked()}>
-                    <img alt="refersh-ic" src={IconRefreshCC} />
-                    <span>Reset Secret</span>
-                  </PopperItem>
-                )}
-                <CopyToClipboard
-                  text={secretsData.current_password}
-                  onCopy={() => onCopyClicked()}
+            {secretsData?.adServiceAccountCreds?.current_password && (
+              <FolderIconWrap>
+                <PopperElement
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
                 >
-                  <PopperItem>
-                    <FileCopyIcon />
-                    <span>Copy Secret</span>
+                  <PopperItem onClick={() => onViewSecretsCliked()}>
+                    {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    <span>{showSecret ? 'Hide Secret' : 'View Secret'}</span>
                   </PopperItem>
-                </CopyToClipboard>
-              </PopperElement>
-            </FolderIconWrap>
+                  {accountDetail?.access === 'write' && (
+                    <PopperItem onClick={() => onResetClicked()}>
+                      <img alt="refersh-ic" src={IconRefreshCC} />
+                      <span>Reset Secret</span>
+                    </PopperItem>
+                  )}
+                  <CopyToClipboard
+                    text={secretsData.current_password}
+                    onCopy={() => onCopyClicked()}
+                  >
+                    <PopperItem>
+                      <FileCopyIcon />
+                      <span>Copy Secret</span>
+                    </PopperItem>
+                  </CopyToClipboard>
+                </PopperElement>
+              </FolderIconWrap>
+            )}
           </UserList>
         )}
         {response.status === 'error' && (
