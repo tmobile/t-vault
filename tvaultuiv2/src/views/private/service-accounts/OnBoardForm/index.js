@@ -576,9 +576,22 @@ const OnBoardForm = (props) => {
       setStatus({ status: 'loading' });
       updateServiceAccountDetails(
         history.location.state.serviceAccountDetails.name
-      );
+      ).catch((err) => {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+          setStatus({
+            status: 'failed',
+            message: err?.response?.data?.errors[0],
+          });
+        } else {
+          setStatus({
+            status: 'failed',
+          });
+        }
+        handleClose();
+      });
     }
     fetchAppRoles();
+    // eslint-disable-next-line
   }, [history, updateServiceAccountDetails, fetchAppRoles]);
 
   const handleSwitch = (e) => {
@@ -1085,14 +1098,14 @@ const OnBoardForm = (props) => {
             onClose={() => onToastClose()}
             severity="error"
             icon="error"
-            message={status.message || 'Something went wrong!'}
+            message={status?.message || 'Something went wrong!'}
           />
         )}
         {status.status === 'success' && (
           <SnackbarComponent
             open
             onClose={() => onToastClose()}
-            message={status.message || 'Request Successful'}
+            message={status?.message || 'Request Successful'}
           />
         )}
       </div>

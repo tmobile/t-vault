@@ -11,15 +11,16 @@ const IconWrap = styled('div')`
 `;
 
 const Icon = styled('div')`
-    // width: 2.5rem;
-    // height:2.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center
-    :hover {
-    background-color: #5a637a;
-    border-radius: 50%;
-    
+  display: flex;
+  width: 3rem;
+  height: 3rem;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.75rem;
+  padding: 0.66rem 0.5rem 0.34rem 0.9rem;
+  border-radius: 50%;
+  :hover {
+    background-color: rgb(90, 99, 122);
   }
 `;
 

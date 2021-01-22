@@ -9,7 +9,7 @@ import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../../../breakpoints';
 import { RequiredCircle, SubHeading } from '../../../../../styles/GlobalStyles';
-import { ColorBackArrow } from '../../../../../assets/SvgIcons';
+import { BackArrow } from '../../../../../assets/SvgIcons';
 
 const AddFolderNameWrapper = styled.div`
   padding: 5.5rem 6rem 6rem 6rem;
@@ -104,7 +104,7 @@ const AddFolder = (props) => {
         <SubHeading extraCss={extraCss}>
           {isMobileScreen && (
             <BackButton onClick={() => handleCancelClick(false)}>
-              <ColorBackArrow />
+              <BackArrow />
             </BackButton>
           )}
           Add Folder

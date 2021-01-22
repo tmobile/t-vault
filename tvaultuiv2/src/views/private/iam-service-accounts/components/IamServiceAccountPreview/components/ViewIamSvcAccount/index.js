@@ -66,9 +66,9 @@ const CancelSaveWrapper = styled.div`
 `;
 
 const CancelButton = styled.div`
-  margin-right: 0.8rem;
+  margin-left: 0.8rem;
   ${small} {
-    margin-right: 1rem;
+    margin-left: 1rem;
     width: 100%;
   }
 `;
@@ -233,14 +233,12 @@ const ViewIamSvcAccountDetails = (props) => {
           </EachDetail>
         </PreviewWrap>
         <CancelSaveWrapper>
-          <CancelButton>
-            <ButtonComponent
-              label="Cancel"
-              color="primary"
-              onClick={() => onCancelViewDetails(false)}
-              width={isMobileScreen ? '100%' : ''}
-            />
-          </CancelButton>
+          <ButtonComponent
+            label="Cancel"
+            color="primary"
+            onClick={() => onCancelViewDetails(false)}
+            width={isMobileScreen ? '100%' : ''}
+          />
           {viewAccountData.permission === 'write' && (
             <CancelButton>
               <ButtonComponent

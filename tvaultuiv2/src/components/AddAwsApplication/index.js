@@ -17,7 +17,7 @@ import {
 import TextFieldComponent from '../FormFields/TextField';
 import ButtonComponent from '../FormFields/ActionButton';
 import mediaBreakpoints from '../../breakpoints';
-import { ColorBackArrow } from '../../assets/SvgIcons';
+import { BackArrow } from '../../assets/SvgIcons';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 import RadioButtonComponent from '../FormFields/RadioButton';
 
@@ -263,7 +263,7 @@ const AddAwsApplication = (props) => {
         <SubHeading extraCss={extraCss}>
           {isMobileScreen && (
             <BackButton onClick={() => handleCancelClick()}>
-              <ColorBackArrow />
+              <BackArrow />
             </BackButton>
           )}
           Create AWS Configuration
