@@ -595,6 +595,7 @@ const ViewCertificate = (props) => {
                           item?.displayName?.toLowerCase()
                         )}, ${item?.userName?.toLowerCase()}`
                     )}
+                    loader={autoLoader}
                     userInput={applicationOwner}
                     icon="search"
                     name="applicationOwner"
@@ -628,6 +629,7 @@ const ViewCertificate = (props) => {
                           item?.displayName?.toLowerCase()
                         )}, ${item?.userName?.toLowerCase()}`
                     )}
+                    loader={projectLeadAutoLoader}
                     userInput={projectLeadEmail}
                     icon="search"
                     name="applicationOwner"
@@ -682,6 +684,7 @@ const ViewCertificate = (props) => {
                               )}, ${item?.userName?.toLowerCase()}`
                           )
                     }
+                    loader={notifyAutoLoader}
                     userInput={notifyEmail}
                     icon="search"
                     name="notifyEmail"

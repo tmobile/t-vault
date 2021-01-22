@@ -269,6 +269,7 @@ const AddUser = (props) => {
                       item?.displayName?.toLowerCase()
                     )}, ${item?.userName?.toLowerCase()}`
                 )}
+                loader={searchLoader}
                 icon="search"
                 disabled={!!(access && username)}
                 placeholder="Search by NTID, Email or Name"
