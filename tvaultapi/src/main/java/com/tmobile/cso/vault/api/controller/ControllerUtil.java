@@ -113,6 +113,7 @@ public final class ControllerUtil {
 	private static final String ADLOGINURL = "AD_LOGIN_URL=";
 	private static final String EMAILSTR = ".t-mobile.com";
 	private static final String INTERNALEXTERNAL = "internal|external";
+	private static final String DEFAULT_ROLE_POLICY = "default";
 	
 	@Value("${selfservice.ssfilelocation}")
     private String sscredLocation;
@@ -2103,7 +2104,7 @@ public final class ControllerUtil {
 			return false;
 		}
 		if(StringUtils.isEmpty(awsLoginRole.getPolicies())) {
-			awsLoginRole.setPolicies("default");
+			awsLoginRole.setPolicies(DEFAULT_ROLE_POLICY);
 		}
 		if (StringUtils.isEmpty(awsLoginRole.getRole())) {
 			throw new TVaultValidationException(ROLESTR);
@@ -2165,7 +2166,7 @@ public final class ControllerUtil {
 		if (awsiamRole == null) {
 			return false;
 		}
-		String[] policyvalue= {"default"};
+		String[] policyvalue= {DEFAULT_ROLE_POLICY};
 		if(StringUtils.isEmpty(awsiamRole.getPolicies())) {
 			awsiamRole.setPolicies(policyvalue);
 		}
