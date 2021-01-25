@@ -56,6 +56,7 @@ const Secret = styled.div`
   font-size: 1.2rem;
   color: #5a637a;
   word-break: break-all;
+  margin: 0px 2rem;
 `;
 
 const Span = styled('span')``;
@@ -128,6 +129,7 @@ const customStyle = css`
 
 const InfoWrapper = styled.div`
   display: flex;
+  align-items: center;
   ${mediaBreakpoints.small} {
     flex-direction: column;
     span {
