@@ -212,7 +212,7 @@ const SvcIcon = styled.img`
 const customLoaderStyle = css`
   position: absolute;
   right: 1.2rem;
-  top: 3.2rem;
+  top: 3.7rem;
   color: red;
 `;
 
@@ -778,7 +778,11 @@ const OnBoardForm = (props) => {
           }
           confirmButton={
             svcPasswordDetails ? (
-              <CopyToClipboard text={svcPasswordDetails?.current_password}>
+              <CopyToClipboard
+                text={
+                  svcPasswordDetails?.adServiceAccountCreds?.current_password
+                }
+              >
                 <ButtonComponent
                   label="Copy Password"
                   color="secondary"
@@ -904,10 +908,7 @@ const OnBoardForm = (props) => {
                     )}
                   />
                   {isServiceFetching && (
-                    <LoaderSpinner
-                      customStyle={customLoaderStyle}
-                      size="small"
-                    />
+                    <LoaderSpinner customStyle={customLoaderStyle} />
                   )}
                   <ServiceAccountDetailWrap>
                     <ServiceAcoountHelp
@@ -1041,10 +1042,7 @@ const OnBoardForm = (props) => {
                     placeholder="Search for Application Name"
                   />
                   {isAppNameFetchig && (
-                    <LoaderSpinner
-                      customStyle={customLoaderStyle}
-                      size="small"
-                    />
+                    <LoaderSpinner customStyle={customLoaderStyle} />
                   )}
                 </InputFieldLabelWrapper>
               </OnBoardFormContainer>

@@ -53,6 +53,9 @@ const UserList = styled.div`
 const InfoWrapper = styled.div`
   display: flex;
   align-items: center;
+  ${mediaBreakpoints.smallAndMedium} {
+    align-items: unset;
+  }
   ${mediaBreakpoints.small} {
     flex-direction: column;
     span {
@@ -68,6 +71,11 @@ const Secret = styled.div`
   color: #5a637a;
   word-break: break-all;
   margin: 0px 2rem;
+  width: 50%;
+  ${mediaBreakpoints.smallAndMedium} {
+    width: 100%;
+    margin: 0;
+  }
 `;
 
 const Span = styled('span')``;

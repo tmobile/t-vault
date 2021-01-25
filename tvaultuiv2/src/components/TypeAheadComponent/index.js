@@ -156,9 +156,7 @@ const TypeAheadComponent = ({
           name={name}
           readOnly={disabled}
           onKeyDown={(e) =>
-            console.log(onKeyDownClick) && onKeyDownClick !== undefined
-              ? onKeyDownClick(e)
-              : onKeyDown(e)
+            onKeyDownClick !== undefined ? onKeyDownClick(e) : onKeyDown(e)
           }
           onChange={(e) => handleChange(e)}
           onInputBlur={onInputBlur}
