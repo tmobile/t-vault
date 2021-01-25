@@ -200,6 +200,7 @@ const AddAwsApplication = (props) => {
     if (isEC2) {
       data = {
         auth_type: awsAuthenticationType,
+        bound_account_id: accountId,
         bound_ami_id: amiId,
         bound_iam_instance_profile_arn: profileArn,
         bound_iam_principal_arn: '',

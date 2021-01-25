@@ -48,8 +48,8 @@ const CertificatePermission = (props) => {
     if (certificateMetaData && Object.keys(certificateMetaData).length !== 0) {
       setCount(0);
       if (value === 0) {
-        if (userDetails) {
-          setCount(userDetails.length - 1);
+        if (certificateMetaData.users) {
+          setCount(Object.keys(certificateMetaData.users).length - 1);
         }
       } else if (value === 1) {
         if (certificateMetaData.groups) {
