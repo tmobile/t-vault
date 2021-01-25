@@ -260,7 +260,7 @@ const ServiceAccountSecrets = (props) => {
                     </PopperItem>
                   )}
                   <CopyToClipboard
-                    text={secretsData.current_password}
+                    text={secretsData?.adServiceAccountCreds?.current_password}
                     onCopy={() => onCopyClicked()}
                   >
                     <PopperItem>

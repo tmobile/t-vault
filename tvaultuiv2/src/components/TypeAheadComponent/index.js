@@ -66,19 +66,14 @@ const TypeAheadComponent = ({
   };
 
   useEffect(() => {
-    if (!loader && userInput.length > 2) {
+    if (loader && userInput.length > 2) {
       setShowOptions(true);
-    } else {
-      setShowOptions(false);
     }
   }, [loader, userInput]);
 
   useEffect(() => {}, [error, helperText]);
   useEffect(() => {
-    const filteredOption = options.filter((option) =>
-      option?.toLowerCase().includes(userInput?.toLowerCase())
-    );
-    setFilteredList(filteredOption);
+    setFilteredList(options);
   }, [options, userInput]);
 
   const onClick = (e) => {
@@ -158,9 +153,7 @@ const TypeAheadComponent = ({
           name={name}
           readOnly={disabled}
           onKeyDown={(e) =>
-            console.log(onKeyDownClick) && onKeyDownClick !== undefined
-              ? onKeyDownClick(e)
-              : onKeyDown(e)
+            onKeyDownClick !== undefined ? onKeyDownClick(e) : onKeyDown(e)
           }
           onChange={(e) => handleChange(e)}
           onInputBlur={onInputBlur}

@@ -13,8 +13,6 @@ const DeletionConfirmationModal = (props) => {
     openDeleteConfirmation,
     handleDeleteConfirmationModalClose,
     onCertificateDeleteConfirm,
-    deleteResponse,
-    deleteModalDetail,
   } = props;
 
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -25,26 +23,20 @@ const DeletionConfirmationModal = (props) => {
         size={isMobileScreen ? 'large' : ''}
         open={openDeleteConfirmation}
         handleClose={handleDeleteConfirmationModalClose}
-        title={deleteModalDetail.title}
-        description={deleteModalDetail.description}
+        title="Confirmation"
+        description="Are you sure you want to delete this certificate?"
         cancelButton={
-          !deleteResponse && (
-            <ButtonComponent
-              label="Cancel"
-              color="primary"
-              onClick={() => handleDeleteConfirmationModalClose()}
-            />
-          )
+          <ButtonComponent
+            label="Cancel"
+            color="primary"
+            onClick={() => handleDeleteConfirmationModalClose()}
+          />
         }
         confirmButton={
           <ButtonComponent
-            label={deleteResponse ? 'Close' : 'Confirm'}
+            label="Confirm"
             color="secondary"
-            onClick={() =>
-              deleteResponse
-                ? handleDeleteConfirmationModalClose()
-                : onCertificateDeleteConfirm()
-            }
+            onClick={() => onCertificateDeleteConfirm()}
           />
         }
       />
@@ -56,8 +48,6 @@ DeletionConfirmationModal.propTypes = {
   openDeleteConfirmation: PropTypes.bool.isRequired,
   handleDeleteConfirmationModalClose: PropTypes.func.isRequired,
   onCertificateDeleteConfirm: PropTypes.func.isRequired,
-  deleteResponse: PropTypes.bool.isRequired,
-  deleteModalDetail: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 export default DeletionConfirmationModal;

@@ -165,13 +165,6 @@ const CertificatesDashboard = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [openOnboardModal, setOpenOnboardModal] = useState(false);
   const [openDeleteConfirmation, setOpenDeleteConfirmation] = useState(false);
-  const [deleteResponse, setDeleteResponse] = useState(false);
-  const [deleteConfirmClicked, setDeleteConfirmClicked] = useState(false);
-  const [deleteModalDetail, setDeleteModalDetail] = useState({
-    title: '',
-    description: '',
-  });
-  const [deleteError, setDeleteError] = useState(false);
   const classes = useStyles();
   const history = useHistory();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -538,7 +531,7 @@ const CertificatesDashboard = () => {
    * certificate, when edit or transfer or delete certificate happen.
    * @param {bool} actionPerform true/false based on the success event of corresponding action.
    */
-  const onCloseAllModal = (actionPerform) => {
+  const onCloseAllModal = async (actionPerform) => {
     setOpenTransferModal(false);
     setOpenReleaseModal(false);
     setOpenOnboardModal(false);
@@ -546,9 +539,9 @@ const CertificatesDashboard = () => {
     if (actionPerform) {
       setResponse({ status: 'loading' });
       if (admin) {
-        fetchAdminData();
+        await fetchAdminData();
       } else {
-        fetchNonAdminData();
+        await fetchNonAdminData();
       }
     }
   };
@@ -644,24 +637,14 @@ const CertificatesDashboard = () => {
   const onDeleteCertificateClicked = (data) => {
     setCertificateData(data);
     setOpenDeleteConfirmation(true);
-    setDeleteModalDetail({
-      title: 'Confirmation',
-      description: 'Are you sure you want to delete this certificate?',
-    });
   };
 
   /**
    * @function handleDeleteConfirmationModalClose
-   * @description function to close the delete modal and if
-   * deletion completed successfully the call the api to fetch all certificates.
+   * @description function to close the delete modal.
    */
   const handleDeleteConfirmationModalClose = () => {
-    setDeleteResponse(false);
     setOpenDeleteConfirmation(false);
-    if (!deleteError && deleteConfirmClicked) {
-      setDeleteConfirmClicked(false);
-      onCloseAllModal(true);
-    }
   };
 
   /**
@@ -671,35 +654,24 @@ const CertificatesDashboard = () => {
   const onCertificateDeleteConfirm = () => {
     setResponse({ status: 'loading' });
     setOpenDeleteConfirmation(false);
-    setDeleteConfirmClicked(true);
     apiService
       .deleteCertificate(
         certificateData.certificateName,
         `${certificateData.certType}`
       )
       .then((res) => {
-        if (res?.data?.messages && res.data.messages[0]) {
-          setDeleteModalDetail({
-            title: 'Successful',
-            description: res.data.messages[0],
-          });
+        if (res?.data?.messages && res?.data?.messages[0]) {
+          setToastMessage(res?.data?.messages[0]);
         }
-        setOpenDeleteConfirmation(true);
-        setResponse({ status: 'success' });
-        setDeleteError(false);
-        setDeleteResponse(true);
+        setResponseType(1);
+        onCloseAllModal(true);
       })
       .catch((err) => {
-        if (err?.response?.data?.errors && err.response.data.errors[0]) {
-          setDeleteModalDetail({
-            title: 'Error',
-            description: err.response.data.errors[0],
-          });
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+          setToastMessage(err.response.data.errors[0]);
         }
-        setDeleteError(true);
-        setOpenDeleteConfirmation(true);
+        setResponseType(-1);
         setResponse({ status: 'success' });
-        setDeleteResponse(true);
       });
   };
 
@@ -736,8 +708,6 @@ const CertificatesDashboard = () => {
                 handleDeleteConfirmationModalClose
               }
               onCertificateDeleteConfirm={onCertificateDeleteConfirm}
-              deleteResponse={deleteResponse}
-              deleteModalDetail={deleteModalDetail}
             />
           )}
           {openReleaseModal && (
@@ -932,7 +902,7 @@ const CertificatesDashboard = () => {
           <SnackbarComponent
             open
             onClose={() => onToastClose()}
-            message={toastMessage}
+            message={toastMessage || 'Successful!'}
           />
         )}
       </>
