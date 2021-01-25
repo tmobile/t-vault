@@ -66,10 +66,8 @@ const TypeAheadComponent = ({
   };
 
   useEffect(() => {
-    if (!loader && userInput.length > 2) {
+    if (loader && userInput.length > 2) {
       setShowOptions(true);
-    } else {
-      setShowOptions(false);
     }
   }, [loader, userInput]);
 
