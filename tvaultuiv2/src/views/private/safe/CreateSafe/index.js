@@ -580,6 +580,7 @@ const CreateModal = (props) => {
                             item?.displayName?.toLowerCase()
                           )}, ${item?.userName?.toLowerCase()}`
                       )}
+                      loader={autoLoader}
                       userInput={owner}
                       name="owner"
                       onSelected={(e, val) => onSelected(e, val)}

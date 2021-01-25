@@ -46,6 +46,7 @@ const TypeAheadComponent = ({
   options,
   onChange,
   onSelected,
+  loader,
   disabled,
   userInput,
   icon,
@@ -62,8 +63,13 @@ const TypeAheadComponent = ({
 
   const handleChange = (e) => {
     onChange(e);
-    setShowOptions(true);
   };
+
+  useEffect(() => {
+    if (loader && userInput.length > 2) {
+      setShowOptions(true);
+    }
+  }, [loader, userInput]);
 
   useEffect(() => {}, [error, helperText]);
   useEffect(() => {
@@ -79,22 +85,49 @@ const TypeAheadComponent = ({
   };
 
   const onKeyDown = (e) => {
-    setPosition(0);
-    if (e.keyCode === 13) {
-      onSelected(e, filteredList[position]);
+    if (onKeyDownClick) {
       onKeyDownClick(e);
+      return;
     }
-    setShowOptions(true);
+    setPosition(0);
+    if (e.keyCode === 'Enter') {
+      onSelected(e, filteredList[position]);
+    } else if (e.key === 'ArrowUp') {
+      if (position === 0) {
+        setPosition(filteredList?.length - 1);
+        return;
+      }
+      setPosition(position - 1);
+    } else if (e.key === 'ArrowDown') {
+      if (position === filteredList.length - 1) {
+        setPosition(0);
+        return;
+      }
+      setPosition(position + 1);
+    }
   };
 
   let optionsComponent;
-  if (showOptions && userInput && options?.length) {
+  if (showOptions && userInput) {
     if (filteredList.length) {
       optionsComponent = (
         <OptionList>
-          {filteredList.map((suggestion) => {
+          {filteredList.map((suggestion, index) => {
+            let style;
+            // Flag the active suggestion with a class
+            if (index === position) {
+              style = {
+                backgroundColor: '#fff',
+                color: '#e20074',
+                cursor: 'pointer',
+              };
+            }
             return (
-              <OptionSelected key={suggestion} onClick={(e) => onClick(e)}>
+              <OptionSelected
+                style={style}
+                key={suggestion}
+                onClick={(e) => onClick(e)}
+              >
                 <span>{suggestion}</span>
               </OptionSelected>
             );
@@ -123,7 +156,9 @@ const TypeAheadComponent = ({
           name={name}
           readOnly={disabled}
           onKeyDown={(e) =>
-            onKeyDownClick !== undefined ? onKeyDownClick(e) : onKeyDown(e)
+            console.log(onKeyDownClick) && onKeyDownClick !== undefined
+              ? onKeyDownClick(e)
+              : onKeyDown(e)
           }
           onChange={(e) => handleChange(e)}
           onInputBlur={onInputBlur}
@@ -149,6 +184,7 @@ TypeAheadComponent.propTypes = {
   disabled: PropType.bool,
   onInputBlur: PropType.func,
   onKeyDownClick: PropType.func,
+  loader: PropType.bool,
 };
 
 TypeAheadComponent.defaultProps = {
@@ -159,6 +195,7 @@ TypeAheadComponent.defaultProps = {
   disabled: false,
   helperText: '',
   onInputBlur: () => {},
-  onKeyDownClick: () => {},
+  onKeyDownClick: undefined,
+  loader: false,
 };
 export default TypeAheadComponent;

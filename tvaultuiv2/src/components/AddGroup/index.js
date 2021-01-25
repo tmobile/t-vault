@@ -240,6 +240,7 @@ const AddGroup = (props) => {
               <TypeAheadComponent
                 options={options}
                 icon="search"
+                loader={searchLoader}
                 disabled={!!(groupname && access)}
                 userInput={searchValue}
                 onSelected={(e, val) => onSelected(e, val)}
