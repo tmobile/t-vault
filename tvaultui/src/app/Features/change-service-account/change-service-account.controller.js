@@ -921,7 +921,7 @@
             AdminSafesManagement.resetPasswordForSvcacc(null, updatedUrlOfEndPoint).then(function (response) {                
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isLoadingData = false;
-                    $scope.newPassword = response.data.current_password;
+                    $scope.newPassword = response.data.adServiceAccountCreds.current_password;
                     $scope.resetMessage = "Service account "+$scope.svcacc.svcaccId+" has been activated successfully!"
                     $scope.initialPwdResetRequired = false;
                     $scope.initialPasswordReset = "true";
