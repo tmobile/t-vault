@@ -223,7 +223,10 @@ const AddUser = (props) => {
     ) {
       setIsValidUserName(false);
     } else {
-      if (Object.keys(users).includes(selectedUser?.userName?.toLowerCase())) {
+      if (
+        Object.keys(users).includes(selectedUser?.userName?.toLowerCase()) &&
+        users[selectedUser?.userName?.toLowerCase()] !== 'sudo'
+      ) {
         setExistingUser(true);
         return;
       }

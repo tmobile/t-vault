@@ -73,10 +73,7 @@ const TypeAheadComponent = ({
 
   useEffect(() => {}, [error, helperText]);
   useEffect(() => {
-    const filteredOption = options.filter((option) =>
-      option?.toLowerCase().includes(userInput?.toLowerCase())
-    );
-    setFilteredList(filteredOption);
+    setFilteredList(options);
   }, [options, userInput]);
 
   const onClick = (e) => {
