@@ -111,7 +111,7 @@ const AwsApplications = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });

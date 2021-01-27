@@ -154,7 +154,10 @@ const Tree = (props) => {
           message: '',
         });
         if (!error.toString().toLowerCase().includes('network')) {
-          if (error.response) {
+          if (
+            error?.response?.data?.errors &&
+            error?.response?.data?.errors[0]
+          ) {
             setStatus({
               status: 'failed',
               message: error.response?.data.errors[0],

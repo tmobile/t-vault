@@ -165,11 +165,7 @@ const AppRoleDetails = (props) => {
       })
       .catch((err) => {
         setStatus({});
-        if (
-          err?.response &&
-          err.response.data?.errors &&
-          err.response.data.errors[0]
-        ) {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setStatus({ message: err.response.data.errors[0] });
         }
         setResponseType(-1);

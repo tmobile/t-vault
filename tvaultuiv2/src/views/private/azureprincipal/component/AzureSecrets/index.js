@@ -227,7 +227,7 @@ const AzureSecrets = (props) => {
         setResponse({ status: 'success' });
       })
       .catch((err) => {
-        if (err.response.data.errors && err.response.data.errors[0]) {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setToastMessage(err.response.data.errors[0]);
         }
         setResponse({ status: 'error' });
@@ -304,7 +304,7 @@ const AzureSecrets = (props) => {
       .catch((err) => {
         setResponse({ status: 'success' });
         setResponseType(-1);
-        if (err.response.data.errors && err.response.data.errors[0]) {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setToastMessage(err.response.data.errors[0]);
         }
       });

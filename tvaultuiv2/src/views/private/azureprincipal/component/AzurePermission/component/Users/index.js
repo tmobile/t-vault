@@ -89,7 +89,7 @@ const Users = (props) => {
       })
       .catch((err) => {
         setResponse({ status: 'success' });
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
       });
@@ -111,7 +111,7 @@ const Users = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });
@@ -161,7 +161,7 @@ const Users = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });

@@ -292,7 +292,7 @@ const CreateModal = (props) => {
           }
         })
         .catch((err) => {
-          if (err.response && err.response.data?.errors[0]) {
+          if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
             setToastMessage(err.response.data.errors[0]);
           }
           setResponseType(-1);
