@@ -6,6 +6,7 @@ const mediaBreakpoints = {
   desktop: `${customTheme.breakpoints.up('md')}`, // (min-width:992px)
   mediumAndAbove: `${customTheme.breakpoints.up('sm')}`, // (min-width: 768px)
   smallAndMedium: `${customTheme.breakpoints.down('sm')}`, // (max-width:991px)
+  semiMedium: `${customTheme.breakpoints.down('1024')}`, // (max-width:1023)
   mediumAndsemiLarge: `${customTheme.breakpoints.between('sm', 'md')}`, // (min-width: 992px) and (max-width: 1280px)
   semiLarge: `${customTheme.breakpoints.between('md', 'md')}`, // (min-width: 992px) and (max-width: 1280px)
   large: `${customTheme.breakpoints.between('lg', 'xl')}`, // (min-width: 1280px) and (max-width: 1920px)

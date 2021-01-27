@@ -42,7 +42,7 @@ const ListItemDetail = (props) => {
     <ComponentError>
       <Section>
         <ListDetailHeader
-          title={data?.name || 'No Title'}
+          title={data?.name || '...'}
           description={description}
           bgImage={ListDetailHeaderBg}
           goBackToList={goBackToList}

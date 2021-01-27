@@ -162,6 +162,10 @@ const ListHeader = css`
   }
 `;
 
+const customStyle = css`
+  justify-content: center;
+`;
+
 const EditDeletePopperWrap = styled.div``;
 
 const AzureDashboard = () => {
@@ -392,6 +396,7 @@ const AzureDashboard = () => {
                           <NoData
                             imageSrc={NoSafesIcon}
                             description="No azure principal are associated with you yet."
+                            customStyle={customStyle}
                           />
                         </NoListWrap>
                       </NoDataWrapper>
