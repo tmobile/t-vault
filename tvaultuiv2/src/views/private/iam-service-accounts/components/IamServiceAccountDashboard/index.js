@@ -17,6 +17,8 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import { useStateValue } from '../../../../../contexts/globalState';
 import sectionHeaderBg from '../../../../../assets/svc_banner_img.png';
+import mobSvcIcon from '../../../../../assets/mob-svcbg.png';
+import tabSvcIcon from '../../../../../assets/tab-svcbg.png';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
@@ -210,6 +212,8 @@ const IamServiceAccountDashboard = () => {
   const location = useLocation();
 
   const introduction = Strings.Resources.iamServiceAccountDesc;
+
+  const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
 
   /**
    * @function fetchData
@@ -553,7 +557,11 @@ const IamServiceAccountDashboard = () => {
                     listItemDetails={listItemDetails}
                     params={routerProps}
                     backToLists={backToIamServiceAccounts}
-                    ListDetailHeaderBg={sectionHeaderBg}
+                    ListDetailHeaderBg={isTabScreen
+                      ? tabSvcIcon
+                      : isMobileScreen
+                      ? mobSvcIcon
+                      : sectionHeaderBg}
                     description={introduction}
                     renderContent={
                       <AccountSelectionTabs
@@ -582,7 +590,11 @@ const IamServiceAccountDashboard = () => {
                     listItemDetails={listItemDetails}
                     params={routerProps}
                     backToLists={backToIamServiceAccounts}
-                    ListDetailHeaderBg={sectionHeaderBg}
+                    ListDetailHeaderBg={isTabScreen
+                      ? tabSvcIcon
+                      : isMobileScreen
+                      ? mobSvcIcon
+                      : sectionHeaderBg}
                     description={introduction}
                     renderContent={
                       <AccountSelectionTabs
