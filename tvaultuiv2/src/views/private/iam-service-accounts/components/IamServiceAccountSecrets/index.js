@@ -269,7 +269,9 @@ const IamServiceAccountSecrets = (props) => {
       .catch((err) => {
         setResponse({});
         setResponseType(-1);
-        setToastMessage(err?.response?.data?.errors[0]);
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+          setToastMessage(err?.response?.data?.errors[0]);
+        }
       });
   };
 
@@ -314,7 +316,7 @@ const IamServiceAccountSecrets = (props) => {
         }
       })
       .catch((err) => {
-        if (err?.response?.data?.errors[0]) {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setResponse({});
           setToastMessage(err?.response?.data?.errors[0]);
         }

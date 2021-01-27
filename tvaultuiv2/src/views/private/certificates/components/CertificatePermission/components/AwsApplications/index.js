@@ -100,7 +100,7 @@ const AwsApplications = (props) => {
       })
       .catch((err) => {
         setResponse({ status: 'success' });
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
       });
@@ -124,7 +124,7 @@ const AwsApplications = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });
@@ -153,7 +153,7 @@ const AwsApplications = (props) => {
         await onSaveClicked(data.role, access);
       })
       .catch((err) => {
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });
@@ -178,7 +178,7 @@ const AwsApplications = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });
