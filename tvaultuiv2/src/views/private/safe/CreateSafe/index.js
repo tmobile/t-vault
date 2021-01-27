@@ -168,7 +168,7 @@ const CreateModal = (props) => {
   const [safeError, setSafeError] = useState(false);
   const [editSafe, setEditSafe] = useState(false);
   const [safeDetails, setSafeDetails] = useState({});
-  const [isValidEmail, setIsValidEmail] = useState(false);
+  const [isValidEmail, setIsValidEmail] = useState(true);
   const history = useHistory();
   const [ownerSelected, setOwnerSelected] = useState(false);
 
@@ -182,7 +182,11 @@ const CreateModal = (props) => {
   }, [trackPageView]);
 
   useEffect(() => {
-    if (owner?.length > 2 && ownerSelected?.userEmail) {
+    if (
+      owner?.length > 2 &&
+      ownerSelected?.userEmail &&
+      sessionStorage.getItem('isAdmin') !== 'false'
+    ) {
       if (!autoLoader) {
         if (ownerSelected?.userEmail.toLowerCase() !== owner) {
           setIsValidEmail(false);
@@ -236,6 +240,12 @@ const CreateModal = (props) => {
       history.goBack();
     }
   };
+
+  useEffect(() => {
+    if (sessionStorage.getItem('isAdmin') === 'false') {
+      setOwner(sessionStorage.getItem('owner'));
+    }
+  }, []);
 
   useEffect(() => {
     setResponseType(0);
@@ -582,6 +592,7 @@ const CreateModal = (props) => {
                       )}
                       loader={autoLoader}
                       userInput={owner}
+                      disabled={sessionStorage.getItem('isAdmin') === 'false'}
                       name="owner"
                       onSelected={(e, val) => onSelected(e, val)}
                       onChange={(e) => onOwnerChange(e)}
@@ -594,8 +605,9 @@ const CreateModal = (props) => {
                       }
                       // onInputBlur={(e) => onInputBlur(e)}
                       helperText={
-                        (!isValidEmail && safeDetails.owner !== owner) ||
-                        emailError
+                        ((!isValidEmail && safeDetails.owner !== owner) ||
+                          emailError) &&
+                        sessionStorage.getItem('isAdmin') !== 'false'
                           ? 'Please enter a valid value or not available!'
                           : ''
                       }
