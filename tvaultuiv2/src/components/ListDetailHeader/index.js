@@ -80,7 +80,7 @@ const HeaderBg = styled('div')`
   top: -0.8rem;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: -1rem;
   background: url(${(props) => props.bgImage || ''});
   background-repeat: no-repeat;
   background-size: cover;
