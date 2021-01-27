@@ -183,3 +183,19 @@ export const GlobalModalWrapper = styled.section`
   }
   ${(props) => (props.extraCss ? props.extraCss : '')}
 `;
+
+export const NoDataWrapper = styled.section`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  margin-top: 1rem;
+  p {
+    ${mediaBreakpoints.small} {
+      margin-top: 2rem;
+      margin-bottom: 4rem;
+      width: 75%;
+    }
+  }
+`;

@@ -129,6 +129,10 @@ const SearchFilterNotAvailable = styled.p`
   word-break: break-all;
 `;
 
+const customStyle = css`
+  justify-content: center;
+`;
+
 const useStyles = makeStyles((theme) => ({
   contained: { borderRadius: '0.4rem' },
   select: {
@@ -274,7 +278,8 @@ const CertificatesDashboard = () => {
           ...onboardCertArray,
         ]);
         setResponse({ status: 'success' });
-        if (internalCertArray.length > 0) {
+        const url = history?.location?.pathname?.split('/')[1];
+        if (internalCertArray.length > 0 && url === 'certificates') {
           setListItemDetails(internalCertArray[0]);
           history.push(
             `/certificates/${internalCertArray[0]?.certificateName}`
@@ -373,7 +378,8 @@ const CertificatesDashboard = () => {
         );
         setCertificateList([...internalCertArray, ...externalCertArray]);
         setAllCertList([...internalCertArray, ...externalCertArray]);
-        if (internalCertArray.length > 0) {
+        const url = history?.location?.pathname?.split('/')[1];
+        if (internalCertArray.length > 0 && url === 'certificates') {
           setListItemDetails(internalCertArray[0]);
           history.push(
             `/certificates/${internalCertArray[0]?.certificateName}`
@@ -778,6 +784,7 @@ const CertificatesDashboard = () => {
                         <NoListWrap>
                           <NoData
                             imageSrc={noCertificateIcon}
+                            description="Create a certificate to get started!"
                             actionButton={
                               <FloatingActionButtonComponent
                                 href="/certificates/create-ceritificate"
@@ -787,6 +794,7 @@ const CertificatesDashboard = () => {
                                 tooltipPos="bottom"
                               />
                             }
+                            customStyle={customStyle}
                           />
                         </NoListWrap>
                       </NoDataWrapper>
