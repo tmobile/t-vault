@@ -97,7 +97,7 @@ public class SelfSupportController {
 	 * @param safeUser
 	 * @return
 	 */
-	@ApiOperation(value = "${SelfSupportController.removeUserFromSafe.value}", notes = "${SelfSupportController.removeUserFromSafeAsPowerUser.notes}")
+	@ApiOperation(value = "${SelfSupportController.removeUserFromSafe.value}", notes = "${SelfSupportController.removeUserFromSafe.notes}")
 	@DeleteMapping(value="/v2/ss/sdb/user")
 	public ResponseEntity<String> deleteUserFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
