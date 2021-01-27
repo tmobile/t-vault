@@ -133,7 +133,7 @@ public class  SelfSupportService {
 			// Assign the policies
 			// Modify should work the same
 			// Delete safe - clean up of all items, paths, permissions, policies
-			if(!safe.getSafeBasicDetails().getOwner().equals(userDetails.getEmail())){
+			if(!safe.getSafeBasicDetails().getOwner().equalsIgnoreCase(userDetails.getEmail())){
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body("{\"errors\":[\"Invalid owner email\"]}");
 			}
@@ -344,7 +344,7 @@ public class  SelfSupportService {
 		}
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, safe.getPath());
-			if(!safe.getSafeBasicDetails().getOwner().equals(userDetails.getEmail())){
+			if(!safe.getSafeBasicDetails().getOwner().equalsIgnoreCase(userDetails.getEmail())){
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body("{\"errors\":[\"Invalid owner email\"]}");
 			}
