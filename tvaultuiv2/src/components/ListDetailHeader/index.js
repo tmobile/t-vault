@@ -12,6 +12,7 @@ const ColumnHeader = styled('div')`
   justify-content: flex-end;
   position: relative;
   height: 17.1rem;
+  background-color: #151820;
   padding: 2rem;
   .list-title-wrap {
     width: 67%;
@@ -80,7 +81,7 @@ const HeaderBg = styled('div')`
   top: -0.8rem;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: 0rem;
   background: url(${(props) => props.bgImage || ''});
   background-repeat: no-repeat;
   background-size: cover;

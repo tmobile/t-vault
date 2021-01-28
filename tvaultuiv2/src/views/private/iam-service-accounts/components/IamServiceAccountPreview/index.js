@@ -144,10 +144,17 @@ const ViewIamServiceAccount = (props) => {
         }
       })
       .catch((err) => {
-        setStatus({
-          status: 'failed',
-          message: err?.response?.data?.errors[0],
-        });
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+          setStatus({
+            status: 'failed',
+            message: err?.response?.data?.errors[0],
+          });
+        } else {
+          setStatus({
+            status: 'failed',
+            message: 'Something went wrong!',
+          });
+        }
       });
   };
 
@@ -174,10 +181,15 @@ const ViewIamServiceAccount = (props) => {
         await refresh();
       })
       .catch((err) => {
-        if (err?.response?.data?.errors[0]) {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setStatus({
             status: 'failed',
             message: err?.response?.data?.errors[0],
+          });
+        } else {
+          setStatus({
+            status: 'failed',
+            message: 'Something went wrong!',
           });
         }
       });

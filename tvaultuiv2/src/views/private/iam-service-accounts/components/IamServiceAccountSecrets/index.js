@@ -30,8 +30,8 @@ import Error from '../../../../../components/Error';
 
 const UserList = styled.div`
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  position: relative;
   background-color: ${BackgroundColor.listBg};
   padding: 1.2rem 0;
   border-bottom: 1px solid #323649;
@@ -43,9 +43,14 @@ const UserList = styled.div`
     font-family: Roboto;
     font-size: 1.34rem;
     color: #ffffff;
-
-    div {
+    display: flex;
+    flex-direction: column;
+    ${mediaBreakpoints.semiMedium} {
+      flex-direction: row;
+    }
+    .expiry {
       color: #c1c1c1;
+      margin-right: 0.2rem;
     }
   }
 `;
@@ -57,10 +62,8 @@ const Secret = styled.div`
   color: #5a637a;
   word-break: break-all;
   margin: 0 2rem;
-  width: 50%;
-  ${mediaBreakpoints.smallAndMedium} {
-    width: 100%;
-    margin: 0;
+  ${mediaBreakpoints.semiMedium} {
+    margin: 1rem;
   }
 `;
 
@@ -69,7 +72,7 @@ const Span = styled('span')``;
 const Icon = styled.img`
   width: 1.5rem;
   height: 1.5rem;
-  margin-right: 1.6rem;
+  margin-right: 3rem;
   margin-left: 2rem;
 `;
 
@@ -78,6 +81,8 @@ const FolderIconWrap = styled('div')`
   display: flex;
   align-items: center;
   cursor: pointer;
+  position: absolute;
+  right: 0;
   .MuiSvgIcon-root {
     width: 2rem;
     height: 2rem;
@@ -135,16 +140,15 @@ const customStyle = css`
 const InfoWrapper = styled.div`
   display: flex;
   align-items: center;
-  ${mediaBreakpoints.smallAndMedium} {
-    align-items: unset;
-  }
-  ${mediaBreakpoints.small} {
+  ${mediaBreakpoints.semiMedium} {
     flex-direction: column;
-    span {
-      display: flex;
-      margin: 0.6rem 0;
-    }
   }
+`;
+
+const SecretDetailsWrap = styled.div`
+  display: flex;
+  align-items: center;
+  width: 90%;
 `;
 
 const IamServiceAccountSecrets = (props) => {
@@ -265,7 +269,9 @@ const IamServiceAccountSecrets = (props) => {
       .catch((err) => {
         setResponse({});
         setResponseType(-1);
-        setToastMessage(err?.response?.data?.errors[0]);
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+          setToastMessage(err?.response?.data?.errors[0]);
+        }
       });
   };
 
@@ -310,7 +316,7 @@ const IamServiceAccountSecrets = (props) => {
         }
       })
       .catch((err) => {
-        if (err?.response?.data?.errors[0]) {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setResponse({});
           setToastMessage(err?.response?.data?.errors[0]);
         }
@@ -398,7 +404,6 @@ const IamServiceAccountSecrets = (props) => {
                 <Secret type="password" viewSecret={showSecret}>
                   ****
                 </Secret>
-
                 <FolderIconWrap onClick={() => activateServiceAccount()}>
                   <Icon src={refreshIcon} alt="refresh" />
                 </FolderIconWrap>
@@ -431,17 +436,19 @@ const IamServiceAccountSecrets = (props) => {
           Object.keys(secretsData).length > 0 &&
           accountDetail.name && (
             <UserList>
-              <Icon src={lock} alt="lock" />
-              <InfoWrapper>
-                <Span>{secretsData.accessKeyId}</Span>
-                <Secret type="password" viewSecret={showSecret}>
-                  {secretsData.accessKeySecret}
-                </Secret>
-                <span className="expirationDate">
-                  <div>Expires: </div>
-                  {formatDate(secretsData.expiryDate)}
-                </span>
-              </InfoWrapper>
+              <SecretDetailsWrap>
+                <Icon src={lock} alt="lock" />
+                <InfoWrapper>
+                  <Span>{secretsData.accessKeyId}</Span>
+                  <Secret type="password" viewSecret={showSecret}>
+                    {secretsData.accessKeySecret}
+                  </Secret>
+                  <div className="expirationDate">
+                    <div className="expiry">Expires: </div>
+                    <div>{formatDate(secretsData.expiryDate)}</div>
+                  </div>
+                </InfoWrapper>
+              </SecretDetailsWrap>
               <FolderIconWrap>
                 <PopperElement
                   anchorOrigin={{

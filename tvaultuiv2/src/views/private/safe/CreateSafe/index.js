@@ -138,7 +138,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
     overflowY: 'auto',
     padding: '10rem 0',
-    [theme.breakpoints.down('xs')]: {
+    [theme?.breakpoints?.down('xs')]: {
       alignItems: 'unset',
       justifyContent: 'unset',
       padding: '0',
@@ -168,7 +168,7 @@ const CreateModal = (props) => {
   const [safeError, setSafeError] = useState(false);
   const [editSafe, setEditSafe] = useState(false);
   const [safeDetails, setSafeDetails] = useState({});
-  const [isValidEmail, setIsValidEmail] = useState(false);
+  const [isValidEmail, setIsValidEmail] = useState(true);
   const history = useHistory();
   const [ownerSelected, setOwnerSelected] = useState(false);
 
@@ -182,7 +182,11 @@ const CreateModal = (props) => {
   }, [trackPageView]);
 
   useEffect(() => {
-    if (owner?.length > 2 && ownerSelected?.userEmail) {
+    if (
+      owner?.length > 2 &&
+      ownerSelected?.userEmail &&
+      sessionStorage.getItem('isAdmin') !== 'false'
+    ) {
       if (!autoLoader) {
         if (ownerSelected?.userEmail.toLowerCase() !== owner) {
           setIsValidEmail(false);
@@ -238,6 +242,12 @@ const CreateModal = (props) => {
   };
 
   useEffect(() => {
+    if (sessionStorage.getItem('isAdmin') === 'false') {
+      setOwner(sessionStorage.getItem('owner'));
+    }
+  }, []);
+
+  useEffect(() => {
     setResponseType(0);
     apiService
       .getApplicationName()
@@ -256,8 +266,8 @@ const CreateModal = (props) => {
 
   useEffect(() => {
     if (
-      history.location.pathname === '/safes/edit-safe' &&
-      history.location.state
+      history?.location?.pathname === '/safes/edit-safe' &&
+      history?.location?.state
     ) {
       setEditSafe(true);
       setResponseType(0);
@@ -282,7 +292,7 @@ const CreateModal = (props) => {
           }
         })
         .catch((err) => {
-          if (err.response && err.response.data?.errors[0]) {
+          if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
             setToastMessage(err.response.data.errors[0]);
           }
           setResponseType(-1);
@@ -499,7 +509,7 @@ const CreateModal = (props) => {
       <Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
-        className={classes.modal}
+        className={classes?.modal}
         open={open}
         onClose={() => handleClose()}
         closeAfterTransition
@@ -582,6 +592,7 @@ const CreateModal = (props) => {
                       )}
                       loader={autoLoader}
                       userInput={owner}
+                      disabled={sessionStorage.getItem('isAdmin') === 'false'}
                       name="owner"
                       onSelected={(e, val) => onSelected(e, val)}
                       onChange={(e) => onOwnerChange(e)}
@@ -594,8 +605,9 @@ const CreateModal = (props) => {
                       }
                       // onInputBlur={(e) => onInputBlur(e)}
                       helperText={
-                        (!isValidEmail && safeDetails.owner !== owner) ||
-                        emailError
+                        ((!isValidEmail && safeDetails.owner !== owner) ||
+                          emailError) &&
+                        sessionStorage.getItem('isAdmin') !== 'false'
                           ? 'Please enter a valid value or not available!'
                           : ''
                       }

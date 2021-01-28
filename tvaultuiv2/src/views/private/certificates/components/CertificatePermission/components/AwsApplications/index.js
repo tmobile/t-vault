@@ -2,7 +2,7 @@
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable no-nested-ternary */
 import React, { useState, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
@@ -18,22 +18,9 @@ import AddAwsApplicationModal from '../../../../../../../components/AddAwsApplic
 import EditAwsApplication from '../../../../../../../components/EditAwsApplication';
 import Strings from '../../../../../../../resources';
 import { checkAccess } from '../../../../../../../services/helper-function';
+import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
-
-const NoDataWrapper = styled.section`
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  p {
-    ${small} {
-      margin-top: 2rem;
-      margin-bottom: 4rem;
-      width: 75%;
-    }
-  }
-`;
 
 const bgIconStyle = {
   width: '10rem',
@@ -113,7 +100,7 @@ const AwsApplications = (props) => {
       })
       .catch((err) => {
         setResponse({ status: 'success' });
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
       });
@@ -137,7 +124,7 @@ const AwsApplications = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });
@@ -166,7 +153,7 @@ const AwsApplications = (props) => {
         await onSaveClicked(data.role, access);
       })
       .catch((err) => {
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });
@@ -191,7 +178,7 @@ const AwsApplications = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });

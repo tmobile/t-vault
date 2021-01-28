@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-indent */
 import React, { useState, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
@@ -14,24 +14,9 @@ import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import PermissionsList from '../../../../../../../components/PermissionsList';
 import Strings from '../../../../../../../resources';
+import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
-
-const NoDataWrapper = styled.section`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-
-  p {
-    ${small} {
-      margin-top: 2rem;
-      margin-bottom: 4rem;
-      width: 75%;
-    }
-  }
-`;
 
 const bgIconStyle = {
   width: '10rem',
@@ -109,7 +94,7 @@ const Groups = (props) => {
       })
       .catch((err) => {
         setResponse({ status: 'success' });
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
       });
@@ -132,7 +117,7 @@ const Groups = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });
@@ -174,7 +159,7 @@ const Groups = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response?.data?.errors && err.response.data.errors[0]) {
+        if (err.response?.data?.errors && err?.response?.data?.errors[0]) {
           updateToastMessage(-1, err.response.data.errors[0]);
         }
         setResponse({ status: 'success' });

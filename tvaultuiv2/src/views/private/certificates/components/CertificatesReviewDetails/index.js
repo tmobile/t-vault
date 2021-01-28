@@ -28,6 +28,7 @@ const bgIconStyle = {
 const noDataStyle = css`
   height: 100%;
   width: 50%;
+  justify-content: center;
 `;
 
 const CertificatesReviewDetails = (props) => {

@@ -30,10 +30,10 @@ import Strings from '../../../../../resources';
 
 const UserList = styled.div`
   display: flex;
-  justify-content: space-between;
   align-items: center;
   background-color: ${BackgroundColor.listBg};
   padding: 1.2rem 0;
+  position: relative;
   border-bottom: 1px solid #323649;
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
@@ -43,9 +43,14 @@ const UserList = styled.div`
     font-family: Roboto;
     font-size: 1.34rem;
     color: #ffffff;
-
-    div {
+    display: flex;
+    flex-direction: column;
+    ${mediaBreakpoints.semiMedium} {
+      flex-direction: row;
+    }
+    .expiry {
       color: #c1c1c1;
+      margin-right: 0.2rem;
     }
   }
 `;
@@ -53,17 +58,11 @@ const UserList = styled.div`
 const InfoWrapper = styled.div`
   display: flex;
   align-items: center;
-  ${mediaBreakpoints.smallAndMedium} {
-    align-items: unset;
-  }
-  ${mediaBreakpoints.small} {
+  ${mediaBreakpoints.semiMedium} {
     flex-direction: column;
-    span {
-      display: flex;
-      margin-top: 0.6rem 0;
-    }
   }
 `;
+
 const Secret = styled.div`
   -webkit-text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
   text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
@@ -71,10 +70,8 @@ const Secret = styled.div`
   color: #5a637a;
   word-break: break-all;
   margin: 0px 2rem;
-  width: 50%;
-  ${mediaBreakpoints.smallAndMedium} {
-    width: 100%;
-    margin: 0;
+  ${mediaBreakpoints.semiMedium} {
+    margin: 1rem;
   }
 `;
 
@@ -83,7 +80,7 @@ const Span = styled('span')``;
 const Icon = styled.img`
   width: 1.5rem;
   height: 1.5rem;
-  margin-right: 1.6rem;
+  margin-right: 3rem;
   margin-left: 2rem;
 `;
 
@@ -92,6 +89,8 @@ const FolderIconWrap = styled('div')`
   display: flex;
   align-items: center;
   cursor: pointer;
+  position: absolute;
+  right: 0;
   .MuiSvgIcon-root {
     width: 2rem;
     height: 2rem;
@@ -172,6 +171,12 @@ const LabelWrap = styled.div`
   }
 `;
 
+const SecretDetailsWrap = styled.div`
+  display: flex;
+  align-items: center;
+  width: 90%;
+`;
+
 const formatDate = (expiryDate = '') => {
   const expirationArr = new Date(expiryDate).toDateString().split(' ');
   if (expirationArr.length > 3) {
@@ -222,7 +227,7 @@ const AzureSecrets = (props) => {
         setResponse({ status: 'success' });
       })
       .catch((err) => {
-        if (err.response.data.errors && err.response.data.errors[0]) {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setToastMessage(err.response.data.errors[0]);
         }
         setResponse({ status: 'error' });
@@ -299,7 +304,7 @@ const AzureSecrets = (props) => {
       .catch((err) => {
         setResponse({ status: 'success' });
         setResponseType(-1);
-        if (err.response.data.errors && err.response.data.errors[0]) {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setToastMessage(err.response.data.errors[0]);
         }
       });
@@ -385,18 +390,19 @@ const AzureSecrets = (props) => {
           <>
             {Object.keys(secretsData).length > 0 ? (
               <UserList>
-                <Icon src={lock} alt="lock" />
-                <InfoWrapper>
-                  <Span>{secretsData.secretKeyId}</Span>
-                  <Secret type="password" viewSecret={showSecret}>
-                    {secretsData.secretText}
-                  </Secret>
-                  <span className="expirationDate">
-                    <div>Expires: </div>
-                    {formatDate(secretsData.expiryDate)}
-                  </span>
-                </InfoWrapper>
-
+                <SecretDetailsWrap>
+                  <Icon src={lock} alt="lock" />
+                  <InfoWrapper>
+                    <Span>{secretsData.secretKeyId}</Span>
+                    <Secret type="password" viewSecret={showSecret}>
+                      {secretsData.secretText}
+                    </Secret>
+                    <div className="expirationDate">
+                      <div className="expiry">Expires: </div>
+                      <div>{formatDate(secretsData.expiryDate)}</div>
+                    </div>
+                  </InfoWrapper>
+                </SecretDetailsWrap>
                 <FolderIconWrap>
                   <PopperElement
                     anchorOrigin={{

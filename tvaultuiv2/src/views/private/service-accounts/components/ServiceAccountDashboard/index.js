@@ -168,6 +168,10 @@ const ListHeader = css`
   }
 `;
 
+const customStyle = css`
+  justify-content: center;
+`;
+
 const EditDeletePopperWrap = styled.div``;
 
 const iconStyles = makeStyles(() => ({
@@ -630,6 +634,7 @@ const ServiceAccountDashboard = () => {
                                   <></>
                                 )
                               }
+                              customStyle={customStyle}
                             />
                           </NoListWrap>
                         </NoDataWrapper>
