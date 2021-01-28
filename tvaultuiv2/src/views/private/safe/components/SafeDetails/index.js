@@ -41,7 +41,7 @@ const SafeDetails = (props) => {
     <ComponentError>
       <Section>
         <ListDetailHeader
-          title={safe?.name || 'No Title'}
+          title={safe?.name || '...'}
           description={
             safe?.description ||
             'A Safe is a logical unit to store the secrets. All the safes are created within Vault. You can control access only at the safe level. As a vault administrator you can manage safes but cannot view the content of the safe.'

@@ -14,7 +14,7 @@ import RadioButtonComponent from '../FormFields/RadioButton';
 const { small, smallAndMedium } = mediaBreakpoints;
 
 const InputWrapper = styled.div`
-  margin-top: 4rem;
+  margin-top: 3rem;
   margin-bottom: 2.4rem;
   position: relative;
   .MuiInputLabel-root {
@@ -24,7 +24,7 @@ const InputWrapper = styled.div`
 `;
 
 const PermissionWrapper = styled.div`
-  padding: 1rem 4rem 4rem 4rem;
+  padding: 3rem 4rem 4rem 4rem;
   background-color: #1f232e;
   display: flex;
   flex-direction: column;

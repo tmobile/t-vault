@@ -214,7 +214,7 @@ const ViewAzure = (props) => {
       .catch((err) => {
         setAzureActivated(false);
         setLoading(false);
-        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setModalDetail({
             title: 'Error',
             description: err.response.data.errors[0],

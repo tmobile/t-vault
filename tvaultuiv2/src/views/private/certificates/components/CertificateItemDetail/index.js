@@ -24,6 +24,7 @@ const ColumnHeader = styled('div')`
   position: relative;
   height: 17.1rem;
   padding: 2rem;
+  background-color: #151820;
   .list-title-wrap {
     width: 67%;
     z-index: 2;
@@ -97,14 +98,14 @@ const CertificateItemDetail = (props) => {
         {isMobileScreen ? (
           <BackButton onClick={goBackToList}>
             <BackArrow />
-            <span>{name !== 'N/A' ? name : 'No Title'}</span>
+            <span>{name !== 'N/A' ? name : '...'}</span>
           </BackButton>
         ) : null}
         <ColumnHeader>
           <HeaderBg bgImage={ListDetailHeaderBg} />
           <div className="list-title-wrap">
             {!isMobileScreen && (
-              <ListTitle>{name !== 'N/A' ? name : 'No Title'}</ListTitle>
+              <ListTitle>{name !== 'N/A' ? name : '...'}</ListTitle>
             )}
             <TitleThree color="#c4c4c4">
               {Strings.Resources.certificateDesc}

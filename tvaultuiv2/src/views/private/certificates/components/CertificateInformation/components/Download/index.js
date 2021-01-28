@@ -122,11 +122,11 @@ const Download = (props) => {
               {...bindPopover(popupState)}
               anchorOrigin={{
                 vertical: 'bottom',
-                horizontal: 'center',
+                horizontal: 'right',
               }}
               transformOrigin={{
                 vertical: 'top',
-                horizontal: 'center',
+                horizontal: 'right',
               }}
               classes={classes}
             >
@@ -137,7 +137,7 @@ const Download = (props) => {
                     popupState.close();
                   }}
                 >
-                  <span>Download certificate with private key</span>
+                  <span>Download w/ Private Key</span>
                 </PopperItem>
                 <PopperItem
                   onClick={() => {
@@ -145,7 +145,7 @@ const Download = (props) => {
                     popupState.close();
                   }}
                 >
-                  <span>Download certificate in PEM/DER format</span>
+                  <span>Download w/ PEM/DER Format</span>
                 </PopperItem>
               </PoperItemWrap>
             </Popover>

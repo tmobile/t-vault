@@ -159,6 +159,7 @@ const EmptySecretBox = styled('div')`
 
 const noDataStyle = css`
   width: 100%;
+  justify-content: center;
 `;
 
 const EditDeletePopperWrap = styled.div``;
@@ -625,7 +626,7 @@ const SafeDashboard = () => {
                         <NoSafeWrap>
                           <NoData
                             imageSrc={NoSafesIcon}
-                            description="Create a Safe to get started!"
+                            description="Create a safe to get started!"
                             actionButton={
                               <FloatingActionButtonComponent
                                 href="/safes/create-safe"
