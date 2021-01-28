@@ -444,7 +444,8 @@ const IamServiceAccountDashboard = () => {
           listIconStyles={listIconStyles}
         />
         <BorderLine />
-        {account.permission === 'write' && !isMobileScreen ? (
+        {(account.permission === 'write' || account.active === false) &&
+        !isMobileScreen ? (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <ViewIcon
               onClick={() =>
@@ -458,20 +459,21 @@ const IamServiceAccountDashboard = () => {
             </ViewIcon>
           </PopperWrap>
         ) : null}
-        {isMobileScreen && account.permission === 'write' && (
-          <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
-            <ViewIcon
-              onClick={() =>
-                onViewClicked(
-                  `${account.iamAccountId}_${account.name}`,
-                  account
-                )
-              }
-            >
-              <VisibilityIcon />
-            </ViewIcon>
-          </EditDeletePopperWrap>
-        )}
+        {isMobileScreen &&
+          (account.permission === 'write' || account.active === false) && (
+            <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
+              <ViewIcon
+                onClick={() =>
+                  onViewClicked(
+                    `${account.iamAccountId}_${account.name}`,
+                    account
+                  )
+                }
+              >
+                <VisibilityIcon />
+              </ViewIcon>
+            </EditDeletePopperWrap>
+          )}
       </ListFolderWrap>
     ));
   };

@@ -471,20 +471,22 @@ const AzureSecrets = (props) => {
             </NoPermission>
           </AccessDeniedWrap>
         )}
-        {!azureMetaData.isActivated && response.status === 'success' && (
-          <UserList>
-            <LabelWrap>
-              <ReportProblemOutlinedIcon />
-              <Span>Rotate Secret to Activate</Span>
-            </LabelWrap>
-            <Secret type="password" viewSecret={showSecret}>
-              ****
-            </Secret>
-            <FolderIconWrap onClick={() => activateServiceAccount()}>
-              <Icon src={refreshIcon} alt="refresh" />
-            </FolderIconWrap>
-          </UserList>
-        )}
+        {!azureMetaData.isActivated &&
+          response.status === 'success' &&
+          azureDetail.name && (
+            <UserList>
+              <LabelWrap>
+                <ReportProblemOutlinedIcon />
+                <Span>Rotate Secret to Activate</Span>
+              </LabelWrap>
+              <Secret type="password" viewSecret={showSecret}>
+                ****
+              </Secret>
+              <FolderIconWrap onClick={() => activateServiceAccount()}>
+                <Icon src={refreshIcon} alt="refresh" />
+              </FolderIconWrap>
+            </UserList>
+          )}
         {responseType === 1 && (
           <SnackbarComponent
             open
