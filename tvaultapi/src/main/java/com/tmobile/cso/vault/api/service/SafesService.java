@@ -2189,6 +2189,25 @@ public class  SafesService {
 						put(LogMessage.MESSAGE, "SDB Folder Deletion completed").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
+				Response versionCreationResponse = safeUtils.updateActivityInfo(token, path, userDetails, TVaultConstants.DELETE_FOLDER_ACTION, null, null);
+				if (HttpStatus.NO_CONTENT.equals(versionCreationResponse.getHttpstatus())) {
+					log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "createNestedfolder").
+							put(LogMessage.MESSAGE, String.format ("Created version folder for [%s]", path)).
+							put(LogMessage.STATUS, versionCreationResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
+				else {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "createNestedfolder").
+							put(LogMessage.MESSAGE, String.format ("Failed to create version folder for [%s]", path)).
+							put(LogMessage.STATUS, versionCreationResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
 
 			}else{
@@ -2365,7 +2384,7 @@ public class  SafesService {
 					build()));
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 				// create version folder
-				Response versionCreationResponse = safeUtils.createVersionFolder(token, path, userDetails, true, null, null);
+				Response versionCreationResponse = safeUtils.updateActivityInfo(token, path, userDetails, TVaultConstants.CREATE_ACTION, null, null);
 				if (HttpStatus.NO_CONTENT.equals(versionCreationResponse.getHttpstatus())) {
 					log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
