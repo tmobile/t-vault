@@ -372,10 +372,7 @@ const LoginPage = () => {
       .then((res) => {
         if (res.data.data.values && res.data.data.values[0]) {
           if (res.data.data.values[0].userEmail) {
-            sessionStorage.setItem(
-              'owner',
-              res.data.data.values[0].userEmail.toLowerCase()
-            );
+            sessionStorage.setItem('owner', res.data.data.values[0].userEmail);
             sessionStorage.setItem(
               'displayName',
               res.data.data.values[0].displayName.toLowerCase()

@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-param-reassign */
@@ -499,7 +500,7 @@ const IamServiceAccountDashboard = () => {
             {response.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
-            {response === 'failed' && (
+            {response.status === 'failed' && (
               <EmptyContentBox>
                 <Error description="Error while fetching service accounts!" />
               </EmptyContentBox>
@@ -557,11 +558,13 @@ const IamServiceAccountDashboard = () => {
                     listItemDetails={listItemDetails}
                     params={routerProps}
                     backToLists={backToIamServiceAccounts}
-                    ListDetailHeaderBg={isTabScreen
-                      ? tabSvcIcon
-                      : isMobileScreen
-                      ? mobSvcIcon
-                      : sectionHeaderBg}
+                    ListDetailHeaderBg={
+                      isTabScreen
+                        ? tabSvcIcon
+                        : isMobileScreen
+                        ? mobSvcIcon
+                        : sectionHeaderBg
+                    }
                     description={introduction}
                     renderContent={
                       <AccountSelectionTabs
@@ -590,11 +593,13 @@ const IamServiceAccountDashboard = () => {
                     listItemDetails={listItemDetails}
                     params={routerProps}
                     backToLists={backToIamServiceAccounts}
-                    ListDetailHeaderBg={isTabScreen
-                      ? tabSvcIcon
-                      : isMobileScreen
-                      ? mobSvcIcon
-                      : sectionHeaderBg}
+                    ListDetailHeaderBg={
+                      isTabScreen
+                        ? tabSvcIcon
+                        : isMobileScreen
+                        ? mobSvcIcon
+                        : sectionHeaderBg
+                    }
                     description={introduction}
                     renderContent={
                       <AccountSelectionTabs

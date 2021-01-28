@@ -89,12 +89,10 @@ const AddAwsApplication = (props) => {
   } = props;
   const [awsAuthenticationType, setAwsAuthenticationType] = useState('ec2');
   const [roleName, setRoleName] = useState('');
-  const [iamPrincipalArn, setIamPrincipalArn] = useState('');
   const [radioValue, setRadioValue] = useState('read');
   const [isEC2, setIsEC2] = useState(true);
   const isMobileScreen = useMediaQuery(small);
   const [disabledSave, setDisabledSave] = useState(true);
-  const [principalError, setPrincipalError] = useState(false);
   const [count, setCount] = useState(0);
   const [radioArray, setRadioArray] = useState([]);
   const [existingRole, setExistingRole] = useState(false);
@@ -107,7 +105,9 @@ const AddAwsApplication = (props) => {
     amiId: '',
     profileArn: '',
     region: '',
+    iamPrincipalArn: '',
   };
+
   const reducer = (state, { field, value }) => {
     return {
       ...state,
@@ -119,6 +119,7 @@ const AddAwsApplication = (props) => {
   const onChange = (e) => {
     dispatch({ field: e.target.name, value: e.target.value });
   };
+
   const clearData = () => {
     Object.keys(state).map((item) => {
       return dispatch({ field: item, value: '' });
@@ -133,6 +134,7 @@ const AddAwsApplication = (props) => {
     subnetId,
     profileArn,
     amiId,
+    iamPrincipalArn,
   } = state;
 
   useEffect(() => {
@@ -146,23 +148,25 @@ const AddAwsApplication = (props) => {
     });
   }, [state]);
 
-  const checkValidArn = (text) => {
-    if (text) {
-      const res = /^arn:aws:\S+::\d{12}/;
-      return res.test(text);
-    }
-    return null;
-  };
-
   useEffect(() => {
     if (!Object.keys(roles).includes(roleName.toLowerCase())) {
       if (!isEC2) {
-        if (roleName?.length < 3 || principalError || iamPrincipalArn === '') {
+        if (
+          roleName?.length < 3 ||
+          iamPrincipalArn !== '' ||
+          iamPrincipalArn.length < 20
+        ) {
           setDisabledSave(true);
         } else {
           setDisabledSave(false);
         }
-      } else if (roleName?.length < 3 || count > 6 || accountId.length < 12) {
+      } else if (
+        roleName?.length < 3 ||
+        count > 7 ||
+        (accountId !== '' && accountId.length < 12) ||
+        (iamRoleArn !== '' && iamRoleArn.length < 20) ||
+        (profileArn !== '' && profileArn.length < 20)
+      ) {
         setDisabledSave(true);
       } else {
         setDisabledSave(false);
@@ -178,21 +182,20 @@ const AddAwsApplication = (props) => {
     roles,
     isEC2,
     iamPrincipalArn,
-    principalError,
     count,
     accountId,
+    iamRoleArn,
+    profileArn,
   ]);
 
   const handleAwsRadioChange = (event) => {
     setAwsAuthenticationType(event.target.value);
     if (event.target.value === 'ec2') {
-      setIamPrincipalArn('');
       setIsEC2(true);
-      setPrincipalError(false);
     } else {
       setIsEC2(false);
-      clearData();
     }
+    clearData();
   };
 
   const onCreateClicked = () => {
@@ -231,15 +234,6 @@ const AddAwsApplication = (props) => {
     handleSaveClick(data, radioValue);
   };
 
-  const onIamPrincipalChange = (text) => {
-    setIamPrincipalArn(text);
-    if (!checkValidArn(text)) {
-      setPrincipalError(true);
-    } else {
-      setPrincipalError(false);
-    }
-  };
-
   useEffect(() => {
     if (isIamAzureSvcAccount) {
       setRadioArray(['read', 'rotate', 'deny']);
@@ -258,6 +252,25 @@ const AddAwsApplication = (props) => {
       onChange(event);
     }
   };
+
+  const testValidity = (event) => {
+    const re = /^[0-9a-zA-Z-]+$/;
+    if (event?.target?.value === '' || re.test(event?.target?.value)) {
+      if (event.target.name !== 'roleName') {
+        onChange(event);
+      } else {
+        setRoleName(event.target.value);
+      }
+    }
+  };
+
+  const testArnValidity = (event) => {
+    const re = /^[0-9a-zA-Z-_/:]+$/;
+    if (event?.target?.value === '' || re.test(event?.target?.value)) {
+      onChange(event);
+    }
+  };
+
   return (
     <ComponentError>
       <ContainerWrapper>
@@ -309,7 +322,7 @@ const AddAwsApplication = (props) => {
           placeholder="Role name- Enter min 3 charactes"
           fullWidth
           name="roleName"
-          onChange={(e) => setRoleName(e.target.value)}
+          onChange={(e) => testValidity(e)}
           error={existingRole}
           helperText={existingRole ? 'Permission Alerady Exists' : ''}
         />
@@ -335,7 +348,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="region"
-              onChange={(e) => onChange(e)}
+              onChange={(e) => testValidity(e)}
             />
           </EachInputField>
         </InputAwsWrapper>
@@ -348,7 +361,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="vpcId"
-              onChange={(e) => onChange(e)}
+              onChange={(e) => testValidity(e)}
             />
           </EachInputField>
           <EachInputField>
@@ -359,7 +372,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="subnetId"
-              onChange={(e) => onChange(e)}
+              onChange={(e) => testValidity(e)}
             />
           </EachInputField>
         </InputAwsWrapper>
@@ -372,7 +385,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="amiId"
-              onChange={(e) => onChange(e)}
+              onChange={(e) => testValidity(e)}
             />
           </EachInputField>
           <EachInputField>
@@ -383,7 +396,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="profileArn"
-              onChange={(e) => onChange(e)}
+              onChange={(e) => testArnValidity(e)}
             />
           </EachInputField>
         </InputAwsWrapper>
@@ -396,7 +409,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="iamRoleArn"
-              onChange={(e) => onChange(e)}
+              onChange={(e) => testArnValidity(e)}
             />
           </EachInputField>
           <EachInputField>
@@ -410,9 +423,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={isEC2}
               name="iamPrincipalArn"
-              onChange={(e) => onIamPrincipalChange(e.target.value)}
-              error={principalError}
-              helperText={principalError ? 'Please enter valid arn!' : ''}
+              onChange={(e) => testArnValidity(e.target.value)}
             />
           </EachInputField>
         </InputAwsWrapper>

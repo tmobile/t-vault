@@ -770,8 +770,8 @@ const OnBoardForm = (props) => {
           }
           cancelButton={
             <ButtonComponent
-              label="CLOSE"
-              color="secondary"
+              label="Close"
+              color="primary"
               onClick={() => handlePostOnboardModalClose()}
               width={isMobileScreen ? '100%' : ''}
             />

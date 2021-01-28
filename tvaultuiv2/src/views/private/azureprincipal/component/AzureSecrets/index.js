@@ -291,6 +291,7 @@ const AzureSecrets = (props) => {
       secretKeyId: secretsData.secretKeyId,
       servicePrincipalId: secretsData.secretKeyId,
       tenantId: secretsData.tenantId,
+      expiryDurationMs: secretsData.expiryDateEpoch,
     };
     apiService
       .rotateSecret(payload)
