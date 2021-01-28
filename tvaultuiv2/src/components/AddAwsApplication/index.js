@@ -98,6 +98,7 @@ const AddAwsApplication = (props) => {
   const [count, setCount] = useState(0);
   const [radioArray, setRadioArray] = useState([]);
   const [existingRole, setExistingRole] = useState(false);
+  const [iamRoleError, setIamRoleError] = useState(false);
 
   const initialState = {
     vpcId: '',
@@ -119,10 +120,12 @@ const AddAwsApplication = (props) => {
   const onChange = (e) => {
     dispatch({ field: e.target.name, value: e.target.value });
   };
+
   const clearData = () => {
     Object.keys(state).map((item) => {
       return dispatch({ field: item, value: '' });
     });
+    setIamRoleError(false);
   };
 
   const {
@@ -148,10 +151,10 @@ const AddAwsApplication = (props) => {
 
   const checkValidArn = (text) => {
     if (text) {
-      const res = /^arn:aws:\S+::\d{12}/;
+      const res = /^arn:aws:\S+::\d{7}/;
       return res.test(text);
     }
-    return null;
+    return false;
   };
 
   useEffect(() => {
@@ -162,7 +165,12 @@ const AddAwsApplication = (props) => {
         } else {
           setDisabledSave(false);
         }
-      } else if (roleName?.length < 3 || count > 6 || accountId.length < 12) {
+      } else if (
+        roleName?.length < 3 ||
+        count > 6 ||
+        (accountId && accountId.length < 12) ||
+        (iamRoleArn && iamRoleError)
+      ) {
         setDisabledSave(true);
       } else {
         setDisabledSave(false);
@@ -181,6 +189,8 @@ const AddAwsApplication = (props) => {
     principalError,
     count,
     accountId,
+    iamRoleError,
+    iamRoleArn,
   ]);
 
   const handleAwsRadioChange = (event) => {
@@ -240,6 +250,15 @@ const AddAwsApplication = (props) => {
     }
   };
 
+  const onIamRoleArnChange = (e) => {
+    onChange(e);
+    if (!checkValidArn(e?.target?.value)) {
+      setIamRoleError(true);
+    } else {
+      setIamRoleError(false);
+    }
+  };
+
   useEffect(() => {
     if (isIamAzureSvcAccount) {
       setRadioArray(['read', 'rotate', 'deny']);
@@ -258,6 +277,25 @@ const AddAwsApplication = (props) => {
       onChange(event);
     }
   };
+
+  const testValidity = (event) => {
+    const re = /^[0-9a-zA-Z-]+$/;
+    if (event?.target?.value === '' || re.test(event?.target?.value)) {
+      if (event.target.name !== 'roleName') {
+        onChange(event);
+      } else {
+        setRoleName(event.target.value);
+      }
+    }
+  };
+
+  const testInstanceProfileArn = (event) => {
+    const re = /^[0-9a-zA-Z-_/]+$/;
+    if (event?.target?.value === '' || re.test(event?.target?.value)) {
+      onChange(event);
+    }
+  };
+
   return (
     <ComponentError>
       <ContainerWrapper>
@@ -309,7 +347,7 @@ const AddAwsApplication = (props) => {
           placeholder="Role name- Enter min 3 charactes"
           fullWidth
           name="roleName"
-          onChange={(e) => setRoleName(e.target.value)}
+          onChange={(e) => testValidity(e)}
           error={existingRole}
           helperText={existingRole ? 'Permission Alerady Exists' : ''}
         />
@@ -335,7 +373,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="region"
-              onChange={(e) => onChange(e)}
+              onChange={(e) => testValidity(e)}
             />
           </EachInputField>
         </InputAwsWrapper>
@@ -348,7 +386,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="vpcId"
-              onChange={(e) => onChange(e)}
+              onChange={(e) => testValidity(e)}
             />
           </EachInputField>
           <EachInputField>
@@ -359,7 +397,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="subnetId"
-              onChange={(e) => onChange(e)}
+              onChange={(e) => testValidity(e)}
             />
           </EachInputField>
         </InputAwsWrapper>
@@ -372,7 +410,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="amiId"
-              onChange={(e) => onChange(e)}
+              onChange={(e) => testValidity(e)}
             />
           </EachInputField>
           <EachInputField>
@@ -383,7 +421,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="profileArn"
-              onChange={(e) => onChange(e)}
+              onChange={(e) => testInstanceProfileArn(e)}
             />
           </EachInputField>
         </InputAwsWrapper>
@@ -396,7 +434,9 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={!isEC2}
               name="iamRoleArn"
-              onChange={(e) => onChange(e)}
+              onChange={(e) => onIamRoleArnChange(e)}
+              error={iamRoleError}
+              helperText={iamRoleError ? 'Please enter valid arn!' : ''}
             />
           </EachInputField>
           <EachInputField>

@@ -267,7 +267,7 @@ const IamServiceAccountSecrets = (props) => {
         }
       })
       .catch((err) => {
-        setResponse({});
+        setResponse({ status: 'success' });
         setResponseType(-1);
         if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setToastMessage(err?.response?.data?.errors[0]);
@@ -355,6 +355,7 @@ const IamServiceAccountSecrets = (props) => {
     } else {
       setSecretsData({});
     }
+    setShowSecret(false);
   }, [accountSecretData, onViewSecretDetails]);
 
   return (
