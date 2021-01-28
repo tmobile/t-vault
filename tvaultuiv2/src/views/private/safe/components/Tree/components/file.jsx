@@ -12,8 +12,8 @@ import {
   IconEdit,
 } from '../../../../../../assets/SvgIcons';
 import {
-  TitleThree,
   BackgroundColor,
+  TitleOne,
 } from '../../../../../../styles/GlobalStyles';
 import PopperElement from '../../Popper';
 import SnackbarComponent from '../../../../../../components/Snackbar';
@@ -150,7 +150,7 @@ const File = (props) => {
             <IconWrap>
               <IconLock />
             </IconWrap>
-            <TitleThree>{secret && Object.keys(secret)[0]}</TitleThree>
+            <TitleOne>{secret && Object.keys(secret)[0]}</TitleOne>
           </LabelWrap>
           <SecretWrap type="password" viewSecret={viewSecretValue}>
             {secret && Object.values(secret)[0]}
