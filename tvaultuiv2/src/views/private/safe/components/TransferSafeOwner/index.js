@@ -42,10 +42,10 @@ const LeftIcon = styled.img`
 
 const InputFieldLabelWrapper = styled.div`
   margin: 2rem 0 3rem 0;
-  position: ${(props) => (props.postion ? 'relative' : '')};
+  position: ${(props) => (props?.postion ? 'relative' : '')};
   .MuiSelect-icon {
     top: auto;
-    color: ${(props) => props.theme.customColor.primary.color};
+    color: ${(props) => props?.theme?.customColor?.primary?.color};
   }
 `;
 
@@ -86,7 +86,7 @@ const EachValueWrap = styled.div`
   }
 `;
 const Label = styled.p`
-  color: ${(props) => props.theme.customColor.label.color};
+  color: ${(props) => props?.theme?.customColor?.label?.color};
   margin-right: 0.5rem !important;
 `;
 
@@ -242,7 +242,7 @@ const TransferSafeOwner = (props) => {
           <RequiredCircle margin="0.5rem" />
         </InputLabel>
         <TypeAheadComponent
-          options={options.map(
+          options={options?.map(
             (item) =>
               `${item?.userEmail?.toLowerCase()}, ${getName(
                 item?.displayName?.toLowerCase()

@@ -162,7 +162,7 @@ export const InstructionText = styled.p`
 `;
 
 export const GlobalModalWrapper = styled.section`
-  background-color: ${(props) => props.theme.palette.background.modal};
+  background-color: ${(props) => props?.theme?.palette?.background?.modal};
   padding: 5.5rem 6rem 6rem 6rem;
   border: none;
   outline: none;
