@@ -11,6 +11,7 @@ const FolderWrap = styled('div')`
   position: relative;
   display: flex;
   width: 100%;
+  height: 4rem;
   text-decoration: none;
   align-items: center;
   justify-content: space-between;
