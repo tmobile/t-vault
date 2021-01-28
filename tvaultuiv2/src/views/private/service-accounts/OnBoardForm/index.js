@@ -520,7 +520,7 @@ const OnBoardForm = (props) => {
    * to copy the service account password to clipboard
    */
   const copyPassword = () => {
-    setStatus({ status: 'success', message: 'Password copied to clip-board' });
+    setStatus({ status: 'success', message: 'Password copied to clipboard' });
   };
   const onServiceAccountSelected = (e, val) => {
     const svcObj = serviceAccountsList.find((item) => item.userId === val);
