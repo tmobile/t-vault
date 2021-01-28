@@ -26,6 +26,7 @@ import { exportCSVFile } from '../../../../../services/helper-function';
 import NamedButton from '../../../../../components/NamedButton';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import { useStateValue } from '../../../../../contexts/globalState';
+import lock from '../../../../../assets/lock-magenta.svg';
 
 // styled components goes here
 const TabPanelWrap = styled.div`
@@ -363,10 +364,10 @@ const AppRoleDetails = (props) => {
           </Tabs>
           {appRoleDetail.name && (
             <NamedButton
-              label="+Create SecretId"
+              label="Add Secret"
               onClick={createSecretId}
               customStyle={customBtnStyles}
-              // iconSrc={addFolderPlus}
+              iconSrc={lock}
             />
           )}
         </AppBar>
