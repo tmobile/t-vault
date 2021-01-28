@@ -249,21 +249,45 @@ public class SafeUtils {
 	}
 
 	/**
+	 * To get activity folder path from a safe folder path
+	 * @param path
+	 * @return
+	 */
+	private String getActivityFolderPath(String path) {
+		String versionFolderPath = "";
+		if (ControllerUtil.isPathValid(path)) {
+			String actualFolderName = path.substring(path.lastIndexOf('/') + 1);
+			String versionFolderName = TVaultConstants.VERSION_FOLDER_PREFIX + actualFolderName;
+			versionFolderPath = path.substring(0, path.lastIndexOf('/')) + "/" + versionFolderName;
+		}
+		return versionFolderPath;
+	}
+
+	/**
 	 * To create version folder on a folder creation in safe
 	 * @param token
 	 * @param path
 	 * @param userDetails
-	 * @param isPartOfFolderCreation
+	 * @param action
 	 * @return
 	 */
-	public Response createVersionFolder(String token, String path, UserDetails userDetails, boolean isPartOfFolderCreation, List<String> modifiedKeys, List<String> deletedKeys) {
+	public Response updateActivityInfo(String token, String path, UserDetails userDetails, String action, List<String> modifiedKeys, List<String> deletedKeys) {
 		if (ControllerUtil.isPathValid(path)) {
-			String actualFolderName = path.substring(path.lastIndexOf('/') + 1);
-			String versionFolderName = TVaultConstants.VERSION_FOLDER_PREFIX + actualFolderName;
-			String versionFolderPath = path.substring(0, path.lastIndexOf('/')) + "/" + versionFolderName;
+			String versionFolderPath = getActivityFolderPath(path);
+			FolderVersionData currentVersionData = null;
+
+			if (TVaultConstants.DELETE_FOLDER_ACTION.equals(action)) {
+				Response response = new Response();
+				ControllerUtil.recursivedeletesdb("{\"path\":\""+versionFolderPath+"\"}",token,response);
+				String[] paths = path.split("/");
+				if (paths.length > 2) {
+					// is inner folder, update activity info in parent
+					path = path.substring(0, path.lastIndexOf('/'));
+					versionFolderPath = getActivityFolderPath(path);
+				}
+			}
 
 			Response readVersionFolderResponse = reqProcessor.process("/read","{\"path\":\""+versionFolderPath+"\"}",token);
-			FolderVersionData currentVersionData = null;
 			if (readVersionFolderResponse.getHttpstatus().equals(HttpStatus.OK)) {
 				ObjectMapper objectMapper = new ObjectMapper();
 				try {
@@ -271,21 +295,21 @@ public class SafeUtils {
 				} catch (IOException e) {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, "createVersionFolder").
+							put(LogMessage.ACTION, "updateActivityInfo").
 							put(LogMessage.MESSAGE, String.format("Failed to extract Folder version info for [%s}", path)).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
 				}
 			}
 
-			FolderVersion folderVersionData = getFolderVersionData(path, userDetails, isPartOfFolderCreation, currentVersionData!=null?currentVersionData.getData():null, modifiedKeys, deletedKeys);
+			FolderVersion folderVersionData = getFolderVersionData(path, userDetails, action, currentVersionData!=null?currentVersionData.getData():null, modifiedKeys, deletedKeys);
 
 			String versionJsonStr ="{\"path\":\""+versionFolderPath +"\",\"data\":"+ JSONUtil.getJSON(folderVersionData)+"}";
 			if (!readVersionFolderResponse.getHttpstatus().equals(HttpStatus.OK)) {
 				// No version folder exists. Creating one
 				log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, "createVersionFolder").
+						put(LogMessage.ACTION, "updateActivityInfo").
 						put(LogMessage.MESSAGE, String.format("Creating version folder for [%s}", path)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -295,7 +319,7 @@ public class SafeUtils {
 				// Version folder already exists. Writing to it.
 				log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, "createVersionFolder").
+						put(LogMessage.ACTION, "updateActivityInfo").
 						put(LogMessage.MESSAGE, String.format("Version folder exists for [%s}. Adding details to existing version folder", path)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -312,10 +336,10 @@ public class SafeUtils {
 	 * To get folder version information
 	 * @param path
 	 * @param userDetails
-	 * @param isPartOfFolderCreation
+	 * @param action
 	 * @return
 	 */
-	private FolderVersion getFolderVersionData(String path, UserDetails userDetails, boolean isPartOfFolderCreation, FolderVersion currentFolderVersionData, List<String> modifiedKeys, List<String> deletedKeys) {
+	private FolderVersion getFolderVersionData(String path, UserDetails userDetails, String action, FolderVersion currentFolderVersionData, List<String> modifiedKeys, List<String> deletedKeys) {
 		Long modifiedAt = new Date().getTime();
 		String modifiedBy = commonUtils.getModifiedByInfo(userDetails);
 
@@ -324,8 +348,8 @@ public class SafeUtils {
 		folderVersionData.setFolderModifiedAt(modifiedAt);
 		folderVersionData.setFolderModifiedBy(modifiedBy);
 
-		if (!isPartOfFolderCreation) {
-			// if part of folder creation, there might exist version info for this folder
+		if (!action.equals("CREATE")) {
+			// if not part of folder creation, there might exist version info for this folder
 			List<SecretVersionDetails> newSecretVersionDetails = new ArrayList<>();
 			newSecretVersionDetails.add(new SecretVersionDetails(modifiedAt, modifiedBy));
 
