@@ -24,7 +24,7 @@ import {
 import PopperElement from '../../Popper';
 
 const FolderContainer = styled.div`
-  padding-left: 2rem;
+  padding-left: 0rem;
 `;
 
 const StyledFolder = styled.div`

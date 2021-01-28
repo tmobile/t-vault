@@ -138,7 +138,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
     overflowY: 'auto',
     padding: '10rem 0',
-    [theme.breakpoints.down('xs')]: {
+    [theme?.breakpoints?.down('xs')]: {
       alignItems: 'unset',
       justifyContent: 'unset',
       padding: '0',
@@ -266,8 +266,8 @@ const CreateModal = (props) => {
 
   useEffect(() => {
     if (
-      history.location.pathname === '/safes/edit-safe' &&
-      history.location.state
+      history?.location?.pathname === '/safes/edit-safe' &&
+      history?.location?.state
     ) {
       setEditSafe(true);
       setResponseType(0);
@@ -509,7 +509,7 @@ const CreateModal = (props) => {
       <Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
-        className={classes.modal}
+        className={classes?.modal}
         open={open}
         onClose={() => handleClose()}
         closeAfterTransition

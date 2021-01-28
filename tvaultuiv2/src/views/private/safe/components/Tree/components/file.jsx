@@ -32,7 +32,7 @@ const StyledFile = styled.div`
   }
 `;
 const FileWrap = styled.div`
-  padding-left: 2rem;
+  padding-left: 0rem;
 `;
 const LabelWrap = styled('div')`
   display: flex;
@@ -46,6 +46,8 @@ const IconWrap = styled('div')`
 const SecretWrap = styled('div')`
   -webkit-text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
   text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
+  font-size: 1.8rem;
+  text-align: left;
   color: #5a637a;
 `;
 const FolderIconWrap = styled('div')`
