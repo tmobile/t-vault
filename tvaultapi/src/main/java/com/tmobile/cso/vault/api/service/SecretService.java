@@ -30,7 +30,6 @@ import com.tmobile.cso.vault.api.utils.SafeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -142,34 +141,7 @@ public class  SecretService {
 								build()));
 					}
 				// write version information to version folder
-				Response updateVersionInfoResponse = saveVersionInfo(token, path, userDetails, secret, readResponse);
-				if(updateVersionInfoResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, "Write Secret").
-							put(LogMessage.MESSAGE, String.format("Version info updated for [%s]", path)).
-							put(LogMessage.STATUS, response.getHttpstatus().toString()).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-							build()));
-				}
-				else if (updateVersionInfoResponse.getHttpstatus().equals(HttpStatus.UNPROCESSABLE_ENTITY)) {
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, "Write Secret").
-							put(LogMessage.MESSAGE, String.format("No changes made to the secrets in [%s]", path)).
-							put(LogMessage.STATUS, response.getHttpstatus().toString()).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-							build()));
-				}
-				else {
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, "Write Secret").
-							put(LogMessage.MESSAGE, String.format("Failed to update version info for [%s]", path)).
-							put(LogMessage.STATUS, response.getHttpstatus().toString()).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-							build()));
-				}
+				saveVersionInfo(token, path, userDetails, secret, readResponse);
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
 			}
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -241,34 +213,7 @@ public class  SecretService {
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
 				// write version information to version folder
-				Response updateVersionInfoResponse = saveVersionInfo(token, path, userDetails, secret, readResponse);
-				if(updateVersionInfoResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, "Write Secret").
-							put(LogMessage.MESSAGE, String.format("Version info updated for [%s]", path)).
-							put(LogMessage.STATUS, response.getHttpstatus().toString()).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-							build()));
-				}
-				else if (updateVersionInfoResponse.getHttpstatus().equals(HttpStatus.UNPROCESSABLE_ENTITY)) {
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, "Write Secret").
-							put(LogMessage.MESSAGE, String.format("No changes made to the secrets in [%s]", path)).
-							put(LogMessage.STATUS, response.getHttpstatus().toString()).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-							build()));
-				}
-				else {
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, "Write Secret").
-							put(LogMessage.MESSAGE, String.format("Failed to update version infofor [%s]", path)).
-							put(LogMessage.STATUS, response.getHttpstatus().toString()).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-							build()));
-				}
+				saveVersionInfo(token, path, userDetails, secret, readResponse);
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
 			}
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -299,12 +244,15 @@ public class  SecretService {
 	 * @param userDetails
 	 * @return
 	 */
-	private Response saveVersionInfo(String token, String path, UserDetails userDetails, Secret secret, Response readResponse) {
+	private void saveVersionInfo(String token, String path, UserDetails userDetails, Secret secret, Response readResponse) {
 		List<String> modifiedKeys = getChangedSecretKeys(secret, readResponse);
 		List<String> deletedKeys = getDeletedSecretKeys(secret, readResponse);
-		Response versionCreationResponse = new Response();
+		if (!HttpStatus.OK.equals(readResponse.getHttpstatus())) {
+			modifiedKeys = getNewSecretKeys(secret);
+		}
+		Response versionCreationResponse;
 		if (modifiedKeys.size() >0 || deletedKeys.size() >0) {
-			versionCreationResponse = safeUtils.createVersionFolder(token, path, userDetails, false, modifiedKeys, deletedKeys);
+			versionCreationResponse = safeUtils.updateActivityInfo(token, path, userDetails, TVaultConstants.UPDATE_ACTION, modifiedKeys, deletedKeys);
 			if (HttpStatus.NO_CONTENT.equals(versionCreationResponse.getHttpstatus())) {
 				log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -325,10 +273,29 @@ public class  SecretService {
 			}
 		}
 		else {
-			versionCreationResponse.setHttpstatus(HttpStatus.UNPROCESSABLE_ENTITY);
-			versionCreationResponse.setResponse("{\"errors\":[\"No changes made to secrets\"]}");
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "Write Secret").
+					put(LogMessage.MESSAGE, String.format("No changes made to the secrets in [%s]", path)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
 		}
-		return versionCreationResponse;
+	}
+
+	/**
+	 * To get the list of new secrets in the write secret request
+	 * @param secret
+	 * @return
+			 */
+	private List<String> getNewSecretKeys(Secret secret) {
+		List<String> newSecretKeys = new ArrayList<>();
+		if (secret.getDetails() != null && secret.getDetails().size() > 0) {
+			for (Map.Entry<String, String> entry : secret.getDetails().entrySet()) {
+				String key = entry.getKey();
+				newSecretKeys.add(key);
+			}
+		}
+		return newSecretKeys;
 	}
 
 	/**

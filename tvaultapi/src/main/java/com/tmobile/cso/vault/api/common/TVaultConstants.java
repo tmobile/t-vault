@@ -180,4 +180,10 @@ public class TVaultConstants {
     public static final String LAST_PASSWORD = "last_password";
     public static final String CURRENT_PASSWORD = "current_password";
     public static final String USERNAME = "username";
+    public static final String CREATE_ACTION = "create";
+    public static final String UPDATE_ACTION = "update";
+    public static final String DELETE_FOLDER_ACTION = "delete";
+
+
+
 }
