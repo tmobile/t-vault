@@ -25,6 +25,7 @@ const TreeRecursive = (props) => {
     value,
     saveSecretsToFolder,
     saveFolder,
+    onFolderIsClosed,
     handleCancelClick,
     setCreateSecretBox,
     setIsAddInput,
@@ -41,6 +42,7 @@ const TreeRecursive = (props) => {
   } = props;
   const [currentNode, setCurrentNode] = useState('');
   const [secretEditData, setsecretEditData] = useState({});
+  const [onFolderClosed, setOnFolderClosed] = useState(false);
   // loop through the data
   useEffect(() => {
     setsecretEditData(secretprefilledData);
@@ -81,6 +83,8 @@ const TreeRecursive = (props) => {
           folderInfo={item}
           setInputType={setInputType}
           value={value}
+          onFolderClosed={onFolderIsClosed}
+          setOnFolderClosed={setOnFolderClosed}
           setIsAddInput={setIsAddInput}
           getChildNodes={getChildrenData}
           setCurrentNode={setCurrentNode}
@@ -127,6 +131,8 @@ const TreeRecursive = (props) => {
               data={item.children}
               saveSecretsToFolder={saveSecretsToFolder}
               setCreateSecretBox={setCreateSecretBox}
+              value={value}
+              onFolderIsClosed={onFolderClosed}
               handleCancelClick={handleCancelClick}
               saveFolder={saveFolder}
               isAddInput={isAddInput}

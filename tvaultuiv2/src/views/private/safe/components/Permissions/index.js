@@ -50,7 +50,9 @@ const Permissions = (props) => {
     },
     3: { label: 'app roles', addBtnCallback: () => setNewAppRole(true) },
   };
-
+  useEffect(() => {
+    setValue(0);
+  }, [safeDetail]);
   useEffect(() => {
     if (safeData?.response && Object.keys(safeData.response).length !== 0) {
       setCount(0);
