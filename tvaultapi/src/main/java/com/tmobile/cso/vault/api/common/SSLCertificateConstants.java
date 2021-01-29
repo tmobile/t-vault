@@ -73,9 +73,8 @@ public final class SSLCertificateConstants {
     public static final String INVALID_INPUT_MSG="Invalid user inputs";
     public static final String EXTERNAL= "external";
     public static final String VALIDATE_CERTIFICATE_DETAILS_MSG = "Validate Certificate Details";
-    public static final String  VALIDATION_RESULT_LABEL="validationResult";
+    public static final String VALIDATION_RESULT_LABEL="validationResult";
     public static final String OWNER_PERMISSION_EXT_CERTIFICATE = "o_externalcerts_";
-
     public static final String CERT_CREATION_SUBJECT = "Certificate Created Successfully";
     public static final String EX_CERT_CREATION_SUBJECT = "Certificate Create Request Received";
     public static final String EX_CERT_RENEW_SUBJECT = "Certificate Renew Request Received";
@@ -136,4 +135,9 @@ public final class SSLCertificateConstants {
     public static final String CERTIFICATE_NAME="certificateName";
     public static final String GET_PENDING_APPROVAL_CERT_PROCESS="getPendApprovalCertsAndProcess";
     public static final String STATUS_WAITING = "waiting";
+    public static final String VALIDATE_INPUT_DATA = "validateInputData";
+    public static final String GET_VALID_APPLICATION_NAME = "getValidApplicationName";
+    public static final String POPULATE_SSL_CERTIFICATE_REQUEST = "populateSSLCertificateRequest";
+    public static final String GET_CERT_DETAILS_BY_METADATA_PATH = "getCertificateDetailsByMatadataPath";
+    public static final String UPDATE_SSL_CERTIFICATE = "updateSSLCertificate";
 }
