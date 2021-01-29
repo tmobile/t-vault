@@ -108,6 +108,8 @@ const Folder = (props) => {
     folderInfo,
     children,
     value,
+    onFolderClosed,
+    setOnFolderClosed,
     setInputType,
     setIsAddInput,
     getChildNodes,
@@ -124,8 +126,15 @@ const Folder = (props) => {
     e.preventDefault();
     setIsOpen(!isOpen);
     setCurrentNode(id);
+    setOnFolderClosed(!isOpen);
     if (!isOpen) getChildNodes(id);
   };
+
+  useEffect(() => {
+    if (onFolderClosed) {
+      setIsOpen(false);
+    }
+  }, [onFolderClosed]);
 
   useEffect(() => setIsOpen(false), [value]);
 
@@ -240,6 +249,8 @@ Folder.propTypes = {
   onDeleteTreeItem: PropTypes.func,
   value: PropTypes.number.isRequired,
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
+  onFolderClosed: PropTypes.bool,
+  setOnFolderClosed: PropTypes.func.isRequired,
 };
 Folder.defaultProps = {
   folderInfo: {},
@@ -250,6 +261,7 @@ Folder.defaultProps = {
   onDeleteTreeItem: () => {},
   setCurrentNode: () => {},
   id: '',
+  onFolderClosed: true,
 };
 
 export default Folder;

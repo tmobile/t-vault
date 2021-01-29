@@ -193,6 +193,7 @@ const AddUser = (props) => {
   const onSearchChange = (e) => {
     if (e && e?.target?.value !== undefined) {
       setSearchValue(e?.target?.value);
+      setExistingUser(false);
       setIsValidUserName(true);
       if (e?.target?.value !== '' && e?.target?.value?.length > 2) {
         callSearchApi(e.target.value);
