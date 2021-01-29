@@ -80,6 +80,7 @@ public class SDBControllerV2 {
 	 * @param path
 	 * @return
 	 */
+	@ApiOperation(value = "${SafesController.createFolder.value}", notes = "${SafesController.createFolder.notes}")
 	@PostMapping(value="/v2/sdb/folder",produces="application/json")
 	public ResponseEntity<String> createfolder(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		return safesService.createfolder(token, path);		
@@ -91,6 +92,7 @@ public class SDBControllerV2 {
 	 * @param path
 	 * @return
 	 */
+	@ApiOperation(value = "${SafesController.deleteFolder.value}", notes = "${SafesController.deleteFolder.notes}")
 	@DeleteMapping(value="/v2/sdb/delete",produces="application/json")
 	public ResponseEntity<String> deleteFolder(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
