@@ -113,7 +113,7 @@ public class  AWSAuthService {
 					put(LogMessage.MESSAGE, String.format("Trying to create AWS Role [%s]", awsLoginRole.getRole())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-			throw new TVaultValidationException("Invalid inputs for the given AWS login type.policy is not an input parameter");
+			throw new TVaultValidationException("Policies are not permitted during safe creation");
 		}
 		if (!ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)) {
 			throw new TVaultValidationException("Invalid inputs for the given AWS login type");
