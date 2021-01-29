@@ -129,7 +129,7 @@ const ViewIamSvcAccountDetails = (props) => {
     isMobileScreen,
     isRotateSecret,
     isActivateIamSvcAcc,
-    setViewDetails,
+    handleCloseModal,
     viewAccountData,
   } = props;
   const onRotateClicked = () => {
@@ -140,8 +140,8 @@ const ViewIamSvcAccountDetails = (props) => {
     isActivateIamSvcAcc(true);
   };
 
-  const onCancelViewDetails = (val) => {
-    setViewDetails(val);
+  const onCancelViewDetails = () => {
+    handleCloseModal();
   };
 
   return (
@@ -270,7 +270,7 @@ ViewIamSvcAccountDetails.propTypes = {
   isMobileScreen: PropTypes.bool,
   isRotateSecret: PropTypes.func,
   isActivateIamSvcAcc: PropTypes.func,
-  setViewDetails: PropTypes.func,
+  handleCloseModal: PropTypes.func,
   viewAccountData: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
@@ -279,7 +279,7 @@ ViewIamSvcAccountDetails.defaultProps = {
   isMobileScreen: false,
   isRotateSecret: () => {},
   isActivateIamSvcAcc: () => {},
-  setViewDetails: () => {},
+  handleCloseModal: () => {},
 };
 
 export default ViewIamSvcAccountDetails;

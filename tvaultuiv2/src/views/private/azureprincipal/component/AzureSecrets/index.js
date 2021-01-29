@@ -192,6 +192,7 @@ const AzureSecrets = (props) => {
   const {
     azureDetail,
     azureSecretData,
+    value,
     azureMetaData,
     secretResponse,
     refresh,
@@ -236,6 +237,9 @@ const AzureSecrets = (props) => {
   }, [azureSecretData]);
 
   useEffect(() => {
+    setShowSecret(false);
+  }, [value]);
+  useEffect(() => {
     if (
       azureSecretData &&
       Object.keys(azureSecretData).length > 0 &&
@@ -256,6 +260,7 @@ const AzureSecrets = (props) => {
     if (Object.keys(azureDetail).length === 0) {
       setSecretsData({});
     }
+    setShowSecret(false);
   }, [secretResponse, azureDetail]);
 
   /**
@@ -514,11 +519,13 @@ AzureSecrets.propTypes = {
   azureMetaData: PropTypes.objectOf(PropTypes.any),
   secretResponse: PropTypes.objectOf(PropTypes.any).isRequired,
   refresh: PropTypes.func.isRequired,
+  value: PropTypes.number,
 };
 
 AzureSecrets.defaultProps = {
   azureSecretData: {},
   azureMetaData: {},
+  value: 0,
 };
 
 export default AzureSecrets;

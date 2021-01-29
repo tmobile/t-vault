@@ -104,6 +104,7 @@ const ServiceAccountSecrets = (props) => {
   const {
     accountDetail,
     accountSecretError,
+    value,
     accountSecretData,
     secretStatus,
   } = props;
@@ -137,15 +138,16 @@ const ServiceAccountSecrets = (props) => {
     setShowSecret(false);
   }, [accountSecretData]);
 
+  useEffect(() => {
+    setShowSecret(false);
+  }, [value]);
+
   /**
    * @function onViewSecretsCliked
    * @description function to hide and show secret.
    */
   const onViewSecretsCliked = () => {
     setShowSecret(!showSecret);
-    if (!showSecret) {
-      setTimeout(() => setShowSecret(false), 5000);
-    }
   };
 
   /**
@@ -323,12 +325,14 @@ ServiceAccountSecrets.propTypes = {
   accountSecretError: PropTypes.string,
   accountSecretData: PropTypes.objectOf(PropTypes.any),
   secretStatus: PropTypes.string,
+  value: PropTypes.number,
 };
 
 ServiceAccountSecrets.defaultProps = {
   accountSecretError: 'Something went wrong!',
   accountSecretData: {},
   secretStatus: 'loading',
+  value: 0,
 };
 
 export default ServiceAccountSecrets;

@@ -63,13 +63,12 @@ const ViewIamServiceAccount = (props) => {
     refresh,
     iamServiceAccountDetails,
     setViewDetails,
-    getSecrets,
-    getSvcAccDetails,
     viewAccountData,
   } = props;
   const classes = useStyles();
   const [open] = useState(true);
   const [status, setStatus] = useState(null);
+  const [actionPerformed, setActionPerformed] = useState(false);
   const [openModal, setOpenModal] = useState({
     status: '',
     message: '',
@@ -81,6 +80,13 @@ const ViewIamServiceAccount = (props) => {
   // toast close handler
   const onToastClose = () => {
     setStatus({});
+  };
+
+  const handleCloseModal = async (res) => {
+    setViewDetails(false);
+    if (res) {
+      await refresh();
+    }
   };
 
   /**
@@ -131,19 +137,19 @@ const ViewIamServiceAccount = (props) => {
         iamServiceAccountDetails?.awsAccountId
       )
       .then(async (res) => {
-        setStatus({ status: 'success', message: res?.data?.messages[0] });
-
-        await getSecrets();
-
-        await refresh();
-        if (iamServiceAccountDetails) {
-          await getSvcAccDetails(
-            null,
-            `${iamServiceAccountDetails?.awsAccountId}_${iamServiceAccountDetails?.userName}`
-          );
+        setActionPerformed(true);
+        setOpenModal({ status: '' });
+        if (res?.data?.messages && res?.data?.messages[0]) {
+          setStatus({ status: 'success', message: res.data.messages[0] });
+        } else {
+          setStatus({ status: 'success', message: 'Activation Successful!' });
         }
+        setTimeout(() => {
+          handleCloseModal(true);
+        }, 1000);
       })
       .catch((err) => {
+        setActionPerformed(false);
         if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setStatus({
             status: 'failed',
@@ -173,14 +179,17 @@ const ViewIamServiceAccount = (props) => {
     setOpenModal({});
     apiService
       .rotateIamServiceAccountPassword(payload)
-      .then(async (res) => {
-        if (res?.data) {
+      .then((res) => {
+        setActionPerformed(true);
+        setOpenModal({ status: '' });
+        if (res?.data?.messages && res?.data?.messages[0]) {
           setStatus({ status: 'success', message: res.data.messages[0] });
+        } else {
+          setStatus({ status: 'success', message: 'Rotation Successful!' });
         }
-        setViewDetails(false);
-        await refresh();
       })
       .catch((err) => {
+        setActionPerformed(false);
         if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setStatus({
             status: 'failed',
@@ -232,7 +241,7 @@ const ViewIamServiceAccount = (props) => {
               aria-labelledby="transition-modal-title"
               aria-describedby="transition-modal-description"
               className={classes.modal}
-              onClose={() => setViewDetails(false)}
+              onClose={() => handleCloseModal(actionPerformed)}
               open={open}
               closeAfterTransition
               BackdropComponent={Backdrop}
@@ -251,7 +260,7 @@ const ViewIamServiceAccount = (props) => {
                     isMobileScreen={isMobileScreen}
                     isRotateSecret={rotateSecret}
                     isActivateIamSvcAcc={isActivateIamSvcAcc}
-                    setViewDetails={setViewDetails}
+                    handleCloseModal={() => handleCloseModal(actionPerformed)}
                     viewAccountData={viewAccountData}
                   />
                 )}
@@ -294,8 +303,6 @@ ViewIamServiceAccount.propTypes = {
   refresh: PropTypes.func.isRequired,
   setViewDetails: PropTypes.func.isRequired,
   iamServiceAccountDetails: PropTypes.objectOf(PropTypes.any),
-  getSecrets: PropTypes.func.isRequired,
-  getSvcAccDetails: PropTypes.func.isRequired,
   viewAccountData: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 

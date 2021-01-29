@@ -210,6 +210,7 @@ const AccountSelectionTabs = (props) => {
             <ServiceAccountSecrets
               accountDetail={accountDetail}
               accountMetaData={accountMetaData}
+              value={value}
               accountSecretData={accountSecretData}
               accountSecretError={accountSecretError}
               secretStatus={secretResStatus.status}
