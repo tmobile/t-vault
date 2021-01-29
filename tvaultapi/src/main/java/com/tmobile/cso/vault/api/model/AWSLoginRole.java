@@ -134,7 +134,7 @@ public class AWSLoginRole implements Serializable {
 	/**
 	 * @return the policies
 	 */
-	@ApiModelProperty(example="\"[prod, dev\"]", position=10)
+	@ApiModelProperty(hidden=true, position=10)
 	public String getPolicies() {
 		return policies;
 	}

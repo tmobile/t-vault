@@ -53,7 +53,7 @@ public class VaultAuthControllerV2 {
 	 * @returnC
 	 */
 	@PostMapping(value="/v2/auth/tvault/login",produces="application/json")
-	@ApiOperation(value = "${VaultAuthControllerV2.login.value}", notes = "${VaultAuthControllerV2.login.notes}")
+	@ApiOperation(value = "${VaultAuthControllerV2.login.value}", notes = "${VaultAuthControllerV2.login.notes}", hidden = true)
 	public ResponseEntity<String> login(@RequestBody UserLogin user){
 		return vaultAuthService.login(user);
 	}

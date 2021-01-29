@@ -35,6 +35,7 @@ import com.tmobile.cso.vault.api.service.SafesService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -55,7 +56,7 @@ public class SDBControllerV2 {
 	 * @param path
 	 * @return
 	 */
-	@ApiOperation(value = "${SafesController.getFolders.value}", notes = "${SafesController.getFolders.notes}")
+	@ApiOperation(value = "${SafesController.getFolders.value}", notes = "${SafesController.getFolders.notes}", hidden = true)
 	@GetMapping(value="/v2/sdb/folder",produces="application/json")
 	public ResponseEntity<String> getFolders(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		return safesService.getFolders(token, path);
@@ -90,6 +91,7 @@ public class SDBControllerV2 {
 	 * @param path
 	 * @return
 	 */
+	@ApiIgnore
 	@DeleteMapping(value="/v2/sdb/delete",produces="application/json")
 	public ResponseEntity<String> deleteFolder(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
@@ -112,7 +114,7 @@ public class SDBControllerV2 {
 	 * @param safe
 	 * @return
 	 */
-	@ApiOperation(value = "${SafesController.createSafe.value}", notes = "${SafesController.createSafe.notes}")
+	@ApiOperation(value = "${SafesController.createSafe.value}", notes = "${SafesController.createSafe.notes}", hidden = true)
 	@PostMapping(value="/v2/sdb", consumes="application/json",produces="application/json")
 	public ResponseEntity<String> createSafe(@RequestHeader(value="vault-token" ) String token, @RequestBody Safe safe){
 		return safesService.createSafe(token, safe);
@@ -124,7 +126,7 @@ public class SDBControllerV2 {
 	 * @param safe
 	 * @return
 	 */
-	@ApiOperation(value = "${SafesController.deleteSafe.value}", notes = "${SafesController.deleteSafe.notes}")
+	@ApiOperation(value = "${SafesController.deleteSafe.value}", notes = "${SafesController.deleteSafe.notes}", hidden = true)
 	@DeleteMapping(value="/v2/sdb",produces="application/json")
 	public ResponseEntity<String> deleteSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody Safe safe){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
@@ -136,7 +138,7 @@ public class SDBControllerV2 {
 	 * @param path
 	 * @return
 	 */
-	@ApiOperation(value = "${SafesController.getSafe.value}", notes = "${SafesController.getSafe.notes}")
+	@ApiOperation(value = "${SafesController.getSafe.value}", notes = "${SafesController.getSafe.notes}", hidden = true)
 	@GetMapping(value="/v2/sdb",produces="application/json")
 	public ResponseEntity<String> getSafe(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		return safesService.getSafe(token, path);
@@ -148,7 +150,7 @@ public class SDBControllerV2 {
 	 * @param safeUser
 	 * @return
 	 */
-	@ApiOperation(value = "${SafesController.addUserToSafe.value}", notes = "${SafesController.addUserToSafe.notes}")
+	@ApiOperation(value = "${SafesController.addUserToSafe.value}", notes = "${SafesController.addUserToSafe.notes}", hidden = true)
 	@PostMapping(value="/v2/sdb/user",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addUsertoSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
@@ -161,7 +163,7 @@ public class SDBControllerV2 {
 	 * @param safeUser
 	 * @return
 	 */
-	@ApiOperation(value = "${SafesController.removeUserFromSafe.value}", notes = "${SafesController.removeUserFromSafe.notes}")
+	@ApiOperation(value = "${SafesController.removeUserFromSafe.value}", notes = "${SafesController.removeUserFromSafe.notes}", hidden = true)
 	@DeleteMapping(value="/v2/sdb/user",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> deleteUserFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeUser safeUser){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
@@ -174,7 +176,7 @@ public class SDBControllerV2 {
 	 * @param safeGroup
 	 * @return
 	 */
-	@ApiOperation(value = "${SafesController.addGroupToSafe.value}", notes = "${SafesController.addGroupToSafe.notes}")
+	@ApiOperation(value = "${SafesController.addGroupToSafe.value}", notes = "${SafesController.addGroupToSafe.notes}", hidden = true)
 	@PostMapping(value="/v2/sdb/group",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addGrouptoSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeGroup safeGroup){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
@@ -186,7 +188,7 @@ public class SDBControllerV2 {
 	 * @param safeGroup
 	 * @return
 	 */
-	@ApiOperation(value = "${SafesController.deleteGroupFromSafe.value}", notes = "${SafesController.deleteGroupFromSafe.notes}")
+	@ApiOperation(value = "${SafesController.deleteGroupFromSafe.value}", notes = "${SafesController.deleteGroupFromSafe.notes}", hidden = true)
 	@DeleteMapping (value="/v2/sdb/group",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> deleteGroupFromSafe(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody SafeGroup safeGroup){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
@@ -198,7 +200,7 @@ public class SDBControllerV2 {
 	 * @param awsRole
 	 * @return
 	 */
-	@ApiOperation(value = "${SafesController.addAWSRoleToSafe.value}", notes = "${SafesController.addAWSRoleToSafe.notes}")
+	@ApiOperation(value = "${SafesController.addAWSRoleToSafe.value}", notes = "${SafesController.addAWSRoleToSafe.notes}", hidden = true)
 	@PostMapping (value="/v2/sdb/role",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> addAwsRoleToSafe(@RequestHeader(value="vault-token") String token, @RequestBody AWSRole awsRole){
 		return safesService.addAwsRoleToSafe(token, awsRole);
@@ -234,6 +236,7 @@ public class SDBControllerV2 {
 	 * @param path
 	 * @return
 	 */
+	@ApiIgnore
 	@PostMapping(value="/v2/sdb/createfolder",produces="application/json")
 	public ResponseEntity<String> createNestedfolder(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
@@ -247,6 +250,7 @@ public class SDBControllerV2 {
 	 * @param safeAppRoleAccess
 	 * @return
 	 */
+	@ApiIgnore
 	@PostMapping(value="/v2/sdb/approle",consumes="application/json",produces="application/json")
 	public ResponseEntity<String>associateApproletoSDB(@RequestHeader(value="vault-token") String token, @RequestBody SafeAppRoleAccess safeAppRoleAccess) {
 		return safesService.associateApproletoSDB(token, safeAppRoleAccess);

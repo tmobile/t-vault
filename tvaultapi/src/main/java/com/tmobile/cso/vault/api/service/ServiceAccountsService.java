@@ -120,6 +120,9 @@ public class  ServiceAccountsService {
     
     @Autowired
 	private OIDCUtil oidcUtil;
+    
+    @Autowired
+    private CommonUtils commonUtils;
 	/**
 	 * Gets the list of users from Directory Server based on UPN
 	 * @param UserPrincipalName
@@ -1473,12 +1476,9 @@ public class  ServiceAccountsService {
 							}
 
 							ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
-							if (userDetails.getEmail() != null) {
-								adServiceAccountResetDetails.setModifiedBy(userDetails.getEmail());
-							} else {
-								adServiceAccountResetDetails.setModifiedBy(userDetails.getUsername());
-							}
+							String modifiedBy = commonUtils.getModifiedByInfo(userDetails);
 							Long modifiedAt = new Date().getTime();
+							adServiceAccountResetDetails.setModifiedBy(modifiedBy);
 							adServiceAccountResetDetails.setModifiedAt(modifiedAt);
 							adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
 
@@ -2427,7 +2427,7 @@ public class  ServiceAccountsService {
 					put(LogMessage.MESSAGE, String.format ("Group [%s] is successfully removed from Service account [%s]", groupName, svcAccName)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-			return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"Message\":\"Group not available or deleted from AD, removed the group assignment and permissions \"}");
 		}else{
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try again \"]}");
 		}

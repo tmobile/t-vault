@@ -28,6 +28,7 @@
         scope: {
           index: '=',
           item: '=',
+          lastChanged: '=',
           parent: '=',
           loading: '=',
           write: '='
@@ -39,14 +40,19 @@
           vm.isSecret = vm.item.type === 'secret';
           if (!vm.isSecret) {
             vm.folderName = vm.item.id.split('/').pop();
+            vm.lastChangedDetails = vm.getLastChangeDetailsForFolder();
           }
+          else {
+            vm.lastChangedDetails = vm.getLastChangeDetailsForSecret();
+          }
+          console.log( vm.lastChangedDetails)
         },
         controller: 'folderContentsRowController as vm',
         bindToController: true
       }
     });
 
-  function folderContentsTableController($scope, CopyToClipboard, SafesManagement, Modal, UtilityService, Notifications, $rootScope, toastr, safesService, $timeout) {
+  function folderContentsTableController($scope, CopyToClipboard, SafesManagement, Modal, UtilityService, Notifications, $rootScope, toastr, safesService, $timeout, $state) {
     var vm = this;
     vm.anyRegex = /.|\s/g;
     vm.originalId = '';
@@ -58,7 +64,37 @@
     vm.deleteSecret = deleteSecret;
     vm.deleteFolder = deleteFolder;
     vm.copyToClipboard = copyToClipboard;
+    vm.getLastChangeDetailsForFolder = getLastChangeDetailsForFolder;
+    vm.getLastChangeDetailsForSecret = getLastChangeDetailsForSecret;
 
+    function getLastChangeDetailsForFolder() {
+      var lastChangedDetails = "";
+      for (var i=0; i<vm.lastChanged.length; i++) {
+        if (vm.lastChanged[i].folderPath == vm.item.id) {
+          lastChangedDetails = vm.lastChanged[i];
+          lastChangedDetails.folderModifiedAtFormatted = formatTime(lastChangedDetails.folderModifiedAt);
+        }
+      }
+      return lastChangedDetails;
+    }
+
+    function getLastChangeDetailsForSecret() {
+      var lastChangedDetails = "";
+      for (var i=0; i<vm.lastChanged.length; i++) {
+        if (vm.lastChanged[i].folderPath == vm.item.parentId && vm.lastChanged[i].secretVersions && vm.lastChanged[i].secretVersions[vm.item.id]) {
+          lastChangedDetails = vm.lastChanged[i].secretVersions[vm.item.id][0];
+          lastChangedDetails.modifiedAtFormatted = formatTime(lastChangedDetails.modifiedAt);
+        }
+      }
+      return lastChangedDetails;
+    }
+
+    function formatTime(timestamp) {
+      if (!isNaN(timestamp)) {
+        return moment(timestamp).fromNow();
+      }
+      return "";
+    }
 
     function edit() {
       editSecret(vm.item.key, vm.item.value);
@@ -167,6 +203,7 @@
                   vm.loading(false);
                   vm.editing = false;
                   Notifications.toast('Saved successfully');
+                  $state.reload();
                 }).catch(catchError);
             })
         .catch(function () {

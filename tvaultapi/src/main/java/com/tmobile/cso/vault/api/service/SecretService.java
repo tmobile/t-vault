@@ -21,10 +21,12 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.CommonUtils;
+import com.tmobile.cso.vault.api.utils.SafeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -59,11 +61,11 @@ public class  SecretService {
 	@Autowired
 	private CommonUtils commonUtils;
 
+	@Autowired
+	private SafeUtils safeUtils;
+
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
-
-	@Value("${safe.version.folderPrefix}")
-	private String safeVersionFolderPrefix;
 
 	private static Logger log = LogManager.getLogger(SecretService.class);
 	/**
@@ -114,9 +116,9 @@ public class  SecretService {
 		} catch (IOException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request.Check json data\"]}");
 		}
-		if(ControllerUtil.isPathValid(path)){
+		if(ControllerUtil.isPathValid(path) && !path.contains(TVaultConstants.VERSION_FOLDER_PREFIX)){
 		    // Check if the user has explicit write permission. Safe owners (implicit write permission) will be denied from write operation
-			if (!hasExplicitWritePermission(token, userDetails, secret.getPath())) {
+			if (!hasExplicitWritePermission(userDetails, secret.getPath())) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "Write Secret").
@@ -126,6 +128,7 @@ public class  SecretService {
 						build()));
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"No permisison to write secret in this safe\"]}");
 			}
+			Response readResponse = reqProcessor.process("/read","{\"path\":\""+secret.getPath()+"\"}",token);
 			Response response = reqProcessor.process("/write",jsonStr,token);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 				if (!StringUtils.isEmpty("deleteFlag") && deleteFlag.equalsIgnoreCase("true")){
@@ -137,6 +140,8 @@ public class  SecretService {
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 								build()));
 					}
+				// write version information to version folder
+				saveVersionInfo(token, path, userDetails, secret, readResponse);
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
 			}
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -185,9 +190,9 @@ public class  SecretService {
 		} catch (IOException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid request.Check json data\"]}");
 		}
-		if(ControllerUtil.isPathValid(path)){
+		if(ControllerUtil.isPathValid(path) && !path.contains(TVaultConstants.VERSION_FOLDER_PREFIX)){
 			// Check if the user has explicit write permission. Safe owners (implicit write permission) will be denied from write operation
-			if (!hasExplicitWritePermission(token, userDetails, secret.getPath())) {
+			if (!hasExplicitWritePermission( userDetails, secret.getPath())) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 						put(LogMessage.ACTION, "Write Secret").
@@ -197,6 +202,7 @@ public class  SecretService {
 						build()));
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"No permisison to write secret in this safe\"]}");
 			}
+			Response readResponse = reqProcessor.process("/read","{\"path\":\""+secret.getPath()+"\"}",token);
 			Response response = reqProcessor.process("/write",jsonStr,token);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -206,6 +212,8 @@ public class  SecretService {
 							put(LogMessage.STATUS, response.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 							build()));
+				// write version information to version folder
+				saveVersionInfo(token, path, userDetails, secret, readResponse);
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secret saved to vault\"]}");
 			}
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -230,13 +238,140 @@ public class  SecretService {
 	}
 
 	/**
+	 * To save version information on secret creation
+	 * @param token
+	 * @param path
+	 * @param userDetails
+	 * @return
+	 */
+	private void saveVersionInfo(String token, String path, UserDetails userDetails, Secret secret, Response readResponse) {
+		List<String> modifiedKeys = getChangedSecretKeys(secret, readResponse);
+		List<String> deletedKeys = getDeletedSecretKeys(secret, readResponse);
+		if (!HttpStatus.OK.equals(readResponse.getHttpstatus())) {
+			modifiedKeys = getNewSecretKeys(secret);
+		}
+		Response versionCreationResponse;
+		if (modifiedKeys.size() >0 || deletedKeys.size() >0) {
+			versionCreationResponse = safeUtils.updateActivityInfo(token, path, userDetails, TVaultConstants.UPDATE_ACTION, modifiedKeys, deletedKeys);
+			if (HttpStatus.NO_CONTENT.equals(versionCreationResponse.getHttpstatus())) {
+				log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "createNestedfolder").
+						put(LogMessage.MESSAGE, String.format ("Created version folder for [%s]", path)).
+						put(LogMessage.STATUS, versionCreationResponse.getHttpstatus().toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+			else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "createNestedfolder").
+						put(LogMessage.MESSAGE, String.format ("Failed to create version folder for [%s]", path)).
+						put(LogMessage.STATUS, versionCreationResponse.getHttpstatus().toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+		}
+		else {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "Write Secret").
+					put(LogMessage.MESSAGE, String.format("No changes made to the secrets in [%s]", path)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+		}
+	}
+
+	/**
+	 * To get the list of new secrets in the write secret request
+	 * @param secret
+	 * @return
+			 */
+	private List<String> getNewSecretKeys(Secret secret) {
+		List<String> newSecretKeys = new ArrayList<>();
+		if (secret.getDetails() != null && secret.getDetails().size() > 0) {
+			for (Map.Entry<String, String> entry : secret.getDetails().entrySet()) {
+				String key = entry.getKey();
+				newSecretKeys.add(key);
+			}
+		}
+		return newSecretKeys;
+	}
+
+	/**
+	 * To get the list of deleted secrets in the write secret request
+	 * @param secret
+	 * @param readResponse
+	 * @return
+	 */
+	private List<String> getDeletedSecretKeys(Secret secret, Response readResponse) {
+		ObjectMapper objectMapper = new ObjectMapper();
+		List<String> deletedSecretKeys = new ArrayList<>();
+		if (readResponse.getHttpstatus().equals(HttpStatus.OK)) {
+			try {
+				Secret oldSecret = objectMapper.readValue(readResponse.getResponse(),	new TypeReference<Secret>() {});
+				if (oldSecret.getDetails() != null && oldSecret.getDetails().size() > 0) {
+					for (Map.Entry<String, String> entry : oldSecret.getDetails().entrySet()) {
+						String key = entry.getKey();
+						String value = entry.getValue();
+						if (!secret.getDetails().containsKey(key)) {
+							deletedSecretKeys.add(key);
+						}
+					}
+				}
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "getDeletedSecretKeys").
+						put(LogMessage.MESSAGE, String.format("Failed to read current secret for [%s}", secret.getPath())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+		}
+		return deletedSecretKeys;
+	}
+
+	/**
+	 * To get the list of changed secrets in the write secret request
+	 * @param secret
+	 * @param readResponse
+	 * @return
+	 */
+	private List<String> getChangedSecretKeys(Secret secret, Response readResponse) {
+		ObjectMapper objectMapper = new ObjectMapper();
+		List<String> modifiedSecretKeys = new ArrayList<>();
+		if (readResponse.getHttpstatus().equals(HttpStatus.OK)) {
+			try {
+				Secret oldSecret = objectMapper.readValue(readResponse.getResponse(),	new TypeReference<Secret>() {});
+				if (oldSecret.getDetails() != null && oldSecret.getDetails().size() > 0) {
+					for (Map.Entry<String, String> entry : secret.getDetails().entrySet()) {
+						String key = entry.getKey();
+						String value = entry.getValue();
+						if (!oldSecret.getDetails().containsKey(key) || !value.equals(oldSecret.getDetails().get(entry.getKey()))) {
+							modifiedSecretKeys.add(key);
+						}
+					}
+				}
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "getChangedSecretKeys").
+						put(LogMessage.MESSAGE, String.format("Failed to read current secret for [%s}", secret.getPath())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+		}
+		return modifiedSecretKeys;
+	}
+
+	/**
 	 * To check if user has explicit write permission
 	 * @param token
 	 * @param userName
 	 * @param path
 	 * @return
 	 */
-	private boolean hasExplicitWritePermission(String token, UserDetails userDetails, String path) {
+	private boolean hasExplicitWritePermission(UserDetails userDetails, String path) {
 		String policy = "w_"+ ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
 		if (Arrays.stream(userDetails.getPolicies()).anyMatch(policy::equals)) {
 			return true;
@@ -252,7 +387,6 @@ public class  SecretService {
 	 */
 	public ResponseEntity<String> deleteFromVault(String token, String path){
 		if(ControllerUtil.isValidDataPath(path)){
-			//if(ControllerUtil.isValidSafe(path,token)){
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					  put(LogMessage.ACTION, "Delete Secret").
@@ -271,9 +405,7 @@ public class  SecretService {
 					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Secrets deleted\"]}");
 				}
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
-			//}else{
-			//	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid safe\"]}");
-			//}
+			
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -292,7 +424,7 @@ public class  SecretService {
 	 * @return
 	 */
 	public ResponseEntity<String> readFromVaultRecursive(String token, String path){
-		Response response = new Response(); 
+		Response response = new Response();
 		SafeNode safeNode = new SafeNode();
 		safeNode.setId(path);
 		if (ControllerUtil.isValidSafePath(path)) {
@@ -317,7 +449,7 @@ public class  SecretService {
 	 * @return
 	 */
 	public ResponseEntity<String> readFoldersAndSecrets(String token, String path){
-		Response response = new Response(); 
+		Response response = new Response();
 		SafeNode safeNode = new SafeNode();
 		safeNode.setId(path);
 		if (ControllerUtil.isValidSafePath(path)) {
@@ -445,7 +577,7 @@ public class  SecretService {
 		int count = 0;
 		for (int i=0;i< safeNode.size(); i++) {
 			SafeNode safe = safeNode.get(i);
-			if (safe.getType().equalsIgnoreCase("secret") && !safe.getParentId().equalsIgnoreCase(patentId) && !safe.getId().contains(safeVersionFolderPrefix)) {
+			if (safe.getType().equalsIgnoreCase("secret") && !safe.getParentId().equalsIgnoreCase(patentId) && !safe.getId().contains(TVaultConstants.VERSION_FOLDER_PREFIX)) {
 				try {
 					Secret data = (Secret)JSONUtil.getObj(safe.getValue(), Secret.class);
 					count += data.getDetails().size();
@@ -472,7 +604,7 @@ public class  SecretService {
 	 */
 	private boolean isAuthorizedToGetSecretCount(String token) {
 		ObjectMapper objectMapper = new ObjectMapper();
-		List<String> currentPolicies = new ArrayList<>();
+		List<String> currentPolicies;
 		Response response = reqProcessor.process("/auth/tvault/lookup","{}", token);
 		if(HttpStatus.OK.equals(response.getHttpstatus())) {
 			String responseJson = response.getResponse();
@@ -501,5 +633,106 @@ public class  SecretService {
 				.put(LogMessage.MESSAGE, "The Token does not have required policies to get total secret count.")
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		return false;
+	}
+
+	/**
+	 * To get folder last change details
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	public ResponseEntity<String> getFolderVersionInfo(String token, String path) {
+		ObjectMapper objMapper =  new ObjectMapper();
+		List<String> folderSecretList = getFolderSecretList(token, path, objMapper);
+		List<FolderVersion> folderVersionList = getVersionSafeNode(token, path, objMapper, folderSecretList, true);
+
+		List<String> folderSecretListFromParent;
+		List<FolderVersion> folderVersionListFromParent;
+		String parentPath = path.substring(0, path.lastIndexOf('/'));
+		if (!TVaultConstants.USERS.equals(parentPath) && !TVaultConstants.SHARED.equals(parentPath) && !TVaultConstants.APPS.equals(parentPath)) {
+			folderSecretListFromParent = getFolderSecretList(token, parentPath, objMapper);
+			folderSecretListFromParent = folderSecretListFromParent.stream().filter(f-> path.equals(parentPath + "/" + f)).collect(Collectors.toList());
+			folderVersionListFromParent = getVersionSafeNode(token, parentPath, objMapper, folderSecretListFromParent, false);
+			if (folderVersionListFromParent.size() > 0) {
+				folderVersionList.addAll(folderVersionListFromParent);
+			}
+		}
+
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			String res = mapper.writeValueAsString(folderVersionList);
+			return ResponseEntity.status(HttpStatus.OK).body(res);
+		} catch (JsonProcessingException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to get last changed details for this folder\"]}");
+		}
+	}
+
+	private List<String> getFolderSecretList(String token, String path, ObjectMapper objMapper) {
+		List<String> folderList = new ArrayList<>();
+ 		String jsonstr = "{\"path\":\"" + path + "\"}";
+		// Get the list of folders
+		Response lisresp = reqProcessor.process("/sdb/list", jsonstr, token);
+		if (!HttpStatus.NOT_FOUND.equals(lisresp.getHttpstatus()) && !HttpStatus.FORBIDDEN.equals(lisresp.getHttpstatus())) {
+			if (!lisresp.getResponse().contains("errors")) {
+				try {
+					JsonNode folders = objMapper.readTree(lisresp.getResponse()).get("keys");
+					for(JsonNode node : folders){
+						folderList.add(node.asText());
+					}
+					folderList = folderList.stream().filter(f -> !f.startsWith(TVaultConstants.VERSION_FOLDER_PREFIX)).collect(Collectors.toList());
+				} catch (IOException e) {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "getVersionSafeNode").
+							put(LogMessage.MESSAGE, String.format ("Unable to get folder list for [%s]", path)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+				}
+			}
+		}
+		return folderList;
+	}
+
+	private List<FolderVersion> getVersionSafeNode(String token, String path, ObjectMapper objMapper, List<String> folderList, boolean excludeChild) {
+
+		List<FolderVersion> folderVersionlist = new ArrayList<>();
+		for (String folder: folderList) {
+			String versionPath = getVersionFolderPath(path + "/" + folder);
+
+			// get version data from version folder
+			String jsonstr = "{\"path\":\"" + versionPath + "\"}";
+			Response versionResp = reqProcessor.process("/read", jsonstr, token);
+			FolderVersionData folderVersiondata = null;
+			if (HttpStatus.OK.equals(versionResp.getHttpstatus())) {
+				try {
+					folderVersiondata = objMapper.readValue(versionResp.getResponse(), new TypeReference<FolderVersionData>() {});
+				} catch (IOException e) {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+							put(LogMessage.ACTION, "getVersionSafeNode").
+							put(LogMessage.MESSAGE, String.format ("Unable to get version folder details [%s]", path)).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+							build()));
+				}
+			}
+			if (folderVersiondata != null) {
+				if (excludeChild) {
+					folderVersiondata.getData().setSecretVersions(null);
+				}
+				folderVersionlist.add(folderVersiondata.getData());
+			}
+		}
+		return folderVersionlist;
+	}
+
+	/**
+	 * To get version folder name from path
+	 * @param path
+	 * @return
+	 */
+	private String getVersionFolderPath(String path) {
+		String versionFolderName = TVaultConstants.VERSION_FOLDER_PREFIX + path.substring(path.lastIndexOf('/') + 1);
+		String verionPath = path.substring(0, path.lastIndexOf('/')) + "/" + versionFolderName;
+		return verionPath;
 	}
 }

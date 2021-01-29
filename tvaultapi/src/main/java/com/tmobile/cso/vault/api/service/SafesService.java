@@ -521,7 +521,11 @@ public class  SafesService {
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
 		}
-		
+		SafeBasicDetails bsafeBasicDetails = safe.getSafeBasicDetails();
+		String appName  =getValidAppName(bsafeBasicDetails);
+		if(appName == null) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid Application name\"]}");
+		}
         if (safe.getSafeBasicDetails().getDescription().length() > 1024) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values: Description too long\"]}");
         }
@@ -896,7 +900,7 @@ public class  SafesService {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 							put(LogMessage.ACTION, "Add User to SDB").
-							put(LogMessage.MESSAGE, String.format ("Exception while adding or updating the identity ")).
+							put(LogMessage.MESSAGE, "Exception while adding or updating the identity ").
 							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -1008,7 +1012,7 @@ public class  SafesService {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 						put(LogMessage.ACTION, "Add User to SDB").
-						put(LogMessage.MESSAGE, String.format ("Trying to configureUserpassUser/configureLDAPUser failed")).
+						put(LogMessage.MESSAGE, "Trying to configureUserpassUser/configureLDAPUser failed").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"User configuration failed.Try Again\"]}");
@@ -1307,7 +1311,7 @@ public class  SafesService {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 								.put(LogMessage.ACTION, "removeUserFromSafe")
-								.put(LogMessage.MESSAGE, String.format("Trying to fetch OIDC user policies, failed"))
+								.put(LogMessage.MESSAGE,"Trying to fetch OIDC user policies, failed")
 								.put(LogMessage.APIURL,
 										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 								.build()));
@@ -1362,7 +1366,6 @@ public class  SafesService {
 				try {
 					if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 						currentpolicies.addAll(oidcEntityResponse.getPolicies());
-						//groups = objMapper.readTree(responseJson).get("data").get("groups").asText();
 					} else {
 						currentpolicies = ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson);
 						if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
@@ -1380,7 +1383,6 @@ public class  SafesService {
 				String policiesString = StringUtils.join(policies, ",");
 				String currentpoliciesString = StringUtils.join(currentpolicies, ",");
 
-				// policies = policies.replaceAll(s_policy, "");
 				Response ldapConfigresponse = new Response();
 				if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 					ldapConfigresponse = ControllerUtil.configureUserpassUser(userName, policiesString, token);
@@ -1397,7 +1399,7 @@ public class  SafesService {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 								.put(LogMessage.ACTION, "Remove User to SDB")
-								.put(LogMessage.MESSAGE, String.format("Exception while updating the identity"))
+								.put(LogMessage.MESSAGE, "Exception while updating the identity")
 								.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
 								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 								.build()));
@@ -1474,7 +1476,7 @@ public class  SafesService {
 													ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 											.put(LogMessage.ACTION, "Remove User to SDB")
 											.put(LogMessage.MESSAGE,
-													String.format("Exception while updating the identity"))
+													"Exception while updating the identity")
 											.put(LogMessage.STACKTRACE, Arrays.toString(e2.getStackTrace()))
 											.put(LogMessage.APIURL,
 													ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
@@ -1762,7 +1764,7 @@ public class  SafesService {
 					put(LogMessage.MESSAGE, String.format ("Group [%s] is successfully removed from Safe [%s]", safeGroup.getGroupname(),safeGroup.getPath())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
-			return ResponseEntity.status(HttpStatus.OK).body("{\"Message\":\"Group association is removed \"}");
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"Message\":\"Group not available or deleted from AD, removed the group assignment and permissions \"}");
 		}else{
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Group configuration failed.Try again \"]}");
 		}
@@ -1910,14 +1912,14 @@ public class  SafesService {
 						return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role is successfully associated \"]}");	
 					}
 					else {
-						System.out.println("Meta data update failed");
-						System.out.println((null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY);
+						log.debug("Meta data update failed");
+						log.debug((null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY);
 						ldapConfigresponse = awsAuthService.configureAWSRole(role,currentpoliciesString,token);
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-							System.out.println("Reverting user policy uupdate");
+							log.debug("Reverting user policy uupdate");
 							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
 						}else{
-							System.out.println("Reverting user policy update failed");
+							log.debug("Reverting user policy update failed");
 							return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Contact Admin \"]}");
 						}
 					}
@@ -1939,7 +1941,6 @@ public class  SafesService {
 	 */
 	public ResponseEntity<String> removeAWSRoleFromSafe(String token, AWSRole awsRole, boolean detachOnly, UserDetails userDetails){
 		String jsonstr = JSONUtil.getJSON(awsRole);
-		String removingAccess=awsRole.getAccess();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				  put(LogMessage.ACTION, "Delete AWS Role from Safe").
@@ -2188,6 +2189,25 @@ public class  SafesService {
 						put(LogMessage.MESSAGE, "SDB Folder Deletion completed").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
+				Response versionCreationResponse = safeUtils.updateActivityInfo(token, path, userDetails, TVaultConstants.DELETE_FOLDER_ACTION, null, null);
+				if (HttpStatus.NO_CONTENT.equals(versionCreationResponse.getHttpstatus())) {
+					log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "createNestedfolder").
+							put(LogMessage.MESSAGE, String.format ("Created version folder for [%s]", path)).
+							put(LogMessage.STATUS, versionCreationResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
+				else {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "createNestedfolder").
+							put(LogMessage.MESSAGE, String.format ("Failed to create version folder for [%s]", path)).
+							put(LogMessage.STATUS, versionCreationResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"SDB deleted\"]}");
 
 			}else{
@@ -2241,7 +2261,7 @@ public class  SafesService {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
                 put(LogMessage.ACTION, "updateApprolePolicyAssociationOnSDBDelete").
-                put(LogMessage.MESSAGE, String.format ("trying updateApprolePolicyAssociationOnSDBDelete")).
+                put(LogMessage.MESSAGE, "trying updateApprolePolicyAssociationOnSDBDelete").
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
         if(acessInfo!=null) {
@@ -2351,7 +2371,8 @@ public class  SafesService {
 				build()));
 		path = (path != null) ? path.toLowerCase(): path;
 
-		if(ControllerUtil.isPathValid(path) && 	isValidSafe(token, path, userDetails)){
+
+		if(ControllerUtil.isPathValid(path) && 	isValidSafe(token, path)){
 			String jsonStr ="{\"path\":\""+path +"\",\"data\":{\"default\":\"default\"}}";
 			Response response = reqProcessor.process("/sdb/createfolder",jsonStr,token);
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -2362,6 +2383,26 @@ public class  SafesService {
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
+				// create version folder
+				Response versionCreationResponse = safeUtils.updateActivityInfo(token, path, userDetails, TVaultConstants.CREATE_ACTION, null, null);
+				if (HttpStatus.NO_CONTENT.equals(versionCreationResponse.getHttpstatus())) {
+					log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "createNestedfolder").
+							put(LogMessage.MESSAGE, String.format ("Created version folder for [%s]", path)).
+							put(LogMessage.STATUS, versionCreationResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
+				else {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+							put(LogMessage.ACTION, "createNestedfolder").
+							put(LogMessage.MESSAGE, String.format ("Failed to create version folder for [%s]", path)).
+							put(LogMessage.STATUS, versionCreationResponse.getHttpstatus().toString()).
+							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+							build()));
+				}
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Folder created \"]}");
 			}
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
@@ -2727,7 +2768,7 @@ public class  SafesService {
 	 * @param userDetails
 	 * @return
 	 */
-	private boolean isValidSafe(String userToken, String path, UserDetails userDetails) {
+	private boolean isValidSafe(String userToken, String path) {
 		try {
 			String w_policy = "w_"+ ControllerUtil.getSafeType(path) + "_" + ControllerUtil.getSafeName(path);
 			VaultTokenLookupDetails  vaultTokenLookupDetails = tokenValidator.getVaultTokenLookupDetails(userToken);

@@ -31,7 +31,7 @@ md-content
             .au-loader(ng-if="vm.loadingFlag")
                 loading-state
 
-            folder-contents-table(folder-content="vm.folderContent" loading="vm.loading" write="vm.writeAccess" ng-if="!vm.loadingFlag")
+            folder-contents-table(folder-content="vm.folderContent" folder-last-changed-details="vm.folderLastChangedDetails" loading="vm.loading" write="vm.writeAccess" ng-if="!vm.loadingFlag")
 
 
 

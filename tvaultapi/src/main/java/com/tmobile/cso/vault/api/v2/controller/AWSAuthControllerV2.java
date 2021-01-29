@@ -95,7 +95,7 @@ public class AWSAuthControllerV2 {
 		return awsAuthService.deleteRole(token, role, userDetails);
 	}
 	/**
-	 * Method to fetch information for an aws approle.
+	 * Method to fetch information for an AWS EC2 role.
 	 * @param token
 	 * @param role
 	 * @return

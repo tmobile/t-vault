@@ -487,20 +487,34 @@
                                 }
                             }
                             else {
-                                $scope.permissionChangeInProgress = false;
-                                $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                                $scope.error('md');
+                                if(response.status === 422){
+                                    $scope.permissionChangeInProgress = false;
+                                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                    $scope.error('md');
+                                    getMetadata(svcaccname);
+                                }else {
+                                    $scope.permissionChangeInProgress = false;
+                                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                    $scope.error('md');
+                                }
                             }
                         },
                         function (error) {
-
-                            // Error handling function
-                            console.log(error);
-                            $scope.permissionChangeInProgress = false;
-                            $scope.isLoadingData = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                            $scope.error('md');
-
+                            if(error.status === 422) {
+                                $scope.permissionChangeInProgress = false;
+                                $scope.isLoadingData = false;
+                                var errors = error.data.Message;
+                                $scope.errorMessage = errors;
+                                $scope.error('md');
+                                getMetadata(svcaccname);
+                            }else {
+                                // Error handling function
+                                console.log(error);
+                                $scope.permissionChangeInProgress = false;
+                                $scope.isLoadingData = false;
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
                         })
                 } catch (e) {
 
@@ -907,7 +921,7 @@
             AdminSafesManagement.resetPasswordForSvcacc(null, updatedUrlOfEndPoint).then(function (response) {                
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isLoadingData = false;
-                    $scope.newPassword = response.data.current_password;
+                    $scope.newPassword = response.data.adServiceAccountCreds.current_password;
                     $scope.resetMessage = "Service account "+$scope.svcacc.svcaccId+" has been activated successfully!"
                     $scope.initialPwdResetRequired = false;
                     $scope.initialPasswordReset = "true";
