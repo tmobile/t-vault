@@ -54,7 +54,7 @@ public class SecretControllerV2 {
 	 * @param path
 	 * @return
 	 */
-	@ApiOperation(value = "${SecretControllerV2.readFromVault.value}", notes = "${SecretControllerV2.readFromVault.notes}")
+	@ApiOperation(value = "${SecretControllerV2.readFromVault.value}", notes = "${SecretControllerV2.readFromVault.notes}", hidden = true)
 	@GetMapping(value="/v2/safes/folders/secrets",produces= "application/json")
 	public ResponseEntity<String> readFromVault(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path,@RequestParam( name="fetchOption",required=false) FetchOption fetchOption){
 		if(fetchOption == null || fetchOption.equals(FetchOption.secrets)){
@@ -101,7 +101,7 @@ public class SecretControllerV2 {
 	 * @param token
 	 * @return
 	 */
-	@ApiOperation(value = "${SecretControllerV2.getSecretCount.value}", notes = "${SecretControllerV2.getSecretCount.notes}")
+	@ApiOperation(value = "${SecretControllerV2.getSecretCount.value}", notes = "${SecretControllerV2.getSecretCount.notes}", hidden = true)
 	@GetMapping(value="/v2/safes/count",produces="application/json")
 	public ResponseEntity<String> getSecretCount(@RequestHeader(value="vault-token") String token, @RequestParam("safeType") String safeType, @Valid @RequestParam("offset") int offset){
 		return secretService.getSecretCount(token, safeType, offset);
