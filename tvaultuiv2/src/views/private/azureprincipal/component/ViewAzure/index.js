@@ -19,6 +19,8 @@ import apiService from '../../apiService';
 import { GlobalModalWrapper } from '../../../../../styles/GlobalStyles';
 import Strings from '../../../../../resources';
 import CollapsibleDropdown from '../../../../../components/CollapsibleDropdown';
+import Snackbar from '../../../../../components/Snackbar';
+import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 
 const { small } = mediaBreakpoints;
 
@@ -156,7 +158,11 @@ const ViewAzure = (props) => {
   const [loading, setLoading] = useState(true);
   const [azureDetail, setAzureDetail] = useState({});
   const isMobileScreen = useMediaQuery(small);
-  const [azureActivated, setAzureActivated] = useState(false);
+  const [actionPerformed, setActionPerformed] = useState(false);
+  const [responseType, setResponseType] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
+  const [secretsData, setSecretsData] = useState({});
+  const [backDropLoader, setBackDropLoader] = useState(false);
 
   const clearData = () => {
     setModalDetail({
@@ -165,23 +171,69 @@ const ViewAzure = (props) => {
     });
   };
 
-  useEffect(() => {
-    if (Object.keys(viewAzureData).length > 0) {
-      apiService.getAzureserviceDetails(viewAzureData.name).then((res) => {
-        setOpenModal({ status: 'view' });
-        setLoading(false);
-        if (res?.data) {
-          setAzureDetail(res.data);
-        }
+  const getSecretMetaData = (data) => {
+    return apiService
+      .getSecretFolderData(`${data?.servicePrincipalName}/${data?.folders[0]}`)
+      .then((res) => {
+        setSecretsData(res?.data);
+        setBackDropLoader(false);
+      })
+      .catch(() => {
+        setResponseType(-1);
+        setBackDropLoader(false);
+        setToastMessage('Something went wrong while fetching secret details');
       });
-    }
-  }, [viewAzureData]);
+  };
+
+  const getSecrets = () => {
+    setBackDropLoader(true);
+    apiService
+      .getAzureSecrets(viewAzureData.name)
+      .then(async (res) => {
+        if (res?.data) {
+          await getSecretMetaData(res.data);
+        }
+      })
+      .catch(() => {
+        setBackDropLoader(false);
+        setResponseType(-1);
+        setToastMessage('Something went wrong while fetching secret details');
+      });
+  };
 
   const onCloseModal = () => {
-    if (!loading) {
-      onCloseViewAzureModal(azureActivated);
+    if (!loading && !backDropLoader) {
+      onCloseViewAzureModal(actionPerformed);
     }
   };
+
+  useEffect(() => {
+    if (Object.keys(viewAzureData).length > 0) {
+      apiService
+        .getAzureserviceDetails(viewAzureData.name)
+        .then((res) => {
+          setOpenModal({ status: 'view' });
+          setLoading(false);
+          if (res?.data) {
+            setAzureDetail(res.data);
+            if (res.data.isActivated) {
+              getSecrets();
+            }
+          }
+        })
+        .catch((err) => {
+          if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+            setToastMessage(err?.response?.data?.errors[0]);
+          }
+          setResponseType(-1);
+          setToastMessage();
+          setTimeout(() => {
+            onCloseViewAzureModal(false);
+          }, 1000);
+        });
+    }
+    // eslint-disable-next-line
+  }, [viewAzureData]);
 
   const onActivateClicked = () => {
     setOpenModal({ status: 'activate' });
@@ -191,9 +243,16 @@ const ViewAzure = (props) => {
     });
   };
 
-  const onCancelActivation = () => {
+  const onCancelActivationAndRotation = () => {
     setOpenModal({ status: 'view' });
     clearData();
+  };
+
+  const onToastClose = (reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setResponseType(null);
   };
 
   const onConfirmActivation = () => {
@@ -203,7 +262,7 @@ const ViewAzure = (props) => {
     apiService
       .activateAzureAccount(viewAzureData.name)
       .then(() => {
-        setAzureActivated(true);
+        setActionPerformed(true);
         setLoading(false);
         setModalDetail({
           title: 'Activation Successful',
@@ -212,21 +271,65 @@ const ViewAzure = (props) => {
         });
       })
       .catch((err) => {
-        setAzureActivated(false);
-        setLoading(false);
         if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
-          setModalDetail({
-            title: 'Error',
-            description: err.response.data.errors[0],
-          });
-        } else {
-          setModalDetail({
-            title: 'Error',
-            description: 'Something went wrong',
-          });
+          setToastMessage(err?.response?.data?.errors[0]);
         }
+        setResponseType(-1);
+        setActionPerformed(false);
+        setLoading(false);
+        onCancelActivationAndRotation();
       });
   };
+
+  const onRotateSecretConfirmedClicked = () => {
+    if (Object.keys(secretsData).length > 0) {
+      setOpenModal({ status: 'confirm' });
+      setLoading(true);
+      clearData();
+      const payload = {
+        azureSvcAccName: viewAzureData.name,
+        secretKeyId: secretsData.secretKeyId,
+        servicePrincipalId: secretsData.secretKeyId,
+        tenantId: secretsData.tenantId,
+        expiryDurationMs: secretsData.expiryDateEpoch,
+      };
+      apiService
+        .rotateSecret(payload)
+        .then(async (res) => {
+          setResponseType(1);
+          if (res.data.messages && res.data.messages[0]) {
+            setToastMessage(res.data.messages[0]);
+          }
+          setOpenModal({ status: 'view' });
+          setActionPerformed(true);
+        })
+        .catch((err) => {
+          if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+            setToastMessage(err.response.data.errors[0]);
+          }
+          setResponseType(-1);
+          setOpenModal({ status: 'view' });
+          setActionPerformed(false);
+          setLoading(false);
+        });
+    } else {
+      setToastMessage('Rotation cannot be performed!');
+      setResponseType(-1);
+      setOpenModal({ status: 'view' });
+      setActionPerformed(false);
+      setLoading(false);
+    }
+  };
+
+  const onRotateSecret = () => {
+    setOpenModal({ status: 'rotate' });
+    setModalDetail({
+      title: 'Confirmation',
+      description:
+        'Are you sure you want to rotate the secret for this Azure SecretKeyId?',
+    });
+  };
+
   return (
     <ComponentError>
       <>
@@ -253,14 +356,14 @@ const ViewAzure = (props) => {
         {openModal.status === 'activate' && (
           <ConfirmationModal
             open={open}
-            handleClose={() => onCancelActivation()}
+            handleClose={() => onCancelActivationAndRotation()}
             title={modalDetail.title}
             description={modalDetail.description}
             cancelButton={
               <ButtonComponent
                 label="Close"
                 color="primary"
-                onClick={() => onCancelActivation()}
+                onClick={() => onCancelActivationAndRotation()}
                 width={isMobileScreen ? '100%' : '45%'}
               />
             }
@@ -269,6 +372,30 @@ const ViewAzure = (props) => {
                 label="Activate"
                 color="secondary"
                 onClick={() => onConfirmActivation()}
+                width={isMobileScreen ? '100%' : '45%'}
+              />
+            }
+          />
+        )}
+        {openModal.status === 'rotate' && (
+          <ConfirmationModal
+            open={open}
+            handleClose={() => onCancelActivationAndRotation()}
+            title={modalDetail.title}
+            description={modalDetail.description}
+            cancelButton={
+              <ButtonComponent
+                label="Close"
+                color="primary"
+                onClick={() => onCancelActivationAndRotation()}
+                width={isMobileScreen ? '100%' : '45%'}
+              />
+            }
+            confirmButton={
+              <ButtonComponent
+                label="Rotate"
+                color="secondary"
+                onClick={() => onRotateSecretConfirmedClicked()}
                 width={isMobileScreen ? '100%' : '45%'}
               />
             }
@@ -290,6 +417,7 @@ const ViewAzure = (props) => {
             <Fade in={open}>
               <GlobalModalWrapper>
                 <>
+                  {backDropLoader && <BackdropLoader />}
                   <HeaderWrapper>
                     <Typography variant="h5">View Azure Pincipal</Typography>
                   </HeaderWrapper>
@@ -369,19 +497,37 @@ const ViewAzure = (props) => {
                     color="primary"
                     onClick={() => onCloseModal()}
                   />
-                  {!azureDetail.isActivated && (
-                    <CancelButton>
-                      <ButtonComponent
-                        label="Activate"
-                        color="secondary"
-                        onClick={() => onActivateClicked()}
-                      />
-                    </CancelButton>
-                  )}
+                  <CancelButton>
+                    <ButtonComponent
+                      label={azureDetail.isActivated ? 'Rotate' : 'Activate'}
+                      color="secondary"
+                      onClick={() =>
+                        azureDetail.isActivated
+                          ? onRotateSecret()
+                          : onActivateClicked()
+                      }
+                    />
+                  </CancelButton>
                 </CancelSaveWrapper>
               </GlobalModalWrapper>
             </Fade>
           </Modal>
+        )}
+        {responseType === 1 && (
+          <Snackbar
+            open
+            onClose={() => onToastClose()}
+            message={toastMessage || 'Successful!'}
+          />
+        )}
+        {responseType === -1 && (
+          <Snackbar
+            open
+            severity="error"
+            icon="error"
+            onClose={() => onToastClose()}
+            message={toastMessage || 'Something went wrong'}
+          />
         )}
       </>
     </ComponentError>
