@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -105,6 +106,15 @@ public class  AWSAuthService {
 	 * @return
 	 */
 	public ResponseEntity<String> createRole(String token, AWSLoginRole awsLoginRole, UserDetails userDetails) throws TVaultValidationException{
+		if(!StringUtils.isEmpty(awsLoginRole.getPolicies())) {
+			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "Checking whether policy is added as an input param for create AWS role").
+					put(LogMessage.MESSAGE, String.format("Trying to create AWS Role [%s]", awsLoginRole.getRole())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			throw new TVaultValidationException("Invalid inputs for the given AWS login type.policy is not an input parameter");
+		}
 		if (!ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)) {
 			throw new TVaultValidationException("Invalid inputs for the given AWS login type");
 		}
