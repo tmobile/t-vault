@@ -153,7 +153,7 @@ const AddAwsApplication = (props) => {
       if (!isEC2) {
         if (
           roleName?.length < 3 ||
-          iamPrincipalArn !== '' ||
+          iamPrincipalArn === '' ||
           iamPrincipalArn.length < 20
         ) {
           setDisabledSave(true);
@@ -423,7 +423,7 @@ const AddAwsApplication = (props) => {
               fullWidth
               readOnly={isEC2}
               name="iamPrincipalArn"
-              onChange={(e) => testArnValidity(e.target.value)}
+              onChange={(e) => testArnValidity(e)}
             />
           </EachInputField>
         </InputAwsWrapper>

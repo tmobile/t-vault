@@ -100,7 +100,7 @@ const ViewIamServiceAccount = (props) => {
     setOpenModal({
       status: 'open',
       message: 'Confirmation!',
-      description: 'Are you sure, You want to rotate the passoword?',
+      description: 'Are you sure, You want to rotate the password?',
     });
   };
 

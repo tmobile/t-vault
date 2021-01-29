@@ -279,7 +279,11 @@ const CreateModal = (props) => {
             setSafeDetails(res.data.data);
             setName(res.data.data.name);
             setDescription(res.data.data.description);
-            setOwner(res.data.data.owner);
+            if (sessionStorage.getItem('isAdmin') === 'false') {
+              setOwner(sessionStorage.getItem('owner'));
+            } else {
+              setOwner(res.data.data.owner);
+            }
             setApplicationName(res.data.data.appName || '');
             if (res.data.data.type === 'users') {
               setSafeType('Users Safe');
