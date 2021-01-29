@@ -358,13 +358,22 @@ public class  SafesService {
 		}
 	}
 	/**
-	 * Method to get the application name
+	 * Method to validate the application name
 	 *
 	 * @param safeBasicDetails
 	 * @return
 	 */
 	public String  getValidAppName(SafeBasicDetails basicDetails) {
 		String appName = basicDetails.getAppName();
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, TVaultConstants.VALIDATE_APPNAME).
+				put(LogMessage.MESSAGE, TVaultConstants.VALIDATE_APPNAME).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
+		if(appName.equalsIgnoreCase(TVaultConstants.OTHER_APPNAME)) {
+			appName = TVaultConstants.OTHER_APPNAME_VALUE;
+		}else {
 		ResponseEntity<String> appResponse = workloadDetailsService
 				.getWorkloadDetailsByAppName(appName);
 		if (HttpStatus.OK.equals(appResponse.getStatusCode())) {
@@ -372,9 +381,7 @@ public class  SafesService {
 			JsonObject response = (JsonObject) jsonParser.parse(appResponse.getBody());
 			JsonObject jsonElement = null;
 			if (Objects.nonNull(response)) {
-				//String str=org.springframework.util.StringUtils.isEmpty(jsonElement.get("tag"));
 				jsonElement = response.get("spec").getAsJsonObject();
-				//org.springframework.util.StringUtils.isEmpty(jsonElement.get("tag"));
 				if (Objects.nonNull(jsonElement)) {
 					appName = jsonElement.get("summary").getAsString();					
 				}
@@ -383,20 +390,9 @@ public class  SafesService {
 			else {
 				appName = null;
 			}
-		
+		}
 			return appName;
 		}
-//			}
-//			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-//					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-//					put(LogMessage.ACTION, "CreateSafe").
-//					put(LogMessage.MESSAGE, "Checking appname is available or not").
-//					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-//					build()));
-//			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Appname exist \"]}");
-//		}else {
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Appname does not exist \"]}");
-//		}
 
 	/**
 	 * Gets Safe
