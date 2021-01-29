@@ -116,7 +116,17 @@ const ListFolderWrap = styled(Link)`
     background-image: ${(props) => props.theme.gradients.list || 'none'};
     color: #fff;
     ${PopperWrap} {
-      display: block;
+      display: flex;
+      width: 3rem;
+      height: 3rem;
+      align-items: center;
+      justify-content: center;
+      margin-left: 0.75rem;
+      padding: 0.9rem 0.5rem 0.4rem 0.6rem;
+      border-radius: 50%;
+      :hover {
+        background-color: rgb(90, 99, 122);
+      }
     }
   }
 `;
@@ -647,8 +657,6 @@ const IamServiceAccountDashboard = () => {
               viewAccountData={viewAccountData}
               setViewDetails={setViewDetails}
               refresh={fetchData}
-              getSecrets={getSecrets}
-              getSvcAccDetails={onViewClicked}
             />
           ) : (
             <></>

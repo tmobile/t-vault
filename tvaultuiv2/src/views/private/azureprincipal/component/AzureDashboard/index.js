@@ -106,7 +106,7 @@ const ListFolderWrap = styled(Link)`
       align-items: center;
       justify-content: center;
       margin-left: 0.75rem;
-      padding: 0.66rem 0.5rem 0.34rem 0.9rem;
+      padding: 0.9rem 0.5rem 0.4rem 0.6rem;
       border-radius: 50%;
       :hover {
         background-color: rgb(90, 99, 122);
@@ -323,14 +323,14 @@ const AzureDashboard = () => {
       >
         <AzureListItem title={azure.name} icon={azureIcon} />
         <BorderLine />
-        {azure.isManagable && !isMobileScreen && (
+        {(azure.isManagable || azure.access === 'write') && !isMobileScreen && (
           <PopperWrap onClick={(e) => onActionClicked(e)}>
             <ViewIcon onClick={() => onViewClicked(azure)}>
               <VisibilityIcon />
             </ViewIcon>
           </PopperWrap>
         )}
-        {azure.isManagable && isMobileScreen && (
+        {(azure.isManagable || azure.access === 'write') && isMobileScreen && (
           <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
             <ViewIcon onClick={() => onViewClicked(azure)}>
               <VisibilityIcon />
