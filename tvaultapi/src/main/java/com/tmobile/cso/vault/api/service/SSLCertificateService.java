@@ -430,15 +430,40 @@ public class SSLCertificateService {
     public ResponseEntity<String> generateSSLCertificate(SSLCertificateRequest sslCertificateRequest,
                                                                UserDetails userDetails ,String token) {
         CertResponse enrollResponse = new CertResponse();
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, SSLCertificateConstants.GENERATE_SSL_CERTIFICTAE)
+        		.put(LogMessage.MESSAGE, "Trying to generate SSL Certificate")
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+        		.build()));
+        
         //Validate the input data
         boolean isValidData = validateInputData(sslCertificateRequest, userDetails);
 		if (!isValidData) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.VALIDATE_INPUT_DATA)
+					.put(LogMessage.MESSAGE, "Invalid input data")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+					.build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		} else {
 			String applicationName = getValidApplicationName(sslCertificateRequest);
 			if (applicationName!= null && !StringUtils.isEmpty(applicationName)) {
 				populateSSLCertificateRequest(sslCertificateRequest, applicationName);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, SSLCertificateConstants.POPULATE_SSL_CERTIFICATE_REQUEST)
+						.put(LogMessage.MESSAGE, "SSL Certifcate request is success")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+						.build()));
 			} else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, SSLCertificateConstants.GET_VALID_APPLICATION_NAME)
+						.put(LogMessage.MESSAGE, "Failed to get valid application name")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+						.build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 			}
 		}
@@ -515,6 +540,12 @@ public class SSLCertificateService {
                 if(!isMockingEnabled(sslCertificateRequest.getCertType())) {
                     //Step-2 Validate targetSystem
                     int targetSystemId = getTargetSystem(sslCertificateRequest, certManagerLogin); 
+                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    		.put(LogMessage.ACTION, "validateTargetSystem")
+                    		.put(LogMessage.MESSAGE, String.format("Validated target system for certificate name [%s]", sslCertificateRequest.getCertificateName()))
+                    		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+                    		.build()));
 
                     //Step-3:  CreateTargetSystem
                     if (targetSystemId == 0) {
@@ -535,7 +566,12 @@ public class SSLCertificateService {
 
                     //Step-4 : Validate the Target System Service
                     int targetSystemServiceId = getTargetSystemServiceId(sslCertificateRequest, targetSystemId, certManagerLogin);
-
+                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    		.put(LogMessage.ACTION, "validateTargetSystemServiceID")	
+                    		.put(LogMessage.MESSAGE, String.format("Validated target system service id for certificate name [%s]", sslCertificateRequest.getCertificateName()))
+                    		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+                    		.build()));
 
                     //Step-5: Create Target System  Service
                     if (targetSystemServiceId == 0) {
@@ -1175,6 +1211,12 @@ public class SSLCertificateService {
         String enrollEndPoint = "/certmanager/putTemplateParameter";
         String enrollTemplateCA = putTemplateParamUrl.replace(SSLCertificateConstants.TEMPLATE_ID, String.valueOf(templateid)).replace(
                 SSLCertificateConstants.ENTITY_ID, String.valueOf(entityId));
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, "putTemplateParameterResponse")
+        		.put(LogMessage.MESSAGE, "Trying to update the template parameter response")
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+        		.build()));
         return reqProcessor.processCert(enrollEndPoint, templateResponse.getResponse(),
                 certManagerLogin.getAccess_token(),
                 getCertmanagerEndPoint(enrollTemplateCA));
@@ -1194,6 +1236,12 @@ public class SSLCertificateService {
         String enrollEndPoint = "/certmanager/getTemplateParameter";
         String enrollTemplateCA = getTemplateParamUrl.replace(SSLCertificateConstants.TEMPLATE_ID, String.valueOf(templateid)).replace(
                 SSLCertificateConstants.ENTITY_ID, String.valueOf(entityId));
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, "getTemplateParametersResponse")
+        		.put(LogMessage.MESSAGE, "Trying to get the template parameter response")
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+        		.build()));
         return reqProcessor.processCert(enrollEndPoint, "", certManagerLogin.getAccess_token(),
                 getCertmanagerEndPoint(enrollTemplateCA));
     }
@@ -1211,6 +1259,12 @@ public class SSLCertificateService {
         ApproveRequest approveRequest = new ApproveRequest();
         approveRequest.setFinalize(true);
         approveRequest.setNote(SSLCertificateConstants.REQUEST_FOR_APPROVAL);
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, "approvalRequest")
+        		.put(LogMessage.MESSAGE, "Trying to send the approval request")
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+        		.build()));
         return reqProcessor.processCert(approvalEndPoint, approveRequest, certManagerLogin.getAccess_token(), getCertmanagerEndPoint(endPoint));
     }
 
@@ -1355,6 +1409,7 @@ public class SSLCertificateService {
             mailTemplateVariables.put("certEndDate", certData != null ? Objects.requireNonNull(certData).getExpiryDate() : null);
             emailUtils.sendHtmlEmalFromTemplateForDelete(fromEmail, certOwnerEmailId,
                     subject, mailTemplateVariables);
+            
         } else {
             log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -1691,6 +1746,12 @@ public class SSLCertificateService {
      */
 	private boolean validateInputData(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails){
 	    boolean isValid=true;
+	    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+	    		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+	    		.put(LogMessage.ACTION, SSLCertificateConstants.VALIDATE_INPUT_DATA)
+	    		.put(LogMessage.MESSAGE, "Trying to validate input data")
+	    		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+	    		.build()));
 	    if((!validateCertficateName(sslCertificateRequest.getCertificateName())) || sslCertificateRequest.getAppName().contains(" ") ||
 	            (!populateCertOwnerEmaild(sslCertificateRequest, userDetails)) ||
 	            sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
@@ -1734,7 +1795,12 @@ public class SSLCertificateService {
 					.toArray(String[]::new);
 			sslCertificateRequest.setDnsList(dnsArray);
 		}
-
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, SSLCertificateConstants.POPULATE_SSL_CERTIFICATE_REQUEST)
+				.put(LogMessage.MESSAGE, "Trying to populate SSL certificate request")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		TargetSystem targetSystem = new TargetSystem();
 		targetSystem.setName(appName);
 		targetSystem.setAddress(appName.replaceAll("[^a-zA-Z0-9]",""));
@@ -1754,6 +1820,12 @@ public class SSLCertificateService {
 	 */
 	private String getValidApplicationName(SSLCertificateRequest sslCertificateRequest) {
 		String appName = sslCertificateRequest.getAppName();
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, SSLCertificateConstants.GET_VALID_APPLICATION_NAME)
+				.put(LogMessage.MESSAGE, "Trying to get the application name")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));	
 		ResponseEntity<String> appResponse = workloadDetailsService
 				.getWorkloadDetailsByAppName(appName);
 		if (HttpStatus.OK.equals(appResponse.getStatusCode())) {
@@ -1978,6 +2050,12 @@ public class SSLCertificateService {
         int containerId = getContainerId(sslCertificateRequest);
         String findCertificateEndpoint = "/certmanager/findCertificate";
         String targetEndpoint = findCertificate.replace("certname", String.valueOf(certName)).replace("cid", String.valueOf(containerId));
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, SSLCertificateConstants.GENERATE_SSL_CERTIFICTAE)
+        		.put(LogMessage.MESSAGE, String.format("Trying to get Info for the SSL Certifcate [%s]", certName))
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+        		.build()));
         CertResponse response = reqProcessor.processCert(findCertificateEndpoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(targetEndpoint));
         Map<String, Object> responseMap = ControllerUtil.parseJson(response.getResponse());
         if (!MapUtils.isEmpty(responseMap) && (ControllerUtil.parseJson(response.getResponse()).get(SSLCertificateConstants.CERTIFICATES) != null)) {
@@ -2039,6 +2117,12 @@ public class SSLCertificateService {
         String getTargetSystemServiceEndpoint = "/certmanager/findTargetSystemService";
         String findTargetSystemServiceEndpoint = findTargetSystemService.replace("tsgid",
                 String.valueOf(targetSystemId));
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, "getTargetSystemServiceId")
+        		.put(LogMessage.MESSAGE, String.format("Trying to validate target system service ID for [%s]", targetSystemName))
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+        		.build()));
         CertResponse response = reqProcessor.processCert(getTargetSystemServiceEndpoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(findTargetSystemServiceEndpoint));
 
         Map<String, Object> responseMap = ControllerUtil.parseJson(response.getResponse());
@@ -2074,6 +2158,12 @@ public class SSLCertificateService {
         String getTargetSystemEndpoint = "/certmanager/findTargetSystem";
         int containerId = getContainerId(sslCertificateRequest);
         String findTargetSystemEndpoint = findTargetSystem.replace("tsgid", String.valueOf(containerId));
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, "getTargetSystem")
+        		.put(LogMessage.MESSAGE, String.format("Trying to create target System for [%s]", targetSystemName))
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+        		.build()));
         CertResponse response = reqProcessor.processCert(getTargetSystemEndpoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(findTargetSystemEndpoint));
         if(HttpStatus.OK.equals(response.getHttpstatus())) {
         JsonParser jsonParser = new JsonParser();
@@ -2115,6 +2205,12 @@ public class SSLCertificateService {
     private String getEnrollCSR(CertManagerLogin certManagerLogin, int entityid, int templateid, SSLCertificateRequest sslCertificateRequest) throws Exception {
         String enrollEndPoint = "/certmanager/getEnrollCSR";
         String enrollTemplateCA = enrollCSRUrl.replace(SSLCertificateConstants.TEMPLATE_ID, String.valueOf(templateid)).replace(SSLCertificateConstants.ENTITY_ID, String.valueOf(entityid));
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, "getEnrollCSR")
+        		.put(LogMessage.MESSAGE, "Trying to get the enroll CSR details")
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+        		.build()));
         CertResponse response = reqProcessor.processCert(enrollEndPoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(enrollTemplateCA));
         String updatedRequest = updatedRequestWithCN(response.getResponse(), sslCertificateRequest);
         return updatedRequest;
@@ -2170,6 +2266,12 @@ public class SSLCertificateService {
         int enrollKeyId = 0;
         String enrollEndPoint = "/certmanager/putEnrollCSR";
         String enrollTemplateCA = enrollUpdateCSRUrl.replace(SSLCertificateConstants.ENTITY_ID, String.valueOf(entityid));
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, "putEnrollCSR")
+        		.put(LogMessage.MESSAGE, "Trying to update the enroll CSR details")
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+        		.build()));
         return reqProcessor.processCert(enrollEndPoint, updatedRequest, certManagerLogin.getAccess_token(), getCertmanagerEndPoint(enrollTemplateCA));
     }
 
@@ -2186,6 +2288,12 @@ public class SSLCertificateService {
         int enrollKeyId = 0;
         String enrollEndPoint = "/certmanager/putEnrollKeys";
         String enrollTemplateCA = enrollKeysUrl.replace(SSLCertificateConstants.TEMPLATE_ID, String.valueOf(templateid)).replace(SSLCertificateConstants.ENTITY_ID, String.valueOf(entityid));
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, "putEnrollKeys")
+        		.put(LogMessage.MESSAGE, "Trying to update the enroll keys")
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+        		.build()));
         CertResponse certResponse = reqProcessor.processCert(enrollEndPoint, response.getResponse(), certManagerLogin.getAccess_token(), getCertmanagerEndPoint(enrollTemplateCA));
         Map<String, Object> responseMap = ControllerUtil.parseJson(certResponse.getResponse());
         if (!MapUtils.isEmpty(responseMap)) {
@@ -2205,6 +2313,12 @@ public class SSLCertificateService {
     private CertResponse getEnrollKeys(CertManagerLogin certManagerLogin, int entityid, int templateid) throws Exception {
         String enrollEndPoint = "/certmanager/getEnrollkeys";
         String enrollTemplateCA = enrollKeysUrl.replace(SSLCertificateConstants.TEMPLATE_ID, String.valueOf(templateid)).replace(SSLCertificateConstants.ENTITY_ID, String.valueOf(entityid));
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, "getEnrollKeys")
+        		.put(LogMessage.MESSAGE, "Trying to get the enroll keys")
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+        		.build()));
         return reqProcessor.processCert(enrollEndPoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(enrollTemplateCA));
     }
 
@@ -2224,6 +2338,12 @@ public class SSLCertificateService {
         int enrollTemlateId = 0;
         String enrollEndPoint = "/certmanager/putEnrollTemplates";
         String enrollTempletEndpoint = enrollTemplateUrl.replace("caid", String.valueOf(caId)).replace(SSLCertificateConstants.ENTITY_ID, String.valueOf(entityid));
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, "putEnrollTemplates")
+        		.put(LogMessage.MESSAGE, "Trying to update the enroll templates")
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+        		.build()));
         CertResponse certResponse = reqProcessor.processCert(enrollEndPoint, response.getResponse(), certManagerLogin.getAccess_token(), getCertmanagerEndPoint(enrollTempletEndpoint));
         Map<String, Object> responseMap = ControllerUtil.parseJson(certResponse.getResponse());
         if (!MapUtils.isEmpty(responseMap)) {
@@ -2245,6 +2365,12 @@ public class SSLCertificateService {
     private CertResponse getEnrollTemplates(CertManagerLogin certManagerLogin, int entityid, int caId) throws Exception {
         String enrollEndPoint = "/certmanager/getEnrollTemplates";
         String enrollTemplateCA = enrollTemplateUrl.replace("caid", String.valueOf(caId)).replace(SSLCertificateConstants.ENTITY_ID, String.valueOf(entityid));
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, "getEnrollTemplates")
+        		.put(LogMessage.MESSAGE, "Trying to get the enroll templates")
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+        		.build()));
         return reqProcessor.processCert(enrollEndPoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(enrollTemplateCA));
     }
 
@@ -2262,6 +2388,11 @@ public class SSLCertificateService {
         int selectedId = 0;
         String enrollEndPoint = "/certmanager/putEnrollCA";
         String enrollCA = enrollCAUrl.replace(SSLCertificateConstants.ENTITY_ID, String.valueOf(entityid));
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, "putEnrollCA").put(LogMessage.MESSAGE, "Trying to update the enroll CA")
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+        		.build()));
         CertResponse certResponse = reqProcessor.processCert(enrollEndPoint, response.getResponse(), certManagerLogin.getAccess_token(), getCertmanagerEndPoint(enrollCA));
         Map<String, Object> responseMap = ControllerUtil.parseJson(certResponse.getResponse());
         if (!MapUtils.isEmpty(responseMap)) {
@@ -2284,6 +2415,12 @@ public class SSLCertificateService {
         int selectedId = 0;
         String enrollEndPoint = "/certmanager/getEnrollCA";
         String enrollCA = enrollCAUrl.replace(SSLCertificateConstants.ENTITY_ID, String.valueOf(entityid));
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, "getEnrollCA")
+        		.put(LogMessage.MESSAGE, "Trying to get the enroll CA")
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+        		.build()));
         return reqProcessor.processCert(enrollEndPoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(enrollCA));
     }
 
@@ -2300,6 +2437,12 @@ public class SSLCertificateService {
     private CertResponse enrollCertificate(CertManagerLogin certManagerLogin, int entityId) throws Exception {
         String enrollEndPoint = "/certmanager/enroll";
         String targetSystemEndPoint = enrollUrl.replace(SSLCertificateConstants.ENTITY_ID, String.valueOf(entityId));
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, "enrollCertificate")
+        		.put(LogMessage.MESSAGE, "Trying to enroll certificate")
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+        		.build()));
         return reqProcessor.processCert(enrollEndPoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(targetSystemEndPoint));
     }
 
@@ -3568,6 +3711,12 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	public ResponseEntity<String> addGroupToCertificate(UserDetails userDetails, String userToken, CertificateGroup certificateGroup) {
    		String authToken = null;
    		boolean isAuthorized = true;
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, SSLCertificateConstants.ADD_GROUP_TO_CERT_MSG)
+				.put(LogMessage.MESSAGE, "Trying to add group to Certificate folder")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
    		if(!ControllerUtil.arecertificateGroupInputsValid(certificateGroup)) {
    			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 	   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -4944,6 +5093,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
    		}
 		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG)
+				.put(LogMessage.MESSAGE, "Trying to delete user from the certificate")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
+
 		String userName = certificateUser.getUsername().toLowerCase();
    		String certificateName = certificateUser.getCertificateName().toLowerCase(); 
    		String certificateType = certificateUser.getCertType();
@@ -6012,7 +6168,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 
         String certMetadataPath = metaDataPath + '/' + certificateName;
         String certPath = certPathVal + certificateName;
-
+        
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        		.put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE)
+        		.put(LogMessage.MESSAGE, "Trying to delete SSL certificate policies")
+        		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+        		.build()));
         //Read Policy
         accessMap.put(certPath, TVaultConstants.READ_POLICY);
         accessMap.put(certMetadataPath, TVaultConstants.READ_POLICY);
@@ -6871,9 +7033,17 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "deleteSSLCertificate")
 					.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
-					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+					.build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		}
+		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "deleteSSLCertificate")
+				.put(LogMessage.MESSAGE, String.format("Trying to delete SSL cerrtificate [%S]", certificateName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		
 		Map<String, String> metaDataParams = new HashMap<>();
 		String endPoint =certificateName;	
 		String metaDataPath = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL))?
@@ -6888,6 +7058,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		if (!userDetails.isAdmin()) {
 			boolean isPermission = validateCertOwnerPermissionForNonAdmin(userDetails, certificateName,certType);
 			if (!isPermission) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, "validateCertOwnerPermissionForNonAdmin")
+						.put(LogMessage.MESSAGE, String.format("User has no permission to access the SSL Certificate [%s]", certificateName))
+						.put(LogMessage.STATUS, HttpStatus.INTERNAL_SERVER_ERROR.toString())
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+						.build()));
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 						.body("{\"errors\":[\"Access denied: No permission to delete certificate\"]}");
 			}
@@ -6895,6 +7072,14 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		response = getCertificateDetailsByMatadataPath(metaDataPath, authToken);
 		
 		if (ObjectUtils.isEmpty(response) || !HttpStatus.OK.equals(response.getHttpstatus())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.GET_CERT_DETAILS_BY_METADATA_PATH)
+					.put(LogMessage.MESSAGE,
+							String.format("Failed to get certificate details from metadatapath  [%s]", metaDataPath))
+					.put(LogMessage.STATUS, HttpStatus.INTERNAL_SERVER_ERROR.toString())
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
 			return ResponseEntity.status(response.getHttpstatus()).body("{\"errors\":[\"Certificate unavailable\"]}");
 		}
 		
@@ -7029,6 +7214,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		       String nclmApiAssignEndpoint = unassignCertificateEndpoint.replace("certID", String.valueOf(certID));
 		       unAssignResponse = reqProcessor.processCert("/certificates/services/assigned", jo,
 		               nclmAccessToken, getCertmanagerEndPoint(nclmApiAssignEndpoint));
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "deleteCertificateFromNclm")
+					.put(LogMessage.MESSAGE, "Trying to delete SSL Certificate from NCLM")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+					.build()));
+
 		       if (unAssignResponse != null && HttpStatus.OK.equals(unAssignResponse.getHttpstatus())) {
 		           //delete the certiicate
 		           String nclmApiDeleteEndpoint = deleteCertificateEndpoint.replace("certID", String.valueOf(certID));
@@ -7049,6 +7241,12 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	 */
 	private Response getCertificateDetailsByMatadataPath(String metaDataPath, String authToken) {
 		Response response = new Response();
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, SSLCertificateConstants.GET_CERT_DETAILS_BY_METADATA_PATH)
+				.put(LogMessage.MESSAGE, String.format("Trying to get metadata details from [%s]", metaDataPath))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));	
 		try {
 			response = reqProcessor.process("/read", "{\"path\":\"" + metaDataPath + "\"}", authToken);
 		} catch (Exception e) {
@@ -7124,8 +7322,15 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	 */
 	private Response deleteCertificateDetailsFromCertMetaPath(String metaDataPath, String authToken) {
 		Response response = new Response();
+		
 		try {
 			response = reqProcessor.process("/delete", "{\"path\":\"" + metaDataPath + "\"}", authToken);
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+					.put(LogMessage.ACTION, "deleteCertificateDetailsFromCertMetaPath")
+					.put(LogMessage.MESSAGE, "Trying to delete SSL certificate metadata details")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
 		} catch (Exception e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -7655,7 +7860,15 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to remove group from this certificate\"]}");
    		} 
    		
-        if(isAuthorized){        	
+        if(isAuthorized){  
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_GROUP_FROM_CERT_MSG)
+					.put(LogMessage.MESSAGE,
+							String.format("Removed Group from certificate successsfully - [%s]",
+									certificateGroup.toString()))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+					.build()));
 			return checkPolicyDetailsAndRemoveGroupFromCertificate(groupName, certificateName, authToken,
 					certificateType, userDetails);
         } else {
@@ -7687,6 +7900,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
    		}
 		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG)
+				.put(LogMessage.MESSAGE,
+						String.format("Trying to remove user from certificate - [%s]", certificateUser.toString()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		String userName = certificateUser.getUsername().toLowerCase();
    		String certificateName = certificateUser.getCertificateName().toLowerCase(); 
    		String certificateType = certificateUser.getCertType();
@@ -7717,6 +7937,13 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
    		}
 		
 		if(isAuthorized){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.REMOVE_USER_FROM_CERT_MSG)
+					.put(LogMessage.MESSAGE,
+							String.format("Removed user from certificate - [%s]", certificateUser.toString()))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+					.build()));
 			return checkUserPolicyAndRemoveFromCertificate(userName, certificateName, authToken, certificateType, userDetails);
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -8659,11 +8886,11 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
         boolean isAuthorized = true;
         if(!areCertificateApproleInputsValid(certificateApprole)) {
         	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-   					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-   					put(LogMessage.ACTION, SSLCertificateConstants.DELETE_APPROLE_TO_CERT_MSG).
-   					put(LogMessage.MESSAGE, "Invalid input values").
-   					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-   					build()));
+        			put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+        		   	put(LogMessage.ACTION, SSLCertificateConstants.DELETE_APPROLE_TO_CERT_MSG).
+        		   	put(LogMessage.MESSAGE, "Invalid input values").
+        		   	put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+        		   	build()));
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
         }
 
@@ -8674,21 +8901,30 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
 
-String approleName = certificateApprole.getApproleName().toLowerCase();
+        String approleName = certificateApprole.getApproleName().toLowerCase();
         String certificateName = certificateApprole.getCertificateName().toLowerCase();
         String access = certificateApprole.getAccess().toLowerCase();
         String certType = certificateApprole.getCertType().toLowerCase();
         if (approleName.equals(TVaultConstants.SELF_SERVICE_APPROLE_NAME)) {
+        	
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.DELETE_APPROLE_TO_CERT_MSG)
+					.put(LogMessage.MESSAGE,
+							String.format("No permission to associate this AppRole [%s] to any Certificate",
+									approleName))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+					.build()));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to associate this AppRole to any Certificate\"]}");
         }
-if (!ObjectUtils.isEmpty(userDetails)) {
+        if (!ObjectUtils.isEmpty(userDetails)) {
 
 	        if (userDetails.isAdmin()) {
 	        	authToken = userDetails.getClientToken();
 	        }else {
 	        	authToken = userDetails.getSelfSupportToken();
 	        }
-SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, certType);
+	        SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(authToken, certificateName, certType);
 
 			isAuthorized = certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetaData);
 
@@ -9766,6 +10002,13 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
     	boolean isValidData = false;
     	int count =0;
     	String[] notifEmailLst =new String[] {};
+    	
+    	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+    			.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+    			.put(LogMessage.ACTION, SSLCertificateConstants.UPDATE_SSL_CERTIFICATE)
+    			.put(LogMessage.MESSAGE, String.format("Trying to update the metadata of the certificate [%s]", certificateUpdateRequest.getCertificateName()))
+    			.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+    			.build()));
     	if(isValidInputs(certificateUpdateRequest.getCertificateName(), certificateUpdateRequest.getCertType()) && (certificateUpdateRequest.getApplicationOwnerEmail()!=null ? validateCertficateEmail(certificateUpdateRequest.getApplicationOwnerEmail()):true)
     			&& (certificateUpdateRequest.getProjectLeadEmail()!=null ? validateCertficateEmail(certificateUpdateRequest.getProjectLeadEmail() ):true)) {
     		isValidData = true;
@@ -9786,6 +10029,13 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
     	}
     	Map<String, String> metaDataParams = new HashMap<String, String>();
 		if (!isValidData) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "invalidInputData")
+					.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
+					.put(LogMessage.STATUS, HttpStatus.INTERNAL_SERVER_ERROR.toString())
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+					.build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		} else {
 			String endPoint = certificateUpdateRequest.getCertificateName();
@@ -9794,8 +10044,18 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			Response response = new Response();
 			if (!userDetails.isAdmin()) {
 				Boolean isPermission = validateCertOwnerPermissionForNonAdmin(userDetails, certificateUpdateRequest.getCertificateName(),certificateUpdateRequest.getCertType());
-
+				
 				if (!isPermission) {
+					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION,
+									String.format("Certificate permission for user [%s] ", userDetails.getUsername()))
+							.put(LogMessage.MESSAGE,
+									String.format("User has no permission to access the certificate [%s]",
+											certificateUpdateRequest.getCertificateName()))
+							.put(LogMessage.STATUS, HttpStatus.INTERNAL_SERVER_ERROR.toString()).put(LogMessage.APIURL,
+									ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+							.build()));
 					return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 							.body(ERRORS
 									+ "Access denied: No permission to update certificate"
@@ -9823,6 +10083,13 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 						.body(MESSAGES + SSLCertificateConstants.CERTIFICATE_UNAVAILABLE + "\"]}");
 			}
 			if (!HttpStatus.OK.equals(response.getHttpstatus())) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, SSLCertificateConstants.UPDATE_SSL_CERTIFICATE)
+						.put(LogMessage.MESSAGE, SSLCertificateConstants.CERTIFICATE_UNAVAILABLE)
+						.put(LogMessage.STATUS, HttpStatus.INTERNAL_SERVER_ERROR.toString())
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+						.build()));
 				return ResponseEntity.status(response.getHttpstatus())
 						.body(ERRORS + SSLCertificateConstants.CERTIFICATE_UNAVAILABLE + "\"]}");
 			}
@@ -9839,7 +10106,17 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			}
 			}else if(!((certificateUpdateRequest.getApplicationOwnerEmail()==null ?true: certificateUpdateRequest.getApplicationOwnerEmail().equalsIgnoreCase(metaDataParams.get("applicationOwnerEmailId")))
 					&& (certificateUpdateRequest.getProjectLeadEmail()==null ?true: certificateUpdateRequest.getProjectLeadEmail().equalsIgnoreCase(metaDataParams.get("projectLeadEmailId"))))){
-			
+				
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, SSLCertificateConstants.UPDATE_SSL_CERTIFICATE)
+						.put(LogMessage.MESSAGE, String.format(
+								"No permission to update application owner email [%s] or project lead email [%s]",
+								certificateUpdateRequest.getApplicationOwnerEmail(),
+								certificateUpdateRequest.getProjectLeadEmail()))
+						.put(LogMessage.STATUS, HttpStatus.INTERNAL_SERVER_ERROR.toString())
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
+						.build()));
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 						.body(ERRORS
 								+ "Access denied: No permission to update application owner email or project lead email"
@@ -9861,7 +10138,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                     put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-                    put(LogMessage.ACTION, "updateSSLCertificate").
+                    put(LogMessage.ACTION, SSLCertificateConstants.UPDATE_SSL_CERTIFICATE).
                     put(LogMessage.MESSAGE, String.format("Successfully updated the metadata for   " +
                                     "[%s] ",
                              metaDataParams.get("certificateName"),java.time.LocalDateTime.now())).
@@ -9873,7 +10150,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-					.put(LogMessage.ACTION, "updateSSLCertificate")
+					.put(LogMessage.ACTION, SSLCertificateConstants.UPDATE_SSL_CERTIFICATE)
 					.put(LogMessage.MESSAGE, "Certificate details updation failed")
 					.put(LogMessage.STATUS, HttpStatus.INTERNAL_SERVER_ERROR.toString())
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
