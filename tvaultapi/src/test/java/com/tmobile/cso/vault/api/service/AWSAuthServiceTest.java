@@ -108,7 +108,7 @@ public class AWSAuthServiceTest {
         AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
                 "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
                 "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
-                "\"[prod, dev\"]");
+                "");
 
         String jsonStr = "{\"auth_type\": \"ec2\", \"role\": \"mytestawsrole\", \"bound_ami_id\": \"ami-fce3c696\", " +
                 "\"bound_account_id\": 1234567890123, \"bound_region\": \"us-east-2\",\"bound_vpc_id\": " +
@@ -146,7 +146,7 @@ public class AWSAuthServiceTest {
         AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
                 "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
                 "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
-                "\"[prod, dev\"]");
+                "");
 
         String jsonStr = "{\"auth_type\": \"ec2\", \"role\": \"mytestawsrole\", \"bound_ami_id\": \"ami-fce3c696\", " +
                 "\"bound_account_id\": 1234567890123, \"bound_region\": \"us-east-2\",\"bound_vpc_id\": " +
@@ -185,7 +185,7 @@ public class AWSAuthServiceTest {
         AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
                 "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
                 "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
-                "\"[prod, dev\"]");
+                "");
 
         String jsonStr = "{\"auth_type\": \"ec2\", \"role\": \"mytestawsrole\", \"bound_ami_id\": \"ami-fce3c696\", " +
                 "\"bound_account_id\": 1234567890123, \"bound_region\": \"us-east-2\",\"bound_vpc_id\": " +
@@ -242,14 +242,14 @@ public class AWSAuthServiceTest {
         AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
                 "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
                 "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
-                "\"[prod, dev\"]");
+                "");
 
         String jsonStr = "{\"auth_type\": \"ec2\", \"role\": \"mytestawsrole\", \"bound_ami_id\": \"ami-fce3c696\", " +
                 "\"bound_account_id\": 1234567890123, \"bound_region\": \"us-east-2\",\"bound_vpc_id\": " +
                 "\"vpc-2f09a348\", \"bound_subnet_id\": \"subnet-1122aabb\", \"bound_iam_role_arn\": " +
                 "\"arn:aws:iam::8987887:role/test-role\",  \"bound_iam_instance_profile_arn\":" +
                 "\"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\",  " +
-                "\"policies\": \"\\\"[prod, dev\\\"]\"}";
+                "\"policies\": \"\\\"[default\\\"]\"}";
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Internal Server Error\"]}");
         when(reqProcessor.process("/auth/aws/roles/create", jsonStr, token)).thenReturn(responseServerError);
