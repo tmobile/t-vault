@@ -156,6 +156,7 @@ const IamServiceAccountSecrets = (props) => {
     accountDetail,
     accountSecretError,
     accountSecretData,
+    value,
     getSecrets,
     isIamSvcAccountActive,
     secretResponse,
@@ -179,6 +180,10 @@ const IamServiceAccountSecrets = (props) => {
   const handleClose = () => {
     setOpenConfirmationModal({});
   };
+
+  useEffect(() => {
+    setShowSecret(false);
+  }, [value]);
 
   /**
    * @function onViewSecretsCliked
@@ -533,6 +538,7 @@ IamServiceAccountSecrets.propTypes = {
   getSecrets: PropTypes.func,
   isIamSvcAccountActive: PropTypes.bool.isRequired,
   refresh: PropTypes.func.isRequired,
+  value: PropTypes.number,
 };
 
 IamServiceAccountSecrets.defaultProps = {
@@ -540,6 +546,7 @@ IamServiceAccountSecrets.defaultProps = {
   accountSecretData: {},
   getSecrets: () => {},
   secretResponse: '',
+  value: 0,
 };
 
 export default IamServiceAccountSecrets;

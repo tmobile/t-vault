@@ -156,6 +156,7 @@ const AccountSelectionTabs = (props) => {
               accountSecretData={accountSecretData}
               accountSecretError={accountSecretError}
               getSecrets={getSecrets}
+              value={value}
               isIamSvcAccountActive={isIamSvcAccountActive}
               secretResponse={secretResponse?.status}
               refresh={refresh}
