@@ -768,10 +768,10 @@ public class SSLCertificateService {
                     boolean sslApplicationMetaDataSaveStatus;
                     //save certificate name into application metadata path
                     if (userDetails.isAdmin()) {
-                    	sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(metadataJson, token);
+                    	sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(metadataJson, token, "create");
 					} else {
 						sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(metadataJson,
-								userDetails.getSelfSupportToken());
+								userDetails.getSelfSupportToken(), "create");
 					}
                     
                     if (sslApplicationMetaDataSaveStatus) {
@@ -8198,7 +8198,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		        
 		        boolean sslApplicationMetaDataSaveStatus;
                 //save certificate name into application metadata path
-                	sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(metadataJson, tokenUtils.getSelfServiceToken());
+                	sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(metadataJson, tokenUtils.getSelfServiceToken(), "create");
 				
                 
                 if (sslApplicationMetaDataSaveStatus) {
@@ -9450,7 +9450,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 					.build()));
 			
 			//add certificate name into application metadata list
-            boolean sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(metadataJson, tokenUtils.getSelfServiceToken());
+            boolean sslApplicationMetaDataSaveStatus = certificateMetadataForApplicationDetails(metadataJson, tokenUtils.getSelfServiceToken(),"create");
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION,
@@ -9934,7 +9934,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
      * @param token
      * @return
      */
-    private boolean certificateMetadataForApplicationDetails(String sslCertificateJson, String token) {
+    private boolean certificateMetadataForApplicationDetails(String sslCertificateJson, String token, String method) {
 		 TMOAppMetadataDetails tmoAppMetadataDetails = new TMOAppMetadataDetails();
 			JsonParser jsonParser = new JsonParser();
 			
@@ -9963,6 +9963,18 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 				}			
 				}
 				else {
+					if(!method.equalsIgnoreCase("create")) {
+						boolean isDataMismatch= checkApplicationMismatch(tmoAppMetadataDetails, token);
+						tmoAppMetadataDetails.setUpdateFlag(isDataMismatch);
+		                log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                        put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
+		                        put(LogMessage.MESSAGE, String.format("Application details mismatch for application [%s]", tmoAppMetadataDetails.getApplicationName())).
+		                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                        build()));
+						
+					}
+					
 					tmoAppMetadataDetails = addCertToAppList(tmoAppMetadataDetails,appName,certType,object.get("certificateName").getAsString(),
 							 token);
 				}
@@ -10026,6 +10038,40 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			return isDataAvailable;
 	 }
 	 
+	 private boolean checkApplicationMismatch(TMOAppMetadataDetails tmoDetails, String token) {
+		 String certPath =  TVaultConstants.TMO_APP_METADATA_PATH + "/" + tmoDetails.getApplicationName();
+			Response response = new Response();
+			JsonParser jsonParser = new JsonParser();
+			boolean isNotMatching = true;
+			
+			try {
+					response = reqProcessor.process("/read", "{\"path\":\"" + certPath + "\"}", token);
+					
+			} catch (Exception e) {
+				log.error(
+						JSONUtil.getJSON(
+								ImmutableMap.<String, String> builder()
+										.put(LogMessage.USER,
+												ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+										.put(LogMessage.ACTION,
+												String.format("Exception = [%s] =  Message [%s]",
+														Arrays.toString(e.getStackTrace()), response.getResponse()))
+										.build()));				
+			}
+			if (HttpStatus.OK.equals(response.getHttpstatus())) {
+				JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+				String newAppOwner = (object.get("applicationOwnerEmailId")==null?"":object.get("applicationOwnerEmailId").getAsString());
+				String newLeadEmail = (object.get("projectLeadEmailId")==null?"":object.get("projectLeadEmailId").getAsString());
+				isNotMatching = object.get("updateFlag").getAsBoolean();
+				if(object.get("updateFlag").getAsBoolean()==true) {
+				if((!newAppOwner.equalsIgnoreCase(tmoDetails.getApplicationOwnerEmailId())) || (!newLeadEmail.equalsIgnoreCase(tmoDetails.getProjectLeadEmailId()))) {
+					isNotMatching = false;
+				}
+				}
+			}
+			return isNotMatching;
+	 }
+	 
 	/**
 	 * Method to add certificate name into the certlist in application metadata
 	 * @param details
@@ -10056,7 +10102,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 	                    put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 	                    put(LogMessage.ACTION, SSLCertificateConstants.POLICY_CREATION_TITLE).
-	                    put(LogMessage.MESSAGE, "SSL certificate metadata is not avvailable for the given application ").
+	                    put(LogMessage.MESSAGE, "SSL certificate metadata is not available for the given application ").
 	                    put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 	                    build()));
 			}
@@ -10074,6 +10120,9 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			 }else {
 				 certList.add(certName);
 			 }
+			 LinkedHashSet<String> certSet =  new LinkedHashSet<String>(certList);
+			 certList.clear();
+			 certList.addAll(certSet);
 			 if(certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
 				 details.setInternalCertificateList(certList);
 			 }else {
@@ -10221,5 +10270,85 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			 }
 			
 			return details;
+	 }
+	 
+	 /**
+	  * Method to save application details for older certificates
+	  * @param token
+	  * @param userDetails
+	  * @return
+	  * @throws Exception
+	  */
+	 public ResponseEntity<String> saveAllAppDetailsForOldCerts(String token, UserDetails userDetails)
+				 {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, SSLCertificateConstants.GET_ALL_PENDING_CERT_MSG)
+					.put(LogMessage.MESSAGE, "Trying to get all certificates to save the application path")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+			if (ObjectUtils.isEmpty(userDetails) || (!userDetails.isAdmin())) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, SSLCertificateConstants.GET_ALL_PENDING_CERT_MSG)
+						.put(LogMessage.MESSAGE, "Access denied: No permission to get the certificates details")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("{\"errors\":[\"Access denied: No permission to get the certificates details\"]}");
+			}
+			
+			List<CertificateData> certificatesList = new ArrayList<>();
+			String internalMetaDataPath = SSLCertificateConstants.SSL_CERT_PATH;
+			String externalMetaDataPath = SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
+	       	Response internalResponse;
+	       	Response externalResponse;
+	       	String certListStr = "";
+	       	JsonParser jsonParser = new JsonParser();
+
+	        internalResponse = getMetadata(token, internalMetaDataPath);
+	        externalResponse = getMetadata(token, externalMetaDataPath);
+	        
+	        JsonObject jsonObject = (JsonObject) jsonParser.parse(internalResponse.getResponse());
+	   		JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
+	   		List<String> internalCertNames = geMatchCertificates(jsonArray,"");
+	   		
+	   		boolean isInternalSaved = saveApplicationDetailsForOldCerts(internalCertNames,"internal", token);
+	   		
+	   		JsonObject jsonObjectExt = (JsonObject) jsonParser.parse(externalResponse.getResponse());
+	   		JsonArray jsonArrayExt = jsonObjectExt.getAsJsonObject("data").getAsJsonArray("keys");
+	   		List<String> externalCertNames = geMatchCertificates(jsonArrayExt,"");
+	   		boolean isExternalSaved = saveApplicationDetailsForOldCerts(externalCertNames,"external", token);
+	   		
+			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Application details updation is successfully completed.\"]}");
+
+	 }
+	 
+	 /**
+	  * iterate the internal/external cert list and save the app details
+	  * @param certList
+	  * @param certType
+	  * @param token
+	  * @return
+	  */
+	 private boolean saveApplicationDetailsForOldCerts(List<String> certList, String certType, String token) {
+		 boolean isSaved = true;
+		 String pathStr= "";
+	   		String endPoint = "";
+	   		Response response = new Response();
+	   		JsonParser jsonParser = new JsonParser();
+	   		JsonArray responseArray = new JsonArray();
+	   		JsonObject metadataJsonObj=new JsonObject();
+		 String metaDataPath = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL))?
+	                SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
+		 for (int i = 0; i < certList.size(); i++) {
+			  endPoint = certList.get(i).replaceAll(CERTNAMEREGEX, "");
+				 pathStr = metaDataPath + "/" + endPoint;
+				 response = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}", token);
+				if (HttpStatus.OK.equals(response.getHttpstatus())) {
+					certificateMetadataForApplicationDetails(response.getResponse(), token, "update");
+				}
+			}
+		 return isSaved;
 	 }
 }
