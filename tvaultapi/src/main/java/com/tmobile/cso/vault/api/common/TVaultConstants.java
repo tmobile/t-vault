@@ -183,7 +183,6 @@ public class TVaultConstants {
     public static final String CREATE_ACTION = "create";
     public static final String UPDATE_ACTION = "update";
     public static final String DELETE_FOLDER_ACTION = "delete";
-
-
+    public static final String AUTH_TYPE = "auth_type";
 
 }
