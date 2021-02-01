@@ -133,7 +133,8 @@ const AddGroup = (props) => {
     if (configData.AD_GROUP_AUTOCOMPLETE) {
       if (
         groups &&
-        !Object.keys(groups)?.includes(searchValue?.toLowerCase())
+        !Object.keys(groups)?.includes(searchValue?.toLowerCase()) &&
+        !Object.keys(groups)?.includes(searchValue)
       ) {
         setExistingGroup(false);
         if (groupname) {
