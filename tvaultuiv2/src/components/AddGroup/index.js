@@ -131,7 +131,11 @@ const AddGroup = (props) => {
 
   useEffect(() => {
     if (configData.AD_GROUP_AUTOCOMPLETE) {
-      if (!Object.keys(groups)?.includes(searchValue?.toLowerCase())) {
+      if (
+        groups &&
+        !Object.keys(groups)?.includes(searchValue?.toLowerCase()) &&
+        !Object.keys(groups)?.includes(searchValue)
+      ) {
         setExistingGroup(false);
         if (groupname) {
           if (access === radioValue) {

@@ -133,6 +133,21 @@ const AccountSelectionTabs = (props) => {
     }
   }, [accountDetail]);
 
+  const getServiceListMetaData = () => {
+    return apiService
+      .fetchServiceAccountDetails(accountDetail.name)
+      .then((res) => {
+        if (res.data.data.values && res.data.data.values[0]) {
+          return res.data.data.values[0].owner;
+        }
+        return '';
+      })
+      .catch(() => {
+        setResponse({ status: 'error' });
+        setAccountMetaData({ response: {}, error: 'Something went wrong' });
+      });
+  };
+
   // Function to get the metadata of the given service account
   const fetchPermission = useCallback(() => {
     setResponse({ status: 'loading' });
@@ -140,11 +155,8 @@ const AccountSelectionTabs = (props) => {
       .updateMetaPath(accountDetail.name)
       .then(async (res) => {
         if (res.data && res.data.data) {
-          setResponse({ status: 'success' });
-          if (
-            res.data.data.managedBy.toLowerCase() ===
-            state?.username?.toLowerCase()
-          ) {
+          const owner = await getServiceListMetaData();
+          if (owner?.toLowerCase() === state?.username?.toLowerCase()) {
             setDisabledPermission(false);
             if (res.data.data.initialPasswordReset) {
               setHasSvcAccountAcitve(true);
@@ -162,12 +174,14 @@ const AccountSelectionTabs = (props) => {
             setValue(0);
             setDisabledPermission(true);
           }
+          setResponse({ status: 'success' });
         }
       })
       .catch(() => {
         setResponse({ status: 'error' });
         setAccountMetaData({ response: {}, error: 'Something went wrong' });
       });
+    // eslint-disable-next-line
   }, [accountDetail, state]);
 
   useEffect(() => {

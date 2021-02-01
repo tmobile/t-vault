@@ -99,6 +99,14 @@ const IamServiceAccountPermission = (props) => {
     setValue(newValue);
   };
 
+  useEffect(() => {
+    setValue(0);
+    setNewUser(false);
+    setNewGroup(false);
+    setNewAppRole(false);
+    setNewAwsApplication(false);
+  }, [accountDetail]);
+
   return (
     <ComponentError>
       <TabWrapper>

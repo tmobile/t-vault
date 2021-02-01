@@ -175,6 +175,11 @@ const Groups = (props) => {
     onNewGroupChange();
   };
 
+  useEffect(() => {
+    onCancelClicked();
+    // eslint-disable-next-line
+  }, [certificateMetaData]);
+
   /**
    * @function onEditClick
    * @description function to edit the existing group.

@@ -176,6 +176,7 @@ const CertificatesDashboard = () => {
   const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
   const [state] = useStateValue();
   const admin = Boolean(state?.isAdmin);
+  const [listOfCertificates, setListOfCertificates] = useState([]);
 
   const compareCertificates = (array1, array2, type) => {
     if (array2.length > 0) {
@@ -268,6 +269,11 @@ const CertificatesDashboard = () => {
           });
         }
         setCertificateList([
+          ...internalCertArray,
+          ...externalCertArray,
+          ...onboardCertArray,
+        ]);
+        setListOfCertificates([
           ...internalCertArray,
           ...externalCertArray,
           ...onboardCertArray,
@@ -377,6 +383,7 @@ const CertificatesDashboard = () => {
           'external'
         );
         setCertificateList([...internalCertArray, ...externalCertArray]);
+        setListOfCertificates([...internalCertArray, ...externalCertArray]);
         setAllCertList([...internalCertArray, ...externalCertArray]);
         const url = history?.location?.pathname?.split('/')[1];
         if (internalCertArray.length > 0 && url === 'certificates') {
@@ -416,26 +423,28 @@ const CertificatesDashboard = () => {
   }, [fetchAdminData, fetchNonAdminData, admin]);
 
   useEffect(() => {
-    const internalArray = allCertList?.filter(
+    const internalArray = listOfCertificates?.filter(
       (item) => item?.certType === 'internal' && !item.isOnboardCert
     );
-    const externalArray = allCertList?.filter(
+    const externalArray = listOfCertificates?.filter(
       (item) => item?.certType === 'external' && !item.isOnboardCert
     );
     const array = [
-      { name: 'All Certificates', count: certificateList?.length || 0 },
+      { name: 'All Certificates', count: listOfCertificates?.length || 0 },
       { name: 'Internal Certificates', count: internalArray?.length || 0 },
       { name: 'External Certificates', count: externalArray?.length || 0 },
     ];
     if (admin) {
-      const onboardArray = allCertList?.filter((item) => item.isOnboardCert);
+      const onboardArray = listOfCertificates?.filter(
+        (item) => item.isOnboardCert
+      );
       array.push({
         name: 'Onboard Certificates',
         count: onboardArray?.length || 0,
       });
     }
     setMenu([...array]);
-  }, [certificateList, admin, allCertList]);
+  }, [certificateList, admin, allCertList, listOfCertificates]);
 
   /**
    * @function onLinkClicked
@@ -467,6 +476,7 @@ const CertificatesDashboard = () => {
    */
   const onSelectChange = (value) => {
     setCertificateType(value);
+    setListOfCertificates([...allCertList]);
     setInputSearchValue('');
     if (value !== 'All Certificates' && value !== 'Onboard Certificates') {
       const filterArray = allCertList.filter(
@@ -497,8 +507,10 @@ const CertificatesDashboard = () => {
           ?.toLowerCase()
           .includes(value?.toLowerCase().trim())
       );
+      setListOfCertificates([...searchArray]);
       setCertificateList([...searchArray]);
     } else {
+      setListOfCertificates([...allCertList]);
       setCertificateList([...allCertList]);
     }
   };
@@ -509,7 +521,6 @@ const CertificatesDashboard = () => {
       const array = certificateList.filter((cert) =>
         cert?.certificateName?.includes(inputSearchValue?.toLowerCase().trim())
       );
-      setCertificateType('All Certificates');
       setCertificateList([...array]);
     } else if (certificateType === 'All Certificates' && inputSearchValue) {
       onSearchChange(inputSearchValue);
