@@ -177,6 +177,7 @@ const Groups = (props) => {
 
   useEffect(() => {
     onCancelClicked();
+    // eslint-disable-next-line
   }, [certificateMetaData]);
 
   /**

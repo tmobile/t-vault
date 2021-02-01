@@ -195,6 +195,7 @@ const AppRoles = (props) => {
 
   useEffect(() => {
     onCancelClicked();
+    // eslint-disable-next-line
   }, [certificateMetaData]);
 
   return (

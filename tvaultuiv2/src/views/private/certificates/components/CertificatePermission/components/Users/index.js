@@ -178,6 +178,7 @@ const Users = (props) => {
 
   useEffect(() => {
     onCancelClicked();
+    // eslint-disable-next-line
   }, [certificateMetaData]);
 
   /**

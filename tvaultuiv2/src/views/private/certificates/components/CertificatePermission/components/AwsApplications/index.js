@@ -197,6 +197,7 @@ const AwsApplications = (props) => {
 
   useEffect(() => {
     onCancelClicked();
+    // eslint-disable-next-line
   }, [certificateMetaData]);
 
   /**
