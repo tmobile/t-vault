@@ -563,5 +563,18 @@ public class SSLCertificateController {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.updateSSLCertificate(certificateUpdateRequest,userDetails,token);
 	}
+	/**
+	 * To save application details for all the existing certificates
+	 * @param request
+	 * @param token
+	 * @return
+	 */	
+	@ApiOperation(value = "${SSLCertificateController.saveappdetails.value}", notes = "${SSLCertificateController.saveappdetails.notes}")
+	@GetMapping(value = "/v2/sslcert/saveAppDetails", produces = "application/json")
+	public ResponseEntity<String> saveAppDetailsfForOlderCerts(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token)  { 
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateService.saveAllAppDetailsForOldCerts(token, userDetails);
+	}
 
 }
