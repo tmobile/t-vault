@@ -79,7 +79,7 @@ public class  SelfSupportService {
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
 
-	@Value("${safe.quota:20}")
+	@Value("${safe.quota}")
 	private String safeQuota;
 
 	@Autowired
