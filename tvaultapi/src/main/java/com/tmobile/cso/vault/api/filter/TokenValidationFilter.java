@@ -118,6 +118,9 @@ public class TokenValidationFilter extends GenericFilterBean {
 			if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
 				userDetails.setEmail(vaultTokenLookupDetails.getEmail());
 			}
+
+			ThreadLocalContext.getCurrentMap().put(LogMessage.USER, userDetails.getUsername());
+
 			((HttpServletRequest) request).setAttribute("UserDetails", userDetails);
 		}
 		// Skip the request if requested feature is disabled
