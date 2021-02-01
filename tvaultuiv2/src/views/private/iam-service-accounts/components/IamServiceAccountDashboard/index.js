@@ -380,6 +380,8 @@ const IamServiceAccountDashboard = () => {
           setAccountMetaData({ response: {}, error: 'Something went wrong' });
         }
       }
+    } else {
+      setDisabledPermission(true);
     }
   }, [listItemDetails, state]);
 

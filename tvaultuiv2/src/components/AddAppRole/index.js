@@ -151,7 +151,7 @@ const AddAppRole = (props) => {
   }, [editClicked]);
 
   useEffect(() => {
-    if (!Object.keys(roles).includes(selectedValue.toLowerCase())) {
+    if (roles && !Object.keys(roles).includes(selectedValue.toLowerCase())) {
       if (editClicked) {
         if (access === radioValue) {
           setDisabledSave(true);

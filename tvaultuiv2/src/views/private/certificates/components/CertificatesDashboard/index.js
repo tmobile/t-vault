@@ -423,7 +423,7 @@ const CertificatesDashboard = () => {
       (item) => item?.certType === 'external' && !item.isOnboardCert
     );
     const array = [
-      { name: 'All Certificates', count: certificateList?.length || 0 },
+      { name: 'All Certificates', count: allCertList?.length || 0 },
       { name: 'Internal Certificates', count: internalArray?.length || 0 },
       { name: 'External Certificates', count: externalArray?.length || 0 },
     ];
@@ -435,7 +435,7 @@ const CertificatesDashboard = () => {
       });
     }
     setMenu([...array]);
-  }, [certificateList, admin, allCertList]);
+  }, [admin, allCertList]);
 
   /**
    * @function onLinkClicked
@@ -509,7 +509,6 @@ const CertificatesDashboard = () => {
       const array = certificateList.filter((cert) =>
         cert?.certificateName?.includes(inputSearchValue?.toLowerCase().trim())
       );
-      setCertificateType('All Certificates');
       setCertificateList([...array]);
     } else if (certificateType === 'All Certificates' && inputSearchValue) {
       onSearchChange(inputSearchValue);

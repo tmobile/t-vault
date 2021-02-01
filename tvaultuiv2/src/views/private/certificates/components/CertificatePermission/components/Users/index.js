@@ -176,6 +176,11 @@ const Users = (props) => {
     onNewPermissionChange();
   };
 
+  useEffect(() => {
+    onCancelClicked();
+    // eslint-disable-next-line
+  }, [certificateMetaData]);
+
   /**
    * @function onEditClick
    * @description function to edit the existing user.

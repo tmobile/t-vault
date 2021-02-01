@@ -195,6 +195,11 @@ const AwsApplications = (props) => {
     onNewAwsChange();
   };
 
+  useEffect(() => {
+    onCancelClicked();
+    // eslint-disable-next-line
+  }, [certificateMetaData]);
+
   /**
    * @function onEditClick
    * @description function to edit the existing aws configuration.

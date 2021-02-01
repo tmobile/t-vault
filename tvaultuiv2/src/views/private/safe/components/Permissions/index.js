@@ -50,9 +50,15 @@ const Permissions = (props) => {
     },
     3: { label: 'app roles', addBtnCallback: () => setNewAppRole(true) },
   };
+
   useEffect(() => {
     setValue(0);
+    setNewUser(false);
+    setNewGroup(false);
+    setNewAwsApplication(false);
+    setNewAppRole(false);
   }, [safeDetail]);
+
   useEffect(() => {
     if (safeData?.response && Object.keys(safeData.response).length !== 0) {
       setCount(0);
