@@ -881,7 +881,17 @@ public class ServiceAccountsServiceTest {
                 "}}");
         when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
         Response response_no_content = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-        when(reqProcessor.process("/auth/aws/roles/delete","{\"role\":\"role1\"}",token)).thenReturn(response_no_content);
+
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"w_svcacct_testsvcname\" ], \"auth_type\":\"iam\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_svcacct_testacc02\"}}");
         when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role2\"}", token)).thenReturn(appRoleResponse);
         when(appRoleService.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response_no_content);
@@ -898,7 +908,98 @@ public class ServiceAccountsServiceTest {
         // delete meatadata
         when(reqProcessor.process(eq("/delete"),any(),eq(token))).thenReturn(responseNoContent);
         // System under test
-    	String expectedResponse = "{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}";
+		String expectedResponse = "{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+        ResponseEntity<String> responseEntity = serviceAccountsService.offboardServiceAccount(token, onboardedServiceAccount, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testOffboardServiceAccountSuccessWithAWSEC2Role() {
+		UserDetails userDetails = getMockUser(true);
+		String token = userDetails.getClientToken();
+		OnboardedServiceAccount onboardedServiceAccount = generateOnboardedServiceAccount("testacc02", "testacc01");
+
+        ServiceAccountUser serviceAccountUser = new ServiceAccountUser("testacc01", userDetails.getUsername(), "sudo");
+        String [] policies = {"o_svcacct_testacc01"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"o_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user1\"}",token)).thenReturn(userResponse);
+        Response userResponse2 = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user2\"}",token)).thenReturn(userResponse2);
+        Response groupResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResponse);
+
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("o_svcacct_testacc02");
+            List<String> groupResList = new ArrayList<>();
+            resList.add("default");
+            resList.add("r_svcacct_testacc02");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(groupResList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+
+        // Delete policies...
+        ResponseEntity<String> createPolicyResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Access is deleted\"]}");
+        when(accessService.deletePolicyInfo(Mockito.anyString(), Mockito.any())).thenReturn(createPolicyResponse);
+
+        // delete user/group/role associations
+        String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + "/testacc02";
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"groups\": {\n" +
+                "    \"group1\": \"read\"\n" +
+                "  },\n" +
+                "  \"aws-roles\": {\n" +
+                "    \"role1\": \"read\"\n" +
+                "  },\n" +
+                "  \"app-roles\": {\n" +
+                "    \"role2\": \"read\"\n" +
+                "  },\n" +
+                "  \"managedBy\": \"user2\",\n" +
+                "  \"name\": \"testacc02\",\n" +
+                "  \"users\": {\n" +
+                "    \"user1\": \"read\"\n" +
+                "  }\n" +
+                "}}");
+        when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
+        Response response_no_content = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"w_svcacct_testsvcname\" ], \"auth_type\":\"ec2\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(awsAuthService.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_svcacct_testacc02\"}}");
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role2\"}", token)).thenReturn(appRoleResponse);
+        when(appRoleService.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response_no_content);
+        //Delete Account Role...
+		ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+		serviceAccountTTL.setRole_name(onboardedServiceAccount.getName());
+		serviceAccountTTL.setService_account_name(onboardedServiceAccount.getName() + "@aaa.bbb.ccc.com") ;
+		String svc_account_payload = getJSON(serviceAccountTTL);
+		String deleteRoleResponseMsg = "{\"messages\":[\"Successfully deleted service account role.\"]}";
+		Response deleteRoleResponse = getMockResponse(HttpStatus.OK, true, deleteRoleResponseMsg);
+		when(JSONUtil.getJSON(Mockito.any(ServiceAccountTTL.class))).thenReturn(svc_account_payload);
+        when(reqProcessor.process("/ad/serviceaccount/offboard",svc_account_payload,token)).thenReturn(deleteRoleResponse);
+
+        // delete meatadata
+        when(reqProcessor.process(eq("/delete"),any(),eq(token))).thenReturn(responseNoContent);
+        // System under test
+		String expectedResponse = "{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
         ResponseEntity<String> responseEntity = serviceAccountsService.offboardServiceAccount(token, onboardedServiceAccount, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -4107,7 +4208,114 @@ public class ServiceAccountsServiceTest {
                 "}}");
         when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
         Response response_no_content = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-        when(reqProcessor.process("/auth/aws/roles/delete","{\"role\":\"role1\"}",token)).thenReturn(response_no_content);
+
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"w_svcacct_testsvcname\" ], \"auth_type\":\"iam\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_svcacct_testacc02\"}}");
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role2\"}", token)).thenReturn(appRoleResponse);
+        when(appRoleService.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response_no_content);
+        //Delete Account Role...
+        ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+        serviceAccountTTL.setRole_name(onboardedServiceAccount.getName());
+        serviceAccountTTL.setService_account_name(onboardedServiceAccount.getName() + "@aaa.bbb.ccc.com") ;
+        String svc_account_payload = getJSON(serviceAccountTTL);
+        String deleteRoleResponseMsg = "{\"messages\":[\"Successfully deleted service account role.\"]}";
+        Response deleteRoleResponse = getMockResponse(HttpStatus.OK, true, deleteRoleResponseMsg);
+        when(JSONUtil.getJSON(Mockito.any(ServiceAccountTTL.class))).thenReturn(svc_account_payload);
+        when(reqProcessor.process("/ad/serviceaccount/offboard",svc_account_payload,token)).thenReturn(deleteRoleResponse);
+
+        // delete meatadata
+        when(reqProcessor.process(eq("/delete"),any(),any())).thenReturn(responseNoContent);
+        // System under test
+        String expectedResponse = "{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+        ResponseEntity<String> responseEntity = serviceAccountsService.offboardDecommissionedServiceAccount(token, onboardedServiceAccount, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testOffboardDecommissionedSvcAccSuccessWithAWSEc2Role() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        OnboardedServiceAccount onboardedServiceAccount = generateOnboardedServiceAccount("testacc02","testacc01");
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn("123123123123");
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName("testacc021");
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
+        String [] policies = {"o_svcacct_testacc01"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"o_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user1\"}",token)).thenReturn(userResponse);
+        Response userResponse2 = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user2\"}",token)).thenReturn(userResponse2);
+        Response groupResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResponse);
+
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("o_svcacct_testacc02");
+            List<String> groupResList = new ArrayList<>();
+            resList.add("default");
+            resList.add("r_svcacct_testacc02");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(groupResList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+
+        // Delete policies...
+        ResponseEntity<String> createPolicyResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Access is deleted\"]}");
+        when(accessService.deletePolicyInfo(Mockito.anyString(), Mockito.any())).thenReturn(createPolicyResponse);
+
+        // delete user/group/role associations
+        String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + "/testacc02";
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"groups\": {\n" +
+                "    \"group1\": \"read\"\n" +
+                "  },\n" +
+                "  \"aws-roles\": {\n" +
+                "    \"role1\": \"read\"\n" +
+                "  },\n" +
+                "  \"app-roles\": {\n" +
+                "    \"role2\": \"read\"\n" +
+                "  },\n" +
+                "  \"managedBy\": \"user2\",\n" +
+                "  \"name\": \"testacc02\",\n" +
+                "  \"users\": {\n" +
+                "    \"user1\": \"read\"\n" +
+                "  }\n" +
+                "}}");
+        when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
+        Response response_no_content = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"w_svcacct_testsvcname\" ], \"auth_type\":\"ec2\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(awsAuthService.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_svcacct_testacc02\"}}");
         when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role2\"}", token)).thenReturn(appRoleResponse);
         when(appRoleService.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response_no_content);
