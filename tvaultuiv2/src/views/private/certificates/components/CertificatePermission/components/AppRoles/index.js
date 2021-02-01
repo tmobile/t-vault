@@ -193,6 +193,10 @@ const AppRoles = (props) => {
     onNewAppRoleChange();
   };
 
+  useEffect(() => {
+    onCancelClicked();
+  }, [certificateMetaData]);
+
   return (
     <ComponentError>
       <>

@@ -195,6 +195,10 @@ const AwsApplications = (props) => {
     onNewAwsChange();
   };
 
+  useEffect(() => {
+    onCancelClicked();
+  }, [certificateMetaData]);
+
   /**
    * @function onEditClick
    * @description function to edit the existing aws configuration.

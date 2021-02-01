@@ -176,6 +176,10 @@ const Users = (props) => {
     onNewPermissionChange();
   };
 
+  useEffect(() => {
+    onCancelClicked();
+  }, [certificateMetaData]);
+
   /**
    * @function onEditClick
    * @description function to edit the existing user.
