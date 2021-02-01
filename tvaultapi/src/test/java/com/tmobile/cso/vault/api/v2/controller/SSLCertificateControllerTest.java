@@ -801,4 +801,11 @@ public class SSLCertificateControllerTest {
         when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
         assertEquals(HttpStatus.OK, SslCertificateController.getAllSelfServiceGroups(httpServletRequest, token).getStatusCode());
     }
+    
+    @Test
+    public void testsaveAllAppDetailsForOldCerts() {
+        when(sslCertificateService.saveAllAppDetailsForOldCerts(token, userDetails)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
+        assertEquals(HttpStatus.OK, SslCertificateController.saveAppDetailsfForOlderCerts(httpServletRequest, token).getStatusCode());
+    }
 }
