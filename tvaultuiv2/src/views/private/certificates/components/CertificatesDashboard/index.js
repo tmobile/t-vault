@@ -521,7 +521,6 @@ const CertificatesDashboard = () => {
       const array = certificateList.filter((cert) =>
         cert?.certificateName?.includes(inputSearchValue?.toLowerCase().trim())
       );
-      setCertificateType('All Certificates');
       setCertificateList([...array]);
     } else if (certificateType === 'All Certificates' && inputSearchValue) {
       onSearchChange(inputSearchValue);

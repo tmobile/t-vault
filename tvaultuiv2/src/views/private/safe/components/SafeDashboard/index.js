@@ -243,7 +243,6 @@ const SafeDashboard = () => {
    * @description function call all the manage and safe api.
    */
   const fetchData = useCallback(async () => {
-    setSafeType('All Safes');
     setResponse({ status: 'loading', message: 'Loading...' });
     setInputSearchValue('');
     let safesApiResponse = [];
@@ -381,7 +380,6 @@ const SafeDashboard = () => {
    */
   const onSearchChange = (value) => {
     setInputSearchValue(value);
-    setSafeType('All Safes');
     if (value !== '') {
       const array = allSafeList?.filter((item) => {
         return item?.name?.toLowerCase().includes(value?.toLowerCase().trim());

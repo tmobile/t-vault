@@ -67,6 +67,10 @@ const CertificatePermission = (props) => {
     }
   }, [value, certificateMetaData, userDetails]);
 
+  useEffect(() => {
+    setValue(0);
+  }, [certificateMetaData]);
+
   const onAddLabelBtnClicked = () => {
     Object.keys(initialObject).map((item) => {
       if (item === value.toString()) {

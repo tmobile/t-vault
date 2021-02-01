@@ -18,7 +18,13 @@ const PermissionTabsWrapper = styled('div')`
 `;
 
 const AzurePermission = (props) => {
-  const { azureMetaData, userDetails, refresh, permissionResponse } = props;
+  const {
+    azureMetaData,
+    userDetails,
+    refresh,
+    permissionResponse,
+    azureDetail,
+  } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
   const [newGroup, setNewGroup] = useState(false);
@@ -85,6 +91,14 @@ const AzurePermission = (props) => {
   const onTabChange = (newValue) => {
     setValue(newValue);
   };
+
+  useEffect(() => {
+    setValue(0);
+    setNewUser(false);
+    setNewGroup(false);
+    setNewAppRole(false);
+    setNewAwsApplication(false);
+  }, [azureDetail]);
 
   return (
     <ComponentError>
@@ -171,6 +185,7 @@ const AzurePermission = (props) => {
 
 AzurePermission.propTypes = {
   azureMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
+  azureDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   userDetails: PropTypes.arrayOf(PropTypes.any),
   refresh: PropTypes.func.isRequired,
   permissionResponse: PropTypes.objectOf(PropTypes.any).isRequired,

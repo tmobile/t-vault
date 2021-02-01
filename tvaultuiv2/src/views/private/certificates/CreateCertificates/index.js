@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect, useCallback } from 'react';
@@ -282,6 +283,7 @@ const CreateCertificates = (props) => {
   const [notifyEmailStatus, setNotifyEmailStatus] = useState({
     status: 'not-available',
   });
+  const [selfserviceAppName, setSelfserviceAppName] = useState([]);
   const isMobileScreen = useMediaQuery(small);
   const history = useHistory();
   const [state] = useStateValue();
@@ -348,20 +350,9 @@ const CreateCertificates = (props) => {
       if (state.applicationNameList?.length > 0) {
         if (!JSON.parse(sessionStorage.getItem('isAdmin'))) {
           const stringVal = sessionStorage.getItem('selfServiceAppNames');
-          const selfserviceAppName = stringVal?.split(',');
-          const array = [];
-          if (selfserviceAppName?.length > 0) {
-            selfserviceAppName.map((item) => {
-              const obj = state.applicationNameList.find(
-                (ele) => item === ele.appID
-              );
-              return array.push(obj);
-            });
-            setAllApplication([...array]);
-          }
-        } else {
-          setAllApplication([...state.applicationNameList]);
+          setSelfserviceAppName(stringVal?.split(','));
         }
+        setAllApplication([...state.applicationNameList]);
       } else if (state.applicationNameList === 'error') {
         setResponseType(-1);
         setToastMessage('Error occured while fetching the application name!');
@@ -523,10 +514,7 @@ const CreateCertificates = (props) => {
     }
   };
 
-  const onSelectedApplicationName = (e, appName) => {
-    setApplicationName(appName);
-    setNotificationEmailList([]);
-    const selectedApp = allApplication.find((item) => appName === item.appName);
+  const getNotificationEmailData = (selectedApp) => {
     if (selectedApp !== undefined) {
       setNotifyEmailStatus({ status: 'searching' });
       apiService
@@ -556,6 +544,19 @@ const CreateCertificates = (props) => {
           setResponseType(-1);
           setToastMessage('Something went wrong while fetching emails list!');
         });
+    }
+  };
+
+  const onSelectedApplicationName = (e, appName) => {
+    setApplicationName(appName);
+    setNotificationEmailList([]);
+    const selectedApp = allApplication.find((item) => appName === item.appName);
+    if (!JSON.parse(sessionStorage.getItem('isAdmin'))) {
+      if (selfserviceAppName.includes(selectedApp?.appID)) {
+        getNotificationEmailData(selectedApp);
+      }
+    } else {
+      getNotificationEmailData(selectedApp);
     }
   };
   const handleCloseConfirmationModal = () => {
@@ -707,9 +708,16 @@ const CreateCertificates = (props) => {
   };
 
   useEffect(() => {
+    const selectedApp = allApplication.find(
+      (item) => applicationName === item.appName
+    );
     if (
       applicationName !== '' &&
-      ![...allApplication.map((item) => item.appName)].includes(applicationName)
+      (![...allApplication.map((item) => item.appName)].includes(
+        applicationName
+      ) ||
+        (!JSON.parse(sessionStorage.getItem('isAdmin')) &&
+          !selfserviceAppName.includes(selectedApp?.appID)))
     ) {
       setApplicationNameError(true);
       setNotifyEmailStatus({ status: 'not-available' });
@@ -718,7 +726,7 @@ const CreateCertificates = (props) => {
     } else {
       setApplicationNameError(false);
     }
-  }, [allApplication, applicationName]);
+  }, [allApplication, applicationName, selfserviceAppName]);
 
   return (
     <ComponentError>
@@ -856,8 +864,12 @@ const CreateCertificates = (props) => {
                       placeholder="Search for Application Name"
                       error={applicationNameError}
                       helperText={
-                        applicationNameError
+                        applicationNameError &&
+                        JSON.parse(sessionStorage.getItem('isAdmin'))
                           ? `Application ${applicationName} does not exist!`
+                          : applicationNameError &&
+                            !JSON.parse(sessionStorage.getItem('isAdmin'))
+                          ? `Application ${applicationName} does not exist or do not have access to the given application name!`
                           : ''
                       }
                     />

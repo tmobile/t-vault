@@ -226,6 +226,7 @@ const AzureSelectionTabs = (props) => {
               userDetails={userDetails}
               refresh={() => getAzureServiceAllDetails()}
               permissionResponse={permissionResponse}
+              azureDetail={azureDetail}
             />
           </TabPanel>
         </TabContentsWrap>
