@@ -262,6 +262,7 @@ const AddGroup = (props) => {
                     ? 'Permission already exists!'
                     : ''
                 }
+                styling={{ padding: '0.6rem' }}
               />
               <InstructionText>
                 Search the T-Mobile system to add groups
