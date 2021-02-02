@@ -63,7 +63,7 @@ const EditCertificate = (props) => {
     title: '',
     description: '',
   });
-  const [open] = useState(true);
+  const [open, setOpen] = useState(true);
   const [certificateData, setCertificateData] = useState({});
   const [openModal, setOpenModal] = useState({ status: 'edit' });
   const [loading, setLoading] = useState(true);
@@ -219,8 +219,9 @@ const EditCertificate = (props) => {
   }, [certificateData]);
 
   const closeEditModal = async () => {
-    await refresh(editActionPerform);
+    setOpen(false);
     history.goBack();
+    await refresh(editActionPerform);
   };
 
   /**
@@ -231,6 +232,7 @@ const EditCertificate = (props) => {
     if (!loading) {
       setOpenModal({ status: '' });
       closeEditModal();
+      setOpen(false);
     }
   };
 
