@@ -81,7 +81,7 @@ public class AWSIAMAuthService {
 					put(LogMessage.MESSAGE, String.format("Trying to create AWS IAM Role [%s]", awsiamRole.getRole())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			throw new TVaultValidationException("Policies are not permitted during safe creation");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Policies are not permitted during role creation.\"]}");
 		}
 		if (!ControllerUtil.areAWSIAMRoleInputsValid(awsiamRole)) {
 			throw new TVaultValidationException("Invalid inputs for the given aws login type");
