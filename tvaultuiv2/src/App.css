@@ -1,3 +1,10 @@
 .appContainer {
   text-align: center;
 }
+
+@-moz-document url-prefix() {
+  .MuiBackdrop-root {
+    position: absolute !important;
+    height: 100rem !important;
+  }
+}
