@@ -213,7 +213,7 @@ public class AWSAuthServiceTest {
         assertEquals(responseEntityExpected, responseEntity);
     }
 
-    @Test(expected = TVaultValidationException.class)
+    @Test()
     public void test_createRole_failure_400() throws TVaultValidationException{
 
         Response response = new Response();
