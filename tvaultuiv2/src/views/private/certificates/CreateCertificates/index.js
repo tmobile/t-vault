@@ -998,6 +998,7 @@ const CreateCertificates = (props) => {
                                 ? emailErrorMsg
                                 : ''
                             }
+                            styling={{ bottom: '5rem' }}
                           />
                           {autoLoader && (
                             <LoaderSpinner customStyle={autoLoaderStyle} />
