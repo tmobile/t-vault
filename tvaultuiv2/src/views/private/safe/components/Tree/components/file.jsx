@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
@@ -37,24 +37,20 @@ const FileWrap = styled.div`
 const LabelWrap = styled('div')`
   display: flex;
   align-items: center;
+  width: 33%;
 `;
 const IconWrap = styled('div')`
   margin-right: 1rem;
   display: flex;
   align-items: center;
 `;
-const SecretWrap = styled('div')`
-  -webkit-text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
-  text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
-  font-size: 1.8rem;
-  text-align: left;
-  color: #5a637a;
-`;
 const FolderIconWrap = styled('div')`
   margin: 0 1em;
   display: flex;
   align-items: center;
   cursor: pointer;
+  width: 33%;
+  justify-content: flex-end;
   .MuiSvgIcon-root {
     width: 2.4rem;
     height: 2.4rem;
@@ -81,6 +77,24 @@ const PopperItem = styled.div`
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
   }
+`;
+
+const SecretInputfield = styled.input`
+  padding: 0;
+  outline: none;
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  color: #5a637a;
+  word-break: break-all;
+  font-size: 1.8rem;
+  text-align: left;
+  width: 33%;
+`;
+
+const extraCss = css`
+  word-break: break-all;
+  margin-right: 17px;
 `;
 
 const File = (props) => {
@@ -150,11 +164,15 @@ const File = (props) => {
             <IconWrap>
               <IconLock />
             </IconWrap>
-            <TitleOne>{secret && Object.keys(secret)[0]}</TitleOne>
+            <TitleOne extraCss={extraCss}>
+              {secret && Object.keys(secret)[0]}
+            </TitleOne>
           </LabelWrap>
-          <SecretWrap type="password" viewSecret={viewSecretValue}>
-            {secret && Object.values(secret)[0]}
-          </SecretWrap>
+          <SecretInputfield
+            type={viewSecretValue ? 'text' : 'password'}
+            value={secret && Object.values(secret)[0]}
+            readOnly
+          />
           <FolderIconWrap>
             <PopperElement
               anchorOrigin={{

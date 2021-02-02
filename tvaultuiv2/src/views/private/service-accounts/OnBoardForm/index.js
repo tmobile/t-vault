@@ -397,13 +397,19 @@ const OnBoardForm = (props) => {
           setIsSwitchOn(
             res[1]?.data?.ttl <= res[0]?.data?.data?.values[0]?.maxPwdAge
           );
+          let inputVal = '';
+          if (res[1]?.data?.ttl <= res[0]?.data?.data?.values[0]?.maxPwdAge) {
+            inputVal = res[1]?.data?.ttl;
+          } else {
+            inputVal = '';
+          }
           dispatch({
             type: 'UPDATE_FORM_FIELDS',
             payload: {
               inputServiceName: res[0]?.data?.data?.values[0]?.userId,
               inputAdGroupName: res[2]?.data?.data?.adGroup,
               inputApplicationName: `${res[2]?.data?.data?.appName} (AppId:${res[2]?.data?.data?.appID},AppTag:${res[2]?.data?.data?.appTag})`,
-              inputExpiryTime: res[1]?.data?.ttl,
+              inputExpiryTime: inputVal,
               selectedApplication: res[2]?.data?.data,
               serviceAccountDetails: res[0]?.data?.data?.values[0],
             },
