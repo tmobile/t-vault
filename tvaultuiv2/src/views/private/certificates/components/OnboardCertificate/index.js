@@ -118,7 +118,7 @@ const NotificationAutoWrap = styled.div`
 const AutoInputFieldLabelWrapper = styled.div`
   position: relative;
   width: 100%;
-  display: flex%;
+  display: flex;
   .MuiTextField-root {
     width: 100%;
   }
