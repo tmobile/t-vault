@@ -291,7 +291,10 @@ const AddUser = (props) => {
                 }
                 onSelected={(e, val) => onSelected(e, val)}
                 onChange={(e) => onSearchChange(e)}
-                styling={{ padding: '0.6rem' }}
+                styling={{
+                  padding: '0.6rem',
+                  maxHeight: '16rem',
+                }}
               />
               <InstructionText>
                 Search the T-Mobile system to add users

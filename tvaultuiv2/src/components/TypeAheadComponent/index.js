@@ -19,7 +19,7 @@ const OptionList = styled.ul`
   list-style: none;
   position: absolute;
   bottom: ${(props) => props.bottom || null};
-  max-height: 20rem;
+  max-height: ${(props) => props.maxHeight || '20rem'};
   overflow-y: auto;
   width: 100%;
   z-index: 2;
@@ -110,7 +110,7 @@ const TypeAheadComponent = ({
   if (showOptions && userInput) {
     if (filteredList.length) {
       optionsComponent = (
-        <OptionList bottom={styling?.bottom}>
+        <OptionList bottom={styling?.bottom} maxHeight={styling?.maxHeight}>
           {filteredList.map((suggestion, index) => {
             let style;
             // Flag the active suggestion with a class
@@ -136,7 +136,7 @@ const TypeAheadComponent = ({
       );
     } else {
       optionsComponent = (
-        <OptionList bottom={styling?.bottom}>
+        <OptionList bottom={styling?.bottom} maxHeight={styling?.maxHeight}>
           <NoOption padding={styling?.padding}>
             <span>No option</span>
           </NoOption>
