@@ -352,7 +352,14 @@ const CreateCertificates = (props) => {
           const stringVal = sessionStorage.getItem('selfServiceAppNames');
           setSelfserviceAppName(stringVal?.split(','));
         }
-        setAllApplication([...state.applicationNameList]);
+        const array = [];
+        state.applicationNameList.map((item) => {
+          if (item.appID !== 'oth') {
+            array.push(item);
+          }
+          return null;
+        });
+        setAllApplication([...array]);
       } else if (state.applicationNameList === 'error') {
         setResponseType(-1);
         setToastMessage('Error occured while fetching the application name!');
@@ -991,6 +998,7 @@ const CreateCertificates = (props) => {
                                 ? emailErrorMsg
                                 : ''
                             }
+                            styling={{ bottom: '5rem' }}
                           />
                           {autoLoader && (
                             <LoaderSpinner customStyle={autoLoaderStyle} />

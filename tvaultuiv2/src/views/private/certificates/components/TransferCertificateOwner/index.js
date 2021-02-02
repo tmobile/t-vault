@@ -393,6 +393,7 @@ const CreateCertificates = (props) => {
                         ? 'Please enter a valid email address or not available!'
                         : ''
                     }
+                    styling={{ bottom: '5rem' }}
                   />
                   <InstructionText>
                     Search the T-Mobile system to add users

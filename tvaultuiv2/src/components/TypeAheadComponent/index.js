@@ -7,6 +7,7 @@ import TextFieldComponent from '../FormFields/TextField';
 
 const Wrapper = styled.div`
   position: relative;
+  display: inline-block;
   width: 100%;
 `;
 
@@ -15,10 +16,10 @@ const OptionList = styled.ul`
   background-color: #fff;
   color: #000;
   padding: 0.5rem;
-  text-size: 125%;
   list-style: none;
   position: absolute;
-  max-height: 10rem;
+  bottom: ${(props) => props.bottom || null};
+  max-height: 20rem;
   overflow-y: auto;
   width: 100%;
   z-index: 2;
@@ -26,7 +27,7 @@ const OptionList = styled.ul`
 `;
 
 const OptionSelected = styled.li`
-  padding: 1rem;
+  padding: ${(props) => props.padding || '1rem'};
   font-size: 110%;
   :hover {
     background-color: #fff;
@@ -36,7 +37,7 @@ const OptionSelected = styled.li`
 `;
 
 const NoOption = styled.li`
-  padding: 1rem 0.5rem;
+  padding: ${(props) => props.padding || '1rem'};
   font-size: 115%;
   background-color: '#fff';
   color: '#000';
@@ -53,6 +54,7 @@ const TypeAheadComponent = ({
   placeholder,
   onKeyDownClick,
   name,
+  styling,
   error,
   helperText,
   onInputBlur,
@@ -108,7 +110,7 @@ const TypeAheadComponent = ({
   if (showOptions && userInput) {
     if (filteredList.length) {
       optionsComponent = (
-        <OptionList>
+        <OptionList bottom={styling?.bottom}>
           {filteredList.map((suggestion, index) => {
             let style;
             // Flag the active suggestion with a class
@@ -121,6 +123,7 @@ const TypeAheadComponent = ({
             }
             return (
               <OptionSelected
+                padding={styling?.padding}
                 style={style}
                 key={suggestion}
                 onClick={(e) => onClick(e)}
@@ -133,8 +136,8 @@ const TypeAheadComponent = ({
       );
     } else {
       optionsComponent = (
-        <OptionList>
-          <NoOption>
+        <OptionList bottom={styling?.bottom}>
+          <NoOption padding={styling?.padding}>
             <span>No option</span>
           </NoOption>
         </OptionList>
@@ -176,6 +179,7 @@ TypeAheadComponent.propTypes = {
   error: PropType.bool,
   helperText: PropType.string,
   name: PropType.string,
+  styling: PropType.objectOf(PropType.any),
   disabled: PropType.bool,
   onInputBlur: PropType.func,
   onKeyDownClick: PropType.func,
@@ -186,6 +190,7 @@ TypeAheadComponent.defaultProps = {
   icon: '',
   placeholder: '',
   name: '',
+  styling: {},
   error: false,
   disabled: false,
   helperText: '',
