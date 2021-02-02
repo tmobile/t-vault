@@ -107,8 +107,6 @@ public class AWSIAMAuthServiceTest {
         awsiamRole.setAuth_type("iam");
         String[] arns = {"arn:aws:iam::123456789012:user/tst"};
         awsiamRole.setBound_iam_principal_arn(arns);
-        String[] policies = {"default"};
-        awsiamRole.setPolicies(policies);
         awsiamRole.setResolve_aws_unique_ids(true);
         awsiamRole.setRole("string");
 
@@ -128,7 +126,6 @@ public class AWSIAMAuthServiceTest {
             when(ControllerUtil.populateUserMetaJson(Mockito.any(), Mockito.any())).thenReturn("awsiamroleUsermetadataJson");
             ResponseEntity<String> responseEntity = awsIamAuthService.createIAMRole(awsiamRole, token, userDetails);
             assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-            assertEquals(responseEntityExpected, responseEntity);
         } catch (TVaultValidationException e) {
             e.printStackTrace();
         }
@@ -152,7 +149,7 @@ public class AWSIAMAuthServiceTest {
                 " [\"arn:aws:iam::123456789012:user/tst\"],\"policies\": " +
                 "[\"string\"],\"resolve_aws_unique_ids\": true,\"role\": \"string\"}";
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS IAM role creation failed.\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Policies are not permitted during role creation.\"]}");
 
 
         when(reqProcessor.process("/auth/aws/iam/role/create",jsonStr, token)).thenReturn(response);
@@ -163,7 +160,7 @@ public class AWSIAMAuthServiceTest {
         try {
             when(ControllerUtil.areAWSIAMRoleInputsValid(awsiamRole)).thenReturn(true);
             ResponseEntity<String> responseEntity = awsIamAuthService.createIAMRole(awsiamRole, token, userDetails);
-            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+            assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
             assertEquals(responseEntityExpected, responseEntity);
         } catch (TVaultValidationException e) {
             e.printStackTrace();
@@ -186,7 +183,7 @@ public class AWSIAMAuthServiceTest {
                 " [\"arn:aws:iam::123456789012:user/tst\"],\"policies\": " +
                 "[\"string\"],\"resolve_aws_unique_ids\": true,\"role\": \"string\"}";
         Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM role created however metadata update failed. Please try with AWS role/update \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Policies are not permitted during role creation. \"]}");
 
 
         when(reqProcessor.process("/auth/aws/iam/role/create",jsonStr, token)).thenReturn(response);
@@ -198,9 +195,8 @@ public class AWSIAMAuthServiceTest {
         try {
             when(ControllerUtil.areAWSIAMRoleInputsValid(awsiamRole)).thenReturn(true);
             ResponseEntity<String> responseEntity = awsIamAuthService.createIAMRole(awsiamRole, token, userDetails);
-            assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-            assertEquals(responseEntityExpected, responseEntity);
-        } catch (TVaultValidationException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -235,13 +231,13 @@ public class AWSIAMAuthServiceTest {
         try {
             when(ControllerUtil.areAWSIAMRoleInputsValid(awsiamRole)).thenReturn(true);
             ResponseEntity<String> responseEntity = awsIamAuthService.createIAMRole(awsiamRole, token, userDetails);
-            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+            assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
            } catch (TVaultValidationException e) {
             e.printStackTrace();
         }
     }
 
-    @Test(expected = TVaultValidationException.class)
+    @Test()
     public void test_createIAMRole_failure_400() throws TVaultValidationException{
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         AWSIAMRole awsiamRole = new AWSIAMRole();
