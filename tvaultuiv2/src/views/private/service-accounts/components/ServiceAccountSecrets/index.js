@@ -39,14 +39,6 @@ const UserList = styled.div`
   }
 `;
 
-const Secret = styled.div`
-  -webkit-text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
-  text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
-  font-size: 1.2rem;
-  color: #5a637a;
-  word-break: break-all;
-`;
-
 const customStyle = css`
   height: 100%;
 `;
@@ -97,6 +89,23 @@ const NoPermission = styled.div`
     display: contents;
     margin: 0 0.3rem;
     color: #fff;
+  }
+`;
+
+const SecretInputfield = styled.input`
+  padding: 0;
+  outline: none;
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  color: #5a637a;
+  word-break: break-all;
+  margin: 0px 1rem;
+  width: 70%;
+  text-align: center;
+  ${mediaBreakpoints.semiMedium} {
+    width: 100%;
+    margin: 1rem;
   }
 `;
 
@@ -234,11 +243,15 @@ const ServiceAccountSecrets = (props) => {
         {response.status === 'success' && secretsData && (
           <UserList>
             <Icon src={lock} alt="lock" />
-            <Secret type="password" viewSecret={showSecret}>
-              {secretsData?.adServiceAccountCreds?.current_password
-                ? secretsData.adServiceAccountCreds?.current_password
-                : 'Secret not available!'}
-            </Secret>
+            <SecretInputfield
+              type={showSecret ? 'text' : 'password'}
+              value={
+                secretsData?.adServiceAccountCreds?.current_password
+                  ? secretsData.adServiceAccountCreds?.current_password
+                  : 'Secret not available!'
+              }
+              readOnly
+            />
             {secretsData?.adServiceAccountCreds?.current_password && (
               <FolderIconWrap>
                 <PopperElement
