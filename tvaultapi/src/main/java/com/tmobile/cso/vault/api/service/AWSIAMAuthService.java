@@ -83,6 +83,11 @@ public class AWSIAMAuthService {
 					build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Policies are not permitted during role creation.\"]}");
 		}
+		logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "Create AWS IAM role")
+				.put(LogMessage.MESSAGE, String.format("Trying to create AWS IAM Role [%s]", awsiamRole.getRole()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		if (!ControllerUtil.areAWSIAMRoleInputsValid(awsiamRole)) {
 			throw new TVaultValidationException("Invalid inputs for the given aws login type");
 		}
@@ -280,6 +285,11 @@ public class AWSIAMAuthService {
 	 * @return
 	 */
 	public Response configureAWSIAMRole(String roleName,String policies,String token ){
+		logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "configureAWSIAMRole")
+				.put(LogMessage.MESSAGE, String.format("Trying to configure AWS IAM Role [%s]", roleName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String>configureRoleMap = new HashMap<>();
 		configureRoleMap.put("role", roleName);
