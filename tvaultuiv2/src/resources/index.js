@@ -46,7 +46,7 @@ const Resources = {
   noTransferOwnerAvailable:
     'Certificate may not be approved or rejected.Please follow the instructions mentioned in email',
   certificateGuide1:
-    'Ensure you are a member of the self-service administration group in AD for your respective application. You can request access from the owner of your application at <a href="https://access.t-mobile.com/">Cloud Access</a>. If you are not a member of one or more of these groups you will not be able to create certificates yourself.',
+    'Ensure you are a member of the self-service administration group in AD for your respective application. You can request access from the owner of your application at <a href="https://access.t-mobile.com" target="_blank">Cloud Access</a>. If you are not a member of one or more of these groups you will not be able to create certificates yourself.',
   certificateGuide2:
     'Currently only the standard SSL Certificate template is used to create certificates, this includes: <br/> Signature algorithm: SHA256-RSA. <br/>Key usage : digitalSignature, keyEncipherment. <br/>Extended key usage : serverAuth for Internal and ServerAuth, ClientAuth for External certificates',
   certificateGuide3:
@@ -54,7 +54,7 @@ const Resources = {
   certificateGuide4:
     'External certificate requests require approval from the NCLM team, that process is outlined when you request an external certificate.',
   certificateGuide5:
-    'Suggestions for improvements and features are welcome, please reach out to T-Vault@T-Mobile.com if you have any to share. For more information on how to manage certificates please go <a href="https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/">here</a>.',
+    'Suggestions for improvements and features are welcome, please reach out to T-Vault@T-Mobile.com if you have any to share. For more information on how to manage certificates please go <a href="https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/" target="_blank">here</a>.',
   iamServiceAccountDesc:
     'IAM Service Accounts can only be modified in AWS/IAM. You can only view the details of this IAM Service Account and rotate the associated secret within T-vault. The associated secret needs to be rotated to active the account.',
   noAppRolesAvailable:

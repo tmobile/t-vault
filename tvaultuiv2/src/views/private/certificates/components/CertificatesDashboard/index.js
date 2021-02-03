@@ -284,13 +284,6 @@ const CertificatesDashboard = () => {
           ...onboardCertArray,
         ]);
         setResponse({ status: 'success' });
-        const url = history?.location?.pathname?.split('/')[1];
-        if (internalCertArray.length > 0 && url === 'certificates') {
-          setListItemDetails(internalCertArray[0]);
-          history.push(
-            `/certificates/${internalCertArray[0]?.certificateName}`
-          );
-        }
       })
       .catch(() => {
         setResponse({ status: 'failed' });
@@ -385,13 +378,6 @@ const CertificatesDashboard = () => {
         setCertificateList([...internalCertArray, ...externalCertArray]);
         setListOfCertificates([...internalCertArray, ...externalCertArray]);
         setAllCertList([...internalCertArray, ...externalCertArray]);
-        const url = history?.location?.pathname?.split('/')[1];
-        if (internalCertArray.length > 0 && url === 'certificates') {
-          setListItemDetails(internalCertArray[0]);
-          history.push(
-            `/certificates/${internalCertArray[0]?.certificateName}`
-          );
-        }
         setResponse({ status: 'success' });
       })
       .catch(() => {
@@ -421,6 +407,16 @@ const CertificatesDashboard = () => {
       });
     }
   }, [fetchAdminData, fetchNonAdminData, admin]);
+
+  useEffect(() => {
+    const url = history?.location?.pathname?.split('/');
+    if (allCertList.length > 0 && url[1] === 'certificates') {
+      setListItemDetails(allCertList[0]);
+      history.push(`/certificates/${allCertList[0]?.certificateName}`);
+    } else {
+      setListItemDetails({});
+    }
+  }, [allCertList, history]);
 
   useEffect(() => {
     const internalArray = listOfCertificates?.filter(
