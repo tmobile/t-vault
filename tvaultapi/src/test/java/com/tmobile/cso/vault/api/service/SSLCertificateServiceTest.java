@@ -8615,4 +8615,59 @@ public class SSLCertificateServiceTest {
         SSLCertMetadataResponse sslCertMetadataResponse = sSLCertificateService.getCertMetadata(token, "testpath/certtest");
         assertNull(sslCertMetadataResponse.getSslCertificateMetadataDetails());
     }
+    
+    @Test
+   	public void test_saveAppDetails_success() throws Exception {
+   		   String jsonStr2 ="{\"certificates\":[{\"sortedSubjectName\":\"CN=certificatename, C=US," +
+   	                "ST=Washington,L=Bellevue, O=T-Mobile USA, Inc\",\"certificateId\":57258,\"certificateStatus\":\"ACTIVE\",\"containerName\":\"cont_12345\",\"NotAfter\":\"2021-06-15T04:35:58-07:00\",\"NotBefore\":\"2020-09-08T18:34:24-07:00\",\"subjectAltName\":{\"dns\":[\"test1.t-mobile.com\",\"test2.t-mobile.com\",\"test3.t-mobile.com\",\"certtest-dns.t-mobile.com\"]}}]}";
+   		   	userDetails = new UserDetails();
+   	        userDetails.setAdmin(true);
+   	        userDetails.setClientToken(token);
+   	        userDetails.setUsername("testusername1");
+   	        userDetails.setSelfSupportToken(token);
+   	        String metaDataStr = "{ \"data\": {\"certificateName\": \"certificatename.t-mobile.com\", \"applicationName\": \"tvt\",\"applicationTag\":\"tvt\", \"certType\": \"internal\", \"certOwnerNtid\": \"testusername1\"}, \"path\": \"sslcerts/certificatename.t-mobile.com\"}";
+   	        String metadatajson = "{\"path\":\"sslcerts/certificatename.t-mobile.com\",\"data\":{\"certificateName\":\"certificatename.t-mobile.com\",\"applicationName\":\"tvt\",\"applicationTag\":\"tvt\",\"certType\":\"internal\",\"certOwnerNtid\":\"testusername1\"}}";
+   	        
+   	        Map<String, Object> createCertPolicyMap = new HashMap<>();
+   	        createCertPolicyMap.put("certificateName", "CertificateName.t-mobile.com");
+   	        createCertPolicyMap.put("applicationName", "tvt");
+   	        createCertPolicyMap.put("certType", "internal");
+   	        createCertPolicyMap.put("certOwnerNtid", "testusername1");
+   	        
+   	        Response response =getMockResponse(HttpStatus.OK, true, "{  \"data\":     {      \"akamid\": \"102463\",      \"applicationName\": \"tvs\", "
+   	          		+ "     \"applicationOwnerEmailId\": \"abcdef@mail.com\",      \"applicationTag\": \"TVS\",  "
+   	          		+ "    \"authority\": \"T-Mobile Issuing CA 01 - SHA2\",      \"certCreatedBy\": \"rob\",     "
+   	          		+ " \"certOwnerEmailId\": \"ntest@gmail.com\",      \"certType\": \"internal\",     "
+   	          		+ " \"certificateId\": 59480,      \"certificateName\": \"CertificateName.t-mobile.com\",   "
+   	          		+ "   \"certificateStatus\": \"Active\",      \"containerName\": \"VenafiBin_12345\",    "
+   	          		+ "  \"createDate\": \"2020-06-24T03:16:29-07:00\",      \"expiryDate\": \"2021-06-24T03:16:29-07:00\",  "
+   	          		+ "    \"projectLeadEmailId\": \"project@email.com\"    }  }");
+   	         Response certResponse =getMockResponse(HttpStatus.OK, true, "{  \"data\": {  \"keys\": [    \"CertificateName.t-mobile.com\"    ]  }}");
+
+   	         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+
+   	         when(reqProcessor.process(Mockito.eq("/sslcert"),Mockito.anyString(),Mockito.eq(token))).thenReturn(certResponse);
+
+   	         when(reqProcessor.process("/sslcert", "{\"path\":\"metadata/sslcerts/CertificateName.t-mobile.com\"}",token)).thenReturn(response);
+   	         
+   	         when(reqProcessor.process("/sslcert", "{\"path\":\"metadata/externalcerts/CertificateName.t-mobile.com\"}",token)).thenReturn(response);
+
+   	         Response responseObj = new Response();
+   	         response.setHttpstatus(HttpStatus.OK);
+   	         response.setResponse(metaDataStr);
+   	         response.setSuccess(true);
+
+   	         when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(responseObj);
+
+   	        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+   	        when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
+   	        when(JSONUtil.getJSON(Mockito.any())).thenReturn(metaDataStr);
+   	        when(ControllerUtil.parseJson(metaDataStr)).thenReturn(createCertPolicyMap);
+   	        when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
+   	        when(reqProcessor.process("/write", metadatajson, token)).thenReturn(responseNoContent);
+   		   when(reqProcessor.process(eq(SSLCertificateConstants.ACCESS_UPDATE_ENDPOINT), anyString(), anyString())).thenReturn(responseNoContent);
+   		 ResponseEntity<String> responseEntityActual = sSLCertificateService.saveAllAppDetailsForOldCerts(token, userDetails);
+   		assertNotNull(responseEntityActual);	
+   	}
+    
 }
