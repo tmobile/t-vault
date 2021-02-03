@@ -455,6 +455,12 @@ public class  AWSAuthService {
 	 * @return
 	 */
 	public Response configureAWSRole(String roleName,String policies,String token ){
+		logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "configureAWSRole")
+				.put(LogMessage.MESSAGE,
+						String.format("Trying to configure AWS EC2 Role [%s] with Azure Service Account.", roleName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String>configureRoleMap = new HashMap<>();
 		configureRoleMap.put("role", roleName);
