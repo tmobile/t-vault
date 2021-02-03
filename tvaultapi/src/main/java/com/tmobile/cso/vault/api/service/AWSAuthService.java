@@ -471,7 +471,7 @@ public class  AWSAuthService {
 			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "configureAWSIAMRole").
-					put(LogMessage.MESSAGE, String.format("AWS EC2 Role [%s] successfully associated with Azure Service Account with policies [%s].",roleName,policies)).
+					put(LogMessage.MESSAGE, String.format("AWS EC2 Role [%s] successfully associated with policies [%s].",roleName,policies)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 		} catch (JsonProcessingException e) {

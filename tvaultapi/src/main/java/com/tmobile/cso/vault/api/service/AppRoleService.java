@@ -1571,6 +1571,12 @@ public class  AppRoleService {
 	 * @return
 	 */
 	public Response configureApprole(String rolename,String policies,String token ){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "configureApprole").
+				put(LogMessage.MESSAGE, "Trying to create approleConfigjson with rolename and policies.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String>configureUserMap = new HashMap<String,String>();
 		configureUserMap.put("role_name", rolename);
@@ -1579,6 +1585,12 @@ public class  AppRoleService {
 
 		try {
 			approleConfigJson = objMapper.writeValueAsString(configureUserMap);
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "configureApprole").
+					put(LogMessage.MESSAGE, "Able to create approleConfigjson with rolename and policies.").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
 		} catch (JsonProcessingException e) {
 			log.error(e);
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
