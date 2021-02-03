@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
 import { Backdrop } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
-import { css } from 'styled-components';
+import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
 import { useHistory } from 'react-router-dom';
@@ -30,6 +30,15 @@ const loaderStyle = css`
   transform: translate(-50%, -50%);
   color: red;
   z-index: 1;
+`;
+
+const StyledModal = styled(Modal)`
+  @-moz-document url-prefix() {
+    .MuiBackdrop-root {
+      position: absolute;
+      height: 215rem;
+    }
+  }
 `;
 
 const useStyles = makeStyles((theme) => ({
@@ -145,12 +154,19 @@ const EditCertificate = (props) => {
    * @description function when user clicked the renew certificate calculate the difference.
    */
   const onCertRenewClicked = () => {
+    const diff = getDaysDifference(new Date(), certificateData.expiryDate);
+    if (certificateData?.certType === 'external' && diff > 335) {
+      setModalDetail({
+        title: 'Error',
+        description:
+          'External certificate can be renewed only after a month of certificate creation',
+      });
+      setOpenModal({ status: 'confirm' });
+      setLoading(false);
+      return;
+    }
     clearModalDetail();
     setOpenModal({ status: 'renew' });
-    const diff = getDaysDifference(
-      certificateData.createDate,
-      certificateData.expiryDate
-    );
     const desc = `Certificate expiring in ${diff} Days . Do you want 
     to renew this certificate?`;
     setModalDetail({
@@ -408,7 +424,7 @@ const EditCertificate = (props) => {
           />
         )}
         {openModal.status === 'edit' && (
-          <Modal
+          <StyledModal
             aria-labelledby="transition-modal-title"
             aria-describedby="transition-modal-description"
             className={classes.modal}
@@ -431,7 +447,7 @@ const EditCertificate = (props) => {
                 onDeleteClicked={onDeleteClicked}
               />
             </Fade>
-          </Modal>
+          </StyledModal>
         )}
       </>
     </ComponentError>
