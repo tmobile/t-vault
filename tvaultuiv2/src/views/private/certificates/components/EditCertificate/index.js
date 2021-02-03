@@ -63,7 +63,7 @@ const EditCertificate = (props) => {
     title: '',
     description: '',
   });
-  const [open] = useState(true);
+  const [open, setOpen] = useState(true);
   const [certificateData, setCertificateData] = useState({});
   const [openModal, setOpenModal] = useState({ status: 'edit' });
   const [loading, setLoading] = useState(true);
@@ -72,6 +72,7 @@ const EditCertificate = (props) => {
   const [allRevokeReason, setAllRevokeReason] = useState([]);
   const [editActionPerform, setEditActionPerform] = useState(false);
   const [updatePayload, setUpdatePayload] = useState({});
+  const [renewPossible, setRenewPossible] = useState(true);
   const isMobileScreen = useMediaQuery(small);
   const history = useHistory();
 
@@ -140,6 +141,18 @@ const EditCertificate = (props) => {
       });
   };
 
+  const constructConfirmationMessage = () => {
+    const desc = `Certificate expiring in ${getDaysDifference(
+      certificateData.expiryDate
+    )} Days . Do you want 
+    to renew this certificate?`;
+    setModalDetail({
+      title: 'Renew Confirmation',
+      description: desc,
+    });
+    setRenewPossible(true);
+  };
+
   /**
    * @function onCertRenewClicked
    * @description function when user clicked the renew certificate calculate the difference.
@@ -147,16 +160,22 @@ const EditCertificate = (props) => {
   const onCertRenewClicked = () => {
     clearModalDetail();
     setOpenModal({ status: 'renew' });
-    const diff = getDaysDifference(
-      certificateData.createDate,
-      certificateData.expiryDate
-    );
-    const desc = `Certificate expiring in ${diff} Days . Do you want 
-    to renew this certificate?`;
-    setModalDetail({
-      title: 'Renew Confirmation',
-      description: desc,
-    });
+
+    if (certificateData.certType === 'external') {
+      const diff = getDaysDifference(certificateData.createDate);
+      if (diff < 30) {
+        setModalDetail({
+          title: 'Confirmation',
+          description:
+            'External certificate can be renewed only after a month of certificate creation',
+        });
+        setRenewPossible(false);
+      } else {
+        constructConfirmationMessage();
+      }
+    } else {
+      constructConfirmationMessage();
+    }
   };
 
   /**
@@ -219,8 +238,9 @@ const EditCertificate = (props) => {
   }, [certificateData]);
 
   const closeEditModal = async () => {
-    await refresh(editActionPerform);
+    setOpen(false);
     history.goBack();
+    await refresh(editActionPerform);
   };
 
   /**
@@ -231,6 +251,7 @@ const EditCertificate = (props) => {
     if (!loading) {
       setOpenModal({ status: '' });
       closeEditModal();
+      setOpen(false);
     }
   };
 
@@ -369,12 +390,14 @@ const EditCertificate = (props) => {
             />
           }
           confirmButton={
-            <ButtonComponent
-              label="Renew"
-              color="secondary"
-              onClick={() => onRenewConfirmClicked()}
-              width={isMobileScreen ? '100%' : '45%'}
-            />
+            renewPossible && (
+              <ButtonComponent
+                label="Renew"
+                color="secondary"
+                onClick={() => onRenewConfirmClicked()}
+                width={isMobileScreen ? '100%' : '45%'}
+              />
+            )
           }
         />
         {openModal.status === 'update' && (

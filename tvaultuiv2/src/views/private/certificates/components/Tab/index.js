@@ -111,10 +111,10 @@ const CertificateSelectionTabs = (props) => {
 
   const getEachUser = async (data) => {
     const eachUsersDetails = await getEachUsersDetails(data);
-    setResponse({ status: 'success' });
     if (eachUsersDetails !== null) {
       setUserDetails([...eachUsersDetails]);
     }
+    setResponse({ status: 'success' });
   };
 
   const getAllCertificateDetail = () => {
@@ -123,13 +123,13 @@ const CertificateSelectionTabs = (props) => {
     const url = `/sslcert?certificateName=${certificateDetail.certificateName}&certType=${certificateDetail.certType}`;
     apiService
       .getCertificateDetail(url)
-      .then((res) => {
+      .then(async (res) => {
         if (res.data.keys && res.data.keys[0]) {
+          await getEachUser(res.data.keys[0].users);
           setCertificateMetaData({ ...res.data.keys[0] });
-          getEachUser(res.data.keys[0].users);
         } else if (res.data) {
+          await getEachUser(res.data);
           setCertificateMetaData({ ...res.data });
-          getEachUser(res.data);
         } else {
           setCertificateMetaData({});
         }
