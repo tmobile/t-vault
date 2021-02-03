@@ -345,13 +345,31 @@ public class  SelfSupportService {
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, safe.getPath());
 			if(!safe.getSafeBasicDetails().getOwner().equalsIgnoreCase(userDetails.getEmail())){
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+						put(LogMessage.MESSAGE, "Validating owner email").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body("{\"errors\":[\"Invalid owner email\"]}");
 			}
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+						put(LogMessage.MESSAGE, "Checking user permission").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
 				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+						put(LogMessage.MESSAGE, "Access denied: no permission to update this safe").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to update this safe\"]}");
 			}
 			token = userDetails.getSelfSupportToken();
@@ -375,9 +393,21 @@ public class  SelfSupportService {
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, TVaultConstants.DELETE_SDB).
+						put(LogMessage.MESSAGE, "Error checking user permission").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
 				return isAuthorized.getStatusCode().equals(HttpStatus.BAD_REQUEST)?isAuthorized:ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Error checking user permission\"]}");
 			}
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, TVaultConstants.DELETE_SDB).
+						put(LogMessage.MESSAGE, "Access denied: no permission to delete this safe").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to delete this safe\"]}");
 			}
 			ResponseEntity<String> safe_creation_response = safesService.deletefolder(userDetails.getSelfSupportToken(), path,userDetails);

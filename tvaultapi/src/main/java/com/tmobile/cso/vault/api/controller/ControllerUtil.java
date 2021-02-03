@@ -185,7 +185,7 @@ public final class ControllerUtil {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, TVaultConstants.RECURSIVE_DELETE_SDB).
-				put(LogMessage.MESSAGE, "Trying recursive delete...").
+				put(LogMessage.MESSAGE, "Start trying recursive delete.").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		ObjectMapper objMapper =  new ObjectMapper();
@@ -207,6 +207,12 @@ public final class ControllerUtil {
 		
 		Response lisresp = reqProcessor.process(SAFELIST,jsonstr,token);
 		if(HttpStatus.NOT_FOUND.equals(lisresp.getHttpstatus())){
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, TVaultConstants.RECURSIVE_DELETE_SDB).
+					put(LogMessage.MESSAGE, "Recursively deleting.").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 			Response resp = reqProcessor.process("/delete",jsonstr,token);
 			responseVO.setResponse(resp.getResponse());
 			responseVO.setHttpstatus(resp.getHttpstatus());
@@ -693,6 +699,12 @@ public final class ControllerUtil {
 			
 			String writeJson =  PATHSTR+path+DATASTR+ metadataJson +"}";
 			metadataResponse = reqProcessor.process(WRITESTR,writeJson,token);
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, UPDATEMETADATASTR).
+					put(LogMessage.MESSAGE, "Updatemetadata completed").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
 			return metadataResponse;
 		}
 		return null;
@@ -1041,6 +1053,12 @@ public final class ControllerUtil {
 	 * @throws IOException
 	 */
 	public static List<String> getPoliciesAsListFromJson(ObjectMapper objMapper, String policyJson) throws JsonProcessingException, IOException{
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "getPoliciesAsListFromJson").
+				put(LogMessage.MESSAGE, "Start fetching policies").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		List<String> currentpolicies = new ArrayList<>();
 		JsonNode policiesNode = objMapper.readTree(policyJson).get("data").get(POLICYSTR);
 		if (policiesNode.isContainerNode()) {
@@ -1061,7 +1079,7 @@ public final class ControllerUtil {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, UPDATEPOLICYONDELETE).
-				put(LogMessage.MESSAGE, "trying updateUserPolicyAssociationOnSDBDelete").
+				put(LogMessage.MESSAGE, "Start trying updateUserPolicyAssociationOnSDBDelete").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		log.debug ("updateUserPolicyAssociationOnSDBDelete...for auth method {} " , vaultAuthMethod);
@@ -1201,7 +1219,7 @@ public final class ControllerUtil {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "updateGroupPolicyAssociationOnSDBDelete").
-				put(LogMessage.MESSAGE, "trying updateGroupPolicyAssociationOnSDBDelete").
+				put(LogMessage.MESSAGE, "Start trying updateGroupPolicyAssociationOnSDBDelete").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
@@ -1365,7 +1383,7 @@ public final class ControllerUtil {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "delete AwsRoleOnSDBDelete").
-				put(LogMessage.MESSAGE, "Trying to deleteAwsRoleOnSDBDelete").
+				put(LogMessage.MESSAGE, "Start trying to deleteAwsRoleOnSDBDelete").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
@@ -1410,6 +1428,12 @@ public final class ControllerUtil {
 	}
 	
 	public static boolean isPathValid(String path){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, TVaultConstants.DELETE_SDB).
+				put(LogMessage.MESSAGE, "Checking whether safe path is valid or not.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		String paths[] =  path.split("/");
 		if(paths.length > 0){
 			String safeType =  paths[0];
@@ -1419,10 +1443,22 @@ public final class ControllerUtil {
 		}else{
 			return false;
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, TVaultConstants.DELETE_SDB).
+				put(LogMessage.MESSAGE, "Safe path validation completed.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		return true;
 	}
 	
 	public static boolean isValidSafePath(String path){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "isValidSafePath").
+				put(LogMessage.MESSAGE,"Start validating safe path").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		String paths[] =  path.split("/");
 		if(paths.length==2){
 			String safeType =  paths[0];
@@ -1432,6 +1468,12 @@ public final class ControllerUtil {
 		}else{
 			return false;
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "isValidSafePath").
+				put(LogMessage.MESSAGE,"Path validation completed").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		return true;
 	}
 	public static String getSafePath(String path){
@@ -1475,6 +1517,12 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static boolean canAddPermission(String path,String token) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				  put(LogMessage.ACTION, "canAddPermission").
+			      put(LogMessage.MESSAGE, "Start executing canAddPermission.").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			      build()));
 		String safeType = ControllerUtil.getSafeType(path);
 		String safeName = ControllerUtil.getSafeName(path);
 		
@@ -1490,6 +1538,12 @@ public final class ControllerUtil {
 		if (count == 1) {
 			// There is one valid safe, Hence permission can be added
 			// Exact match
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					  put(LogMessage.ACTION, "canAddPermission").
+				      put(LogMessage.MESSAGE, "Completed canAddPermission check and there is one valid safe, Hence permission can be added").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				      build()));
 			return true;
 		}
 		else {
@@ -1564,6 +1618,12 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static boolean areSDBInputsValid(Safe safe) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, TVaultConstants.CREATE_SDB).
+				put(LogMessage.MESSAGE, "Start validating input parameters for SDB creation").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		if (safe == null) {
 			return false;
 		}
@@ -1601,6 +1661,12 @@ public final class ControllerUtil {
 		if (!EmailValidator.getInstance().isValid(sdbOwner)) {
 			return false;
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, TVaultConstants.CREATE_SDB).
+				put(LogMessage.MESSAGE, "Input parameter validation completed").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		return true;
 	}
 	
@@ -1610,6 +1676,12 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static boolean areSDBInputsValidForUpdate(Map<String, Object> requestParams) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+				put(LogMessage.MESSAGE, "Start validating input parameteres for safe updation").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) requestParams.get("data");
 		if (MapUtils.isEmpty(map)) {
 			return false;
@@ -1643,6 +1715,12 @@ public final class ControllerUtil {
 		if (!EmailValidator.getInstance().isValid(sdbOwner)) {
 			return false;
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+				put(LogMessage.MESSAGE,"Input parameter validation completed ").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		return true;
 	}
 
@@ -1677,6 +1755,12 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static boolean areAWSRoleInputsValid(Map<String, String> requestMap) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION,"areAWSRoleInputsValid").
+				put(LogMessage.MESSAGE,"Start validating AWS role input parameters").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		if (MapUtils.isEmpty(requestMap)) {
 			return false;
 		}
@@ -1694,6 +1778,12 @@ public final class ControllerUtil {
 		if (!ArrayUtils.contains(permissions, access)) {
 			return false;
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION,"areAWSRoleInputsValid").
+				put(LogMessage.MESSAGE,"AWS role input parameter validation completed").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		return true;
 	}
 	/**
@@ -1702,6 +1792,12 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static boolean areSafeUserInputsValid(SafeUser safeUser) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+				put(LogMessage.MESSAGE,"Start validating input parameteres").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		if (ObjectUtils.isEmpty(safeUser)) {
 			return false;
 		}
@@ -1719,6 +1815,12 @@ public final class ControllerUtil {
 		if (!ArrayUtils.contains(permissions, access)) {
 			return false;
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+				put(LogMessage.MESSAGE,"Input parameter validation completed").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		return true;
 	}
 	/**
@@ -1752,6 +1854,12 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static boolean areSafeGroupInputsValid(SafeGroup safeGroup) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, TVaultConstants.ADD_GROUP_TO_SDB).
+				put(LogMessage.MESSAGE, "Start validating input parameters").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		if (ObjectUtils.isEmpty(safeGroup)) {
 			return false;
 		}
@@ -1769,6 +1877,12 @@ public final class ControllerUtil {
 		if (!ArrayUtils.contains(permissions, access)) {
 			return false;
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, TVaultConstants.ADD_GROUP_TO_SDB).
+				put(LogMessage.MESSAGE, "Completed input parameter validation").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		return true;
 	}
 	/**
@@ -1777,6 +1891,12 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static boolean areSafeAppRoleInputsValid(Map<String,Object> requestMap) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION,"areSafeAppRoleInputsValid").
+				put(LogMessage.MESSAGE, "Start validating input parameters").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		if (MapUtils.isEmpty(requestMap)) {
 			return false;
 		}
@@ -1794,6 +1914,12 @@ public final class ControllerUtil {
 		if (!ArrayUtils.contains(permissions, access)) {
 			return false;
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION,"areSafeAppRoleInputsValid").
+				put(LogMessage.MESSAGE, "Input parameter validation completed").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		return true;
 	}
 	/**
@@ -1844,6 +1970,7 @@ public final class ControllerUtil {
 	 */
 	public static void converSDBInputsToLowerCase(Safe safe) {
 		try {
+			
 			safe.getSafeBasicDetails().setName(safe.getSafeBasicDetails().getName().toLowerCase());
 			safe.setPath(safe.getPath().toLowerCase());
 		} catch (Exception e) {
@@ -2232,6 +2359,12 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static int getCountOfSafesForGivenSafeName(String safeName, String token) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+				put(LogMessage.MESSAGE, "Get the count of redundant safe names.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		HashMap<String, List<String>> allExistingSafeNames = getAllExistingSafeNames(token);
 		int count = 0;
 		for (Map.Entry<String, List<String>> entry : allExistingSafeNames.entrySet()) {
@@ -2243,6 +2376,12 @@ public final class ControllerUtil {
 				}
 			}
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+				put(LogMessage.MESSAGE,String.format("Got the count of redundant safe names and the count is [%s].",count)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		return count;
 	}
 	/**
@@ -2264,6 +2403,12 @@ public final class ControllerUtil {
 	}
 	
 	public  static String generateSafePath(String safeName, String safeType) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+				put(LogMessage.MESSAGE, "Get the safe path ").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		String safePath = "";
 		if (StringUtils.isEmpty(safeName) || StringUtils.isEmpty(safeType)) {
 			return safePath;
@@ -2281,7 +2426,12 @@ public final class ControllerUtil {
 		default:
 			
 		}
-
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+				put(LogMessage.MESSAGE,String.format("Got the safe path and it is [%s].",safePath)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		return safePath;
 	}
 
