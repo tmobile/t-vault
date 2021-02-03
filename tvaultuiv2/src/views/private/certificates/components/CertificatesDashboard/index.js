@@ -409,8 +409,8 @@ const CertificatesDashboard = () => {
   }, [fetchAdminData, fetchNonAdminData, admin]);
 
   useEffect(() => {
-    const url = history?.location?.pathname?.split('/')[1];
-    if (allCertList.length > 0 && url === 'certificates') {
+    const url = history?.location?.pathname?.split('/');
+    if (allCertList.length > 0 && url[1] === 'certificates') {
       setListItemDetails(allCertList[0]);
       history.push(`/certificates/${allCertList[0]?.certificateName}`);
     } else {

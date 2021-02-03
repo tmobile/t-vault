@@ -47,7 +47,7 @@ const ViewMoreStyles = css`
   align-items: center;
   font-weight: 600;
   cursor: pointer;
-  margin-left: 4.5rem;
+  margin-left: 5rem;
 `;
 
 const CertificateHeader = () => {
