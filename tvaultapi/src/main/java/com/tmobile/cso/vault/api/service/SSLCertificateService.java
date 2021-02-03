@@ -10586,17 +10586,20 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	        internalResponse = getMetadata(token, internalMetaDataPath);
 	        externalResponse = getMetadata(token, externalMetaDataPath);
 	        
+	        if (HttpStatus.OK.equals(internalResponse.getHttpstatus())) {
 	        JsonObject jsonObject = (JsonObject) jsonParser.parse(internalResponse.getResponse());
 	   		JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
 	   		List<String> internalCertNames = geMatchCertificates(jsonArray,"");
 	   		
 	   		boolean isInternalSaved = saveApplicationDetailsForOldCerts(internalCertNames,"internal", token);
-	   		
+	        }
+	        
+	        if (HttpStatus.OK.equals(externalResponse.getHttpstatus())) {
 	   		JsonObject jsonObjectExt = (JsonObject) jsonParser.parse(externalResponse.getResponse());
 	   		JsonArray jsonArrayExt = jsonObjectExt.getAsJsonObject("data").getAsJsonArray("keys");
 	   		List<String> externalCertNames = geMatchCertificates(jsonArrayExt,"");
 	   		boolean isExternalSaved = saveApplicationDetailsForOldCerts(externalCertNames,"external", token);
-	   		
+	        }
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Application details updation is successfully completed.\"]}");
 
 	 }
