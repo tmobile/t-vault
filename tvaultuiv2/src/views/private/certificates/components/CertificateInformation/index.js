@@ -64,15 +64,6 @@ const NoPermission = styled.div`
   margin-top: 2rem;
 `;
 
-const NotOnboarded = styled.div`
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.3rem;
-  color: #5a637a;
-`;
-
 const CertificateInformation = (props) => {
   const { responseStatus, certificateMetaData, errorMessage } = props;
   const [response, setResponse] = useState({ status: 'loading' });
@@ -170,7 +161,13 @@ const CertificateInformation = (props) => {
                 </EachDetail>
               </DetailsWrap>
             ) : (
-              <NotOnboarded>Certificate is not onboarded!</NotOnboarded>
+              <ErrorWrap>
+                <AccessDeniedIcon
+                  src={accessDeniedLogo}
+                  alt="accessDeniedLogo"
+                />
+                <NoPermission>Certificate is not onboarded!</NoPermission>
+              </ErrorWrap>
             )}
           </>
         )}

@@ -210,13 +210,14 @@ export const checkAccess = (access, type) => {
   return val;
 };
 
-export const getDaysDifference = (start, end) => {
-  const date1 = new Date(start);
+export const getDaysDifference = (end) => {
+  const date1 = new Date();
   const date2 = new Date(end);
-  const diffInTime = date2.getTime() - date1.getTime();
+  const diffInTime = Math.abs(date2.getTime() - date1.getTime());
   const diffInTimeDays = diffInTime / (1000 * 3600 * 24);
   return Math.ceil(diffInTimeDays);
 };
+
 export const convertToCSV = (objArray) => {
   const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
   let str = '';

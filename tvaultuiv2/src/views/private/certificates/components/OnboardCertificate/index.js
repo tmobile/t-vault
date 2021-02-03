@@ -118,7 +118,7 @@ const NotificationAutoWrap = styled.div`
 const AutoInputFieldLabelWrapper = styled.div`
   position: relative;
   width: 100%;
-  display: flex%;
+  display: flex;
   .MuiTextField-root {
     width: 100%;
   }
@@ -249,6 +249,7 @@ const OnboardCertificates = (props) => {
   const [ownerSelected, setOwnerselected] = useState({});
   const [applicationNameError, setApplicationNameError] = useState(false);
   const [notifyUserSelected, setNotifyUserselected] = useState({});
+  const [selfserviceAppName, setSelfserviceAppName] = useState([]);
 
   const getName = (displayName) => {
     if (displayName?.match(/(.*)\[(.*)\]/)) {
@@ -307,9 +308,16 @@ const OnboardCertificates = (props) => {
   ]);
 
   useEffect(() => {
+    const selectedApp = allApplication.find(
+      (item) => applicationName === item.appName
+    );
     if (
       applicationName !== '' &&
-      ![...allApplication.map((item) => item.appName)].includes(applicationName)
+      (![...allApplication.map((item) => item.appName)].includes(
+        applicationName
+      ) ||
+        (!JSON.parse(sessionStorage.getItem('isAdmin')) &&
+          !selfserviceAppName.includes(selectedApp?.appID)))
     ) {
       setApplicationNameError(true);
       setNotifyEmailStatus({ status: 'available' });
@@ -318,7 +326,7 @@ const OnboardCertificates = (props) => {
     } else {
       setApplicationNameError(false);
     }
-  }, [allApplication, applicationName]);
+  }, [allApplication, applicationName, selfserviceAppName]);
 
   useEffect(() => {
     if (
@@ -346,20 +354,16 @@ const OnboardCertificates = (props) => {
       if (state.applicationNameList?.length > 0) {
         if (!JSON.parse(sessionStorage.getItem('isAdmin'))) {
           const stringVal = sessionStorage.getItem('selfServiceAppNames');
-          const selfserviceAppName = stringVal?.split(',');
-          const array = [];
-          if (selfserviceAppName?.length > 0) {
-            selfserviceAppName.map((item) => {
-              const obj = state.applicationNameList.find(
-                (ele) => item === ele.appID
-              );
-              return array.push(obj);
-            });
-            setAllApplication([...array]);
-          }
-        } else {
-          setAllApplication([...state.applicationNameList]);
+          setSelfserviceAppName(stringVal?.split(','));
         }
+        const array = [];
+        state.applicationNameList.map((item) => {
+          if (item.appID !== 'oth') {
+            array.push(item);
+          }
+          return null;
+        });
+        setAllApplication([...array]);
       } else if (state.applicationNameList === 'error') {
         setResponseType(-1);
         setToastMessage('Error occured while fetching the application name!');

@@ -58,6 +58,8 @@ const UserList = styled.div`
 const InfoWrapper = styled.div`
   display: flex;
   align-items: center;
+  width: 100%;
+  justify-content: space-between;
   ${mediaBreakpoints.semiMedium} {
     flex-direction: column;
   }
@@ -75,7 +77,28 @@ const Secret = styled.div`
   }
 `;
 
-const Span = styled('span')``;
+const SecretInputfield = styled.input`
+  padding: 0;
+  outline: none;
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  color: #5a637a;
+  word-break: break-all;
+  margin: 0px 1rem;
+  width: 33%;
+  text-align: center;
+  ${mediaBreakpoints.semiMedium} {
+    width: 100%;
+    margin: 1rem;
+  }
+`;
+
+const Span = styled('span')`
+  ${mediaBreakpoints.semiMedium} {
+    text-align: center;
+  }
+`;
 
 const Icon = styled.img`
   width: 1.5rem;
@@ -400,9 +423,11 @@ const AzureSecrets = (props) => {
                   <Icon src={lock} alt="lock" />
                   <InfoWrapper>
                     <Span>{secretsData.secretKeyId}</Span>
-                    <Secret type="password" viewSecret={showSecret}>
-                      {secretsData.secretText}
-                    </Secret>
+                    <SecretInputfield
+                      type={showSecret ? 'text' : 'password'}
+                      value={secretsData.secretText}
+                      readOnly
+                    />
                     <div className="expirationDate">
                       <div className="expiry">Expires: </div>
                       <div>{formatDate(secretsData.expiryDate)}</div>

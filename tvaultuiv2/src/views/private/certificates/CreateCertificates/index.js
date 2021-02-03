@@ -3,6 +3,7 @@
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect, useCallback } from 'react';
 import { debounce } from 'lodash';
+import ReactHtmlParser from 'react-html-parser';
 import { makeStyles } from '@material-ui/core/styles';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useHistory } from 'react-router-dom';
@@ -221,6 +222,14 @@ const autoLoaderStyle = css`
 const TypeAheadWrap = styled.div`
   width: 100%;
 `;
+const InputFieldError = styled.div`
+  font-size: 1.2rem;
+  margin: 1rem 0 0;
+  color: #ee4e4e;
+  a {
+    color: #ee4e4e;
+  }
+`;
 
 const useStyles = makeStyles((theme) => ({
   select: {
@@ -284,6 +293,7 @@ const CreateCertificates = (props) => {
     status: 'not-available',
   });
   const [selfserviceAppName, setSelfserviceAppName] = useState([]);
+  const [applicationNameErrorMsg, setApplicationNameErrorMsg] = useState('');
   const isMobileScreen = useMediaQuery(small);
   const history = useHistory();
   const [state] = useStateValue();
@@ -352,7 +362,14 @@ const CreateCertificates = (props) => {
           const stringVal = sessionStorage.getItem('selfServiceAppNames');
           setSelfserviceAppName(stringVal?.split(','));
         }
-        setAllApplication([...state.applicationNameList]);
+        const array = [];
+        state.applicationNameList.map((item) => {
+          if (item.appID !== 'oth') {
+            array.push(item);
+          }
+          return null;
+        });
+        setAllApplication([...array]);
       } else if (state.applicationNameList === 'error') {
         setResponseType(-1);
         setToastMessage('Error occured while fetching the application name!');
@@ -719,6 +736,18 @@ const CreateCertificates = (props) => {
         (!JSON.parse(sessionStorage.getItem('isAdmin')) &&
           !selfserviceAppName.includes(selectedApp?.appID)))
     ) {
+      if (
+        !JSON.parse(sessionStorage.getItem('isAdmin')) &&
+        !selfserviceAppName.includes(selectedApp?.appID)
+      ) {
+        setApplicationNameErrorMsg(
+          'You do not have access to this group. Please go here (<a href="https://access.t-mobile.com" target="_blank">https://access.t-mobile.com</a>) to register yourself part of the group.'
+        );
+      } else {
+        setApplicationNameErrorMsg(
+          `Application ${applicationName} does not exist!`
+        );
+      }
       setApplicationNameError(true);
       setNotifyEmailStatus({ status: 'not-available' });
       setNotificationEmailList([]);
@@ -862,17 +891,12 @@ const CreateCertificates = (props) => {
                         onSelectedApplicationName(event, value)
                       }
                       placeholder="Search for Application Name"
-                      error={applicationNameError}
-                      helperText={
-                        applicationNameError &&
-                        JSON.parse(sessionStorage.getItem('isAdmin'))
-                          ? `Application ${applicationName} does not exist!`
-                          : applicationNameError &&
-                            !JSON.parse(sessionStorage.getItem('isAdmin'))
-                          ? `Application ${applicationName} does not exist or do not have access to the given application name!`
-                          : ''
-                      }
                     />
+                    {applicationNameError && (
+                      <InputFieldError>
+                        {ReactHtmlParser(applicationNameErrorMsg)}
+                      </InputFieldError>
+                    )}
                   </InputFieldLabelWrapper>
                   <IncludeDnsWrap>
                     <SwitchComponent
