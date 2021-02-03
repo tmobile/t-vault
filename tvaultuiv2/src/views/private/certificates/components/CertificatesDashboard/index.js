@@ -325,11 +325,12 @@ const CertificatesDashboard = () => {
             });
           }
           if (result && result[1]?.data?.externalcerts) {
-            result[1].data.externalcerts.map((item) => {
-              return Object.entries(item).map(([key]) => {
-                return allCertificateExternal.push(key);
-              });
-            });
+            result[1].data.externalcerts.map((item) =>
+              Object.entries(item).map(
+                ([key]) =>
+                  item[key] !== 'deny' && allCertificateExternal.push(key)
+              )
+            );
           }
         } else {
           const access = JSON.parse(sessionStorage.getItem('access'));
