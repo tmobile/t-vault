@@ -28,6 +28,7 @@ const IamServiceAccountPermission = (props) => {
     fetchPermission,
     permissionResponse,
     userDetails,
+    refresh,
   } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
@@ -140,7 +141,7 @@ const IamServiceAccountPermission = (props) => {
               updateToastMessage={(res, message) =>
                 updateToastMessage(res, message)
               }
-              refresh={fetchPermission}
+              refresh={refresh}
               permissionResponse={permissionResponse}
             />
           </TabPanel>
@@ -198,6 +199,7 @@ IamServiceAccountPermission.propTypes = {
   fetchPermission: PropTypes.func,
   permissionResponse: PropTypes.string.isRequired,
   userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
+  refresh: PropTypes.func.isRequired,
 };
 
 IamServiceAccountPermission.defaultProps = {
