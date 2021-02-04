@@ -149,33 +149,35 @@ const AddAwsApplication = (props) => {
   }, [state]);
 
   useEffect(() => {
-    if (!Object.keys(roles).includes(roleName.toLowerCase())) {
-      if (!isEC2) {
-        if (
+    if (roleName) {
+      if (roles && !Object.keys(roles).includes(roleName?.toLowerCase())) {
+        if (!isEC2) {
+          if (
+            roleName?.length < 3 ||
+            iamPrincipalArn === '' ||
+            iamPrincipalArn.length < 20
+          ) {
+            setDisabledSave(true);
+          } else {
+            setDisabledSave(false);
+          }
+        } else if (
           roleName?.length < 3 ||
-          iamPrincipalArn === '' ||
-          iamPrincipalArn.length < 20
+          count > 7 ||
+          (accountId !== '' && accountId.length < 12) ||
+          (iamRoleArn !== '' && iamRoleArn.length < 20) ||
+          (profileArn !== '' && profileArn.length < 20)
         ) {
           setDisabledSave(true);
         } else {
           setDisabledSave(false);
         }
-      } else if (
-        roleName?.length < 3 ||
-        count > 7 ||
-        (accountId !== '' && accountId.length < 12) ||
-        (iamRoleArn !== '' && iamRoleArn.length < 20) ||
-        (profileArn !== '' && profileArn.length < 20)
-      ) {
-        setDisabledSave(true);
-      } else {
-        setDisabledSave(false);
-      }
 
-      setExistingRole(false);
-    } else {
-      setDisabledSave(true);
-      setExistingRole(true);
+        setExistingRole(false);
+      } else {
+        setDisabledSave(true);
+        setExistingRole(true);
+      }
     }
   }, [
     roleName,

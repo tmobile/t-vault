@@ -130,7 +130,7 @@ const AddGroup = (props) => {
   }, [searchValue, searchLoader, options]);
 
   useEffect(() => {
-    if (configData.AD_GROUP_AUTOCOMPLETE) {
+    if (searchValue && configData.AD_GROUP_AUTOCOMPLETE) {
       if (
         groups &&
         !Object.keys(groups)?.includes(searchValue?.toLowerCase()) &&
