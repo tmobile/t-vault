@@ -3052,7 +3052,7 @@ public class  IAMServiceAccountsService {
 		}
 	}
 
-	/**C:\Users\145414\Desktop\New folder
+	/**
 	 * To get owner NT id from metadata.
 	 * @param token
 	 * @param uniqueIAMSvcaccName
