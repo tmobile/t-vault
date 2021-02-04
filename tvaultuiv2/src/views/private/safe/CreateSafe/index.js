@@ -44,6 +44,15 @@ const HeaderWrapper = styled.div`
   }
 `;
 
+const StyledModal = styled(Modal)`
+  @-moz-document url-prefix() {
+    .MuiBackdrop-root {
+      position: absolute;
+      height: 100rem;
+    }
+  }
+`;
+
 const LeftIcon = styled.img`
   display: none;
   ${small} {
@@ -510,7 +519,7 @@ const CreateModal = (props) => {
 
   return (
     <ComponentError>
-      <Modal
+      <StyledModal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
         className={classes?.modal}
@@ -741,7 +750,7 @@ const CreateModal = (props) => {
             )}
           </GlobalModalWrapper>
         </Fade>
-      </Modal>
+      </StyledModal>
     </ComponentError>
   );
 };
