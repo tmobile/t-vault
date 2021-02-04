@@ -39,6 +39,15 @@ const HeaderWrapper = styled.div`
   }
 `;
 
+const StyledModal = styled(Modal)`
+  @-moz-document url-prefix() {
+    .MuiBackdrop-root {
+      position: absolute;
+      height: 130rem;
+    }
+  }
+`;
+
 const LeftIcon = styled.img`
   display: none;
   ${small} {
@@ -333,7 +342,7 @@ const CreateCertificates = (props) => {
           }
         />
         {!openConfirmationModal && (
-          <Modal
+          <StyledModal
             aria-labelledby="transition-modal-title"
             aria-describedby="transition-modal-description"
             className={classes.modal}
@@ -419,7 +428,7 @@ const CreateCertificates = (props) => {
                 </CancelSaveWrapper>
               </GlobalModalWrapper>
             </Fade>
-          </Modal>
+          </StyledModal>
         )}
       </>
     </ComponentError>

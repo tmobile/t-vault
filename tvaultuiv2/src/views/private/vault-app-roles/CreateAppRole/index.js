@@ -30,6 +30,15 @@ import {
 
 const { small } = mediaBreakpoints;
 
+const StyledModal = styled(Modal)`
+  @-moz-document url-prefix() {
+    .MuiBackdrop-root {
+      position: absolute;
+      height: 115rem;
+    }
+  }
+`;
+
 const HeaderWrapper = styled.div`
   display: flex;
   align-items: center;
@@ -413,7 +422,7 @@ const CreateAppRole = (props) => {
   };
   return (
     <ComponentError>
-      <Modal
+      <StyledModal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
         className={classes.modal}
@@ -658,7 +667,7 @@ const CreateAppRole = (props) => {
             )}
           </GlobalModalWrapper>
         </Fade>
-      </Modal>
+      </StyledModal>
     </ComponentError>
   );
 };
