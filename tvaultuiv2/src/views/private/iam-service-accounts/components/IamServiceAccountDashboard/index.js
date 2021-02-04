@@ -353,31 +353,35 @@ const IamServiceAccountDashboard = () => {
   const fetchPermission = useCallback(async () => {
     setAccountMetaData({ response: {}, error: '' });
     setPermissionResponse({ status: 'loading' });
-    try {
-      const res = await apiService.fetchIamServiceAccountDetails(
-        `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`
-      );
-      if (res?.data) {
-        setPermissionResponse({ status: 'success' });
-        setAccountMetaData({ response: res.data, error: '' });
-        if (
-          res.data.owner_ntid.toLowerCase() === state.username.toLowerCase()
-        ) {
-          setDisabledPermission(false);
-          const eachUsersDetails = await getEachUsersDetails(res.data.users);
-          if (eachUsersDetails !== null) {
-            setUserDetails([...eachUsersDetails]);
+    if (listItemDetails?.active) {
+      try {
+        const res = await apiService.fetchIamServiceAccountDetails(
+          `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`
+        );
+        if (res?.data) {
+          setPermissionResponse({ status: 'success' });
+          setAccountMetaData({ response: res.data, error: '' });
+          if (
+            res.data.owner_ntid.toLowerCase() === state.username.toLowerCase()
+          ) {
+            setDisabledPermission(false);
+            const eachUsersDetails = await getEachUsersDetails(res.data.users);
+            if (eachUsersDetails !== null) {
+              setUserDetails([...eachUsersDetails]);
+            }
+          } else {
+            setDisabledPermission(true);
           }
-        } else {
-          setDisabledPermission(true);
+        }
+      } catch (err) {
+        setPermissionResponse({ status: 'error' });
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+          setAccountSecretError(err?.response?.data?.errors[0]);
+          setAccountMetaData({ response: {}, error: 'Something went wrong' });
         }
       }
-    } catch (err) {
-      setPermissionResponse({ status: 'error' });
-      if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
-        setAccountSecretError(err?.response?.data?.errors[0]);
-        setAccountMetaData({ response: {}, error: 'Something went wrong' });
-      }
+    } else {
+      setDisabledPermission(true);
     }
   }, [listItemDetails, state]);
 
