@@ -6,7 +6,7 @@ import Fade from '@material-ui/core/Fade';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import ButtonComponent from '../../../../../../../components/FormFields/ActionButton';
-import TextFieldSelect from '../../../../../../../components/FormFields/TextFieldSelect';
+import SelectComponent from '../../../../../../../components/FormFields/SelectFields';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../../../../../breakpoints';
 
@@ -56,7 +56,7 @@ const ModalWrapper = styled.section`
 `;
 
 const SelectFieldWrap = styled.div`
-  margin-top: 5rem;
+  margin: 4rem 0;
 `;
 
 const useStyles = makeStyles((theme) => ({
@@ -124,7 +124,7 @@ const RevokeCertificate = (props) => {
           <ModalWrapper>
             <Typography variant="h5">Revocation reasons</Typography>
             <SelectFieldWrap>
-              <TextFieldSelect
+              <SelectComponent
                 classes={classes}
                 value={selectedValue}
                 menu={revokeMenu}
