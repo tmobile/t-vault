@@ -1713,6 +1713,9 @@ public class SSLCertificateService {
         sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
         sslCertificateMetadataDetails.setContainerId(containerId);
         sslCertificateMetadataDetails.setRequestStatus(SSLCertificateConstants.APPROVED);
+        String[] notifEmailLst = sslCertificateRequest.getNotificationEmail().split(",");
+		notifEmailLst = Arrays.stream(notifEmailLst).map(String::toLowerCase).distinct().toArray(String[]::new);
+		sslCertificateMetadataDetails.setNotificationEmails(String.join(",", notifEmailLst));
         return sslCertificateMetadataDetails;
     }
 
