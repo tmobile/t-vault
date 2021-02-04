@@ -3052,7 +3052,7 @@ public class  IAMServiceAccountsService {
 		}
 	}
 
-	/**
+	/**C:\Users\145414\Desktop\New folder
 	 * To get owner NT id from metadata.
 	 * @param token
 	 * @param uniqueIAMSvcaccName
@@ -3188,8 +3188,9 @@ public class  IAMServiceAccountsService {
 			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, IAMServiceAccountConstants.ROTATE_IAM_SVCACC_TITLE).
-					put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] rotated successfully for " +
-									"AccessKeyId [%s]", iamServiceAccountRotateRequest.getUserName(),
+					put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] rotated successfully for  " +
+									"AccessKeyId Completed [%s]",
+							iamServiceAccountRotateRequest.getUserName(),
 							iamServiceAccountRotateRequest.getAccessKeyId())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
