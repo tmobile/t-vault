@@ -54,6 +54,7 @@ import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
+import com.tmobile.cso.vault.api.service.SafesService;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 @Component
@@ -1430,7 +1431,7 @@ public final class ControllerUtil {
 	public static boolean isPathValid(String path){
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, TVaultConstants.DELETE_SDB).
+				put(LogMessage.ACTION, "isPathValid").
 				put(LogMessage.MESSAGE, "Checking whether safe path is valid or not.").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
@@ -1445,7 +1446,7 @@ public final class ControllerUtil {
 		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, TVaultConstants.DELETE_SDB).
+				put(LogMessage.ACTION, "isPathValid").
 				put(LogMessage.MESSAGE, "Safe path validation completed.").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
@@ -1620,7 +1621,7 @@ public final class ControllerUtil {
 	public static boolean areSDBInputsValid(Safe safe) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, TVaultConstants.CREATE_SDB).
+				put(LogMessage.ACTION, "areSDBInputsValid").
 				put(LogMessage.MESSAGE, "Start validating input parameters for SDB creation").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
@@ -1663,7 +1664,7 @@ public final class ControllerUtil {
 		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, TVaultConstants.CREATE_SDB).
+				put(LogMessage.ACTION, "areSDBInputsValid").
 				put(LogMessage.MESSAGE, "Input parameter validation completed").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
@@ -1678,7 +1679,7 @@ public final class ControllerUtil {
 	public static boolean areSDBInputsValidForUpdate(Map<String, Object> requestParams) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+				put(LogMessage.ACTION, "areSDBInputsValidForUpdate").
 				put(LogMessage.MESSAGE, "Start validating input parameteres for safe updation").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
@@ -1717,7 +1718,7 @@ public final class ControllerUtil {
 		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+				put(LogMessage.ACTION, "areSDBInputsValidForUpdate").
 				put(LogMessage.MESSAGE,"Input parameter validation completed ").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
@@ -1794,7 +1795,7 @@ public final class ControllerUtil {
 	public static boolean areSafeUserInputsValid(SafeUser safeUser) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+				put(LogMessage.ACTION, "areSafeUserInputsValid").
 				put(LogMessage.MESSAGE,"Start validating input parameteres").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
@@ -1817,7 +1818,7 @@ public final class ControllerUtil {
 		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+				put(LogMessage.ACTION, "areSafeUserInputsValid").
 				put(LogMessage.MESSAGE,"Input parameter validation completed").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
@@ -1856,7 +1857,7 @@ public final class ControllerUtil {
 	public static boolean areSafeGroupInputsValid(SafeGroup safeGroup) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION, TVaultConstants.ADD_GROUP_TO_SDB).
+				put(LogMessage.ACTION,"areSafeGroupInputsValid").
 				put(LogMessage.MESSAGE, "Start validating input parameters").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
@@ -1879,7 +1880,7 @@ public final class ControllerUtil {
 		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION, TVaultConstants.ADD_GROUP_TO_SDB).
+				put(LogMessage.ACTION, "areSafeGroupInputsValid").
 				put(LogMessage.MESSAGE, "Completed input parameter validation").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
@@ -2361,7 +2362,7 @@ public final class ControllerUtil {
 	public static int getCountOfSafesForGivenSafeName(String safeName, String token) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+				put(LogMessage.ACTION, "getCountOfSafesForGivenSafeName").
 				put(LogMessage.MESSAGE, "Get the count of redundant safe names.").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
@@ -2378,7 +2379,7 @@ public final class ControllerUtil {
 		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+				put(LogMessage.ACTION,"getCountOfSafesForGivenSafeName").
 				put(LogMessage.MESSAGE,String.format("Got the count of redundant safe names and the count is [%s].",count)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
@@ -2405,7 +2406,7 @@ public final class ControllerUtil {
 	public  static String generateSafePath(String safeName, String safeType) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+				put(LogMessage.ACTION, "generateSafePath").
 				put(LogMessage.MESSAGE, "Get the safe path ").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
@@ -2428,7 +2429,7 @@ public final class ControllerUtil {
 		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+				put(LogMessage.ACTION, "generateSafePath").
 				put(LogMessage.MESSAGE,String.format("Got the safe path and it is [%s].",safePath)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));

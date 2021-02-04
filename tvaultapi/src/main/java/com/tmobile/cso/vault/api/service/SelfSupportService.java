@@ -347,7 +347,7 @@ public class  SelfSupportService {
 			if(!safe.getSafeBasicDetails().getOwner().equalsIgnoreCase(userDetails.getEmail())){
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+						put(LogMessage.ACTION, "updateSafe").
 						put(LogMessage.MESSAGE, "Validating owner email").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
@@ -357,7 +357,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+						put(LogMessage.ACTION, "updateSafe").
 						put(LogMessage.MESSAGE, "Checking user permission").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
@@ -366,7 +366,7 @@ public class  SelfSupportService {
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+						put(LogMessage.ACTION, "updateSafe").
 						put(LogMessage.MESSAGE, "Access denied: no permission to update this safe").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
@@ -395,7 +395,7 @@ public class  SelfSupportService {
 			if (!isAuthorized.getStatusCode().equals(HttpStatus.OK)) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, TVaultConstants.DELETE_SDB).
+						put(LogMessage.ACTION, "deletefolder").
 						put(LogMessage.MESSAGE, "Error checking user permission").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
@@ -404,7 +404,7 @@ public class  SelfSupportService {
 			if (isAuthorized.getBody().equals(TVaultConstants.FALSE)) {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, TVaultConstants.DELETE_SDB).
+						put(LogMessage.ACTION, "deletefolder").
 						put(LogMessage.MESSAGE, "Access denied: no permission to delete this safe").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
