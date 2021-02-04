@@ -109,7 +109,7 @@ public class SafeUtils {
 	public boolean canAddOrRemoveUser(UserDetails userDetails, SafeUser safeUser, String action) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+				put(LogMessage.ACTION, "canAddOrRemoveUser").
 				put(LogMessage.MESSAGE,"Start exceuting canAddOrRemoveUser.").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));

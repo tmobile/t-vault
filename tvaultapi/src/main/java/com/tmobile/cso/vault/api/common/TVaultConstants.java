@@ -188,16 +188,5 @@ public class TVaultConstants {
     public static final String OTHER_APPNAME = "other";
     public static final String OTHER_APPNAME_VALUE = "Other";
     public static final String VALIDATE_APPNAME = "Start validating Appname for safe";
-    public static final String CREATE_SDB = "Create SDB";
-    public static final String UPDATE_SDB = "Update SDB";
-    public static final String DELETE_SDB = "Delete SDB";
-    public static final String ADD_USER_TO_SDB = "Add user to SDB";
-    public static final String REMOVE_USER_FROM_SDB = "Remove User from SDB";
-    public static final String ADD_GROUP_TO_SDB ="Add Group to SDB";
-    public static final String REMOVE_GROUP_FROM_SDB  ="Remove Group from SDB";
-    public static final String ADD_AWS_ROLE_TO_SDB  ="Add AwsRole to SDB";
-    public static final String REMOVE_AWS_ROLE_FROM_SDB  ="Delete AWS Role from Safe";
-    public static final String ADD_APPROLE_TO_SDB  ="Associate AppRole to SDB";
-    public static final String REMOVE_APPROLE_FROM_SDB  ="Remove Approle from Safe";
     
 }

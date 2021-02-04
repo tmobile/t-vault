@@ -89,6 +89,17 @@ public class  SafesService {
 	private static Logger log = LogManager.getLogger(SafesService.class);
 	private static final String METADATA = "metadata/";
 	private static final String INVALID_PATH = "Invalid Path";
+	private static final String CREATE_SDB = "Create SDB";
+	private static final String UPDATE_SDB = "Update SDB";
+	private static final String DELETE_SDB = "Delete SDB";
+	private static final String ADD_USER_TO_SDB = "Add user to SDB";
+	private static final String REMOVE_USER_FROM_SDB = "Remove User from SDB";
+	private static final String ADD_GROUP_TO_SDB ="Add Group to SDB";
+	private static final String REMOVE_GROUP_FROM_SDB  ="Remove Group from SDB";
+	private static final String ADD_AWS_ROLE_TO_SDB  ="Add AwsRole to SDB";
+	private static final String REMOVE_AWS_ROLE_FROM_SDB  ="Delete AWS Role from Safe";
+	private static final String ADD_APPROLE_TO_SDB  ="Associate AppRole to SDB";
+	private static final String REMOVE_APPROLE_FROM_SDB  ="Remove Approle from Safe";
 
 	/**
 	 * Get Folders
@@ -197,14 +208,14 @@ public class  SafesService {
 	public ResponseEntity<String> createSafe(String token, Safe safe) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, TVaultConstants.CREATE_SDB).
+				put(LogMessage.ACTION, CREATE_SDB).
 				put(LogMessage.MESSAGE, String.format ("Start trying to Create SDB [%s]",safe.getSafeBasicDetails().getName())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if (!ControllerUtil.areSDBInputsValid(safe)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, TVaultConstants.CREATE_SDB).
+					put(LogMessage.ACTION, CREATE_SDB).
 					put(LogMessage.MESSAGE, "Input param validation failed").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
@@ -220,7 +231,7 @@ public class  SafesService {
 		if(applicationName == null) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, TVaultConstants.CREATE_SDB).
+					put(LogMessage.ACTION, CREATE_SDB).
 					put(LogMessage.MESSAGE, "Application name validation failed").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
@@ -229,7 +240,7 @@ public class  SafesService {
 		if (safe.getSafeBasicDetails().getName().endsWith("_")) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, TVaultConstants.CREATE_SDB).
+					put(LogMessage.ACTION, CREATE_SDB).
 					put(LogMessage.MESSAGE, "Invalid Safe name: unexpected character _ in the end").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
@@ -238,7 +249,7 @@ public class  SafesService {
         if (safe.getSafeBasicDetails().getDescription().length() > 1024) {
         	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, TVaultConstants.CREATE_SDB).
+					put(LogMessage.ACTION, CREATE_SDB).
 					put(LogMessage.MESSAGE, "Invalid input values: Description too long").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
@@ -247,7 +258,7 @@ public class  SafesService {
 		if (safe.getSafeBasicDetails().getDescription().length() <10) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, TVaultConstants.CREATE_SDB).
+					put(LogMessage.ACTION, CREATE_SDB).
 					put(LogMessage.MESSAGE, "Invalid Description: Please enter minimum 10 characters").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
@@ -256,7 +267,7 @@ public class  SafesService {
 		if (safe.getSafeBasicDetails().getName().length() <3) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, TVaultConstants.CREATE_SDB).
+					put(LogMessage.ACTION, CREATE_SDB).
 					put(LogMessage.MESSAGE, "Invalid Safe name: Please enter minimum 3 characters").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
@@ -278,7 +289,7 @@ public class  SafesService {
 				 */
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, TVaultConstants.CREATE_SDB).
+						put(LogMessage.ACTION, CREATE_SDB).
 						put(LogMessage.MESSAGE, "Store the metadata and Create policies if folders are created under the mount points").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
@@ -339,7 +350,7 @@ public class  SafesService {
 						
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								put(LogMessage.ACTION, TVaultConstants.CREATE_SDB).
+								put(LogMessage.ACTION, CREATE_SDB).
 								put(LogMessage.MESSAGE, String.format ("SDB [%s] Created successfully by [%s]",safe.getSafeBasicDetails().getName(),safe.getSafeBasicDetails().getOwner())).
 
 								put(LogMessage.STATUS, response.getHttpstatus().toString()).
@@ -349,7 +360,7 @@ public class  SafesService {
 					}else{
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-								put(LogMessage.ACTION, "Create SDB").
+								put(LogMessage.ACTION, CREATE_SDB).
 								put(LogMessage.MESSAGE, String.format ("SDB [%s] Created successfully by [%s]",safe.getSafeBasicDetails().getName(),safe.getSafeBasicDetails().getOwner())).
 
 								put(LogMessage.STATUS, response.getHttpstatus().toString()).
@@ -361,7 +372,7 @@ public class  SafesService {
 				if(isMetaDataUpdated) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "Create SDB").
+							put(LogMessage.ACTION, CREATE_SDB).
 							put(LogMessage.MESSAGE,  String.format ("SDB [%s] Created successfully by [%s]",safe.getSafeBasicDetails().getName(),safe.getSafeBasicDetails().getOwner())).
 							put(LogMessage.STATUS, response.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
@@ -371,7 +382,7 @@ public class  SafesService {
 				else {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-							put(LogMessage.ACTION, "CreateSafe").
+							put(LogMessage.ACTION, CREATE_SDB).
 							put(LogMessage.MESSAGE, String.format ("SDB [%s] Created successfully by [%s] and [%s]",safe.getSafeBasicDetails().getName(),safe.getSafeBasicDetails().getOwner(),safe.getSafeBasicDetails().getOwnerid())).
 							put(LogMessage.STATUS, response.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
@@ -381,7 +392,7 @@ public class  SafesService {
 			}else{
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "CreateSafe").
+						put(LogMessage.ACTION, CREATE_SDB).
 						put(LogMessage.MESSAGE, "SDB Create completed").
 						put(LogMessage.STATUS, response.getHttpstatus().toString()).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
@@ -391,7 +402,7 @@ public class  SafesService {
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, "Create Safe").
+					put(LogMessage.ACTION, CREATE_SDB).
 					put(LogMessage.MESSAGE, "SDB Creation failed").
 					put(LogMessage.RESPONSE, INVALID_PATH).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
@@ -552,14 +563,14 @@ public class  SafesService {
 		Map<String, Object> requestParams = ControllerUtil.parseJson(JSONUtil.getJSON(safe));
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+				put(LogMessage.ACTION, UPDATE_SDB).
 				put(LogMessage.MESSAGE, String.format("Start trying to Update SDB [%s].",safe.getSafeBasicDetails().getName())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if (!ControllerUtil.areSDBInputsValidForUpdate(requestParams)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+					put(LogMessage.ACTION, UPDATE_SDB).
 					put(LogMessage.MESSAGE, "Invalid input values ").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
@@ -570,7 +581,7 @@ public class  SafesService {
 		if(appName == null) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+					put(LogMessage.ACTION, UPDATE_SDB).
 					put(LogMessage.MESSAGE, "Invalid Application name ").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
@@ -579,7 +590,7 @@ public class  SafesService {
         if (safe.getSafeBasicDetails().getDescription().length() > 1024) {
         	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+					put(LogMessage.ACTION, UPDATE_SDB).
 					put(LogMessage.MESSAGE, "Invalid input values: Description too long").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
@@ -596,7 +607,7 @@ public class  SafesService {
 		if (redundantSafeNamesCount > 1) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+					put(LogMessage.ACTION, UPDATE_SDB).
 					put(LogMessage.MESSAGE, "Safe can't be updated since duplicate safe names are found").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
@@ -615,7 +626,7 @@ public class  SafesService {
 			if(HttpStatus.OK.equals(response.getHttpstatus())) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+						put(LogMessage.ACTION, UPDATE_SDB).
 						put(LogMessage.MESSAGE, "Start reading metadata from safepath").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
@@ -667,7 +678,7 @@ public class  SafesService {
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+						put(LogMessage.ACTION, UPDATE_SDB).
 						put(LogMessage.MESSAGE,String.format("Safe [%s] updated successfully",safe.getSafeBasicDetails().getName())).
 						put(LogMessage.STATUS, response.getHttpstatus().toString()).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
@@ -676,7 +687,7 @@ public class  SafesService {
 			}else{
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+						put(LogMessage.ACTION,UPDATE_SDB).
 						put(LogMessage.MESSAGE, "SDB Update completed").
 						put(LogMessage.RESPONSE, response.getResponse()).
 						put(LogMessage.STATUS, response.getHttpstatus().toString()).
@@ -687,7 +698,7 @@ public class  SafesService {
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, TVaultConstants.UPDATE_SDB).
+					put(LogMessage.ACTION, UPDATE_SDB).
 					put(LogMessage.MESSAGE, "SDB Update failed").
 					put(LogMessage.RESPONSE, INVALID_PATH).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
@@ -778,7 +789,7 @@ public class  SafesService {
 		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+				put(LogMessage.ACTION, ADD_USER_TO_SDB).
 				put(LogMessage.MESSAGE, String.format ("Start trying to add user to SDB folder[%s] by [%s] ",safeUser.getPath(),userDetails.getUsername())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
@@ -786,7 +797,7 @@ public class  SafesService {
 		if(!ControllerUtil.areSafeUserInputsValid(safeUser)) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+					put(LogMessage.ACTION, ADD_USER_TO_SDB).
 					put(LogMessage.MESSAGE, String.format ("Invalid user inputs [%s]", safeUser.toString())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -804,7 +815,7 @@ public class  SafesService {
 			isAuthorized = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+					put(LogMessage.ACTION, ADD_USER_TO_SDB).
 					put(LogMessage.MESSAGE,"isAuthorized check is completed").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -825,7 +836,7 @@ public class  SafesService {
 			if(TVaultConstants.EMPTY.equals(policyPrefix)){
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION,TVaultConstants.ADD_USER_TO_SDB).
+						put(LogMessage.ACTION,ADD_USER_TO_SDB).
 						put(LogMessage.MESSAGE, "Incorrect access requested. Valid values are read,write,deny").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -835,7 +846,7 @@ public class  SafesService {
 			String policy = policyPrefix+folders[0].toLowerCase()+"_"+folders[1];
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+					put(LogMessage.ACTION, ADD_USER_TO_SDB).
 					put(LogMessage.MESSAGE, String.format ("policy is [%s]", policy)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -861,7 +872,7 @@ public class  SafesService {
 			}
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+					put(LogMessage.ACTION, ADD_USER_TO_SDB).
 					put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s]", r_policy, w_policy, d_policy)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -880,7 +891,7 @@ public class  SafesService {
 					if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-								.put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB)
+								.put(LogMessage.ACTION, ADD_USER_TO_SDB)
 								.put(LogMessage.MESSAGE,
 										"Trying to fetch OIDC user policies, failed")
 								.put(LogMessage.APIURL,
@@ -901,7 +912,7 @@ public class  SafesService {
 			
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+					put(LogMessage.ACTION, ADD_USER_TO_SDB).
 					put(LogMessage.MESSAGE, String.format ("userResponse status is [%s]", userResponse.getHttpstatus())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -926,7 +937,7 @@ public class  SafesService {
 					log.error(e);
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+							put(LogMessage.ACTION, ADD_USER_TO_SDB).
 							put(LogMessage.MESSAGE,"Exception while creating currentpolicies or groups").
 							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -947,7 +958,7 @@ public class  SafesService {
 
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+					put(LogMessage.ACTION,ADD_USER_TO_SDB).
 					put(LogMessage.MESSAGE, String.format ("policies [%s] before calling configureUserpassUser/configureLDAPUser", policies)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -967,7 +978,7 @@ public class  SafesService {
 					log.error(e);
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+							put(LogMessage.ACTION, ADD_USER_TO_SDB).
 							put(LogMessage.MESSAGE, "Exception while adding or updating the identity ").
 							put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -984,7 +995,7 @@ public class  SafesService {
 				params.put("access",access);
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+						put(LogMessage.ACTION, ADD_USER_TO_SDB).
 						put(LogMessage.MESSAGE, String.format ("Trying to update metadata [%s]", params.toString())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -992,7 +1003,7 @@ public class  SafesService {
 				if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION,  TVaultConstants.ADD_USER_TO_SDB).
+							put(LogMessage.ACTION,  ADD_USER_TO_SDB).
 							put(LogMessage.MESSAGE, String.format ("User[%s] is successfully associated with SDB [%s] with [%s] permission", safeUser.getUsername(),safeUser.getPath(),safeUser.getAccess())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -1018,7 +1029,7 @@ public class  SafesService {
 					if (metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-								put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+								put(LogMessage.ACTION, ADD_USER_TO_SDB).
 								put(LogMessage.MESSAGE, String.format ("User[%s] is successfully associated with SDB [%s] with [%s] permission", safeUser.getUsername(),safeUser.getPath(),safeUser.getAccess())).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 								build()));
@@ -1027,7 +1038,7 @@ public class  SafesService {
 					else {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-								put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+								put(LogMessage.ACTION, ADD_USER_TO_SDB).
 								put(LogMessage.MESSAGE, "User configuration failed. Trying to revert...").
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 								build()));
@@ -1046,7 +1057,7 @@ public class  SafesService {
 								log.error(e);
 								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 										.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-										.put(LogMessage.ACTION,TVaultConstants.ADD_USER_TO_SDB)
+										.put(LogMessage.ACTION,ADD_USER_TO_SDB)
 										.put(LogMessage.MESSAGE,
 												String.format("Exception while adding or updating the identity "))
 										.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
@@ -1059,7 +1070,7 @@ public class  SafesService {
 							log.debug("Reverting user policy uupdate");
 							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-									put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+									put(LogMessage.ACTION, ADD_USER_TO_SDB).
 									put(LogMessage.MESSAGE, "User configuration failed. Trying to revert...Passed").
 									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 									build()));
@@ -1068,7 +1079,7 @@ public class  SafesService {
 							log.debug("Reverting user policy update failed");
 							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-									put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+									put(LogMessage.ACTION, ADD_USER_TO_SDB).
 									put(LogMessage.MESSAGE, "User configuration failed. Trying to revert...failed").
 									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 									build()));
@@ -1079,7 +1090,7 @@ public class  SafesService {
 			}else{
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, TVaultConstants.ADD_USER_TO_SDB).
+						put(LogMessage.ACTION, ADD_USER_TO_SDB).
 						put(LogMessage.MESSAGE, "Trying to configureUserpassUser/configureLDAPUser failed").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -1101,7 +1112,7 @@ public class  SafesService {
 		OIDCGroup oidcGroup = new OIDCGroup();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION, TVaultConstants.ADD_GROUP_TO_SDB).
+				put(LogMessage.ACTION, ADD_GROUP_TO_SDB).
 				put(LogMessage.MESSAGE, String.format ("Start trying to add Group [%s] to SDB folder [%s]", safeGroup.getGroupname(),safeGroup.getPath())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
@@ -1221,7 +1232,7 @@ public class  SafesService {
 				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, TVaultConstants.ADD_GROUP_TO_SDB).
+							put(LogMessage.ACTION, ADD_GROUP_TO_SDB).
 							put(LogMessage.MESSAGE, String.format ("Group [%s] is successfully associated with Safe [%s] and permission is [%s]", safeGroup.getGroupname(),safeGroup.getPath(),safeGroup.getAccess())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -1247,7 +1258,7 @@ public class  SafesService {
 					if (metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-								put(LogMessage.ACTION, TVaultConstants.ADD_GROUP_TO_SDB).
+								put(LogMessage.ACTION, ADD_GROUP_TO_SDB).
 								put(LogMessage.MESSAGE, String.format ("Group [%s] is successfully associated with Safe [%s] and permission is [%s]", safeGroup.getGroupname(),safeGroup.getPath(),safeGroup.getAccess())).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 								build()));
@@ -1257,7 +1268,7 @@ public class  SafesService {
 					else {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-								put(LogMessage.ACTION, TVaultConstants.ADD_GROUP_TO_SDB).
+								put(LogMessage.ACTION, ADD_GROUP_TO_SDB).
 								put(LogMessage.MESSAGE, "Group configuration failed.").
 								put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
 								put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
@@ -1275,7 +1286,7 @@ public class  SafesService {
 						if(ldapConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-									put(LogMessage.ACTION, TVaultConstants.ADD_GROUP_TO_SDB).
+									put(LogMessage.ACTION, ADD_GROUP_TO_SDB).
 									put(LogMessage.MESSAGE, "Reverting user policy update failed").
 									put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
 									put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
@@ -1285,7 +1296,7 @@ public class  SafesService {
 						}else{
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-									put(LogMessage.ACTION, TVaultConstants.ADD_GROUP_TO_SDB).
+									put(LogMessage.ACTION, ADD_GROUP_TO_SDB).
 									put(LogMessage.MESSAGE, "Reverting user policy update failed").
 									put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
 									put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
@@ -1320,7 +1331,7 @@ public class  SafesService {
 			requestMap = objMapper.readValue(jsonstr, new TypeReference<Map<String,String>>() {});
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					  put(LogMessage.ACTION, TVaultConstants.REMOVE_USER_FROM_SDB).
+					  put(LogMessage.ACTION, REMOVE_USER_FROM_SDB).
 				      put(LogMessage.MESSAGE, String.format ("Start trying to remove user from SDB [%s]", safeUser.getPath())).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				      build()));
@@ -1328,7 +1339,7 @@ public class  SafesService {
 			log.error(e);
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION,TVaultConstants.REMOVE_USER_FROM_SDB).
+					put(LogMessage.ACTION,REMOVE_USER_FROM_SDB).
 					put(LogMessage.MESSAGE, "Exception occurred while creating requestMap from input jsonstr").
 					put(LogMessage.RESPONSE,e.getMessage()).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -1378,7 +1389,7 @@ public class  SafesService {
 					if (responseEntity.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-								.put(LogMessage.ACTION, TVaultConstants.REMOVE_USER_FROM_SDB)
+								.put(LogMessage.ACTION, REMOVE_USER_FROM_SDB)
 								.put(LogMessage.MESSAGE,"Trying to fetch OIDC user policies, failed")
 								.put(LogMessage.APIURL,
 										ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
@@ -1396,7 +1407,7 @@ public class  SafesService {
 									JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 											.put(LogMessage.USER,
 													ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-											.put(LogMessage.ACTION, TVaultConstants.REMOVE_USER_FROM_SDB)
+											.put(LogMessage.ACTION, REMOVE_USER_FROM_SDB)
 											.put(LogMessage.MESSAGE, String.format("Successfully removed user[%s] from [%s]",safeUser.getUsername(),safeUser.getPath()))
 											.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 											.put(LogMessage.APIURL,
@@ -1406,7 +1417,7 @@ public class  SafesService {
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 									.put(LogMessage.USER,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-									.put(LogMessage.ACTION, TVaultConstants.REMOVE_USER_FROM_SDB)
+									.put(LogMessage.ACTION, REMOVE_USER_FROM_SDB)
 									.put(LogMessage.MESSAGE, "Error occurred while removing of dangling user associations")
 									.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 									.put(LogMessage.APIURL,
@@ -1466,7 +1477,7 @@ public class  SafesService {
 						log.error(e);
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 								.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-								.put(LogMessage.ACTION, TVaultConstants.REMOVE_USER_FROM_SDB)
+								.put(LogMessage.ACTION, REMOVE_USER_FROM_SDB)
 								.put(LogMessage.MESSAGE, "Exception while updating the identity")
 								.put(LogMessage.STACKTRACE, Arrays.toString(e.getStackTrace()))
 								.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
@@ -1485,7 +1496,7 @@ public class  SafesService {
 						log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 								.put(LogMessage.USER,
 										ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-								.put(LogMessage.ACTION, TVaultConstants.REMOVE_USER_FROM_SDB)
+								.put(LogMessage.ACTION,REMOVE_USER_FROM_SDB)
 								.put(LogMessage.MESSAGE, String.format("Successfully removed user[%s] from [%s]",safeUser.getUsername(),safeUser.getPath()))
 								.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 								.put(LogMessage.APIURL,
@@ -1514,7 +1525,7 @@ public class  SafesService {
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 									.put(LogMessage.USER,
 											ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-									.put(LogMessage.ACTION, TVaultConstants.REMOVE_USER_FROM_SDB)
+									.put(LogMessage.ACTION, REMOVE_USER_FROM_SDB)
 									.put(LogMessage.MESSAGE, String.format("Successfully removed user[%s] from [%s]",safeUser.getUsername(),safeUser.getPath()))
 									.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 									.put(LogMessage.APIURL,
@@ -1542,7 +1553,7 @@ public class  SafesService {
 									log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 											.put(LogMessage.USER,
 													ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-											.put(LogMessage.ACTION, TVaultConstants.REMOVE_USER_FROM_SDB)
+											.put(LogMessage.ACTION, REMOVE_USER_FROM_SDB)
 											.put(LogMessage.MESSAGE,
 													"Exception while updating the identity")
 											.put(LogMessage.STACKTRACE, Arrays.toString(e2.getStackTrace()))
@@ -1575,7 +1586,7 @@ public class  SafesService {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 							.put(LogMessage.USER,
 									ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-							.put(LogMessage.ACTION, TVaultConstants.REMOVE_USER_FROM_SDB)
+							.put(LogMessage.ACTION, REMOVE_USER_FROM_SDB)
 							.put(LogMessage.MESSAGE, String.format("Successfully removed user[%s] from [%s]",safeUser.getUsername(),safeUser.getPath()))
 							.put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString())
 							.put(LogMessage.APIURL,
@@ -1584,7 +1595,7 @@ public class  SafesService {
 				}else{
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, TVaultConstants.REMOVE_USER_FROM_SDB).
+							put(LogMessage.ACTION, REMOVE_USER_FROM_SDB).
 							put(LogMessage.MESSAGE, "Error occurred while removing of dangling user associations").
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -1608,7 +1619,7 @@ public class  SafesService {
 		OIDCGroup oidcGroup = new OIDCGroup();
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION, TVaultConstants.REMOVE_GROUP_FROM_SDB).
+				put(LogMessage.ACTION,REMOVE_GROUP_FROM_SDB).
 				put(LogMessage.MESSAGE, String.format ("Start trying to remove Group [%s] from SDB folder [%s]", safeGroup.getGroupname(),safeGroup.getPath())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
@@ -1627,7 +1638,7 @@ public class  SafesService {
 			if(HttpStatus.OK.equals(metadataReadResponse.getHttpstatus())) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, TVaultConstants.REMOVE_GROUP_FROM_SDB).
+						put(LogMessage.ACTION, REMOVE_GROUP_FROM_SDB).
 						put(LogMessage.MESSAGE,"Got metadata info").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -1635,7 +1646,7 @@ public class  SafesService {
 				if(responseMap.isEmpty()) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, TVaultConstants.REMOVE_GROUP_FROM_SDB).
+							put(LogMessage.ACTION, REMOVE_GROUP_FROM_SDB).
 							put(LogMessage.MESSAGE, String.format ("Error Fetching existing safe info [%s]", path)).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -1645,7 +1656,7 @@ public class  SafesService {
 			else {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, TVaultConstants.REMOVE_GROUP_FROM_SDB).
+						put(LogMessage.ACTION, REMOVE_GROUP_FROM_SDB).
 						put(LogMessage.MESSAGE, String.format ("Error Fetching existing safe info [%s]", path)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -1659,7 +1670,7 @@ public class  SafesService {
 			if (groupsData == null || !groupsData.containsKey(groupName)) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, TVaultConstants.REMOVE_GROUP_FROM_SDB).
+						put(LogMessage.ACTION, REMOVE_GROUP_FROM_SDB).
 						put(LogMessage.MESSAGE, String.format ("Group [%s] is not associated to Safe [%s]", groupName, path)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -1743,7 +1754,7 @@ public class  SafesService {
 					if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-								put(LogMessage.ACTION, TVaultConstants.REMOVE_GROUP_FROM_SDB).
+								put(LogMessage.ACTION, REMOVE_GROUP_FROM_SDB).
 								put(LogMessage.MESSAGE, String.format ("Group [%s] is successfully removed from Safe [%s]", safeGroup.getGroupname(),safeGroup.getPath())).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 								build()));
@@ -1769,7 +1780,7 @@ public class  SafesService {
 						if (metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
 							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-									put(LogMessage.ACTION, TVaultConstants.REMOVE_GROUP_FROM_SDB).
+									put(LogMessage.ACTION, REMOVE_GROUP_FROM_SDB).
 									put(LogMessage.MESSAGE, String.format ("Group [%s] is successfully removed from Safe [%s]", safeGroup.getGroupname(),safeGroup.getPath())).
 									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 									build()));
@@ -1853,7 +1864,7 @@ public class  SafesService {
 	public ResponseEntity<String> addAwsRoleToSafe(String token, AWSRole awsRole) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION,TVaultConstants.ADD_AWS_ROLE_TO_SDB).
+				put(LogMessage.ACTION,ADD_AWS_ROLE_TO_SDB).
 				put(LogMessage.MESSAGE, String.format ("Start trying to Add AwsRole [%s] to Safe [%s]", awsRole.getRole(),awsRole.getPath())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
@@ -1953,7 +1964,7 @@ public class  SafesService {
 				if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, TVaultConstants.ADD_AWS_ROLE_TO_SDB).
+							put(LogMessage.ACTION, ADD_AWS_ROLE_TO_SDB).
 							put(LogMessage.MESSAGE, String.format ("AwsRole [%s] is successfully associated to Safe [%s] and permission is [%s]", awsRole.getRole(),awsRole.getPath(),awsRole.getAccess())).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -1979,7 +1990,7 @@ public class  SafesService {
 					if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-								put(LogMessage.ACTION, TVaultConstants.ADD_AWS_ROLE_TO_SDB).
+								put(LogMessage.ACTION, ADD_AWS_ROLE_TO_SDB).
 								put(LogMessage.MESSAGE, String.format ("AwsRole [%s] is successfully associated to Safe [%s] and permission is [%s]", awsRole.getRole(),awsRole.getPath(),awsRole.getAccess())).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 								build()));
@@ -2017,7 +2028,7 @@ public class  SafesService {
 		String jsonstr = JSONUtil.getJSON(awsRole);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				  put(LogMessage.ACTION,TVaultConstants.REMOVE_AWS_ROLE_FROM_SDB).
+				  put(LogMessage.ACTION,REMOVE_AWS_ROLE_FROM_SDB).
 			      put(LogMessage.MESSAGE, String.format ("Start trying to delete AWS Role from SDB [%s]", awsRole.getPath())).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 			      build()));
@@ -2039,7 +2050,7 @@ public class  SafesService {
 			Response metadataReadResponse = reqProcessor.process("/read","{\"path\":\""+safeMetadataPath+"\"}",token);
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, TVaultConstants.REMOVE_AWS_ROLE_FROM_SDB).
+					put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
 					put(LogMessage.MESSAGE, "Completed metadata info fetching").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -2049,7 +2060,7 @@ public class  SafesService {
 				if(responseMap.isEmpty()) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, TVaultConstants.REMOVE_AWS_ROLE_FROM_SDB).
+							put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
 							put(LogMessage.MESSAGE, String.format ("Error Fetching existing safe info [%s]", path)).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 							build()));
@@ -2059,7 +2070,7 @@ public class  SafesService {
 			else {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, TVaultConstants.REMOVE_AWS_ROLE_FROM_SDB).
+						put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
 						put(LogMessage.MESSAGE, String.format ("Error Fetching existing safe info [%s]", path)).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -2073,7 +2084,7 @@ public class  SafesService {
 			if (awsroles == null || !awsroles.containsKey(role)) {
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, TVaultConstants.REMOVE_AWS_ROLE_FROM_SDB).
+						put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
 						put(LogMessage.MESSAGE, String.format ("AWS role [%s] is not associated to Safe [%s]", awsRole.getRole(),awsRole.getPath())).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 						build()));
@@ -2089,7 +2100,7 @@ public class  SafesService {
 				if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, TVaultConstants.REMOVE_AWS_ROLE_FROM_SDB).
+							put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
 							put(LogMessage.MESSAGE, String.format ("Trying to remove AwsRole [%s] from Safe [%s]", awsRole.getRole(),awsRole.getPath())).
 							put(LogMessage.STATUS, response.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -2101,7 +2112,7 @@ public class  SafesService {
 					if (HttpStatus.NO_CONTENT.equals(resp.getHttpstatus())) {
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-								put(LogMessage.ACTION, TVaultConstants.REMOVE_AWS_ROLE_FROM_SDB).
+								put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
 								put(LogMessage.MESSAGE, "Metadata deleted").
 								put(LogMessage.STATUS, response.getHttpstatus().toString()).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -2110,7 +2121,7 @@ public class  SafesService {
 				} else {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, TVaultConstants.REMOVE_AWS_ROLE_FROM_SDB).
+							put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
 							put(LogMessage.MESSAGE, String.format("AWS Role deletion as part of sdb delete failed . SDB path [%s]", path)).
 							put(LogMessage.RESPONSE, response.getResponse()).
 							put(LogMessage.STATUS, response.getHttpstatus().toString()).
@@ -2129,7 +2140,7 @@ public class  SafesService {
 			if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, TVaultConstants.REMOVE_AWS_ROLE_FROM_SDB).
+						put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
 						put(LogMessage.MESSAGE, String.format ("remove AwsRole [%s] from Safe [%s] successful", awsRole.getRole(),awsRole.getPath())).
 						put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -2156,7 +2167,7 @@ public class  SafesService {
 				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION,TVaultConstants.REMOVE_AWS_ROLE_FROM_SDB).
+							put(LogMessage.ACTION,REMOVE_AWS_ROLE_FROM_SDB).
 							put(LogMessage.MESSAGE, String.format ("remove AwsRole [%s] from Safe [%s] successful", awsRole.getRole(),awsRole.getPath())).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -2166,7 +2177,7 @@ public class  SafesService {
 				else {
 					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							  put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							  put(LogMessage.ACTION, TVaultConstants.REMOVE_AWS_ROLE_FROM_SDB).
+							  put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
 							  put(LogMessage.MESSAGE, "Delete AWS Role from SDB failed").
 							  put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
 							  put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
@@ -2179,7 +2190,7 @@ public class  SafesService {
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					  put(LogMessage.ACTION, TVaultConstants.REMOVE_AWS_ROLE_FROM_SDB).
+					  put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
 				      put(LogMessage.MESSAGE, "Delete AWS Role from SDB failed").
 				      put(LogMessage.RESPONSE, INVALID_PATH).
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -2199,7 +2210,7 @@ public class  SafesService {
 	public ResponseEntity<String> deletefolder(String token, String path, UserDetails userDetails){
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				put(LogMessage.ACTION, TVaultConstants.DELETE_SDB).
+				put(LogMessage.ACTION, DELETE_SDB).
 				put(LogMessage.MESSAGE, String.format ("Start trying to Delete SDB folder [%s]", path)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
@@ -2265,7 +2276,7 @@ public class  SafesService {
 				ControllerUtil.recursivedeletesdb("{\"path\":\""+_path+"\"}",token,response);
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, TVaultConstants.DELETE_SDB).
+						put(LogMessage.ACTION, DELETE_SDB).
 						put(LogMessage.MESSAGE, "SDB Folder Deletion completed").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
@@ -2293,7 +2304,7 @@ public class  SafesService {
 			}else{
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, TVaultConstants.DELETE_SDB).
+						put(LogMessage.ACTION, DELETE_SDB).
 						put(LogMessage.MESSAGE, "SDB Folder Deletion Completed").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
@@ -2305,7 +2316,7 @@ public class  SafesService {
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, TVaultConstants.DELETE_SDB).
+						put(LogMessage.ACTION, DELETE_SDB).
 						put(LogMessage.MESSAGE, "SDB Folder Deletion Completed").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 						build()));
@@ -2322,7 +2333,7 @@ public class  SafesService {
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-					put(LogMessage.ACTION, TVaultConstants.DELETE_SDB).
+					put(LogMessage.ACTION, DELETE_SDB).
 					put(LogMessage.MESSAGE, "SDB Folder Deletion failed").
 					put(LogMessage.RESPONSE, INVALID_PATH).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
@@ -2508,7 +2519,7 @@ public class  SafesService {
 		String jsonstr = JSONUtil.getJSON(safeAppRoleAccess);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION,TVaultConstants.ADD_APPROLE_TO_SDB).
+				put(LogMessage.ACTION,ADD_APPROLE_TO_SDB).
 				put(LogMessage.MESSAGE, String.format ("Start trying to associate AppRole to SDB [%s]", safeAppRoleAccess.getPath())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
@@ -2544,7 +2555,7 @@ public class  SafesService {
 			Response roleResponse = reqProcessor.process("/auth/approle/role/read","{\"role_name\":\""+approle+"\"}",token);
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, TVaultConstants.ADD_APPROLE_TO_SDB).
+					put(LogMessage.ACTION, ADD_APPROLE_TO_SDB).
 					put(LogMessage.MESSAGE, "Fetching approle metadata info").
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -2581,7 +2592,7 @@ public class  SafesService {
 			String currentpoliciesString = StringUtils.join(currentpolicies, ",");
 			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION,TVaultConstants.ADD_APPROLE_TO_SDB).
+					put(LogMessage.ACTION,ADD_APPROLE_TO_SDB).
 					put(LogMessage.MESSAGE, "Associate approle to SDB -  policy :" + policiesString + " is being configured" ).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -2591,7 +2602,7 @@ public class  SafesService {
 
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, TVaultConstants.ADD_APPROLE_TO_SDB).
+						put(LogMessage.ACTION, ADD_APPROLE_TO_SDB).
 						put(LogMessage.MESSAGE, "Associate approle to SDB -  policy :" + policiesString + " is associated").
 						put(LogMessage.STATUS, approleControllerResp.getHttpstatus().toString()).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -2605,7 +2616,7 @@ public class  SafesService {
 				if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, TVaultConstants.ADD_APPROLE_TO_SDB).
+							put(LogMessage.ACTION, ADD_APPROLE_TO_SDB).
 							put(LogMessage.MESSAGE, String.format ("add AppRole [%s] to Safe [%s] permission [%s] is successful", safeAppRoleAccess.getRole_name(),safeAppRoleAccess.getPath(),safeAppRoleAccess.getAccess())).
 							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -2632,7 +2643,7 @@ public class  SafesService {
 					if(HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-								put(LogMessage.ACTION, TVaultConstants.ADD_APPROLE_TO_SDB).
+								put(LogMessage.ACTION, ADD_APPROLE_TO_SDB).
 								put(LogMessage.MESSAGE, String.format ("add AppRole [%s] to Safe [%s] permission [%s] is successful", safeAppRoleAccess.getRole_name(),safeAppRoleAccess.getPath(),safeAppRoleAccess.getAccess())).
 								put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -2642,7 +2653,7 @@ public class  SafesService {
 					else {
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-								put(LogMessage.ACTION, TVaultConstants.ADD_APPROLE_TO_SDB).
+								put(LogMessage.ACTION, ADD_APPROLE_TO_SDB).
 								put(LogMessage.MESSAGE, "AppRole configuration failed.").
 								put(LogMessage.RESPONSE, metadataResponse.getResponse()).
 								put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
@@ -2653,7 +2664,7 @@ public class  SafesService {
 						if(approleControllerResp.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-									put(LogMessage.ACTION, TVaultConstants.ADD_APPROLE_TO_SDB).
+									put(LogMessage.ACTION, ADD_APPROLE_TO_SDB).
 									put(LogMessage.MESSAGE, "Reverting user policy update failed").
 									put(LogMessage.RESPONSE, metadataResponse.getResponse()).
 									put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
@@ -2663,7 +2674,7 @@ public class  SafesService {
 						}else{
 							log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-									put(LogMessage.ACTION, TVaultConstants.ADD_APPROLE_TO_SDB).
+									put(LogMessage.ACTION, ADD_APPROLE_TO_SDB).
 									put(LogMessage.MESSAGE, "Reverting user policy update failed").
 									put(LogMessage.RESPONSE, metadataResponse.getResponse()).
 									put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
@@ -2677,7 +2688,7 @@ public class  SafesService {
 			}else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, TVaultConstants.ADD_APPROLE_TO_SDB).
+						put(LogMessage.ACTION, ADD_APPROLE_TO_SDB).
 						put(LogMessage.MESSAGE, "Association of AppRole to SDB failed").
 						put(LogMessage.RESPONSE, approleControllerResp.getResponse()).
 						put(LogMessage.STATUS, approleControllerResp.getHttpstatus().toString()).
@@ -2689,7 +2700,7 @@ public class  SafesService {
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, TVaultConstants.ADD_APPROLE_TO_SDB).
+					put(LogMessage.ACTION, ADD_APPROLE_TO_SDB).
 					put(LogMessage.MESSAGE, "Association of AppRole to SDB failed").
 					put(LogMessage.RESPONSE, INVALID_PATH).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -2701,7 +2712,7 @@ public class  SafesService {
 	public ResponseEntity<String> removeApproleFromSafe(String token, String jsonstr) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-				put(LogMessage.ACTION,TVaultConstants.REMOVE_APPROLE_FROM_SDB ).
+				put(LogMessage.ACTION,REMOVE_APPROLE_FROM_SDB ).
 				put(LogMessage.MESSAGE, "Start trying to delete approle from SDB.").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
@@ -2723,7 +2734,7 @@ public class  SafesService {
 			Response roleResponse = reqProcessor.process("/auth/approle/role/read","{\"role_name\":\""+role+"\"}",token);
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION,TVaultConstants.REMOVE_APPROLE_FROM_SDB ).
+					put(LogMessage.ACTION,REMOVE_APPROLE_FROM_SDB ).
 					put(LogMessage.MESSAGE, String.format ("Start reading approle metadata info", jsonstr)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -2755,7 +2766,7 @@ public class  SafesService {
 			String currentpoliciesString = StringUtils.join(currentpolicies, ",");
 			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, TVaultConstants.REMOVE_APPROLE_FROM_SDB).
+					put(LogMessage.ACTION, REMOVE_APPROLE_FROM_SDB).
 					put(LogMessage.MESSAGE, "Remove approle from SDB -  policy :" + policiesString + " is being configured" ).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -2765,7 +2776,7 @@ public class  SafesService {
 
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, TVaultConstants.REMOVE_APPROLE_FROM_SDB).
+						put(LogMessage.ACTION, REMOVE_APPROLE_FROM_SDB).
 						put(LogMessage.MESSAGE, "Removed approle from SDB -  policy :" + policiesString).
 						put(LogMessage.STATUS, approleControllerResp.getHttpstatus().toString()).
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -2780,7 +2791,7 @@ public class  SafesService {
 					if (metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
 						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-								put(LogMessage.ACTION, TVaultConstants.REMOVE_APPROLE_FROM_SDB).
+								put(LogMessage.ACTION, REMOVE_APPROLE_FROM_SDB).
 								put(LogMessage.MESSAGE, String.format ("AppRole [%s] is successfully removed from Safe [%s]",role,path)).
 								put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -2807,7 +2818,7 @@ public class  SafesService {
 						if (metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())) {
 							log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 									put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-									put(LogMessage.ACTION, TVaultConstants.REMOVE_APPROLE_FROM_SDB).
+									put(LogMessage.ACTION, REMOVE_APPROLE_FROM_SDB).
 									put(LogMessage.MESSAGE, String.format ("AppRole [%s] successfully removed from Safe [%s]",role,path)).
 									put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
 									put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -2818,7 +2829,7 @@ public class  SafesService {
 							if(HttpStatus.OK.equals(approleControllerResp.getHttpstatus()) || (HttpStatus.NO_CONTENT.equals(approleControllerResp.getHttpstatus()))) {
 								log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 										put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-										put(LogMessage.ACTION, TVaultConstants.REMOVE_APPROLE_FROM_SDB).
+										put(LogMessage.ACTION, REMOVE_APPROLE_FROM_SDB).
 										put(LogMessage.MESSAGE, "Remove Approle from SDB failed").
 										put(LogMessage.RESPONSE, (null != metadataResponse) ? metadataResponse.getResponse() : TVaultConstants.EMPTY).
 										put(LogMessage.STATUS, (null != metadataResponse) ? metadataResponse.getHttpstatus().toString() : TVaultConstants.EMPTY).
@@ -2833,7 +2844,7 @@ public class  SafesService {
 			else {
 				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, TVaultConstants.REMOVE_APPROLE_FROM_SDB).
+						put(LogMessage.ACTION, REMOVE_APPROLE_FROM_SDB).
 						put(LogMessage.MESSAGE, "Remove Approle from SDB failed").
 						put(LogMessage.RESPONSE, "Role configuration failed.Please try again").
 						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
@@ -2843,7 +2854,7 @@ public class  SafesService {
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-					put(LogMessage.ACTION, TVaultConstants.REMOVE_APPROLE_FROM_SDB).
+					put(LogMessage.ACTION, REMOVE_APPROLE_FROM_SDB).
 					put(LogMessage.MESSAGE, "Remove Approle from SDB failed").
 					put(LogMessage.RESPONSE, INVALID_PATH).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
