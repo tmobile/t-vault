@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
 import { Backdrop } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
-import { css } from 'styled-components';
+import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
 import { useHistory } from 'react-router-dom';
@@ -20,6 +20,15 @@ import { getDaysDifference } from '../../../../../services/helper-function';
 import RevokeCertificate from './components/RevokeCertificate';
 import DeleteCertificate from './components/DeleteCertificate';
 import UpdateCertificate from './components/UpdateCertificate';
+
+const StyledModal = styled(Modal)`
+  @-moz-document url-prefix() {
+    .MuiBackdrop-root {
+      position: absolute;
+      height: 215rem;
+    }
+  }
+`;
 
 const { small } = mediaBreakpoints;
 
@@ -431,7 +440,7 @@ const EditCertificate = (props) => {
           />
         )}
         {openModal.status === 'edit' && (
-          <Modal
+          <StyledModal
             aria-labelledby="transition-modal-title"
             aria-describedby="transition-modal-description"
             className={classes.modal}
@@ -454,7 +463,7 @@ const EditCertificate = (props) => {
                 onDeleteClicked={onDeleteClicked}
               />
             </Fade>
-          </Modal>
+          </StyledModal>
         )}
       </>
     </ComponentError>

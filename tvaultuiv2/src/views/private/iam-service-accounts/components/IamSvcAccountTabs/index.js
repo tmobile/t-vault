@@ -152,7 +152,7 @@ const AccountSelectionTabs = (props) => {
           <TabPanel value={value} index={0}>
             <IamServiceAccountSecrets
               accountDetail={accountDetail}
-              accountMetaData={accountMetaData}
+              disabledPermission={disabledPermission}
               accountSecretData={accountSecretData}
               accountSecretError={accountSecretError}
               getSecrets={getSecrets}
@@ -170,6 +170,7 @@ const AccountSelectionTabs = (props) => {
               fetchPermission={fetchPermission}
               isIamSvcAccountActive={isIamSvcAccountActive}
               userDetails={userDetails}
+              refresh={refresh}
             />
           </TabPanel>
         </TabContentsWrap>

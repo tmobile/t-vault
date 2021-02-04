@@ -33,6 +33,14 @@ const loaderStyle = css`
   z-index: 1;
 `;
 
+const StyledModal = styled(Modal)`
+  @-moz-document url-prefix() {
+    .MuiBackdrop-root {
+      position: absolute;
+      height: 105rem;
+    }
+  }
+`;
 const IconDescriptionWrapper = styled.div`
   display: flex;
   position: relative;
@@ -402,7 +410,7 @@ const ViewAzure = (props) => {
           />
         )}
         {openModal.status === 'view' && (
-          <Modal
+          <StyledModal
             aria-labelledby="transition-modal-title"
             aria-describedby="transition-modal-description"
             className={classes.modal}
@@ -511,7 +519,7 @@ const ViewAzure = (props) => {
                 </CancelSaveWrapper>
               </GlobalModalWrapper>
             </Fade>
-          </Modal>
+          </StyledModal>
         )}
         {responseType === 1 && (
           <Snackbar

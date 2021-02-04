@@ -352,36 +352,32 @@ const IamServiceAccountDashboard = () => {
   // Function to get the metadata of the given service account
   const fetchPermission = useCallback(async () => {
     setAccountMetaData({ response: {}, error: '' });
-    if (listItemDetails?.permission === 'write') {
-      setPermissionResponse({ status: 'loading' });
-      try {
-        const res = await apiService.fetchIamServiceAccountDetails(
-          `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`
-        );
-        if (res?.data) {
-          setPermissionResponse({ status: 'success' });
-          setAccountMetaData({ response: res.data, error: '' });
-          if (
-            res.data.owner_ntid.toLowerCase() === state.username.toLowerCase()
-          ) {
-            setDisabledPermission(false);
-            const eachUsersDetails = await getEachUsersDetails(res.data.users);
-            if (eachUsersDetails !== null) {
-              setUserDetails([...eachUsersDetails]);
-            }
-          } else {
-            setDisabledPermission(true);
+    setPermissionResponse({ status: 'loading' });
+    try {
+      const res = await apiService.fetchIamServiceAccountDetails(
+        `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`
+      );
+      if (res?.data) {
+        setPermissionResponse({ status: 'success' });
+        setAccountMetaData({ response: res.data, error: '' });
+        if (
+          res.data.owner_ntid.toLowerCase() === state.username.toLowerCase()
+        ) {
+          setDisabledPermission(false);
+          const eachUsersDetails = await getEachUsersDetails(res.data.users);
+          if (eachUsersDetails !== null) {
+            setUserDetails([...eachUsersDetails]);
           }
-        }
-      } catch (err) {
-        setPermissionResponse({ status: 'error' });
-        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
-          setAccountSecretError(err?.response?.data?.errors[0]);
-          setAccountMetaData({ response: {}, error: 'Something went wrong' });
+        } else {
+          setDisabledPermission(true);
         }
       }
-    } else {
-      setDisabledPermission(true);
+    } catch (err) {
+      setPermissionResponse({ status: 'error' });
+      if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+        setAccountSecretError(err?.response?.data?.errors[0]);
+        setAccountMetaData({ response: {}, error: 'Something went wrong' });
+      }
     }
   }, [listItemDetails, state]);
 

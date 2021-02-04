@@ -34,6 +34,15 @@ const LoaderWrap = styled.div`
   outline: none;
 `;
 
+const StyledModal = styled(Modal)`
+  @-moz-document url-prefix() {
+    .MuiBackdrop-root {
+      position: absolute;
+      height: 105rem;
+    }
+  }
+`;
+
 const useStyles = makeStyles((theme) => ({
   select: {
     '&.MuiFilledInput-root.Mui-focused': {
@@ -237,7 +246,7 @@ const ViewIamServiceAccount = (props) => {
         />
         <div>
           {!(openModal?.status === 'open') ? (
-            <Modal
+            <StyledModal
               aria-labelledby="transition-modal-title"
               aria-describedby="transition-modal-description"
               className={classes.modal}
@@ -265,7 +274,7 @@ const ViewIamServiceAccount = (props) => {
                   />
                 )}
               </Fade>
-            </Modal>
+            </StyledModal>
           ) : status?.status === 'loading' ? (
             <ConfirmationModal
               open

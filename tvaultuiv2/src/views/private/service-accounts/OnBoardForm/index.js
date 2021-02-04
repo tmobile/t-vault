@@ -72,6 +72,15 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const StyledModal = styled(Modal)`
+  @-moz-document url-prefix() {
+    .MuiBackdrop-root {
+      position: absolute;
+      height: 145rem;
+    }
+  }
+`;
+
 const Container = styled('section')`
   position: relative;
   background-color: ${(props) => props.theme.palette.background.modal};
@@ -801,7 +810,7 @@ const OnBoardForm = (props) => {
             )
           }
         />
-        <Modal
+        <StyledModal
           aria-labelledby="transition-modal-title"
           aria-describedby="transition-modal-description"
           className={classes.modal}
@@ -1096,7 +1105,7 @@ const OnBoardForm = (props) => {
               </AcionButtons>
             </Container>
           </Fade>
-        </Modal>
+        </StyledModal>
         {status.status === 'failed' && (
           <SnackbarComponent
             open
