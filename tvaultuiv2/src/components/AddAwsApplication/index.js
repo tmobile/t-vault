@@ -149,7 +149,7 @@ const AddAwsApplication = (props) => {
   }, [state]);
 
   useEffect(() => {
-    if (!Object.keys(roles).includes(roleName.toLowerCase())) {
+    if (roles && !Object.keys(roles).includes(roleName?.toLowerCase())) {
       if (!isEC2) {
         if (
           roleName?.length < 3 ||

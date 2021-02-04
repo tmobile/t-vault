@@ -379,7 +379,7 @@ const AppRoleDetails = (props) => {
             {responseType === 1 && (
               <>
                 <TitleThree extraCss="color:#5e627c">
-                  {`${secretIdsData?.length || 0} secretIds`}
+                  {`${secretIdsData?.length || 0} accessorIds`}
                 </TitleThree>
                 {secretIdsData?.length > 0 && (
                   <AppRoleSecrets
@@ -395,7 +395,7 @@ const AppRoleDetails = (props) => {
                         description={
                           Object.keys(appRoleDetail).length === 0
                             ? Strings.Resources.noAppRolesAvailable
-                            : 'There is no secret ID available to view.'
+                            : 'There is no accessor ID available to view.'
                         }
                         actionButton={
                           <>
