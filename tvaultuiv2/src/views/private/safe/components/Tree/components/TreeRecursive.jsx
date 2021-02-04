@@ -11,12 +11,22 @@ import Folder from './folder';
 import AddFolderModal from '../../AddFolderModal';
 import CreateSecretModal from '../../CreateSecretsModal';
 import BackdropLoader from '../../../../../../components/Loaders/BackdropLoader';
+import { BackgroundColor } from '../../../../../../styles/GlobalStyles';
 
 const SecretsError = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 0.5rem;
+`;
+
+const NoSecretWrap = styled('div')`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${BackgroundColor.secretBg};
+  padding: 0.5em;
+  cursor: pointer;
 `;
 
 const TreeRecursive = (props) => {
@@ -156,11 +166,18 @@ const TreeRecursive = (props) => {
           )}
 
           {[...item?.children, ...arr].length <= 1 &&
-            currentNode === item.id && (
-              <CreateSecretButton
-                onClick={(e) => setCreateSecretBox(e, item.value)}
-              />
-            )}
+          currentNode === item.id &&
+          userHavePermission?.type === 'write' ? (
+            <CreateSecretButton
+              onClick={(e) => setCreateSecretBox(e, item.value)}
+            />
+          ) : (
+            status.status !== 'loading' && (
+              <NoSecretWrap>
+                <span>There are no secrets here!</span>
+              </NoSecretWrap>
+            )
+          )}
         </Folder>
       );
     }

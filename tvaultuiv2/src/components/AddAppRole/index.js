@@ -151,22 +151,24 @@ const AddAppRole = (props) => {
   }, [editClicked]);
 
   useEffect(() => {
-    if (roles && !Object.keys(roles).includes(selectedValue.toLowerCase())) {
-      if (editClicked) {
-        if (access === radioValue) {
+    if (selectedValue) {
+      if (roles && !Object.keys(roles).includes(selectedValue.toLowerCase())) {
+        if (editClicked) {
+          if (access === radioValue) {
+            setDisabledSave(true);
+          } else {
+            setDisabledSave(false);
+          }
+        } else if (selectedValue === '' || menu.length === 0) {
           setDisabledSave(true);
         } else {
           setDisabledSave(false);
         }
-      } else if (selectedValue === '' || menu.length === 0) {
-        setDisabledSave(true);
+        setExistingRole(false);
       } else {
-        setDisabledSave(false);
+        setDisabledSave(true);
+        setExistingRole(true);
       }
-      setExistingRole(false);
-    } else {
-      setDisabledSave(true);
-      setExistingRole(true);
     }
   }, [selectedValue, roles, radioValue, menu, access, editClicked]);
 
