@@ -64,7 +64,7 @@ public class VaultAuthControllerV2 {
 	 * @return
 	 */
 	@GetMapping(value="/v2/auth/tvault/renew",produces="application/json")
-	@ApiOperation(value = "${VaultAuthControllerV2.renew.value}", notes = "${VaultAuthControllerV2.renew.notes}")
+	@ApiOperation(value = "${VaultAuthControllerV2.renew.value}", notes = "${VaultAuthControllerV2.renew.notes}", hidden = true)
 	public ResponseEntity<String> renew(@RequestHeader(value="vault-token") String token){
 		return vaultAuthService.renew(token);
 	}
@@ -85,7 +85,7 @@ public class VaultAuthControllerV2 {
 	 * @return
 	 */
 	@GetMapping(value="/auth/tvault/revoke",produces="application/json")
-	@ApiOperation(value = "${VaultAuthControllerV2.revoke.value}", notes = "${VaultAuthControllerV2.revoke.notes}")
+	@ApiOperation(value = "${VaultAuthControllerV2.revoke.value}", notes = "${VaultAuthControllerV2.revoke.notes}", hidden = true)
 	@ApiResponses(value={
 		@ApiResponse(code = 204, message = "Revoked Successfully")
 	})

@@ -60,6 +60,7 @@
         $scope.isNotificationEmailSearch = false;
         $scope.numOfOnboardPendingCertificates = 0;
         $scope.isOffboardingDecommitioned = false;
+        $scope.applicationNameErrorMsg = "";
         // Type of safe to be filtered from the rest
 
         $scope.safeType = {
@@ -191,6 +192,7 @@
             $scope.isNotificationEmailSearch = false;
             $scope.numOfOnboardPendingCertificates = 0;
             $scope.isOffboardingDecommitioned = false;
+            $scope.applicationNameErrorMsg = "";
             $scope.certObj = {
                 'sslcertType': 'PRIVATE_SINGLE_SAN',
                 'certDetails': {"certType":"internal",},
@@ -1533,7 +1535,7 @@
         $scope.certificateOnboardFailedPopUp = function (svcaccname) {
             Modal.createModal('md', 'certificateOnboardFailedPopUp.html', 'AdminCtrl', $scope);
         };
-
+       
         $scope.transferSvcacc = function (svcaccToTransfer) {
             $scope.svcaccToOffboard = "";
             $scope.transferFailedMessage = '';
@@ -1710,6 +1712,7 @@
         
         $scope.appNameSelect = function(){
             $scope.appNameSelected =false;
+            $scope.applicationNameErrorMsg = "";
             $scope.notificationEmailErrorMessage = '';
             $scope.certObj.certDetails.notificationEmails="";
             $scope.selectedNotificationEmails = [];
@@ -1721,7 +1724,8 @@
             $scope.dropdownApplicationName.selectedGroupOption.type;
             $scope.certObj.certDetails.applicationName = $scope.dropdownApplicationName.selectedGroupOption.tag;
             $scope.appName = $scope.dropdownApplicationName.selectedGroupOption.name;
-            $scope.isOwnerSelected = true
+            $scope.isOwnerSelected = true;
+            if((JSON.parse(SessionStore.getItem("isAdmin")) == true)||($scope.assignedApplications.includes($scope.dropdownApplicationName.selectedGroupOption.tag))){
             try{
                 var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getApplicationDetails', "appName="+appId);
                 AdminSafesManagement.getApplicationDetails(null, updatedUrlOfEndPoint).then(function (response) {
@@ -1747,6 +1751,9 @@
             }catch (e) {
                 console.log(e);
             };
+        	}else{
+        		$scope.applicationNameErrorMsg = "You do not have access to the selected application. Please refer 'How to get started and what to know' for more details.";
+        	}
         	}
          }
 
@@ -1782,12 +1789,7 @@
                         if (data[index].appTag !='' && data[index].appTag != null && data[index].appTag != undefined) {
                             appTag = data[index].appTag;
                         }
-                        if(JSON.parse(SessionStore.getItem("isAdmin")) == true){
                         	$scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
-                        }
-                        if(JSON.parse(SessionStore.getItem("isAdmin")) == false && $scope.assignedApplications.includes(appTag)  ){
-                            $scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
-                        }
                     }
                      $scope.isAppNamesLoading = false;
                 }
