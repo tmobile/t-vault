@@ -187,6 +187,6 @@ public class TVaultConstants {
 
     public static final String OTHER_APPNAME = "other";
     public static final String OTHER_APPNAME_VALUE = "Other";
-    public static final String VALIDATE_APPNAME = "Starting validate Appname for safe";
+    public static final String VALIDATE_APPNAME = "Start validating Appname for safe";
     
 }
