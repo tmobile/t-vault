@@ -29,6 +29,8 @@ import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+
+import org.apache.directory.shared.ldap.util.ArrayUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -74,7 +76,7 @@ public class AWSIAMAuthService {
 	 * @return
 	 */
 	public ResponseEntity<String> createIAMRole(AWSIAMRole awsiamRole, String token, UserDetails userDetails) throws TVaultValidationException{
-		if(!StringUtils.isEmpty(awsiamRole.getPolicies())) {
+		if(!ArrayUtils.isEmpty(awsiamRole.getPolicies())) {
 			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Checking whether policy is added as an input param for creating AWS IAM role").
