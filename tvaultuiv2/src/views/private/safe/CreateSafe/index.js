@@ -605,7 +605,7 @@ const CreateModal = (props) => {
                       )}
                       loader={autoLoader}
                       userInput={owner}
-                      disabled={sessionStorage.getItem('isAdmin') === 'false'}
+                      disabled={!!editSafe}
                       name="owner"
                       onSelected={(e, val) => onSelected(e, val)}
                       onChange={(e) => onOwnerChange(e)}

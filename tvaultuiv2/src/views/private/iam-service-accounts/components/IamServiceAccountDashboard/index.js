@@ -352,8 +352,8 @@ const IamServiceAccountDashboard = () => {
   // Function to get the metadata of the given service account
   const fetchPermission = useCallback(async () => {
     setAccountMetaData({ response: {}, error: '' });
-    if (listItemDetails?.permission === 'write') {
-      setPermissionResponse({ status: 'loading' });
+    setPermissionResponse({ status: 'loading' });
+    if (listItemDetails?.active) {
       try {
         const res = await apiService.fetchIamServiceAccountDetails(
           `${listItemDetails?.iamAccountId}_${listItemDetails?.name}`

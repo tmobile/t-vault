@@ -289,13 +289,20 @@ const EditCertificate = (props) => {
           setLoading(false);
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        if (err.response.data.errors && err.response.data.errors[0]) {
+          setModalDetail({
+            title: 'Error',
+            description: err.response.data.errors[0],
+          });
+        } else {
+          setModalDetail({
+            title: 'Error',
+            description: 'Something went wrong!',
+          });
+        }
         setOpenModal({ status: 'confirm' });
         setLoading(false);
-        setModalDetail({
-          title: 'Error',
-          description: 'Something went wrong!',
-        });
       });
   };
 
