@@ -3180,7 +3180,8 @@ public class AzureServicePrincipalAccountsService {
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SP_ROTATE_ACTION).
 					put(LogMessage.MESSAGE, String.format ("Azure Service Principal [%s] rotated successfully for " +
-									"SecretKeyId [%s]", azureServicePrincipalRotateRequest.getAzureSvcAccName(),
+									"SecretKeyId Completed [%s]",
+							azureServicePrincipalRotateRequest.getAzureSvcAccName(),
 							azureServicePrincipalRotateRequest.getSecretKeyId())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
