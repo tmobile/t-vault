@@ -48,6 +48,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmobile.cso.vault.api.common.AzureServiceAccountConstants;
+import com.tmobile.cso.vault.api.common.IAMServiceAccountConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
@@ -1572,7 +1573,7 @@ public class AzureServicePrincipalAccountsService {
 			updateUserPolicyAssociationOnAzureSvcaccDelete(azureSvcName, users, selfSupportToken, userDetails);
 			updateGroupPolicyAssociationOnAzureSvcaccDelete(azureSvcName, groups, selfSupportToken, userDetails);
 			updateApprolePolicyAssociationOnAzureSvcaccDelete(azureSvcName, approles, selfSupportToken);
-			deleteAwsRoleonOnAzureSvcaccDelete(awsroles, selfSupportToken);
+			deleteAwsRoleonOnAzureSvcaccDelete(azureSvcName, awsroles, selfSupportToken);
 		}
 
 		OnboardedAzureServiceAccount azureSvcAccToOffboard = new OnboardedAzureServiceAccount(azureSvcName, managedBy);
@@ -1923,7 +1924,7 @@ public class AzureServicePrincipalAccountsService {
 			}
 		}
 	}
-	
+
 	/**
 	 * Deletes the Azure SvcAccount secret
 	 * @param token
@@ -2084,35 +2085,106 @@ public class AzureServicePrincipalAccountsService {
      * @param acessInfo
      * @param token
      */
-    private void deleteAwsRoleonOnAzureSvcaccDelete(Map<String,String> acessInfo, String token) {
+    private void deleteAwsRoleonOnAzureSvcaccDelete(String azureSvcName, Map<String,String> acessInfo, String token) {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                put(LogMessage.ACTION, "DeleteAwsRoleonOnAzureSvcaccDelete").
-                put(LogMessage.MESSAGE, "Trying to delete AwsRole On Azure Service Account offboarding").
+                put(LogMessage.ACTION, AzureServiceAccountConstants.DELETE_AWSROLE_ASSOCIATION).
+                put(LogMessage.MESSAGE, String.format ("Trying to delete AwsRole association on offboarding of Azure Service Principal [%s] ", azureSvcName)).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
         if(acessInfo!=null){
             Set<String> roles = acessInfo.keySet();
-            for(String role : roles){
-                Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);
-                if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                            put(LogMessage.ACTION, "deleteAwsRoleonOnAzureSvcaccDelete").
-                            put(LogMessage.MESSAGE, String.format ("%s, AWS Role is deleted as part of offboarding Azure Service account.", role)).
-                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                            build()));
-                }else{
-                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                            put(LogMessage.ACTION, "deleteAwsRoleonOnAzureSvcaccDelete").
-                            put(LogMessage.MESSAGE, String.format ("%s, AWS Role deletion as part of offboarding Azure Service account failed.", role)).
-                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                            build()));
-                }
-            }
+			for (String role : roles) {
+				removeAWSRoleAssociationFromAzureSvcAccForOffboard(azureSvcName, token, role);
+			}
         }
     }
+
+	/**
+	 * Method to remove the AWS role association from Azure Service account for Off board.
+	 * @param azureSvcName
+	 * @param token
+	 * @param role
+	 */
+	private void removeAWSRoleAssociationFromAzureSvcAccForOffboard(String azureSvcName, String token, String role) {
+		String readPolicy = new StringBuilder()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
+				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
+		String writePolicy = new StringBuilder()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
+				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
+		String denyPolicy = new StringBuilder()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
+				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
+		String ownerPolicy = new StringBuilder()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcName).toString();
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, AzureServiceAccountConstants.DELETE_AWSROLE_ASSOCIATION).
+				put(LogMessage.MESSAGE, String.format ("Azure service principal policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, ownerPolicy)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+
+		Response roleResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+role+"\"}",token);
+		String responseJson="";
+		String authType = TVaultConstants.EC2;
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+		String policiesString = "";
+		if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
+			responseJson = roleResponse.getResponse();
+			ObjectMapper objMapper = new ObjectMapper();
+			try {
+				JsonNode policiesArry =objMapper.readTree(responseJson).get(POLICIESSTR);
+				for(JsonNode policyNode : policiesArry){
+					currentpolicies.add(policyNode.asText());
+				}
+				authType = objMapper.readTree(responseJson).get("auth_type").asText();
+			} catch (IOException e) {
+		        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                put(LogMessage.ACTION, AzureServiceAccountConstants.DELETE_AWSROLE_ASSOCIATION).
+		                put(LogMessage.MESSAGE, e.getMessage()).
+		                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                build()));
+			}
+
+			policies.addAll(currentpolicies);
+			policies.remove(readPolicy);
+			policies.remove(writePolicy);
+			policies.remove(denyPolicy);
+
+			policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, AzureServiceAccountConstants.DELETE_AWSROLE_ASSOCIATION).
+					put(LogMessage.MESSAGE, "Remove AWS Role from Azure Service Principal -  policy :" + policiesString + " is being configured" ).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+
+			if (TVaultConstants.IAM.equals(authType)) {
+				awsiamAuthService.configureAWSIAMRole(role,policiesString,token);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                put(LogMessage.ACTION, AzureServiceAccountConstants.DELETE_AWSROLE_ASSOCIATION).
+		                put(LogMessage.MESSAGE, String.format ("%s, AWS IAM Role association is removed as part of offboarding Azure Service principal [%s].", role, azureSvcName)).
+		                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                build()));
+			}
+			else {
+				awsAuthService.configureAWSRole(role,policiesString,token);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                put(LogMessage.ACTION, AzureServiceAccountConstants.DELETE_AWSROLE_ASSOCIATION).
+		                put(LogMessage.MESSAGE, String.format ("%s, AWS EC2 Role association is removed as part of offboarding Azure Service principal [%s].", role, azureSvcName)).
+		                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                build()));
+			}
+		}
+	}
 
 	/**
 	 * Removes user from Azure service account
