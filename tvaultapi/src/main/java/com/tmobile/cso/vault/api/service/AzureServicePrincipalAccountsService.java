@@ -147,7 +147,12 @@ public class AzureServicePrincipalAccountsService {
 	 */
 	public ResponseEntity<String> onboardAzureServiceAccount(String token, AzureServiceAccount azureServiceAccount,
 			UserDetails userDetails) {
-
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SVCACC_CREATION_TITLE)
+				.put(LogMessage.MESSAGE,String.format("Start trying to onboard an Azure Service Account [%s]",azureServiceAccount.getApplicationName()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		if (!isAuthorizedForAzureOnboardAndOffboard(token)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -240,6 +245,12 @@ public class AzureServicePrincipalAccountsService {
 	 * @return
 	 */
 	private boolean isAuthorizedForAzureOnboardAndOffboard(String token) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SVCACC_CREATION_TITLE)
+				.put(LogMessage.MESSAGE,"Start checking isAuthorized For AzureOnboardAndOffboard")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<String> currentPolicies ;
 		Response response = reqProcessor.process("/auth/tvault/lookup", "{}", token);
@@ -342,6 +353,12 @@ public class AzureServicePrincipalAccountsService {
 	 * @return
 	 */
 	private AzureServiceAccountMetadataDetails constructAzureSvcAccMetaData(AzureServiceAccount azureServiceAccount) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "AzureServiceAccountMetadataDetails")
+				.put(LogMessage.MESSAGE,"Start trying to fetch AzureServiceAccountMetadataDetails")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 
 		AzureServiceAccountMetadataDetails azureServiceAccountMetadataDetails = new AzureServiceAccountMetadataDetails();
 		List<AzureSecretsMetadata> azureSecretsMetadatas = new ArrayList<>();
@@ -363,7 +380,12 @@ public class AzureServicePrincipalAccountsService {
 		}
 		azureServiceAccountMetadataDetails.setSecret(azureSecretsMetadatas);
 		azureServiceAccountMetadataDetails.setTenantId(azureServiceAccount.getTenantId());
-
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "AzureServiceAccountMetadataDetails")
+				.put(LogMessage.MESSAGE,"AzureServiceAccountMetadataDetails fetched successfully")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		return azureServiceAccountMetadataDetails;
 	}
 	
@@ -377,6 +399,12 @@ public class AzureServicePrincipalAccountsService {
 	 */
 	private ResponseEntity<String> createAzureSvcAccMetadata(String token,
 			AzureServiceAccountMetadataDetails azureServiceAccountMetadataDetails, String azureSvccAccMetaPath) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "createAzureSvcAccMetadata")
+				.put(LogMessage.MESSAGE,"Start trying to create AzureSvcAccMetadata")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 
 		AzureSvccAccMetadata azureSvccAccMetadata = new AzureSvccAccMetadata(azureSvccAccMetaPath, azureServiceAccountMetadataDetails);
 
@@ -418,7 +446,7 @@ public class AzureServicePrincipalAccountsService {
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SVCACC_CREATION_TITLE)
 				.put(LogMessage.MESSAGE,
-						String.format("Trying to create policies for Azure service account [%s].", azureSvcAccName))
+						String.format("Start trying to create policies for Azure service account [%s].", azureSvcAccName))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		ResponseEntity<String> SvcAccPolicyCreationResponse = createAzureServiceAccountPolicies(azureSvcAccName);
 		if (HttpStatus.OK.equals(SvcAccPolicyCreationResponse.getStatusCode())) {
@@ -597,6 +625,12 @@ public class AzureServicePrincipalAccountsService {
 	 * @return
 	 */
 	private boolean deleteAzureServiceAccountPolicies(String token, String azureSvcAccName) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "deleteAzureServiceAccountPolicies").
+				put(LogMessage.MESSAGE, "Start deleting policies for Azure service account.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		int succssCount = 0;
 		boolean allPoliciesDeleted = false;
 		for (String policyPrefix : TVaultConstants.getSvcAccPolicies().keySet()) {
@@ -671,8 +705,8 @@ public class AzureServicePrincipalAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SVCACC_CREATION_TITLE)
-				.put(LogMessage.MESSAGE, String.format("Trying to add sudo permission for the service account [%s] to " +
-						"the user {%s]", azureSvcAccName, azureServiceAccount.getOwnerNtid()))
+				.put(LogMessage.MESSAGE, String.format("Start trying to add sudo permission for the service account [%s] to " +
+						"the user [%s]", azureSvcAccName, azureServiceAccount.getOwnerNtid()))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		AzureServiceAccountUser azureServiceAccountUser = new AzureServiceAccountUser(azureServiceAccount.getServicePrincipalName(),
 				azureServiceAccount.getOwnerNtid(), TVaultConstants.SUDO_POLICY);
@@ -721,10 +755,18 @@ public class AzureServicePrincipalAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_USER_TO_AZURESVCACC_MSG)
-				.put(LogMessage.MESSAGE, String.format("Trying to add user to Azure Service principal [%s]", azureServiceAccountUser.getAzureSvcAccName()))
-				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+				.put(LogMessage.MESSAGE, String.format("Start trying to add user to Azure Service principal [%s]", azureServiceAccountUser.getAzureSvcAccName()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 
 		if (!isAzureSvcaccPermissionInputValid(azureServiceAccountUser.getAccess())) {
+			log.error(
+					JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_USER_TO_AZURESVCACC_MSG)
+							.put(LogMessage.MESSAGE, "Invalid input values")
+							.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+							.build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(ERRORBODYSTR);
 		}
@@ -776,6 +818,12 @@ public class AzureServicePrincipalAccountsService {
 	 * @return
 	 */
 	public static boolean isAzureSvcaccPermissionInputValid(String access) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_USER_TO_AZURESVCACC_MSG)
+				.put(LogMessage.MESSAGE, "Validate input parameters")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		boolean isValidAccess = true;
 		if (!org.apache.commons.lang3.ArrayUtils.contains(ACCESS_PERMISSIONS, access)) {
 			isValidAccess = false;
@@ -795,6 +843,12 @@ public class AzureServicePrincipalAccountsService {
 	public boolean isAuthorizedToAddPermissionInAzureSvcAcc(UserDetails userDetails, String serviceAccount,
 			boolean isPartOfOnboard) {
 		// Admin users can add sudo policy for owner while onboarding the azure service principal
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "isAuthorizedToAddPermissionInAzureSvcAcc").
+				put(LogMessage.MESSAGE,"Start checking is Authorized To Add Permission In AzureSvcAcc").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		if (isPartOfOnboard) {
 			return true;
 		}
@@ -816,6 +870,12 @@ public class AzureServicePrincipalAccountsService {
 	 * @return
 	 */
 	private boolean isAzureSvcaccActivated(String token, UserDetails userDetails, String azureSvcAccName) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, "isAzureSvcaccActivated").
+                put(LogMessage.MESSAGE,"Start checking whether AzureSvcacc is activated or not ").
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
 		String azureAccPath = AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH + azureSvcAccName;
 		boolean activationStatus = false;
 		Response metaResponse = getMetadata(token, userDetails, azureAccPath);
@@ -880,6 +940,12 @@ public class AzureServicePrincipalAccountsService {
 	private ResponseEntity<String> getUserPoliciesForAddUserToAzureSvcAcc(String token, UserDetails userDetails,
 			AzureServiceAccountUser azureServiceAccountUser, OIDCEntityResponse oidcEntityResponse,
 			String azureSvcaccName) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "getUserPoliciesForAddUserToAzureSvcAcc").
+				put(LogMessage.MESSAGE,"Start verifying the user policies for add user to Azure service account.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		Response userResponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
 			userResponse = reqProcessor.process(READPATH, AzureServiceAccountConstants.USERNAME_PARAM_STRING + azureServiceAccountUser.getUsername() + "\"}",
@@ -910,7 +976,12 @@ public class AzureServicePrincipalAccountsService {
 			userResponse.setResponse(oidcEntityResponse.getPolicies().toString());
 			userResponse.setHttpstatus(responseEntity.getStatusCode());
 		}
-
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "getUserPoliciesForAddUserToAzureSvcAcc").
+				put(LogMessage.MESSAGE,"Completed user policy varification.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		return addPolicyToAzureSvcAcc(token, userDetails, azureServiceAccountUser, oidcEntityResponse, azureSvcaccName,
 				userResponse);
 	}
@@ -1014,7 +1085,7 @@ public class AzureServicePrincipalAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_USER_TO_AZURESVCACC_MSG)
-				.put(LogMessage.MESSAGE, String.format("Policies [%s] before calling configure user", policies))
+				.put(LogMessage.MESSAGE, String.format("Started configureUserPoliciesForAddUserToAzureSvcAcc and Policies [%s] before calling configure user", policies))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		Response userConfigresponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
@@ -1063,6 +1134,12 @@ public class AzureServicePrincipalAccountsService {
 			AzureServiceAccountUser azureServiceAccountUser, OIDCEntityResponse oidcEntityResponse, String groups,
 			List<String> currentpolicies, String currentpoliciesString) {
 		// User has been associated with Azure Service Account. Now metadata has to be created
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "updateMetadataForAddUserToAzureSvcAcc")
+				.put(LogMessage.MESSAGE,"Start updating the metadata for add user to AzureSvcAcc.")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		String path = new StringBuffer(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(azureServiceAccountUser.getAzureSvcAccName())
 				.toString();
 		Map<String, String> params = new HashMap<>();
@@ -1150,6 +1227,12 @@ public class AzureServicePrincipalAccountsService {
 	 * @return
 	 */
 	private boolean isOwnerPemissionGettingChanged(AzureServiceAccountUser azureServiceAccountUser, String currentUsername, boolean isPartOfOnboard) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "isOwnerPemissionGettingChanged")
+				.put(LogMessage.MESSAGE,"Start checking if the owner permission is getting changed.")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		if (isPartOfOnboard) {
 			// sudo as part of onboard is allowed.
 			return false;
@@ -1418,6 +1501,12 @@ public class AzureServicePrincipalAccountsService {
 	 */
 	public ResponseEntity<String> offboardAzureServiceAccount(String token, AzureServiceAccountOffboardRequest azureOffboardRequest,
 															UserDetails userDetails) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION,AzureServiceAccountConstants.AZURE_SVCACC_OFFBOARD_CREATION_TITLE)
+				.put(LogMessage.MESSAGE, String.format("Start trying to offboard Azure service account[%s].",azureOffboardRequest.getAzureSvcAccName()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		String managedBy = "";
 		String azureSvcName = azureOffboardRequest.getAzureSvcAccName().toLowerCase();
 		String selfSupportToken = tokenUtils.getSelfServiceToken();
@@ -1674,7 +1763,7 @@ public class AzureServicePrincipalAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, UPDATEGROUPPOLICYSTR)
-				.put(LogMessage.MESSAGE, String.format("trying to delete group policies on Azure service account delete " +
+				.put(LogMessage.MESSAGE, String.format("Trying to delete group policies on Azure service account delete " +
 						"for [%s]", azureSvcAccountName))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
@@ -2034,12 +2123,24 @@ public class AzureServicePrincipalAccountsService {
 	 */
 	public ResponseEntity<String> removeUserFromAzureServiceAccount(String token,
 			AzureServiceAccountUser azureServiceAccountUser, UserDetails userDetails) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG).
+                put(LogMessage.MESSAGE, String.format ("Start trying to remove user [%s] from Azure Service account [%s].", azureServiceAccountUser.getUsername(),azureServiceAccountUser.getAzureSvcAccName())).
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
 		azureServiceAccountUser.setAzureSvcAccName(azureServiceAccountUser.getAzureSvcAccName().toLowerCase());
 		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
 		if (!userDetails.isAdmin()) {
 			token = tokenUtils.getSelfServiceToken();
 		}
 		if (!isAzureSvcaccPermissionInputValid(azureServiceAccountUser.getAccess())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
+					.put(LogMessage.MESSAGE,"Invalid input values")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+					.build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(ERRORBODYSTR);
 		}
@@ -2158,6 +2259,12 @@ public class AzureServicePrincipalAccountsService {
 	private ResponseEntity<String> processAndRemoveUserPermissionFromAzureSvcAcc(String token,
 			AzureServiceAccountUser azureServiceAccountUser, UserDetails userDetails,
 			OIDCEntityResponse oidcEntityResponse, String azureSvcaccName) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
+						.put(LogMessage.MESSAGE,"Start verifying  verify the user for removing from Azure service account.")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+						.build()));
 
 		Response userResponse = new Response();
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
@@ -2217,6 +2324,12 @@ public class AzureServicePrincipalAccountsService {
 	private ResponseEntity<String> createPoliciesAndRemoveUserFromAzureSvcAcc(String token,
 			AzureServiceAccountUser azureServiceAccountUser, UserDetails userDetails,
 			OIDCEntityResponse oidcEntityResponse, String azureSvcaccName, Response userResponse) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
+				.put(LogMessage.MESSAGE,"Start create policies for removing user from Azure service account.")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		String readPolicy = new StringBuffer()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
 				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcaccName).toString();
@@ -2343,6 +2456,12 @@ public class AzureServicePrincipalAccountsService {
 			AzureServiceAccountUser azureServiceAccountUser, UserDetails userDetails,
 			OIDCEntityResponse oidcEntityResponse, String groups, List<String> currentpolicies,
 			String currentpoliciesString) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_USER_FROM_AZURESVCACC_MSG)
+				.put(LogMessage.MESSAGE,"Start updating metadata after remove permission from AzureSvcAcc.")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		String azureSvcaccName = azureServiceAccountUser.getAzureSvcAccName();
 		// User has been removed from this Azure Service Account. Now metadata
 		// has to be deleted
@@ -2459,7 +2578,7 @@ public class AzureServicePrincipalAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_AWS_ROLE_MSG).
-				put(LogMessage.MESSAGE, "Trying to add AWS Role to Azure Service Account").
+				put(LogMessage.MESSAGE,String.format("Start trying to add AWS Role[%s] to Azure Service Account [%s].",azureServiceAccountAWSRole.getRolename(),azureServiceAccountAWSRole.getAzureSvcAccName())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
         if (!userDetails.isAdmin()) {
@@ -2618,7 +2737,12 @@ public class AzureServicePrincipalAccountsService {
 	public boolean hasAddOrRemovePermission(UserDetails userDetails, String serviceAccount, String token) {
 		// Owner of the service account can add/remove users, groups, aws roles
 		// and approles to service account
-
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "hasAddOrRemovePermission").
+				put(LogMessage.MESSAGE,"Start checking if user has the permission to add user/group/awsrole/approles to the Azure Service Account.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		String ownerPolicy = new StringBuffer()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
 				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(serviceAccount).toString();
@@ -2643,8 +2767,9 @@ public class AzureServicePrincipalAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_GROUP_TO_AZURESVCACC_MSG)
-				.put(LogMessage.MESSAGE, "Trying to add Group to Azure Service Principal")
-				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+				.put(LogMessage.MESSAGE, String.format("Start trying to add Group [%s] to Azure Service Principal [%s].",azureServiceAccountGroup.getGroupname(),azureServiceAccountGroup.getAzureSvcAccName()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		if (!userDetails.isAdmin()) {
 			token = tokenUtils.getSelfServiceToken();
 		}
@@ -2696,6 +2821,12 @@ public class AzureServicePrincipalAccountsService {
 	 */
 	private ResponseEntity<String> processRequestAndCallMetadataUpdateToAzureSvcAcc(String token, UserDetails userDetails,
 			OIDCGroup oidcGroup, AzureServiceAccountGroup azureServiceAccountGroup) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_GROUP_TO_AZURESVCACC_MSG)
+				.put(LogMessage.MESSAGE,"Start process AzureServiceAccountGroup request and call the update metadata and policy creations.")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		String policy = new StringBuilder()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(azureServiceAccountGroup.getAccess()))
 				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureServiceAccountGroup.getAzureSvcAccName()).toString();
@@ -2797,6 +2928,13 @@ public class AzureServicePrincipalAccountsService {
 	private ResponseEntity<String> configureGroupAndUpdateMetadataForAzureSvcAcc(String token, UserDetails userDetails,
 			OIDCGroup oidcGroup, AzureServiceAccountGroup azureServiceAccountGroup, List<String> policies,
 			List<String> currentpolicies) {
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_GROUP_TO_AZURESVCACC_MSG)
+				.put(LogMessage.MESSAGE,"Start configuring Group and update metadata for AzureSvcAcc")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 
@@ -2923,7 +3061,7 @@ public class AzureServicePrincipalAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, AzureServiceAccountConstants.ACTIVATE_ACTION).
-				put(LogMessage.MESSAGE, String.format ("Trying to activate Azure Service Principal [%s]", servicePrincipalName)).
+				put(LogMessage.MESSAGE, String.format ("Start trying to activate Azure Service Principal [%s]", servicePrincipalName)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 
@@ -3308,7 +3446,7 @@ public class AzureServicePrincipalAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_AWS_ROLE_AZURE_MSG).
-				put(LogMessage.MESSAGE, String.format ("Trying to remove AWS Role from Azure service principal [%s]", azureServiceAccountAWSRole.getRolename())).
+				put(LogMessage.MESSAGE, String.format ("Start trying to remove AWS Role[%s] from Azure service principal [%s]", azureServiceAccountAWSRole.getRolename(),azureServiceAccountAWSRole.getAzureSvcAccName())).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 		if (!userDetails.isAdmin()) {
@@ -3469,7 +3607,7 @@ public class AzureServicePrincipalAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG)
-				.put(LogMessage.MESSAGE, "Trying to remove Group from Azure Service Account")
+				.put(LogMessage.MESSAGE,String.format("Trying to remove Group [%s] from Azure Service Account [%s].",azureServiceAccountGroup.getGroupname(),azureServiceAccountGroup.getAzureSvcAccName()))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
         if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
@@ -3508,6 +3646,11 @@ public class AzureServicePrincipalAccountsService {
 	private ResponseEntity<String> getGroupDetailsAndAzureSvcAccActivatedCheck(String token,
 			AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
 			String azureSvcAccountName) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION,"getGroupDetailsAndAzureSvcAccActivatedCheck")
+				.put(LogMessage.MESSAGE,"Checking the azure service principal activation and get the group details")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		// Only Sudo policy can be added (as part of onbord) before activation.
 		if (!isAzureSvcaccActivated(token, userDetails, azureSvcAccountName)
 				&& !TVaultConstants.SUDO_POLICY.equals(azureServiceAccountGroup.getAccess())) {
@@ -3577,6 +3720,12 @@ public class AzureServicePrincipalAccountsService {
 	private ResponseEntity<String> getGroupDetailsAndCallRemovalProcess(String token,
 			AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
 			String azureSvcAccountName) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
+				put(LogMessage.MESSAGE,"Method to call the group removal based on the auth method").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		Response groupResp = new Response();
 		if (TVaultConstants.LDAP.equals(vaultAuthMethod)) {
 			groupResp = reqProcessor.process(GROUPPATH, GROUPNAMESTR + azureServiceAccountGroup.getGroupname() + "\"}", token);
@@ -3614,6 +3763,12 @@ public class AzureServicePrincipalAccountsService {
 	private ResponseEntity<String> removePoliciesAndUpdateMetadataForAzurevcAcc(String token,
 			AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
 			String azureSvcAccountName, Response groupResp) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "removePoliciesAndUpdateMetadataForAzurevcAcc").
+				put(LogMessage.MESSAGE,"Start updating policies for remove group from Azure service account.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		String readPolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
 		String writePolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
 		String denyPolicy = new StringBuffer().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY)).append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureSvcAccountName).toString();
@@ -3676,6 +3831,12 @@ public class AzureServicePrincipalAccountsService {
 	private ResponseEntity<String> configureGroupPoliciesByAuthMethod(String token,
 			AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
 			List<String> policies, List<String> currentpolicies) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "configureGroupPoliciesByAuthMethod").
+				put(LogMessage.MESSAGE,"Start configuring group policies based on the auth method and call the metadata update.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
 		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
 		Response ldapConfigresponse = new Response();
@@ -3745,6 +3906,12 @@ public class AzureServicePrincipalAccountsService {
 		private ResponseEntity<String> updateMetadataForRemoveGroupFromAzureSvcAcc(String token,
 				AzureServiceAccountGroup azureServiceAccountGroup, UserDetails userDetails, OIDCGroup oidcGroup,
 				List<String> currentpolicies, String currentpoliciesString) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_GROUP_FROM_AZURESVCACC_MSG).
+					put(LogMessage.MESSAGE,"Start updating metadata and revert group permission if metadata update failed.").
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
 			String path = new StringBuilder(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(azureServiceAccountGroup.getAzureSvcAccName()).toString();
 			Map<String,String> params = new HashMap<>();
 			params.put("type", GROUPSTR);
@@ -3827,8 +3994,9 @@ public class AzureServicePrincipalAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_APPROLE_TO_AZURESVCACC_MSG)
-				.put(LogMessage.MESSAGE, "Trying to add Approle to Azure Service Principal")
-				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+				.put(LogMessage.MESSAGE,String.format("Start trying to add Approle[%s] to Azure Service Principal[%s].",azureServiceAccountApprole.getApprolename(),azureServiceAccountApprole.getAzureSvcAccName()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		if (!userDetails.isAdmin()) {
 			token = tokenUtils.getSelfServiceToken();
 		}
@@ -3877,6 +4045,12 @@ public class AzureServicePrincipalAccountsService {
 	 */
 	private ResponseEntity<String> processAndConstructPoliciesForAddApproleToAzureSvcAcc(String token,
 			AzureServiceAccountApprole azureServiceAccountApprole) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_APPROLE_TO_AZURESVCACC_MSG)
+				.put(LogMessage.MESSAGE,"Start process the request and construct the policies for add approle to azure service principal.")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		String policy = new StringBuilder().append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(azureServiceAccountApprole.getAccess()))
 				.append(AzureServiceAccountConstants.AZURE_SVCACC_POLICY_PREFIX).append(azureServiceAccountApprole.getAzureSvcAccName()).toString();
 
@@ -3989,6 +4163,12 @@ public class AzureServicePrincipalAccountsService {
 	 */
 	private ResponseEntity<String> updateMetadataForAddApproleToAzureSvcAcc(String token,
 			AzureServiceAccountApprole azureServiceAccountApprole, String currentpoliciesString) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, AzureServiceAccountConstants.ADD_APPROLE_TO_AZURESVCACC_MSG)
+				.put(LogMessage.MESSAGE,"Start updating metadata for adding the approle to azure service principal.")
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
 		Response approleControllerResp;
 		String path = new StringBuilder(AzureServiceAccountConstants.AZURE_SVCC_ACC_PATH).append(azureServiceAccountApprole.getAzureSvcAccName())
 				.toString();
@@ -4051,8 +4231,8 @@ public class AzureServicePrincipalAccountsService {
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.REMOVE_APPROLE_TO_AZURESVCACC_MSG)
 				.put(LogMessage.MESSAGE,
-						String.format("Trying to remove approle from Azure Service Account [%s]",
-								azureServiceAccountApprole.getApprolename()))
+						String.format("Start trying to remove approle[%s] from Azure Service Account [%s]",
+								azureServiceAccountApprole.getApprolename(),azureServiceAccountApprole.getAzureSvcAccName()))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		if (!userDetails.isAdmin()) {
 			token = tokenUtils.getSelfServiceToken();
