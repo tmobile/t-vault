@@ -226,6 +226,7 @@ public class SDBControllerV2 {
 	 * @param path
 	 * @return
 	 */
+	@ApiOperation(value = "${SafesController.getFolderRecursive.value}", notes = "${SafesController.getFolderRecursive.notes}")
 	@GetMapping(value="/v2/sdb/list",produces="application/json")
 	public ResponseEntity<String> getFoldersRecursively(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path) {
 		return safesService.getFoldersRecursively(token, path);
