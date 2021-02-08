@@ -2091,102 +2091,7 @@ public class  SafesService {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to remove AWS role from safe. AWS role association to safe not found\"]}");
 			}
 
-			if (!detachOnly) { // delete mode, delete aws role as part of detachment of role from SDB.
-				Response permissionResponse = ControllerUtil.canDeleteRole(awsRole.getRole(), token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH);
-				if (HttpStatus.INTERNAL_SERVER_ERROR.equals(permissionResponse.getHttpstatus()) || HttpStatus.UNAUTHORIZED.equals(permissionResponse.getHttpstatus())) {
-					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+permissionResponse.getResponse()+"\"]}");
-				}
-				Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);
-				if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
-							put(LogMessage.MESSAGE, String.format ("Trying to remove AwsRole [%s] from Safe [%s]", awsRole.getRole(),awsRole.getPath())).
-							put(LogMessage.STATUS, response.getHttpstatus().toString()).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-							build()));
-					log.debug(role + " , AWS Role is deleted as part of detachment of role from SDB. Path " + path);
-					// delete metadata
-					String metaJson = ControllerUtil.populateAWSMetaJson(awsRole.getRole(), userDetails.getUsername());
-					Response resp = reqProcessor.process("/delete",metaJson,token);
-					if (HttpStatus.NO_CONTENT.equals(resp.getHttpstatus())) {
-						log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-								put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-								put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
-								put(LogMessage.MESSAGE, "Metadata deleted").
-								put(LogMessage.STATUS, response.getHttpstatus().toString()).
-								put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-								build()));
-					}
-				} else {
-					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
-							put(LogMessage.MESSAGE, String.format("AWS Role deletion as part of sdb delete failed . SDB path [%s]", path)).
-							put(LogMessage.RESPONSE, response.getResponse()).
-							put(LogMessage.STATUS, response.getHttpstatus().toString()).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-							build()));
-					log.debug(role +" , AWS Role deletion as part of sdb delete failed . SDB path "+ path );
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Try Again\"]}");
-				}
-			}
-			Map<String,String> params = new HashMap<>();
-			params.put("type", "aws-roles");
-			params.put("name",role);
-			params.put("path",path);
-			params.put("access","delete");
-			Response metadataResponse = ControllerUtil.updateMetadata(params,token);
-			if(metadataResponse != null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
-				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-						put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
-						put(LogMessage.MESSAGE, String.format ("remove AwsRole [%s] from Safe [%s] successful", awsRole.getRole(),awsRole.getPath())).
-						put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-						build()));
-				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
-			}else{
-				String safeType = ControllerUtil.getSafeType(path);
-				String safeName = ControllerUtil.getSafeName(path);
-				List<String> safeNames = ControllerUtil.getAllExistingSafeNames(safeType, token);
-				String newPath = path;
-				if (safeNames != null ) {
-
-					for (String existingSafeName: safeNames) {
-						if (existingSafeName.equalsIgnoreCase(safeName)) {
-							// It will come here when there is only one valid safe
-							newPath = safeType + "/" + existingSafeName;
-							break;
-						}
-					}
-
-				}
-				params.put("path",newPath);
-				metadataResponse = ControllerUtil.updateMetadata(params,token);
-				if(metadataResponse !=null && HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus())){
-					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							put(LogMessage.ACTION,REMOVE_AWS_ROLE_FROM_SDB).
-							put(LogMessage.MESSAGE, String.format ("remove AwsRole [%s] from Safe [%s] successful", awsRole.getRole(),awsRole.getPath())).
-							put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
-							put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-							build()));
-					return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Role association is removed \"]}");
-				}
-				else {
-					log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-							  put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-							  put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
-							  put(LogMessage.MESSAGE, "Delete AWS Role from SDB failed").
-							  put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
-							  put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
-							  put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-							  build()));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Role configuration failed.Please try again\"]}");
-				}
-			}
-
+			return removeAWSRoleAssociationFromSafe(token, awsRole, userDetails, objMapper, role, path);
 		}else{
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -2196,6 +2101,171 @@ public class  SafesService {
 				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				      build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+		}
+	}
+
+	/**
+	 * Method to remove the AWS role association from safe.
+	 * @param token
+	 * @param awsRole
+	 * @param userDetails
+	 * @param objMapper
+	 * @param role
+	 * @param path
+	 * @return
+	 */
+	private ResponseEntity<String> removeAWSRoleAssociationFromSafe(String token, AWSRole awsRole,
+			UserDetails userDetails, ObjectMapper objMapper, String role, String path) {
+		// delete mode, delete aws role as part of detachment of role from SDB.
+		Response permissionResponse = ControllerUtil.canDeleteRole(awsRole.getRole(), token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH);
+		if (HttpStatus.INTERNAL_SERVER_ERROR.equals(permissionResponse.getHttpstatus()) || HttpStatus.UNAUTHORIZED.equals(permissionResponse.getHttpstatus())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+permissionResponse.getResponse()+"\"]}");
+		}
+
+		String readPolicy = new StringBuilder()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
+				.append(path).toString();
+		String writePolicy = new StringBuilder()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
+				.append(path).toString();
+		String denyPolicy = new StringBuilder()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
+				.append(path).toString();
+		String ownerPolicy = new StringBuilder()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+				.append(path).toString();
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
+				put(LogMessage.MESSAGE, String.format ("Safe AWS Role Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, ownerPolicy)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+
+		Response roleResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+role+"\"}",token);
+		String responseJson="";
+		String authType = TVaultConstants.EC2;
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+
+		if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
+			responseJson = roleResponse.getResponse();
+			try {
+				JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
+				for(JsonNode policyNode : policiesArry){
+					currentpolicies.add(policyNode.asText());
+				}
+				authType = objMapper.readTree(responseJson).get(TVaultConstants.AUTH_TYPE).asText();
+			} catch (IOException e) {
+		        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
+		                put(LogMessage.MESSAGE, e.getMessage()).
+		                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                build()));
+			}
+			policies.addAll(currentpolicies);
+			policies.remove(readPolicy);
+			policies.remove(writePolicy);
+			policies.remove(denyPolicy);
+		} else{
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("{\"errors\":[\"Either AWS role doesn't exist or you don't have enough permission to remove this AWS role from Safe\"]}");
+		}
+
+		String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+		String currentpoliciesString = org.apache.commons.lang3.StringUtils.join(currentpolicies, ",");
+		log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
+				put(LogMessage.MESSAGE, "Remove AWS Role from Safe -  policy :" + policiesString + " is being configured." ).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		Response awsRoleConfigresponse = null;
+		if (TVaultConstants.IAM.equals(authType)) {
+			awsRoleConfigresponse = awsiamAuthService.configureAWSIAMRole(role,policiesString,token);
+		}
+		else {
+			awsRoleConfigresponse = awsAuthService.configureAWSRole(role,policiesString,token);
+		}
+
+		return removeMetadataForAWSRoleRemoveFromSafe(token, role, path, authType, currentpoliciesString,
+				awsRoleConfigresponse);
+	}
+
+	/**
+	 * Method to remove the AWS role from safe metadata
+	 * @param token
+	 * @param role
+	 * @param path
+	 * @param authType
+	 * @param currentpoliciesString
+	 * @param awsRoleConfigresponse
+	 * @return
+	 */
+	private ResponseEntity<String> removeMetadataForAWSRoleRemoveFromSafe(String token, String role, String path,
+			String authType, String currentpoliciesString, Response awsRoleConfigresponse) {
+		if(awsRoleConfigresponse != null && (awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT) || awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.OK))){
+			Map<String,String> params = new HashMap<>();
+			params.put("type", "aws-roles");
+			params.put("name",role);
+			params.put("path",path);
+			params.put("access","delete");
+			Response metadataResponse = ControllerUtil.updateMetadata(params,token);
+			if(metadataResponse !=null && (HttpStatus.NO_CONTENT.equals(metadataResponse.getHttpstatus()) || HttpStatus.OK.equals(metadataResponse.getHttpstatus()))){
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
+						put(LogMessage.MESSAGE, String.format("AWS Role [%s] is successfully removed from Safe [%s].", role,path)).
+						put(LogMessage.STATUS, metadataResponse.getHttpstatus().toString()).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role is successfully removed from Safe\"]}");
+			}
+			return revertAWSRoleRemovalForSafe(token, role, authType, currentpoliciesString, metadataResponse);
+		}
+		else {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove AWS Role from the Safe\"]}");
+		}
+	}
+
+	/**
+	 * Method to revert the AWS role removal process if metadata update failed
+	 * @param token
+	 * @param role
+	 * @param authType
+	 * @param currentpoliciesString
+	 * @param metadataResponse
+	 * @return
+	 */
+	private ResponseEntity<String> revertAWSRoleRemovalForSafe(String token, String role, String authType,
+			String currentpoliciesString, Response metadataResponse) {
+		Response awsRoleConfigresponse = null;
+		if (TVaultConstants.IAM.equals(authType)) {
+			awsRoleConfigresponse = awsiamAuthService.configureAWSIAMRole(role,currentpoliciesString,token);
+		}
+		else {
+			awsRoleConfigresponse = awsAuthService.configureAWSRole(role,currentpoliciesString,token);
+		}
+		if(awsRoleConfigresponse != null && awsRoleConfigresponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
+					put(LogMessage.MESSAGE, "Reverting, AWS Role policy update success").
+					put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+					put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Please try again\"]}");
+		}else{
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, REMOVE_AWS_ROLE_FROM_SDB).
+					put(LogMessage.MESSAGE, "Reverting AWS Role policy update failed").
+					put(LogMessage.RESPONSE, (null!=metadataResponse)?metadataResponse.getResponse():TVaultConstants.EMPTY).
+					put(LogMessage.STATUS, (null!=metadataResponse)?metadataResponse.getHttpstatus().toString():TVaultConstants.EMPTY).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS Role configuration failed. Contact Admin \"]}");
 		}
 	}
 
