@@ -49,6 +49,7 @@ const AppRoles = (props) => {
     newAppRole,
     updateToastMessage,
     responseStatus,
+    selectedParentTab,
   } = props;
 
   const [response, setResponse] = useState({ status: 'loading' });
@@ -198,6 +199,13 @@ const AppRoles = (props) => {
     // eslint-disable-next-line
   }, [certificateMetaData]);
 
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      onCancelClicked();
+    }
+    // eslint-disable-next-line
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
       <>
@@ -271,5 +279,6 @@ AppRoles.propTypes = {
   onNewAppRoleChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   responseStatus: PropTypes.string.isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 export default AppRoles;

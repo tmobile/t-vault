@@ -316,7 +316,7 @@ const AzureSecrets = (props) => {
     const payload = {
       azureSvcAccName: azureDetail.name,
       secretKeyId: secretsData.secretKeyId,
-      servicePrincipalId: secretsData.secretKeyId,
+      servicePrincipalId: secretsData.servicePrincipalId,
       tenantId: secretsData.tenantId,
       expiryDurationMs: secretsData.expiryDateEpoch,
     };

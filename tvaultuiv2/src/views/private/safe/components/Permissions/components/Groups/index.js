@@ -45,6 +45,7 @@ const Groups = (props) => {
     onNewGroupChange,
     newGroup,
     updateToastMessage,
+    selectedParentTab,
   } = props;
 
   const [editGroup, setEditGroup] = useState('');
@@ -154,6 +155,13 @@ const Groups = (props) => {
     setResponse({ status: 'edit' });
   };
 
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      onCancelClicked();
+    }
+    // eslint-disable-next-line
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
       <>
@@ -232,5 +240,6 @@ Groups.propTypes = {
   onNewGroupChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 export default Groups;

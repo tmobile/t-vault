@@ -171,6 +171,7 @@ const AccountSelectionTabs = (props) => {
               isIamSvcAccountActive={isIamSvcAccountActive}
               userDetails={userDetails}
               refresh={refresh}
+              selectedParentTab={value}
             />
           </TabPanel>
         </TabContentsWrap>
