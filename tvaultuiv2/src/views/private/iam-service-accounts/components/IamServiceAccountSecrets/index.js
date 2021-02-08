@@ -40,8 +40,7 @@ const UserList = styled.div`
   }
 
   .expirationDate {
-    font-family: Roboto;
-    font-size: 1.34rem;
+    font-size: 1.4rem;
     color: #ffffff;
     display: flex;
     flex-direction: column;
