@@ -95,7 +95,6 @@ const AddAwsApplication = (props) => {
   const [disabledSave, setDisabledSave] = useState(true);
   const [count, setCount] = useState(0);
   const [radioArray, setRadioArray] = useState([]);
-  const [existingRole, setExistingRole] = useState(false);
 
   const initialState = {
     vpcId: '',
@@ -150,33 +149,26 @@ const AddAwsApplication = (props) => {
 
   useEffect(() => {
     if (roleName) {
-      if (roles && !Object.keys(roles).includes(roleName?.toLowerCase())) {
-        if (!isEC2) {
-          if (
-            roleName?.length < 3 ||
-            iamPrincipalArn === '' ||
-            iamPrincipalArn.length < 20
-          ) {
-            setDisabledSave(true);
-          } else {
-            setDisabledSave(false);
-          }
-        } else if (
+      if (!isEC2) {
+        if (
           roleName?.length < 3 ||
-          count > 7 ||
-          (accountId !== '' && accountId.length < 12) ||
-          (iamRoleArn !== '' && iamRoleArn.length < 20) ||
-          (profileArn !== '' && profileArn.length < 20)
+          iamPrincipalArn === '' ||
+          iamPrincipalArn.length < 20
         ) {
           setDisabledSave(true);
         } else {
           setDisabledSave(false);
         }
-
-        setExistingRole(false);
-      } else {
+      } else if (
+        roleName?.length < 3 ||
+        count > 7 ||
+        (accountId !== '' && accountId.length < 12) ||
+        (iamRoleArn !== '' && iamRoleArn.length < 20) ||
+        (profileArn !== '' && profileArn.length < 20)
+      ) {
         setDisabledSave(true);
-        setExistingRole(true);
+      } else {
+        setDisabledSave(false);
       }
     }
   }, [
@@ -325,8 +317,6 @@ const AddAwsApplication = (props) => {
           fullWidth
           name="roleName"
           onChange={(e) => testValidity(e)}
-          error={existingRole}
-          helperText={existingRole ? 'Permission Alerady Exists' : ''}
         />
         {isEC2 && <p>**Please fill atleast one of the followings.</p>}
         <InputAwsWrapper>

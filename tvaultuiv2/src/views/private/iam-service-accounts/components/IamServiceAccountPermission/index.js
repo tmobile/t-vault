@@ -29,6 +29,7 @@ const IamServiceAccountPermission = (props) => {
     permissionResponse,
     userDetails,
     refresh,
+    selectedParentTab,
   } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
@@ -108,6 +109,12 @@ const IamServiceAccountPermission = (props) => {
     setNewAwsApplication(false);
   }, [accountDetail]);
 
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      setValue(0);
+    }
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
       <TabWrapper>
@@ -130,6 +137,7 @@ const IamServiceAccountPermission = (props) => {
               }
               userDetails={userDetails}
               permissionResponse={permissionResponse}
+              selectedParentTab={selectedParentTab}
             />
           </TabPanel>
           <TabPanel value={value} index={1}>
@@ -143,6 +151,7 @@ const IamServiceAccountPermission = (props) => {
               }
               refresh={refresh}
               permissionResponse={permissionResponse}
+              selectedParentTab={selectedParentTab}
             />
           </TabPanel>
           <TabPanel value={value} index={2}>
@@ -156,6 +165,7 @@ const IamServiceAccountPermission = (props) => {
               }
               refresh={fetchPermission}
               permissionResponse={permissionResponse}
+              selectedParentTab={selectedParentTab}
             />
           </TabPanel>
           <TabPanel value={value} index={3}>
@@ -169,6 +179,7 @@ const IamServiceAccountPermission = (props) => {
               }
               refresh={fetchPermission}
               permissionResponse={permissionResponse}
+              selectedParentTab={selectedParentTab}
             />
           </TabPanel>
         </PermissionTabsWrapper>
@@ -200,6 +211,7 @@ IamServiceAccountPermission.propTypes = {
   permissionResponse: PropTypes.string.isRequired,
   userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
   refresh: PropTypes.func.isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 
 IamServiceAccountPermission.defaultProps = {
