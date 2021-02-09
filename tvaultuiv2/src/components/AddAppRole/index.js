@@ -102,6 +102,11 @@ const customStyle = css`
   transform: translate(-50%, -50%);
 `;
 
+const extraSelectCss = css`
+  top: 0;
+  height: 15rem;
+`;
+
 const AddAppRole = (props) => {
   const {
     roles,
@@ -225,6 +230,7 @@ const AddAppRole = (props) => {
                 ? 'No app role available'
                 : 'Select role name'
             }
+            extraSelectCss={extraSelectCss}
           />
           {existingRole ? (
             <HelperText>Permission Already exists!</HelperText>
