@@ -53,7 +53,6 @@ const TreeRecursive = (props) => {
   const [currentNode, setCurrentNode] = useState('');
   const [secretEditData, setsecretEditData] = useState({});
   const [onFolderClosed, setOnFolderClosed] = useState(false);
-  const [handleToggleBool, setHandleToggleBool] = useState(false);
   // loop through the data
   useEffect(() => {
     setsecretEditData(secretprefilledData);
@@ -79,7 +78,6 @@ const TreeRecursive = (props) => {
           parentId={item.parentId}
           setSecretprefilledData={setSecretprefilledData}
           type={item.type}
-          setHandleToggleBool={setHandleToggleBool}
           setIsAddInput={setIsAddInput}
           setInputType={setInputType}
           onDeleteTreeItem={onDeleteTreeItem}
@@ -96,8 +94,6 @@ const TreeRecursive = (props) => {
           setInputType={setInputType}
           value={value}
           onFolderClosed={onFolderIsClosed}
-          handleToggleBool={handleToggleBool}
-          setHandleToggleBool={setHandleToggleBool}
           setOnFolderClosed={setOnFolderClosed}
           setIsAddInput={setIsAddInput}
           getChildNodes={getChildrenData}
@@ -168,18 +164,18 @@ const TreeRecursive = (props) => {
           {currentNode === item.value && status.status === 'failed' && (
             <SecretsError>Error in loading secrets!</SecretsError>
           )}
-
           {[...item?.children, ...arr].length <= 1 &&
             currentNode === item.id &&
-            status.status !== 'loading' &&
             (userHavePermission?.type === 'write' ? (
               <CreateSecretButton
                 onClick={(e) => setCreateSecretBox(e, item.value)}
               />
             ) : (
-              <NoSecretWrap>
-                <span>There are no secrets here!</span>
-              </NoSecretWrap>
+              status.status !== 'loading' && (
+                <NoSecretWrap>
+                  <span>There are no secrets here!</span>
+                </NoSecretWrap>
+              )
             ))}
         </Folder>
       );
