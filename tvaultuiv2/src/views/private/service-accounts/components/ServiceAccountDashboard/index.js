@@ -44,6 +44,8 @@ import {
   ListContent,
 } from '../../../../../styles/GlobalStyles/listingStyle';
 import configData from '../../../../../config/config';
+import OffboardDecomissionedConfirmationModal from './components/OffboardDecomissionedConfirmationModal';
+import BackdropLoader from '../../../../../components/Loaders/BackdropLoader';
 
 const OnBoardForm = lazy(() => import('../../OnBoardForm'));
 
@@ -196,10 +198,19 @@ const ServiceAccountDashboard = () => {
   const [response, setResponse] = useState({});
   const [deleteAccName, setDeleteAccName] = useState('');
   const [offBoardSuccessfull, setOffBoardSuccessfull] = useState(false);
+  const [
+    offBoardDecomissionedSuccessfull,
+    setOffBoardDecomissionedSuccessfull,
+  ] = useState(false);
   const [allServiceAccountList, setAllServiceAccountList] = useState([]);
   const [
     offBoardSvcAccountConfirmation,
     setOffBoardSvcAccountConfirmation,
+  ] = useState(false);
+  const [verifyingDecomissioned, setVerifyingDecomissioned] = useState('');
+  const [
+    offboardDecomissionedConfirmation,
+    setOffboardDecomissionedConfirmation,
   ] = useState(false);
   const [state, dispatch] = useStateValue();
   const listIconStyles = iconStyles();
@@ -348,6 +359,7 @@ const ServiceAccountDashboard = () => {
       setServiceAccountClicked(false);
     }
   };
+
   useEffect(() => {
     if (allServiceAccountList.length > 0) {
       const val = location.pathname.split('/');
@@ -375,6 +387,24 @@ const ServiceAccountDashboard = () => {
     setToastResponse(null);
   };
 
+  const validateNonDecomissioned = (name) => {
+    return apiService
+      .getServiceAccountPassword(name)
+      .then((res) => {
+        if (res) {
+          return true;
+        }
+        return true;
+      })
+      .catch((err) => {
+        if (err?.response?.status === 404) {
+          setOffboardDecomissionedConfirmation(true);
+          return false;
+        }
+        return true;
+      });
+  };
+
   /**
    * @function onDeleteClicked
    * @description function is called when delete is clicked opening
@@ -382,32 +412,48 @@ const ServiceAccountDashboard = () => {
    * @param {string} name service acc name to be deleted.
    */
   const onDeleteClicked = (name) => {
-    setOffBoardSvcAccountConfirmation(true);
-    setDeleteAccName(name);
+    setVerifyingDecomissioned('loading');
+    validateNonDecomissioned(name).then((res) => {
+      if (res === true) {
+        setVerifyingDecomissioned('success');
+        setOffBoardSvcAccountConfirmation(true);
+        setDeleteAccName(name);
+      } else {
+        setVerifyingDecomissioned('success');
+      }
+    });
   };
 
   const onServiceAccountEdit = (name) => {
-    history.push({
-      pathname: '/service-accounts/edit-service-accounts',
-      state: {
-        serviceAccountDetails: {
-          name,
-          isAdmin: admin,
-          isEdit: true,
-        },
-      },
+    setVerifyingDecomissioned('loading');
+    validateNonDecomissioned(name).then((res) => {
+      if (res === true) {
+        setVerifyingDecomissioned('success');
+        history.push({
+          pathname: '/service-accounts/edit-service-accounts',
+          state: {
+            serviceAccountDetails: {
+              name,
+              isAdmin: admin,
+              isEdit: true,
+            },
+          },
+        });
+      } else {
+        setVerifyingDecomissioned('success');
+      }
     });
   };
+
   /**
    * @function deleteServiceAccount
    * @description function is called when delete is clicked opening
    * the confirmation modal and setting the path.
    * @param {string} name service acc name to be deleted.
    */
-  const deleteServiceAccount = (owner) => {
+  const deleteServiceAccount = () => {
     const payload = {
       name: deleteAccName,
-      owner,
     };
     apiService
       .offBoardServiceAccount(payload)
@@ -419,6 +465,12 @@ const ServiceAccountDashboard = () => {
         setToastResponse(-1);
       });
   };
+
+  useEffect(() => {
+    if (offBoardDecomissionedSuccessfull) {
+      setOffboardDecomissionedConfirmation(true);
+    }
+  }, [offBoardDecomissionedSuccessfull]);
 
   useEffect(() => {
     if (offBoardSuccessfull) {
@@ -449,6 +501,32 @@ const ServiceAccountDashboard = () => {
       });
   };
 
+  const handleDecomissionedOffBoardSuccessful = () => {
+    setOffboardDecomissionedConfirmation(false);
+    setOffBoardDecomissionedSuccessfull(false);
+  };
+
+  const handleDecommissionedOffboardModalClose = () => {
+    setOffboardDecomissionedConfirmation(false);
+  };
+
+  const offBoardDecomissioned = (name) => {
+    setOffboardDecomissionedConfirmation(false);
+    setResponse({ status: 'loading' });
+    const payload = {
+      name,
+    };
+    apiService
+      .offBoardServiceAccount(payload)
+      .then(() => {
+        fetchData();
+        setOffBoardDecomissionedSuccessfull(true);
+      })
+      .catch(() => {
+        setToastResponse(-1);
+      });
+  };
+
   /**
    * @function handleSuccessfullConfirmation
    * @description function to handle the deletion successful modal.
@@ -471,8 +549,16 @@ const ServiceAccountDashboard = () => {
    * @description function open transfer owner modal.
    */
   const onTransferOwnerClicked = (name) => {
-    setTransferSvcAccountConfirmation(true);
-    setTransferName(name);
+    setVerifyingDecomissioned('loading');
+    validateNonDecomissioned(name).then((res) => {
+      if (res === true) {
+        setVerifyingDecomissioned('success');
+        setTransferSvcAccountConfirmation(true);
+        setTransferName(name);
+      } else {
+        setVerifyingDecomissioned('success');
+      }
+    });
   };
 
   /**
@@ -567,6 +653,14 @@ const ServiceAccountDashboard = () => {
           handleConfirmationModalClose={handleConfirmationModalClose}
           onServiceAccountOffBoard={onServiceAccountOffBoard}
         />
+        <OffboardDecomissionedConfirmationModal
+          offBoardSvcAccountConfirmation={offboardDecomissionedConfirmation}
+          offBoardSuccessfull={offBoardDecomissionedSuccessfull}
+          handleSuccessfullConfirmation={handleDecomissionedOffBoardSuccessful}
+          handleConfirmationModalClose={handleDecommissionedOffboardModalClose}
+          onServiceAccountOffBoard={offBoardDecomissioned}
+          itemDetail={listItemDetails}
+        />
         <TransferConfirmationModal
           transferSvcAccountConfirmation={transferSvcAccountConfirmation}
           onTransferOwnerCancelClicked={onTransferOwnerCancelClicked}
@@ -574,6 +668,9 @@ const ServiceAccountDashboard = () => {
           transferResponseDesc={transferResponseDesc}
           onTranferConfirmationClicked={onTranferConfirmationClicked}
         />
+        {verifyingDecomissioned === 'loading' && (
+          <BackdropLoader color="secondary" />
+        )}
         <SectionPreview title="service-account-section">
           <LeftColumnSection isAccountDetailsOpen={serviceAccountClicked}>
             <ColumnHeader>
@@ -693,6 +790,9 @@ const ServiceAccountDashboard = () => {
                       <AccountSelectionTabs
                         accountDetail={listItemDetails}
                         refresh={() => fetchData()}
+                        setOffboardDecomissionedConfirmation={
+                          setOffboardDecomissionedConfirmation
+                        }
                       />
                     }
                   />

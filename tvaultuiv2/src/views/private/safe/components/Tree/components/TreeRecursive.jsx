@@ -166,18 +166,17 @@ const TreeRecursive = (props) => {
           )}
 
           {[...item?.children, ...arr].length <= 1 &&
-          currentNode === item.id &&
-          userHavePermission?.type === 'write' ? (
-            <CreateSecretButton
-              onClick={(e) => setCreateSecretBox(e, item.value)}
-            />
-          ) : (
-            status.status !== 'loading' && (
+            currentNode === item.id &&
+            status.status !== 'loading' &&
+            (userHavePermission?.type === 'write' ? (
+              <CreateSecretButton
+                onClick={(e) => setCreateSecretBox(e, item.value)}
+              />
+            ) : (
               <NoSecretWrap>
                 <span>There are no secrets here!</span>
               </NoSecretWrap>
-            )
-          )}
+            ))}
         </Folder>
       );
     }
