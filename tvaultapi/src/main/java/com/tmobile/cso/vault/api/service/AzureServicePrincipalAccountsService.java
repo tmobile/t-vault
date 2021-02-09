@@ -150,7 +150,7 @@ public class AzureServicePrincipalAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, AzureServiceAccountConstants.AZURE_SVCACC_CREATION_TITLE)
-				.put(LogMessage.MESSAGE,String.format("Start trying to onboard an Azure Service Account [%s]",azureServiceAccount.getApplicationName()))
+				.put(LogMessage.MESSAGE,String.format("Start trying to onboard an Azure Service Account [%s]",azureServiceAccount.getServicePrincipalName()))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 				.build()));
 		if (!isAuthorizedForAzureOnboardAndOffboard(token)) {

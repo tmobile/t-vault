@@ -97,6 +97,12 @@ public class PolicyUtils {
 	 * @return
 	 */
 	public String[] getCurrentPolicies(String token, String username, UserDetails userDetails) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION,"getCurrentPolicies").
+				put(LogMessage.MESSAGE, "Start trying to Get the latest policies from Vault for the given user").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		Response userResponse = new Response();
 		String[] policies = {};
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
@@ -129,6 +135,12 @@ public class PolicyUtils {
 					      build()));			
 			}
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION,"getCurrentPolicies").
+				put(LogMessage.MESSAGE, "Latest policies fetching from Vault for the given user is completed").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		return policies;
 	}
 

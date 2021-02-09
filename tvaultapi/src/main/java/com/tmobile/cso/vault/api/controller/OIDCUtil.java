@@ -160,6 +160,12 @@ public class OIDCUtil {
 	 */
 	public Response updateGroupPolicies(String token, String groupName, List<String> policies,
 			List<String> currentPolicies, String id) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "updateGroupPolicies").
+				put(LogMessage.MESSAGE,"Start updating group policies.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 
 		OIDCIdentityGroupRequest oidcIdentityGroupRequest = new OIDCIdentityGroupRequest();
 		oidcIdentityGroupRequest.setName(groupName);
@@ -210,6 +216,12 @@ public class OIDCUtil {
 	 * @return
 	 */
 	public OIDCGroup getIdentityGroupDetails(String groupName, String token) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "getIdentityGroupDetails").
+				put(LogMessage.MESSAGE,"Start to get identity group details.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		Response response = reqProcessor.process("/identity/group/name", "{\"group\":\""+groupName+"\"}", token);
 		if(HttpStatus.OK.equals(response.getHttpstatus())) {
 			String responseJson = response.getResponse();
@@ -458,6 +470,12 @@ public class OIDCUtil {
 	 * @return
 	 */
 	public ResponseEntity<OIDCEntityResponse> oidcFetchEntityDetails(String token, String username, UserDetails userDetails, boolean isPolicyUpdate) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION,"oidcFetchEntityDetails").
+				put(LogMessage.MESSAGE, "Start trying to  fetch OIDC entity details").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		String mountAccessor = fetchMountAccessorForOidc(token);
 		if (!StringUtils.isEmpty(mountAccessor)) {
 			// Get user details from GSM
@@ -579,6 +597,12 @@ public class OIDCUtil {
 	 * @return
 	 */
 	public Response updateOIDCEntity(List<String> policies, String entityName) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION,"updateOIDCEntity").
+				put(LogMessage.MESSAGE, "Start trying to update Entity by name").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		OIDCEntityRequest oidcEntityRequest = new OIDCEntityRequest();
 		oidcEntityRequest.setPolicies(policies);
 		oidcEntityRequest.setDisabled(Boolean.FALSE);
