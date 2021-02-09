@@ -81,7 +81,11 @@ const useStyles = makeStyles(() => ({
 }));
 
 const AccountSelectionTabs = (props) => {
-  const { accountDetail, refresh } = props;
+  const {
+    accountDetail,
+    refresh,
+    setOffboardDecomissionedConfirmation,
+  } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
   const [response, setResponse] = useState({ status: 'loading' });
@@ -119,6 +123,9 @@ const AccountSelectionTabs = (props) => {
           }
         })
         .catch((err) => {
+          if (err?.response?.status === 404) {
+            setOffboardDecomissionedConfirmation(true);
+          }
           if (
             err?.response &&
             err.response.data?.errors &&
@@ -131,7 +138,7 @@ const AccountSelectionTabs = (props) => {
     } else {
       setSecretResStatus({ status: 'no-permission' });
     }
-  }, [accountDetail]);
+  }, [accountDetail, setOffboardDecomissionedConfirmation]);
 
   const getServiceListMetaData = () => {
     return apiService
@@ -249,6 +256,7 @@ const AccountSelectionTabs = (props) => {
 AccountSelectionTabs.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any),
   refresh: PropTypes.func.isRequired,
+  setOffboardDecomissionedConfirmation: PropTypes.func.isRequired,
 };
 AccountSelectionTabs.defaultProps = {
   accountDetail: {},
