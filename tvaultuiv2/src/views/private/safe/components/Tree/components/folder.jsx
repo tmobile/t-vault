@@ -41,7 +41,6 @@ const StyledFolder = styled.div`
     align-items: center;
     justify-content: space-between;
     padding: ${(props) => props.padding || '0'};
-
     span {
       margin-left: 0.5rem;
     }
@@ -109,8 +108,6 @@ const Folder = (props) => {
     children,
     value,
     onFolderClosed,
-    handleToggleBool,
-    setHandleToggleBool,
     setOnFolderClosed,
     setInputType,
     setIsAddInput,
@@ -124,13 +121,12 @@ const Folder = (props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSecrets, setActiveSecrets] = useState([]);
 
-  const handleToggle = (loader = true) => {
+  const handleToggle = (e) => {
+    e.preventDefault();
     setIsOpen(!isOpen);
     setCurrentNode(id);
     setOnFolderClosed(!isOpen);
-    if (loader) {
-      if (!isOpen) getChildNodes(id);
-    } else if (!isOpen) getChildNodes(id, undefined, undefined, false);
+    if (!isOpen) getChildNodes(id);
   };
 
   useEffect(() => {
@@ -139,22 +135,13 @@ const Folder = (props) => {
     }
   }, [onFolderClosed]);
 
-  useEffect(() => {
-    if (handleToggleBool) {
-      handleToggle(false);
-      setHandleToggleBool(false);
-    }
-  }, [handleToggleBool, setHandleToggleBool]);
-
   useEffect(() => setIsOpen(false), [value]);
 
   const handlePopperClick = (e, type) => {
     getChildNodes(id, undefined, undefined, false);
     setInputType(type);
     setIsAddInput(e);
-    if (isOpen) {
-      handleToggle(false);
-    }
+    setIsOpen(e);
   };
 
   const handleActiveSecrets = (folder) => {
@@ -169,7 +156,6 @@ const Folder = (props) => {
   // delete folder
   const deleteNode = (treeItem) => {
     onDeleteTreeItem(treeItem);
-    setHandleToggleBool(true);
   };
 
   return (
@@ -182,7 +168,7 @@ const Folder = (props) => {
           active={activeSecrets.includes(labelValue)}
         >
           <div role="button" className="folder--label" tabIndex={0}>
-            <LabelWrap onClick={() => handleToggle()}>
+            <LabelWrap onClick={(e) => handleToggle(e)}>
               {isOpen ? <ExpandMoreIcon /> : <ChevronRightIcon />}
 
               {isOpen ? (
@@ -264,8 +250,6 @@ Folder.propTypes = {
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
   onFolderClosed: PropTypes.bool,
   setOnFolderClosed: PropTypes.func.isRequired,
-  handleToggleBool: PropTypes.bool.isRequired,
-  setHandleToggleBool: PropTypes.func.isRequired,
 };
 Folder.defaultProps = {
   folderInfo: {},
@@ -276,7 +260,7 @@ Folder.defaultProps = {
   onDeleteTreeItem: () => {},
   setCurrentNode: () => {},
   id: '',
-  onFolderClosed: false,
+  onFolderClosed: true,
 };
 
 export default Folder;
