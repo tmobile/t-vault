@@ -124,11 +124,13 @@ const Folder = (props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSecrets, setActiveSecrets] = useState([]);
 
-  const handleToggle = () => {
+  const handleToggle = (loader = true) => {
     setIsOpen(!isOpen);
     setCurrentNode(id);
     setOnFolderClosed(!isOpen);
-    if (!isOpen) getChildNodes(id);
+    if (loader) {
+      if (!isOpen) getChildNodes(id);
+    } else if (!isOpen) getChildNodes(id, undefined, undefined, false);
   };
 
   useEffect(() => {
@@ -139,7 +141,7 @@ const Folder = (props) => {
 
   useEffect(() => {
     if (handleToggleBool) {
-      handleToggle();
+      handleToggle(false);
       setHandleToggleBool(false);
     }
   }, [handleToggleBool, setHandleToggleBool]);
@@ -150,7 +152,9 @@ const Folder = (props) => {
     getChildNodes(id, undefined, undefined, false);
     setInputType(type);
     setIsAddInput(e);
-    handleToggle();
+    if (isOpen) {
+      handleToggle(false);
+    }
   };
 
   const handleActiveSecrets = (folder) => {
