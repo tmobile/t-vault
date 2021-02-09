@@ -582,6 +582,12 @@ public final class ControllerUtil {
 		return reqProcessor.process("/auth/userpass/updatepolicy",userpassUserConfigJson,token);
 	}
 	public static Response configureLDAPGroup(String groupName,String policies,String token ){
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "configureLDAPGroup").
+				put(LogMessage.MESSAGE, "Trying to configure LDAP group.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String>configureGrouMap = new HashMap<String,String>();
 		configureGrouMap.put("groupname", groupName);
@@ -796,6 +802,12 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static Response updateMetadataOnSvcUpdate(String path, ServiceAccount serviceAccount, String token) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.ACTION, "updateMetadataOnSvcUpdate").
+				put(LogMessage.MESSAGE, "Trying to update metadata on AD service account update.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				build()));
 		String _path = METADATASTR + path;
 		ObjectMapper objMapper = new ObjectMapper();
 		String pathjson =PATHSTR+_path+"\"}";
@@ -1057,7 +1069,7 @@ public final class ControllerUtil {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "getPoliciesAsListFromJson").
-				put(LogMessage.MESSAGE, "Start fetching policies").
+				put(LogMessage.MESSAGE, "Start fetching policies as list.").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 		List<String> currentpolicies = new ArrayList<>();
@@ -1072,6 +1084,12 @@ public final class ControllerUtil {
 		else {
 			currentpolicies.add(policiesNode.asText());
 		}
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "getPoliciesAsListFromJson").
+				put(LogMessage.MESSAGE, "Fetched policies as list").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		return currentpolicies;
 	}
 
