@@ -261,7 +261,7 @@ Folder.defaultProps = {
   onDeleteTreeItem: () => {},
   setCurrentNode: () => {},
   id: '',
-  onFolderClosed: true,
+  onFolderClosed: false,
 };
 
 export default Folder;

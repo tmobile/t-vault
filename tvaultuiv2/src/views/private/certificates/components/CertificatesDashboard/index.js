@@ -498,7 +498,6 @@ const CertificatesDashboard = () => {
    */
   const onSearchChange = (value) => {
     if (value !== '') {
-      setCertificateType('All Certificates');
       const searchArray = allCertList.filter((item) =>
         item?.certificateName
           ?.toLowerCase()
@@ -514,12 +513,7 @@ const CertificatesDashboard = () => {
 
   // when both search and filter value is available.
   useEffect(() => {
-    if (certificateType !== 'All Certificates' && inputSearchValue) {
-      const array = certificateList.filter((cert) =>
-        cert?.certificateName?.includes(inputSearchValue?.toLowerCase().trim())
-      );
-      setCertificateList([...array]);
-    } else if (certificateType === 'All Certificates' && inputSearchValue) {
+    if (inputSearchValue) {
       onSearchChange(inputSearchValue);
     } else if (inputSearchValue === '') {
       onSelectChange(certificateType);
