@@ -53,6 +53,7 @@ const TreeRecursive = (props) => {
   const [currentNode, setCurrentNode] = useState('');
   const [secretEditData, setsecretEditData] = useState({});
   const [onFolderClosed, setOnFolderClosed] = useState(false);
+  const [handleToggleBool, setHandleToggleBool] = useState(false);
   // loop through the data
   useEffect(() => {
     setsecretEditData(secretprefilledData);
@@ -78,6 +79,7 @@ const TreeRecursive = (props) => {
           parentId={item.parentId}
           setSecretprefilledData={setSecretprefilledData}
           type={item.type}
+          setHandleToggleBool={setHandleToggleBool}
           setIsAddInput={setIsAddInput}
           setInputType={setInputType}
           onDeleteTreeItem={onDeleteTreeItem}
@@ -94,6 +96,8 @@ const TreeRecursive = (props) => {
           setInputType={setInputType}
           value={value}
           onFolderClosed={onFolderIsClosed}
+          handleToggleBool={handleToggleBool}
+          setHandleToggleBool={setHandleToggleBool}
           setOnFolderClosed={setOnFolderClosed}
           setIsAddInput={setIsAddInput}
           getChildNodes={getChildrenData}

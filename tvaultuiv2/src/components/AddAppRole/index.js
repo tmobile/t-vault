@@ -170,6 +170,19 @@ const AddAppRole = (props) => {
           setDisabledSave(false);
         }
         setExistingRole(false);
+      } else if (!roles) {
+        if (editClicked) {
+          if (access === radioValue) {
+            setDisabledSave(true);
+          } else {
+            setDisabledSave(false);
+          }
+        } else if (selectedValue === '' || menu.length === 0) {
+          setDisabledSave(true);
+        } else {
+          setDisabledSave(false);
+        }
+        setExistingRole(false);
       } else {
         setDisabledSave(true);
         setExistingRole(true);
