@@ -157,7 +157,6 @@ const AddAppRole = (props) => {
 
   useEffect(() => {
     if (selectedValue) {
-      console.log(selectedValue, roles);
       if (roles && !Object.keys(roles).includes(selectedValue.toLowerCase())) {
         if (editClicked) {
           if (access === radioValue) {
