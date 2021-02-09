@@ -56,9 +56,7 @@ public class WorkloadDetailsController {
 	 */
 	@ApiOperation(value = "${WorkloadDetailsController.getApprolesFromCwm.appname.value}", notes = "${WorkloadDetailsController.getApprolesFromCwm.appname.notes}")
 	@GetMapping(value="/v2/serviceaccounts/cwm/appdetails/appname", produces="application/json")
-	public ResponseEntity<String> getWorkloadDetailsByAPIName(HttpServletRequest request,
-															  @RequestHeader(value="vault-token") String token, @RequestParam(
-			"appName" ) String appName){
+	public ResponseEntity<String> getWorkloadDetailsByAPIName(HttpServletRequest request,@RequestHeader(value="vault-token") String token, @RequestParam("appName" ) String appName){
 		return workloadDetailsService.getWorkloadDetailsByAppName(appName);
 	}
 }
