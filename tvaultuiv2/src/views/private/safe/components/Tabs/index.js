@@ -281,7 +281,6 @@ const SelectionTabs = (props) => {
               getSecretDetails={getSecretDetails}
             />
           </TabPanel>
-
           <TabPanel value={value} index={1}>
             <Permissions
               safeDetail={safeDetail}
@@ -290,6 +289,7 @@ const SelectionTabs = (props) => {
               safePermissionData={safePermissionData}
               fetchPermission={fetchPermission}
               userDetails={userDetails}
+              selectedParentTab={value}
             />
           </TabPanel>
           {toastResponse === -1 && (

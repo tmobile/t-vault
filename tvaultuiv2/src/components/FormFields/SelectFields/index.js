@@ -42,6 +42,7 @@ const SelectOption = styled.ul`
   width: 100%;
   z-index: 2;
   box-shadow: 0px 1px 3px;
+  ${(props) => props.extraCss}
 `;
 
 const CustomSelectOtion = styled.li`
@@ -59,7 +60,7 @@ const CustomSelectOtion = styled.li`
 `;
 
 const SelectComponent = (props) => {
-  const { menu, onChange, value, readOnly, filledText } = props;
+  const { menu, onChange, value, readOnly, filledText, extraSelectCss } = props;
   const [showOptionList, setShowOptionList] = useState(false);
 
   const handleListDisplay = () => {
@@ -79,7 +80,7 @@ const SelectComponent = (props) => {
           {value === '' ? filledText : value}
         </SelectField>
         {showOptionList && (
-          <SelectOption>
+          <SelectOption extraCss={extraSelectCss}>
             {menu.map((option) => {
               return (
                 <CustomSelectOtion
@@ -107,11 +108,13 @@ SelectComponent.propTypes = {
   menu: PropTypes.arrayOf(PropTypes.any).isRequired,
   readOnly: PropTypes.bool,
   filledText: PropTypes.string,
+  extraSelectCss: PropTypes.arrayOf(PropTypes.any),
 };
 
 SelectComponent.defaultProps = {
   readOnly: false,
   filledText: '',
+  extraSelectCss: [],
 };
 
 export default SelectComponent;

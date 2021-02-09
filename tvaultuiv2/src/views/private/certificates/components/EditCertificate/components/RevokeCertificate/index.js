@@ -129,7 +129,9 @@ const RevokeCertificate = (props) => {
                 value={selectedValue}
                 menu={revokeMenu}
                 filledText="Select revocation reason"
-                handleChange={(e) => setSelectedValue(e.target.value)}
+                onChange={(e) => {
+                  setSelectedValue(e);
+                }}
               />
             </SelectFieldWrap>
 

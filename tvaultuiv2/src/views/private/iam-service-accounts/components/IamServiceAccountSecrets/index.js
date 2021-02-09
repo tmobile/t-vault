@@ -75,7 +75,7 @@ const SecretInputfield = styled.input`
   color: #5a637a;
   word-break: break-all;
   margin: 0px 1rem;
-  width: 55%;
+  width: 50%;
   text-align: center;
   ${mediaBreakpoints.semiMedium} {
     width: 100%;
@@ -457,6 +457,7 @@ const IamServiceAccountSecrets = (props) => {
           </>
         )}
         {response.status === 'success' &&
+          accountDetail?.permission !== 'deny' &&
           Object.keys(secretsData).length > 0 &&
           accountDetail.name && (
             <UserList>

@@ -158,7 +158,7 @@ const AzureSelectionTabs = (props) => {
               setSecretResponse({
                 status: 'error',
                 message:
-                  'Access denied: no permission to read the password details for the given service account',
+                  'Access Denied: No permission to read or rotate secret for Azure service principal',
               });
             } else if (
               err?.response?.data?.errors &&
@@ -227,6 +227,7 @@ const AzureSelectionTabs = (props) => {
               refresh={() => getAzureServiceAllDetails()}
               permissionResponse={permissionResponse}
               azureDetail={azureDetail}
+              selectedParentTab={value}
             />
           </TabPanel>
         </TabContentsWrap>

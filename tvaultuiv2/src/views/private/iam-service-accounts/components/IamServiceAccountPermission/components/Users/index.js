@@ -48,6 +48,7 @@ const Users = (props) => {
     refresh,
     userDetails,
     permissionResponse,
+    selectedParentTab,
   } = props;
 
   const [editUser, setEditUser] = useState('');
@@ -199,6 +200,13 @@ const Users = (props) => {
     setResponse({ status: 'edit' });
   };
 
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      onCancelClicked();
+    }
+    // eslint-disable-next-line
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
       <>
@@ -279,5 +287,6 @@ Users.propTypes = {
   refresh: PropTypes.func.isRequired,
   userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
   permissionResponse: PropTypes.string.isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 export default Users;

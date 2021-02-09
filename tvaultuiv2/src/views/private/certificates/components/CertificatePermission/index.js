@@ -24,6 +24,7 @@ const CertificatePermission = (props) => {
     fetchDetail,
     username,
     userDetails,
+    selectedParentTab,
   } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
@@ -70,6 +71,12 @@ const CertificatePermission = (props) => {
   useEffect(() => {
     setValue(0);
   }, [certificateMetaData]);
+
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      setValue(0);
+    }
+  }, [selectedParentTab]);
 
   const onAddLabelBtnClicked = () => {
     Object.keys(initialObject).map((item) => {
@@ -120,6 +127,7 @@ const CertificatePermission = (props) => {
                   updateToastMessage(res, message)
                 }
                 userDetails={userDetails}
+                selectedParentTab={selectedParentTab}
               />
             </TabPanel>
             <TabPanel value={value} index={1}>
@@ -133,6 +141,7 @@ const CertificatePermission = (props) => {
                 updateToastMessage={(res, message) =>
                   updateToastMessage(res, message)
                 }
+                selectedParentTab={selectedParentTab}
               />
             </TabPanel>
             <TabPanel value={value} index={2}>
@@ -146,6 +155,7 @@ const CertificatePermission = (props) => {
                 updateToastMessage={(res, message) =>
                   updateToastMessage(res, message)
                 }
+                selectedParentTab={selectedParentTab}
               />
             </TabPanel>
             <TabPanel value={value} index={3}>
@@ -159,6 +169,7 @@ const CertificatePermission = (props) => {
                 updateToastMessage={(res, message) =>
                   updateToastMessage(res, message)
                 }
+                selectedParentTab={selectedParentTab}
               />
             </TabPanel>
           </PermissionTabsWrapper>
@@ -190,6 +201,7 @@ CertificatePermission.propTypes = {
   responseStatus: PropTypes.string.isRequired,
   username: PropTypes.string.isRequired,
   userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 
 export default CertificatePermission;
