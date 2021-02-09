@@ -2122,18 +2122,21 @@ public class  SafesService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+permissionResponse.getResponse()+"\"]}");
 		}
 
+		String folders[] = path.split("[/]+");
+		String policyPostfix = folders[0].toLowerCase() + "_" + folders[1];
+
 		String readPolicy = new StringBuilder()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
-				.append(path).toString();
+				.append(policyPostfix).toString();
 		String writePolicy = new StringBuilder()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
-				.append(path).toString();
+				.append(policyPostfix).toString();
 		String denyPolicy = new StringBuilder()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
-				.append(path).toString();
+				.append(policyPostfix).toString();
 		String ownerPolicy = new StringBuilder()
 				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
-				.append(path).toString();
+				.append(policyPostfix).toString();
 
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
