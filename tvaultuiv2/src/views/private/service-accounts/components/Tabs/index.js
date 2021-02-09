@@ -144,7 +144,7 @@ const AccountSelectionTabs = (props) => {
     return apiService
       .fetchServiceAccountDetails(accountDetail.name)
       .then((res) => {
-        if (res.data.data.values && res.data.data.values[0]) {
+        if (res?.data?.data?.values && res?.data?.data?.values[0]) {
           return res.data.data.values[0].owner;
         }
         return '';

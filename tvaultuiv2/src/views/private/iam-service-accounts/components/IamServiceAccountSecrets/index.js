@@ -457,6 +457,7 @@ const IamServiceAccountSecrets = (props) => {
           </>
         )}
         {response.status === 'success' &&
+          accountDetail?.permission !== 'deny' &&
           Object.keys(secretsData).length > 0 &&
           accountDetail.name && (
             <UserList>
