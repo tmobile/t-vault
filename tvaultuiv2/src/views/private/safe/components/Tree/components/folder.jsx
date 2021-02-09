@@ -150,7 +150,8 @@ const Folder = (props) => {
     getChildNodes(id, undefined, undefined, false);
     setInputType(type);
     setIsAddInput(e);
-    handleToggle();
+    setIsOpen(true);
+    setHandleToggleBool(true);
   };
 
   const handleActiveSecrets = (folder) => {
