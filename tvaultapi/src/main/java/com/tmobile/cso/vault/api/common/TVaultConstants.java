@@ -183,7 +183,10 @@ public class TVaultConstants {
     public static final String CREATE_ACTION = "create";
     public static final String UPDATE_ACTION = "update";
     public static final String DELETE_FOLDER_ACTION = "delete";
+    public static final String AUTH_TYPE = "auth_type";
 
-
-
+    public static final String OTHER_APPNAME = "other";
+    public static final String OTHER_APPNAME_VALUE = "Other";
+    public static final String VALIDATE_APPNAME = "Start validating Appname for safe";
+    
 }

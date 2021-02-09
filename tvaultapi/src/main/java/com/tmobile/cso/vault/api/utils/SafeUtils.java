@@ -39,7 +39,6 @@ import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.process.Response;
-import sun.swing.StringUIClientPropertyKey;
 
 @Component
 public class SafeUtils {
@@ -107,6 +106,12 @@ public class SafeUtils {
 	 * @return
 	 */
 	public boolean canAddOrRemoveUser(UserDetails userDetails, SafeUser safeUser, String action) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "canAddOrRemoveUser").
+				put(LogMessage.MESSAGE,"Start exceuting canAddOrRemoveUser.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		String token = userDetails.getSelfSupportToken();
 		String path = safeUser.getPath();
 		String safeType = ControllerUtil.getSafeType(path);
@@ -132,6 +137,7 @@ public class SafeUtils {
 			boolean isNonAdmin = checkForNonAdmin(safeOwnerid,safeUser,action,userDetails);			
 			return isNonAdmin;			
 		}
+		
 	}
 	/**
 	 * Gets the metadata associated with a given safe, requires an AppRole token which can perform this operation
@@ -146,7 +152,7 @@ public class SafeUtils {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "Get Info").
-				put(LogMessage.MESSAGE, String.format ("Trying to get Info for [%s]", metaDataPath)).
+				put(LogMessage.MESSAGE, String.format ("Start trying to get metadata info for [%s]", metaDataPath)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 		// Elevation is required in case user does not have access to the path.
@@ -170,7 +176,7 @@ public class SafeUtils {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "Get Info").
-				put(LogMessage.MESSAGE, "Getting Info completed").
+				put(LogMessage.MESSAGE, "Getting Metadata info completed").
 				put(LogMessage.STATUS, response != null ? response.getHttpstatus().toString() : "").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));

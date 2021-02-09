@@ -163,7 +163,7 @@ public class SSLCertificateController {
 	 * @return
 	 * @throws Exception
 	 */
-	@ApiOperation(value = "${CertificateController.getTargetSystemServiceList.value}", notes = "${CertificateController.getTargetSystemServiceList.value}")
+	@ApiOperation(value = "${CertificateController.getTargetSystemServiceList.value}", notes = "${CertificateController.getTargetSystemServiceList.notes}")
 	@GetMapping(value = "/v2/sslcert/targetsystems/{targetsystem_id}/targetsystemservices", produces = "application/json")
 	public ResponseEntity<String> getTargetSystemServiceList(HttpServletRequest request, @RequestHeader(value = "vault-token") String token, @PathVariable("targetsystem_id") String targetSystemId) throws Exception {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
@@ -562,6 +562,19 @@ public class SSLCertificateController {
 			"vault-token") String token,@Valid @RequestBody CertificateUpdateRequest certificateUpdateRequest)  {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.updateSSLCertificate(certificateUpdateRequest,userDetails,token);
+	}
+	/**
+	 * To save application details for all the existing certificates
+	 * @param request
+	 * @param token
+	 * @return
+	 */	
+	@ApiOperation(value = "${SSLCertificateController.saveappdetails.value}", notes = "${SSLCertificateController.saveappdetails.notes}")
+	@GetMapping(value = "/v2/sslcert/saveAppDetails", produces = "application/json")
+	public ResponseEntity<String> saveAppDetailsfForOlderCerts(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token)  { 
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateService.saveAllAppDetailsForOldCerts(token, userDetails);
 	}
 
 }

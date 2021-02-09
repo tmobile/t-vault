@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -105,6 +106,15 @@ public class  AWSAuthService {
 	 * @return
 	 */
 	public ResponseEntity<String> createRole(String token, AWSLoginRole awsLoginRole, UserDetails userDetails) throws TVaultValidationException{
+		if(!StringUtils.isEmpty(awsLoginRole.getPolicies())) {
+			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "Checking whether policy is added as an input param for create AWS role").
+					put(LogMessage.MESSAGE, String.format("Trying to create AWS Role [%s]", awsLoginRole.getRole())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Policies are not permitted during role creation.\"]}");
+		}
 		if (!ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)) {
 			throw new TVaultValidationException("Invalid inputs for the given AWS login type");
 		}
@@ -445,6 +455,12 @@ public class  AWSAuthService {
 	 * @return
 	 */
 	public Response configureAWSRole(String roleName,String policies,String token ){
+		logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "configureAWSRole")
+				.put(LogMessage.MESSAGE,
+						String.format("Trying to configure AWS EC2 Role [%s] with Azure Service Account.", roleName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String>configureRoleMap = new HashMap<>();
 		configureRoleMap.put("role", roleName);
@@ -455,7 +471,7 @@ public class  AWSAuthService {
 			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "configureAWSIAMRole").
-					put(LogMessage.MESSAGE, String.format("AWS EC2 Role [%s] successfully associated with Azure Service Account with policies [%s].",roleName,policies)).
+					put(LogMessage.MESSAGE, String.format("AWS EC2 Role [%s] successfully associated with policies [%s].",roleName,policies)).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 		} catch (JsonProcessingException e) {

@@ -63,6 +63,12 @@ public class AzureServiceAccountUtils {
      * @throws IOException
      */
     public List<String> getTokenPoliciesAsListFromTokenLookupJson(ObjectMapper objMapper, String policyJson) throws IOException{
+    	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "getTokenPoliciesAsListFromTokenLookupJson")
+				.put(LogMessage.MESSAGE,"Start trying to get policies as list from TokenLookupJson" )
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
         List<String> currentpolicies = new ArrayList<>();
         JsonNode policiesNode = objMapper.readTree(policyJson).get("policies");
         if (null != policiesNode ) {
@@ -77,6 +83,12 @@ public class AzureServiceAccountUtils {
                 currentpolicies.add(policiesNode.asText());
             }
         }
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String> builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "getTokenPoliciesAsListFromTokenLookupJson")
+				.put(LogMessage.MESSAGE,"got policies as list from TokenLookupJson" )
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+				.build()));
         return currentpolicies;
     }
 

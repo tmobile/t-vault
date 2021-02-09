@@ -128,7 +128,12 @@ public class  IAMServiceAccountsService {
 	 */
 	public ResponseEntity<String> onboardIAMServiceAccount(String token, IAMServiceAccount iamServiceAccount,
 			UserDetails userDetails) {
-
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
+				.put(LogMessage.MESSAGE,
+						String.format("Trying to onboard IAM Service Account [%s]", iamServiceAccount.getUserName()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		if (!isAuthorizedForIAMOnboardAndOffboard(token)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -157,6 +162,13 @@ public class  IAMServiceAccountsService {
 
 		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = constructIAMSvcAccMetaData(
 				iamServiceAccount);
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
+				.put(LogMessage.MESSAGE,
+						String.format("Successfully populated Metadata for the IAM Service Account [%s]",
+								iamSvcAccName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
 		// Create Metadata
 		ResponseEntity<String> metadataCreationResponse = createIAMSvcAccMetadata(token,
@@ -331,7 +343,14 @@ public class  IAMServiceAccountsService {
 	 * @return
 	 */
 	private ResponseEntity<String> rollBackIAMOnboardOnFailure(IAMServiceAccount iamServiceAccount,
-				String iamSvcAccName, String onAction) {
+				String iamSvcAccName, String onAction) {	
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "rollBackIAMOnboardOnFailure")
+				.put(LogMessage.MESSAGE,
+						String.format("Trying to rollback IAM Service Account [%s]", iamServiceAccount.getUserName()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		
 		//Delete the IAM Service account policies
 		deleteIAMServiceAccountPolicies(tokenUtils.getSelfServiceToken(), iamSvcAccName);
 		//Deleting the IAM service account metadata
@@ -469,6 +488,14 @@ public class  IAMServiceAccountsService {
 	private IAMServiceAccountMetadataDetails constructIAMSvcAccMetaData(IAMServiceAccount iamServiceAccount) {
 
 		IAMServiceAccountMetadataDetails iamServiceAccountMetadataDetails = new IAMServiceAccountMetadataDetails();
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "constructIAMSvcAccMetaData")
+				.put(LogMessage.MESSAGE,
+						String.format("Trying to populate metadata details for the IAM Service Account [%s]",
+								iamServiceAccount.getUserName()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 		List<IAMSecretsMetadata> iamSecretsMetadatas = new ArrayList<>();
 		iamServiceAccountMetadataDetails.setUserName(iamServiceAccount.getUserName());
 		iamServiceAccountMetadataDetails.setAwsAccountId(iamServiceAccount.getAwsAccountId());
@@ -499,6 +526,13 @@ public class  IAMServiceAccountsService {
 	private boolean deleteIAMServiceAccountPolicies(String token, String iamSvcAccName) {
 		int succssCount = 0;
 		boolean allPoliciesDeleted = false;
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "deleteIAMServiceAccountPolicies")
+				.put(LogMessage.MESSAGE,
+						String.format("Trying to remove policies for IAM service account [%s]", iamSvcAccName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		
 		for (String policyPrefix : TVaultConstants.getSvcAccPolicies().keySet()) {
 			String accessId = new StringBuffer().append(policyPrefix).append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccName).toString();
 			ResponseEntity<String> policyDeleteStatus = accessService.deletePolicyInfo(token, accessId);
@@ -590,6 +624,11 @@ public class  IAMServiceAccountsService {
 	private ResponseEntity<String> deleteIAMSvcAccount(String token, OnboardedIAMServiceAccount iamServiceAccount) {
 		String iamSvcAccName = iamServiceAccount.getAwsAccountId() + "_" + iamServiceAccount.getUserName();
 		String iamSvcAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_META_PATH + iamSvcAccName;
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "deleteIAMSvcAccount")
+				.put(LogMessage.MESSAGE, String.format("Trying to delete IAM service account [%s]", iamSvcAccName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		Response onboardingResponse = reqProcessor.process(DELETEPATH, PATHSTR + iamSvcAccPath + "\"}", token);
 
 		if (onboardingResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)
@@ -754,6 +793,11 @@ public class  IAMServiceAccountsService {
 			token = tokenUtils.getSelfServiceToken();
 		}
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountGroup.getAccess())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_GROUP_TO_IAMSVCACC_MSG)
+					.put(LogMessage.MESSAGE, "Access denied. Not authorized to add Group to the IAM Service Accounts.")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(INVALIDVALUEERROR);
 		}
@@ -762,6 +806,11 @@ public class  IAMServiceAccountsService {
 		}
 
 		if (TVaultConstants.USERPASS.equals(vaultAuthMethod)) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_GROUP_TO_IAMSVCACC_MSG)
+					.put(LogMessage.MESSAGE, "Access Denied: This operation is not supported for Userpass authentication.")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body("{\"errors\":[\"This operation is not supported for Userpass authentication. \"]}");
 		}
@@ -790,6 +839,15 @@ public class  IAMServiceAccountsService {
 			return processAndAddGroupPoliciesToIAMSvcAcc(token, userDetails, oidcGroup, iamServiceAccountGroup,
 					iamSvcAccountName);
 		} else {
+			
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_GROUP_TO_IAMSVCACC_MSG)
+					.put(LogMessage.MESSAGE,
+							String.format("Access denied: No permission to add groups to this IAM service account [%s]",
+									iamSvcAccountName))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body("{\"errors\":[\"Access denied: No permission to add groups to this IAM service account\"]}");
 		}
@@ -1040,10 +1098,16 @@ public class  IAMServiceAccountsService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_USER_TO_IAMSVCACC_MSG)
-				.put(LogMessage.MESSAGE, String.format("Trying to add user to ServiceAccount [%s]", iamServiceAccountUser.getIamSvcAccName()))
+				.put(LogMessage.MESSAGE, String.format("Trying to add user to Service Account [%s]", iamServiceAccountUser.getIamSvcAccName()))
 				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountUser.getAccess())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_USER_TO_IAMSVCACC_MSG)
+					.put(LogMessage.MESSAGE, "Access denied. Not authorized to add user to the IAM Service Accounts.")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(INVALIDVALUEERROR);
 		}
@@ -1415,6 +1479,13 @@ public class  IAMServiceAccountsService {
 	private boolean isIAMSvcaccActivated(String token, UserDetails userDetails, String iamSvcAccName) {
 		String iamAccPath = IAMServiceAccountConstants.IAM_SVCC_ACC_PATH + iamSvcAccName;
 		boolean activationStatus = false;
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "isIAMSvcaccActivated")
+				.put(LogMessage.MESSAGE,
+						String.format("Trying to check IAM Service Account is activated [%s]", iamSvcAccName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 		Response metaResponse = getMetadata(token, userDetails, iamAccPath);
 		if (metaResponse != null && HttpStatus.OK.equals(metaResponse.getHttpstatus())) {
 			try {
@@ -1662,10 +1733,26 @@ public class  IAMServiceAccountsService {
 	public ResponseEntity<String> removeUserFromIAMServiceAccount(String token, IAMServiceAccountUser iamServiceAccountUser, UserDetails userDetails) {
 		iamServiceAccountUser.setIamSvcAccName(iamServiceAccountUser.getIamSvcAccName().toLowerCase());
 		OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_USER_FROM_IAMSVCACC_MSG)
+				.put(LogMessage.MESSAGE,
+						String.format("Trying to remove user from Service Account [%s]",
+								iamServiceAccountUser.getIamSvcAccName()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		
 		if (!userDetails.isAdmin()) {
             token = tokenUtils.getSelfServiceToken();
         }
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountUser.getAccess())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_USER_FROM_IAMSVCACC_MSG)
+					.put(LogMessage.MESSAGE,
+							"Access denied. Not authorized to remove user from the IAM Service Accounts.")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(INVALIDVALUEERROR);
 		}
@@ -1968,7 +2055,13 @@ public class  IAMServiceAccountsService {
         }
 
         if (!isIamSvcaccPermissionInputValid(iamServiceAccountGroup.getAccess())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        	log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+        			.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+        			.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_GROUP_FROM_IAMSVCACC_MSG)
+        			.put(LogMessage.MESSAGE, "Access denied. Not authorized to remove Group from the IAM Service Accounts.")
+        			.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
+        	return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountGroup.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
@@ -2363,6 +2456,13 @@ public class  IAMServiceAccountsService {
 			token = tokenUtils.getSelfServiceToken();
 		}
 		if (!isIamSvcaccPermissionInputValid(iamServiceAccountApprole.getAccess())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_APPROLE_TO_IAMSVCACC_MSG)
+					.put(LogMessage.MESSAGE,
+							"Access denied. Not authorized to add Approle to the IAM Service Accounts.")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(INVALIDVALUEERROR);
 		}
@@ -2537,10 +2637,22 @@ public class  IAMServiceAccountsService {
 							.body("{\"errors\":[\"Approle configuration failed. Contact Admin \"]}");
 				}
 			} else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_APPROLE_TO_IAMSVCACC_MSG)
+						.put(LogMessage.MESSAGE, "Failed to add Approle to the IAM Service Account.")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body("{\"errors\":[\"Failed to add Approle to the IAM Service Account\"]}");
 			}
 		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_APPROLE_TO_IAMSVCACC_MSG)
+					.put(LogMessage.MESSAGE, "Access denied: No permission to add Approle to this IAM Service Account")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body("{\"errors\":[\"Access denied: No permission to add Approle to this iam service account\"]}");
 		}
@@ -2601,10 +2713,23 @@ public class  IAMServiceAccountsService {
 		access = (access != null) ? access.toLowerCase() : access;
 
 		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(iamServiceAccountApprole.getApprolename())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_APPROLE_TO_IAMSVCACC_MSG)
+					.put(LogMessage.MESSAGE,
+							"Access denied. Not authorized to remove Approle from the IAM Service Accounts.")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
 					"{\"errors\":[\"Access denied: no permission to remove this AppRole to any Service Account\"]}");
 		}
 		if (!isIamSvcaccPermissionInputValid(access)) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_APPROLE_TO_IAMSVCACC_MSG)
+					.put(LogMessage.MESSAGE, "Access denied. Invalid value specified for access.")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(INVALIDVALUEERROR);
 		}
@@ -2657,6 +2782,13 @@ public class  IAMServiceAccountsService {
 				policies.remove(denyPolicy);
 			}
 			else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_APPROLE_TO_IAMSVCACC_MSG)
+						.put(LogMessage.MESSAGE,
+								"Either Approle doesn't exists or you don't have enough permission to remove this approle from IAM Service Account")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
 						.body("{\"errors\":[\"Either Approle doesn't exists or you don't have enough permission to remove this approle from IAM Service Account\"]}");
 			}
@@ -2740,10 +2872,22 @@ public class  IAMServiceAccountsService {
 							.body("{\"errors\":[\"Approle configuration failed. Contact Admin \"]}");
 				}
 			} else {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+						.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_APPROLE_TO_IAMSVCACC_MSG)
+						.put(LogMessage.MESSAGE, "Failed to remove Approle from the Service Account")
+						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body("{\"errors\":[\"Failed to remove approle from the Service Account\"]}");
 			}
 		} else {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_APPROLE_TO_IAMSVCACC_MSG)
+					.put(LogMessage.MESSAGE, "Access denied: No permission to remove Approle from Service Account")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body("{\"errors\":[\"Access denied: No permission to remove approle from Service Account\"]}");
 		}
@@ -3044,8 +3188,9 @@ public class  IAMServiceAccountsService {
 			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, IAMServiceAccountConstants.ROTATE_IAM_SVCACC_TITLE).
-					put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] rotated successfully for " +
-									"AccessKeyId [%s]", iamServiceAccountRotateRequest.getUserName(),
+					put(LogMessage.MESSAGE, String.format ("IAM Service account [%s] rotated successfully for  " +
+									"AccessKeyId Completed [%s]",
+							iamServiceAccountRotateRequest.getUserName(),
 							iamServiceAccountRotateRequest.getAccessKeyId())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
@@ -3221,6 +3366,13 @@ public class  IAMServiceAccountsService {
 		String awsAcountId = iamServiceAccount.getAwsAccountId();
 		String uniqueIAMSvcName = awsAcountId + "_" + iamSvcName;
 		String selfSupportToken = tokenUtils.getSelfServiceToken();
+		
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, IAMServiceAccountConstants.IAM_SVCACC_CREATION_TITLE)
+				.put(LogMessage.MESSAGE, String.format("Trying to offboard IAM Service Account [%s]", iamSvcName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		
 		if (!isAuthorizedForIAMOnboardAndOffboard(token)) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -3282,7 +3434,7 @@ public class  IAMServiceAccountsService {
 			updateUserPolicyAssociationOnIAMSvcaccDelete(uniqueIAMSvcName, users, selfSupportToken, userDetails);
 			updateGroupPolicyAssociationOnIAMSvcaccDelete(uniqueIAMSvcName, groups, selfSupportToken, userDetails);
 			updateApprolePolicyAssociationOnIAMSvcaccDelete(uniqueIAMSvcName, approles, selfSupportToken);
-            deleteAwsRoleonOnIAMOffboard(iamSvcName, awsroles, selfSupportToken);
+            deleteAwsRoleonOnIAMOffboard(uniqueIAMSvcName, awsroles, selfSupportToken);
 		}
 
 		OnboardedIAMServiceAccount iamSvcAccToOffboard = new OnboardedIAMServiceAccount(iamSvcName,
@@ -3318,7 +3470,7 @@ public class  IAMServiceAccountsService {
 	}
 
     /**
-     * Aws role deletion as part of IAM Service account Offboarding
+     * AWS role deletion as part of IAM Service account Off-boarding
      * @param iamSvcAccName
      * @param acessInfo
      * @param token
@@ -3326,32 +3478,107 @@ public class  IAMServiceAccountsService {
     private void deleteAwsRoleonOnIAMOffboard(String iamSvcAccName, Map<String,String> acessInfo, String token) {
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                put(LogMessage.ACTION, "deleteAwsRoleonOnIAMOffboard").
-                put(LogMessage.MESSAGE, String.format ("Trying to delete AwsRole on offboarding of IAM Service Account [%s]", iamSvcAccName)).
+                put(LogMessage.ACTION, IAMServiceAccountConstants.DELETE_AWSROLE_ASSOCIATION).
+                put(LogMessage.MESSAGE, String.format ("Trying to delete AwsRole association on offboarding of IAM Service Account [%s]", iamSvcAccName)).
                 put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                 build()));
         if(acessInfo!=null){
             Set<String> roles = acessInfo.keySet();
-            for(String role : roles){
-                Response response = reqProcessor.process("/auth/aws/roles/delete","{\"role\":\""+role+"\"}",token);
-                if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
-                    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                            put(LogMessage.ACTION, "deleteAwsRoleonOnIAMOffboard").
-                            put(LogMessage.MESSAGE, String.format ("%s, AWS Role is deleted as part of offboarding IAM Service account [%s].", role, iamSvcAccName)).
-                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                            build()));
-                }else{
-                    log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-                            put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
-                            put(LogMessage.ACTION, "deleteAwsRoleonOnIAMOffboard").
-                            put(LogMessage.MESSAGE, String.format ("%s, AWS Role deletion as part of offboarding IAM Service account [%s] failed.", role, iamSvcAccName)).
-                            put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
-                            build()));
-                }
-            }
+			for (String role : roles) {
+				removeAWSRoleAssociationFromIAMSvcAccForOffboard(iamSvcAccName, token, role);
+			}
         }
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                put(LogMessage.ACTION, IAMServiceAccountConstants.DELETE_AWSROLE_ASSOCIATION).
+                put(LogMessage.MESSAGE, "Successfully removed the AwsRole association On IAM Service Account offboarding").
+                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                build()));
     }
+
+	/**
+	 * Method to remove the AWS role association from IAM Service account for Off board.
+	 * @param iamSvcAccName
+	 * @param token
+	 * @param role
+	 */
+	private void removeAWSRoleAssociationFromIAMSvcAccForOffboard(String iamSvcAccName, String token, String role) {
+		String readPolicy = new StringBuilder()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.READ_POLICY))
+				.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccName).toString();
+		String writePolicy = new StringBuilder()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.WRITE_POLICY))
+				.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccName).toString();
+		String denyPolicy = new StringBuilder()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.DENY_POLICY))
+				.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccName).toString();
+		String ownerPolicy = new StringBuilder()
+				.append(TVaultConstants.SVC_ACC_POLICIES_PREFIXES.getKey(TVaultConstants.SUDO_POLICY))
+				.append(IAMServiceAccountConstants.IAMSVCACC_POLICY_PREFIX).append(iamSvcAccName).toString();
+
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, IAMServiceAccountConstants.DELETE_AWSROLE_ASSOCIATION).
+				put(LogMessage.MESSAGE, String.format ("Policies are, read - [%s], write - [%s], deny -[%s], owner - [%s]", readPolicy, writePolicy, denyPolicy, ownerPolicy)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+
+		Response roleResponse = reqProcessor.process("/auth/aws/roles","{\"role\":\""+role+"\"}",token);
+		String responseJson="";
+		String authType = TVaultConstants.EC2;
+		List<String> policies = new ArrayList<>();
+		List<String> currentpolicies = new ArrayList<>();
+
+		if(HttpStatus.OK.equals(roleResponse.getHttpstatus())){
+			responseJson = roleResponse.getResponse();
+			ObjectMapper objMapper = new ObjectMapper();
+			try {
+				JsonNode policiesArry =objMapper.readTree(responseJson).get("policies");
+				for(JsonNode policyNode : policiesArry){
+					currentpolicies.add(policyNode.asText());
+				}
+				authType = objMapper.readTree(responseJson).get(TVaultConstants.AUTH_TYPE).asText();
+			} catch (IOException e) {
+		        log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                put(LogMessage.ACTION, IAMServiceAccountConstants.DELETE_AWSROLE_ASSOCIATION).
+		                put(LogMessage.MESSAGE, e.getMessage()).
+		                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                build()));
+			}
+			policies.addAll(currentpolicies);
+			policies.remove(readPolicy);
+			policies.remove(writePolicy);
+			policies.remove(denyPolicy);
+
+			String policiesString = org.apache.commons.lang3.StringUtils.join(policies, ",");
+			log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, IAMServiceAccountConstants.DELETE_AWSROLE_ASSOCIATION).
+					put(LogMessage.MESSAGE, "Remove AWS Role from IAM Service account -  policy :" + policiesString + " is being configured" ).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
+
+			if (TVaultConstants.IAM.equals(authType)) {
+				awsiamAuthService.configureAWSIAMRole(role,policiesString,token);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                put(LogMessage.ACTION, IAMServiceAccountConstants.DELETE_AWSROLE_ASSOCIATION).
+		                put(LogMessage.MESSAGE, String.format ("%s, AWS IAM Role association is removed as part of offboarding IAM Service account [%s].", role, iamSvcAccName)).
+		                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                build()));
+			}
+			else {
+				awsAuthService.configureAWSRole(role,policiesString,token);
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+		                put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+		                put(LogMessage.ACTION, IAMServiceAccountConstants.DELETE_AWSROLE_ASSOCIATION).
+		                put(LogMessage.MESSAGE, String.format ("%s, AWS EC2 Role association is removed as part of offboarding IAM Service account [%s].", role, iamSvcAccName)).
+		                put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+		                build()));
+			}
+		}
+	}
 
 	/**
 	 * Update User policy on IAM Service account offboarding
@@ -3835,6 +4062,13 @@ public class  IAMServiceAccountsService {
             token = tokenUtils.getSelfServiceToken();
         }
 		if(!isIamSvcaccPermissionInputValid(iamServiceAccountAWSRole.getAccess())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.ADD_AWS_ROLE_MSG)
+					.put(LogMessage.MESSAGE,
+							"Access denied. Not authorized to add AWS Role to the IAM Service Accounts.")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountAWSRole.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
@@ -3898,7 +4132,7 @@ public class  IAMServiceAccountsService {
 					for(JsonNode policyNode : policiesArry){
 						currentpolicies.add(policyNode.asText());
 					}
-					authType = objMapper.readTree(responseJson).get("auth_type").asText();
+					authType = objMapper.readTree(responseJson).get(TVaultConstants.AUTH_TYPE).asText();
 				} catch (IOException e) {
                     log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -3995,6 +4229,14 @@ public class  IAMServiceAccountsService {
             token = tokenUtils.getSelfServiceToken();
         }
 		if(!isIamSvcaccPermissionInputValid(iamServiceAccountAWSRole.getAccess())) {
+			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, IAMServiceAccountConstants.REMOVE_AWS_ROLE_MSG)
+					.put(LogMessage.MESSAGE, String.format(
+							"Access denied. Not authorized to remove AWS Role from the IAM Service Account [%s]",
+							iamServiceAccountAWSRole.getRolename()))
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(INVALIDVALUEERROR);
 		}
 		if (iamServiceAccountAWSRole.getAccess().equalsIgnoreCase(IAMServiceAccountConstants.IAM_ROTATE_MSG_STRING)) {
@@ -4043,7 +4285,7 @@ public class  IAMServiceAccountsService {
 					for(JsonNode policyNode : policiesArry){
 						currentpolicies.add(policyNode.asText());
 					}
-					authType = objMapper.readTree(responseJson).get("auth_type").asText();
+					authType = objMapper.readTree(responseJson).get(TVaultConstants.AUTH_TYPE).asText();
 				} catch (IOException e) {
                     log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).

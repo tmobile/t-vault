@@ -228,6 +228,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                   .details-input-group
                     .certificate-form-label(uib-tooltip="Name of the Cloud application this certificate will be used for. Only applications you have self-service rights to will be shown.") Application Name*
                       drop-down(drop-down-options="dropdownApplicationName" name="certApplicationName" id="applicationName"  ng-click="appNameSelect()")
+                      div.key-acceptance-info() {{ applicationNameErrorMsg }}
                       div.loader.svcaccid(ng-if='isApplicationsLoading')
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group

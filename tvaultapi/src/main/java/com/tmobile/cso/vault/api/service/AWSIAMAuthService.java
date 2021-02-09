@@ -29,6 +29,8 @@ import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -73,8 +76,21 @@ public class AWSIAMAuthService {
 	 * @return
 	 */
 	public ResponseEntity<String> createIAMRole(AWSIAMRole awsiamRole, String token, UserDetails userDetails) throws TVaultValidationException{
+		if(!ArrayUtils.isEmpty(awsiamRole.getPolicies())) {
+			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Checking whether policy is added as an input param for creating AWS IAM role").
+					put(LogMessage.MESSAGE, String.format("Trying to create AWS IAM Role [%s]", awsiamRole.getRole())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Policies are not permitted during role creation.\"]}");
+		}
+		logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "Create AWS IAM role")
+				.put(LogMessage.MESSAGE, String.format("Trying to create AWS IAM Role [%s]", awsiamRole.getRole()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		if (!ControllerUtil.areAWSIAMRoleInputsValid(awsiamRole)) {
-			//return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
 			throw new TVaultValidationException("Invalid inputs for the given aws login type");
 		}
 		String jsonStr = JSONUtil.getJSON(awsiamRole);
@@ -271,6 +287,11 @@ public class AWSIAMAuthService {
 	 * @return
 	 */
 	public Response configureAWSIAMRole(String roleName,String policies,String token ){
+		logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "configureAWSIAMRole")
+				.put(LogMessage.MESSAGE, String.format("Trying to configure AWS IAM Role [%s]", roleName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		ObjectMapper objMapper = new ObjectMapper();
 		Map<String,String>configureRoleMap = new HashMap<>();
 		configureRoleMap.put("role", roleName);

@@ -54,7 +54,7 @@ public class SecretControllerV2 {
 	 * @param path
 	 * @return
 	 */
-	@ApiOperation(value = "${SecretControllerV2.readFromVault.value}", notes = "${SecretControllerV2.readFromVault.notes}", hidden = true)
+	@ApiOperation(value = "${SecretControllerV2.readFromVault.value}", notes = "${SecretControllerV2.readFromVault.notes}")
 	@GetMapping(value="/v2/safes/folders/secrets",produces= "application/json")
 	public ResponseEntity<String> readFromVault(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path,@RequestParam( name="fetchOption",required=false) FetchOption fetchOption){
 		if(fetchOption == null || fetchOption.equals(FetchOption.secrets)){
@@ -90,7 +90,7 @@ public class SecretControllerV2 {
 	 * @param path
 	 * @return
 	 */
-	@ApiOperation(value = "${SecretControllerV2.deleteFromVault.value}", notes = "${SecretControllerV2.deleteFromVault.notes}")
+	@ApiOperation(value = "${SecretControllerV2.deleteFromVault.value}", notes = "${SecretControllerV2.deleteFromVault.notes}", hidden = true)
 	@DeleteMapping(value="/v2/safes/folders/secrets",produces="application/json")
 	public ResponseEntity<String> deleteFromVault(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		return secretService.deleteFromVault(token, path);
