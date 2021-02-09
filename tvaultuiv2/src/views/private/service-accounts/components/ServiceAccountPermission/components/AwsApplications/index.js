@@ -48,6 +48,7 @@ const AwsApplications = (props) => {
     onNewAwsChange,
     newAwsApplication,
     updateToastMessage,
+    selectedParentTab,
   } = props;
 
   const [editAws, setEditAws] = useState('');
@@ -217,6 +218,13 @@ const AwsApplications = (props) => {
     setResponse({ status: 'edit' });
   };
 
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      onCancelClicked();
+    }
+    // eslint-disable-next-line
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
       <>
@@ -299,5 +307,6 @@ AwsApplications.propTypes = {
   newAwsApplication: PropTypes.bool.isRequired,
   onNewAwsChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 export default AwsApplications;

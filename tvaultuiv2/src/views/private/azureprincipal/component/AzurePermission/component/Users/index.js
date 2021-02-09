@@ -47,6 +47,7 @@ const Users = (props) => {
     refresh,
     userDetails,
     responseStatus,
+    selectedParentTab,
   } = props;
 
   const [editUser, setEditUser] = useState('');
@@ -193,13 +194,20 @@ const Users = (props) => {
     setResponse({ status: 'edit' });
   };
 
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      onCancelClicked();
+    }
+    // eslint-disable-next-line
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
       <>
-        {response.status === 'loading' && (
+        {response?.status === 'loading' && (
           <LoaderSpinner customStyle={customStyle} />
         )}
-        {response.status === 'add' && (
+        {response?.status === 'add' && (
           <AddUser
             users={azureMetaData?.users}
             handleSaveClick={(user, access) => onSubmit(user, access)}
@@ -207,7 +215,7 @@ const Users = (props) => {
             isIamAzureSvcAccount
           />
         )}
-        {response.status === 'edit' && (
+        {response?.status === 'edit' && (
           <AddUser
             handleSaveClick={(user, access) => onEditSaveClicked(user, access)}
             handleCancelClick={onCancelClicked}
@@ -218,7 +226,8 @@ const Users = (props) => {
         )}
         {response.status === 'success' && azureMetaData && (
           <>
-            {Object.keys(azureMetaData?.users).length > 0 &&
+            {azureMetaData?.users &&
+              Object.keys(azureMetaData?.users).length > 0 &&
               userDetails?.length > 0 && (
                 <UserPermissionsList
                   list={azureMetaData.users}
@@ -270,5 +279,6 @@ Users.propTypes = {
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
   userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 export default Users;

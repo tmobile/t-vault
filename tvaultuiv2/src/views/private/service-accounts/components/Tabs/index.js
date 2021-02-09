@@ -246,6 +246,7 @@ const AccountSelectionTabs = (props) => {
               refresh={refresh}
               fetchPermission={fetchPermission}
               userDetails={userDetails}
+              selectedParentTab={value}
             />
           </TabPanel>
         </TabContentsWrap>

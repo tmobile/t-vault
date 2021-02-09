@@ -30,6 +30,7 @@ const Permissions = (props) => {
     safePermissionData,
     permissionResponseType,
     userDetails,
+    selectedParentTab,
   } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
@@ -51,13 +52,23 @@ const Permissions = (props) => {
     3: { label: 'app roles', addBtnCallback: () => setNewAppRole(true) },
   };
 
-  useEffect(() => {
-    setValue(0);
+  const closeAllTab = () => {
     setNewUser(false);
     setNewGroup(false);
     setNewAwsApplication(false);
     setNewAppRole(false);
+  };
+
+  useEffect(() => {
+    setValue(0);
+    closeAllTab();
   }, [safeDetail]);
+
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      setValue(0);
+    }
+  }, [selectedParentTab]);
 
   useEffect(() => {
     if (safeData?.response && Object.keys(safeData.response).length !== 0) {
@@ -138,6 +149,7 @@ const Permissions = (props) => {
             <PermissionTabsWrapper>
               <TabPanel value={value} index={0}>
                 <User
+                  selectedParentTab={selectedParentTab}
                   safeDetail={safeDetail}
                   userDetails={userDetails}
                   newPermission={newPermission}
@@ -151,6 +163,7 @@ const Permissions = (props) => {
               </TabPanel>
               <TabPanel value={value} index={1}>
                 <Groups
+                  selectedParentTab={selectedParentTab}
                   safeDetail={safeDetail}
                   safeData={safeData}
                   newGroup={newGroup}
@@ -171,10 +184,12 @@ const Permissions = (props) => {
                   updateToastMessage={(response, message) =>
                     updateToastMessage(response, message)
                   }
+                  selectedParentTab={selectedParentTab}
                 />
               </TabPanel>
               <TabPanel value={value} index={3}>
                 <AppRoles
+                  selectedParentTab={selectedParentTab}
                   safeDetail={safeDetail}
                   safeData={safeData}
                   fetchPermission={fetchPermission}
@@ -216,6 +231,7 @@ Permissions.propTypes = {
   safePermissionData: PropTypes.objectOf(PropTypes.any).isRequired,
   permissionResponseType: PropTypes.number,
   userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 
 Permissions.defaultProps = {

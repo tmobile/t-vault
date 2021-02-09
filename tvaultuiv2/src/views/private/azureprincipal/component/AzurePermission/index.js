@@ -24,6 +24,7 @@ const AzurePermission = (props) => {
     refresh,
     permissionResponse,
     azureDetail,
+    selectedParentTab,
   } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
@@ -100,6 +101,12 @@ const AzurePermission = (props) => {
     setNewAwsApplication(false);
   }, [azureDetail]);
 
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      setValue(0);
+    }
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
       <>
@@ -122,6 +129,7 @@ const AzurePermission = (props) => {
                 }
                 userDetails={userDetails}
                 responseStatus={permissionResponse}
+                selectedParentTab={selectedParentTab}
               />
             </TabPanel>
             <TabPanel value={value} index={1}>
@@ -134,6 +142,7 @@ const AzurePermission = (props) => {
                   updateToastMessage(res, message)
                 }
                 responseStatus={permissionResponse}
+                selectedParentTab={selectedParentTab}
               />
             </TabPanel>
             <TabPanel value={value} index={2}>
@@ -146,6 +155,7 @@ const AzurePermission = (props) => {
                   updateToastMessage(res, message)
                 }
                 responseStatus={permissionResponse}
+                selectedParentTab={selectedParentTab}
               />
             </TabPanel>
             <TabPanel value={value} index={3}>
@@ -158,6 +168,7 @@ const AzurePermission = (props) => {
                   updateToastMessage(res, message)
                 }
                 responseStatus={permissionResponse}
+                selectedParentTab={selectedParentTab}
               />
             </TabPanel>
           </PermissionTabsWrapper>
@@ -189,6 +200,7 @@ AzurePermission.propTypes = {
   userDetails: PropTypes.arrayOf(PropTypes.any),
   refresh: PropTypes.func.isRequired,
   permissionResponse: PropTypes.objectOf(PropTypes.any).isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 
 AzurePermission.defaultProps = {

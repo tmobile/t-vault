@@ -44,6 +44,7 @@ const ServiceAccountPermission = (props) => {
     parentStatus,
     fetchPermission,
     userDetails,
+    selectedParentTab,
   } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
@@ -128,6 +129,12 @@ const ServiceAccountPermission = (props) => {
     setNewAwsApplication(false);
   }, [accountDetail]);
 
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      setValue(0);
+    }
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
       <>
@@ -160,6 +167,7 @@ const ServiceAccountPermission = (props) => {
                           updateToastMessage(res, message)
                         }
                         userDetails={userDetails}
+                        selectedParentTab={selectedParentTab}
                       />
                     </TabPanel>
                     <TabPanel value={value} index={1}>
@@ -172,6 +180,7 @@ const ServiceAccountPermission = (props) => {
                           updateToastMessage(res, message)
                         }
                         refresh={refresh}
+                        selectedParentTab={selectedParentTab}
                       />
                     </TabPanel>
                     <TabPanel value={value} index={2}>
@@ -184,6 +193,7 @@ const ServiceAccountPermission = (props) => {
                           updateToastMessage(res, message)
                         }
                         fetchPermission={fetchPermission}
+                        selectedParentTab={selectedParentTab}
                       />
                     </TabPanel>
                     <TabPanel value={value} index={3}>
@@ -196,6 +206,7 @@ const ServiceAccountPermission = (props) => {
                           updateToastMessage(res, message)
                         }
                         fetchPermission={fetchPermission}
+                        selectedParentTab={selectedParentTab}
                       />
                     </TabPanel>
                   </PermissionTabsWrapper>
@@ -235,6 +246,7 @@ ServiceAccountPermission.propTypes = {
   parentStatus: PropTypes.string,
   fetchPermission: PropTypes.func,
   userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 
 ServiceAccountPermission.defaultProps = {

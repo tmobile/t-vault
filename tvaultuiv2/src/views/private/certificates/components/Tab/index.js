@@ -199,8 +199,7 @@ const CertificateSelectionTabs = (props) => {
     if (certificateMetaData && Object.keys(certificateMetaData).length > 0) {
       if (
         certificateMetaData?.certOwnerNtid?.toLowerCase() ===
-          state?.username?.toLowerCase() &&
-        certificateMetaData?.certificateStatus?.toLowerCase() === 'active'
+        state?.username?.toLowerCase()
       ) {
         setHasPermission(true);
       } else {
@@ -275,6 +274,7 @@ const CertificateSelectionTabs = (props) => {
               fetchDetail={getAllCertificateDetail}
               userDetails={userDetails}
               username={state.username}
+              selectedParentTab={value}
             />
           </TabPanel>
         </TabContentsWrap>
