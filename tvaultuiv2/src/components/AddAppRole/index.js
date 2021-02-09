@@ -152,7 +152,21 @@ const AddAppRole = (props) => {
 
   useEffect(() => {
     if (selectedValue) {
+      console.log(selectedValue, roles);
       if (roles && !Object.keys(roles).includes(selectedValue.toLowerCase())) {
+        if (editClicked) {
+          if (access === radioValue) {
+            setDisabledSave(true);
+          } else {
+            setDisabledSave(false);
+          }
+        } else if (selectedValue === '' || menu.length === 0) {
+          setDisabledSave(true);
+        } else {
+          setDisabledSave(false);
+        }
+        setExistingRole(false);
+      } else if (!roles) {
         if (editClicked) {
           if (access === radioValue) {
             setDisabledSave(true);
