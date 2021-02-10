@@ -361,7 +361,11 @@ const Tree = (props) => {
         <ConfirmationModal
           open={deleteModalOpen}
           title="Confirmation"
-          description="Are you sure you want to delete this secret?"
+          description={
+            deletePath?.type?.toLowerCase() === 'secret'
+              ? 'Are you sure you want to delete this secret?'
+              : 'Are you sure you want to delete this folder?'
+          }
           cancelButton={
             <ButtonComponent
               label="Cancel"
