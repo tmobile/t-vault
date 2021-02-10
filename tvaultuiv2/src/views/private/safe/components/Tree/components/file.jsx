@@ -103,7 +103,6 @@ const File = (props) => {
     secret,
     id,
     onDeleteTreeItem,
-    setHandleToggleBool,
     setSecretprefilledData,
     type,
     setIsAddInput,
@@ -121,7 +120,6 @@ const File = (props) => {
   // delete folder
   const deleteNode = (treeItem) => {
     onDeleteTreeItem(treeItem);
-    setHandleToggleBool(true);
   };
 
   const editNode = () => {
@@ -135,7 +133,6 @@ const File = (props) => {
     } else {
       setSecretprefilledData({});
     }
-    setHandleToggleBool(true);
   };
 
   const onCopyClicked = () => {
@@ -249,7 +246,6 @@ File.propTypes = {
   setIsAddInput: PropTypes.func,
   setInputType: PropTypes.func,
   setSecretprefilledData: PropTypes.func,
-  setHandleToggleBool: PropTypes.func.isRequired,
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 File.defaultProps = {
