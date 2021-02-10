@@ -445,13 +445,13 @@ const CreateModal = (props) => {
 
   const InputValidation = (text) => {
     if (text) {
-      const res = /^[A-Za-z0-9_.-]*?[a-z0-9]$/i;
+      const res = /^(?!_)^[A-Za-z0-9_.-]*?[a-z0-9]$/i;
       return (
         res.test(text) &&
         /^[A-z0-9]/.test(text) &&
         /[a-z0-9]$/.test(text) &&
         !/(--)/.test(text) &&
-        !/(_)/.test(text) &&
+        !/(__)/.test(text) &&
         !/(\.\.)/.test(text)
       );
     }
