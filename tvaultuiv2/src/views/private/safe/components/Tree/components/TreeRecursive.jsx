@@ -93,6 +93,7 @@ const TreeRecursive = (props) => {
           folderInfo={item}
           setInputType={setInputType}
           value={value}
+          status={status}
           onFolderClosed={onFolderIsClosed}
           setOnFolderClosed={setOnFolderClosed}
           setIsAddInput={setIsAddInput}
@@ -120,6 +121,7 @@ const TreeRecursive = (props) => {
             (inputType?.currentNode === item.value ||
               inputType?.currentNode === item.id) && (
               <CreateSecretModal
+                existingSecrets={arr}
                 openModal={isAddInput}
                 secretprefilledData={secretEditData}
                 setOpenModal={setIsAddInput}
