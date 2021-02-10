@@ -687,6 +687,7 @@ const ServiceAccountDashboard = () => {
                   onChange={(e) => onSearchChange(e.target.value)}
                   value={inputSearchValue || ''}
                   color="secondary"
+                  characterLimit={40}
                 />
               </SearchWrap>
             </ColumnHeader>

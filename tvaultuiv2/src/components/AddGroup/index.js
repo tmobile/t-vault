@@ -266,6 +266,7 @@ const AddGroup = (props) => {
                   padding: '0.6rem',
                   maxHeight: '16rem',
                 }}
+                characterLimit={100}
               />
               <InstructionText>
                 Search the T-Mobile system to add groups

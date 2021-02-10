@@ -217,6 +217,15 @@ const SafeDashboard = () => {
   const history = useHistory();
   const [listOfsafes, setListOfSafes] = useState([]);
 
+  const sortAnArray = (array) => {
+    array.sort((str1, str2) => {
+      const textA = str1.name.toLowerCase();
+      const textB = str2.name.toLowerCase();
+      // eslint-disable-next-line no-nested-ternary
+      return textA < textB ? -1 : textA > textB ? 1 : 0;
+    });
+  };
+
   /**
    * @function compareSafesAndList
    * @description function compare safe and manage safes and remove duplication.
@@ -245,6 +254,7 @@ const SafeDashboard = () => {
   const fetchData = useCallback(async () => {
     setResponse({ status: 'loading', message: 'Loading...' });
     setInputSearchValue('');
+    setSafeType('All Safes');
     let safesApiResponse = [];
     if (configData.AUTH_TYPE === 'oidc') {
       safesApiResponse = await apiService.getSafes();
@@ -293,21 +303,16 @@ const SafeDashboard = () => {
           compareSafesAndList(result[3].data.keys, 'apps', safesObject);
         }
         setSafes(safesObject);
-        setSafeList([
-          ...safesObject.users,
-          ...safesObject.shared,
-          ...safesObject.apps,
-        ]);
-        setListOfSafes([
-          ...safesObject.users,
-          ...safesObject.shared,
-          ...safesObject.apps,
-        ]);
-        setAllSafeList([
-          ...safesObject.users,
-          ...safesObject.shared,
-          ...safesObject.apps,
-        ]);
+        const arrayList = [];
+        Object.keys(safesObject).map((item) => {
+          return safesObject[item].map((ele) => {
+            return arrayList.push(ele);
+          });
+        });
+        sortAnArray(arrayList);
+        setSafeList([...arrayList]);
+        setListOfSafes([...arrayList]);
+        setAllSafeList([...arrayList]);
         setResponse({ status: 'success', message: '' });
       })
       .catch(() => {
@@ -384,6 +389,7 @@ const SafeDashboard = () => {
       const array = allSafeList?.filter((item) => {
         return item?.name?.toLowerCase().includes(value?.toLowerCase().trim());
       });
+      sortAnArray(array);
       setListOfSafes([...array]);
       setSafeList([...array]);
     } else {
@@ -403,6 +409,7 @@ const SafeDashboard = () => {
     setInputSearchValue('');
     if (value !== 'All Safes') {
       const obj = selectList?.find((item) => item.selected === value);
+      sortAnArray(safes[obj.path]);
       setSafeList([...safes[obj.path]]);
     } else {
       setSafeList([...allSafeList]);
@@ -604,6 +611,7 @@ const SafeDashboard = () => {
                   onChange={(e) => onSearchChange(e.target.value)}
                   value={inputSearchValue || ''}
                   color="secondary"
+                  characterLimit={40}
                 />
               </SearchWrap>
             </ColumnHeader>

@@ -129,7 +129,7 @@ TextFieldComponent.defaultProps = {
   readOnly: false,
   onChange: () => {},
   onKeyDown: () => {},
-  characterLimit: 1000,
+  characterLimit: 1024,
 };
 
 setIcon.propTypes = {

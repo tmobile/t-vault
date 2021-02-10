@@ -128,7 +128,7 @@ const CreateSecret = (props) => {
 
   const handleValidation = (value, type) => {
     if (type === 'value') {
-      setValueErrorMessage(value.length < 3);
+      setValueErrorMessage(value.length < 1);
     }
   };
 
@@ -142,7 +142,7 @@ const CreateSecret = (props) => {
     } else {
       setExistingKey(false);
     }
-    setKeyErrorMessage(keyId.length < 3 || !keyId.match(/^[a-zA-Z0-9_]*$/g));
+    setKeyErrorMessage(keyId.length < 1 || !keyId.match(/^[a-zA-Z0-9_]*$/g));
   };
 
   useEffect(() => {
@@ -194,6 +194,7 @@ const CreateSecret = (props) => {
             name="keyId"
             onChange={(e) => handleKeyChange(e.target.value)}
             fullWidth
+            characterLimit={256}
             error={!!keyErrorMessage || existingKey}
             helperText={getHelperMessage()}
           />
@@ -209,6 +210,7 @@ const CreateSecret = (props) => {
               onChange={(e) => handleValueChange(e.target.value)}
               fullWidth
               error={!!valueErrorMessage}
+              characterLimit={2048}
             />
           </InputFieldWrapper>
           <CancelSaveWrapper>
