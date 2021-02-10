@@ -297,7 +297,7 @@ const ViewAzure = (props) => {
       const payload = {
         azureSvcAccName: viewAzureData.name,
         secretKeyId: secretsData.secretKeyId,
-        servicePrincipalId: secretsData.secretKeyId,
+        servicePrincipalId: secretsData.servicePrincipalId,
         tenantId: secretsData.tenantId,
         expiryDurationMs: secretsData.expiryDateEpoch,
       };
