@@ -778,6 +778,7 @@ const CertificatesDashboard = () => {
                   onChange={(e) => setInputSearchValue(e.target.value)}
                   value={inputSearchValue || ''}
                   color="secondary"
+                  characterLimit={40}
                 />
               </SearchWrap>
             </ColumnHeader>

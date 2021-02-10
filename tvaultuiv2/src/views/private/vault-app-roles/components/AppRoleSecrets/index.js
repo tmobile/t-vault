@@ -6,8 +6,6 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { makeStyles } from '@material-ui/core/styles';
 import Checkbox from '@material-ui/core/Checkbox';
 import PropTypes from 'prop-types';
-// import VisibilityIcon from '@material-ui/icons/Visibility';
-// import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
@@ -126,7 +124,7 @@ const AppRoleSecrets = (props) => {
    */
   const onCopyClicked = () => {
     // setResponseType(1);
-    setStatus({ status: 'success', message: 'Secret copied to clipboard' });
+    setStatus({ status: 'success', message: 'AccessorID copied to clipboard' });
   };
   const onToastClose = () => {
     setStatus({});
@@ -185,7 +183,7 @@ const AppRoleSecrets = (props) => {
           open={openConfirmationModal}
           handleClose={handleClose}
           title="Confirmation"
-          description="Are you sure you want to Delete the secretId?"
+          description="Are you sure you want to delete the AccessorID?"
           cancelButton={
             <ButtonComponent
               label="Cancel"
@@ -242,7 +240,7 @@ const AppRoleSecrets = (props) => {
                   >
                     <PopperItem>
                       <FileCopyIcon />
-                      <span>Copy SecretId</span>
+                      <span>Copy AccessorID</span>
                     </PopperItem>
                   </CopyToClipboard>
                 </PopperElement>

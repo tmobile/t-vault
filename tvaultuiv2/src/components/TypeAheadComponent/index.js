@@ -58,6 +58,7 @@ const TypeAheadComponent = ({
   error,
   helperText,
   onInputBlur,
+  characterLimit,
 }) => {
   const [position, setPosition] = useState(0);
   const [filteredList, setFilteredList] = useState([]);
@@ -162,6 +163,7 @@ const TypeAheadComponent = ({
           onInputBlur={onInputBlur}
           error={error && !showOptions}
           helperText={!showOptions && error ? helperText : ''}
+          characterLimit={characterLimit}
         />
         {optionsComponent}
       </Wrapper>
@@ -184,6 +186,7 @@ TypeAheadComponent.propTypes = {
   onInputBlur: PropType.func,
   onKeyDownClick: PropType.func,
   loader: PropType.bool,
+  characterLimit: PropType.number,
 };
 
 TypeAheadComponent.defaultProps = {
@@ -197,5 +200,6 @@ TypeAheadComponent.defaultProps = {
   onInputBlur: () => {},
   onKeyDownClick: undefined,
   loader: false,
+  characterLimit: 1024,
 };
 export default TypeAheadComponent;

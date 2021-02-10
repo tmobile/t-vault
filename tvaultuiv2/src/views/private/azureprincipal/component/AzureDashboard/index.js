@@ -366,6 +366,7 @@ const AzureDashboard = () => {
                   value={inputSearchValue || ''}
                   color="secondary"
                   onChange={(e) => onSearchChange(e?.target?.value)}
+                  characterLimit={40}
                 />
               </SearchWrap>
             </ColumnHeader>
