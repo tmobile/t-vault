@@ -208,62 +208,86 @@ const CertificatesDashboard = () => {
   const fetchAdminData = useCallback(async () => {
     clearData();
     let allCertInternal = [];
+    let allCertExternal = [];
     if (configData.AUTH_TYPE === 'oidc') {
       allCertInternal = await apiService.getAllAdminCertInternal();
+      allCertExternal = await apiService.getAllAdminCertExternal();
     }
     const internalCertificates = await apiService.getInternalCertificates();
     const externalCertificates = await apiService.getExternalCertificates();
     const onboardCertificates = await apiService.getOnboardCertificates();
     const allApiResponse = Promise.all([
       allCertInternal,
+      allCertExternal,
       internalCertificates,
       externalCertificates,
       onboardCertificates,
     ]);
     allApiResponse
       .then((result) => {
-        const allCertArray = [];
+        const allCertInternalArray = [];
+        const allCertExternalArray = [];
         const internalCertArray = [];
         const externalCertArray = [];
         const onboardCertArray = [];
         if (configData.AUTH_TYPE === 'oidc') {
           if (result && result[0]?.data?.data?.keys) {
             result[0].data.data.keys.map((item) => {
-              return allCertArray.push(item);
+              return allCertInternalArray.push(item);
+            });
+          }
+          if (result && result[1]?.data?.data?.keys) {
+            result[1].data.data.keys.map((item) => {
+              return allCertExternalArray.push(item);
             });
           }
         } else {
           const access = JSON.parse(sessionStorage.getItem('access'));
           if (Object.keys(access).length > 0) {
             Object.keys(access).forEach((item) => {
-              if (item === 'cert' || item === 'externalcerts') {
+              if (item === 'cert') {
                 access[item].map((ele) => {
                   const val = Object.keys(ele);
-                  return allCertArray.push(val[0]);
+                  return allCertInternalArray.push(val[0]);
+                });
+              }
+              if (item === 'externalcerts') {
+                access[item].map((ele) => {
+                  const val = Object.keys(ele);
+                  return allCertExternalArray.push(val[0]);
                 });
               }
             });
           }
         }
-        if (result && result[1]?.data?.keys) {
-          result[1].data.keys.map((item) => {
+        if (result && result[2]?.data?.keys) {
+          result[2].data.keys.map((item) => {
             if (item.certificateName) {
               return internalCertArray.push(item);
             }
             return null;
           });
-          compareCertificates(internalCertArray, allCertArray, 'internal');
+          compareCertificates(
+            internalCertArray,
+            allCertInternalArray,
+            'internal'
+          );
         }
-        if (result && result[2]?.data?.keys) {
-          result[2].data.keys.map((item) => {
+        if (result && result[3]?.data?.keys) {
+          result[3].data.keys.map((item) => {
             if (item.certificateName) {
               return externalCertArray.push(item);
             }
             return null;
           });
+          compareCertificates(
+            externalCertArray,
+            allCertExternalArray,
+            'external'
+          );
         }
-        if (result && result[3].data) {
-          result[3].data.map((ele) => {
+        if (result && result[4].data) {
+          result[4].data.map((ele) => {
             ele.isOnboardCert = true;
             return onboardCertArray.push(ele);
           });
@@ -426,15 +450,17 @@ const CertificatesDashboard = () => {
     const externalArray = listOfCertificates?.filter(
       (item) => item?.certType === 'external' && !item.isOnboardCert
     );
+    const onboardArray = listOfCertificates?.filter(
+      (item) => item?.isOnboardCert
+    );
+    const allCert =
+      internalArray?.length + externalArray?.length + onboardArray?.length;
     const array = [
-      { name: 'All Certificates', count: listOfCertificates?.length || 0 },
+      { name: 'All Certificates', count: allCert || 0 },
       { name: 'Internal Certificates', count: internalArray?.length || 0 },
       { name: 'External Certificates', count: externalArray?.length || 0 },
     ];
     if (admin) {
-      const onboardArray = listOfCertificates?.filter(
-        (item) => item.isOnboardCert
-      );
       array.push({
         name: 'Onboard Certificates',
         count: onboardArray?.length || 0,

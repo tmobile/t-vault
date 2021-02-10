@@ -233,7 +233,7 @@ const Users = (props) => {
         )}
         {response.status === 'success' &&
           accountMetaData &&
-          accountMetaData.response && (
+          accountMetaData?.response && (
             <>
               {Object.keys(accountMetaData.response?.users).length > 0 &&
                 userDetails.length > 0 && (

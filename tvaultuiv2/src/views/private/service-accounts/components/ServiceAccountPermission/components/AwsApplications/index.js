@@ -253,7 +253,7 @@ const AwsApplications = (props) => {
           />
         )}
         {accountMetaData &&
-          accountMetaData.response &&
+          accountMetaData?.response &&
           response.status === 'success' && (
             <>
               {accountMetaData.response['aws-roles'] &&

@@ -2,6 +2,7 @@ import api from '../../../services';
 
 const getNonAdminAppNameList = () => api.get('/sslcert/grouplist');
 const getAllAdminCertInternal = () => api.get('/sslcert/certificates/internal');
+const getAllAdminCertExternal = () => api.get('/sslcert?certType=external');
 const getAllNonAdminCertInternal = () => api.get('/sslcert/list/internal');
 const getAllNonAdminCertExternal = () => api.get('/sslcert/list/external');
 const getInternalCertificates = () =>
@@ -67,6 +68,7 @@ const searchByGroupEmail = (name) => api.get(`/azure/email?mail=${name}`);
 
 export default {
   getAllAdminCertInternal,
+  getAllAdminCertExternal,
   getAllNonAdminCertInternal,
   getAllNonAdminCertExternal,
   getInternalCertificates,

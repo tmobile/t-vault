@@ -445,8 +445,15 @@ const CreateModal = (props) => {
 
   const InputValidation = (text) => {
     if (text) {
-      const res = /^[A-Za-z0-9_.-]*?[a-z0-9]$/i;
-      return res.test(text);
+      const res = /^(?!_)^[A-Za-z0-9_.-]*?[a-z0-9]$/i;
+      return (
+        res.test(text) &&
+        /^[A-z0-9]/.test(text) &&
+        /[a-z0-9]$/.test(text) &&
+        !/(--)/.test(text) &&
+        !/(__)/.test(text) &&
+        !/(\.\.)/.test(text)
+      );
     }
     return null;
   };
@@ -616,7 +623,6 @@ const CreateModal = (props) => {
                           !isValidEmail &&
                           safeDetails.owner !== owner)
                       }
-                      // onInputBlur={(e) => onInputBlur(e)}
                       helperText={
                         ((!isValidEmail && safeDetails.owner !== owner) ||
                           emailError) &&
