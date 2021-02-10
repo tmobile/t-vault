@@ -295,6 +295,7 @@ const AddUser = (props) => {
                   padding: '0.6rem',
                   maxHeight: '16rem',
                 }}
+                characterLimit={50}
               />
               <InstructionText>
                 Search the T-Mobile system to add users

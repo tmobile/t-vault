@@ -107,9 +107,9 @@ const CreateSecret = (props) => {
 
   const handleValidation = (value, type) => {
     if (type === 'key') {
-      setKeyErrorMessage(value.length < 3 || !value.match(/^[a-zA-Z0-9_]*$/g));
+      setKeyErrorMessage(value.length < 1 || !value.match(/^[a-zA-Z0-9_]*$/g));
     } else {
-      setValueErrorMessage(value.length < 3);
+      setValueErrorMessage(value.length < 1);
     }
   };
 
@@ -151,6 +151,7 @@ const CreateSecret = (props) => {
             name="keyId"
             onChange={(e) => handleKeyChange(e.target.value)}
             fullWidth
+            characterLimit={256}
             error={!!keyErrorMessage}
             helperText={
               keyErrorMessage
@@ -170,6 +171,7 @@ const CreateSecret = (props) => {
               onChange={(e) => handleValueChange(e.target.value)}
               fullWidth
               error={!!valueErrorMessage}
+              characterLimit={2048}
             />
           </InputFieldWrapper>
           <CancelSaveWrapper>
