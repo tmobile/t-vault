@@ -653,7 +653,7 @@ public final class ControllerUtil {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, UPDATEMETADATASTR).
-				put(LogMessage.MESSAGE, "Trying to upate metadata with params").
+				put(LogMessage.MESSAGE, "Trying to update metadata with params").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		String _type = params.get("type");
@@ -2007,6 +2007,12 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static String convertAppRoleInputsToLowerCase(String jsonstr) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				  put(LogMessage.ACTION, "convertAppRoleInputsToLowerCase").
+			      put(LogMessage.MESSAGE,"Started converting the appRole Inputs to lower case.").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			      build()));
 		try {
 			AppRole appRole = (AppRole)JSONUtil.getObj(jsonstr, AppRole.class);
 			appRole.setRole_name(appRole.getRole_name());
@@ -2102,6 +2108,12 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static boolean areAppRoleInputsValid(AppRole approle) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				  put(LogMessage.ACTION, "areAppRoleInputsValid").
+			      put(LogMessage.MESSAGE,"Start trying to validate input parameters").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			      build()));
 		if (null!=approle) {
 			String approleName = approle.getRole_name();
 			if (StringUtils.isEmpty(approleName) || !isAppRoleNameValid(approleName)) {
@@ -2496,6 +2508,12 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static boolean createMetadata(String metadataJson, String token) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				  put(LogMessage.ACTION, CREATEMETADATASTR).
+			      put(LogMessage.MESSAGE,"Start creating metadata.").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			      build()));
 		Response response = reqProcessor.process(WRITESTR,metadataJson,token);
 		boolean isMetaDataUpdated = false;
 
@@ -2538,6 +2556,12 @@ public final class ControllerUtil {
 	 * @return
 	 */
 	public static Response canDeleteRole(String roleName, String token, UserDetails userDetails, String metadataPath) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "canDeleteRole").
+				put(LogMessage.MESSAGE,"Start checking whether the current user can delete a role.").
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
 		Response response = new Response();
 		String _path = metadataPath + "/" + roleName;
 		Response readResponse = reqProcessor.process(READSTR,PATHSTR+_path+"\"}",token);
@@ -2584,6 +2608,12 @@ public final class ControllerUtil {
      * @return
      */
     public static  String populateAppRoleMetaJson(String appRoleName, String username) {
+    	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				  put(LogMessage.ACTION, "populateAppRoleMetaJson").
+			      put(LogMessage.MESSAGE,"Start populate approle metadata json.").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			      build()));
         String _path = TVaultConstants.APPROLE_METADATA_MOUNT_PATH + "/" + appRoleName;
         AppRoleMetadataDetails appRoleMetadataDetails = new AppRoleMetadataDetails(appRoleName);
         appRoleMetadataDetails.setCreatedBy(username);
@@ -2600,6 +2630,12 @@ public final class ControllerUtil {
      * @return
      */
     public static  String populateUserMetaJson(String appRoleName, String username) {
+    	log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				  put(LogMessage.ACTION, "populateUserMetaJson").
+			      put(LogMessage.MESSAGE,"Start populating approle metadata json with the user information.").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			      build()));
         String _path = TVaultConstants.APPROLE_USERS_METADATA_MOUNT_PATH + "/" + username +"/" + appRoleName;
         AppRoleMetadataDetails appRoleMetadataDetails = new AppRoleMetadataDetails(appRoleName);
         appRoleMetadataDetails.setCreatedBy(username);
