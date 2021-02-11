@@ -689,6 +689,7 @@ const CreateModal = (props) => {
                       fullWidth
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Add some details about this safe"
+                      characterLimit={1024}
                     />
                     <FieldInstruction>
                       Please add a minimum of 10 characters

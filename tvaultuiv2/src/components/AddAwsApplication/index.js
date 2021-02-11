@@ -317,6 +317,7 @@ const AddAwsApplication = (props) => {
           fullWidth
           name="roleName"
           onChange={(e) => testValidity(e)}
+          characterLimit={50}
         />
         {isEC2 && <p>**Please fill atleast one of the followings.</p>}
         <InputAwsWrapper>
@@ -341,6 +342,7 @@ const AddAwsApplication = (props) => {
               readOnly={!isEC2}
               name="region"
               onChange={(e) => testValidity(e)}
+              characterLimit={25}
             />
           </EachInputField>
         </InputAwsWrapper>
@@ -354,6 +356,7 @@ const AddAwsApplication = (props) => {
               readOnly={!isEC2}
               name="vpcId"
               onChange={(e) => testValidity(e)}
+              characterLimit={256}
             />
           </EachInputField>
           <EachInputField>
@@ -365,6 +368,7 @@ const AddAwsApplication = (props) => {
               readOnly={!isEC2}
               name="subnetId"
               onChange={(e) => testValidity(e)}
+              characterLimit={256}
             />
           </EachInputField>
         </InputAwsWrapper>
@@ -378,6 +382,7 @@ const AddAwsApplication = (props) => {
               readOnly={!isEC2}
               name="amiId"
               onChange={(e) => testValidity(e)}
+              characterLimit={256}
             />
           </EachInputField>
           <EachInputField>

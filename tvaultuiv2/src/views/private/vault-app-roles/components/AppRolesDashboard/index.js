@@ -431,7 +431,7 @@ const AppRolesDashboard = () => {
           open={deleteAppRoleConfirmation}
           handleClose={handleConfirmationModalClose}
           title="Confirmation"
-          description={`<p>Are you sure you want to delete this appRole : <strong>${deleteAppRoleName}</strong></p>`}
+          description={`<p>Are you sure you want to delete the AppRole ${deleteAppRoleName} ?</p>`}
           cancelButton={
             <ButtonComponent
               label="Cancel"
@@ -465,6 +465,7 @@ const AppRolesDashboard = () => {
                   onChange={(e) => onSearchChange(e.target.value)}
                   value={inputSearchValue || ''}
                   color="secondary"
+                  characterLimit={40}
                 />
               </SearchWrap>
             </ColumnHeader>

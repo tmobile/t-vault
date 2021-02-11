@@ -68,6 +68,7 @@ const extraCss = css`
 
 const CreateSecret = (props) => {
   const {
+    existingSecrets,
     handleSecretSave,
     handleSecretCancel,
     parentId,
@@ -75,11 +76,13 @@ const CreateSecret = (props) => {
   } = props;
   const [secret, setSecret] = useState('');
   const [keyId, setKeyId] = useState('');
-  const [keyErrorMessage, setKeyErrorMessage] = useState(null);
+  const [keyErrorMessage, setKeyErrorMessage] = useState(false);
   const [valueErrorMessage, setValueErrorMessage] = useState(null);
   const [diabledCreate, setDiabledCreate] = useState(true);
   // screen resolution handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const [existingKey, setExistingKey] = useState(false);
+  const [existingKeyArray, setExistingKeyArray] = useState([]);
 
   // prefetch input data if any(i.e while editing)
   useEffect(() => {
@@ -90,11 +93,22 @@ const CreateSecret = (props) => {
   }, [secretprefilledData]);
 
   useEffect(() => {
+    if (existingSecrets) {
+      const array = [];
+      existingSecrets.forEach((data) => {
+        array.push(Object.keys(data)[0]);
+      });
+      setExistingKeyArray([...array]);
+    }
+  }, [existingSecrets]);
+
+  useEffect(() => {
     if (
       keyId === '' ||
       secret === '' ||
       keyErrorMessage ||
       valueErrorMessage ||
+      existingKey ||
       (Object.keys(secretprefilledData).length > 0 &&
         Object.keys(secretprefilledData)[0] === keyId &&
         Object.values(secretprefilledData)[0] === secret)
@@ -103,26 +117,55 @@ const CreateSecret = (props) => {
     } else {
       setDiabledCreate(false);
     }
-  }, [keyId, secret, valueErrorMessage, keyErrorMessage, secretprefilledData]);
+  }, [
+    keyId,
+    secret,
+    valueErrorMessage,
+    keyErrorMessage,
+    secretprefilledData,
+    existingKey,
+  ]);
 
   const handleValidation = (value, type) => {
-    if (type === 'key') {
-      setKeyErrorMessage(value.length < 3 || !value.match(/^[a-zA-Z0-9_]*$/g));
-    } else {
-      setValueErrorMessage(value.length < 3);
+    if (type === 'value') {
+      setValueErrorMessage(value.length < 1);
     }
   };
 
+  const handleKeyValidation = () => {
+    if (
+      Object.keys(secretprefilledData).length === 0 &&
+      existingKeyArray &&
+      existingKeyArray.includes(keyId)
+    ) {
+      setExistingKey(true);
+    } else {
+      setExistingKey(false);
+    }
+    setKeyErrorMessage(keyId.length < 1 || !keyId.match(/^[a-zA-Z0-9_]*$/g));
+  };
+
+  useEffect(() => {
+    if (keyId) handleKeyValidation();
+  }, [keyId]);
+
   const handleKeyChange = (key) => {
     setKeyId(key);
-    handleValidation(key, 'key');
   };
 
   const handleValueChange = (value) => {
     setSecret(value);
     handleValidation(value, 'value');
   };
-
+  const getHelperMessage = () => {
+    if (keyErrorMessage) {
+      return 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.';
+    }
+    if (existingKey) {
+      return 'This key id already exists in this folder.Please try a diffrent key id to continue to add secret.';
+    }
+    return 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.';
+  };
   return (
     <ComponentError>
       <SecretWrapper>
@@ -151,12 +194,9 @@ const CreateSecret = (props) => {
             name="keyId"
             onChange={(e) => handleKeyChange(e.target.value)}
             fullWidth
-            error={!!keyErrorMessage}
-            helperText={
-              keyErrorMessage
-                ? 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.'
-                : 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.'
-            }
+            characterLimit={256}
+            error={!!keyErrorMessage || existingKey}
+            helperText={getHelperMessage()}
           />
           <InputFieldWrapper>
             <InputLabel>
@@ -170,6 +210,7 @@ const CreateSecret = (props) => {
               onChange={(e) => handleValueChange(e.target.value)}
               fullWidth
               error={!!valueErrorMessage}
+              characterLimit={2048}
             />
           </InputFieldWrapper>
           <CancelSaveWrapper>
@@ -211,6 +252,7 @@ CreateSecret.propTypes = {
   handleSecretCancel: PropTypes.func,
   parentId: PropTypes.string,
   secretprefilledData: PropTypes.objectOf(PropTypes.any),
+  existingSecrets: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 CreateSecret.defaultProps = {
   handleSecretSave: () => {},

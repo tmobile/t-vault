@@ -107,6 +107,7 @@ const Folder = (props) => {
     folderInfo,
     children,
     value,
+    status,
     onFolderClosed,
     setOnFolderClosed,
     setInputType,
@@ -120,6 +121,7 @@ const Folder = (props) => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [activeSecrets, setActiveSecrets] = useState([]);
+  const [prevStatus, setPrevStatus] = useState({});
 
   const handleToggle = (e) => {
     e.preventDefault();
@@ -128,6 +130,13 @@ const Folder = (props) => {
     setOnFolderClosed(!isOpen);
     if (!isOpen) getChildNodes(id);
   };
+
+  useEffect(() => {
+    setPrevStatus(status);
+    if (prevStatus?.status === 'loading' && status.status === 'success') {
+      setIsOpen(false);
+    }
+  }, [status, setPrevStatus, setIsOpen, prevStatus]);
 
   useEffect(() => {
     if (onFolderClosed) {
@@ -141,7 +150,7 @@ const Folder = (props) => {
     getChildNodes(id, undefined, undefined, false);
     setInputType(type);
     setIsAddInput(e);
-    setIsOpen(e);
+    setIsOpen(false);
   };
 
   const handleActiveSecrets = (folder) => {
@@ -248,8 +257,9 @@ Folder.propTypes = {
   onDeleteTreeItem: PropTypes.func,
   value: PropTypes.number.isRequired,
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
-  onFolderClosed: PropTypes.bool,
+  onFolderClosed: PropTypes.bool.isRequired,
   setOnFolderClosed: PropTypes.func.isRequired,
+  status: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 Folder.defaultProps = {
   folderInfo: {},
@@ -260,7 +270,6 @@ Folder.defaultProps = {
   onDeleteTreeItem: () => {},
   setCurrentNode: () => {},
   id: '',
-  onFolderClosed: true,
 };
 
 export default Folder;
