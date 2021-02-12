@@ -140,6 +140,8 @@ const AzureSelectionTabs = (props) => {
         } else {
           setPermissionResponse({ status: 'error' });
         }
+        setHasPermission(false);
+        setValue(0);
       });
   }, [azureDetail]);
 

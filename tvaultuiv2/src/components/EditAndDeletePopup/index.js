@@ -50,7 +50,7 @@ const PsudoPopper = (props) => {
   return (
     <ComponentError>
       <IconWrap>
-        {(admin || manage) && isSvcAcct && (
+        {admin && isSvcAcct && (
           <TransferOwnerWrap onClick={onTransferOwnerClicked}>
             <SyncAltIcon style={{ fill: '#fff' }} />
           </TransferOwnerWrap>
@@ -60,7 +60,7 @@ const PsudoPopper = (props) => {
             <IconEdit />
           </Icon>
         )}
-        {(admin || manage) && (
+        {admin && (
           <Icon onClick={onDeletListItemClicked}>
             <IconDeleteActive />
           </Icon>

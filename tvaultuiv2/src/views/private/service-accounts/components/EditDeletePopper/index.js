@@ -56,7 +56,7 @@ const EditDeletePopper = (props) => {
             horizontal: 'right',
           }}
         >
-          {(admin || manage) && (
+          {admin && (
             <PopperItem onClick={onTransferOwnerClicked}>
               <SyncAltIcon style={{ fill: '#fff' }} />
               <span>Transfer</span>
@@ -68,7 +68,7 @@ const EditDeletePopper = (props) => {
               <span>Edit</span>
             </PopperItem>
           )}
-          {(admin || manage) && (
+          {admin && (
             <PopperItem onClick={onDeleteClicked}>
               <IconDeleteActive />
               <span> Delete</span>

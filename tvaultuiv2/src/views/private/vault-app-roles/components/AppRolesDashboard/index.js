@@ -246,7 +246,7 @@ const AppRolesDashboard = () => {
    */
   const onSearchChange = (value) => {
     setInputSearchValue(value);
-    if (value !== '') {
+    if (value?.length > 2) {
       const array = state?.appRoleList?.filter((item) => {
         return item?.name?.toLowerCase().includes(value?.toLowerCase().trim());
       });
@@ -449,7 +449,7 @@ const AppRolesDashboard = () => {
             />
           }
         />
-        <SectionPreview title="vault-app-roles-section">
+        <SectionPreview>
           <LeftColumnSection isAccountDetailsOpen={appRoleClicked}>
             <ColumnHeader>
               <div style={{ margin: '0 1rem' }}>
@@ -459,7 +459,7 @@ const AppRolesDashboard = () => {
               </div>
               <SearchWrap>
                 <TextFieldComponent
-                  placeholder="Search"
+                  placeholder="Search - Enter min 3 character"
                   icon="search"
                   fullWidth
                   onChange={(e) => onSearchChange(e.target.value)}
