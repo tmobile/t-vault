@@ -15,6 +15,7 @@ import Sidebar from '../Sidebar';
 import UserLogout from './userLogout';
 import configData from '../../config/config';
 import configUrl from '../../config';
+import HeaderSelectComponent from './headerDropDown';
 
 const { small, smallAndMedium, semiLarge } = mediaBreakpoints;
 
@@ -68,6 +69,7 @@ const TVaultIcon = styled.img`
 
 const HeaderCenter = styled.div`
   display: flex;
+  align-items: center;
   @media (max-width: 1044px) {
     display: none;
   }
@@ -75,7 +77,7 @@ const HeaderCenter = styled.div`
 
 const NavLink = styled(Link)`
   text-decoration: none;
-  padding: 2.5rem 1rem;
+  padding: 2.6rem 1rem;
   font-size: 1.3rem;
   font-weight: bold;
   background: ${(props) =>
@@ -126,25 +128,34 @@ const Header = (props) => {
   const [isLogin, setIsLogin] = useState(false);
   const [currentTab, setCurrentTab] = useState('Safes');
   const { location } = props;
-  const [navItems, setNavItems] = useState([]);
+  const [navItems, setNavItems] = useState({});
   const [userName, setUserName] = useState('User');
   const [state, setState] = useState({
     left: false,
   });
+  const [customSafes, setCustomSafes] = useState('');
+  const [svcSafes, setSvcSafes] = useState('');
 
-  const generalNavItems = [
-    { label: 'Safes', path: 'safes' },
-    { label: 'Vault AppRoles', path: 'vault-app-roles' },
-    { label: 'Service Accounts', path: 'service-accounts' },
-    { label: 'Certificates', path: 'certificates' },
-    { label: 'IAM Service Accounts', path: 'iam-service-accounts' },
-    { label: 'Azure Principal', path: 'azure-principal' },
-  ];
+  const generalNavItems = {
+    customSafesNavItems: [
+      { label: 'Safes', path: 'safes' },
+      { label: 'Vault AppRoles', path: 'vault-app-roles' },
+    ],
+    svcNavItems: [
+      { label: 'AD Service Accounts', path: 'service-accounts' },
+      { label: 'IAM Service Accounts', path: 'iam-service-accounts' },
+      { label: 'Azure Principal', path: 'azure-principal' },
+    ],
+  };
 
   const userPassNavItems = [
-    { label: 'Safes', path: 'safes' },
-    { label: 'Vault AppRoles', path: 'vault-app-roles' },
-    { label: 'Service Accounts', path: 'service-accounts' },
+    {
+      customSafesNavItems: [
+        { label: 'Safes', path: 'safes' },
+        { label: 'Vault AppRoles', path: 'vault-app-roles' },
+      ],
+      svcNavItems: [{ label: 'AD Service Accounts', path: 'service-accounts' }],
+    },
   ];
 
   const { trackPageView, trackEvent } = useMatomo();
@@ -158,6 +169,10 @@ const Header = (props) => {
 
   const handleOnClick = (label) => {
     trackEvent({ category: `${label}-tab`, action: 'click-event' });
+    if (label === 'Certificates') {
+      setCustomSafes('');
+      setSvcSafes('');
+    }
   };
 
   const toggleDrawer = (anchor, open) => (event) => {
@@ -173,9 +188,9 @@ const Header = (props) => {
 
   useEffect(() => {
     if (configData.AUTH_TYPE === 'userpass') {
-      setNavItems([...userPassNavItems]);
+      setNavItems(userPassNavItems);
     } else {
-      setNavItems([...generalNavItems]);
+      setNavItems(generalNavItems);
     }
     // eslint-disable-next-line
   }, []);
@@ -200,7 +215,36 @@ const Header = (props) => {
     checkToken();
     const path = location.pathname.split('/');
     setCurrentTab(path[1]);
-  }, [location]);
+    Object.keys(navItems).map((item) => {
+      return navItems[item].map((ele) => {
+        if (path[1] === ele.path) {
+          if (item === 'customSafesNavItems') {
+            setCustomSafes(ele.label);
+            setSvcSafes('');
+          } else {
+            setSvcSafes(ele.label);
+            setCustomSafes('');
+          }
+        }
+        return null;
+      });
+    });
+  }, [location, navItems]);
+
+  const onSelectChange = (ele, type) => {
+    navItems[type].map((item) => {
+      if (item.label === ele) {
+        if (type === 'customSafesNavItems') {
+          setCustomSafes(ele);
+          setSvcSafes('');
+        } else {
+          setSvcSafes(ele);
+          setCustomSafes('');
+        }
+      }
+      return null;
+    });
+  };
 
   return (
     <ComponentError>
@@ -228,6 +272,7 @@ const Header = (props) => {
                   EachLink={EachLink}
                   DescriptionIcon={DescriptionIcon}
                   currentTab={currentTab}
+                  configData={configData}
                 />
               </SwipeableDrawer>
             </>
@@ -236,18 +281,39 @@ const Header = (props) => {
           <TVaultIcon src={vaultIcon} alt="tvault-logo" />
           {isLogin && (
             <HeaderCenter>
-              {navItems &&
-                navItems.map((item) => (
-                  <NavLink
-                    key={item.label}
-                    to={`/${item.path}`}
-                    onClick={() => handleOnClick(item.path)}
-                    component={RRDLink}
-                    active={currentTab === item.path ? 'true' : 'false'}
-                  >
-                    {item.label}
-                  </NavLink>
-                ))}
+              <HeaderSelectComponent
+                menu={[...navItems.customSafesNavItems]}
+                value={customSafes}
+                filledText="Custom Safes"
+                selectedNav={customSafes !== ''}
+                onChange={(e) => {
+                  onSelectChange(e, 'customSafesNavItems');
+                  handleOnClick(e);
+                }}
+                width="15rem"
+              />
+              {configData.AUTH_TYPE !== 'userpass' && (
+                <NavLink
+                  key="Certificates"
+                  to="/certificates"
+                  onClick={() => handleOnClick('Certificates')}
+                  component={RRDLink}
+                  active={currentTab === 'certificates' ? 'true' : 'false'}
+                >
+                  Certificates
+                </NavLink>
+              )}
+              <HeaderSelectComponent
+                menu={[...navItems.svcNavItems]}
+                value={svcSafes}
+                filledText="Service Accounts"
+                selectedNav={svcSafes !== ''}
+                onChange={(e) => {
+                  onSelectChange(e, 'svcNavItems');
+                  handleOnClick(e);
+                }}
+                width="18rem"
+              />
             </HeaderCenter>
           )}
           <>

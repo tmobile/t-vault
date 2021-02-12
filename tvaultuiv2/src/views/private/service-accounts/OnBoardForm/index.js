@@ -230,7 +230,7 @@ const ViewMoreStyles = css`
   align-items: center;
   font-weight: 600;
   cursor: pointer;
-  margin-left: 5rem;
+  margin-left: 6rem;
 `;
 const SvcDetailsStyles = css`
   display: flex;
@@ -568,7 +568,11 @@ const OnBoardForm = (props) => {
   };
 
   const onServiceAccountNameChange = (e) => {
-    fetchServiceAccounts(e.target.value);
+    if (e.target.value.length > 2) {
+      fetchServiceAccounts(e.target.value);
+    } else {
+      setServiceAccountsList([]);
+    }
     onChange(e);
   };
   const onApplicationNameChange = (e) => {
@@ -977,10 +981,15 @@ const OnBoardForm = (props) => {
                             </CollapseTitle>
                           </GridItem>
                           <GridItem>
-                            {' '}
                             <CollapseTitle>Account Status</CollapseTitle>
                             <CollapseTitle color="#fff">
                               {serviceAccountDetails?.accountStatus}
+                            </CollapseTitle>
+                          </GridItem>
+                          <GridItem>
+                            <CollapseTitle>Purpose</CollapseTitle>
+                            <CollapseTitle color="#fff">
+                              {serviceAccountDetails?.purpose || 'N/A'}
                             </CollapseTitle>
                           </GridItem>
                         </GridColumn>

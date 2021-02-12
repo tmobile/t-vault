@@ -523,23 +523,49 @@ const CertificatesDashboard = () => {
    * @param {string} value searched input value.
    */
   const onSearchChange = (value) => {
-    if (value !== '') {
-      const searchArray = allCertList.filter((item) =>
-        item?.certificateName
-          ?.toLowerCase()
-          .includes(value?.toLowerCase().trim())
-      );
-      setListOfCertificates([...searchArray]);
-      setCertificateList([...searchArray]);
-    } else {
-      setListOfCertificates([...allCertList]);
-      setCertificateList([...allCertList]);
+    if (certificateType === 'All Certificates') {
+      if (value?.length > 2) {
+        const searchArray = allCertList.filter((item) =>
+          item?.certificateName
+            ?.toLowerCase()
+            .includes(value?.toLowerCase().trim())
+        );
+        setListOfCertificates([...searchArray]);
+        setCertificateList([...searchArray]);
+      } else {
+        setListOfCertificates([...allCertList]);
+        setCertificateList([...allCertList]);
+      }
     }
   };
 
   // when both search and filter value is available.
   useEffect(() => {
-    if (inputSearchValue) {
+    if (
+      certificateType !== 'All Certificates' &&
+      inputSearchValue?.length > 2
+    ) {
+      if (certificateType !== 'Onboard Certificates') {
+        const filterArray = allCertList.filter(
+          (cert) =>
+            certificateType.toLowerCase().includes(cert.certType) &&
+            !cert.isOnboardCert &&
+            cert?.certificateName
+              ?.toLowerCase()
+              .includes(inputSearchValue?.toLowerCase().trim())
+        );
+        setCertificateList([...filterArray]);
+      } else if (certificateType === 'Onboard Certificates') {
+        const filterArray = allCertList.filter(
+          (cert) =>
+            cert.isOnboardCert === true &&
+            cert?.certificateName
+              ?.toLowerCase()
+              .includes(inputSearchValue?.toLowerCase().trim())
+        );
+        setCertificateList([...filterArray]);
+      }
+    } else if (certificateType === 'All Certificates' && inputSearchValue) {
       onSearchChange(inputSearchValue);
     } else if (inputSearchValue === '') {
       onSelectChange(certificateType);
@@ -727,7 +753,7 @@ const CertificatesDashboard = () => {
   return (
     <ComponentError>
       <>
-        <SectionPreview title="certificates-section">
+        <SectionPreview>
           {openTransferModal && (
             <TransferCertificate
               certificateData={certificateData}
@@ -772,7 +798,7 @@ const CertificatesDashboard = () => {
               />
               <SearchWrap>
                 <TextFieldComponent
-                  placeholder="Search"
+                  placeholder="Search - Enter min 3 characters"
                   icon="search"
                   fullWidth
                   onChange={(e) => setInputSearchValue(e.target.value)}

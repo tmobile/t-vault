@@ -263,7 +263,7 @@ const AzureDashboard = () => {
    */
   const onSearchChange = (value) => {
     setInputSearchValue(value);
-    if (value !== '') {
+    if (value?.length > 2) {
       const array = allAzureList?.filter((item) => {
         return String(item?.name?.toLowerCase()).startsWith(
           value?.toLowerCase().trim()
@@ -360,7 +360,7 @@ const AzureDashboard = () => {
               </div>
               <SearchWrap>
                 <TextFieldComponent
-                  placeholder="Search"
+                  placeholder="Search - Enter min 3 characters"
                   icon="search"
                   fullWidth
                   value={inputSearchValue || ''}

@@ -385,16 +385,20 @@ const SafeDashboard = () => {
    */
   const onSearchChange = (value) => {
     setInputSearchValue(value);
-    if (value !== '') {
-      const array = allSafeList?.filter((item) => {
-        return item?.name?.toLowerCase().includes(value?.toLowerCase().trim());
-      });
-      sortAnArray(array);
-      setListOfSafes([...array]);
-      setSafeList([...array]);
-    } else {
-      setListOfSafes([...allSafeList]);
-      setSafeList([...allSafeList]);
+    if (safeType === 'All Safes') {
+      if (value?.length > 2) {
+        const array = allSafeList?.filter((item) => {
+          return item?.name
+            ?.toLowerCase()
+            .includes(value?.toLowerCase().trim());
+        });
+        sortAnArray(array);
+        setListOfSafes([...array]);
+        setSafeList([...array]);
+      } else {
+        setListOfSafes([...allSafeList]);
+        setSafeList([...allSafeList]);
+      }
     }
   };
 
@@ -418,7 +422,7 @@ const SafeDashboard = () => {
 
   // when both search and filter value is available.
   useEffect(() => {
-    if (safeType !== 'All Safes' && inputSearchValue) {
+    if (safeType !== 'All Safes' && inputSearchValue?.length > 2) {
       const obj = selectList.find((item) => item.selected === safeType);
       const array = allSafeList.filter(
         (item) =>
@@ -592,7 +596,7 @@ const SafeDashboard = () => {
             />
           }
         />
-        <SectionPreview title="safe-section">
+        <SectionPreview>
           <LeftColumnSection clicked={safeClicked}>
             <ColumnHeader>
               <SelectWithCountComponent
@@ -605,7 +609,7 @@ const SafeDashboard = () => {
               />
               <SearchWrap>
                 <TextFieldComponent
-                  placeholder="Search"
+                  placeholder="Search - Enter min 3 characters"
                   icon="search"
                   fullWidth
                   onChange={(e) => onSearchChange(e.target.value)}

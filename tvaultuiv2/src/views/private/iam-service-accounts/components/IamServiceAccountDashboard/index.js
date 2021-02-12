@@ -293,7 +293,7 @@ const IamServiceAccountDashboard = () => {
    */
   const onSearchChange = (value) => {
     setInputSearchValue(value);
-    if (value !== '') {
+    if (value?.length > 2) {
       const array = state?.iamServiceAccountList?.filter((item) => {
         return item?.name?.toLowerCase().includes(value?.toLowerCase().trim());
       });
@@ -375,6 +375,7 @@ const IamServiceAccountDashboard = () => {
         }
       } catch (err) {
         setPermissionResponse({ status: 'error' });
+        setDisabledPermission(true);
         if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setAccountSecretError(err?.response?.data?.errors[0]);
           setAccountMetaData({ response: {}, error: 'Something went wrong' });
@@ -502,7 +503,7 @@ const IamServiceAccountDashboard = () => {
               </div>
               <SearchWrap>
                 <TextFieldComponent
-                  placeholder="Search"
+                  placeholder="Search - Enter min 3 characters"
                   icon="search"
                   fullWidth
                   onChange={(e) => onSearchChange(e.target.value)}

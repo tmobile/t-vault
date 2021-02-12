@@ -186,6 +186,8 @@ const AccountSelectionTabs = (props) => {
       })
       .catch(() => {
         setResponse({ status: 'error' });
+        setValue(0);
+        setDisabledPermission(true);
         setAccountMetaData({ response: {}, error: 'Something went wrong' });
       });
     // eslint-disable-next-line
