@@ -568,7 +568,11 @@ const OnBoardForm = (props) => {
   };
 
   const onServiceAccountNameChange = (e) => {
-    fetchServiceAccounts(e.target.value);
+    if (e.target.value.length > 2) {
+      fetchServiceAccounts(e.target.value);
+    } else {
+      setServiceAccountsList([]);
+    }
     onChange(e);
   };
   const onApplicationNameChange = (e) => {
@@ -977,10 +981,15 @@ const OnBoardForm = (props) => {
                             </CollapseTitle>
                           </GridItem>
                           <GridItem>
-                            {' '}
                             <CollapseTitle>Account Status</CollapseTitle>
                             <CollapseTitle color="#fff">
                               {serviceAccountDetails?.accountStatus}
+                            </CollapseTitle>
+                          </GridItem>
+                          <GridItem>
+                            <CollapseTitle>Purpose</CollapseTitle>
+                            <CollapseTitle color="#fff">
+                              {serviceAccountDetails?.purpose || 'N/A'}
                             </CollapseTitle>
                           </GridItem>
                         </GridColumn>

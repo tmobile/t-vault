@@ -145,7 +145,7 @@ const TypeAheadComponent = ({
       );
     }
   }
-
+  console.log('disabled', disabled);
   return (
     <OutsideClickHandler onOutsideClick={() => setShowOptions(false)}>
       <Wrapper>

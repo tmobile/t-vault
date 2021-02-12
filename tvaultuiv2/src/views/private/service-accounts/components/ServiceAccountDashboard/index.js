@@ -463,6 +463,7 @@ const ServiceAccountDashboard = () => {
       })
       .catch(() => {
         setToastResponse(-1);
+        setResponse({ status: 'success' });
       });
   };
 
@@ -498,6 +499,7 @@ const ServiceAccountDashboard = () => {
       })
       .catch(() => {
         setToastResponse(-1);
+        setResponse({ status: 'success' });
       });
   };
 

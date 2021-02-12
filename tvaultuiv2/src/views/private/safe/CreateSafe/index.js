@@ -491,7 +491,7 @@ const CreateModal = (props) => {
       .transferSafeOwner(payload)
       .then(() => {
         setResponseType(1);
-        setToastMessage('Safe Transfer successfully!');
+        setToastMessage('Safe Transfer Successful!');
         setTimeout(() => {
           setOpen(false);
           history.goBack();
@@ -612,7 +612,10 @@ const CreateModal = (props) => {
                       )}
                       loader={autoLoader}
                       userInput={owner}
-                      disabled={!!editSafe}
+                      disabled={
+                        !!editSafe ||
+                        sessionStorage.getItem('isAdmin') === 'false'
+                      }
                       name="owner"
                       onSelected={(e, val) => onSelected(e, val)}
                       onChange={(e) => onOwnerChange(e)}

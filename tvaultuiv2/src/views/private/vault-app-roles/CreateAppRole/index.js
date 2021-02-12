@@ -274,8 +274,10 @@ const CreateAppRole = (props) => {
 
   const onInputNumberChange = (e) => {
     const re = /^[0-9\b]+$/;
-    if (e?.target?.value === '' || re.test(e?.target?.value)) {
-      onChange(e);
+    if (e.target.value <= 999999999) {
+      if (e?.target?.value === '' || re.test(e?.target?.value)) {
+        onChange(e);
+      }
     }
   };
 

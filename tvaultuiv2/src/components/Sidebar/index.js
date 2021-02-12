@@ -55,6 +55,7 @@ const Sidebar = (props) => {
     checkToken,
     DescriptionIcon,
     EachLink,
+    configData,
   } = props;
 
   const { trackPageView, trackEvent } = useMatomo();
@@ -77,17 +78,30 @@ const Sidebar = (props) => {
         <Logo src={banner} alt="banner" />
       </BannerCloseWrap>
       <NavItems>
+        {configData.AUTH_TYPE !== 'userpass' && (
+          <NavLink
+            href="/certificates"
+            onClick={() => handleOnClick('Certificates')}
+            active={currentTab === 'certificates' ? 'true' : 'false'}
+          >
+            Certificates
+          </NavLink>
+        )}
         {navItems &&
-          navItems.map((item) => (
-            <NavLink
-              href={`/${item.path}`}
-              key={item.label}
-              active={currentTab === item.path ? 'true' : 'false'}
-              onClick={() => handleOnClick(item.path)}
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          Object.keys(navItems).map((item) =>
+            navItems[item].map((nav) => {
+              return (
+                <NavLink
+                  href={`/${nav.path}`}
+                  key={nav.label}
+                  active={currentTab === nav.path ? 'true' : 'false'}
+                  onClick={() => handleOnClick(nav.label)}
+                >
+                  {nav.label}
+                </NavLink>
+              );
+            })
+          )}
       </NavItems>
       <ProfileIconWrap>
         <EachLink
@@ -114,5 +128,6 @@ Sidebar.propTypes = {
   DescriptionIcon: PropTypes.objectOf(PropTypes.any).isRequired,
   EachLink: PropTypes.objectOf(PropTypes.any).isRequired,
   currentTab: PropTypes.string.isRequired,
+  configData: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 export default withRouter(Sidebar);
