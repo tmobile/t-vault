@@ -428,14 +428,14 @@ public class SSLCertificateService {
      * @return
      */
     public ResponseEntity<String> generateSSLCertificate(SSLCertificateRequest sslCertificateRequest,
-                                                               UserDetails userDetails ,String token) {
+                                                               UserDetails userDetails ,String token, String method) {
         CertResponse enrollResponse = new CertResponse();
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
         		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
         		.put(LogMessage.ACTION, SSLCertificateConstants.GENERATE_SSL_CERTIFICTAE)
         		.put(LogMessage.MESSAGE, "Trying to generate SSL Certificate")
         		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
-        		.build()));
+        		.build()));       
         
         //Validate the input data
         boolean isValidData = validateInputData(sslCertificateRequest, userDetails);
@@ -466,7 +466,22 @@ public class SSLCertificateService {
 						.build()));
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 			}
-		}
+		}		
+		 if(method.equalsIgnoreCase("api")) {
+	        	boolean isValidAppname = validateAppname(token,userDetails,sslCertificateRequest.getAppName());
+	        	String errorInvalidApp =  "{\"errors\":[\"To create a certificate you must be a member of the applications Cloud Self-Service group. "
+	        			+ "Please go to https://access.t-mobile.com/ and request access to the group r_selfservice_"+sslCertificateRequest.getAppName()+"_admin in the Cloud Access Portal.\"]}";
+	        	if(!isValidAppname) {
+	        		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+	    					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+	    					.put(LogMessage.ACTION, SSLCertificateConstants.VALIDATE_INPUT_DATA)
+	    					.put(LogMessage.MESSAGE, String.format("To create a certificate you must be a member of the applications Cloud Self-Service group. "
+	    							+ "Please request access to the group [%s] in the Cloud Access Portal.",sslCertificateRequest.getAppName()))
+	    					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+	    					.build()));
+	    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInvalidApp);
+	        	}
+	        }
 
 		try {
             log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
@@ -7506,7 +7521,8 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
             for (int i = offset; i < maxVal; i++) {            	
                 endPoint = certNames.get(i).replaceAll(CERTNAMEREGEX, "");
                 if(certNamesExt.contains(certNames.get(i))) {  
-                	pathStr = extPath + TVaultConstants.PATH_DELIMITER + endPoint;                
+                	pathStr = extPath + TVaultConstants.PATH_DELIMITER + endPoint;    
+                	certNamesExt.remove(certNames.get(i));
                 }else{
                 	pathStr = path + TVaultConstants.PATH_DELIMITER + endPoint;
                 }
@@ -10633,5 +10649,34 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 				}
 			}
 		 return isSaved;
+	 }
+	 
+	 /**
+	  * Check if the application name is assigned to the user
+	  * @param token
+	  * @param userDetails
+	  * @param appName
+	  * @return
+	  */
+	 private boolean validateAppname(String token,UserDetails userDetails, String appName) {
+		 boolean isValid = false;
+		 if(userDetails.isAdmin()) {
+			 isValid = true;
+		 }
+		 else {
+		 ResponseEntity<String> appResponse = getAllSelfServiceGroups(userDetails);
+		 if (HttpStatus.OK.equals(appResponse.getStatusCode())) {
+				JsonParser jsonParser = new JsonParser();
+				JsonArray responseArray =  (JsonArray) jsonParser.parse(appResponse.getBody());
+				 
+				for (int i=0;i<responseArray.size();i++) {
+					if(responseArray.get(i).toString().substring(1, responseArray.get(i).toString().length() - 1).equalsIgnoreCase(appName)) {
+						isValid=true;
+						break;
+					}
+				}
+			}
+	 }
+		 return isValid;
 	 }
 }

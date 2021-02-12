@@ -266,6 +266,7 @@
             $scope.certObj.certDetails.ownerEmail = "";
             $scope.isCertificatePreview = false;
             $scope.isCertificateManagePreview = false;
+            $scope.applicationNameErrorMsg = '';
             if($scope.appNameTableOptions!==undefined){
             	$scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort(function (a, b) {
                     return (a.name > b.name ? 1 : -1);
@@ -1752,7 +1753,7 @@
                 console.log(e);
             };
         	}else{
-        		$scope.applicationNameErrorMsg = "You do not have access to the selected application. Please refer 'How to get started and what to know' for more details.";
+        		$scope.applicationNameErrorMsg = "To create a certificate you must be a member of the applications Cloud Self-Service group. Please go  to https://access.t-mobile.com and request access to the group r_selfservice_"+$scope.dropdownApplicationName.selectedGroupOption.tag+"_admin in the Cloud Access Portal.";
         	}
         	}
          }
@@ -3093,6 +3094,7 @@
             $scope.certObj.certDetails.ownerEmail = "";
             $scope.isCertificateOnboardPreview = false;
             $scope.notificationEmailErrorMessage = '';
+            $scope.applicationNameErrorMsg = '';
             if($scope.appNameTableOptions!==undefined){
                 $scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort(function (a, b) {
                     return (a.name > b.name ? 1 : -1);

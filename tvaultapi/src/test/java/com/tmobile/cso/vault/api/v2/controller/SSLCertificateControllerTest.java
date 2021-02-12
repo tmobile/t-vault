@@ -118,8 +118,8 @@ public class SSLCertificateControllerTest {
         sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
 
 
-       when(sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-       assertEquals(HttpStatus.OK, sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token).getStatusCode());
+       when(sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token,"ui")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+       assertEquals(HttpStatus.OK, sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token,"ui").getStatusCode());
     }
 
     @Test
@@ -142,7 +142,7 @@ public class SSLCertificateControllerTest {
         sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
 
 
-        when(sslCertificateService.generateSSLCertificate(sSLCertificateRequest, userDetails, token)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(sslCertificateService.generateSSLCertificate(sSLCertificateRequest, userDetails, token,"ui")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
         assertEquals(HttpStatus.OK, SslCertificateController.generateSSLCertificate(httpServletRequest, token, sSLCertificateRequest).getStatusCode());
     }
@@ -166,10 +166,10 @@ public class SSLCertificateControllerTest {
         sSLCertificateRequest.setTargetSystem(targetSystem);
         sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
 
-        when(sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token)).thenReturn(new ResponseEntity<>
+        when(sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token,"ui")).thenReturn(new ResponseEntity<>
              (HttpStatus.INTERNAL_SERVER_ERROR));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,
-                sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token).getStatusCode());
+                sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token,"ui").getStatusCode());
 
     }
     
