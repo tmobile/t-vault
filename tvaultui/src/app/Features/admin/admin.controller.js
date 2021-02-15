@@ -142,7 +142,8 @@
                 return;
             }
             $scope.selectionValue = 'email';
-            $scope.ifTargetServiceExisting=false;	
+            $scope.selectionKeyUsage ='server';
+            $scope.ifTargetServiceExisting=false;
             $scope.ifTargetSystemExisting=false;
             $scope.enableSvcacc = true;
             $scope.enableIamSvcacc = true;
@@ -1579,7 +1580,8 @@
         }
 
         $scope.newCertificateConfiguration = function (size) {   
-            $scope.selectionValue = 'email';          
+            $scope.selectionValue = 'email';
+            $scope.selectionKeyUsage ='server';
             $scope.hostNameErrorMessage = '';
             $scope.certNameErrorMessage = '';
             $scope.targetSysErrorMessage = '';
@@ -1710,9 +1712,23 @@
             $scope.appNameSelected = true;
             $scope.isOwnerSelected = true
         }
-        
+
+        $scope.getTargetSystems = function(){
+           if($scope.certObj.certDetails.certType === 'internal') {
+                 $scope.keyUsageOptions=true;
+             } else {
+                 $scope.keyUsageOptions=false;
+             }
+        }
+
         $scope.appNameSelect = function(){
             $scope.appNameSelected =false;
+            if($scope.certObj.certDetails.certType === 'internal') {
+                $scope.keyUsageOptions=true;
+            } else {
+                $scope.keyUsageOptions=false;
+            }
+
             $scope.applicationNameErrorMsg = "";
             $scope.notificationEmailErrorMessage = '';
             $scope.certObj.certDetails.notificationEmails="";
@@ -1826,13 +1842,23 @@
             }else if(certificateTypeVal.toLowerCase() === "internal"){
                 certificateTypeName = 'Internal';
             }
+            var keyUsageValue = '';
+            if($scope.selectionKeyUsage === 'server'){
+                keyUsageValue = 'Server auth';
+            } else if($scope.selectionKeyUsage === 'client') {
+              keyUsageValue = 'Client auth';
+            } else {
+               keyUsageValue = 'Client auth , Server auth';
+            }
+
             $scope.certificateDetails = {
                 certificateName: $scope.certObj.certDetails.certName+".t-mobile.com",
                 certOwnerEmailId: $scope.certObj.certDetails.ownerEmail,
                 applicationName: $scope.appName,
                 notificationEmail:$scope.certObj.certDetails.notificationEmails,
                 certType: certificateTypeName,
-                dnsList: multiSanDnsPreview
+                dnsList: multiSanDnsPreview,
+                keyUsageType:keyUsageValue
             }
         }
 
@@ -1864,7 +1890,8 @@
                     "certOwnerEmailId":$scope.certObj.certDetails.ownerEmail,
                     "notificationEmail":$scope.certObj.certDetails.notificationEmails,
                     "certOwnerNTId":SessionStore.getItem("username"),
-                    "dnsList": multiSanDns
+                    "dnsList": multiSanDns,
+                    "keyUsageValue":$scope.selectionKeyUsage
                 }
                 $scope.certificateCreationMessage = '';
                 var url = '';
@@ -3001,6 +3028,12 @@
             $scope.isNotificationEmailSelected = false;
             $scope.notificationEmailErrorMessage = '';
         }
+
+
+        $scope.getExtendedKeyUsage = function(val){
+           $scope.selectionKeyUsage=val;
+        }
+
         $scope.searchOwnerEmailForOnboard = function (email) {
             if (!email.endsWith("\\")) {
                 $scope.isOwnerEmailSearch = true;

@@ -67,7 +67,18 @@ public class SSLCertificateRequest implements Serializable {
 	
 	@NotBlank
 	private String notificationEmail;
-	
+
+
+	@ApiModelProperty(example="server", allowableValues="client,server,both")
+	private String keyUsageValue;
+
+	public String getKeyUsageValue() {
+		return keyUsageValue;
+	}
+
+	public void setKeyUsageValue(String keyUsageValue) {
+		this.keyUsageValue = keyUsageValue;
+	}
 
 	public String getNotificationEmail() {
 		return notificationEmail;
