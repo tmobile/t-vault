@@ -1,6 +1,7 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
 import ReactHtmlParser from 'react-html-parser';
+import PropTypes from 'prop-types';
 import Strings from '../../../../../resources';
 import certIcon from '../../../../../assets/cert-icon.svg';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
@@ -50,7 +51,9 @@ const ViewMoreStyles = css`
   margin-left: 5rem;
 `;
 
-const CertificateHeader = () => {
+const CertificateHeader = (props) => {
+  const { showPreview } = props;
+
   return (
     <ComponentError>
       <>
@@ -60,51 +63,61 @@ const CertificateHeader = () => {
             <Description>{Strings.Resources.certificateDesc}</Description>
           </CertDesc>
         </IconDescriptionWrapper>
-        <CollapsibleDropdown
-          titleMore="How certificates work"
-          titleLess="View Less"
-          collapseStyles="background:none"
-          titleCss={ViewMoreStyles}
-        >
-          <CollapsibleContainer>
-            <InfoLine>
-              <Span>
-                <strong>1:</strong>
-              </Span>
-              {ReactHtmlParser(Strings.Resources.certificateGuide1)}
-            </InfoLine>
+        {!showPreview && (
+          <CollapsibleDropdown
+            titleMore="How certificates work"
+            titleLess="View Less"
+            collapseStyles="background:none"
+            titleCss={ViewMoreStyles}
+          >
+            <CollapsibleContainer>
+              <InfoLine>
+                <Span>
+                  <strong>1:</strong>
+                </Span>
+                {ReactHtmlParser(Strings.Resources.certificateGuide1)}
+              </InfoLine>
 
-            <InfoLine>
-              <Span>
-                <strong>2:</strong>
-              </Span>
-              {ReactHtmlParser(Strings.Resources.certificateGuide2)}
-            </InfoLine>
+              <InfoLine>
+                <Span>
+                  <strong>2:</strong>
+                </Span>
+                {ReactHtmlParser(Strings.Resources.certificateGuide2)}
+              </InfoLine>
 
-            <InfoLine>
-              <Span>
-                <strong>3:</strong>
-              </Span>
-              {ReactHtmlParser(Strings.Resources.certificateGuide3)}
-            </InfoLine>
+              <InfoLine>
+                <Span>
+                  <strong>3:</strong>
+                </Span>
+                {ReactHtmlParser(Strings.Resources.certificateGuide3)}
+              </InfoLine>
 
-            <InfoLine>
-              <Span>
-                <strong>4:</strong>
-              </Span>
-              {ReactHtmlParser(Strings.Resources.certificateGuide4)}
-            </InfoLine>
-            <InfoLine>
-              <Span>
-                <strong>5:</strong>
-              </Span>
-              {ReactHtmlParser(Strings.Resources.certificateGuide5)}
-            </InfoLine>
-          </CollapsibleContainer>
-        </CollapsibleDropdown>
+              <InfoLine>
+                <Span>
+                  <strong>4:</strong>
+                </Span>
+                {ReactHtmlParser(Strings.Resources.certificateGuide4)}
+              </InfoLine>
+              <InfoLine>
+                <Span>
+                  <strong>5:</strong>
+                </Span>
+                {ReactHtmlParser(Strings.Resources.certificateGuide5)}
+              </InfoLine>
+            </CollapsibleContainer>
+          </CollapsibleDropdown>
+        )}
       </>
     </ComponentError>
   );
+};
+
+CertificateHeader.propTypes = {
+  showPreview: PropTypes.bool,
+};
+
+CertificateHeader.defaultProps = {
+  showPreview: false,
 };
 
 export default CertificateHeader;

@@ -65,6 +65,7 @@ const PreviewCertificate = (props) => {
     owner,
     notificationEmails,
     onboard,
+    showPreview,
   } = props;
   const [dnsNames, setDnsNames] = useState([]);
   useEffect(() => {
@@ -78,6 +79,7 @@ const PreviewCertificate = (props) => {
       }
     }
   }, [dns]);
+  console.log('showPreview', showPreview);
   return (
     <ComponentError>
       <DetailsWrap>
@@ -109,18 +111,20 @@ const PreviewCertificate = (props) => {
             })}
           </EachDetail>
         )}
-        <EachDetail>
-          <Label>Dns:</Label>
-          {dnsNames?.length > 0 ? (
-            <>
-              {dnsNames?.map((item) => {
-                return <DnsName key={item}>{item}</DnsName>;
-              })}
-            </>
-          ) : (
-            'N/A'
-          )}
-        </EachDetail>
+        {!showPreview && (
+          <EachDetail>
+            <Label>DNS:</Label>
+            {dnsNames?.length > 0 ? (
+              <>
+                {dnsNames?.map((item) => {
+                  return <DnsName key={item}>{item}</DnsName>;
+                })}
+              </>
+            ) : (
+              'N/A'
+            )}
+          </EachDetail>
+        )}
         <EachDetail>
           <Label>Signature Algorithm:</Label>
           <Value>SHA256-RSA</Value>
@@ -131,11 +135,19 @@ const PreviewCertificate = (props) => {
         </EachDetail>
         <EachDetail>
           <Label>Extended Key Usage:</Label>
-          <Value>serverAuth</Value>
+          <Value>
+            {certificateType?.toLowerCase() === 'internal'
+              ? 'serverAuth'
+              : 'serverAuth, clientAuth'}
+          </Value>
         </EachDetail>
         <EachDetail>
           <Label>Enroll Service:</Label>
-          <Value>T-Mobile Issuing CA 01 - SHA2</Value>
+          <Value>
+            {certificateType?.toLowerCase() === 'internal'
+              ? 'T-Mobile Issuing CA 01 - SHA2'
+              : 'Entrust CA'}
+          </Value>
         </EachDetail>
         {!isEditCertificate && (
           <CancelSaveWrapper>
@@ -187,6 +199,7 @@ PreviewCertificate.propTypes = {
   notificationEmails: PropTypes.arrayOf(PropTypes.any),
   owner: PropTypes.string,
   onboard: PropTypes.bool,
+  showPreview: PropTypes.bool,
 };
 
 PreviewCertificate.defaultProps = {
@@ -204,6 +217,7 @@ PreviewCertificate.defaultProps = {
   responseType: null,
   isEditCertificate: false,
   onboard: false,
+  showPreview: false,
 };
 
 export default PreviewCertificate;

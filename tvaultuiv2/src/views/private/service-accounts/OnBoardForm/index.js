@@ -43,6 +43,7 @@ import BackdropLoader from '../../../../components/Loaders/BackdropLoader';
 import svcHeaderBgimg from '../../../../assets/icon-service-account.svg';
 import Strings from '../../../../resources';
 import TypeAheadComponent from '../../../../components/TypeAheadComponent';
+import { calculateHoursMinsSec } from '../../../../services/helper-function';
 
 const useStyles = makeStyles((theme) => ({
   select: {
@@ -622,6 +623,7 @@ const OnBoardForm = (props) => {
   const handleCancelClick = () => {
     handleClose();
   };
+
   const handleSaveClick = (e) => {
     e.preventDefault();
     setOnBoardConfirmationModal(true);
@@ -647,7 +649,9 @@ const OnBoardForm = (props) => {
      ${Strings.Resources.svcPwdEnableNoValueMsg}`);
     } else {
       setOnboardUpdateConfirmationMsg(
-        `The password for this service account will expire in ${inputExpiryTime} ${Strings.Resources.svcPwdEnableWithValueMsg}`
+        `The password for this service account will expire in ${calculateHoursMinsSec(
+          inputExpiryTime
+        )} ${Strings.Resources.svcPwdEnableWithValueMsg}`
       );
     }
   };

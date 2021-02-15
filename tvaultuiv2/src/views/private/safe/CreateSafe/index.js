@@ -33,6 +33,7 @@ import {
 } from '../../../../styles/GlobalStyles';
 import TransferSafeOwner from '../components/TransferSafeOwner';
 import TypeAheadComponent from '../../../../components/TypeAheadComponent';
+import ConfirmationModal from '../../../../components/ConfirmationModal';
 
 const { small } = mediaBreakpoints;
 
@@ -180,6 +181,7 @@ const CreateModal = (props) => {
   const [isValidEmail, setIsValidEmail] = useState(true);
   const history = useHistory();
   const [ownerSelected, setOwnerSelected] = useState(false);
+  const [modalDecription, setModalDecription] = useState('');
 
   const { trackPageView, trackEvent } = useMatomo();
 
@@ -490,12 +492,10 @@ const CreateModal = (props) => {
     apiService
       .transferSafeOwner(payload)
       .then(() => {
-        setResponseType(1);
-        setToastMessage('Safe Transfer Successful!');
-        setTimeout(() => {
-          setOpen(false);
-          history.goBack();
-        }, 1000);
+        setOpenModal({ status: 'confirmation' });
+        setModalDecription(
+          `Safe ownership has been transferred to ${payload?.newOwnerEmail}`
+        );
       })
       .catch((err) => {
         if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
@@ -532,233 +532,264 @@ const CreateModal = (props) => {
     return false;
   };
 
+  const onConfirmationModalClose = () => {
+    setOpen(false);
+    history.goBack();
+  };
+
   return (
     <ComponentError>
-      <StyledModal
-        aria-labelledby="transition-modal-title"
-        aria-describedby="transition-modal-description"
-        className={classes?.modal}
-        open={open}
-        onClose={() => handleClose()}
-        closeAfterTransition
-        BackdropComponent={Backdrop}
-        BackdropProps={{
-          timeout: 500,
-        }}
-      >
-        <Fade in={open}>
-          <GlobalModalWrapper>
-            {responseType === 0 && <BackdropLoader customStyle={loaderStyle} />}
-            {openModal.status === 'edit' && (
-              <>
-                <HeaderWrapper>
-                  <LeftIcon
-                    src={leftArrowIcon}
-                    alt="go-back"
-                    onClick={() => handleClose()}
-                  />
-                  {editSafe ? (
-                    <Typography variant="h5">Edit Safe</Typography>
-                  ) : (
-                    <Typography variant="h5">Create Safe</Typography>
-                  )}
-                </HeaderWrapper>
-                <IconDescriptionWrapper>
-                  <SafeIcon src={safeIcon} alt="safe-icon" />
-                  <TitleThree
-                    lineHeight="1.8rem"
-                    extraCss={extraCss}
-                    color="#ccc"
-                  >
-                    A Safe is a logical unit to store the secrets. All the safes
-                    are created within Vault. You can control access only at the
-                    safe level. As a vault administrator you can manage safes
-                    but cannot view the content of the safe.
-                  </TitleThree>
-                </IconDescriptionWrapper>
-                <CreateSafeForm>
-                  <InputFieldLabelWrapper>
-                    <LabelRequired>
-                      <InputLabel>
-                        Safe Name
-                        <RequiredCircle margin="0.5rem" />
-                      </InputLabel>
-                      <RequiredWrap>
-                        <RequiredCircle />
-                        <RequiredText>Required</RequiredText>
-                      </RequiredWrap>
-                    </LabelRequired>
-                    <TextFieldComponent
-                      value={name}
-                      placeholder="Safe Name- Enter min 3 characters"
-                      fullWidth
-                      characterLimit={40}
-                      readOnly={!!editSafe}
-                      name="name"
-                      onChange={(e) =>
-                        onSafeNameChange(e?.target?.value?.toLowerCase())
-                      }
-                      error={safeError}
-                      helperText={
-                        safeError
-                          ? 'Safe name can have alphabets, numbers, dot, hyphen and underscore only, and it should not start or end with any special characters!'
-                          : ''
-                      }
-                    />
-                  </InputFieldLabelWrapper>
-                  <InputFieldLabelWrapper postion>
-                    <InputLabel>
-                      Owner
-                      <RequiredCircle margin="0.5rem" />
-                    </InputLabel>
-                    <TypeAheadComponent
-                      options={options.map(
-                        (item) =>
-                          `${item?.userEmail?.toLowerCase()}, ${getName(
-                            item?.displayName?.toLowerCase()
-                          )}, ${item?.userName?.toLowerCase()}`
+      <>
+        {openModal.status === 'confirmation' && (
+          <ConfirmationModal
+            open
+            handleClose={onConfirmationModalClose}
+            title="Confirmation"
+            description={modalDecription}
+            cancelButton={
+              // eslint-disable-next-line react/jsx-wrap-multilines
+              <ButtonComponent
+                label="Close"
+                color="secondary"
+                onClick={() => onConfirmationModalClose()}
+              />
+            }
+          />
+        )}
+        {openModal.status !== 'confirmation' && (
+          <StyledModal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            className={classes?.modal}
+            open={open}
+            onClose={() => handleClose()}
+            closeAfterTransition
+            BackdropComponent={Backdrop}
+            BackdropProps={{
+              timeout: 500,
+            }}
+          >
+            <Fade in={open}>
+              <GlobalModalWrapper>
+                {responseType === 0 && (
+                  <BackdropLoader customStyle={loaderStyle} />
+                )}
+                {openModal.status === 'edit' && (
+                  <>
+                    <HeaderWrapper>
+                      <LeftIcon
+                        src={leftArrowIcon}
+                        alt="go-back"
+                        onClick={() => handleClose()}
+                      />
+                      {editSafe ? (
+                        <Typography variant="h5">Edit Safe</Typography>
+                      ) : (
+                        <Typography variant="h5">Create Safe</Typography>
                       )}
-                      loader={autoLoader}
-                      userInput={owner}
-                      disabled={
-                        !!editSafe ||
-                        sessionStorage.getItem('isAdmin') === 'false'
-                      }
-                      name="owner"
-                      onSelected={(e, val) => onSelected(e, val)}
-                      onChange={(e) => onOwnerChange(e)}
-                      placeholder="Search by NTID, Email or Name "
-                      error={
-                        emailError ||
-                        (owner?.length > 2 &&
-                          !isValidEmail &&
-                          safeDetails.owner !== owner)
-                      }
-                      helperText={
-                        ((!isValidEmail && safeDetails.owner !== owner) ||
-                          emailError) &&
-                        sessionStorage.getItem('isAdmin') !== 'false'
-                          ? 'Please enter a valid value or not available!'
-                          : ''
-                      }
-                    />
-                    {autoLoader && (
-                      <LoaderSpinner customStyle={autoLoaderStyle} />
-                    )}
-                  </InputFieldLabelWrapper>
-                  <InputFieldLabelWrapper>
-                    <InputLabel>
-                      Type of Safe
-                      <RequiredCircle margin="0.5rem" />
-                    </InputLabel>
-                    <SelectComponent
-                      menu={menu}
-                      value={safeType}
-                      readOnly={!!editSafe}
-                      onChange={(e) => setSafeType(e)}
-                    />
-                  </InputFieldLabelWrapper>
-                  <InputFieldLabelWrapper>
-                    <InputLabel>
-                      Application Name
-                      <RequiredCircle margin="1.3rem" />
-                    </InputLabel>
-                    <AutoCompleteComponent
-                      icon="search"
-                      options={[...allApplication.map((item) => item.appName)]}
-                      searchValue={applicationName}
-                      classes={classes}
-                      onChange={(e) => setApplicationName(e?.target?.value)}
-                      onSelected={(event, value) => setApplicationName(value)}
-                      placeholder="Search for Application Name"
-                      error={checkValidApplicationName()}
-                      helperText={() =>
-                        checkValidApplicationName()
-                          ? `Application ${applicationName} does not exist!`
-                          : ''
-                      }
-                    />
-                  </InputFieldLabelWrapper>
-                  <InputFieldLabelWrapper>
-                    <InputLabel>
-                      Description
-                      <RequiredCircle margin="0.5rem" />
-                    </InputLabel>
-                    <TextFieldComponent
-                      multiline
-                      value={description}
-                      fullWidth
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Add some details about this safe"
-                      characterLimit={1024}
-                    />
-                    <FieldInstruction>
-                      Please add a minimum of 10 characters
-                    </FieldInstruction>
-                  </InputFieldLabelWrapper>
-                </CreateSafeForm>
-                <CancelSaveWrapper>
-                  <CancelButton>
-                    <ButtonComponent
-                      label="Cancel"
-                      color="primary"
-                      onClick={() => handleClose()}
-                      width={isMobileScreen ? '100%' : ''}
-                    />
-                  </CancelButton>
-                  {editSafe && (
-                    <CancelButton>
+                    </HeaderWrapper>
+                    <IconDescriptionWrapper>
+                      <SafeIcon src={safeIcon} alt="safe-icon" />
+                      <TitleThree
+                        lineHeight="1.8rem"
+                        extraCss={extraCss}
+                        color="#ccc"
+                      >
+                        A Safe is a logical unit to store the secrets. All the
+                        safes are created within Vault. You can control access
+                        only at the safe level. As a vault administrator you can
+                        manage safes but cannot view the content of the safe.
+                      </TitleThree>
+                    </IconDescriptionWrapper>
+                    <CreateSafeForm>
+                      <InputFieldLabelWrapper>
+                        <LabelRequired>
+                          <InputLabel>
+                            Safe Name
+                            <RequiredCircle margin="0.5rem" />
+                          </InputLabel>
+                          <RequiredWrap>
+                            <RequiredCircle />
+                            <RequiredText>Required</RequiredText>
+                          </RequiredWrap>
+                        </LabelRequired>
+                        <TextFieldComponent
+                          value={name}
+                          placeholder="Safe Name- Enter min 3 characters"
+                          fullWidth
+                          characterLimit={40}
+                          readOnly={!!editSafe}
+                          name="name"
+                          onChange={(e) =>
+                            onSafeNameChange(e?.target?.value?.toLowerCase())
+                          }
+                          error={safeError}
+                          helperText={
+                            safeError
+                              ? 'Safe name can have alphabets, numbers, dot, hyphen and underscore only, and it should not start or end with any special characters!'
+                              : ''
+                          }
+                        />
+                      </InputFieldLabelWrapper>
+                      <InputFieldLabelWrapper postion>
+                        <InputLabel>
+                          Owner
+                          <RequiredCircle margin="0.5rem" />
+                        </InputLabel>
+                        <TypeAheadComponent
+                          options={options.map(
+                            (item) =>
+                              `${item?.userEmail?.toLowerCase()}, ${getName(
+                                item?.displayName?.toLowerCase()
+                              )}, ${item?.userName?.toLowerCase()}`
+                          )}
+                          loader={autoLoader}
+                          userInput={owner}
+                          disabled={
+                            !!editSafe ||
+                            sessionStorage.getItem('isAdmin') === 'false'
+                          }
+                          name="owner"
+                          onSelected={(e, val) => onSelected(e, val)}
+                          onChange={(e) => onOwnerChange(e)}
+                          placeholder="Search by NTID, Email or Name "
+                          error={
+                            emailError ||
+                            (owner?.length > 2 &&
+                              !isValidEmail &&
+                              safeDetails.owner !== owner)
+                          }
+                          helperText={
+                            ((!isValidEmail && safeDetails.owner !== owner) ||
+                              emailError) &&
+                            sessionStorage.getItem('isAdmin') !== 'false'
+                              ? 'Please enter a valid value or not available!'
+                              : ''
+                          }
+                        />
+                        {autoLoader && (
+                          <LoaderSpinner customStyle={autoLoaderStyle} />
+                        )}
+                      </InputFieldLabelWrapper>
+                      <InputFieldLabelWrapper>
+                        <InputLabel>
+                          Type of Safe
+                          <RequiredCircle margin="0.5rem" />
+                        </InputLabel>
+                        <SelectComponent
+                          menu={menu}
+                          value={safeType}
+                          readOnly={!!editSafe}
+                          onChange={(e) => setSafeType(e)}
+                        />
+                      </InputFieldLabelWrapper>
+                      <InputFieldLabelWrapper>
+                        <InputLabel>
+                          Application Name
+                          <RequiredCircle margin="1.3rem" />
+                        </InputLabel>
+                        <AutoCompleteComponent
+                          icon="search"
+                          options={[
+                            ...allApplication.map((item) => item.appName),
+                          ]}
+                          searchValue={applicationName}
+                          classes={classes}
+                          onChange={(e) => setApplicationName(e?.target?.value)}
+                          onSelected={(event, value) =>
+                            setApplicationName(value)
+                          }
+                          placeholder="Search for Application Name"
+                          error={checkValidApplicationName()}
+                          helperText={() =>
+                            checkValidApplicationName()
+                              ? `Application ${applicationName} does not exist!`
+                              : ''
+                          }
+                        />
+                      </InputFieldLabelWrapper>
+                      <InputFieldLabelWrapper>
+                        <InputLabel>
+                          Description
+                          <RequiredCircle margin="0.5rem" />
+                        </InputLabel>
+                        <TextFieldComponent
+                          multiline
+                          value={description}
+                          fullWidth
+                          onChange={(e) => setDescription(e.target.value)}
+                          placeholder="Add some details about this safe"
+                          characterLimit={1024}
+                        />
+                        <FieldInstruction>
+                          Please add a minimum of 10 characters
+                        </FieldInstruction>
+                      </InputFieldLabelWrapper>
+                    </CreateSafeForm>
+                    <CancelSaveWrapper>
+                      <CancelButton>
+                        <ButtonComponent
+                          label="Cancel"
+                          color="primary"
+                          onClick={() => handleClose()}
+                          width={isMobileScreen ? '100%' : ''}
+                        />
+                      </CancelButton>
+                      {editSafe && (
+                        <CancelButton>
+                          <ButtonComponent
+                            label="Transfer"
+                            color="secondary"
+                            onClick={() => setOpenModal({ status: 'transfer' })}
+                            width={isMobileScreen ? '100%' : ''}
+                          />
+                        </CancelButton>
+                      )}
                       <ButtonComponent
-                        label="Transfer"
+                        label={!editSafe ? 'Create' : 'Edit'}
                         color="secondary"
-                        onClick={() => setOpenModal({ status: 'transfer' })}
+                        icon={!editSafe ? 'add' : ''}
+                        disabled={disabledSave}
+                        onClick={() =>
+                          !editSafe ? onCreateSafes() : onEditSafes()
+                        }
                         width={isMobileScreen ? '100%' : ''}
                       />
-                    </CancelButton>
-                  )}
-                  <ButtonComponent
-                    label={!editSafe ? 'Create' : 'Edit'}
-                    color="secondary"
-                    icon={!editSafe ? 'add' : ''}
-                    disabled={disabledSave}
-                    onClick={() =>
-                      !editSafe ? onCreateSafes() : onEditSafes()
+                    </CancelSaveWrapper>
+                  </>
+                )}
+                {openModal.status === 'transfer' && (
+                  <TransferSafeOwner
+                    onTransferCancelClicked={() => onTransferCancelClicked()}
+                    transferData={safeDetails}
+                    onTransferOwnerConfirmationClicked={(data) =>
+                      onTransferOwnerConfirmationClicked(data)
                     }
-                    width={isMobileScreen ? '100%' : ''}
                   />
-                </CancelSaveWrapper>
-              </>
-            )}
-            {openModal.status === 'transfer' && (
-              <TransferSafeOwner
-                onTransferCancelClicked={() => onTransferCancelClicked()}
-                transferData={safeDetails}
-                onTransferOwnerConfirmationClicked={(data) =>
-                  onTransferOwnerConfirmationClicked(data)
-                }
-              />
-            )}
-            {responseType === -1 && (
-              <SnackbarComponent
-                open
-                onClose={() => onToastClose()}
-                severity="error"
-                icon="error"
-                message={toastMessage || 'Something went wrong!'}
-              />
-            )}
-            {responseType === 1 && (
-              <SnackbarComponent
-                open
-                onClose={() => onToastClose()}
-                message={
-                  toastMessage || 'New Safe has been createtd successfully'
-                }
-              />
-            )}
-          </GlobalModalWrapper>
-        </Fade>
-      </StyledModal>
+                )}
+                {responseType === -1 && (
+                  <SnackbarComponent
+                    open
+                    onClose={() => onToastClose()}
+                    severity="error"
+                    icon="error"
+                    message={toastMessage || 'Something went wrong!'}
+                  />
+                )}
+                {responseType === 1 && (
+                  <SnackbarComponent
+                    open
+                    onClose={() => onToastClose()}
+                    message={
+                      toastMessage || 'New Safe has been createtd successfully'
+                    }
+                  />
+                )}
+              </GlobalModalWrapper>
+            </Fade>
+          </StyledModal>
+        )}
+      </>
     </ComponentError>
   );
 };

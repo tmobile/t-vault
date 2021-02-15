@@ -274,3 +274,20 @@ export const getEachUsersDetails = (data) => {
   }
   return null;
 };
+
+export const calculateHoursMinsSec = (seconds) => {
+  const d = Math.floor(seconds / (3600 * 24));
+  const h = Math.floor((seconds % (3600 * 24)) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  if (d > 0) {
+    return d === 1 ? `${d} day` : `${d} days`;
+  }
+  if (h > 0) {
+    return d === 1 ? `${h} hour` : `${h} hours`;
+  }
+  if (m > 0) {
+    return d === 1 ? `${m} minute` : `${m} minutes`;
+  }
+  return s === 1 ? `${s} second` : `${s} seconds`;
+};
