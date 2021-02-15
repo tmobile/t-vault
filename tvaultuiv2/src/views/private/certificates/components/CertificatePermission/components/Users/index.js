@@ -12,7 +12,6 @@ import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import CertificatePermissionsList from '../../../PermissionList';
-import Strings from '../../../../../../../resources';
 import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
@@ -246,7 +245,7 @@ const Users = (props) => {
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description={Strings.Resources.noUsersPermissionFound}
+                    description={'No <strong>Users</strong> are given permission to access this certificate, add users to access the certificate.'}
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent

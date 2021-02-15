@@ -266,7 +266,7 @@ const AwsApplications = (props) => {
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description={Strings.Resources.noAwsPermissionFound}
+                    description={Strings.Resources.noAwsPermissionFoundIam}
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent

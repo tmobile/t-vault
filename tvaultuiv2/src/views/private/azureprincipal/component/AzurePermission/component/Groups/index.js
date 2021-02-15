@@ -14,7 +14,6 @@ import AddGroup from '../../../../../../../components/AddGroup';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import PermissionsList from '../../../../../../../components/PermissionsList';
-import Strings from '../../../../../../../resources';
 import { checkAccess } from '../../../../../../../services/helper-function';
 import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
@@ -239,7 +238,7 @@ const Groups = (props) => {
               <NoDataWrapper>
                 <NoData
                   imageSrc={noPermissionsIcon}
-                  description={Strings.Resources.noGroupsPermissionFound}
+                  description={'No <strong>Groups</strong> are given permission to access this Azure service account, add groups to access the account.'}
                   actionButton={
                     // eslint-disable-next-line react/jsx-wrap-multilines
                     <ButtonComponent

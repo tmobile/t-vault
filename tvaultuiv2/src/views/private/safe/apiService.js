@@ -42,6 +42,7 @@ const getOwnerTransferEmail = (value) =>
 const transferSafeOwner = (payload) => api.post('/ss/transfersafe', payload);
 
 const getApplicationName = () => api.get('/serviceaccounts/cwm/approles');
+const getVersionInfo = (path) => api.get(`/safes/folders/versioninfo?path=${path}`);
 
 export default {
   getSafes,
@@ -74,4 +75,5 @@ export default {
   getOwnerTransferEmail,
   transferSafeOwner,
   getApplicationName,
+  getVersionInfo,
 };

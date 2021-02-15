@@ -216,7 +216,7 @@ const ViewIamSvcAccountDetails = (props) => {
             <Value>{iamSvcAccountData?.owner_email}</Value>
           </EachDetail>
           <EachDetail>
-            <Label>AWS Accounnt ID</Label>
+            <Label>AWS Account ID</Label>
             <Value>{iamSvcAccountData?.awsAccountId}</Value>
           </EachDetail>
           <EachDetail>

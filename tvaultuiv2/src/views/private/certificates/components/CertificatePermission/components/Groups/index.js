@@ -13,7 +13,6 @@ import AddGroup from '../../../../../../../components/AddGroup';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import PermissionsList from '../../../../../../../components/PermissionsList';
-import Strings from '../../../../../../../resources';
 import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
@@ -240,7 +239,7 @@ const Groups = (props) => {
               <NoDataWrapper>
                 <NoData
                   imageSrc={noPermissionsIcon}
-                  description={Strings.Resources.noGroupsPermissionFound}
+                  description={'No <strong>Groups</strong> are given permission to access this certificate, add groups to access the certificate.'}
                   actionButton={
                     // eslint-disable-next-line react/jsx-wrap-multilines
                     <ButtonComponent

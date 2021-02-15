@@ -13,6 +13,7 @@ import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../../../components/Error';
 import UserPermissionsList from '../../../../../../../components/UserPermissionsList';
+import Strings from '../../../../../../../resources';
 import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
@@ -208,8 +209,7 @@ const User = (props) => {
               <NoDataWrapper>
                 <NoData
                   imageSrc={noPermissionsIcon}
-                  description="No <strong>users</strong> are given permission to access this safe,
-                    add users to access the safe"
+                  description={Strings.Resources.noUsersPermissionFound}
                   actionButton={
                     // eslint-disable-next-line react/jsx-wrap-multilines
                     <ButtonComponent

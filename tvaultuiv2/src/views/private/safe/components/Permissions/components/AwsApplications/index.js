@@ -16,6 +16,7 @@ import Error from '../../../../../../../components/Error';
 import AddAwsApplicationModal from '../../../../../../../components/AddAwsApplicationModal';
 import EditAwsApplication from '../../../../../../../components/EditAwsApplication';
 import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
+import Strings from '../../../../../../../resources';
 
 const { small, belowLarge } = mediaBreakpoints;
 
@@ -230,8 +231,7 @@ const AwsApplications = (props) => {
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description="No <strong>applications</strong> are given permission to access this safe,
-                    add applications to access the safe"
+                    description={Strings.Resources.noAwsPermissionFound}
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent

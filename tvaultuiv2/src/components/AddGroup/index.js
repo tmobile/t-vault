@@ -271,6 +271,9 @@ const AddGroup = (props) => {
               <InstructionText>
                 Search the T-Mobile system to add groups
               </InstructionText>
+              {isCertificate && (<InstructionText>
+                Note: Denying the admin will not take any effect for groups.
+              </InstructionText>)}
               {searchLoader && <LoaderSpinner customStyle={customStyle} />}
             </>
           ) : (
