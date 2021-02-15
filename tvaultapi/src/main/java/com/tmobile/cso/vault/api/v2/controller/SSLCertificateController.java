@@ -60,12 +60,12 @@ public class SSLCertificateController {
 	 * @param sslCertificateRequest
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.sslcreate.value}", notes = "${SSLCertificateController.sslcreate.notes}", hidden = false)
+	@ApiOperation(value = "${SSLCertificateController.sslcreate.value}", notes = "${SSLCertificateController.sslcreate.notes}", hidden = true)
 	@PostMapping(value="/v2/sslcert",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> generateSSLCertificate(HttpServletRequest request, @RequestHeader(value=
 			"vault-token") String token,@Valid @RequestBody SSLCertificateRequest sslCertificateRequest)  {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return sslCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token);
+		return sslCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
 	}
 	
 	/**
@@ -406,7 +406,7 @@ public class SSLCertificateController {
 	 * @param token
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.getAllSelfServiceGroups.value}", notes = "${SSLCertificateController.getAllSelfServiceGroups.notes}", hidden = true)
+	@ApiOperation(value = "${SSLCertificateController.getAllSelfServiceGroups.value}", notes = "${SSLCertificateController.getAllSelfServiceGroups.notes}", hidden = false)
 	@GetMapping(value = "/v2/sslcert/grouplist", produces = "application/json")
 	public ResponseEntity<String> getAllSelfServiceGroups(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token) {
@@ -575,6 +575,19 @@ public class SSLCertificateController {
 			@RequestHeader(value = "vault-token") String token)  { 
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
 		return sslCertificateService.saveAllAppDetailsForOldCerts(token, userDetails);
+	}
+	
+	/**
+	 * To Create SSL Certificate through API
+	 * @param sslCertificateRequest
+	 * @return
+	 */
+	@ApiOperation(value = "${SSLCertificateController.sslcreate.value}", notes = "${SSLCertificateController.sslcreate.notes}", hidden = false)
+	@PostMapping(value="/v2/sslcerts",consumes="application/json",produces="application/json")
+	public ResponseEntity<String> generateSSLCertificateAPI(HttpServletRequest request, @RequestHeader(value=
+			"vault-token") String token,@Valid @RequestBody SSLCertificateRequest sslCertificateRequest)  {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"api");
 	}
 
 }
