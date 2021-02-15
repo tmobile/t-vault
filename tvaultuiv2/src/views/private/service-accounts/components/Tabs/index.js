@@ -91,7 +91,7 @@ const AccountSelectionTabs = (props) => {
   const [response, setResponse] = useState({ status: 'loading' });
   const [accountSecretData, setAccountSecretData] = useState({});
   const [accountSecretError, setAccountSecretError] = useState('');
-  const [hasSvcAccountAcitve, setHasSvcAccountAcitve] = useState(false);
+  const [hasSvcAccountAcitve, setHasSvcAccountAcitve] = useState(true);
   const [disabledPermission, setDisabledPermission] = useState(false);
   const [userDetails, setUserDetails] = useState([]);
   const [secretResStatus, setSecretResStatus] = useState({ status: 'loading' });
@@ -198,6 +198,7 @@ const AccountSelectionTabs = (props) => {
     setSecretResStatus({ status: 'loading' });
     setHasSvcAccountAcitve(false);
     setValue(0);
+    setHasSvcAccountAcitve(true);
     if (accountDetail?.name) {
       fetchPermission();
       getSecrets();
@@ -237,6 +238,7 @@ const AccountSelectionTabs = (props) => {
               accountSecretData={accountSecretData}
               accountSecretError={accountSecretError}
               secretStatus={secretResStatus.status}
+              hasSvcAccountAcitve={hasSvcAccountAcitve}
             />
           </TabPanel>
           <TabPanel value={value} index={1}>

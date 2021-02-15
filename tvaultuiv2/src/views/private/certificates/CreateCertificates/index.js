@@ -814,7 +814,7 @@ const CreateCertificates = (props) => {
                     <Typography variant="h5">Certificate Preview</Typography>
                   )}
                 </HeaderWrapper>
-                <CertificateHeader />
+                <CertificateHeader showPreview={showPreview} />
                 <ContainerOwnerWrap showPreview={showPreview}>
                   <Container>
                     <Label>Container:</Label>
@@ -839,6 +839,7 @@ const CreateCertificates = (props) => {
                     isMobileScreen={isMobileScreen}
                     notificationEmails={notificationEmailList}
                     responseType={responseType}
+                    showPreview={showPreview}
                   />
                 </PreviewWrap>
                 <CreateCertificateForm showPreview={showPreview}>

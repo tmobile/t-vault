@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect } from 'react';
@@ -116,6 +117,7 @@ const ServiceAccountSecrets = (props) => {
     value,
     accountSecretData,
     secretStatus,
+    hasSvcAccountAcitve,
   } = props;
   const [response, setResponse] = useState({ status: 'loading' });
   const [secretsData, setSecretsData] = useState({});
@@ -307,7 +309,9 @@ const ServiceAccountSecrets = (props) => {
               </NoPermission>
             ) : (
               <NoPermission>
-                You do not have permission to view/reset the secrets
+                {hasSvcAccountAcitve
+                  ? 'You do not have permission to view/reset the secrets.'
+                  : 'Please activate the service account!'}
               </NoPermission>
             )}
           </AccessDeniedWrap>
@@ -339,6 +343,7 @@ ServiceAccountSecrets.propTypes = {
   accountSecretData: PropTypes.objectOf(PropTypes.any),
   secretStatus: PropTypes.string,
   value: PropTypes.number,
+  hasSvcAccountAcitve: PropTypes.bool.isRequired,
 };
 
 ServiceAccountSecrets.defaultProps = {

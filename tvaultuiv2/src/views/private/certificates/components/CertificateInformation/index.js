@@ -139,14 +139,22 @@ const CertificateInformation = (props) => {
                 </EachDetail>
                 <EachDetail>
                   <Label>Extended Key Usage:</Label>
-                  <Value>serverAuth</Value>
+                  <Value>
+                    {certificateMetaData?.certType?.toLowerCase() === 'internal'
+                      ? 'serverAuth'
+                      : 'serverAuth, clientAuth'}
+                  </Value>
                 </EachDetail>
                 <EachDetail>
                   <Label>Enroll Service:</Label>
-                  <Value>T-Mobile Issuing CA 01 - SHA2</Value>
+                  <Value>
+                    {certificateMetaData?.certType?.toLowerCase() === 'internal'
+                      ? 'T-Mobile Issuing CA 01 - SHA2'
+                      : 'Entrust CA'}
+                  </Value>
                 </EachDetail>
                 <EachDetail>
-                  <Label>Dns:</Label>
+                  <Label>DNS:</Label>
                   {certificateMetaData.dnsNames && dnsNames.length > 0 ? (
                     <>
                       {dnsNames?.map((item) => {

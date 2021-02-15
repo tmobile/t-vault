@@ -43,6 +43,7 @@ import BackdropLoader from '../../../../components/Loaders/BackdropLoader';
 import svcHeaderBgimg from '../../../../assets/icon-service-account.svg';
 import Strings from '../../../../resources';
 import TypeAheadComponent from '../../../../components/TypeAheadComponent';
+import { calculateHoursMinsSec } from '../../../../services/helper-function';
 
 const useStyles = makeStyles((theme) => ({
   select: {
@@ -457,9 +458,7 @@ const OnBoardForm = (props) => {
       appName: selectedApplication.appName,
       appTag: selectedApplication.appTag,
       autoRotate: isSwitchOn,
-      ...(serviceAccountDetails?.maxPwdAge && {
-        max_ttl: serviceAccountDetails?.maxPwdAge,
-      }),
+      max_ttl: serviceAccountDetails?.maxPwdAge,
       name: inputServiceName,
       ...((inputExpiryTime || serviceAccountDetails?.maxPwdAge) && {
         ttl: inputExpiryTime || serviceAccountDetails?.maxPwdAge,
@@ -502,9 +501,7 @@ const OnBoardForm = (props) => {
       appName: selectedApplication.appName,
       appTag: selectedApplication.appTag,
       autoRotate: isSwitchOn,
-      ...(serviceAccountDetails?.maxPwdAge && {
-        max_ttl: serviceAccountDetails?.maxPwdAge,
-      }),
+      max_ttl: serviceAccountDetails?.maxPwdAge,
       name: inputServiceName,
       ...((inputExpiryTime || serviceAccountDetails?.maxPwdAge) && {
         ttl: inputExpiryTime || serviceAccountDetails?.maxPwdAge,
@@ -626,6 +623,7 @@ const OnBoardForm = (props) => {
   const handleCancelClick = () => {
     handleClose();
   };
+
   const handleSaveClick = (e) => {
     e.preventDefault();
     setOnBoardConfirmationModal(true);
@@ -651,7 +649,9 @@ const OnBoardForm = (props) => {
      ${Strings.Resources.svcPwdEnableNoValueMsg}`);
     } else {
       setOnboardUpdateConfirmationMsg(
-        `The password for this service account will expire in ${inputExpiryTime} ${Strings.Resources.svcPwdEnableWithValueMsg}`
+        `The password for this service account will expire in ${calculateHoursMinsSec(
+          inputExpiryTime
+        )} ${Strings.Resources.svcPwdEnableWithValueMsg}`
       );
     }
   };

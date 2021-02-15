@@ -23,7 +23,7 @@ const Resources = {
   svcPwdEnableNoValueMsg:
     'days and enabled for auto rotation by T-Vault. When you request for the password after this time, T-Vault will generate new password and make it available.',
   svcPwdEnableWithValueMsg:
-    'seconds and enabled for auto rotation by T-Vault. When you request for the password after this time, T-Vault will generate new password and make it available.',
+    'and enabled for auto rotation by T-Vault. When you request for the password after this time, T-Vault will generate new password and make it available.',
   noSafeSecretFound:
     'Add a <strong>Folder</strong> and then you will be able to add <strong>Secrets</strong> to view them all here.',
   noSafeSecretFoundReadPerm:
@@ -49,7 +49,7 @@ const Resources = {
   certificateGuide1:
     'Ensure you are a member of the self-service administration group in AD for your respective application. You can request access from the owner of your application at <a href="https://access.t-mobile.com" target="_blank">Cloud Access</a>. If you are not a member of one or more of these groups you will not be able to create certificates yourself.',
   certificateGuide2:
-    'Currently only the standard SSL Certificate template is used to create certificates, this includes: <br/> Signature algorithm: SHA256-RSA. <br/>Key usage : digitalSignature, keyEncipherment. <br/>Extended key usage : serverAuth for Internal and ServerAuth, ClientAuth for External certificates',
+    'Currently only the standard SSL Certificate template is used to create certificates, this includes: <br/> Signature algorithm: SHA256-RSA. <br/>Key usage : digitalSignature, keyEncipherment. <br/>Extended key usage : serverAuth for Internal and serverAuth, clientAuth for External certificates',
   certificateGuide3:
     'If you need a non-standard certificate please reach out to Cloud Support work with them to create this for you. This functionality will be developed and incorporated into T-Vault at a later date.',
   certificateGuide4:

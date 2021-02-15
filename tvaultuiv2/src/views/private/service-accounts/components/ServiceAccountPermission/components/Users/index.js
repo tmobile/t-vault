@@ -233,7 +233,7 @@ const Users = (props) => {
         )}
         {response.status === 'success' &&
           accountMetaData &&
-          accountMetaData?.response && (
+          Object.keys(accountMetaData?.response).length && (
             <>
               {Object.keys(accountMetaData.response?.users).length > 0 &&
                 userDetails.length > 0 && (
@@ -245,8 +245,8 @@ const Users = (props) => {
                     userDetails={userDetails}
                   />
                 )}
-              {(!accountMetaData.response.users ||
-                Object.keys(accountMetaData.response.users).length === 0 ||
+              {(!accountMetaData?.response?.users ||
+                Object.keys(accountMetaData?.response?.users).length === 0 ||
                 userDetails.length === 0) && (
                 <NoDataWrapper>
                   <NoData
