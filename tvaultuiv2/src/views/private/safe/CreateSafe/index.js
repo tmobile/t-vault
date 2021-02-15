@@ -293,7 +293,7 @@ const CreateModal = (props) => {
             } else {
               setOwner(res.data.data.owner);
             }
-            setApplicationName(res.data.data.appName || '');
+            setApplicationName(res.data.data.appName);
             if (res.data.data.type === 'users') {
               setSafeType('Users Safe');
             } else if (res.data.data.type === 'apps') {
@@ -505,10 +505,6 @@ const CreateModal = (props) => {
       });
   };
 
-  const onChangeAppilcationName = (value) => {
-    setApplicationName(value);
-  };
-
   const getName = (displayName) => {
     if (displayName?.match(/(.*)\[(.*)\]/)) {
       const lastFirstName = displayName?.match(/(.*)\[(.*)\]/)[1].split(', ');
@@ -522,6 +518,18 @@ const CreateModal = (props) => {
       return finalName;
     }
     return displayName;
+  };
+
+  const checkValidApplicationName = () => {
+    if (
+      applicationName !== '' &&
+      applicationName !== undefined &&
+      applicationName !== null &&
+      ![...allApplication.map((item) => item.appName)].includes(applicationName)
+    ) {
+      return true;
+    }
+    return false;
   };
 
   return (
@@ -660,22 +668,12 @@ const CreateModal = (props) => {
                       options={[...allApplication.map((item) => item.appName)]}
                       searchValue={applicationName}
                       classes={classes}
-                      onChange={(e) =>
-                        onChangeAppilcationName(e?.target?.value)
-                      }
+                      onChange={(e) => setApplicationName(e?.target?.value)}
                       onSelected={(event, value) => setApplicationName(value)}
                       placeholder="Search for Application Name"
-                      error={
-                        applicationName !== '' &&
-                        ![
-                          ...allApplication.map((item) => item.appName),
-                        ].includes(applicationName)
-                      }
-                      helperText={
-                        applicationName !== '' &&
-                        ![
-                          ...allApplication.map((item) => item.appName),
-                        ].includes(applicationName)
+                      error={checkValidApplicationName()}
+                      helperText={() =>
+                        checkValidApplicationName()
                           ? `Application ${applicationName} does not exist!`
                           : ''
                       }

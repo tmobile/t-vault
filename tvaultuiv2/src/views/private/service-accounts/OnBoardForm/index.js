@@ -457,9 +457,7 @@ const OnBoardForm = (props) => {
       appName: selectedApplication.appName,
       appTag: selectedApplication.appTag,
       autoRotate: isSwitchOn,
-      ...(serviceAccountDetails?.maxPwdAge && {
-        max_ttl: serviceAccountDetails?.maxPwdAge,
-      }),
+      max_ttl: serviceAccountDetails?.maxPwdAge,
       name: inputServiceName,
       ...((inputExpiryTime || serviceAccountDetails?.maxPwdAge) && {
         ttl: inputExpiryTime || serviceAccountDetails?.maxPwdAge,
@@ -502,9 +500,7 @@ const OnBoardForm = (props) => {
       appName: selectedApplication.appName,
       appTag: selectedApplication.appTag,
       autoRotate: isSwitchOn,
-      ...(serviceAccountDetails?.maxPwdAge && {
-        max_ttl: serviceAccountDetails?.maxPwdAge,
-      }),
+      max_ttl: serviceAccountDetails?.maxPwdAge,
       name: inputServiceName,
       ...((inputExpiryTime || serviceAccountDetails?.maxPwdAge) && {
         ttl: inputExpiryTime || serviceAccountDetails?.maxPwdAge,
