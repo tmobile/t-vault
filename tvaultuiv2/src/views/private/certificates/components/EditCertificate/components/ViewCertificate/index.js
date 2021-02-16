@@ -566,6 +566,7 @@ const ViewCertificate = (props) => {
             certName={certificateData.certificateName}
             container={certificateData.containerName}
             owner={certificateData.certOwnerEmailId}
+            setKeyValue={certificateData.keyUsageValue}
             isEditCertificate
           />
           {!isAdmin && (
