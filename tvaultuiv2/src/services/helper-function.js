@@ -55,11 +55,12 @@ export const findItemAndRemove = (arr, key, id) => {
   return tempArr;
 };
 
-export const findElementAndUpdate = (arr, parentId, item) => {
+export const findElementAndUpdate = (arr, parentId, item, versionInfo) => {
   if (arr?.length === 0) return;
   const tempArr = [...arr];
   const itemToUpdate = findElementById(tempArr, parentId, 'children');
   if (Array.isArray(item)) {
+    itemToUpdate.versionInfo=[...versionInfo]
     if (!itemToUpdate?.children?.length) {
       itemToUpdate.children = [...itemToUpdate.children, ...item];
       return tempArr;
