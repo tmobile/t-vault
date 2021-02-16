@@ -1806,9 +1806,9 @@
                         if (data[index].appTag !='' && data[index].appTag != null && data[index].appTag != undefined) {
                             appTag = data[index].appTag;
                         }
-//                        	if(data[index].appTag!="Other"){
+                        	if(data[index].appTag!="Other"){
                         	$scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
-//                        	}
+                        	}
                     }
                      $scope.isAppNamesLoading = false;
                 }
