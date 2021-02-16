@@ -321,13 +321,13 @@ public class SSLCertificateServiceTest {
         sslCertificateRequest.setCertType("test");
         sslCertificateRequest.setNotificationEmail("test.sample1@t-mobile.com");
         sslCertificateRequest.setDnsList(dnsNames);
-        ResponseEntity<?> enrollResponse = sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+        ResponseEntity<?> enrollResponse = sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
         assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
 
         sslCertificateRequest.setCertificateName("abc.t-mobile.com");
         sslCertificateRequest.getTargetSystem().setAddress("abc def");
         ResponseEntity<?> enrollResponse1= sSLCertificateService.generateSSLCertificate(sslCertificateRequest,
-                userDetails,token,"ui");
+                userDetails,token,SSLCertificateConstants.UI);
         assertEquals(HttpStatus.BAD_REQUEST, enrollResponse1.getStatusCode());
 
 
@@ -335,7 +335,7 @@ public class SSLCertificateServiceTest {
         sslCertificateRequest.getTargetSystem().setAddress("abcdef");
         sslCertificateRequest.getTargetSystemServiceRequest().setHostname("abc abc");
         ResponseEntity<?> enrollResponse2= sSLCertificateService.generateSSLCertificate(sslCertificateRequest,
-                userDetails,token,"ui");
+                userDetails,token,SSLCertificateConstants.UI);
         assertEquals(HttpStatus.BAD_REQUEST, enrollResponse2.getStatusCode());
     }
 
@@ -524,7 +524,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
         //Assert
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
@@ -960,7 +960,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
     }
@@ -1067,7 +1067,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
     }
@@ -1241,7 +1241,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
         //Assert
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
@@ -1422,7 +1422,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
         //Assert
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
@@ -1483,7 +1483,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.processCert(eq("/certmanager/targetsystem/create"), anyObject(), anyString(), anyString())).thenReturn(response2);
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
 
         //Assert
         assertNotNull(enrollResponse);
@@ -1567,7 +1567,7 @@ public class SSLCertificateServiceTest {
 
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
 
         //Assert
         assertNotNull(enrollResponse);
@@ -1621,7 +1621,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.getCertificateMetaData(any(), anyString(), anyString())).thenReturn(certificateMetadata);
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
 
         //Assert
         assertNotNull(enrollResponse);
@@ -1676,7 +1676,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.getCertificateMetaData(any(), anyString(), anyString())).thenReturn(certificateMetadata);
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
 
         //Assert
         assertNotNull(enrollResponse);
@@ -1794,7 +1794,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.processCert(eq("/certmanager/enroll"), anyObject(), anyString(), anyString())).thenReturn(getEnrollResonse());
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails1,token,"ui");
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails1,token,SSLCertificateConstants.UI);
 
         //Assert
         assertNotNull(enrollResponse);
@@ -1952,7 +1952,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.process("/write", metadatajson, token)).thenReturn(responseNoContent);
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
         //Assert
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
@@ -2107,7 +2107,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.process("/write", metadatajson, token)).thenReturn(responseNoContent);
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
         //Assert
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
@@ -2217,7 +2217,7 @@ public class SSLCertificateServiceTest {
         when(reqProcessor.processCert(eq("/certmanager/enroll"), anyObject(), anyString(), anyString())).thenReturn(getEnrollResonse());
 
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
 
         //Assert
         assertNotNull(enrollResponse);
@@ -2256,7 +2256,7 @@ public class SSLCertificateServiceTest {
        doThrow(new TVaultValidationException("Exception while creating certificate"))
                 .when(reqProcessor).processCert(anyString(), anyObject(), anyString(), anyString());
         ResponseEntity<?> enrollResponse = sSLCertificateService.generateSSLCertificate(sslCertificateRequest,
-                userDetails,token,"ui");
+                userDetails,token,SSLCertificateConstants.UI);
 
         //Assert
         assertNotNull(enrollResponse);
@@ -5875,7 +5875,7 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "external")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
         ResponseEntity<?> enrollResponse =
-                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+                sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
         assertNotNull(enrollResponse);
         assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
     }

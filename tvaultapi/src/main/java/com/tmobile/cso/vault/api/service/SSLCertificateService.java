@@ -467,7 +467,7 @@ public class SSLCertificateService {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 			}
 		}		
-		 if(method.equalsIgnoreCase("api")) {
+		 if(method.equalsIgnoreCase(SSLCertificateConstants.API)) {
 	        	boolean isValidAppname = validateAppname(token,userDetails,sslCertificateRequest.getAppName());
 	        	String errorInvalidApp =  "{\"errors\":[\"To create a certificate you must be a member of the applications Cloud Self-Service group. "
 	        			+ "Please go to https://access.t-mobile.com/ and request access to the group r_selfservice_"+sslCertificateRequest.getAppName()+"_admin in the Cloud Access Portal.\"]}";
@@ -1881,6 +1881,10 @@ public class SSLCertificateService {
 	 */
 	private String getValidApplicationName(SSLCertificateRequest sslCertificateRequest) {
 		String appName = sslCertificateRequest.getAppName();
+		if((sslCertificateRequest.getAppName().equalsIgnoreCase(SSLCertificateConstants.APP_NAME_OTHER))) {
+			appName=null;
+			return appName;
+		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, SSLCertificateConstants.GET_VALID_APPLICATION_NAME)
