@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -53,7 +53,7 @@ public class VaultAuthControllerV2 {
 	 * @returnC
 	 */
 	@PostMapping(value="/v2/auth/tvault/login",produces="application/json")
-	@ApiOperation(value = "${VaultAuthControllerV2.login.value}", notes = "${VaultAuthControllerV2.login.notes}")
+	@ApiOperation(value = "${VaultAuthControllerV2.login.value}", notes = "${VaultAuthControllerV2.login.notes}", hidden = true)
 	public ResponseEntity<String> login(@RequestBody UserLogin user){
 		return vaultAuthService.login(user);
 	}
@@ -64,7 +64,7 @@ public class VaultAuthControllerV2 {
 	 * @return
 	 */
 	@GetMapping(value="/v2/auth/tvault/renew",produces="application/json")
-	@ApiOperation(value = "${VaultAuthControllerV2.renew.value}", notes = "${VaultAuthControllerV2.renew.notes}")
+	@ApiOperation(value = "${VaultAuthControllerV2.renew.value}", notes = "${VaultAuthControllerV2.renew.notes}", hidden = true)
 	public ResponseEntity<String> renew(@RequestHeader(value="vault-token") String token){
 		return vaultAuthService.renew(token);
 	}
@@ -85,7 +85,7 @@ public class VaultAuthControllerV2 {
 	 * @return
 	 */
 	@GetMapping(value="/auth/tvault/revoke",produces="application/json")
-	@ApiOperation(value = "${VaultAuthControllerV2.revoke.value}", notes = "${VaultAuthControllerV2.revoke.notes}")
+	@ApiOperation(value = "${VaultAuthControllerV2.revoke.value}", notes = "${VaultAuthControllerV2.revoke.notes}", hidden = true)
 	@ApiResponses(value={
 		@ApiResponse(code = 204, message = "Revoked Successfully")
 	})

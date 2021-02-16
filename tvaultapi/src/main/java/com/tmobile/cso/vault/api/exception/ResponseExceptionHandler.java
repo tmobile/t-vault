@@ -15,7 +15,8 @@
 // See the readme.txt file for additional language around disclaimer of warranties.
 // =========================================================================
 
-package com.tmobile.cso.vault.api.controller;
+package com.tmobile.cso.vault.api.exception;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -29,8 +30,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
-
-import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 
 @ControllerAdvice
 public class ResponseExceptionHandler {
@@ -62,11 +61,13 @@ public class ResponseExceptionHandler {
 		   	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\""+ ex.getMessage()+"\"]}");
 		 }
 
-	 @ExceptionHandler(MethodArgumentNotValidException.class)
-	 protected ResponseEntity<Object> handleException(MethodArgumentNotValidException ex, WebRequest request) {
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	protected ResponseEntity<Object> handleException(MethodArgumentNotValidException ex, WebRequest request) {
 		log.debug(ex.getMessage());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid input values\"]}");
-	 }
+	}
+
 
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	protected ResponseEntity<Object> handleException(HttpMessageNotReadableException ex, WebRequest request) {

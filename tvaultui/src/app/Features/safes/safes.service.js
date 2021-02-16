@@ -12,6 +12,7 @@
             saveFolder: saveFolder,
             deleteFolder: deleteFolder,
             getFolderContent: getFolderContent,
+            folderLastChangedDetails: folderLastChangedDetails,
             itemIsValidToSave: itemIsValidToSave,
             getAllowedSafes: getAllowedSafes
         };
@@ -47,6 +48,17 @@
                 }).catch(catchError);
         }
 
+        function folderLastChangedDetails(path) {
+            var url = RestEndpoints.baseURL + '/v2/safes/folders/versioninfo?path=' + path;
+            return $http({
+                method: 'GET',
+                url: url,
+                headers: getHeaders()
+            }).then(function (response) {
+                return response.data;
+            }).catch(catchError);
+        }
+
         function getAllowedSafes() {
             var url = RestEndpoints.baseURL + '/v2/ss/sdb/safes';
             return $http({
@@ -59,7 +71,6 @@
                 })
                 .catch(catchError);
         }
-
         function createFolder(path) {
             var url = RestEndpoints.baseURL + '/v2/sdb/createfolder?path=' + path;
             return $http({
@@ -89,7 +100,9 @@
             // newSecret = {key: 'string', value: 'string'}
             var url = RestEndpoints.baseURL + '/v2/write?path=' + folderContent.id;
             var content = folderContent.children.slice(0);
+            var deletingSecretFlag = true;
             if (newSecret) {
+                deletingSecretFlag = false;
                 content.push(newSecret);
             }
             var data = parseFolderContentToSecrets(content);
@@ -100,9 +113,18 @@
                     path: folderContent.id,
                     data: data
                 },
-                headers: getHeaders()
+                headers: getSecretHeaders(deletingSecretFlag)
             }).catch(catchError);
         }
+
+       function getSecretHeaders(deletingSecretFlag) {
+            return {
+                'Content-Type': 'application/json',
+                'vault-token': SessionStore.getItem('myVaultKey'),
+                'delete-flag' : deletingSecretFlag
+            }
+        }
+
 
         function itemIsValidToSave(item, index, parent) {
             //SECRET MISSING INPUT
@@ -176,6 +198,21 @@
                 navigationName: 'service-accounts',
                 addComma: false,
                 show: feature && feature.adpwdrotation
+            }, {
+                displayName: 'CERTIFICATES',
+                navigationName: 'certificates',
+                addComma: false,
+                show: true
+            },{
+                displayName: 'IAM SERVICE ACCOUNTS',
+                navigationName: 'iam-service-accounts',
+                addComma: false,
+                show: true
+            },{
+                displayName: 'AZURE SERVICE PRINCIPALS',
+                navigationName: 'azure-service-principals',
+                addComma: false,
+                show: true
             }, {
                 displayName: 'ADMIN',
                 navigationName: 'admin',

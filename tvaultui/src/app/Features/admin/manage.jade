@@ -11,6 +11,30 @@ script(type='text/ng-template', id='deleteSafePopup.html')
         button.common-btn.btn.btn-primary.btn-lg(ng-click="deleteSafe(safeToDelete)") DELETE
       .clearfix
         button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL
+
+script(type='text/ng-template', id='renewExternalCertPopup.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text {{ renewExternalConfirmMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+       .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
+
+
+script(type='text/ng-template', id='renewCertPopup.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Confirmation
+    .top-lg-sep.notification-text Are you sure you want to renew this certificate?
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.common-btn.btn.btn-primary.btn-lg(ng-click="renewCertificate(certDetails)") RENEW
+      .clearfix
+        button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="close()") CANCEL       
+        
 script(type='text/ng-template', id='error.html')
     .row
         .top-lg-sep
@@ -29,6 +53,312 @@ script(type='text/ng-template', id='notify.html')
     .text-center.bottom-lg-sep.top-lg-sep.notification-button
         .clearfix.bottom-sm-sep
             button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="close()") Close
+
+ script(type='text/ng-template', id='certificateCreationPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Creation Successful!
+    .top-lg-sep.notification-text  {{ certificateCreationMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="successCancel()") CLOSE
+
+script(type='text/ng-template', id='certificateCreationFailedPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Creation Failed!
+    .top-lg-sep.notification-text  {{ certificateCreationMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE
+
+script(type='text/ng-template', id='renewCertificatePopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Renewal Successful!
+      .top-lg-sep.notification-text  {{ renewMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="successCancel()") CLOSE
+script(type='text/ng-template', id='renewCertificateFailedPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Renewal Failed!
+      .top-lg-sep.notification-text  {{ renewMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE 
+script(type='text/ng-template', id='revocationPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center {{ revocationStatusMessage }}
+      .top-lg-sep.notification-text  {{ revocationMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancelRevoke()") CLOSE   
+
+script(type='text/ng-template', id='revokeReasonsPopUp.html')
+          .modal-sep
+            .common-header-label.text-center Revocation reasons
+
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws
+              .common-form-row
+                .details-input-group
+                    .common-form-label
+                     drop-down(drop-down-options="dropdownRevocationReasons" name="dropdownRoles" id="dropdownRevocationReason"  ng-click="revocationReasonSelect()")
+          .text-center.bottom-lg-sep.modal-sep.aws
+            .clearfix.bottom-sm-sep
+              button.common-btn.btn.btn-primary.btn-lg(ng-click="revoke()") REVOKE
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelRevoke()") Cancel       
+
+script(type='text/ng-template', id='transferCertPopup.html')
+          .modal-sep
+            .common-header-label.text-center Transfer Certificate Owner
+            
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws
+              .common-form-row
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label Certificate Name
+                    input.form-control.input-box-style(ng-model="certDetails.certificateName" ng-disabled="true" name="certificateName" required)
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label Application Name
+                    input.form-control.input-box-style(ng-model="certDetails.applicationName" ng-disabled="true" name="applicationTag" required)
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label Application Tag
+                    input.form-control.input-box-style(ng-model="certDetails.applicationTag" ng-disabled="true" name="applicationTag" required)
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label Owner Email ID
+                    input.form-control.input-box-style(ng-model="certDetails.certOwnerEmailId" ng-disabled="true" name="applicationTag" required)
+                    div.loader.svcaccid(ng-if='isApplicationsLoading')
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label New Owner Email ID*
+                    input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" ng-change="ownerEmailValidation()" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmail($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectOwnerforCert(certObj.certDetails.ownerEmail)")
+                    span.invalid-email   {{ certOwnerEmailErrorMessage }}
+                    div.loader.svcaccid(ng-if='isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2')
+                        div.ball-spin-fade-loader
+                            div
+                            div
+                            div
+                            div
+                            div
+                            div
+                            div
+                            div
+                      div.input-cross.svcaccid(ng-if='!isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2' ng-click="clearOwnerEmail()")
+                        div.delete-title
+                            img.delete-icon(src="../../assets/images/delete.png")
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label
+          .text-center.bottom-lg-sep.modal-sep.aws
+            .clearfix.bottom-sm-sep
+              button.common-btn.btn.btn-primary.btn-lg(id="cert_transfer_btn" ng-click="transferCert()" ng-disabled="certTransferInValid") Transfer
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelCert()") Cancel
+
+script(type='text/ng-template', id='transferCertSuccessPopup.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Owner Transfer Successful!
+      .top-lg-sep.notification-text  {{ transferMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="successCancel()") CLOSE
+              
+script(type='text/ng-template', id='transferCertFailedPopup.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Owner Transfer Failed!
+      .top-lg-sep.notification-text  {{ transferMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="cancel()") CLOSE               
+
+script(type='text/ng-template', id='validateCertificateDetailPopUp.html')
+  loading-state(ng-if="isLoadingModalData")
+  .top-lg-sep(ng-if="!isLoadingModalData")
+    .top-lg-sep
+        .common-header-label.text-center Certificate Status
+      .top-lg-sep.notification-text  {{ viewEditErrorMessage }}
+    .text-center.bottom-lg-sep.top-lg-sep.notification-button
+      .clearfix.bottom-sm-sep
+        button.link-style.common-btn.btn.btn-primary.btn-lg(ng-click="successCancel()") CLOSE
+
+script(type='text/ng-template', id='certificatePopup.html')
+          .modal-sep
+            .common-header-label.text-center {{editingApprole.status == true ? "Edit" : "Create"}} Certificate
+
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws(ng-show='!isCertificateManagePreview')
+              .common-form-row
+                .details-input-group
+                    .certificate-form-label Container
+                    input.form-control.input-box-style(value="VenafiBin_12345" uib-tooltip="" tooltip-placement="top" tooltip-popup-delay="600" ng-disabled="true")  
+              .cert-conf.clearfix
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .certificate-form-label(uib-tooltip="Type of Certificate Private(Internal) or Public(External)") Certificate Type*
+                    label.certificate-form-label Internal
+                      input(type='radio' id='cert_type' value="internal" ng-model="certObj.certDetails.certType" ng-click="getTargetSystems()" ng-checked="certObj.certDetails.certType == 'internal'" )
+                    label.certificate-form-label External
+                      input(type='radio' id='cert_type' value="external" ng-model="certObj.certDetails.certType" ng-click="getTargetSystems()" ng-checked="certObj.certDetails.certType == 'external'"  ng-disabled="!isExternalCertificateEnable")
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .certificate-form-label Certificate Name*
+                    .cert-input-group.cert-suffix
+                      input.certform-control.input-box-style(id="certReqName" ng-model="certObj.certDetails.certName"  ng-change="replaceSpacesCertName()")
+                      span.input-group-addon .t-mobile.com
+                  div.key-acceptance-info() {{ certNameErrorMessage }}
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .certificate-form-label(uib-tooltip="Name of the Cloud application this certificate will be used for. Only applications you have self-service rights to will be shown.") Application Name*
+                      drop-down(drop-down-options="dropdownApplicationName" name="certApplicationName" id="applicationName"  ng-click="appNameSelect()")
+                      div.key-acceptance-info() {{ applicationNameErrorMsg }}
+                      div.loader.svcaccid(ng-if='isApplicationsLoading')
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label(uib-tooltip="Owner/Creator of the certificate") Owner Email ID*
+                      input.form-control.input-box-style(id="certReqOwnerEmail"  ng-model="certObj.certDetails.ownerEmail" disabled=true)
+                      div.loader.svcaccid(ng-if='isUserSearchLoading && certObj.certDetails.ownerEmail.length > 2')
+                            div
+                            div
+                            div
+                            div
+                            div
+                            div
+                            div
+                            div
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row() 
+                    .details-input-group   
+                      .certificate-form-label(uib-tooltip="Option  to create a SAN certificate with additional domain names")  Are additional DNS names required (SAN Certificate)? &nbsp;&nbsp;   <input type="checkbox" ng-model="isChecked" ng-change="AddorRemoveDNS(isChecked)"/>
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row(ng-show="isChecked")
+                    .details-input-group
+                      .certificate-form-label(uib-tooltip="Option  to create a SAN certificate with additional domain names")  DNS
+                      div.dns-wrapper
+                        .col-lg-9.col-md-9.col-sm-9.col-xs-9
+                          .cert-input-group.cert-suffix
+                            input.certform-control.input-box-style(id="dns" ng-model="multiSanDnsName.name" ng-change="replaceSpacesDnsName()")
+                            span.input-group-addon .t-mobile.com
+                          div.key-acceptance-info() {{ certDnsErrorMessage }}
+                        .col-lg-3.col-md-3.col-sm-3.col-xs-3
+                          button.common-btn.dns-add-btn(ng-click="addDns(multiSanDnsName)" ng-disabled="dnsInvalid") Add DNS
+                      div.form-control.input-box-style.dns-list(id="dnslist")
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group(ng-if="!appNameSelected")
+                      .certificate-form-label {{ applicationNameSelectMsg==""?"Select application name and add/update notification emails": applicationNameSelectMsg}}
+                    .details-input-group(ng-show="appNameSelected")
+                      .certificate-form-label(uib-tooltip="Notification emails list") Notification emails*
+                      div.form-control.input-box-style.dns-list(id="notificationEmailList" ng-show="notificationEmails.length>0")
+                      div.dns-wrapper.addNotificationEmailCert
+                      div.certeditnotes Search By:
+                      label.certificate-form-label Email
+                        input(type='radio' id='notification_selection' value="email" ng-click="notifDropdown('email')" ng-checked="selectionValue == 'email'")
+                      label.certificate-form-label NTID
+                        input(type='radio' id='notification_selection' value="ntid" ng-click="notifDropdown('ntid')" ng-checked="selectionValue == 'ntid'")
+                      label.certificate-form-label LastName
+                        input(type='radio' id='notification_selection' value="lastname" ng-click="notifDropdown('lastname')" ng-checked="selectionValue == 'lastname'")
+                      label.certificate-form-label GroupEmail
+                        input(type='radio' id='notification_selection' value="groupemail" ng-click="notifDropdown('groupemail')" ng-checked="selectionValue == 'groupemail'")
+                      .col-lg-9.col-md-9.col-sm-9.col-xs-9
+                          .cert-input-group.cert-suffix
+                            input.certform-control.input-box-style(id="notificationemail" ng-model="notificationEmail.email" typeahead-min-length="3" uib-typeahead="key as key.userEmail ||key.email for key in searchEmailForNotification($viewValue,selectionValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectNotificationEmail(notificationEmail.email)")
+                            div.loader.svcaccid.notification-email-loader(ng-if='isUserSearchLoading && isNotificationEmailSearch && $scope.certObj.certDetails.notificationEmail.length > 2')
+                                div.ball-spin-fade-loader
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                                    div
+                            div.input-cross.svcaccid.notification-email-loader(ng-if='!isUserSearchLoading && !isOwnerEmailSearch && notificationEmail.email.length > 2' ng-click="clearNotificationEmail()")
+                                div.delete-title(ng-click="clearNotificationEmailmessage()")
+                                    img.delete-icon(src="../../assets/images/delete.png")
+                          div.key-acceptance-info() {{ notificationEmailErrorMessage }}
+                        .col-lg-3.col-md-3.col-sm-3.col-xs-3
+                          button.common-btn.dns-add-btn(ng-click="addNotificationEmailCert(notificationEmail)" ng-disabled="!isNotificationEmailSelected") Add Email
+            .common-form.modal-inner-wrapper.aws(ng-show='isCertificateManagePreview')  
+              .common-form-row
+                .cert-conf.clearfix
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Container :
+                      .cert-preview-details VenafiBin_12345
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Certificate Type :
+                      .cert-preview-details {{ certificateDetails.certType }}
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Certificate Name :
+                      .cert-preview-details {{ certificateDetails.certificateName }}
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Application Name :
+                      .cert-preview-details {{ certificateDetails.applicationName }}
+                      .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Notification Emails:
+                      .cert-preview-details(ng-if="notificationEmails.length>0" ng-repeat="email in notificationEmails") {{ email.email }}
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Owner Email ID :
+                      .cert-preview-details {{ certificateDetails.certOwnerEmailId }}
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label(ng-if="certificateDetails.dnsList.length>0") DNS :
+                      .cert-preview-details(ng-if="certificateDetails.dnsList.length>0" ng-repeat="dnsName in certificateDetails.dnsList") {{ dnsName }}                      
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Signature Algorithm :
+                      .cert-preview-details SHA256-RSA
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Key Usage :
+                      .cert-preview-details digitalSignature, keyEncipherment
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Extended Key Usage :
+                      .cert-preview-details(ng-if="certificateDetails.certType=='Internal'") serverAuth
+                      .cert-preview-details(ng-if="certificateDetails.certType=='External'") serverAuth, clientAuth
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Enroll Service :
+                      .cert-preview-details(ng-if="certificateDetails.certType=='Internal'") T-Mobile Issuing CA 01 - SHA2
+                      .cert-preview-details(ng-if="certificateDetails.certType=='External'") Entrust CA
+                  .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                    .details-input-group
+                      .certificate-form-label Note : Select the Edit button  to modify the input details else Create button  to create a certificate
+          .text-center.bottom-lg-sep.modal-sep.aws(ng-show='isCertificateManagePreview')
+            .col-lg-6.col-md-6.col-sm-6.col-xs-6
+              button.common-btn.btn.btn-primary.btn-lg(type='button' ng-click="backToEdit()" ) Edit
+            .col-lg-6.col-md-6.col-sm-6.col-xs-6
+              button.common-btn.btn.btn-primary.btn-lg(id="cert_create_btn" ng-click="createCert()" ng-disabled="isCreateCertBtnDisabled()" ) Create
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelCert()") Cancel
+
+          .text-center.bottom-lg-sep.modal-sep.aws(ng-show='!isCertificateManagePreview')
+            .col-lg-6.col-md-6.col-sm-6.col-xs-6
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancelCert()") Cancel
+            .col-lg-6.col-md-6.col-sm-6.col-xs-6
+              button.common-btn.btn.btn-primary.btn-lg(id="cert_preview_btn" ng-click="createCertPreview()" ng-disabled="isCreateCertBtnDisabled()" ) Preview
+            .clearfix
 
 script(type='text/ng-template', id='appRolePopup.html')
           .modal-sep
@@ -171,10 +501,10 @@ script(type='text/ng-template', id='manageSecretId.html')
                         .search-icon
                             .icon-search
                         .search-input-wrapper
-                            input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValue" restrict-special-char minlength="3" maxlength="40")
+                            input.search-input-box(type='text' placeholder='SEARCH' ng-model="searchValue" restrict-special-char minlength="3" maxlength="40" ng-change="filterCert(searchValue)")
             md-content.admin-content
                 md-tabs(md-dynamic-height md-border-bottom md-selected="selectedIndex")
-                    md-tab(label="Safe Management" md-on-select="tabChangeForAdmin()" ng-if="enableSelfService")
+                    md-tab(label="Safes" md-on-select="tabChangeForAdmin()" ng-if="enableSelfService")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper" ng-init="displayGrid")  
                             .md-content-inner-wrapper                               
                                 div.safe-management-content
@@ -191,7 +521,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                             .rotate.glyphicon.glyphicon-remove-circle
                                         .create-link.middle-block.hide-in-mobile
                                             .text CREATE NEW SAFE
-                    md-tab(label="Vault AppRole Management" md-on-select="tabChangeForAdmin()" ng-if="enableSelfService")
+                    md-tab(label="Vault AppRoles" md-on-select="tabChangeForAdmin()" ng-if="enableSelfService")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
@@ -204,7 +534,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                             .change-list-table-data.row
                                                 .unavailable-text(ng-show="!isLoadingData && appRoleData.keys.length==0")
                                                     .container.name No AppRoles Available
-                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in appRoleData.keys")
+                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in appRoleData.keys | filter:searchValue")
                                                     .container.name.col-lg-3.col-md-3.col-sm-3.col-xs-3(title="{{value}}") {{value}}
                                                     .container.radio-inputs.col-lg-7.col-md-7.col-sm-7.col-xs-7
                                                         .down.view
@@ -222,7 +552,7 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                 .rotate.glyphicon.glyphicon-remove-circle
                                             .create-link.middle-block.hide-in-mobile
                                                 .text CREATE NEW APPROLE
-                    md-tab(label="Service Account Management" md-on-select="tabChangeForAdmin()" ng-if="enableSvcacc")
+                    md-tab(label="AD Service Accounts" md-on-select="tabChangeForAdmin()" ng-if="enableSvcacc")
                         md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
                             .new-container.page-content-container
                                 .md-content-inner-wrapper
@@ -264,4 +594,210 @@ script(type='text/ng-template', id='manageSecretId.html')
                                                     button.show-more-btn VIEW MORE
                                                     span
                                                         img(src="assets/icons/front-arrow.svg")
-                                    
+                    md-tab(label="IAM Service Accounts" md-on-select="tabChangeForAdmin()" ng-if="enableIamSvcacc")
+                        md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
+                            .new-container.page-content-container
+                                .md-content-inner-wrapper
+                                    div.svcnotes T-Vault can be used to manage to read and rotate the secrets of IAM service accounts. In order to self-service your IAM service accounts there is a three-step process to onboard the account into T-Vault.
+                                      span.svc-collapse-link(ng-click="collapseNoteIAM()") >>
+                                    div.svccollapsible(uib-collapse="isCollapsedIAM")
+                                      div.svcdescription 
+                                      div.svcdescription
+                                        text.weighted Step 1: On-Boarding:
+                                        text This step brings the IAM service account into T-Vault so that the secrets can be read or rotated through T-Vault. This is a one-time operation.
+                                      div.svcdescription
+                                        text.weighted Step 2: Service Account Activation:
+                                        text The IAM service account owner will Activate (rotate) the account password once after on-boarding the account into T-Vault. This process ensures that the secrets in T-Vault and IAM portal are in sync.
+                                      div.svcdescription
+                                        text.weighted Step 3: Granting Permissions:
+                                        text When an IAM service account is activated in T-Vault, the account owner can grant specific permissions to other users and groups allowing others to read and/or rotate the secrets for the IAM service account as well through T-Vault.
+                                    div.svcdescription(ng-show="!isLoadingData && iamSvcaccOnboardedData.keys.length>0") The following are list of IAM service accounts managed by T-Vault. You can click View/Edit link to either activate the IAM Service account  or grant permissions for users and groups.
+                                    div.data-management-content
+                                        .row.change-safe-table-container(ng-if='true')
+                                            loading-state(ng-if='isLoadingData')
+                                            .row.change-data.header.solid-header(ng-show="!isLoadingData && iamSvcaccOnboardedData.keys.length>0")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="IAM SERVICE ACCOUNT NAME") ACCOUNT NAME
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="IAM SERVICE ACCOUNT ID") ACCOUNT ID
+                                                .container.name.cell.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION     
+                                            .change-list-table-data.row
+                                                .unavailable-text(ng-show="!isLoadingData && iamSvcaccOnboardedData.keys.length==0")
+                                                    .container.name No IAM Service Accounts enabled.
+                                                .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in iamSvcaccOnboardedData.keys | filter:searchValue | limitTo: iampaginationLimit()")
+                                                    .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value.userName}}") {{value.userName}}
+                                                    .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value.accountID}}") {{value.accountID}}
+                                                    .container.radio-inputs.cell.col-lg-4.col-md-.col-sm-4.col-xs-4
+                                                        .down.view
+                                                            .list-icon(ng-show="!isLoadingData && iamSvcaccOnboardedData.keys.length>0" ng-click = "editOnboardedIamSvcacc(value.metaDataName, 'md')" uib-tooltip="View/Edit IAM Service Account password rotation configuration")  View/Edit
+                                            .pagination-wrapper(ng-show='hasMoreIAMItemsToShow()')
+                                                .pagination-count(ng-if="numOfIamSvcaccs>0") Displaying {{iamcurrentshown}} of {{numOfIamSvcaccs}}
+                                                .pagination-button-wrapper(ng-click='showMoreIAMItems()')
+                                                    button.show-more-btn VIEW MORE
+                                                    span
+                                                        img(src="assets/icons/front-arrow.svg")
+                    md-tab(label="Azure Service Principals" md-on-select="tabChangeForAdmin()" ng-if="enableAzureSvcacc")
+                        md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
+                            .new-container.page-content-container
+                                .md-content-inner-wrapper
+                                    div.svcnotes T-Vault can be used to manage to read and rotate the secrets of service principals in Azure Active Directory. In order to self-service your service principals in Azure Active Directory there is a three-step process to onboard the account into T-Vault.
+                                      span.svc-collapse-link(ng-click="collapseNoteAzure()") >>
+                                    div.svccollapsible(uib-collapse="isCollapsedAzure")
+                                      div.svcdescription 
+                                      div.svcdescription
+                                        text.weighted Step 1: On-Boarding:
+                                        text This step brings the AAD service principals into T-Vault so that the secrets can be read or rotated through T-Vault. This is a one-time operation.
+                                      div.svcdescription
+                                        text.weighted Step 2: Service Principal Activation:
+                                        text The AAD service principal owner will Activate (rotate) the account password once after on-boarding the account into T-Vault. This process ensures that the secrets in T-Vault and Azure Active Directory are in sync.
+                                      div.svcdescription
+                                        text.weighted Step 3: Granting Permissions:
+                                        text When an AAD service principal is activated in T-Vault, the service principal owner can grant specific permissions to other users and groups allowing others to read and/or rotate the secrets for the AAD service principal as well through T-Vault.
+                                    div.svcdescription(ng-show="!isLoadingData && azureSvcaccOnboardedData.keys.length>0") The following are list of AAD service principals managed by T-Vault. You can click View/Edit link to either activate the AAD service principal or grant permissions for users and groups.
+                                    div.data-management-content
+                                        .row.change-safe-table-container(ng-if='true')
+                                            loading-state(ng-if='isLoadingData')
+                                            .row.change-data.header.solid-header(ng-show="!isLoadingData && azureSvcaccOnboardedData.keys.length>0")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="AZURE SERVICE PRINCIPAL NAME") ACCOUNT NAME
+                                                .container.name.cell.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION     
+                                            .change-list-table-data.row
+                                                .unavailable-text(ng-show="!isLoadingData && azureSvcaccOnboardedData.keys.length==0")
+                                                    .container.name No Azure Service Accounts enabled.
+                                                .row.change-data.item(ng-show="!isLoadingData"  ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in azureSvcaccOnboardedData.keys | filter:searchValue | limitTo: azurepaginationLimit()")
+                                                    .container.name.cell.col-lg-4.col-md-4.col-sm-4.col-xs-4(uib-tooltip="{{value}}") {{value}}
+                                                    .container.radio-inputs.cell.col-lg-4.col-md-.col-sm-4.col-xs-4
+                                                        .down.view
+                                                            .list-icon(ng-show="!isLoadingData && azureSvcaccOnboardedData.keys.length>0" ng-click = "editOnboardedAzureSvcacc(value, 'md')" uib-tooltip="View/Edit Service Account password rotation configuration")  View/Edit
+                                            .pagination-wrapper(ng-show='hasMoreAzureItemsToShow()')
+                                                .pagination-count(ng-if="numOfAzureSvcaccs>0") Displaying {{azurecurrentshown}} of {{numOfAzureSvcaccs}}
+                                                .pagination-button-wrapper(ng-click='showMoreAzureItems()')
+                                                    button.show-more-btn VIEW MORE
+                                                    span
+                                                        img(src="assets/icons/front-arrow.svg")
+                    md-tab(label="Certificates" md-on-select="tabChangeForAdminCert()" )
+                        md-content(class="md-padding md-content-wrapper page-content-wrapper md-approle-management" ng-init="displayGrid")
+                            .md-content-inner-wrapper
+                              div.certnotes How to get started and what to know
+                                span.cert-collapse-link(ng-click="collapseNoteCert()") >>
+                              div.certcollapsible(uib-collapse="isCollapsedCert")
+                                  div.svcdescription
+                                    text.weighted  1 :
+                                    text Ensure you are a member of the self-service administration group in AD for your respective application.  You can request access from the owner of your application at #[a(href='https://access.t-mobile.com/') Cloud Access].  If you are not a member of one or more of these groups you will not be able to create certificates yourself.
+                                  div.svcdescription
+                                    text.weighted  2 :
+                                    text Currently only the standard SSL Certificate template is used to create certificates, this includes:
+                                  div.svcdescription
+                                    text &nbsp;&nbsp;&nbsp;Signature algorithm: SHA256-RSA.
+                                  div.svcdescription
+                                    text &nbsp;&nbsp;&nbsp;Key usage  : digitalSignature, keyEncipherment.
+                                  div.svcdescription
+                                    text &nbsp;&nbsp;&nbsp;Extended key usage : serverAuth for Internal  and serverAuth, clientAuth for External certificates.
+                                  div.svcdescription
+                                    text.weighted  3 :
+                                    text If you need a non-standard certificate please reach out to Cloud Support
+                                    to work with them to create this for you.  This functionality will be developed and incorporated into T-Vault at a later date.
+                                  div.svcdescription
+                                      text.weighted 4 :
+                                      text External certificate requests require approval from the NCLM team, that process is outlined when you request an external certificate.
+                                  div.svcdescription
+                                    text.weighted 5 :
+                                    text Suggestions for improvements and features are welcome, please reach out to T-Vault@T-Mobile.com if you have any to share. For more information on how to manage certificates please go #[a(href='https://ccoe.docs.t-mobile.com/t-vault/user-interface/manage_certificates/') here.]
+
+                              div.create-certificate-link(ng-show="!isLoadingData && certificateData.certificates.length==0")
+                                .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
+                                    .action-icon-wrapper.static
+                                        .rotate.glyphicon.glyphicon-remove-circle
+                                    .create-link.middle-block.hide-in-mobile
+                                        .text CREATE NEW CERTIFICATE
+                              div.cert-management-content
+                                loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')                               
+                                md-tabs.admin-tabs.md-dynamic-height.md-border-bottom(md-selected="selectedTab")
+                                    md-tab( md-on-select="getInternalCertificates()" ng-attr-label="Internal certificates")
+                                        md-content(class="md-content-wrapper" ng-if="isInternalCert")
+                                          div.data-management-content
+                                            .row.change-safe-table-container(ng-if='true')
+                                              loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')
+                                              .change-list-table-data.row
+                                                  .unavailable-text(ng-show="!isLoadingData && finalFilterCertResults.length==0")
+                                                      .container.name No Certificates Available
+                                              .row.change-data.header.solid-header.removeborder(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length!=0)")
+                                                  .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-3 CERTIFICATE
+                                                  .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
+                                                  .container.name.col-lg-1.col-md-2.col-sm-2.col-xs-2 STATUS
+                                                  .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
+                                                  div.create-certificate-link(ng-show="!isAppNamesLoading" )
+                                                    .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
+                                                      .action-icon-wrapper.static
+                                                          .rotate.glyphicon.glyphicon-remove-circle
+                                                      .create-link.middle-block.hide-in-mobile
+                                                          .text CREATE NEW CERTIFICATE     
+                                              .row.change-data.header.solid-header
+                                              .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter: {certificateName:searchValue} | limitTo: certpaginationLimit()")
+                                                  .container.name.col-lg-3.col-md-3.col-sm-2.col-xs-2(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
+                                                  .container.name.col-lg-3.col-md-2.col-sm-1.col-xs-2(title="{{ getCertExpirationDate(value) }}") {{ getCertExpirationDate(value) }}
+                                                  .container.name.col-lg-1.col-md-2.col-sm-2.col-xs-2
+                                                      .down.view
+                                                          .list-icon(ng-if="value.certificateStatus=='Active'")
+                                                            label.active-cert {{ value.certificateStatus}}
+                                                          .list-icon(ng-if="value.certificateStatus=='Revoked'")
+                                                            label.revoked-cert {{ value.certificateStatus}}
+                                                          .list-icon(ng-if="value.certificateStatus=='Expired'")
+                                                            label.expired-cert {{ value.certificateStatus}}
+                                                  .container.name.col-lg-5.col-md-6.col-sm-6.col-xs-6
+                                                      .down.view
+                                                          .list-icon(ng-click="goToAddPermissions(value)")  View/Edit
+                                                      .down.view
+                                                          .list-icon(ng-click="transferCertPopup(value)") Transfer Owner
+                                              .pagination-wrapper(ng-show='hasMoreCertsToShow()')
+                                                  .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshown}} of {{numOfCertificates}}
+                                                  .pagination-button-wrapper(ng-click='showMoreCertItems()')
+                                                      button.show-more-btn VIEW MORE
+                                                      span
+                                                          img(src="assets/icons/front-arrow.svg")
+                                                          
+                                                         
+                                    md-tab( md-on-select="getExtCertificates()" ng-attr-label="External certificates" )
+                                        md-content(class="md-content-wrapper" ng-if="!isExternalCert")
+                                            md-content(class="md-content-wrapper")
+                                          div.data-management-content
+                                            .row.change-safe-table-container(ng-if='true')
+                                              loading-state(ng-if='isLoadingData'  && 'isLoadingCerts')
+                                              .change-list-table-data.row
+                                                  .unavailable-text(ng-show="!isLoadingData && finalFilterCertResults.length==0")
+                                                      .container.name No Certificates Available                                              
+                                              .row.change-data.header.solid-header.removeborder(ng-show="!isLoadingData && (certificateData.certificates.length>0 && finalFilterCertResults.length != '0')")
+                                                  .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-3 CERTIFICATE
+                                                  .container.name.col-lg-3.col-md-2.col-sm-2.col-xs-2 EXPIRATION DATE
+                                                  .container.name.col-lg-1.col-md-2.col-sm-2.col-xs-2 STATUS
+                                                  .container.name.col-lg-2.col-md-2.col-sm-2.col-xs-2 ACTION
+                                                  div.create-certificate-link(ng-show="!isAppNamesLoading" )
+                                                    .function-text.link-style.option.right(ng-click="newCertificateConfiguration('lg')")
+                                                      .action-icon-wrapper.static
+                                                          .rotate.glyphicon.glyphicon-remove-circle
+                                                      .create-link.middle-block.hide-in-mobile
+                                                          .text CREATE NEW CERTIFICATE                                                                                                
+                                              .row.change-data.header.solid-header
+                                              .row.change-data.item(ng-show="!isLoadingData" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="value in certificateData.certificates |  filter: {certificateName:searchValue} | limitTo: certpaginationLimitExt()")
+                                                  .container.name.col-lg-3.col-md-3.col-sm-2.col-xs-2(title="{{ getCertSubjectName(value) }}") {{ getCertSubjectName(value) }}
+                                                  .container.name.col-lg-3.col-md-2.col-sm-1.col-xs-2(title="{{ getCertExpirationDate(value) }}") {{ getCertExpirationDate(value) }}
+                                                  .container.name.col-lg-1.col-md-2.col-sm-2.col-xs-2
+                                                      .down.view
+                                                          .list-icon(ng-if="value.certificateStatus=='Active'")
+                                                            label.active-cert {{ value.certificateStatus}}
+                                                          .list-icon(ng-if="value.certificateStatus=='Revoked'")
+                                                            label.revoked-cert {{ value.certificateStatus}}
+                                                          .list-icon(ng-if="value.certificateStatus=='Expired'")
+                                                            label.expired-cert {{ value.certificateStatus}}
+                                                          .list-icon(ng-if="value.certificateStatus=='Waiting'")
+                                                            label.waiting-cert {{ value.certificateStatus}}
+                                                          .list-icon(ng-if="value.certificateStatus=='Rejected'")
+                                                            label.expired-cert {{ value.certificateStatus}}
+                                                  .container.name.col-lg-5.col-md-6.col-sm-6.col-xs-6
+                                                      .down.view
+                                                          .list-icon(ng-click="goToAddPermissions(value)")  View/Edit
+                                                      .down.view
+                                                          .list-icon(ng-click="transferCertPopup(value)") Transfer Owner
+                                              .pagination-wrapper(ng-show='hasMoreCertsToShowExt()')
+                                                  .pagination-count(ng-if="numOfCertificates>0") Displaying {{certcurrentshownExt}} of {{numOfCertificates}}
+                                                  .pagination-button-wrapper(ng-click='showMoreCertItemsExt()')
+                                                      button.show-more-btn VIEW MORE
+                                                      span
+                                                          img(src="assets/icons/front-arrow.svg")

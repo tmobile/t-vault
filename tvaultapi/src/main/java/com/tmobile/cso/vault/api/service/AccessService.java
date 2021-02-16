@@ -56,7 +56,7 @@ public class  AccessService {
 		String jsonStr = JSONUtil.getJSON(accessPolicy);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				  put(LogMessage.ACTION, "Create Policy").
+				  put(LogMessage.ACTION, "CreatePolicy").
 			      put(LogMessage.MESSAGE, String.format("Trying to create policy [%s]", jsonStr)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
@@ -91,7 +91,7 @@ public class  AccessService {
 		String jsonStr = JSONUtil.getJSON(accessPolicy);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				  put(LogMessage.ACTION, "Update Policy").
+				  put(LogMessage.ACTION, "UpdatePolicy").
 			      put(LogMessage.MESSAGE, String.format("Trying to update policy [%s]", jsonStr)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
@@ -166,7 +166,7 @@ public class  AccessService {
 	public ResponseEntity<String> deletePolicyInfo(String token, String accessid){
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-				  put(LogMessage.ACTION, "Delete Policy").
+				  put(LogMessage.ACTION, "DeletePolicy").
 			      put(LogMessage.MESSAGE, String.format("Trying to delete policy [%s]", accessid)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));

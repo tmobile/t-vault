@@ -19,9 +19,9 @@
 
     <h4>Activate Service Account:</h4>
     <ol>
-        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your CORP AD account.</li>
+        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your NT account.</li>
         <li>
-            <div>Navigate to the "MANAGE" tab</div>
+            <div>Navigate to the "MANAGE" tab - "AD Service Accounts"</div>
             <img class ="image" src="managetab.png" th:src="|cid:${managetab}|"/>
         </li>
         <li>
@@ -43,8 +43,8 @@
     <div>Once you are finished activating your service account you can assign permissions to other users or groups you want to have permission to view or reset the password for the account.</div>
     <div data-th-text="${groupContent}"></div>
     <ol>
-        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your CORP AD account.</li>
-        <li>Navigate to the "MANAGE" tab.</li>
+        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your NT account.</li>
+        <li>Navigate to the "MANAGE" tab - "AD Service Accounts".</li>
         <li>Select the "View/Edit" option corresponding to the service account you want to manage.</li>
         <li>
             <div>Select the "Grant Permission" button.</div>
@@ -56,7 +56,7 @@
         </li>
         <li>
             <div>Provide the group or user name you want to give permissions to and select either read, reset, or deny depending on the level of access you want to give.</div>
-            <img class ="image" src="adduser.png" th:src="|cid:${adduser}|"/>
+            <img class ="image" src="adadduser.png" th:src="|cid:${adadduser}|"/>
         </li>
     </ol>
 

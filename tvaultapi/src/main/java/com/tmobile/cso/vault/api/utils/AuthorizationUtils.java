@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.LogMessage;
+import com.tmobile.cso.vault.api.model.SSLCertificateMetadataDetails;
 import com.tmobile.cso.vault.api.model.Safe;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.Response;
@@ -61,12 +62,12 @@ public class AuthorizationUtils {
 		}
 		else {
 			// Non Admins
-			if (userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(safeMetaData.getSafeBasicDetails().getOwnerid())) {
+			if ((userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(safeMetaData.getSafeBasicDetails().getOwnerid())) && !forceCapabilityCheck) {
 				// As a owner of the safe, I am always authorized...
-				if (!forceCapabilityCheck) {
+				
 					// Little lenient authorization (To be used carefully) 
 					return true;
-				}
+				
 			}
 		}
 		String safeType = getSafeTypeFromPath(safeMetaData.getPath());
@@ -94,7 +95,7 @@ public class AuthorizationUtils {
 		for (String currentPolicy: currentUserPolicies) {
 			if (currentPolicy.startsWith(lookupPolicyName)) {
 				// Current user policy matches with one of the policy to be checked (for example, safeadmin or s_shared_mysafe)
-				authorized = hasCapability(currentPolicy, lookupPolicyName, lookupPolicyKey, powerToken);
+				authorized = hasCapability(currentPolicy, lookupPolicyKey, powerToken);
 				break;
 			}
 		}
@@ -109,7 +110,7 @@ public class AuthorizationUtils {
 	 * @param powerToken
 	 * @return
 	 */
-	private boolean hasCapability(String currentPolicy, String lookupPolicyName, String lookupPolicyKey, String powerToken) {
+	private boolean hasCapability(String currentPolicy, String lookupPolicyKey, String powerToken) {
 		boolean authorized = false;
 		// Open the policy and check whether there is real policy entry...
 		LinkedHashMap<String, LinkedHashMap<String, Object>> capabilitiesMap = getPolicyInfo(currentPolicy, powerToken);
@@ -121,7 +122,6 @@ public class AuthorizationUtils {
 				if (capKey.startsWith(lookupPolicyKey)) {
 					for (Map.Entry<String, Object> valEntry : value.entrySet()) {
 						if (valEntry.getValue() instanceof String) {
-							//String valKey = valEntry.getKey();
 							String capability = valEntry.getValue().toString();
 							if (capability.toLowerCase().startsWith("write") || capability.toLowerCase().startsWith("sudo")) {
 								authorized = true;
@@ -201,5 +201,42 @@ public class AuthorizationUtils {
 		}
 		return safeType;
 	}
+	/**
+	 * Checks whether the given user can edit the given certificate.
+	 * @param userDetails
+	 * @param certificateMetaData
+	 * @param latestPolicies
+	 * @param policiesTobeChecked
+	 * @return
+	 */
+	public boolean isAuthorizedCert(UserDetails userDetails, SSLCertificateMetadataDetails sslMetaData, String[] latestPolicies, ArrayList<String> policiesTobeChecked, boolean forceCapabilityCheck) {
+		boolean authorized = false;
+		String powerToken = userDetails.getSelfSupportToken();
+		if (userDetails.isAdmin()) {
+			// Admin is always authorized. This flag is set when the user logs in with "safeadmin" policy
+			return true;
+		}
+		else {
+			// Non Admins
+			if ((userDetails.getUsername() != null && userDetails.getUsername().equalsIgnoreCase(sslMetaData.getCertOwnerNtid())) && !forceCapabilityCheck) {
+				// As a owner of the certificate, I am always authorized...
+				
+					// Little lenient authorization (To be used carefully) 
+					return true;
+				
+			}
+		}
+		String certType ="metadata/sslcerts";
+		// Open each of the associated policy and check whether the user really has capability 
+		for (String policyTobeChecked: policiesTobeChecked) {
+			String policyKeyTobeChecked = new StringBuffer().append(certType).toString();
+			authorized = isAuthorized(latestPolicies, policyTobeChecked, policyKeyTobeChecked, powerToken);
+			if (authorized) {
+				break;
+			}
+		}
+		return authorized;
+	}
+
 
 }

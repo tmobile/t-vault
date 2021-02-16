@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -20,7 +20,9 @@ package com.tmobile.cso.vault.api.v2.controller;
 import com.tmobile.cso.vault.api.model.Secret;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +38,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 
 @RestController
@@ -69,10 +72,17 @@ public class SecretControllerV2 {
 	 * @return
 	 */
 	@ApiOperation(value = "${SecretControllerV2.write.value}", notes = "${SecretControllerV2.write.notes}")
-	@PostMapping(value={"/v2/safes/folders/secrets","/v2/write"},consumes="application/json",produces="application/json")
-	public ResponseEntity<String> write(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody Secret secret){
+	@PostMapping(value = {"/v2/safes/folders/secrets", "/v2/write"}, consumes = "application/json", produces = "application/json")
+	public ResponseEntity<String> write(HttpServletRequest request, @RequestHeader(value = "vault-token") String token,
+										@RequestHeader(value = "delete-flag", required = false) String deleteFlag
+			, @RequestBody Secret secret) {
+
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return secretService.write(token, secret, userDetails);
+		if (!StringUtils.isEmpty(deleteFlag) && deleteFlag.equalsIgnoreCase("true")) {
+			return secretService.write(token, secret, userDetails, deleteFlag);
+		} else {
+			return secretService.write(token, secret, userDetails);
+		}
 	}
 	/**
 	 * Delete secrets from vault
@@ -80,11 +90,35 @@ public class SecretControllerV2 {
 	 * @param path
 	 * @return
 	 */
-	@ApiOperation(value = "${SecretControllerV2.deleteFromVault.value}", notes = "${SecretControllerV2.deleteFromVault.notes}")
+	@ApiOperation(value = "${SecretControllerV2.deleteFromVault.value}", notes = "${SecretControllerV2.deleteFromVault.notes}", hidden = true)
 	@DeleteMapping(value="/v2/safes/folders/secrets",produces="application/json")
 	public ResponseEntity<String> deleteFromVault(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		return secretService.deleteFromVault(token, path);
 	}
+
+	/**
+	 * Get total secret count in T-Vault
+	 * @param token
+	 * @return
+	 */
+	@ApiOperation(value = "${SecretControllerV2.getSecretCount.value}", notes = "${SecretControllerV2.getSecretCount.notes}", hidden = true)
+	@GetMapping(value="/v2/safes/count",produces="application/json")
+	public ResponseEntity<String> getSecretCount(@RequestHeader(value="vault-token") String token, @RequestParam("safeType") String safeType, @Valid @RequestParam("offset") int offset){
+		return secretService.getSecretCount(token, safeType, offset);
+	}
+
+	/**
+	 * To get folder last change details
+	 * @param token
+	 * @param path
+	 * @return
+	 */
+	@ApiOperation(value = "${SecretControllerV2.getFolderVersionInfo.value}", notes = "${SecretControllerV2.getFolderVersionInfo.notes}", hidden=true)
+	@GetMapping(value="/v2/safes/folders/versioninfo",produces="application/json")
+	public ResponseEntity<String> getFolderVersionInfo(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
+		return secretService.getFolderVersionInfo(token, path);
+	}
+
 }
 
 enum FetchOption {

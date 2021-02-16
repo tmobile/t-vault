@@ -29,17 +29,6 @@
           fromLogin: true
         },
         resolve: {
-          safes: function (SessionStore, $q, $state, safesService, $stateParams) {
-            if ($stateParams.fromLogin === false) {
-              return safesService.getAllowedSafes()
-                  .catch(function (error) {
-                    return error;
-                  });
-            }
-            else {
-              return JSON.parse(SessionStore.getItem('accessSafes'));
-            }
-          }
         },
         views: {
           'content@safes-tabs': {
@@ -54,6 +43,12 @@
         resolve: {
           folderContent: function (safesService, SafesManagement, $state, $stateParams, $q, $timeout) {
             return safesService.getFolderContent($stateParams.path)
+              .catch(function (error) {
+                return error;
+              });
+          },
+          folderLastChangedDetails: function (safesService, SafesManagement, $state, $stateParams, $q, $timeout) {
+            return safesService.folderLastChangedDetails($stateParams.path)
               .catch(function (error) {
                 return error;
               });

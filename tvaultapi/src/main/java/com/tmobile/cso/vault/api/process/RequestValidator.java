@@ -62,6 +62,14 @@ public class RequestValidator {
 				}
 				break;
 			}
+			case "/auth/aws/iam/role/create":{
+				boolean duplicate = checkforDuplicateAwsGroup(requestParams, token);
+				if(duplicate){
+					msg.setMsgTxt("Existing role. Use '/auth/aws/iam/roles/update' if needed");
+					msg.setMsgType(MSG_TYPE.ERR);
+				}
+				break;
+			}
 			case "/sdb/create":{
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).

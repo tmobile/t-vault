@@ -40,38 +40,41 @@ script(type='text/ng-template', id='login.html')
 
 .container-fluid.sign-in
     .container-fluid-wrapper.container-fluid-wrapper-welcome    
-        loading-state(ng-show="isLoadingData" ng-cloak="")    
-        div.home.center-text-home.header.clearfix
-            h2 Welcome to T-Vault
-            .description T-Vault is a simplified and centralized secrets management solution for securely storing, distributing and tightly controlling access to passwords, certificates, encryption keys, tokens for protecting secrets and other sensitive data using a UI, HTTP API.
-        div.home.center-text-home.columns.clearfix
-            .column.first
-                img.welcome-image(src= "assets/images/store.png")
-                .column-title Store
-                .column-details Centrally store, access, and distribute secrets like API keys, AWS IAM/STS credentials, SQL/NoSQL databases, X.509 certificates, SSH credentials, and more.
-            .column
-                img.welcome-image(src= "assets/images/access.png")
-                .column-title Access
-                .column-details Secure and tight access control for accessing passwords, certificates, encryption keys for protecting secrets and other sensitive data using a UI and HTTP API.
-            .column
-                img.welcome-image(src= "assets/images/distribute.png")
-                .column-title Distribute
-                .column-details Easily create safes, add secrets and share access to others. Integrate T-Vault with your existing workflows to distribute secrets to users.
-        div.button-row.clearfix
-            .button-container
-                button.btn.btn-primary.btn-lg.goto-login-button(ng-click="goToLogin()") Go to Login
-            .sign-up-link
-                span.span-link
-                    a(href='{{signUpLink}}' ng-if="signUpLink!=''" target="_blank") SIGN UP
-        div.footer.clearfix
-            .footer-row Developed by Cloud Team
-            .footer-row 
-                span Contact us on 
-                span.span-link 
-                    a(href='{{slackLink}}' target="_blank") Slack 
-                span or shoot us an 
-                span.span-link 
-                    a(href='mailto:{{emailLink}}' target="_top") email
-            .footer-row(ng-if="repoLink!=''")
-                span
-                    a(href='{{repoLink}}' target="_blank") Help
+        loading-state(ng-show="isLoadingData" ng-cloak="")
+        div(ng-if="!isLoadingData")
+            div.home.center-text-home.header.clearfix
+                h2 Welcome to T-Vault
+                .description T-Vault is a simplified and centralized secrets management solution for securely storing, distributing and tightly controlling access to passwords, certificates, encryption keys, tokens for protecting secrets and other sensitive data using a UI, HTTP API.
+            div.home.center-text-home.columns.clearfix
+                .column.first
+                    img.welcome-image(src= "assets/images/store.png")
+                    .column-title Store
+                    .column-details Centrally store, access, and distribute secrets like API keys, AWS IAM/STS credentials, SQL/NoSQL databases, X.509 certificates, SSH credentials, and more.
+                .column
+                    img.welcome-image(src= "assets/images/access.png")
+                    .column-title Access
+                    .column-details Secure and tight access control for accessing passwords, certificates, encryption keys for protecting secrets and other sensitive data using a UI and HTTP API.
+                .column
+                    img.welcome-image(src= "assets/images/distribute.png")
+                    .column-title Distribute
+                    .column-details Easily create safes, add secrets and share access to others. Integrate T-Vault with your existing workflows to distribute secrets to users.
+            div.home.center-text-home.columns.instance-message.clearfix
+                .description {{ instanceMessage }}
+            div.button-row.clearfix
+                .button-container
+                    button.btn.btn-primary.btn-lg.goto-login-button(ng-click="loginSSO()") Go to Dashboard
+                .sign-up-link
+                    span.span-link
+                        a(href='{{signUpLink}}' ng-if="signUpLink!=''" target="_blank") SIGN UP
+            div.footer.clearfix
+                .footer-row Developed by Cloud Team
+                .footer-row 
+                    span Contact us on 
+                    span.span-link 
+                        a(href='{{slackLink}}' target="_blank") Slack 
+                    span or shoot us an 
+                    span.span-link 
+                        a(href='mailto:{{emailLink}}' target="_top") email
+                .footer-row(ng-if="repoLink!=''")
+                    span
+                        a(href='{{repoLink}}' target="_blank") Help

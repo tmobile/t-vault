@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -305,6 +305,34 @@ public class ServiceAccountsControllerV2 {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return serviceAccountsService.transferSvcAccountOwner(userDetails, token, serviceAccountName);
 	}
+	
+	/**
+	 * 
+	 * @param request
+	 * @param token
+	 * @param serviceAccountName
+	 * @return
+	 */
 
+	@ApiOperation(value = "${ServiceAccountsControllerV2.getServiceAccountsList.value}", notes = "${ServiceAccountsControllerV2.getServiceAccountsList.notes}",hidden = false)
+	@GetMapping (value="/v2/serviceaccounts/list",produces="application/json")
+	public ResponseEntity<String> getServiceAccountsList(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.getServiceAccounts(userDetails, token);
+	}
+
+	/**
+	 * Offboard a decommissioned service account
+	 * @param request
+	 * @param token
+	 * @param serviceAccount
+	 * @return
+	 */
+	@ApiOperation(value = "${ServiceAccountsControllerV2.offboarddecommissioned.value}", notes = "${ServiceAccountsControllerV2.offboarddecommissioned.notes}", hidden = true)
+	@PostMapping(value="/v2/serviceaccounts/offboarddecommissioned", produces="application/json")
+	public ResponseEntity<String> offboardDecommissionedServiceAccount( HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestBody OnboardedServiceAccount serviceAccount){
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return serviceAccountsService.offboardDecommissionedServiceAccount(token, serviceAccount, userDetails);
+	}
 
 }

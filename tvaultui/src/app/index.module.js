@@ -73,7 +73,13 @@
         'vault.features.safes',
         'vault.features.ChangeServiceAccountCtrl',
         'vault.features.ServiceAccountsCtrl',
-        'vault.features.HomeCtrl'
+        'vault.features.HomeCtrl',
+        'vault.features.ChangeCertificateCtrl',
+        'vault.features.CertificatesCtrl',
+        'vault.features.ChangeIamServiceAccountCtrl',
+        'vault.features.IamServiceAccountsCtrl',
+        'vault.features.AzureServicePrincipalsCtrl',
+        'vault.features.ChangeAzureServicePrincipalsCtrl'
     ]);
     angular.module( 'vault.services', [
         'vault.services.CopyToClipboard',
@@ -135,6 +141,7 @@
         'vault.directives.headerHome',
         'vault.directives.restrictConfigCharApprole',
         'vault.directives.restrictSpecialCharWithSpace',
+        'vault.directives.restrictSpecialCharForUsers'
     ]);
 
     angular.module( 'vault.factories', [

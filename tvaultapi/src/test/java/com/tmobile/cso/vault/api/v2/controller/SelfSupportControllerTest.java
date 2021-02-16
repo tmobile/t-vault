@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.ArrayList;
 
+import com.tmobile.cso.vault.api.model.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -46,16 +47,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmobile.cso.vault.api.main.Application;
-import com.tmobile.cso.vault.api.model.AWSIAMRole;
-import com.tmobile.cso.vault.api.model.AWSLoginRole;
-import com.tmobile.cso.vault.api.model.AWSRole;
-import com.tmobile.cso.vault.api.model.AppRole;
-import com.tmobile.cso.vault.api.model.AppRoleAccessorIds;
-import com.tmobile.cso.vault.api.model.Safe;
-import com.tmobile.cso.vault.api.model.SafeBasicDetails;
-import com.tmobile.cso.vault.api.model.SafeGroup;
-import com.tmobile.cso.vault.api.model.SafeUser;
-import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.service.SelfSupportService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -72,6 +63,9 @@ public class SelfSupportControllerTest {
 
     @InjectMocks
     private SelfSupportController selfSupportController;
+    
+    @Mock
+    UserDetails userDetails;
 
     @Before
     public void setUp() {
@@ -94,7 +88,7 @@ public class SelfSupportControllerTest {
         String responseJson = "{  \"keys\": [    \"mysafe01\"  ]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.getFoldersRecursively(userDetails, "5PDrOhsy4ig8L3EpsJZSLAMg", "users/safe1")).thenReturn(responseEntityExpected);
+        when(selfSupportService.getFoldersRecursively(userDetails,  "users/safe1")).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/sdb/list?path=users/safe1").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -108,7 +102,7 @@ public class SelfSupportControllerTest {
         String responseJson = "{  \"keys\": [    \"mysafe01\"  ]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.getSafe(userDetails, "5PDrOhsy4ig8L3EpsJZSLAMg", "users/safe1")).thenReturn(responseEntityExpected);
+        when(selfSupportService.getSafe(userDetails,  "users/safe1")).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/sdb?path=users/safe1").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -125,7 +119,7 @@ public class SelfSupportControllerTest {
         SafeUser safeUser = new SafeUser("users/safe1", "testuser1","write");
 
         String inputJson =new ObjectMapper().writeValueAsString(safeUser);
-        when(selfSupportService.addUserToSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(SafeUser.class))).thenReturn(responseEntityExpected);
+        when(selfSupportService.addUserToSafe(eq(userDetails),  Mockito.any(SafeUser.class))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/sdb/user").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -143,7 +137,7 @@ public class SelfSupportControllerTest {
         SafeUser safeUser = new SafeUser("users/safe1", "testuser1","write");
 
         String inputJson =new ObjectMapper().writeValueAsString(safeUser);
-        when(selfSupportService.removeUserFromSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(SafeUser.class))).thenReturn(responseEntityExpected);
+        when(selfSupportService.removeUserFromSafe(eq(userDetails),  Mockito.any(SafeUser.class))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/v2/ss/sdb/user").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -158,7 +152,7 @@ public class SelfSupportControllerTest {
         String responseJson = "{\"data\": { \"description\": \"My first safe\", \"name\": \"mysafe01\", \"owner\": \"youremail@yourcompany.com\", \"type\": \"\" }}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.getInfo(userDetails,"5PDrOhsy4ig8L3EpsJZSLAMg", "users")).thenReturn(responseEntityExpected);
+        when(selfSupportService.getInfo(userDetails,"users")).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/sdb/folder/users?path=users").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -169,14 +163,14 @@ public class SelfSupportControllerTest {
 
     @Test
     public void test_createSafe() throws Exception {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String inputJson =new ObjectMapper().writeValueAsString(safe);
         String responseJson = "{\"messages\":[\"Safe updated \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.createSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(Safe.class))).thenReturn(responseEntityExpected);
+        when(selfSupportService.createSafe(eq(userDetails), Mockito.any(Safe.class))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/sdb").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -202,14 +196,14 @@ public class SelfSupportControllerTest {
 
     @Test
     public void test_updateSafe() throws Exception {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe");
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/mysafe01",safeBasicDetails);
 
         String inputJson =new ObjectMapper().writeValueAsString(safe);
         String responseJson = "{\"messages\":[\"Safe updated \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.updateSafe(eq(userDetails),eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(Safe.class))).thenReturn(responseEntityExpected);
+        when(selfSupportService.updateSafe(eq(userDetails), Mockito.any(Safe.class))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/v2/ss/sdb").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -224,7 +218,7 @@ public class SelfSupportControllerTest {
         String responseJson = "{\"messages\":[\"SDB deleted\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.deletefolder(userDetails,"5PDrOhsy4ig8L3EpsJZSLAMg", "users/safe1")).thenReturn(responseEntityExpected);
+        when(selfSupportService.deletefolder(userDetails, "users/safe1")).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/v2/ss/sdb/delete?path=users/safe1").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -241,7 +235,7 @@ public class SelfSupportControllerTest {
         String responseJson = "{\"messages\":[\"Group is successfully associated with Safe\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.addGroupToSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(SafeGroup.class))).thenReturn(responseEntityExpected);
+        when(selfSupportService.addGroupToSafe(eq(userDetails), Mockito.any(SafeGroup.class))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/sdb/group").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -259,7 +253,7 @@ public class SelfSupportControllerTest {
         String responseJson = "{\"messages\":[\"Group association is removed \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.removeGroupFromSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(SafeGroup.class))).thenReturn(responseEntityExpected);
+        when(selfSupportService.removeGroupFromSafe(eq(userDetails), Mockito.any(SafeGroup.class))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/v2/ss/sdb/group").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -277,7 +271,7 @@ public class SelfSupportControllerTest {
         String responseJson = "{\"messages\":[\"Role is successfully associated \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.addAwsRoleToSafe(eq(userDetails),eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSRole.class))).thenReturn(responseEntityExpected);
+        when(selfSupportService.addAwsRoleToSafe(eq(userDetails), Mockito.any(AWSRole.class))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/sdb/role").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -295,7 +289,7 @@ public class SelfSupportControllerTest {
         String responseJson = "{\"messages\":[\"Role association is removed \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.removeAWSRoleFromSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSRole.class), eq(false))).thenReturn(responseEntityExpected);
+        when(selfSupportService.removeAWSRoleFromSafe(eq(userDetails), Mockito.any(AWSRole.class), eq(false))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/v2/ss/sdb/role").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -313,7 +307,7 @@ public class SelfSupportControllerTest {
         String responseJson = "{\"messages\":[\"Role association is removed \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.removeAWSRoleFromSafe(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSRole.class), eq(true))).thenReturn(responseEntityExpected);
+        when(selfSupportService.removeAWSRoleFromSafe(eq(userDetails),  Mockito.any(AWSRole.class), eq(true))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/v2/ss/sdb/role").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -329,7 +323,7 @@ public class SelfSupportControllerTest {
         String inputJson = "{\"role\":\"approle1\",\"path\":\"users/safe1\"}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.associateApproletoSDB(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
+        when(selfSupportService.associateApproletoSDB(eq(userDetails), Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/sdb/approle").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -345,7 +339,7 @@ public class SelfSupportControllerTest {
         String inputJson = "{\"role\":\"approle1\",\"path\":\"users/safe1\"}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.deleteApproleFromSDB(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
+        when(selfSupportService.deleteApproleFromSDB(eq(userDetails), Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/v2/ss/sdb/approle").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -366,7 +360,7 @@ public class SelfSupportControllerTest {
         String responseMessage = "{\"messages\":[\"AWS Role created \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.createRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),Mockito.any(AWSLoginRole.class), eq("users/mysafe01"))).thenReturn(responseEntityExpected);
+        when(selfSupportService.createRole(eq(userDetails),Mockito.any(AWSLoginRole.class), eq("users/mysafe01"))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/auth/aws/role?path=users/mysafe01").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -387,7 +381,7 @@ public class SelfSupportControllerTest {
         String responseMessage = "{\"messages\":[\"AWS Role updated \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.updateRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),Mockito.any(AWSLoginRole.class), eq("users/mysafe01"))).thenReturn(responseEntityExpected);
+        when(selfSupportService.updateRole(eq(userDetails),Mockito.any(AWSLoginRole.class), eq("users/mysafe01"))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/v2/ss/auth/aws/role?path=users/mysafe01").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -412,7 +406,7 @@ public class SelfSupportControllerTest {
         String responseMessage = "{\"messages\":[\"AWS IAM Role created successfully \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.createIAMRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSIAMRole.class), eq("users/mysafe01"))).thenReturn(responseEntityExpected);
+        when(selfSupportService.createIAMRole(eq(userDetails), Mockito.any(AWSIAMRole.class), eq("users/mysafe01"))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/auth/aws/iam/role?path=users/mysafe01").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -437,7 +431,7 @@ public class SelfSupportControllerTest {
         String responseMessage = "{\"messages\":[\"AWS Role updated \"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.updateIAMRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSIAMRole.class), eq("users/mysafe01"))).thenReturn(responseEntityExpected);
+        when(selfSupportService.updateIAMRole(eq(userDetails), Mockito.any(AWSIAMRole.class), eq("users/mysafe01"))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/v2/ss/auth/aws/iam/role?path=users/mysafe01").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -466,7 +460,7 @@ public class SelfSupportControllerTest {
         String responseJson = "{\"messages\":[\"AppRole created successfully\"]}";
         ResponseEntity<String> responseEntityExpected =ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.createAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AppRole.class), eq(userDetails))).thenReturn(responseEntityExpected);
+        when(selfSupportService.createAppRole( Mockito.any(AppRole.class), eq(userDetails))).thenReturn(responseEntityExpected);
         String [] policies = {"default"};
         AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0);
         String inputJson =new ObjectMapper().writeValueAsString(appRole);
@@ -484,7 +478,7 @@ public class SelfSupportControllerTest {
         String responseJson = "{\"messages\":[\"AppRole deleted\"]}";
         ResponseEntity<String> responseEntityExpected =ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.deleteAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AppRole.class), eq(userDetails))).thenReturn(responseEntityExpected);
+        when(selfSupportService.deleteAppRole( Mockito.any(AppRole.class), eq(userDetails))).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/v2/ss/auth/approle/role/approle1").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -498,7 +492,7 @@ public class SelfSupportControllerTest {
         String responseJson = "{\"shared\":[{\"s2\":\"read\"}],\"users\":[{\"s1\":\"read\"},{\"s5\":\"read\"}]}";
         ResponseEntity<String> responseEntityExpected =ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.getSafes(userDetails, "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(responseEntityExpected);
+        when(selfSupportService.getSafes(userDetails)).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/sdb/safes").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -513,7 +507,7 @@ public class SelfSupportControllerTest {
         String responseMessage = "sample response";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
 
-        when(selfSupportService.readAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+        when(selfSupportService.readAppRole( Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/approle/role/approle1")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -529,7 +523,7 @@ public class SelfSupportControllerTest {
         String responseMessage = "sample response";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
 
-        when(selfSupportService.readAppRoles(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any())).thenReturn(responseEntityExpected);
+        when(selfSupportService.readAppRoles( Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/approle/role")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
@@ -595,7 +589,7 @@ public class SelfSupportControllerTest {
     			"}";
     	StringBuilder responseMessage = new StringBuilder(role_id_response);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage.toString());
-        when(selfSupportService.readAppRoleSecretId(eq(vaultToken), Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
+        when(selfSupportService.readAppRoleSecretId(Mockito.any(), Mockito.any())).thenReturn(responseEntityExpected);
         mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/approle/"+role_name+"/secret_id")
                 .header("vault-token", vaultToken)
                 .header("Content-Type", "application/json;charset=UTF-8"))
@@ -678,4 +672,121 @@ public class SelfSupportControllerTest {
         		.andExpect(status().isOk())
         		.andExpect(content().string(containsString(responseMessage.toString())));
     }
+
+    @Test
+    public void test_transferSafe() throws Exception {
+        String responseJson = "{\"messages\":[\"Safe transfer successful\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        UserDetails userDetails = getMockUser(false);
+        SafeTransferRequest safeTransferRequest = new SafeTransferRequest("safe1", "users","test.user@company.com");
+
+        String inputJson =new ObjectMapper().writeValueAsString(safeTransferRequest);
+        when(selfSupportService.transferSafe(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(SafeTransferRequest.class), eq(userDetails))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/v2/ss/transfersafe").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseJson)));
+    }
+
+    @Test
+    public void testUpdateAppRoleSuccess() throws Exception {
+
+        String[] policies = {"default"};
+        AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0,0,0);
+
+        String inputJson =new ObjectMapper().writeValueAsString(appRole);
+        String responseMessage = "{\"messages\":[\"AppRole updated successfully \"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.updateAppRole(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AppRole.class), eq(userDetails))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/v2/ss/approle").requestAttr("UserDetails", userDetails)
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .content(inputJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(responseMessage)));
+    }
+    @Test
+    public void test_listRoles() throws Exception {
+
+        String responseMessage = "{ \"keys\": [\"mytestawsrole\"]}";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        userDetails.setUsername("adminuser");
+        userDetails.setAdmin(false);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token); 
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+
+        when(selfSupportService.listRoles(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), eq(userDetails))).thenReturn(responseEntityExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/roles")
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8"))
+                .andExpect(status().isOk());
+    }
+    @Test
+    public void testcreateAwsIAMRole() throws Exception {
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("iam");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+
+        String responseMessage = "{\"messages\":[\"AWS IAM Role created successfully \"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.createAwsiamRole(eq(userDetails),  Mockito.any(AWSIAMRole.class))).thenReturn(responseEntityExpected);
+
+    }
+    @Test
+    public void testcreateAwsEc2Role() throws Exception {
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        String responseMessage = "{\"messages\":[\"AWS Role created \"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.createAwsec2Role(eq(userDetails), Mockito.any(AWSLoginRole.class))).thenReturn(responseEntityExpected);
+
+    }
+    @Test
+    public void testUpdateEC2Role() throws Exception {
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        String responseMessage = "{\"messages\":[\"AWS  EC2 Role updated \"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.updateAwsEc2Role(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"),Mockito.any(AWSLoginRole.class))).thenReturn(responseEntityExpected);
+
+    }
+    @Test
+    public void testUpdateIAMRole() throws Exception {
+        AWSIAMRole awsiamRole = new AWSIAMRole();
+        awsiamRole.setAuth_type("iam");
+        String[] arns = {"arn:aws:iam::123456789012:user/tst"};
+        awsiamRole.setBound_iam_principal_arn(arns);
+        String[] policies = {"default"};
+        awsiamRole.setPolicies(policies);
+        awsiamRole.setResolve_aws_unique_ids(true);
+        awsiamRole.setRole("string");
+
+        String responseMessage = "{\"messages\":[\"AWS IAM Role updated \"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.updateAwsIamRole(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any(AWSIAMRole.class))).thenReturn(responseEntityExpected);
+
+    }
+
 }

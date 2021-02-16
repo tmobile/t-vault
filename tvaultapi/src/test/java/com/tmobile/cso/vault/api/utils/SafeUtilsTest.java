@@ -16,11 +16,14 @@
 // =========================================================================
 package com.tmobile.cso.vault.api.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.model.Safe;
+import com.tmobile.cso.vault.api.model.SafeBasicDetails;
 import com.tmobile.cso.vault.api.model.SafeUser;
 import com.tmobile.cso.vault.api.model.UserDetails;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
@@ -49,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
@@ -64,8 +68,11 @@ public class SafeUtilsTest {
     RequestProcessor reqProcessor;
 
     @Mock
-    Response response;
+    CommonUtils commonUtils;
 
+    @Mock
+    Response response;
+    
     @Before
     public void setUp() {
         PowerMockito.mockStatic(JSONUtil.class);
@@ -113,6 +120,46 @@ public class SafeUtilsTest {
     }
 
     @Test
+    public void testGetPoliciesForManagedSafesEmptyNodes() throws IOException {
+        ObjectMapper objMapper = new ObjectMapper();
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"s_users_ert\"],\"lease_duration\":1800000}");
+        JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+        List<String> expectedAdminPolicies = new ArrayList<>();
+        expectedAdminPolicies.add("s_users_ert");
+        List<String> adminPolicies = safeUtils.getPoliciesForManagedSafes(null);
+    }
+
+    @Test
+    public void testGetPoliciesForManagedSafesEmptyContainerNode() throws IOException {
+        ObjectMapper objMapper = new ObjectMapper();
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":\"\",\"lease_duration\":1800000}");
+        JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+        List<String> expectedAdminPolicies = new ArrayList<>();
+        expectedAdminPolicies.add("s_users_ert");
+        List<String> adminPolicies = safeUtils.getPoliciesForManagedSafes(policiesJsonNode);
+    }
+
+    @Test
+    public void testGetPoliciesForManagedSafesInvalidPolicy() throws IOException {
+        ObjectMapper objMapper = new ObjectMapper();
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"s_users_ert\"],\"lease_duration\":1800000}");
+        JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+        List<String> expectedAdminPolicies = new ArrayList<>();
+        expectedAdminPolicies.add("d_users_ert");
+        List<String> adminPolicies = safeUtils.getPoliciesForManagedSafes(policiesJsonNode);
+    }
+
+    @Test
+    public void testGetPoliciesForManagedSafesEmptyPolicy() throws IOException {
+        ObjectMapper objMapper = new ObjectMapper();
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\"],\"lease_duration\":1800000}");
+        JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+        List<String> expectedAdminPolicies = new ArrayList<>();
+        expectedAdminPolicies.add("d_users_ert");
+        List<String> adminPolicies = safeUtils.getPoliciesForManagedSafes(policiesJsonNode);
+    }
+
+    @Test
     public void test_getManagedSafesFromPolicies_successfully() throws IOException {
         ObjectMapper objMapper = new ObjectMapper();
         Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"s_users_ert\"],\"lease_duration\":1800000}");
@@ -124,6 +171,36 @@ public class SafeUtilsTest {
     }
 
     @Test
+    public void testGetManagedSafesFromPoliciesEmpty() throws IOException {
+        ObjectMapper objMapper = new ObjectMapper();
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"s_users_ert\"],\"lease_duration\":1800000}");
+        JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+        String[] expectedList = {"ert"};
+        String[] policies = {"s_users_ert"};
+        String[] policiesRes = safeUtils.getManagedSafes(null, "users");
+    }
+
+    @Test
+    public void testGetManagedSafesFromPoliciesNotValid() throws IOException {
+        ObjectMapper objMapper = new ObjectMapper();
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"d_users_ert\"],\"lease_duration\":1800000}");
+        JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+        String[] expectedList = {"ert"};
+        String[] policies = {"d_users_ert"};
+        String[] policiesRes = safeUtils.getManagedSafes(policies, "users");
+    }
+
+    @Test
+    public void testGetManagedSafesFromPoliciesInvalidSafetype() throws IOException {
+        ObjectMapper objMapper = new ObjectMapper();
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"client_token\":\"8zyIbj3i9hXJFuIPC5AzeUK3\",\"admin\":\"no\",\"access\":{},\"policies\":[\"approle_normal_user\",\"default\",\"s_group_ert\"],\"lease_duration\":1800000}");
+        JsonNode policiesJsonNode = objMapper.readTree(response.getResponse().toString()).get("policies");
+        String[] expectedList = {"ert"};
+        String[] policies = {"s_groups_ert"};
+        String[] policiesRes = safeUtils.getManagedSafes(policies, "users");
+    }
+
+    @Test
     public void test_canAddOrRemoveUser_successfully() {
         UserDetails userDetails = getMockUser(false);
         SafeUser safeUser = new SafeUser("users/ert", "normaluser", "write");
@@ -131,6 +208,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -139,6 +218,48 @@ public class SafeUtilsTest {
         boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
         assertTrue(canAdd);
     }
+
+	@Test
+	public void testGetSafeMetaDataSuccess() throws JsonProcessingException, IOException {
+		String responseJson = "{  \"keys\": [ \"mysafe01\" ]}";
+		Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":"
+				+ "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"},"
+				+ "\"description\":\"asd\",\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"ownerid\":\"normaluser\","
+				+ "\"appName\":\"T-Vault\","
+	            +   "\"applicationTag\":\"tvt\","
+				+ "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
+		SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null,
+				"My first safe", "normaluser","tvt");
+		Safe safe = new Safe("users/mysafe01", safeBasicDetails);
+
+		when(ControllerUtil.getSafeType("users/mysafe01")).thenReturn("users");
+		when(ControllerUtil.getSafeName("users/mysafe01")).thenReturn("mysafe01");
+		when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/mysafe01\"}",
+				"5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+		ObjectMapper objMapper = new ObjectMapper();
+		JsonNode dataNode = objMapper.readTree(response.getResponse().toString()).get("data");
+		Safe safeInfo=safeUtils.getSafeInfo(dataNode);
+		Safe safeRes = safeUtils.getSafeMetaData("5PDrOhsy4ig8L3EpsJZSLAMg", "users", "mysafe01");
+		assertEquals(safe.getSafeBasicDetails().getName(), safeInfo.getSafeBasicDetails().getName());
+	}
+
+	@Test
+	public void testGetSafeMetaDataEmpty() {
+		String responseJson = "{  \"keys\": [ \"mysafe01\" ]}";
+		Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\":{\"aws-roles\":"
+				+ "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"},"
+				+ "\"description\":\"asd\",\"name\":\"mysafe01\",\"owner\":\"youremail@yourcompany.com\",\"ownerid\":\"normaluser\","
+				+ "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
+		SafeBasicDetails safeBasicDetails = new SafeBasicDetails("mysafe01", "youremail@yourcompany.com", null,
+				"My first safe", "normaluser","tvt");
+		Safe safe = new Safe("users/mysafe01", safeBasicDetails);
+
+		when(ControllerUtil.getSafeType("users/mysafe01")).thenReturn("users");
+		when(ControllerUtil.getSafeName("users/mysafe01")).thenReturn("mysafe01");
+		when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/mysafe01\"}",
+				"5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+		Safe safeRes = safeUtils.getSafeMetaData("5PDrOhsy4ig8L3EpsJZSLAMg", "users", "mysafe01");
+	}
 
     @Test
     public void test_getSafeMetaData_failure() {
@@ -159,6 +280,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -176,6 +299,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -193,6 +318,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -210,6 +337,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -227,6 +356,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser1\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -244,6 +375,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser1\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -261,6 +394,8 @@ public class SafeUtilsTest {
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"aws-roles\":" +
                 "{\"erole\":\"read\",\"role1\":\"read\",\"role22\":\"read\",\"testrole3\":\"read\"}," +
                 "\"description\":\"asd\",\"name\":\"ert\",\"owner\":\"sd@g.com\",\"ownerid\":\"normaluser\"," +
+                "\"appName\":\"T-Vault\","+
+                "\"applicationTag\":\"tvt\","+
                 "\"type\":\"\",\"users\":{\"normaluser\":\"sudo\",\"normaluser2\":\"read\"}}}");
 
         when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
@@ -279,5 +414,149 @@ public class SafeUtilsTest {
         when(ControllerUtil.getSafeName("users/ert")).thenReturn("ert");
         boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
         assertFalse(canAdd);
+    }
+
+    @Test
+    public void testCanAddOrRemoveUserFailureEmptySafeName() {
+        UserDetails userDetails = getMockUser(false);
+        SafeUser safeUser = new SafeUser("ert", "normaluser", "write");
+
+        when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
+        when(ControllerUtil.getSafeName("users/ert")).thenReturn("");
+        boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
+        assertFalse(canAdd);
+    }
+
+    @Test
+    public void testCanAddOrRemoveUserFailedSafeMetadataEmpty() {
+        UserDetails userDetails = getMockUser(false);
+        SafeUser safeUser = new SafeUser("users/ert", "normaluser1", "write");
+
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "{}");
+
+        when(ControllerUtil.getSafeType("users/ert")).thenReturn("users");
+        when(ControllerUtil.getSafeName("users/ert")).thenReturn("ert");
+        when(ControllerUtil.getReqProcessor().process("/sdb", "{\"path\":\"metadata/users/ert\"}", "5PDrOhsy4ig8L3EpsJZSLAMg")).thenReturn(response);
+        boolean canAdd = safeUtils.canAddOrRemoveUser(userDetails, safeUser, "addUser");
+        assertFalse(canAdd);
+    }
+
+    @Test
+    public void test_updateActivityInfo_success() {
+        String responseStr = "{\"data\":{" +
+                "  \"folderModifiedAt\": 1611148845423," +
+                "  \"folderModifiedBy\": \"role1 (AppRole)\"," +
+                "  \"folderPath\": \"users/123safe/fld1\"," +
+                "  \"secretVersions\": {" +
+                "    \"secret2\": [" +
+                "      {" +
+                "        \"modifiedAt\": 1611148845423," +
+                "        \"modifiedBy\": \"role1 (AppRole)\"" +
+                "      }" +
+                "    ]," +
+                "    \"secret3\": [" +
+                "      {" +
+                "        \"modifiedAt\": 1611148845423," +
+                "        \"modifiedBy\": \"role1 (AppRole)\"" +
+                "      }" +
+                "    ]" +
+                "  }" +
+                "}}";
+        Response response = getMockResponse(HttpStatus.OK, true, responseStr);
+        String versionFolderPath = "users/123safe/$_versions_fld1";
+        String path = "users/123safe/fld1";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        when(reqProcessor.process("/read","{\"path\":\""+versionFolderPath+"\"}",token)).thenReturn(response);
+        when(ControllerUtil.isPathValid(path)).thenReturn(true);
+        UserDetails userDetails = getMockUser(false);
+        when(commonUtils.getModifiedByInfo(userDetails)).thenReturn("username1");
+        List<String> modifiedKeys = new ArrayList<>();
+        modifiedKeys.add("secret2");
+        List<String> deletedKeys = new ArrayList<>();
+        deletedKeys.add("secret3");
+        Response expectedResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.isPathValid(Mockito.any())).thenReturn(true);
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(expectedResponse);
+        Response actualResponse = safeUtils.updateActivityInfo(token, path, userDetails, TVaultConstants.UPDATE_ACTION, modifiedKeys, deletedKeys);
+        assertEquals(expectedResponse.getHttpstatus(), actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void test_updateActivityInfo_success_version_data_parse_failed() {
+        String responseStr = "{\"data1\":{" +
+                "  \"folderModifiedAt\": 1611148845423," +
+                "  \"folderModifiedBy\": \"role1 (AppRole)\"," +
+                "  \"folderPath\": \"users/123safe/fld1\"," +
+                "  \"secretVersions\": {" +
+                "    \"secret2\": [" +
+                "      {" +
+                "        \"modifiedAt\": 1611148845423," +
+                "        \"modifiedBy\": \"role1 (AppRole)\"" +
+                "      }" +
+                "    ]," +
+                "    \"secret3\": [" +
+                "      {" +
+                "        \"modifiedAt\": 1611148845423," +
+                "        \"modifiedBy\": \"role1 (AppRole)\"" +
+                "      }" +
+                "    ]" +
+                "  }" +
+                "}}";
+        Response response = getMockResponse(HttpStatus.OK, true, responseStr);
+        String versionFolderPath = "users/123safe/$_versions_fld1";
+        String path = "users/123safe/fld1";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        when(reqProcessor.process("/read","{\"path\":\""+versionFolderPath+"\"}",token)).thenReturn(response);
+        when(ControllerUtil.isPathValid(path)).thenReturn(true);
+        UserDetails userDetails = getMockUser(false);
+        when(commonUtils.getModifiedByInfo(userDetails)).thenReturn("username1");
+        List<String> modifiedKeys = new ArrayList<>();
+        modifiedKeys.add("secret2");
+        List<String> deletedKeys = new ArrayList<>();
+        deletedKeys.add("secret3");
+        Response expectedResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(expectedResponse);
+        Response actualResponse = safeUtils.updateActivityInfo(token, path, userDetails, TVaultConstants.UPDATE_ACTION, modifiedKeys, deletedKeys);
+        assertEquals(expectedResponse.getHttpstatus(), actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void test_updateActivityInfo_success_create_version_folder() {
+        Response response = getMockResponse(HttpStatus.NOT_FOUND, true, "");
+        String versionFolderPath = "users/123safe/$_versions_fld1";
+        String path = "users/123safe/fld1";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(response);
+        when(ControllerUtil.isPathValid(path)).thenReturn(true);
+        UserDetails userDetails = getMockUser(false);
+        when(commonUtils.getModifiedByInfo(userDetails)).thenReturn("username1");
+        List<String> modifiedKeys = new ArrayList<>();
+        modifiedKeys.add("secret2");
+        List<String> deletedKeys = new ArrayList<>();
+        deletedKeys.add("secret3");
+        Response expectedResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(ControllerUtil.isPathValid(Mockito.any())).thenReturn(true);
+
+        when(reqProcessor.process(eq("/sdb/createfolder"),Mockito.any(),eq(token))).thenReturn(expectedResponse);
+        Response actualResponse = safeUtils.updateActivityInfo(token, path, userDetails, TVaultConstants.DELETE_FOLDER_ACTION, modifiedKeys, deletedKeys);
+        assertEquals(expectedResponse.getHttpstatus(), actualResponse.getHttpstatus());
+    }
+
+    @Test
+    public void test_updateActivityInfo_failed() {
+        String path = "users/123safe/fld1";
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        when(ControllerUtil.isPathValid(path)).thenReturn(false);
+        List<String> modifiedKeys = new ArrayList<>();
+        modifiedKeys.add("secret2");
+        List<String> deletedKeys = new ArrayList<>();
+        deletedKeys.add("secret3");
+        Response expectedResponse = getMockResponse(HttpStatus.BAD_REQUEST, false, "{\"errors\":[\"Invalid path\"]}");
+
+        when(reqProcessor.process(eq("/sdb/createfolder"),Mockito.any(),eq(token))).thenReturn(expectedResponse);
+        Response actualResponse = safeUtils.updateActivityInfo(token, path, userDetails, TVaultConstants.UPDATE_ACTION, modifiedKeys, deletedKeys);
+        assertEquals(expectedResponse.getHttpstatus(), actualResponse.getHttpstatus());
     }
 }

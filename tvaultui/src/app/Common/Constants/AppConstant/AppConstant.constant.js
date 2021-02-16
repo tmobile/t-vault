@@ -30,7 +30,12 @@
         'EMAIL_LINK' : '',
         'SIGN_UP_LINK' : '',
         'DOCS_LINK' : '',
-        'REPO_LINK' : 'https://github.com/tmobile/t-vault/blob/master/README.md'
+        'REPO_LINK' : 'https://github.com/tmobile/t-vault/blob/master/README.md',
+        'OIDC_ROLE' : '',
+        'OIDC_REDIRECT_URL' : '',
+        'SSL_EXT_CERTIFICATE' : true,
+        'VALID_RENEW_DAYS': 50,
+        'PAGE_SIZE' : 2
     });
     /*endinject*/
 })(angular.module('vault.constants.AppConstant', []));

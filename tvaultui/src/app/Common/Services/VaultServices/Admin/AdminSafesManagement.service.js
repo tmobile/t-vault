@@ -126,6 +126,10 @@
                 return ServiceEndpoint.detachAppRolePermission.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
+            },deleteAppRolePermissionFromCertificate: function(payload, url) {
+                return ServiceEndpoint.deleteAppRolePermission.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
             },
             getAWSConfigurationDetails: function(payload, url) {
                 return ServiceEndpoint.getAwsConfigurationDetails.makeRequest(payload, url).then(function(response) {
@@ -257,6 +261,11 @@
                     return response;
                 });
             },
+            offboardDecommissionedServiceAccount: function(payload, url) {
+                return ServiceEndpoint.offboardDecommissionedServiceAccount.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
             getSvcaccMetadata: function(payload, url) {
                 return ServiceEndpoint.getSvcaccMetadata.makeRequest(payload, url).then(function(response) {
                     return response;
@@ -269,6 +278,333 @@
             },
             transferSvcaccOwner: function(payload, url) {
                 return ServiceEndpoint.transferSvcaccOwner.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getCertificates: function (payload, url) {
+                return ServiceEndpoint.getCertificates.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getRevocationReasons: function (payload, url) {
+                return ServiceEndpoint.getRevocationReasons.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getTargetSystems:function (payload, url) {
+                return ServiceEndpoint.getTargetSystems.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getTargetSystemsServices: function (payload, url) {
+                return ServiceEndpoint.getTargetSystemsServices.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            sslCertificateCreation: function (payload, url) {
+                return ServiceEndpoint.createSslCertificates.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            usersGetData: function (payload, url) {
+                return ServiceEndpoint.usersGetData.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            usersGetDataUsingCorpID: function (payload, url) {
+                return ServiceEndpoint.usersGetDataUsingCorpID.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            usersGetDataUsingNTID: function (payload, url) {
+                return ServiceEndpoint.usersGetDataUsingNTID.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            groupMailGetDataFromAAD: function (payload, url) {
+                return ServiceEndpoint.groupMailGetDataFromAAD.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            issueRevocationRequest: function (payload, url) {
+                return ServiceEndpoint.issueRevocationRequest.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addUserPermissionForCertificate: function(payload, url) {
+                return ServiceEndpoint.addUserToCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addGroupPermissionForCertificate: function(payload, url){
+                return ServiceEndpoint.addGroupToCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getCertificateDetails: function (payload, url) {
+                return ServiceEndpoint.getCertificateDetails.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addApprolePermissionForCertificate: function(payload, url) {
+                return ServiceEndpoint.addApproleToCertificate.makeRequest(payload, url).then(function(response) {
+                	 return response;
+                });
+            },
+            renewCertificate: function (payload, url) {
+                return ServiceEndpoint.renewCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteUserPermissionFromCertificate: function(payload, url) {
+                return ServiceEndpoint.deleteUserPermissionFromCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteGroupPermissionFromCertificate: function(payload, url) {
+                return ServiceEndpoint.deleteGroupPermissionFromCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            listCertificatesByCertificateType: function (payload, url) {
+                return ServiceEndpoint.listCertificatesByCertificateType.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            transferCertificate: function (payload, url) {
+                return ServiceEndpoint.transferCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            validateCertificateDetails: function (payload, url) {
+                return ServiceEndpoint.validateCertificateDetails.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            unclaimCert: function (payload, url) {
+                return ServiceEndpoint.unclaimCert.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteCertificate: function (payload, url) {
+                return ServiceEndpoint.deleteCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getAuthUrl: function (payload, url) {
+                return ServiceEndpoint.getAuthUrl.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getCallback: function (payload, url) {
+                return ServiceEndpoint.getCallback.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            checkRevokestatus: function (payload, url) {	
+                return ServiceEndpoint.checkRevokestatus.makeRequest(payload, url).then(function(response) {	
+                    return response;	
+                });	
+            },
+            getAllSelfServiceGroups: function (payload, url) {
+                return ServiceEndpoint.getAllSelfServiceGroups.makeRequest(payload, url).then(function(response) {	
+                    return response;
+                });
+            },
+            getOnboardedIamServiceAccounts: function(payload, url) {
+                return ServiceEndpoint.getOnboardedIamServiceAccounts.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getIamServiceAccount: function(payload, url) {
+                return ServiceEndpoint.getIamServiceAccount.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getSecretForIamSvcacc: function(payload, url) {
+                return ServiceEndpoint.getSecretForIamSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addUserPermissionForIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.addUserPermissionForIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteUserPermissionFromIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.deleteUserPermissionFromIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addGroupPermissionForIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.addGroupPermissionForIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteGroupPermissionFromIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.deleteGroupPermissionFromIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAppRolePermissionForIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.addAppRolePermissionForIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            detachAppRolePermissionFromIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.detachAppRolePermissionFromIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            activateIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.activateIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            rotateIAMSvcaccSecret: function(payload, url) {
+                return ServiceEndpoint.rotateIAMSvcaccSecret.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },activateAzureServicePrincipal: function(payload, url) {
+                return ServiceEndpoint.activateAzureServicePrincipal.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },rotateAzureSecret: function(payload, url) {
+                return ServiceEndpoint.rotateAzureSecret.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsRoleCertificate: function(payload, url) {
+                return ServiceEndpoint.createAwsRoleCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsIAMRoleCertificate: function(payload, url) {
+                return ServiceEndpoint.createAwsIAMRoleCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAWSPermissionForCertificate: function(payload, url) {
+                return ServiceEndpoint.addAWSPermissionForCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            detachAWSPermissionFromCertificate: function(payload, url) {
+                return ServiceEndpoint.detachAWSPermissionFromCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsRoleIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.createAwsRoleIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsIAMRoleIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.createAwsIAMRoleIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAWSPermissionForIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.addAWSPermissionForIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            detachAWSPermissionFromIAMSvcacc: function(payload, url) {
+                return ServiceEndpoint.detachAWSPermissionFromIAMSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getApplicationDetails: function(payload, url) {
+                return ServiceEndpoint.getApplicationDetails.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getAllOnboardPendingCertificates: function(payload, url) {
+                return ServiceEndpoint.getAllOnboardPendingCertificates.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            onboardSslCertificates: function (payload, url) {
+                return ServiceEndpoint.onboardSslCertificates.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getSecretForAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.getSecretForAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            updateCertificate: function (payload, url) {
+                return ServiceEndpoint.updateCertificate.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getOnboardedAzureServiceAccounts: function (payload, url) {
+                return ServiceEndpoint.getOnboardedAzureServiceAccounts.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            getAzureSvcaccOnboardInfo: function(payload, url) {
+                return ServiceEndpoint.getAzureSvcaccOnboardInfo.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addUserPermissionForAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.addUserPermissionForAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },deleteUserPermissionFromAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.deleteUserPermissionFromAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAWSPermissionForAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.addAWSPermissionForAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsRoleAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.createAwsRoleAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            createAwsIAMRoleAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.createAwsIAMRoleAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addGroupPermissionForAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.addGroupPermissionForAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            detachAwsRoleFromAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.detachAwsRoleFromAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            deleteGroupPermissionFromAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.deleteGroupPermissionFromAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            addAppRolePermissionForAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.addAppRolePermissionForAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            }, 
+            detachAppRolePermissionFromAzureSvcacc: function(payload, url) {
+                return ServiceEndpoint.detachAppRolePermissionFromAzureSvcacc.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            transferSafe: function (payload, url) {
+                return ServiceEndpoint.transferSafe.makeRequest(payload, url).then(function(response) {
+                    return response;
+                });
+            },
+            searchByUPNInGsmAndCorp: function (payload, url) {
+                return ServiceEndpoint.searchByUPNInGsmAndCorp.makeRequest(payload, url).then(function(response) {
                     return response;
                 });
             },

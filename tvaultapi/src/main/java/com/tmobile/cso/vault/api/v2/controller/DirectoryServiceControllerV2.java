@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -61,4 +62,30 @@ public class DirectoryServiceControllerV2 {
 		return directoryService.searchByGroupName(groupName);
 	}
 
+	@ApiOperation(value = "${DirectoryServiceControllerV2.searchByDisplayName.value}", notes = "${DirectoryServiceControllerV2.searchByDisplayName.notes}")
+	@GetMapping(value="/v2/ldap/ntusers",produces="application/json")
+	public ResponseEntity<DirectoryObjects> searchUserInGSM(@ApiParam(name="displayName", defaultValue="")
+	@RequestParam(name="displayName", defaultValue="") String displayName ){
+		return directoryService.searchByDisplayNameAndId(displayName);
+	}
+
+	@ApiOperation(value = "${DirectoryServiceControllerV2.getAllUsersDetailByNtIds.value}", notes = "${DirectoryServiceControllerV2.getAllUsersDetailByNtIds.notes}")
+	@GetMapping(value="/v2/ldap/getusersdetail/{userNames}",produces="application/json")
+	public ResponseEntity<DirectoryObjects> getAllUsersDetailByNtIds(@PathVariable("userNames") String userNames ){
+		return directoryService.getAllUsersDetailByNtIds(userNames);
+	}
+
+	@ApiOperation(value = "${DirectoryServiceControllerV2.searchByEmailInCorpAD.value}", notes = "${DirectoryServiceControllerV2.searchByEmailInCorpAD.notes}", hidden=true)
+	@GetMapping(value="/v2/corp/users",produces="application/json")
+	public ResponseEntity<DirectoryObjects> searchByEmailInCorpAD(@ApiParam(name="email", defaultValue="")
+														@RequestParam(name="email", defaultValue="") String email ){
+		return directoryService.searchByEmailInCorp(email);
+	}
+
+	@ApiOperation(value = "${DirectoryServiceControllerV2.searchByUPNInGsmAndCorp.value}", notes = "${DirectoryServiceControllerV2.searchByUPNInGsmAndCorp.notes}", hidden=true)
+	@GetMapping(value="/v2/tmo/users",produces="application/json")
+	public ResponseEntity<DirectoryObjects> searchByUPNInGsmAndCorp(@ApiParam(name="UserPrincipalName", defaultValue="")
+														@RequestParam(name="UserPrincipalName", defaultValue="") String userPrincipalName ){
+		return directoryService.searchByUPNInGsmAndCorp(userPrincipalName);
+	}
 }
