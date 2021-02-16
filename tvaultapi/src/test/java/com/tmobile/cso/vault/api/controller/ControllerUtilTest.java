@@ -1203,5 +1203,25 @@ public class ControllerUtilTest {
         when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
         Response actualResponse = ControllerUtil.updateMetadataOnSvcPwdReset(path, adServiceAccountResetDetails, token);
         assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
-    }
+    }  
+    
+    @Test
+    public void test_hideMasterAppRoleFromResponse_successfully() {
+    	 
+    	Response response =  getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"demo\",\"iamportal_master_approle\",\"selfservicesupportrole\",\"vault-power-user-role\",\"vault2\",\"vaulttest\",\"vaulttest1\"]}");
+    	Response responseExpected =  getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"demo\",\"vault-power-user-role\",\"vault2\",\"vaulttest\",\"vaulttest1\"]}");
+    	List<String> policyLists = new ArrayList<>();
+    	Response actualResponse = ControllerUtil.hideMasterAppRoleFromResponse(response, null,null);
+        assertEquals(HttpStatus.OK, actualResponse.getHttpstatus());
+        }
+    
+    @Test
+    public void test_hideMasterAppRoleFromResponseOffset_successfully() {
+    	 
+    	Response response =  getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"demo\",\"iamportal_master_approle\",\"selfservicesupportrole\",\"vault-power-user-role\",\"vault2\",\"vaulttest\",\"vaulttest1\"]}");
+    	Response responseExpected =  getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"demo\",\"vault-power-user-role\",\"vault2\",\"vaulttest\",\"vaulttest1\"]}");
+    	List<String> policyLists = new ArrayList<>();
+    	Response actualResponse = ControllerUtil.hideMasterAppRoleFromResponse(response, 2, 1);
+        assertEquals(HttpStatus.OK, actualResponse.getHttpstatus());
+        }
 }

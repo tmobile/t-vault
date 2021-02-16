@@ -2953,7 +2953,7 @@ public final class ControllerUtil {
      * @param response
      * @return
      */
-    public static Response hideMasterAppRoleFromResponse(Response response) {
+    public static Response hideMasterAppRoleFromResponse(Response response, Integer limit, Integer offset) {
         ObjectMapper objMapper = new ObjectMapper();
         String jsonStr = response.getResponse();
         Map<String,String[]> requestMap = null;
@@ -2965,13 +2965,23 @@ public final class ControllerUtil {
         if (null != requestMap.get("keys")) {
 			List<String> policyList = new ArrayList<>(Arrays.asList((String[]) requestMap.get("keys")));
 			policyList.removeAll(Arrays.asList(TVaultConstants.MASTER_APPROLES));
-			String policies = policyList.stream().collect(Collectors.joining("\", \""));
+			
+			if(limit == null || offset == null) {
+				limit = policyList.size();
+	   			offset = 0;
+			}
+			List<String> policyListResponse = new ArrayList<String>();
+			int maxVal = policyList.size() > (limit+offset)?limit+offset : policyList.size();
+			for (int i = offset; i < maxVal; i++) {
+				policyListResponse.add(policyList.get(i));	
+			}
+			String policies = policyListResponse.stream().collect(Collectors.joining("\", \""));
 			if (StringUtils.isEmpty(policies)) {
 				response.setResponse("{\"keys\": []}");
 			}
 			else {
 				response.setResponse("{\"keys\": [\"" + policies + "\"]}");
-			}
+			}	
 		}
         return response;
     }
