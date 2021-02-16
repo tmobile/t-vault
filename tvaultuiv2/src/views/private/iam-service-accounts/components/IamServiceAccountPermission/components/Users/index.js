@@ -11,7 +11,6 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import Strings from '../../../../../../../resources';
 import { checkAccess } from '../../../../../../../services/helper-function';
 import UserPermissionsList from '../../../../../../../components/UserPermissionsList';
 import Error from '../../../../../../../components/Error';
@@ -250,7 +249,7 @@ const Users = (props) => {
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description={Strings.Resources.noUsersPermissionFound}
+                    description={'No <strong>Users</strong> are given permission to access this IAM service account, add users to access the account.'}
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent

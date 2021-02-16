@@ -3,7 +3,7 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
@@ -12,7 +12,6 @@ import IconFolderInactive from '../../../../../../assets/icon_folder.png';
 
 import ComponentError from '../../../../../../errorBoundaries/ComponentError/component-error';
 import {
-  TitleTwo,
   BackgroundColor,
 } from '../../../../../../styles/GlobalStyles';
 import {
@@ -22,6 +21,7 @@ import {
   IconAddSecret,
 } from '../../../../../../assets/SvgIcons';
 import PopperElement from '../../Popper';
+import SecretItem from '../../SecretItem';
 
 const FolderContainer = styled.div`
   padding-left: 0rem;
@@ -35,15 +35,13 @@ const StyledFolder = styled.div`
       props.active ? props.theme.gradients.list : 'none'};
     color: #fff;
   }
+  
   .folder--label {
     outline: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: ${(props) => props.padding || '0'};
-    span {
-      margin-left: 0.5rem;
-    }
   }
 `;
 
@@ -78,16 +76,6 @@ const LabelWrap = styled.div`
   cursor: pointer;
 `;
 
-const titleStyles = css`
-  margin-left: 1.6rem;
-`;
-
-const Icon = styled('img')`
-  width: 4rem;
-  height: 4rem;
-  margin-left: 0.8rem;
-`;
-
 const PopperItem = styled.div`
   padding: 0.5rem;
   display: flex;
@@ -109,6 +97,7 @@ const Folder = (props) => {
     value,
     status,
     onFolderClosed,
+    versionInfo,
     setOnFolderClosed,
     setInputType,
     setIsAddInput,
@@ -167,6 +156,7 @@ const Folder = (props) => {
     onDeleteTreeItem(treeItem);
   };
 
+  
   return (
     <ComponentError>
       <FolderContainer>
@@ -179,14 +169,15 @@ const Folder = (props) => {
           <div role="button" className="folder--label" tabIndex={0}>
             <LabelWrap onClick={(e) => handleToggle(e)}>
               {isOpen ? <ExpandMoreIcon /> : <ChevronRightIcon />}
-
-              {isOpen ? (
-                <Icon alt="folder--icon" src={IconFolderActive} />
-              ) : (
-                <Icon alt="folder--icon" src={IconFolderInactive} />
-              )}
-
-              <TitleTwo extraCss={titleStyles}>{labelValue}</TitleTwo>
+              <SecretItem
+                title={labelValue}
+                subTitle={`Last updated: ${versionInfo}`}
+                icon={isOpen ? (
+                          IconFolderActive
+                                ) : (
+                                       IconFolderInactive
+                                    )}
+              ></SecretItem>
             </LabelWrap>
 
             {userHavePermission?.type === 'write' && (
@@ -260,6 +251,7 @@ Folder.propTypes = {
   onFolderClosed: PropTypes.bool.isRequired,
   setOnFolderClosed: PropTypes.func.isRequired,
   status: PropTypes.objectOf(PropTypes.any).isRequired,
+  versionInfo: PropTypes.string.isRequired,
 };
 Folder.defaultProps = {
   folderInfo: {},

@@ -44,6 +44,7 @@ const TreeRecursive = (props) => {
     inputType,
     status,
     setStatus,
+    versionInfo,
     getChildrenData,
     onDeleteTreeItem,
     secretprefilledData,
@@ -57,9 +58,30 @@ const TreeRecursive = (props) => {
   useEffect(() => {
     setsecretEditData(secretprefilledData);
   }, [secretprefilledData]);
+
+ const getDaysDifference = (end) => {
+  if(end){
+    const date1 = new Date();
+    const date2 = new Date(end);
+    const diffInTime = Math.abs(date2.getTime() - date1.getTime());
+    const diffInTimeDays = diffInTime / (1000);
+    let time = Math.ceil(diffInTimeDays);
+
+      return time < 60 ? "a few Seconds Ago" :
+           ((time/60) < 60 ? `${Math.floor(time/60)} minutes ago` :
+               ((time/3600) < 24 ? `${Math.floor(time/3600)} hours ago` :
+                   `${Math.floor(time/(3600 * 24))} days ago`
+                )
+            )
+    }else{
+      return ' -- ';
+    }
+  };
+
   let arr = [];
   // eslint-disable-next-line consistent-return
   return data.map((item) => {
+    let itemVersionInfo = versionInfo.filter(i=>i.folderPath === item.id)[0];
     if (
       item?.children[0]?.type.toLowerCase() === 'secret' &&
       item?.children[0]?.value
@@ -69,6 +91,8 @@ const TreeRecursive = (props) => {
 
     // if its a file render <File />
     if (item.type.toLowerCase() === 'secret') {
+      let secretVersionInfo = versionInfo.filter(i=>i.folderPath === item.id)[0]?.secretVersions
+    
       const secretArray =
         item.value && convertObjectToArray(JSON.parse(item.value));
       return secretArray.map((secret, index) => (
@@ -76,6 +100,7 @@ const TreeRecursive = (props) => {
           key={index}
           secret={secret}
           parentId={item.parentId}
+          versionInfo={getDaysDifference(secretVersionInfo[Object.keys(secret)[0]][0]?.modifiedAt)}
           setSecretprefilledData={setSecretprefilledData}
           type={item.type}
           setIsAddInput={setIsAddInput}
@@ -94,6 +119,7 @@ const TreeRecursive = (props) => {
           setInputType={setInputType}
           value={value}
           status={status}
+          versionInfo={getDaysDifference(itemVersionInfo?.folderModifiedAt)}
           onFolderClosed={onFolderIsClosed}
           setOnFolderClosed={setOnFolderClosed}
           setIsAddInput={setIsAddInput}
@@ -154,6 +180,7 @@ const TreeRecursive = (props) => {
               path={`${item.id}/${item.value}`}
               setStatus={setStatus}
               status={status}
+              versionInfo={item?.versionInfo}
               getChildrenData={getChildrenData}
               onDeleteTreeItem={onDeleteTreeItem}
               secretprefilledData={secretprefilledData}

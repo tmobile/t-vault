@@ -300,6 +300,12 @@ const AddUser = (props) => {
               <InstructionText>
                 Search the T-Mobile system to add users
               </InstructionText>
+              {!isCertificate && !isIamAzureSvcAccount && !isSvcAccount && (<InstructionText>
+                Note: Denying the safe owner(normal user) will not take any effect for users.
+              </InstructionText>)}
+              {isCertificate && (<InstructionText>
+                Note: Denying the admin will not take any effect for users.
+              </InstructionText>)}
               {searchLoader && <LoaderSpinner customStyle={customStyle} />}
             </>
           ) : (

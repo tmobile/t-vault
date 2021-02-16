@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
@@ -12,11 +12,11 @@ import {
   IconEdit,
 } from '../../../../../../assets/SvgIcons';
 import {
-  BackgroundColor,
-  TitleOne,
+  BackgroundColor
 } from '../../../../../../styles/GlobalStyles';
 import PopperElement from '../../Popper';
 import SnackbarComponent from '../../../../../../components/Snackbar';
+import SecretItem from '../../SecretItem';
 
 const StyledFile = styled.div`
   background: ${BackgroundColor.secretBg};
@@ -26,9 +26,6 @@ const StyledFile = styled.div`
   justify-content: space-between;
   :hover {
     background: ${BackgroundColor.secretHoverBg};
-  }
-  span {
-    margin-left: 5px;
   }
 `;
 const FileWrap = styled.div`
@@ -84,17 +81,11 @@ const SecretInputfield = styled.input`
   outline: none;
   border: none;
   background: transparent;
-  font-size: 1.2rem;
   color: #5a637a;
   word-break: break-all;
   font-size: 1.8rem;
   text-align: left;
   width: 33%;
-`;
-
-const extraCss = css`
-  word-break: break-all;
-  margin-right: 17px;
 `;
 
 const File = (props) => {
@@ -105,6 +96,7 @@ const File = (props) => {
     onDeleteTreeItem,
     setSecretprefilledData,
     type,
+    versionInfo,
     setIsAddInput,
     setInputType,
     userHavePermission,
@@ -164,9 +156,11 @@ const File = (props) => {
             <IconWrap>
               <IconLock />
             </IconWrap>
-            <TitleOne extraCss={extraCss}>
-              {secret && Object.keys(secret)[0]}
-            </TitleOne>
+            <SecretItem
+            title={secret && Object.keys(secret)[0]}
+            subTitle={`Last Updated: ${versionInfo}`}
+            >
+            </SecretItem>
           </LabelWrap>
           <SecretInputfield
             type={viewSecretValue ? 'text' : 'password'}
@@ -245,6 +239,7 @@ File.propTypes = {
   type: PropTypes.string,
   setIsAddInput: PropTypes.func,
   setInputType: PropTypes.func,
+  versionInfo: PropTypes.string.isRequired,
   setSecretprefilledData: PropTypes.func,
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
 };

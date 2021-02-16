@@ -308,7 +308,7 @@ const IamServiceAccountSecrets = (props) => {
       type: 'activate',
       title: 'IAM Service Account Activation!',
       description:
-        "During the activation. the password of the IAM service account will be rotated to ensure AWS and T-Vault are in sync If you want to continue with activation now please click the 'ACTIVATE IAM SERVICE ACCOUNT’ button below and make sure to update any services depending on the service account with its new password.",
+        "During the activation. the password of the IAM service account will be rotated to ensure AWS and T-Vault are in sync. If you want to continue with activation now please click the 'ACTIVATE IAM SERVICE ACCOUNT’ button below and make sure to update any services depending on the service account with its new password.",
     });
   };
 

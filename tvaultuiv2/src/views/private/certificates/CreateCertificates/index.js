@@ -494,6 +494,7 @@ const CreateCertificates = (props) => {
   };
 
   const onPreviewClicked = () => {
+    setNotifyEmail('');
     setShowPreview(true);
   };
 

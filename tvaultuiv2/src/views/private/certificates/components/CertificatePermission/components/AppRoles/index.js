@@ -246,7 +246,7 @@ const AppRoles = (props) => {
               <NoDataWrapper>
                 <NoData
                   imageSrc={noPermissionsIcon}
-                  description={Strings.Resources.noAppRolePermissionFound}
+                  description={Strings.Resources.noAppRolePermissionFoundCertificate}
                   actionButton={
                     // eslint-disable-next-line react/jsx-wrap-multilines
                     <ButtonComponent

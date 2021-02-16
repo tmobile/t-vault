@@ -79,7 +79,6 @@ const PreviewCertificate = (props) => {
       }
     }
   }, [dns]);
-  console.log('showPreview', showPreview);
   return (
     <ComponentError>
       <DetailsWrap>

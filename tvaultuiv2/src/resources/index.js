@@ -34,8 +34,24 @@ const Resources = {
     'No <strong>Groups</strong> are given permission to access this safe, add groups to access the safe.',
   noAwsPermissionFound:
     'No <strong>Applications</strong> are given permission to access this safe, add applications to access the safe.',
+  noAwsPermissionFoundIam:
+    'No <strong>Applications</strong> are given permission to access this IAM service account, add applications to access the account.',
+  noAwsPermissionFoundAzure:
+    'No <strong>Applications</strong> are given permission to access this Azure service account, add applications to access the account.',
+  noAwsPermissionFoundCertificate:
+    'No <strong>Applications</strong> are given permission to access this certificate, add applications to access the certificate.',
+  noAwsPermissionFoundSvcAcc:
+    'No <strong>Applications</strong> are given permission to access this service account, add applications to access the account.',
   noAppRolePermissionFound:
     'No <strong>App roles</strong> are given permission to access this safe, add approles to access the safe.',
+  noAppRolePermissionFoundIam:
+    'No <strong>Applications</strong> are given permission to access this IAM service account, add applications to access the account.',
+  noAppRolePermissionFoundAzure:
+    'No <strong>Applications</strong> are given permission to access this Azure service account, add applications to access the account.',
+  noAppRolePermissionFoundCertificate:
+    'No <strong>Applications</strong> are given permission to access this certificate, add applications to access the certificate.',
+  noAppRolePermissionFoundSvcAcc:
+    'No <strong>Applications</strong> are given permission to access this service account, add applications to access the account.',
   transferConfirmation:
     'Are you sure you want to transfer service account owner?',
   noCertificatesFound:
