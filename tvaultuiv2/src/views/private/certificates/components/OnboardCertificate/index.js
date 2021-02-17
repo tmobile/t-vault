@@ -616,7 +616,6 @@ const OnboardCertificates = (props) => {
     };
     onOboardCertClicked(payload);
   };
-
   return (
     <ComponentError>
       <>
@@ -763,10 +762,7 @@ const OnboardCertificates = (props) => {
                           }
                           loader={notifyAutoLoader}
                           userInput={notifyEmail}
-                          disabled={
-                            applicationName === '' &&
-                            notificationEmailList.length === 0
-                          }
+                          disabled={applicationName === ''}
                           icon="search"
                           name="notifyEmail"
                           onSelected={(e, val) => onNotifyEmailSelected(e, val)}
@@ -795,7 +791,7 @@ const OnboardCertificates = (props) => {
                       <EndingBox
                         width="4rem"
                         applicationName={
-                          notificationEmailList.length > 0 ||
+                          // notificationEmailList.length > 0 ||
                           applicationName !== ''
                         }
                       >
@@ -806,7 +802,7 @@ const OnboardCertificates = (props) => {
                     </AutoInputFieldLabelWrapper>
                   </NotificationAutoWrap>
                 )}
-                {notificationEmailList.length > 0 && (
+                {notificationEmailList.length > 0 && applicationName !== '' && (
                   <ArrayList>
                     {notificationEmailList.map((item) => {
                       return (

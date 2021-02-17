@@ -396,7 +396,7 @@ const AzureDashboard = () => {
                         <NoListWrap>
                           <NoData
                             imageSrc={NoSafesIcon}
-                            description="No azure principal are associated with you yet."
+                            description="No azure service principal are associated with you yet."
                             customStyle={customStyle}
                           />
                         </NoListWrap>

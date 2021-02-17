@@ -763,6 +763,7 @@ const CertificatesDashboard = () => {
           )}
           {openDeleteConfirmation && (
             <DeletionConfirmationModal
+              certificateData={certificateData}
               openDeleteConfirmation={openDeleteConfirmation}
               handleDeleteConfirmationModalClose={
                 handleDeleteConfirmationModalClose

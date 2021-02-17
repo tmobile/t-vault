@@ -23,7 +23,6 @@ const SelectField = styled.div`
   height: 100%;
   display: flex;
   align-items: center;
-  padding-left: 1.5rem;
   cursor: ${(props) => (!props.readOnly ? 'pointer' : '')};
 `;
 const ArrowSpan = styled.span`
@@ -66,6 +65,10 @@ const CustomSelectOtion = styled(Link)`
     padding-left: 1.5rem;
   }
 `;
+const SelectedOption = styled.div`
+  padding-left: 1.5rem;
+  width: calc(100% - 3.5rem);
+`;
 
 const HeaderSelectComponent = (props) => {
   const {
@@ -96,7 +99,7 @@ const HeaderSelectComponent = (props) => {
           selectedNav={selectedNav}
           width={width}
         >
-          {value === '' ? filledText : value}
+          <SelectedOption>{value === '' ? filledText : value}</SelectedOption>
           <ArrowSpan showOptionList={showOptionList} />
         </SelectField>
         {showOptionList && (
