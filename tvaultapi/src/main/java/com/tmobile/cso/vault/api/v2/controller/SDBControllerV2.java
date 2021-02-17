@@ -228,8 +228,8 @@ public class SDBControllerV2 {
 	 */
 	@ApiOperation(value = "${SafesController.getFolderRecursive.value}", notes = "${SafesController.getFolderRecursive.notes}")
 	@GetMapping(value="/v2/sdb/list",produces="application/json")
-	public ResponseEntity<String> getFoldersRecursively(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path) {
-		return safesService.getFoldersRecursively(token, path);
+	public ResponseEntity<String> getFoldersRecursively(@RequestHeader(value="vault-token") String token, @RequestParam("path") String path, @RequestParam( name="limit",required=false) Integer limit, @RequestParam( name="offset",required=false) Integer offset) {
+		return safesService.getFoldersRecursively(token, path, limit, offset);
 	}
 
 	/**

@@ -17,6 +17,7 @@
 package com.tmobile.cso.vault.api.v2.controller;
 
 
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.service.SSLCertificateAWSRoleService;
@@ -65,7 +66,7 @@ public class SSLCertificateController {
 	public ResponseEntity<String> generateSSLCertificate(HttpServletRequest request, @RequestHeader(value=
 			"vault-token") String token,@Valid @RequestBody SSLCertificateRequest sslCertificateRequest)  {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return sslCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
+		return sslCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
 	}
 	
 	/**
@@ -587,7 +588,7 @@ public class SSLCertificateController {
 	public ResponseEntity<String> generateSSLCertificateAPI(HttpServletRequest request, @RequestHeader(value=
 			"vault-token") String token,@Valid @RequestBody SSLCertificateRequest sslCertificateRequest)  {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return sslCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"api");
+		return sslCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.API);
 	}
 
 }

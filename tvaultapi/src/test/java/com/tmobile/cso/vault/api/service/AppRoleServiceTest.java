@@ -162,7 +162,7 @@ public class AppRoleServiceTest {
         when(ControllerUtil.parseJson("{\"keys\": [ \"role1\" ]}")).thenReturn(appRolesList);
 
         Response responseAfterHide = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
-        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
+        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(responseAfterHide);
 
         when(reqProcessor.process("/auth/approle/role/create", jsonStr,token)).thenReturn(response);
         when(reqProcessor.process("/auth/approle/role/list","{}",token)).thenReturn(responseList);
@@ -201,7 +201,7 @@ public class AppRoleServiceTest {
         Response response_403 =getMockResponse(HttpStatus.UNAUTHORIZED, true, "");
         Response responseList = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
         Response responseAfterHide = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
-        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
+        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(responseAfterHide);
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
         AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0);
@@ -236,7 +236,7 @@ public class AppRoleServiceTest {
         Response response_403 =getMockResponse(HttpStatus.UNAUTHORIZED, true, "");
         Response responseList = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
         Response responseAfterHide = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
-        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
+        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(responseAfterHide);
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
         AppRole appRole = new AppRole("approle1", policies, true, 1, 100, 0);
@@ -285,7 +285,7 @@ public class AppRoleServiceTest {
         UserDetails userDetails = getMockUser(true);
 
         Response responseAfterHide = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"approle1\" ]}");
-        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
+        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(responseAfterHide);
 
         ResponseEntity<String> responseEntityActual = appRoleService.createAppRole(token, appRole, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -321,7 +321,7 @@ public class AppRoleServiceTest {
         Response response =getMockResponse(HttpStatus.NOT_FOUND, true, responseBody);
         Response responseList = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
         Response responseAfterHide = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
-        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
+        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(responseAfterHide);
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         String [] policies = {"default"};
@@ -1187,8 +1187,8 @@ public class AppRoleServiceTest {
         String _path = "metadata/approle_users/" + userDetails.getUsername();
         String jsonStr = "{\"path\":\""+_path+"\"}";
         when(reqProcessor.process("/auth/approles/rolesbyuser/list", jsonStr,userDetails.getSelfSupportToken())).thenReturn(response);
-        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
-        ResponseEntity<String> responseEntityActual = appRoleService.listAppRoles(token, userDetails);
+        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any(),Mockito.any(), Mockito.any())).thenReturn(responseAfterHide);
+        ResponseEntity<String> responseEntityActual = appRoleService.listAppRoles(token, userDetails, 1, 0);
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
     }
@@ -1207,8 +1207,8 @@ public class AppRoleServiceTest {
         String _path = "metadata/approle_users/" + userDetails.getUsername();
         String jsonStr = "{\"path\":\""+_path+"\"}";
         when(reqProcessor.process("/auth/approles/rolesbyuser/list", jsonStr,userDetails.getSelfSupportToken())).thenReturn(response);
-        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(response);
-        ResponseEntity<String> responseEntityActual = appRoleService.listAppRoles(token, userDetails);
+        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response);
+        ResponseEntity<String> responseEntityActual = appRoleService.listAppRoles(token, userDetails, 1, 0);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
     }
@@ -2248,7 +2248,7 @@ public class AppRoleServiceTest {
         when(ControllerUtil.parseJson("{\"keys\": [ \"role1\" ]}")).thenReturn(appRolesList);
 
         Response responseAfterHide = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
-        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
+        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(responseAfterHide);
 
         when(reqProcessor.process("/auth/approle/role/create", jsonStr,userDetails.getSelfSupportToken())).thenReturn(response);
         when(reqProcessor.process("/auth/approle/role/list","{}",token)).thenReturn(responseList);
@@ -2302,7 +2302,7 @@ public class AppRoleServiceTest {
         when(ControllerUtil.parseJson("{\"keys\": [ \"role1\" ]}")).thenReturn(appRolesList);
 
         Response responseAfterHide = getMockResponse(HttpStatus.OK, true, "{\"keys\": [ \"role1\" ]}");
-        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any())).thenReturn(responseAfterHide);
+        when(ControllerUtil.hideMasterAppRoleFromResponse(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(responseAfterHide);
 
         when(reqProcessor.process("/auth/approle/role/create", jsonStr,userDetails.getSelfSupportToken())).thenReturn(response);
         when(reqProcessor.process("/auth/approle/role/list","{}",token)).thenReturn(responseList);

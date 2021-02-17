@@ -28,7 +28,16 @@ public class SSLCertificateMetadataDetails implements Serializable {
     private int actionId;
     private String notificationEmails;
     private boolean onboardFlag;
-    
+    private String keyUsageValue;
+
+    public String getKeyUsageValue() {
+        return keyUsageValue;
+    }
+
+    public void setKeyUsageValue(String keyUsageValue) {
+        this.keyUsageValue = keyUsageValue;
+    }
+
     public boolean isOnboardFlag() {
         return onboardFlag;
     }
