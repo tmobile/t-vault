@@ -8669,6 +8669,10 @@ public class SSLCertificateServiceTest {
      sslCertOnboardRequest.setNotificationEmail("test123@test.com");
      when(workloadDetailsService.getWorkloadDetailsByAppName(anyString())).
      thenReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("failure"));
+     DirectoryObjects users = new DirectoryObjects();
+     users.setData(null);
+     when(directoryService.searchByUPN(anyString())).
+     thenReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(users));
 	when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(response);
 	ResponseEntity<String> responseOutput = sSLCertificateService.onboardSSLcertificate(userDetails1,
 			"5PDrOhsy4ig8L3EpsJZSLAMg", sslCertOnboardRequest);
