@@ -148,7 +148,7 @@ public final class ControllerUtil {
 	private static OIDCUtil oidcUtil;
 	private static final String ERROR_STRING= "{\"errors\":[\"Unexpected error :\"";
 	
-	@Value("${approle.pagination.limit}")
+	@Value("${vault.pagination.limit}")
 	private Integer approlePaginationLimit;
 	
 	private static Integer paginationLimit;
