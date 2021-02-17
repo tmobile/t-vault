@@ -20,6 +20,7 @@ package com.tmobile.cso.vault.api.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
@@ -31,6 +32,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -46,6 +48,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @Configuration
 @EnableSwagger2
 @EnableAutoConfiguration
+@PropertySource("classpath:swaggernotes.properties")
 @ComponentScan(basePackages="com.tmobile.cso.vault.api.*")
 public class SwaggerConfig {
 
@@ -64,6 +67,7 @@ public class SwaggerConfig {
 		ApiSelectorBuilder apiSelectorBuilder = new ApiSelectorBuilder(docket);
 		apiSelectorBuilder.apis(RequestHandlerSelectors.any());
 		apiSelectorBuilder.paths(PathSelectors.any());
+		apiSelectorBuilder.paths(Predicates.not(PathSelectors.regex("/error.*")));
 		log.debug("Checking enable/disable status for features");
 		if (!isSelfServiceEnabled) {
 			log.debug("Self Service is disabled");

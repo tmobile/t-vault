@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        .image {
+            border: 1px solid #eee;
+        }
+        .special-text, h4 {
+            color:#f6006e
+        }
+    </style>
+</head>
+<body>
+<div>Hello <span data-th-text="${name}"></span>,</div>
+
+<br/>
+<div>We have received your certification    <span  data-th-text="${operation}"></span> request. Please note that
+    external certificate requests require approval, follow steps for certificate approval.</div>
+
+<h4>Certificate Details:</h4>
+<ul>
+    <li>
+        <div>Certificate Type :
+            <span data-th-text="${certType}"></span>
+        </div>
+    </li>
+    <li>
+        <div>Certificate Name :
+            <span data-th-text="${certName}"></span>
+        </div>
+    </li>
+    <li>
+        <div>Certificate Specifics : </div>
+    </li>
+    <ul>
+        <li>
+            <div>Signature algorithm = SHA256-RSA</div>
+        </li>
+        <li>
+            <div>Key usage = digitalSignature, keyEncipherment</div>
+        </li>
+        <li>
+            <div>Extended key usage=<span data-th-text="${keyUsage}"></span></div>
+        </li>
+        <li>
+            <div>Enroll service = <span data-th-text="${enrollService}"></span></div>
+        </li>
+    </ul>
+</ul>
+
+<div>Please follow the below steps for certificate approval :</div>
+
+<ol>
+    <li>Create  <a href="https://techapps.t-mobile.com/pier/incident" target="_blank">PIER</a> ticket with below
+        details.
+    </li>
+    <ul>
+        <li><div>Assignee group = Directory and Security Services</div></li>
+        <li><div>Config item = NCLM</div></li>
+        <li><div>Description - Provide the details of the certificate</div></li>
+    </ul>
+    <li>
+        <div>Wait for PIER ticket approval</div>
+    </li>
+</ol>
+
+
+<div>When approval is completed please follow the following steps to manage your certificate:</div>
+<ol>
+    <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your CORP AD account.</li>
+    <li>
+        <div>Navigate to the "MANAGE/ADMIN" tab.</div>
+        <img class ="image" src="certmanage.png" th:src="|cid:${certmanage}|"/>
+    </li>
+    <li>
+        <div>Select the "CERTIFICATE MANAGEMENT tab.</div>
+        <img class ="image" src="certmanagement.png" th:src="|cid:${certmanagement}|"/>
+    </li>
+    <li>
+        <div>Select the "View/Edit" option corresponding to the certificate you requested to view and manage
+            requested certificate.</div>
+        <img class ="image" src="ext_view_edit.png" th:src="|cid:${ext_view_edit}|"/>
+    </li>
+
+</ol>
+
+<div>Your certificate can be  downloaded from T-Vault by going here :
+    <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault.</a>
+</div>
+<ol>
+    <li>
+        <div>Navigate to the "CERTIFICATES" tab.</div>
+        <img class ="image" src="ext_certficate.png" th:src="|cid:${ext_certficate}|"/>
+    </li>
+    <li>
+        <div>Search for requested certificate.</div>
+        <img class ="image" src="ext_search.png" th:src="|cid:${ext_search}|"/>
+    </li>
+    <li>
+        <div>Select the certificate to download.</div>
+        <img class ="image" src="ext_download.png" th:src="|cid:${ext_download}|"/>
+    </li>
+</ol>
+<div>Please contact Cloud Support <span class="special-text" data-th-text="${supportEmail}"></span> if you need assistance.</div>
+<br/>
+<div>Thanks,</div>
+<div>Support team</div>
+
+</body>
+</html>

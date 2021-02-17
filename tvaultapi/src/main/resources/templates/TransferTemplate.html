@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html
+        xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        .image {
+            border: 1px solid #eee;
+        }
+        .special-text, h4 {
+            color:#f6006e
+        }
+    </style>
+</head>
+<body>
+<div>Hello
+    <span data-th-text="${newOwnerName}"></span>,
+</div>
+<br/>
+<div>  This message is to inform you that <span data-th-text="${oldOwnerName}"></span>   has
+    transferred ownership and management of the SSL certificate <span class="special-text"   data-th-text="${certName}"></span>  to you.</div>
+<br/>
+<div>  The specific certificate details are as follows:</div>
+
+<h4>Certificate Details:</h4>
+<ul>
+    <li>
+        <div>Certificate Type :
+            <span data-th-text="${certType}"></span>
+        </div>
+    </li>
+    <li>
+        <div>Certificate Name :
+            <span data-th-text="${certName}"></span>
+        </div>
+    </li>
+    <li>
+        <div>Subject Alternate Names  = <span data-th-text="${dnsNames}"></span></div>
+    </li>
+    <li>
+        <div>Certificate Validity   = <span data-th-text="${certStartDate}"></span>  - <span
+                data-th-text="${certEndDate}"></span></div>
+    </li>
+
+</ul>
+
+<br/>
+<div>Your certificate can be managed  from T-Vault by going here :
+    <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault.</a>
+</div>
+<br/>
+<div> If you believe that this certificate was transferred to you in error please contact <span data-th-text="${oldOwnerName}"></span>.</div>
+
+
+<br/>
+<div>Thanks,</div>
+<div>Support team</div>
+</body>
+</html>

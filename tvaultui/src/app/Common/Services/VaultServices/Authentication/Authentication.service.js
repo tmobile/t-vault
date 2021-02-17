@@ -56,8 +56,9 @@
             Idle.setIdle(180);
             Idle.setTimeout(leaseDuration - 180);
             Keepalive.setInterval(leaseDuration - 60);
+            Idle.watch();
           }, function (error) {
-            logout(true);
+            logout(false);
             console.log("error retrieving token", error);
             return error;
           });
@@ -91,6 +92,47 @@
         var regex = /^(corp\/|corp\\)/gi;
         return username.replace(regex, '');
       },
+      getAuthUrl: function (reqObjtobeSent) {
+        var url = RestEndpoints.baseURL + '/v2/auth/oidc/auth_url';
+        return $http({
+            method: 'POST',
+            url: url,
+            data: reqObjtobeSent,
+            headers: {
+                'Content-type': 'application/json'
+            }
+        }).then(function (response) {
+            window.open(response.data.data.auth_url,"_self");
+            return response;
+        }).catch(function(error) {
+            console.log(error);
+        });
+      },
+      getSSOCallback: function (code, state) {
+        var url = RestEndpoints.baseURL + '/v2/auth/oidc/callback?state='+state+'&code='+code;
+        return $http({
+          method: 'GET',
+          url: url
+        }).then(function (response) {
+            console.log(response);
+            return response;
+        }).catch(function(error) {
+            console.log(error);
+            return error;
+        });
+      },
+      getUserName: function () {
+        var url = RestEndpoints.baseURL + '/v2/username';
+        return $http({
+          method: 'GET',
+          url: url
+        }).then(function (response) {
+            return response;
+        }).catch(function(error) {
+            console.log(error);
+            return error;
+        });
+      },
 
       logout: logout
 
@@ -109,6 +151,7 @@
             SessionStore.removeItem("policies");
             SessionStore.removeItem("allSafes");
             SessionStore.removeItem("feature");
+            SessionStore.removeItem("username");
             window.location.replace(url);
           });
       }

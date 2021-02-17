@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -95,7 +95,7 @@ public class AWSAuthControllerV2 {
 		return awsAuthService.deleteRole(token, role, userDetails);
 	}
 	/**
-	 * Method to fetch information for an aws approle.
+	 * Method to fetch information for an AWS EC2 role.
 	 * @param token
 	 * @param role
 	 * @return
@@ -120,6 +120,7 @@ public class AWSAuthControllerV2 {
 	public ResponseEntity<String> listRoles(@RequestHeader(value="vault-token") String token){
 		return awsAuthService.listRoles(token);
 	}
+
 
 	/**
 	 * 

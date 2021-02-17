@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html
+        xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        .image {
+            border: 1px solid #eee;
+        }
+        .special-text, h4 {
+            color:#f6006e
+        }
+    </style>
+</head>
+<body>
+<div>Hello
+    <span data-th-text="${name}"></span>,
+</div>
+<br/>
+<div>The following certificate has been
+    <span  data-th-text="${operation}"></span> successfully.
+</div>
+<h4>Certificate Details:</h4>
+<ul>
+    <li>
+        <div>Certificate Type :
+            <span data-th-text="${certType}"></span>
+        </div>
+    </li>
+    <li>
+        <div>Certificate Name :
+            <span data-th-text="${certName}"></span>
+        </div>
+    </li>
+    <li>
+        <div>Certificate Specifics : </div>
+    </li>
+    <ul>
+        <li>
+            <div>Signature algorithm = SHA256-RSA</div>
+        </li>
+        <li>
+            <div>Key usage = digitalSignature, keyEncipherment</div>
+        </li>
+        <li>
+            <div>Extended key usage=<span data-th-text="${keyUsage}"></span></div>
+        </li>
+        <li>
+            <div>Enroll service = <span data-th-text="${enrollService}"></span></div>
+        </li>
+        <li>
+            <div>Subject alternate names  = <span data-th-text="${dnsNames}"></span></div>
+        </li>
+        <li>
+            <div>Certificate validity   = <span data-th-text="${certStartDate}"></span>  - <span
+                    data-th-text="${certEndDate}"></span></div>
+        </li>
+    </ul>
+</ul>
+<div>Your certificate can be managed  from T-Vault by going here :
+    <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault.</a>
+</div>
+<ol>
+    <li>
+        <div>Navigate to the "MANAGE/ADMIN" tab.</div>
+        <img class ="image" src="certmanage.png" th:src="|cid:${certmanage}|"/>
+    </li>
+    <li>
+        <div>Select the "CERTIFICATE MANAGEMENT tab.</div>
+        <img class ="image" src="certmanagement.png" th:src="|cid:${certmanagement}|"/>
+    </li>
+    <li>
+        <div>Select the "View/Edit" option corresponding to the certificate to manage.</div>
+        <img class ="image" src="certview.png" th:src="|cid:${certview}|"/>
+    </li>
+</ol>
+<div>Your certificate can be  downloaded from T-Vault by going here :
+    <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault.</a>
+</div>
+<ol>
+    <li>
+        <div>Navigate to the "CERTIFICATES" tab.</div>
+        <img class ="image" src="certificate.png" th:src="|cid:${certificate}|"/>
+    </li>
+    <li>
+        <div>Search for requested certificate.</div>
+        <img class ="image" src="search.png" th:src="|cid:${search}|"/>
+    </li>
+    <li>
+        <div>Select the certificate to download.</div>
+        <img class ="image" src="download.png" th:src="|cid:${download}|"/>
+    </li>
+</ol>
+<div>Please contact Cloud Support
+    <span class="special-text" data-th-text="${supportEmail}"></span> if you need assistance.
+</div>
+<br/>
+<div>Thanks,</div>
+<div>Support team</div>
+</body>
+</html>

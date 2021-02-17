@@ -33,13 +33,17 @@
         $scope.svcInputSelected = false;
         $scope.customTTL = '';
         $scope.permissionChangeInProgress = false;
-
         $scope.usrRadioBtnVal = 'read';             // Keep it in lowercase
         $scope.grpRadioBtnVal = 'read';             // Keep it in lowercase
         $scope.awsRadioBtn['value'] = 'read';       // Keep it in lowercase
         $scope.approleRadioBtn['value'] = 'read';
         $scope.isEmpty = UtilityService.isObjectEmpty;
         $scope.roleNameSelected = false;
+        $scope.userAutoCompleteEnabled = false;
+        $scope.groupAutoCompleteEnabled = false;
+        $scope.disableAddBtn = true;
+        $scope.svcaccToOffboard = '';
+        $scope.isOffboarding = false;
         $scope.awsConfPopupObj = {
             "auth_type":"",
             "role": "",
@@ -117,6 +121,9 @@
                 "grpNameValEmpty": false
             }
             $scope.permissionChangeInProgress = false;
+            $scope.disableAddBtn = true;
+            $scope.clearInputValue("addUser");
+            $scope.clearInputValue("addGroup");
         }
 
         $scope.isApproleBtnDisabled = function() {
@@ -217,6 +224,7 @@
             };
             lastContent = '';
             $scope.showNoMatchingResults = false;
+            $scope.disableAddBtn = true;
         }
 
         // function call on input keyup 
@@ -250,7 +258,9 @@
                  }
              }
              var newLetter = newVal[variableChanged];
-                newLetter = newLetter.replace(" ", "");
+             if (variableChanged != 'userName'  && variableChanged != 'groupName') {
+               newLetter = newLetter.replace(" ", "");
+             }
                 initiateAutoComplete(variableChanged, ['loading']);
            // delay before providing api call      
           delay(function(){
@@ -360,6 +370,7 @@
                         $scope.inputSelected.select = true; 
                         $scope.showNoMatchingResults = false;  
                         $scope.invalidEmail = false;                
+                        $scope.disableAddBtn = false;
                         $(id).blur();                     
                         $scope.$apply();
                     },
@@ -455,12 +466,12 @@
                                     }
                                     else {
                                         getMetadata(svcaccname); 
-                                        if (type === "users" && key === SessionStore.getItem("username")) {
-                                            return Modal.createModalWithController('stop.modal.html', {
-                                                title: 'Permission changed',
-                                                message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
-                                              });
-                                        }
+                                        // if (type === "users") {
+                                        //     return Modal.createModalWithController('stop.modal.html', {
+                                        //         title: 'Permission changed',
+                                        //         message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                        //       });
+                                        // }
                                         if (type === 'AppRolePermission') {
                                             // delete approle
                                         }
@@ -476,20 +487,34 @@
                                 }
                             }
                             else {
-                                $scope.permissionChangeInProgress = false;
-                                $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                                $scope.error('md');
+                                if(response.status === 422){
+                                    $scope.permissionChangeInProgress = false;
+                                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                    $scope.error('md');
+                                    getMetadata(svcaccname);
+                                }else {
+                                    $scope.permissionChangeInProgress = false;
+                                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                    $scope.error('md');
+                                }
                             }
                         },
                         function (error) {
-
-                            // Error handling function
-                            console.log(error);
-                            $scope.permissionChangeInProgress = false;
-                            $scope.isLoadingData = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                            $scope.error('md');
-
+                            if(error.status === 422) {
+                                $scope.permissionChangeInProgress = false;
+                                $scope.isLoadingData = false;
+                                var errors = error.data.Message;
+                                $scope.errorMessage = errors;
+                                $scope.error('md');
+                                getMetadata(svcaccname);
+                            }else {
+                                // Error handling function
+                                console.log(error);
+                                $scope.permissionChangeInProgress = false;
+                                $scope.isLoadingData = false;
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
                         })
                 } catch (e) {
 
@@ -810,6 +835,7 @@
                                 }
                                 $scope.isCollapsed = true;
                                 hideUserSudoPolicy();
+                                getUserDisplayNameDetails();
                             }
 
                         } catch (e) {
@@ -833,6 +859,57 @@
                 })
         }
 
+        var getUserDisplayNameDetails = function () {
+            $scope.isLoadingData = true;
+            $scope.userNames = [];
+            $scope.UsersPermissionsDetails = [];
+            $scope.UsersDisplayNameData = [];
+            for (var key in $scope.permissionData.UsersPermissionsData) {
+                $scope.userNames.push(key);
+            }
+            if ($scope.userNames !== undefined && $scope.userNames.length > 0) {
+                vaultUtilityService.getAllUsersDataForPermissions($scope.userNames.join()).then(function (res, error) {
+                    var serviceData;
+                    if (res) {
+                        $scope.isLoadingData = false;
+                        serviceData = res;
+                        $scope.UsersDisplayNameData = serviceData.response.data.data.values;
+                        for (var i=0;i<$scope.UsersDisplayNameData.length;i++) {
+                            var userNameKey = $scope.UsersDisplayNameData[i].userName.toLowerCase();
+                            var userDisplayName = $scope.UsersDisplayNameData[i].displayName + " ("+$scope.UsersDisplayNameData[i].userName+")";
+                            var permissionVal = "";
+                            for (var key in $scope.permissionData.UsersPermissionsData) {
+                                if(key.toLowerCase() === userNameKey) {
+                                    permissionVal = $scope.permissionData.UsersPermissionsData[key.toLowerCase()];
+                                }
+                            }
+                            $scope.UsersPermissionsDetails.push({"key":userNameKey, "value":permissionVal, "displayName":userDisplayName});
+                        }
+                        $scope.$apply();
+                    } else {
+                        $scope.isLoadingData = false;
+                        serviceData = error;
+                        $scope.commonErrorHandler(serviceData.error, serviceData.error || serviceData.response.data, "getDropdownData");
+
+                    }
+                },
+                function (error) {
+                    $scope.isLoadingData = false;
+                    // Error handling function when api fails
+                    $scope.showInputLoader.show = false;
+                    if (error.status === 500) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_NETWORK');
+                        $scope.error('md');
+                    } else if(error.status !== 200 && (error.xhrStatus === 'error' || error.xhrStatus === 'complete')) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_USERNAME');
+                        $scope.error('md');
+                    }
+                });
+            }else{
+                $scope.isLoadingData = false;
+            }
+        }
+
         $scope.oneTimeReset = function() {
             $scope.isLoadingData = true;
             $scope.isActivating = true;
@@ -844,7 +921,7 @@
             AdminSafesManagement.resetPasswordForSvcacc(null, updatedUrlOfEndPoint).then(function (response) {                
                 if (UtilityService.ifAPIRequestSuccessful(response)) {
                     $scope.isLoadingData = false;
-                    $scope.newPassword = response.data.current_password;
+                    $scope.newPassword = response.data.adServiceAccountCreds.current_password;
                     $scope.resetMessage = "Service account "+$scope.svcacc.svcaccId+" has been activated successfully!"
                     $scope.initialPwdResetRequired = false;
                     $scope.initialPasswordReset = "true";
@@ -912,7 +989,7 @@
                         var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccOnboardInfo', svcaccId);
                         AdminSafesManagement.getSvcaccOnboardInfo(null, updatedUrlOfEndPoint).then(
                             function (onboardResponse) {
-                                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                if (UtilityService.ifAPIRequestSuccessful(onboardResponse)) {
                                     var onboardInfo = onboardResponse.data;
                                     if ($rootScope.showDetails !== true) {
                                         document.getElementById('addUser').value = '';
@@ -967,6 +1044,11 @@
                                             getMetadata(svcaccId);
                                             getWorkloadDetails();
                                         }
+                                        else {
+                                            $scope.isLoadingData = false;
+                                            $scope.isOffboarding = true;
+                                            $scope.openSvcDecommissionedMessage(svcaccId);
+                                        }
                                     }
                                     catch (e) {
                                         console.log(e);
@@ -981,11 +1063,18 @@
                                 }
                             },
                             function (error) {
-                                  console.log(error);
+                                console.log(error);
                                 $scope.isLoadingData = false;
-                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                                $scope.error('md');
-                            })                        
+                                if (error.status == 404 || error.status == "404") {
+                                    $scope.isLoadingData = false;
+                                    $scope.isOffboarding = true;
+                                    $scope.openSvcDecommissionedMessage(svcaccId);
+                                }
+                                else {
+                                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                    $scope.error('md');
+                                }
+                            })
                     }
                     else {
                         $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
@@ -1203,8 +1292,19 @@
             $scope.applicationName = '';
             $scope.isApplicationsLoading = true;
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
+            $scope.svcaccToOffboard = '';
+            $scope.isOffboarding = false;
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');
+            }
+            $scope.disableAddBtn = true;
+            $scope.userAutoCompleteEnabled = false;
+            $scope.groupAutoCompleteEnabled = false;
+            if (AppConstant.AD_USERS_AUTOCOMPLETE == true) {
+                $scope.userAutoCompleteEnabled = true;
+            }
+            if (AppConstant.AD_GROUP_AUTOCOMPLETE == true) {
+                $scope.groupAutoCompleteEnabled = true;
             }
             $scope.appNameTableOptions = [];
             $scope.requestDataFrChangeSvcacc();
@@ -1292,6 +1392,21 @@
 
         $scope.addPermission = function (type, key, permission, editingPermission) {
             var duplicate = false;
+            if (key !== null && key !== undefined) {
+                if (type === "users" && !editingPermission) {
+                    key = document.getElementById('addUser').value.toLowerCase();
+                }
+                if (type === "groups" && !editingPermission) {
+                    key = document.getElementById('addGroup').value;
+                }
+                // extract only userId/groupId from key
+                if (key.includes($scope.domainName)) {
+                    key = key.split('@')[0];
+                }
+                if (type === "users" && key.includes("(")) {
+                    key = key.substring(key.lastIndexOf("(") + 1, key.lastIndexOf(")"));
+                }
+            }
             $scope.permissionChangeInProgress = true;
             if (!editingPermission && key != '' && key != undefined) {
                 if (type === "users" && $scope.permissionData.UsersPermissionsData!= null && $scope.permissionData.UsersPermissionsData.hasOwnProperty(key.toLowerCase())) {
@@ -1299,8 +1414,13 @@
                         duplicate = true;
                     }
                 }
-                if (type === "groups" && $scope.permissionData.GroupsPermissionsData!= null && $scope.permissionData.GroupsPermissionsData.hasOwnProperty(key.toLowerCase())) {
-                    duplicate = true;
+                if (type === "groups" && $scope.permissionData.GroupsPermissionsData!= null) {
+                    var groupIndex = Object.keys($scope.permissionData.GroupsPermissionsData).findIndex(function (groupName) {
+                        return groupName.toLowerCase() === key.toLowerCase();
+                    });
+                    if(groupIndex > -1) {
+                        duplicate = true;
+                    }
                 }
                 if (type === "AWSPermission" && $scope.permissionData.AwsPermissionsData.data!= null && $scope.permissionData.AwsPermissionsData.data.hasOwnProperty(key.toLowerCase())) {
                     duplicate = true;
@@ -1316,12 +1436,6 @@
             }
             else if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
                 try {
-                    if (type === "users" && !editingPermission) {
-                        key = document.getElementById('addUser').value.toLowerCase();
-                    }
-                    if (type === "groups" && !editingPermission) {
-                        key = document.getElementById('addGroup').value.toLowerCase();
-                    }
                     Modal.close('');
                     $scope.isLoadingData = true;
                     $scope.showInputLoader.show = false;
@@ -1329,13 +1443,6 @@
                     var svcaccname = $scope.svcacc.svcaccId;
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
-                    // extract only userId/groupId from key
-                    if (key.includes($scope.domainName)) {
-                        key = key.split('@')[0];
-                    }
-                    if (key !== null && key !== undefined) {
-                        key = UtilityService.formatName(key);
-                    }
                     if ($scope.awsConfPopupObj.role !== null && $scope.awsConfPopupObj.role !== undefined) {
                         $scope.awsConfPopupObj.role = UtilityService.formatName($scope.awsConfPopupObj.role);
                     }
@@ -1399,13 +1506,13 @@
                                         if (key !== null && key !== undefined) {
                                             document.getElementById('addUser').value = '';
                                             document.getElementById('addGroup').value = '';
-                                            if (type === "users" && key === SessionStore.getItem("username")) {
+                                            // if (type === "users") {
                                                 clearInputPermissionData();
-                                                return Modal.createModalWithController('stop.modal.html', {
-                                                    title: 'Permission changed',
-                                                    message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
-                                                  });
-                                            }
+                                            //     return Modal.createModalWithController('stop.modal.html', {
+                                            //         title: 'Permission changed',
+                                            //         message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                            //       });
+                                            // }
                                             Notifications.toast(key + "'s permission" + notification);                                            
                                         }
                                         
@@ -1642,6 +1749,95 @@
             $rootScope.showDetails = false;
             $rootScope.activeDetailsTab = 'permissions';
         }
+
+        $scope.openSvcDecommissionedMessage = function (svcaccname) {
+            $scope.svcaccToOffboard = svcaccname;
+            Modal.createModal('md', 'decommissionMessagePopup.html', 'ChangeServiceAccountCtrl', $scope);
+        };
+
+        $scope.offboardNow = function (svcaccUserId) {
+            $scope.isOffboarding = true;
+            if (svcaccUserId != '') {
+                Modal.close();
+                $scope.isLoadingData = true;
+                var queryParameters = "path=ad/roles/"+svcaccUserId;
+                var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('getSvcaccMetadata', queryParameters);
+                AdminSafesManagement.getSvcaccMetadata(null, updatedUrlOfEndPoint).then(function (response) {
+                    if (UtilityService.ifAPIRequestSuccessful(response)) {
+                        try {
+                            if (response.data.data) {
+                                var managedBy = response.data.data.managedBy;
+                                console.log(managedBy);
+                                var offboardPayload = {
+                                    "owner": managedBy,
+                                    "name": svcaccUserId
+                                }
+                                AdminSafesManagement.offboardDecommissionedServiceAccount(offboardPayload, '').then(
+                                    function (response) {
+                                        if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                            $scope.svcaccToOffboard = '';
+                                            $scope.isLoadingData = false;
+                                            Modal.createModal('md', 'offboardWarning.html', 'ChangeServiceAccountCtrl', $scope);
+                                        }
+                                        else {
+                                            $scope.svcaccToOffboard = '';
+                                            $scope.isOffboarding = false;
+                                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                            $scope.error('md');
+                                            $state.go('admin');
+                                            return;
+                                        }
+                                    },
+                                    function (error) {
+                                        // Error handling function
+                                        console.log(error);
+                                        $scope.svcaccToOffboard = '';
+                                        $scope.isOffboarding = false;
+                                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                        $scope.error('md');
+                                        $state.go('admin');
+                                        return;
+                                    });
+                            }
+                        } catch (e) {
+                            console.log(e);
+                            $scope.svcaccToOffboard = '';
+                            $scope.isOffboarding = false;
+                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_PROCESSING_DATA');
+                            $scope.error('md');
+                            $state.go('admin');
+                            return;
+                        }
+                    }
+                    else {
+                        $scope.svcaccToOffboard = '';
+                        $scope.isOffboarding = false;
+                        $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                        $scope.error('md');
+                        $state.go('admin');
+                        return;
+                    }
+                },
+                function (error) {
+                    // Error handling function
+                    console.log(error);
+                    $scope.svcaccToOffboard = '';
+                    $scope.isOffboarding = false;
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                    $state.go('admin');
+                    return;
+                });
+            }
+        }
+
+        $scope.cancelOffboard = function () {
+            Modal.close('close');
+            $scope.isLoadingData = false;
+            $scope.isOffboarding = false;
+            $state.go('admin');
+            return;
+        };
 
         $scope.init();
 

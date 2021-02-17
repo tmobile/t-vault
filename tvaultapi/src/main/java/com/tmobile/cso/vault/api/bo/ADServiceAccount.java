@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -14,7 +14,7 @@
 // limitations under the License.
 // See the readme.txt file for additional language around disclaimer of warranties.
 // =========================================================================
-package com.tmobile.cso.vault.api.model;
+package com.tmobile.cso.vault.api.bo;
 
 import java.io.Serializable;
 import java.text.DateFormat;
@@ -33,6 +33,8 @@ import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
+import com.tmobile.cso.vault.api.model.ADUserAccount;
+
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.util.StringUtils;
 
@@ -186,7 +188,7 @@ public class ADServiceAccount implements Serializable {
 	 * Formats the whenCreated using the pattern "yyyy-MM-dd HH:mm:ss"
 	 * @return
 	 */
-	public String getCreationDate() throws IllegalArgumentException, DateTimeException {
+	public String getCreationDate()  {
 		if (whenCreated != null) {
 			return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.ofInstant(whenCreated, ZoneOffset.UTC));
 		}
@@ -221,7 +223,8 @@ public class ADServiceAccount implements Serializable {
             // Default TTL
             sAccountExpiration = TVaultConstants.NEVER_EXPIRE;
         }
-        return accountExpiresFormatted = sAccountExpiration;
+         accountExpiresFormatted = sAccountExpiration;
+         return accountExpiresFormatted;
     }
 	/**
 	 * @return the passwordExpiry
@@ -244,7 +247,7 @@ public class ADServiceAccount implements Serializable {
 						pwdExpiryDateTime = TVaultConstants.EXPIRED;
 					}
 					else {
-						String passwordExpiry = dateFormat.format(c.getTime());
+						String pwdExpiry = dateFormat.format(c.getTime());
 						// find days to expire
 						long difference = c.getTime().getTime() - new Date().getTime();
 						String daysToExpire;
@@ -254,14 +257,15 @@ public class ADServiceAccount implements Serializable {
 						else { // less than one day
 							daysToExpire = TimeUnit.HOURS.convert(difference, TimeUnit.MILLISECONDS) + " hours";
 						}
-						pwdExpiryDateTime = passwordExpiry +" ("+daysToExpire+")";
+						pwdExpiryDateTime = pwdExpiry +" ("+daysToExpire+")";
 					}
 				}catch(ParseException e){
 					pwdExpiryDateTime = TVaultConstants.EMPTY;
 				}
 			}
 		}
-		return passwordExpiry = pwdExpiryDateTime;
+		passwordExpiry = pwdExpiryDateTime;
+		return passwordExpiry;
 	}
 	/**
 	 * @return the accountStatus
@@ -347,10 +351,7 @@ public class ADServiceAccount implements Serializable {
      * @return the pwdLastSetFormatted
      */
     public String getPwdLastSetFormatted() {
-    	/*
-    		pwdLastSet uses the same calculation:
-    		Date pwdSet = new Date(pwdLastSet/10000-TVaultConstants.FILETIME_EPOCH_DIFF);
-    	 */
+    	
         String pwdLastSetDateTime = TVaultConstants.EMPTY;
         if (pwdLastSet!= null && !pwdLastSet.equals("0")) {
             try {
@@ -363,7 +364,8 @@ public class ADServiceAccount implements Serializable {
                 pwdLastSetDateTime = TVaultConstants.EMPTY;
             }
         }
-        return pwdLastSetFormatted = pwdLastSetDateTime;
+        pwdLastSetFormatted = pwdLastSetDateTime;
+        return pwdLastSetFormatted;
     }
 	/**
 	 * @return the managedBy
@@ -397,7 +399,8 @@ public class ADServiceAccount implements Serializable {
 				maxLife = TVaultConstants.SVC_ACC_STANDARD_MAXLIFE;
 			}
 		}
-		return maxPwdAge = (int)TimeUnit.DAYS.toSeconds(maxLife);
+		 maxPwdAge = (int)TimeUnit.DAYS.toSeconds(maxLife);
+		 return maxPwdAge;
 	}
 	/**
 	 * @param maxPwdAge the maxPwdAge to set

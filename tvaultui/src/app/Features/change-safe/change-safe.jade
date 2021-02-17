@@ -121,6 +121,77 @@ script(type='text/ng-template', id='appRolePopup.html')
             .clearfix
               button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
 
+script(type='text/ng-template', id='transferSafeConfirmation.html')
+  .top-lg-sep
+      .common-header-label.text-center Transfer Safe
+  .top-lg-sep.notification-text Are you sure, do you want to transfer ownership for this safe?
+  .text-center.bottom-lg-sep.top-lg-sep.notification-button
+    .clearfix.bottom-sm-sep
+      button.common-btn.btn.btn-primary.btn-lg(ng-click="transferSafeForm()") YES
+    .clearfix
+      button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") NO
+
+script(type='text/ng-template', id='transferSafeSuccess.html')
+  .top-lg-sep
+      .common-header-label.text-center Safe Transfer Successful!
+  .top-lg-sep.notification-text Safe ownership has been transferred to {{ tansferSafe.newOwnerEmail }}
+  .text-center.bottom-lg-sep.top-lg-sep.notification-button
+    .clearfix.bottom-sm-sep
+      button.common-btn.btn.btn-primary.btn-lg(ng-click="closeSafeTransfer()") CLOSE
+
+script(type='text/ng-template', id='transferSafeFailed.html')
+  .top-lg-sep
+      .common-header-label.text-center Safe Transfer Failed!
+  .top-lg-sep.notification-text Failed to transfer safe ownership to {{ tansferSafe.newOwnerEmail }}
+  .text-center.bottom-lg-sep.top-lg-sep.notification-button
+    .clearfix.bottom-sm-sep
+      button.common-btn.btn.btn-primary.btn-lg(ng-click="closeSafeTransfer()") CLOSE
+
+script(type='text/ng-template', id='transferSafeForm.html')
+          .modal-sep
+            .common-header-label.text-center Transfer Safe
+          .left-lg-sep.right-lg-sep
+            .common-form.modal-inner-wrapper.aws
+              .common-form-row
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label Safe Name
+                    input.form-control.input-box-style(ng-model="tansferSafe.safeName" ng-disabled="true" name="safeName")
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label Safe Type
+                    input.form-control.input-box-style(ng-model="tansferSafe.safeType" ng-disabled="true" name="safeType")
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label Current Owner
+                    input.form-control.input-box-style(ng-model="tansferSafe.currentOwner" ng-disabled="true" name="currentOwner")
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label New Owner Email ID*
+                    input.form-control.input-box-style(id="newOwnerEmail"  ng-model="tansferSafe.newOwnerEmail" ng-change="ownerEmailValidation()" typeahead-min-length="3" uib-typeahead="key as key.userEmail for key in searchEmail($viewValue) | limitTo: 8" typeahead-wait-ms="500" typeahead-on-select="selectOwnerforSafe(tansferSafe.newOwnerEmail)")
+                    div.loader.svcaccid(ng-if='isUserSearchLoading && tansferSafe.newOwnerEmail.length > 2')
+                        div.ball-spin-fade-loader
+                            div
+                            div
+                            div
+                            div
+                            div
+                            div
+                            div
+                            div
+                    div.input-cross.svcaccid(ng-if='!isUserSearchLoading && tansferSafe.newOwnerEmail.length > 2' ng-click="clearOwnerEmail()")
+                        div.delete-title
+                            img.delete-icon(src="../../assets/images/delete.png")
+                    span.invalid-email   {{ tansferSafeEmailErrorMessage }}
+                .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                  .details-input-group
+                    .common-form-label
+          .text-center.bottom-lg-sep.modal-sep.aws
+            .clearfix.bottom-sm-sep
+              button.common-btn.btn.btn-primary.btn-lg(id="safe_transfer_btn" ng-click="transferSafe()" ng-disabled="safeTransferInValid || !isOwnerSelected") Transfer
+            .clearfix
+              button.link-style.common-btn.btn.btn-default.btn-lg(ng-click="cancel()") Cancel
+
 script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
 .container-fluid.common-main-content.route-page.change-safe-wrapper
     .container-fluid-wrapper.curved
@@ -135,9 +206,9 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
       .page-content-container(ng-class="{'no-tabs-body' : showDetails}" ng-cloak="")
           .page-content-container.details(ng-if="showDetails" ng-cloak="" )
               form.row(name="createSafeDetails" ng-submit="goToPermissions()" autocomplete="off" novalidate)
-                .page-content-container
+                loading-state(ng-if='isLoadingData')
+                .page-content-container(ng-if="!isTransferInProgress")
                   .clearfix.details-wrapper
-                    loading-state(ng-if='isLoadingData')
                     .safe-left-content-container.border-right.col-lg-6.col-sm-5
                       .common-section-label SAFE DETAILS
                       .common-form
@@ -164,7 +235,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                 .details-input-group.left-sm-sep.col-lg-12.col-md-12.col-sm-12.col-xs-12
                                     .common-form-label Owner
                                       span *
-                                    input.form-control.input-box-style(id="addOwnerEmail" ng-model="safe.owner"  autofocus='!showInputLoader.show' ng-change="searchValue.userName = safe.owner" ng-keyup='onKeyUp(searchValue, "userName", true)' ng-class="{highlightBox: inputSelected.select}" name="ownerEmail" placeholder="Email address - Enter min 3 characters" required)
+                                    input.form-control.input-box-style(id="addOwnerEmail" ng-model="safe.owner" autofocus='!showInputLoader.show' ng-change="searchValue.userName = safe.owner" ng-keyup='onKeyUp(searchValue, "userName", true)' ng-class="{highlightBox: inputSelected.select}" name="ownerEmail" placeholder="Email address - Enter min 3 characters" ng-disabled="!isAdmin" required)
                                     div.loader.owner-mail(ng-if='showInputLoader.show && safe.owner.length > 0')
                                         div.ball-spin-fade-loader
                                             div
@@ -177,10 +248,13 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                             div
                                     div.input-cross.owner-mail(ng-if='inputSelected.select && safe.owner.length > 0' ng-click="clearOwnerEmailInputValue('addOwnerEmail')")                                                
                                         div.delete-title
-                                            img.delete-icon(src="../../assets/images/delete.png")
+                                            img.delete-icon(ng-if="isEmailEditable" src="../../assets/images/delete.png")
                                     span.invalid-form(ng-show="createSafeDetails.ownerEmail.$dirty && createSafeDetails.ownerEmail.$invalid && createSafeDetails.ownerEmail.$error.required") Please enter this field
                                     span.invalid-form(ng-if="invalidEmail") Please enter valid email address
-                        .row
+                          .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                            .details-input-group
+                              .certificate-form-label(uib-tooltip="Name of the Cloud application this safe will be used for. Only applications you have self-service rights to will be shown." required) Application Name*
+                              drop-down(drop-down-options="dropdownApplicationName" name="safeApplicationName" id="applicationNameforSafe"  ng-click="appNameSelect()")
                           .common-form-row.col-lg-12.col-md-12.col-sm-12.col-xs-12
                             .details-input-group
                                 .common-form-label Description
@@ -199,7 +273,9 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                   .clearfix.btn-section
                     .right.col-lg-6.col-md-6.col-sm-6.col-xs-12.bottom-lg-sep.top-lg-sep
                       .right
-                        button.common-btn.btn.btn-primary.btn-lg(type='submit' ng-disabled="createSafeDetails.ownerEmail.$invalid || createSafeDetails.ownerName.$invalid || createSafeDetails.description.$invalid || createSafeDetails.dropdown.$invalid") Next
+                        button.common-btn.btn.btn-primary.btn-lg(type='submit' ng-disabled="createSafeDetails.ownerEmail.$invalid || createSafeDetails.ownerName.$invalid || createSafeDetails.description.$invalid || createSafeDetails.dropdown.$invalid || !isUserEmailSelected || !appNameSelected") Next
+                      .right.transfer-safe
+                        button.common-btn.btn.btn-lg.transfer-safe-btn(type='button' ng-if="isEditSafe" ng-click="transferSafeConfirmation()") Transfer Safe
                       .right.right-sm-sepshowInputLoader
                         button.link-style.common-btn.btn.btn-default.btn-lg.col-lg-6.col-md-6.col-sm-6.col-xs-12(type='button' ng-click="goBack()") Cancel
           .page-content-container.permissions(ng-if="!showDetails" ng-cloak="")
@@ -209,12 +285,14 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                             loading-state(ng-if='isLoadingData')
                             md-content(class="md-padding")
                                 .new-container.page-content-container
+                                    div.certeditnotes Search users by user name (lastname, firstname) or by NTid.
+                                    div.certeditnotes Note: Denying the safe owner(normal user) will not take any effect for users.
                                     .row.change-safe
                                         .add-block.container.name.col-lg-6.col-md-6.col-sm-12.col-xs-12
                                             div.input-flex
                                                 div.input-box-style.user-input
 
-                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "userName")' placeholder='Username' restrict-special-char-with-space minlength="1" maxlength="50" ng-model="inputValue.userNameVal" id="addUser" ng-class="{error: (inputValue.userNameValEmpty &&  (inputValue.userNameVal == '' ||  inputValue.userNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.userName = inputValue.userNameVal; inputValue.userNameValEmpty = false;")
+                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "userName")' placeholder='Username' minlength="1" maxlength="50" ng-model="inputValue.userNameVal" id="addUser" ng-class="{error: (inputValue.userNameValEmpty &&  (inputValue.userNameVal == '' ||  inputValue.userNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.userName = inputValue.userNameVal; inputValue.userNameValEmpty = false;")
                                                 div.loader(ng-if='showInputLoader.show && inputValue.userNameVal.length > 0')
                                                     div.ball-spin-fade-loader
                                                         div
@@ -232,48 +310,49 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                         .add-block.container.radio-inputs.col-lg-3.col-md-3.col-sm-12.col-xs-12
                                             radio-buttons(data="radio" value="usrRadioBtnVal" state="true")
                                         .add-block.container.actions.col-lg-3.col-md-3.col-sm-12.col-xs-12
-                                            button.btn.btn-primary.btn-lg(ng-click="addPermission('users',inputValue.userNameVal,usrRadioBtnVal, false);inputValue.userNameValEmpty = true") ADD USER
-                                    .unavailable-text(ng-if='isEmpty(UsersPermissionsData)')
-                                      | No users are given permission to access this safe,<br> add users to access the safe 
-                                    .row.change-safe-table-container(ng-if='!isEmpty(UsersPermissionsData)')
+                                            button.btn.btn-primary.btn-lg(ng-click="addPermission('users',inputValue.userNameVal,usrRadioBtnVal, false);inputValue.userNameValEmpty = true" ng-disabled="disableAddBtn && userAutoCompleteEnabled") ADD USER
+                                    .unavailable-text(ng-if='UsersPermissionsDetails=== undefined || UsersPermissionsDetails.length === 0')
+                                      | No users are given permission to access this safe,<br> add users to access the safe
+                                    .row.change-safe-table-container(ng-if='UsersPermissionsDetails!== undefined && UsersPermissionsDetails.length > 0')
                                         .row.change-safe.header
-                                            .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 USERNAME  
+                                            .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4 USERNAME
                                             .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4 ACTION
                                         .change-safe-table-data.row
-                                            .row.change-safe.item.hide-in-mobile(ng-if="!isLoadingData && value != 'sudo'" ng-init="editPermissionItem = false; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in UsersPermissionsData")
-                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
+                                            .row.change-safe.item.hide-in-mobile(ng-if="!isLoadingData && userPermission.value != 'sudo'" ng-init="editPermissionItem = false; activeItem = false; radioValue = userPermission.value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="userPermission in UsersPermissionsDetails")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{userPermission.displayName}}
                                                 .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                     radio-buttons(data="radio" value="radioValue" state="editPermissionItem")
                                                 .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                     .down
-                                                        .list-icon.icon-delete(ng-click = "deletePermission('users', true, false, key, radioValue)")                                                    
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('users', true, false, userPermission.key, radioValue)")
                                                     .down.hide-in-mobile.edit
                                                         .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}")
-                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
+                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = userPermission.value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
                                                     .down.save
-                                                        .list-icon(ng-click = "editPermission('users', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
-                                            .row.change-safe.item.hide-in-tablet-up(ng-if="!isLoadingData && value != 'sudo'" ng-init="editPermissionItem = true; activeItem = false; radioValue = value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="(key, value) in UsersPermissionsData")
-                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{key}}
+                                                        .list-icon(ng-click = "editPermission('users', editPermissionItem, userPermission.key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
+                                            .row.change-safe.item.hide-in-tablet-up(ng-if="!isLoadingData && userPermission.value != 'sudo'" ng-init="editPermissionItem = true; activeItem = false; radioValue = userPermission.value" ng-class="{'grayBackground' : activeItem == true}" ng-repeat="userPermission in UsersPermissionsDetails")
+                                                .container.name.col-lg-4.col-md-4.col-sm-4.col-xs-4(ng-class="{'inactive' : editPermissionItem == false}") {{userPermission.displayName}}
                                                 .container.radio-inputs.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                     drop-down(drop-down-options="radio" value="radioValue" error="noTypeSelected")
                                                 .container.actions.col-lg-4.col-md-4.col-sm-4.col-xs-4
                                                     .down
-                                                        .list-icon.icon-delete(ng-click = "deletePermission('users', editPermissionItem, false, key, radioValue)" ng-class="{'inactive' : editPermissionItem == false}") 
+                                                        .list-icon.icon-delete(ng-click = "deletePermission('users', editPermissionItem, false, userPermission.key, radioValue)" ng-class="{'inactive' : editPermissionItem == false}")
                                                     .down.hide-in-mobile.edit
-                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}")                                                    
-                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
+                                                        .list-icon.icon-mode_edit(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == true}")
+                                                        .list-icon.icon-cross(ng-click="editPermissionItem = !editPermissionItem; activeItem = !activeItem; radioValue = userPermission.value" ng-class="{'inactive' : editPermissionItem == true, 'hide-icon' : editPermissionItem == false}")
                                                     .down.save
-                                                        .list-icon(ng-click = "editPermission('users', editPermissionItem, key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE                                                    
+                                                        .list-icon(ng-click = "editPermission('users', editPermissionItem, userPermission.key, radioValue); editPermissionItem ? editPermissionItem = !editPermissionItem : editPermissionItem = editPermissionItem" ng-class="{'inactive' : editPermissionItem == false}")  SAVE
                                                                     
                         md-tab(label="Groups" md-on-select="clearInputValue('addGroup')")
                             loading-state(ng-if='isLoadingData')
                             md-content(class="md-padding")
                                 .new-container.page-content-container
+                                    div.group-permission-message For newly created AD groups, group members need to log out and log in again for the added permissions to take effect.
                                     .row.change-safe
                                         .add-block.container.name.col-lg-6.col-md-6.col-sm-12.col-xs-12
                                            div.input-flex
                                                 div.input-box-style.user-input
-                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "groupName")' placeholder='Group Name' restrict-special-char-with-space minlength="1" maxlength="50" ng-model="inputValue.grpNameVal" id="addGroup" ng-class="{error: (inputValue.grpNameValEmpty &&  (inputValue.grpNameVal == '' ||  inputValue.grpNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.groupName = inputValue.grpNameVal; inputValue.grpNameValEmpty = false;")
+                                                    input(type='text' class="form-control" autofocus='!showInputLoader.show' ng-keyup='onKeyUp(searchValue, "groupName")' placeholder='Group Name' minlength="1" maxlength="100" ng-model="inputValue.grpNameVal" id="addGroup" ng-class="{error: (inputValue.grpNameValEmpty &&  (inputValue.grpNameVal == '' ||  inputValue.grpNameVal == undefined)), highlightBox: inputSelected.select}" ng-change="searchValue.groupName = inputValue.grpNameVal; inputValue.grpNameValEmpty = false;")
                                                  div.loader(ng-if='showInputLoader.show && inputValue.grpNameVal.length > 0')
                                                     div.ball-spin-fade-loader
                                                         div
@@ -291,7 +370,7 @@ script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
                                         .add-block.container.radio-inputs.col-lg-3.col-md-3.col-sm-12.col-xs-12
                                             radio-buttons(data="radio" value="grpRadioBtnVal" state="true")
                                         .add-block.container.actions.col-lg-3.col-md-3.col-sm-12.col-xs-12
-                                            button.btn.btn-primary.btn-lg(ng-click="addPermission('groups', inputValue.grpNameVal,grpRadioBtnVal, false);inputValue.grpNameValEmpty = true") ADD GROUP
+                                            button.btn.btn-primary.btn-lg(ng-click="addPermission('groups', inputValue.grpNameVal,grpRadioBtnVal, false);inputValue.grpNameValEmpty = true" ng-disabled="disableAddBtn && groupAutoCompleteEnabled") ADD GROUP
                                     .unavailable-text(ng-if="isEmpty(GroupsPermissionsData)")
                                       | No groups are given permission to access this safe,<br> add groups to access the safe
                                     .row.change-safe-table-container(ng-if="!isEmpty(GroupsPermissionsData)")

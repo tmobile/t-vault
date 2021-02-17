@@ -19,7 +19,7 @@
 
 'use strict';
 (function (app) {
-    app.controller('ChangeSafeCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant) {
+    app.controller('ChangeSafeCtrl', function ($scope, $rootScope, Modal, $timeout, fetchData, $http, UtilityService, Notifications, $window, $state, $stateParams, $q, SessionStore, vaultUtilityService, ModifyUrl, AdminSafesManagement, AppConstant, filterFilter, orderByFilter) {
         $scope.selectedGroupOption = '';            // Selected dropdown value to be used for filtering
         $rootScope.showDetails = true;              // Set true to show details view first
         $scope.similarSafes = 0;
@@ -42,6 +42,16 @@
         $scope.approleRadioBtn['value'] = 'read';
         $scope.isEmpty = UtilityService.isObjectEmpty;
         $scope.roleNameSelected = false;
+        $scope.isUserPermissionEmpty = true;
+        $scope.userAutoCompleteEnabled = false;
+        $scope.groupAutoCompleteEnabled = false;
+        $scope.disableAddBtn = true;
+        $scope.isUserSearchLoading = false;
+        $scope.userSearchList = [];
+        $scope.isOwnerSelected = false;
+        $scope.safeTransferInValid = true;
+        $scope.isAdmin = false;
+        $scope.isTransferInProgress = false;
         $scope.awsConfPopupObj = {
             "auth_type":"",
             "role": "",
@@ -107,6 +117,7 @@
             addComma: false,
             show: true
         }];
+        $scope.isUserEmailSelected = false;
 
         var clearInputPermissionData = function () {
             $scope.inputValue = {
@@ -115,6 +126,9 @@
                 "userNameValEmpty": false,
                 "grpNameValEmpty": false
             }
+            $scope.disableAddBtn = true;
+            $scope.clearInputValue("addUser");
+            $scope.clearInputValue("addGroup");
         }
 
         $scope.isApproleBtnDisabled = function() {
@@ -210,6 +224,7 @@
             };
             lastContent = '';
             $scope.showNoMatchingResults = false;
+            $scope.disableAddBtn = true;
         }
 
         //clear selcted email id on cross icon click
@@ -219,6 +234,7 @@
             lastContent = '';
             $scope.showNoMatchingResults = false;
             $scope.invalidEmail = false;
+            $scope.isUserEmailSelected = false;
         }
         // on navigation to details page check owner email field has value, if yes highlight box. 
         $scope.checkOwnerEmailHasValue = function(navigateToDetail) {
@@ -252,12 +268,15 @@
                     return;
                 }
              } else if (variableChanged === 'groupName') {
-                 if(!UtilityService.getAppConstant('AD_GROUP_AUTOCOMPLETE')) {
+                 if(!UtilityService.getAppConstant('AD_GROUP_AUTOCOMPLETE') || newVal.groupName.length < 4) {
                     return;
                  }
              }
+             $scope.isUserEmailSelected = false;
              var newLetter = newVal[variableChanged];
-                newLetter = newLetter.replace(" ", "");
+             if (variableChanged != 'userName' && variableChanged != 'groupName') {
+               newLetter = newLetter.replace(" ", "");
+             }
                 initiateAutoComplete(variableChanged, ['loading']);
            // delay before providing api call      
           delay(function(){
@@ -367,6 +386,8 @@
                         $scope.inputSelected.select = true; 
                         $scope.showNoMatchingResults = false;  
                         $scope.invalidEmail = false;                
+                        $scope.disableAddBtn = false;
+                        $scope.isUserEmailSelected = true;
                         $(id).trigger('change');
                         $(id).blur();                     
                         $scope.$apply();
@@ -428,7 +449,7 @@
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
                     switch (type) {
-                        case 'users' :
+                        case 'users':
                             apiCallFunction = AdminSafesManagement.deleteUserPermissionFromSafe;
                             if (editingPermission) {
                 								reqObjtobeSent = {
@@ -482,12 +503,12 @@
                                     }
                                     else {
                                         $scope.requestDataFrChangeSafe();
-                                        if (type === "users" && key === SessionStore.getItem("username")) {
-                                            return Modal.createModalWithController('stop.modal.html', {
-                                                title: 'Permission changed',
-                                                message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
-                                              });
-                                        }
+                                        // if (type === "users" && key === SessionStore.getItem("username")) {
+                                        //     return Modal.createModalWithController('stop.modal.html', {
+                                        //         title: 'Permission changed',
+                                        //         message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                        //       });
+                                        // }
                                         if (type === 'AppRolePermission') {
                                             // delete approle
                                         }
@@ -502,26 +523,36 @@
                                 }
                             }
                             else {
-                                $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
-                                error('md');
+                                if(response.status === 422){
+                                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                    $scope.error('md');
+                                    $scope.requestDataFrChangeSafe();
+                                }else {
+                                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                                    console.log("Inside Else case: ", $scope.errorMessage);
+                                    $scope.error('md');
+                                }
                             }
                         },
                         function (error) {
-
-                            // Error handling function
-                            console.log(error);
-                            $scope.isLoadingData = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                            $scope.error('md');
-
+                            if(error.status === 422) {
+                                var errors = error.data.Message;
+                                $scope.errorMessage = errors;
+                                $scope.error('md');
+                                $scope.requestDataFrChangeSafe();
+                            }else {
+                                // Error handling function
+                                console.log(error);
+                                $scope.isLoadingData = false;
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
                         })
                 } catch (e) {
-
                     console.log(e);
                     $scope.isLoadingData = false;
                     $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
                     $scope.error('md');
-
                 }
             }
         }
@@ -659,7 +690,82 @@
                 }
             }
         }
-
+        $scope.appNameSelect = function(){
+            $scope.appNameSelected = false;
+            if($scope.dropdownApplicationName !==undefined){
+                var appId = $scope.dropdownApplicationName.selectedGroupOption.id;
+            $scope.dropdownApplicationName.selectedGroupOption.tag;
+            $scope.appName = $scope.dropdownApplicationName.selectedGroupOption.tag;
+             $scope.safe.appName=$scope.appName;
+            $scope.appNameSelected = true;
+            }
+        }
+        var getWorkloadDetails = function () {
+            $scope.isApplicationsLoading = true;
+            AdminSafesManagement.getApprolesFromCwm().then(function (response) {
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    $scope.isApplicationsLoading = false;
+                    $scope.isAppNamesLoading = true;
+                    var data = response.data;
+                    $scope.appNameTableOptions=[];                    
+                     for (var index = 0;index<data.length;index++) {
+                        var value = '';
+                        var appTag = '';
+                        var appID = '';
+                        var name = '';
+                        if (data[index].appName !='' && data[index].appName != null && data[index].appName != undefined) {
+                            value = data[index].appName;
+                            name = value;
+                        }
+                        if (data[index].appID !='' && data[index].appID != null && data[index].appID != undefined) {
+                            appID = data[index].appID;
+                        }
+                        if (data[index].appTag !='' && data[index].appTag != null && data[index].appTag != undefined) {
+                            appTag = data[index].appTag;
+                        }
+                        if(JSON.parse(SessionStore.getItem("isAdmin")) == true){
+                        	$scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
+                        }
+                        if(JSON.parse(SessionStore.getItem("isAdmin")) == false){
+                            $scope.appNameTableOptions.push({"type":value, "name": name, "tag": appTag, "id": appID});
+                        }
+                    }
+                    $scope.getAppnames();
+                     $scope.isAppNamesLoading = false;
+                }
+                else {
+                    $scope.errorMessage = AdminSafesManagement.getTheRightErrorMessage(response);
+                    $scope.error('md');
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.isAppNamesLoading = false;
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            })
+        }
+        $scope.getAppnames = function () {
+            if($scope.appNameTableOptions!==undefined){
+                $scope.appNameTableOptionsSort = $scope.appNameTableOptions.sort(function (a, b) {
+                    return (a.name > b.name ? 1 : -1);
+                });  
+                if($scope.safe.appName !== null && $scope.safe.appName !== undefined && $scope.safe.appName !== ""){ 
+                    console.log("$scope.safe.appName iniside if:",$scope.safe.appName);
+                $scope.dropdownApplicationName = {
+                        'selectedGroupOption': {"type": $scope.safe.appName},    
+                        'tableOptions':  $scope.appNameTableOptionsSort 
+                    }
+                }
+                else{
+                    $scope.dropdownApplicationName = {
+                            'selectedGroupOption': {"type":"Select Application Name"},    
+                            'tableOptions':  $scope.appNameTableOptionsSort 
+                        }
+                }
+                }
+        }
         $scope.editSafe = function () {
             try {
                 $scope.isLoadingData = true;
@@ -707,9 +813,8 @@
         $rootScope.goToPermissions = function () {
             $scope.invalidEmail = false;
             $scope.showNoMatchingResults = false;
-            var emailPattern = /^[a-zA-Z0-9_%+-]+[.]?[a-zA-Z0-9_%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
             var emailInput = document.getElementById('addOwnerEmail').value;
-            if (!emailPattern.test(emailInput)) {
+            if (emailInput =="" || emailInput == undefined) {
                 $scope.invalidEmail = true;
             } else {
                 $timeout(function () {
@@ -731,8 +836,8 @@
 
         $scope.requestDataFrChangeSafe = function () {
             $scope.isLoadingData = true;
+            $scope.isEmailEditable = true;
             if ($stateParams.safeObject) {
-
                 // Prefilled values when editing
                 $scope.changeSafeHeader = "EDIT SAFE";
                 $scope.isEditSafe = true;
@@ -769,6 +874,10 @@
                                             })
                                             object.users = data;
                                     }
+                                    if(object.appName !== null && object.appName !== undefined){
+                                        $scope.appNameSelected=true;
+                                        }
+
                                     $scope.UsersPermissionsData = object.users;
                                     $scope.GroupsPermissionsData = object.groups;
                                     $rootScope.AwsPermissionsData = {
@@ -781,7 +890,8 @@
                                         name: object.name || $stateParams.safeObject.safe,
                                         owner: object.owner || $stateParams.safeObject.owner || '',
                                         description: object.description || $stateParams.safeObject.description || '',
-                                        type: $stateParams.safeObject.type || object.type ||$scope.dropDownOptions.selectedGroupOption.type || ''
+                                        type: $stateParams.safeObject.type || object.type ||$scope.dropDownOptions.selectedGroupOption.type || '',
+                                        appName: object.appName|| $stateParams.safeObject.appName || ''
                                     }
                                     $scope.safePrevious = angular.copy($scope.safe);
                                     $scope.selectedGroupOption = $scope.safe;
@@ -789,11 +899,28 @@
                                         'selectedGroupOption': $scope.selectedGroupOption,
                                         'tableOptions': $scope.tableOptions
                                     }
+                                    if(object.appName === undefined){
+                                        $scope.dropdownApplicationName = {
+                                            'selectedGroupOption': {"type": "Select Application Name"},
+                                            'tableOptions': $scope.appNameTableOptionsSort
+                                        }
+                                    }
+                                    else{
+                                    $scope.dropdownApplicationName = {
+                                        'selectedGroupOption': {"type": object.appName, "name":object.applicationTag ,"tag": object.appName, "id": object.applicationTag},
+                                        'tableOptions': $scope.appNameTableOptionsSort
+                                    }
+                                }
                                     if($scope.activeDetailsTab === 'details') {
                                          $scope.checkOwnerEmailHasValue('details');
                                     }
-                                   
+
+                                    getUserDisplayNameDetails();
+                                    $scope.isUserEmailSelected = true;
+                                    $scope.isAdmin = false;
+                                    $scope.isEmailEditable = false;
                                 }
+                               
                                 catch (e) {
                                     console.log(e);
                                     $scope.isLoadingData = false;
@@ -837,7 +964,6 @@
                 $scope.isEditSafe = false;
                 $scope.checkOwnerEmailHasValue('details');
                 // Refreshing the data while adding/deleting/editing permissions when creating safe (not edit-safe)
-
                 try {
                     $rootScope.AwsPermissionsData = {}
                     $rootScope.AppRolePermissionsData = {}
@@ -880,6 +1006,9 @@
                                         $rootScope.AppRolePermissionsData = {
                                             "data": object['app-roles']
                                         }
+
+                                        getUserDisplayNameDetails();
+                                       
                                     }
                                     catch (e) {
                                         console.log(e);
@@ -902,7 +1031,15 @@
 
                             });
                     }
+                   
                     else {
+                        if (JSON.parse(SessionStore.getItem("isAdmin")) == false) { 
+                            $scope.safe.owner = SessionStore.getItem("useremail");
+                            $scope.isAdmin = false;
+                            $scope.isUserEmailSelected = true;
+                        }else{
+                            $scope.isAdmin = true;
+                        }
                         $scope.isLoadingData = false;
                     }
                 } catch (e) {
@@ -916,11 +1053,66 @@
             }
         }
 
+        var getUserDisplayNameDetails = function () {
+            $scope.isLoadingData = true;
+            $scope.userNames = [];
+            $scope.UsersPermissionsDetails = [];
+            $scope.UsersDisplayNameData = [];
+            for (var key in $scope.UsersPermissionsData) {
+                $scope.userNames.push(key);
+            }
+            if ($scope.userNames !== undefined && $scope.userNames.length > 0) {
+                $scope.isUserPermissionEmpty = false;
+                vaultUtilityService.getAllUsersDataForPermissions($scope.userNames.join()).then(function (res, error) {
+                    var serviceData;
+                    if (res) {
+                        $scope.isLoadingData = false;
+                        serviceData = res;
+                        $scope.UsersDisplayNameData = serviceData.response.data.data.values;
+                        for (var i=0;i<$scope.UsersDisplayNameData.length;i++) {
+                            var userNameKey = $scope.UsersDisplayNameData[i].userName.toLowerCase();
+                            var userDisplayName = $scope.UsersDisplayNameData[i].displayName + " ("+$scope.UsersDisplayNameData[i].userName+")";
+                            var permissionVal = "";
+                            for (var key in $scope.UsersPermissionsData) {
+                                if(key.toLowerCase() === userNameKey) {
+                                    permissionVal = $scope.UsersPermissionsData[key.toLowerCase()];
+                                }
+                            }
+                            $scope.UsersPermissionsDetails.push({"key":userNameKey, "value":permissionVal, "displayName":userDisplayName});
+                        }
+                        $scope.$apply();
+                    } else {
+                        $scope.isLoadingData = false;
+                        serviceData = error;
+                        $scope.commonErrorHandler(serviceData.error, serviceData.error || serviceData.response.data, "getDropdownData");
+
+                    }
+                },
+                function (error) {
+                    $scope.isLoadingData = false;
+                    // Error handling function when api fails
+                    $scope.showInputLoader.show = false;
+                    if (error.status === 500) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_NETWORK');
+                        $scope.error('md');
+                    } else if(error.status !== 200 && (error.xhrStatus === 'error' || error.xhrStatus === 'complete')) {
+                        $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_AUTOCOMPLETE_USERNAME');
+                        $scope.error('md');
+                    }
+                });
+            }else{
+                $scope.isUserPermissionEmpty = true;
+                $scope.isLoadingData = false;
+            }
+        }
+
         $scope.init = function () {
             if(!SessionStore.getItem("myVaultKey")){ /* Check if user is in the same session */
                 $state.go('/');
                 return;
             }
+            $scope.appNameTableOptionsSort=[]
+            $scope.appNameSelected = false;
             var feature = JSON.parse(SessionStore.getItem("feature"));
             if (feature.selfservice == false && JSON.parse(SessionStore.getItem("isAdmin")) == false) {
                 $state.go('manage');
@@ -929,17 +1121,32 @@
                 name: '',
                 owner: '',
                 description: '',
-                type: ''
+                type: '',
+                appName:''
             };
             $scope.dropDownOptions = {
                 'selectedGroupOption': {"type": "Select Type"},       // As initial placeholder
                 'tableOptions': $scope.tableOptions
+            }  
+            $scope.dropdownApplicationName = {
+                    'selectedGroupOption': {"type": "Select Application Name"},       // As initial placeholder
+                    'tableOptions':  $scope.appNameTableOptionsSort 
             }
             $scope.allSafesList = JSON.parse(SessionStore.getItem("allSafes"));
             $scope.myVaultKey = SessionStore.getItem("myVaultKey");
             if(!$scope.myVaultKey){ /* Check if user is in the same session */
                 $state.go('/');
             }
+            $scope.disableAddBtn = true;
+            $scope.userAutoCompleteEnabled = false;
+            $scope.groupAutoCompleteEnabled = false;
+            if (AppConstant.AD_USERS_AUTOCOMPLETE == true) {
+                $scope.userAutoCompleteEnabled = true;
+            }
+            if (AppConstant.AD_GROUP_AUTOCOMPLETE == true) {
+                $scope.groupAutoCompleteEnabled = true;
+            }
+            getWorkloadDetails();
             $scope.requestDataFrChangeSafe();
             $scope.fetchUsers();
             $scope.fetchGroups();
@@ -979,14 +1186,34 @@
 
         $scope.addPermission = function (type, key, permission, editingPermission) {
             var duplicate = false;
+            if (key !== null && key !== undefined) {
+                if (type === "users" && !editingPermission) {
+                    key = document.getElementById('addUser').value.toLowerCase();
+                }
+                if (type === "groups" && !editingPermission) {
+                    key = document.getElementById('addGroup').value;
+                }
+                // extract only userId/groupId from key
+                if (key.includes($scope.domainName)) {
+                    key = key.split('@')[0];
+                }
+                if (type === "users" && key.includes("(")) {
+                    key = key.substring(key.lastIndexOf("(") + 1, key.lastIndexOf(")"));
+                }
+            }
             if (!editingPermission && key != '' && key != undefined) {
                 if (type === "users" && $scope.UsersPermissionsData!= null && $scope.UsersPermissionsData.hasOwnProperty(key.toLowerCase())) {
                     if ($scope.UsersPermissionsData[key.toLowerCase()] != "sudo") {
                         duplicate = true;
                     }
                 }
-                if (type === "groups" && $scope.GroupsPermissionsData!= null && $scope.GroupsPermissionsData.hasOwnProperty(key.toLowerCase())) {
-                    duplicate = true;
+                if (type === "groups" && $scope.GroupsPermissionsData!= null) {
+                    var groupIndex = Object.keys($scope.GroupsPermissionsData).findIndex(function (groupName) {
+                        return groupName.toLowerCase() === key.toLowerCase();
+                    });
+                    if(groupIndex > -1) {
+                        duplicate = true;
+                    }
                 }
                 if (type === "AWSPermission" && $scope.AwsPermissionsData.data!= null && $scope.AwsPermissionsData.data.hasOwnProperty(key.toLowerCase())) {
                     duplicate = true;
@@ -1002,12 +1229,6 @@
             }
             else if ((key != '' && key != undefined) || type == 'AwsRoleConfigure') {
                 try {
-                    if (type === "users" && !editingPermission) {
-                        key = document.getElementById('addUser').value.toLowerCase();
-                    }
-                    if (type === "groups" && !editingPermission) {
-                        key = document.getElementById('addGroup').value.toLowerCase();
-                    }
                     Modal.close('');
                     $scope.isLoadingData = true;
                     $scope.showInputLoader.show = false;
@@ -1015,13 +1236,6 @@
                     var setPath = $scope.getPath();
                     var apiCallFunction = '';
                     var reqObjtobeSent = {};
-                    // extract only userId/groupId from key
-                    if (key.includes($scope.domainName)) {
-                        key = key.split('@')[0];
-                    }
-                    if (key !== null && key !== undefined) {
-                        key = UtilityService.formatName(key);
-                    }
                     if ($scope.awsConfPopupObj.role !== null && $scope.awsConfPopupObj.role !== undefined) {
                         $scope.awsConfPopupObj.role = UtilityService.formatName($scope.awsConfPopupObj.role);
                     }
@@ -1030,9 +1244,9 @@
                     }
                     var updatedUrlOfEndPoint = "";
                     switch (type) {
-                        case 'users' :
+                        case 'users':
                             apiCallFunction = AdminSafesManagement.addUserPermissionForSafe;
-                            reqObjtobeSent = {"path": setPath, "username": key, "access": permission.toLowerCase()};
+                            reqObjtobeSent = { "path": setPath, "username": key, "access": permission.toLowerCase() };
                             break;
                         case 'groups' :
                             apiCallFunction = AdminSafesManagement.addGroupPermissionForSafe;
@@ -1096,13 +1310,13 @@
                                         $scope.requestDataFrChangeSafe();
                                         var notification = UtilityService.getAParticularSuccessMessage('MESSAGE_ADD_SUCCESS');
                                         if (key !== null && key !== undefined) {
-                                            if (type === "users" && key === SessionStore.getItem("username")) {
+                                            // if (type === "users" && key === SessionStore.getItem("username")) {
                                                 clearInputPermissionData();
-                                                return Modal.createModalWithController('stop.modal.html', {
-                                                    title: 'Permission changed',
-                                                    message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
-                                                  });
-                                            }
+                                            //     return Modal.createModalWithController('stop.modal.html', {
+                                            //         title: 'Permission changed',
+                                            //         message: 'For security reasons, if you add or modify permission to yourself, you need to log out and log in again for the added or modified permissions to take effect.'
+                                            //       });
+                                            // }
                                             Notifications.toast(key + "'s permission" + notification);
                                         }
                                     }
@@ -1123,10 +1337,18 @@
                         function (error) {
                             // Error handling function
                             console.log(error);
-                            clearInputPermissionData();
-                            $scope.isLoadingData = false;
-                            $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
-                            $scope.error('md');
+                            document.getElementById('addUser').value = '';
+                            if(error.status == "404"){
+                                $scope.isLoadingData = false;
+                                $scope.errorMessage = error.data.messages[0];
+                                $scope.error('md');
+                            }else{
+                                clearInputPermissionData();
+                                $scope.isLoadingData = false;
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
+                           
                         })
                 } catch (e) {
                     // To handle errors while calling 'fetchData' function
@@ -1253,6 +1475,170 @@
         //           }
         //       );
         //   };
+
+        $scope.transferSafeConfirmation =  function() {
+            $scope.isAdmin = JSON.parse(SessionStore.getItem("isAdmin"));
+            $scope.tansferSafe = {
+                safeName: $scope.safe.name,
+                safeType: $scope.safe.type,
+                currentOwner: $scope.safe.owner,
+                newOwnerEmail: ""
+            }
+            $scope.clearOwnerEmail();
+            Modal.createModal('md', 'transferSafeConfirmation.html', 'ChangeSafeCtrl', $scope);
+        }
+
+        $scope.transferSafeForm =  function() {
+            Modal.close('close');
+            Modal.createModal('md', 'transferSafeForm.html', 'ChangeSafeCtrl', $scope);
+        }
+
+        $scope.searchEmail = function (searchVal) {
+            if (searchVal.length > 2) {
+                $scope.isUserSearchLoading = true;
+                searchVal = searchVal.toLowerCase();
+                try {
+                    $scope.userSearchList = [];
+                    var queryParameters = searchVal;
+                    var updatedUrlOfEndPoint = ModifyUrl.addUrlParameteres('searchByUPNInGsmAndCorp', queryParameters);
+                    return AdminSafesManagement.searchByUPNInGsmAndCorp(null, updatedUrlOfEndPoint).then(
+                        function(response) {
+                            $scope.isUserSearchLoading = false;
+                            if (UtilityService.ifAPIRequestSuccessful(response)) {
+                                var filterdUserData = [];
+                                $scope.userSearchList = response.data.data.values;
+                                $scope.userSearchList.forEach(function (userData) {
+                                    if (userData.userEmail != null && userData.userEmail.substring(0, searchVal.length).toLowerCase() == searchVal) {
+                                        filterdUserData.push(userData);
+                                    }
+                                });
+                                return orderByFilter(filterFilter(filterdUserData, searchVal), 'userEmail', true);
+                            } else {
+                                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                                $scope.error('md');
+                            }
+                        },
+                        function(error) {
+                            // Error handling function
+                            console.log(error);
+                            $scope.isUserSearchLoading = false;
+                            $scope.tansferSafeEmailErrorMessage = "Email not found";
+                    });
+                } catch (e) {
+                    console.log(e);
+                    $scope.isUserSearchLoading = false;
+                    clearSafeTransferRequest();
+                    $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                    $scope.error('md');
+                }
+            }
+        }
+
+        $scope.ownerEmailValidation = function () {
+            $scope.tansferSafeEmailErrorMessage = '';
+            if ($scope.tansferSafe.newOwnerEmail == null || $scope.tansferSafe.newOwnerEmail == ""){
+                $scope.safeTransferInValid = true;
+            }
+            if ($scope.tansferSafe.newOwnerEmail != null && $scope.tansferSafe.newOwnerEmail != undefined
+                && $scope.tansferSafe.newOwnerEmail != "") {
+
+                if ($scope.tansferSafe.currentOwner==$scope.tansferSafe.newOwnerEmail) {
+                    $scope.tansferSafeEmailErrorMessage = "New owner email id should not be same as current owner email id"
+                    $scope.safeTransferInValid = true;
+                }
+            }
+        }
+
+        $scope.selectOwnerforSafe = function (ownerEmail) {
+            $scope.tansferSafeEmailErrorMessage = '';
+            if (ownerEmail != null) {
+                $scope.tansferSafe.newOwnerEmail = ownerEmail.userEmail;
+                if ($scope.tansferSafe.newOwnerEmail != null && $scope.tansferSafe.newOwnerEmail != undefined
+                        && $scope.tansferSafe.newOwnerEmail != "") {
+                    if ($scope.tansferSafe.currentOwner==$scope.tansferSafe.newOwnerEmail) {
+                        $scope.tansferSafeEmailErrorMessage = "New owner email id should not be same as current owner email id"
+                        $scope.safeTransferInValid = true;
+                        $scope.isOwnerSelected = false;
+                    }
+                    else{
+                        $scope.safeTransferInValid = false;
+                        $scope.isOwnerSelected = true;
+                    }
+                }
+            }
+        }
+
+        $scope.clearOwnerEmail = function () {
+            $scope.tansferSafe.newOwnerEmail = "";
+            $scope.isOwnerSelected = false;
+            $scope.tansferSafeEmailErrorMessage = "";
+        }
+
+        function clearSafeTransferRequest () {
+            $scope.tansferSafe = {
+                safeName: null,
+                safeType: null,
+                currentOwner: null,
+                newOwnerEmail: ""
+            }
+            $scope.isTransferInProgress = false;
+        }
+
+        $scope.transferSafe = function () {
+            Modal.close('close');
+            $scope.isLoadingData = true;
+            $scope.isTransferInProgress = true;
+            var safeType = "users";
+            switch ($scope.tansferSafe.safeType) {
+                case "Application Safe":
+                    safeType = 'apps';
+                    break;
+                case "User Safe":
+                    safeType = 'users';
+                    break;
+                case "Shared Safe":
+                default:
+                    safeType = 'shared';
+                    break;
+            }
+            var transferRequest = {
+                newOwnerEmail: $scope.tansferSafe.newOwnerEmail,
+                safeName: $scope.tansferSafe.safeName,
+                safeType: safeType
+            }
+            AdminSafesManagement.transferSafe(transferRequest, null).then(function (response) {
+                $scope.isLoadingData = false;
+                if (UtilityService.ifAPIRequestSuccessful(response)) {
+                    $scope.transferSafeSuccess();
+                }
+                else {
+                    $scope.transferSafeFailed();
+                }
+            },
+            function (error) {
+                // Error handling function
+                console.log(error);
+                $scope.isLoadingData = false;
+                clearSafeTransferRequest();
+                $scope.errorMessage = UtilityService.getAParticularErrorMessage('ERROR_GENERAL');
+                $scope.error('md');
+            })
+        }
+
+        $scope.transferSafeSuccess =  function() {
+            Modal.close('close');
+            Modal.createModal('md', 'transferSafeSuccess.html', 'ChangeSafeCtrl', $scope);
+        }
+
+        $scope.transferSafeFailed =  function() {
+            Modal.close('close');
+            Modal.createModal('md', 'transferSafeFailed.html', 'ChangeSafeCtrl', $scope);
+        }
+
+        $scope.closeSafeTransfer = function () {
+            clearSafeTransferRequest();
+            $scope.goBack();
+        }
 
         $scope.init();
 
