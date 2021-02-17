@@ -9711,7 +9711,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	private boolean validateApplicationNameForOnboard(SSLCertificateOnboardRequest sslCertificateRequest) {
 		boolean isValidAppName = false;
 		ResponseEntity<String> appResponse = workloadDetailsService.getWorkloadDetailsByAppName(sslCertificateRequest.getAppName());
-		if ((!sslCertificateRequest.getAppName().equalsIgnoreCase(SSLCertificateConstants.APP_NAME_OTHER)) || (appResponse != null && HttpStatus.OK.equals(appResponse.getStatusCode()))) {
+		if ((!sslCertificateRequest.getAppName().equalsIgnoreCase(SSLCertificateConstants.APP_NAME_OTHER)) && (appResponse != null && HttpStatus.OK.equals(appResponse.getStatusCode()))) {
 			isValidAppName = true;
 		}
 		return isValidAppName;
