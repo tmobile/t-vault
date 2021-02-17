@@ -529,9 +529,9 @@ public class SSLCertificateController {
 	@ApiOperation(value = "${SSLCertificateController.getAllOnboardPendingCertificates.value}", notes = "${SSLCertificateController.getAllOnboardPendingCertificates.notes}")
 	@GetMapping(value = "/v2/sslcert/pendingcertificates", produces = "application/json")
 	public ResponseEntity<String> getAllOnboardPendingCertificates(HttpServletRequest request,
-			@RequestHeader(value = "vault-token") String token) throws Exception { 
+			@RequestHeader(value = "vault-token") String token, @RequestParam(name = "limit", required = false) Integer limit, @RequestParam(name = "offset", required = false) Integer offset) throws Exception { 
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return sslCertificateService.getAllOnboardPendingCertificates(token, userDetails);
+		return sslCertificateService.getAllOnboardPendingCertificates(token, userDetails, limit, offset);
 	}
 
 	/**

@@ -206,6 +206,8 @@ public class SSLCertificateServiceTest {
         ReflectionTestUtils.setField(sSLCertificateService, "private_single_san_ts_gp_id", 29);
         ReflectionTestUtils.setField(sSLCertificateService, "pacbotGetCertEndpoint", "/pacbot/test");
 
+        ReflectionTestUtils.setField(sSLCertificateService, "paginationLimit", 20);
+
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         userDetails.setUsername("normaluser");
         userDetails.setAdmin(true);
@@ -7183,7 +7185,7 @@ public class SSLCertificateServiceTest {
 		when(ControllerUtil.parseJson(findCertResponse.getResponse())).thenReturn(requestCertMap);
 
 		ResponseEntity<?> enrollResponse = sSLCertificateService.getAllOnboardPendingCertificates(token,
-				userDetail);
+				userDetail, 1, 0);
 		assertNotNull(enrollResponse);
 		assertEquals(HttpStatus.OK, enrollResponse.getStatusCode());
 	}
@@ -7193,7 +7195,7 @@ public class SSLCertificateServiceTest {
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST)
 				.body("{\"errors\":[\"Access denied: No permission to get the pending certificates\"]}");
 
-		ResponseEntity<?> enrollResponse = sSLCertificateService.getAllOnboardPendingCertificates(token, null);
+		ResponseEntity<?> enrollResponse = sSLCertificateService.getAllOnboardPendingCertificates(token, null, 1, 0);
 		assertNotNull(enrollResponse);
 		assertEquals(HttpStatus.BAD_REQUEST, enrollResponse.getStatusCode());
 		assertEquals(responseEntityExpected, enrollResponse);
@@ -7227,7 +7229,7 @@ public class SSLCertificateServiceTest {
 		when(reqProcessor.processCert(eq("/auth/certmanager/login"), anyObject(), anyString(), anyString()))
 				.thenReturn(null);
 
-		ResponseEntity<?> enrollResponse = sSLCertificateService.getAllOnboardPendingCertificates(token, userDetail);
+		ResponseEntity<?> enrollResponse = sSLCertificateService.getAllOnboardPendingCertificates(token, userDetail, 1, 0);
 		assertNotNull(enrollResponse);
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, enrollResponse.getStatusCode());
 		assertEquals(responseEntityExpected, enrollResponse);

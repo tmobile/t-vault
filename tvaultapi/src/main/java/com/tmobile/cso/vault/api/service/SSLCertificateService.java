@@ -285,6 +285,9 @@ public class SSLCertificateService {
     @Value("${sslcertmanager.endpoint.findAllCertificate}")
     private String findAllCertificate;
 
+    @Value("${vault.pagination.limit}")
+	private Integer paginationLimit;
+
     @Autowired
 	private OIDCUtil oidcUtil;
 
@@ -9283,7 +9286,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	 * @return
 	 * @throws Exception
 	 */
-	public ResponseEntity<String> getAllOnboardPendingCertificates(String token, UserDetails userDetails)
+	public ResponseEntity<String> getAllOnboardPendingCertificates(String token, UserDetails userDetails, Integer limit, Integer offset)
 			throws Exception {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -9315,6 +9318,9 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		List<CertificateData> certificatesList = new ArrayList<>();
 		String targetEndpointVal = findAllCertificate;
 
+		limit = (limit == null || limit > paginationLimit) ? paginationLimit : limit;
+		offset = (offset == null)? 0 : offset;
+
 		// Getting all on-boarded internal certificates
 		List<String> onboardedInternalCerts = getCertificateNameList(
 				getListOfCertificates(token, SSLCertificateConstants.INTERNAL));
@@ -9325,6 +9331,24 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 
 		getCertificateListFromNclm(nclmAccessToken, certificatesList, targetEndpointVal, onboardedInternalCerts,
 				onboardedExternalCerts);
+
+		if (!certificatesList.isEmpty()) {
+			Integer totCount = certificatesList.size();
+			Integer offsetVal = 0;
+			Integer toindex = 0;
+			Integer limitVal = offset + limit;
+
+			if (offset <= totCount) {
+				offsetVal = offset;
+			} else {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("{\"errors\":[\"No more pending certificates available to onboard\"]}");
+			}
+
+			toindex = (limitVal <= totCount) ? limitVal : totCount;
+
+			certificatesList = certificatesList.subList(offsetVal, toindex);
+		}
 
 		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(certificatesList));
 	}
