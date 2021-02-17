@@ -19,6 +19,7 @@ package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
@@ -67,6 +68,9 @@ public class  SafesService {
 
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
+
+	@Value("${vault.pagination.limit}")
+	private Integer paginationLimit;
 
 	@Autowired
 	private SafeUtils safeUtils;
@@ -2497,7 +2501,9 @@ public class  SafesService {
 	 * @param path
 	 * @return
 	 */
-	public ResponseEntity<String> getFoldersRecursively(String token, String path) {
+	public ResponseEntity<String> getFoldersRecursively(String token, String path, Integer limit, Integer offset) {
+		limit = (limit == null || limit > paginationLimit)?paginationLimit:limit;
+		offset = (offset == null)?0:offset;
 		String _path = "";
 		if( TVaultConstants.APPS.equals(path)||TVaultConstants.SHARED.equals(path)||TVaultConstants.USERS.equals(path)){
 			_path = METADATA+path;
@@ -2505,19 +2511,46 @@ public class  SafesService {
 			_path = path;
 		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "getFoldersRecursively").
 				put(LogMessage.MESSAGE, String.format ("Trying to get fodler recursively [%s]", path)).
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 		Response response = reqProcessor.process("/sdb/list","{\"path\":\""+_path+"\"}",token);
-		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+		List<String> safeList = new ArrayList<>();
+		if (response.getHttpstatus().equals(HttpStatus.OK)) {
+			String responseJson = response.getResponse();
+			ObjectMapper objMapper = new ObjectMapper();
+			try {
+				JsonNode safeArray = objMapper.readTree(responseJson).get("keys");
+				if (null != safeArray) {
+					for(JsonNode safe : safeArray){
+						safeList.add(safe.asText());
+					}
+				}
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "getFoldersRecursively").
+						put(LogMessage.MESSAGE, "Failed to extract safe list from response").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+		}
+		int totalCount = safeList.size();
+		List<String> filterList = safeList.stream().skip(offset).limit(limit).collect(Collectors.toList());
+		Map<String, Object> safesMap = new HashMap<String, Object>();
+		safesMap.put("keys", filterList.toArray());
+		safesMap.put("total", totalCount);
+		safesMap.put("next", (totalCount - (filterList.size()+ offset)>0?totalCount - (filterList.size() + offset):-1));
+
+		log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "getFoldersRecursively").
 				put(LogMessage.MESSAGE, "getFoldersRecursively completed").
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
-		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		return ResponseEntity.status(response.getHttpstatus()).body(JSONUtil.getJSON(safesMap));
 	}
 
 	/**

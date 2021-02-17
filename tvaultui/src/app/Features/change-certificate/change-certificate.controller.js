@@ -593,6 +593,7 @@
                 $scope.changeCertificateHeader = "EDIT CERTIFICATE";
                 $scope.certificateName = $stateParams.certificateObject.certificateName;
                 $scope.certificateType = $stateParams.certificateObject.certType;
+                $scope.keyUsageValue=$stateParams.certificateObject.keyUsageValue;
                 $scope.isEditSafe = true;
                 $scope.typeDropdownDisable = true;
                 var certName = $stateParams.certificateObject.certificateName;
