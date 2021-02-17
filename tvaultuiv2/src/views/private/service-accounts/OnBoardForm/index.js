@@ -789,7 +789,7 @@ const OnBoardForm = (props) => {
               : history?.location?.pathname.includes('/edit-service-accounts')
               ? 'Password rotation configuration for the service account has been updated successfully.'
               : `<p> Onboarding
-                of service account has been completed successfully. To continue, the service account needs to be activated by ${userState?.userEmail}. If you are owner of the service account, you need to log out and login again to activate it.</p>`
+                of service account has been completed successfully. To continue, the service account needs to be activated by ${serviceAccountDetails?.managedBy?.userEmail}. If you are owner of the service account, you need to log out and login again to activate it.</p>`
           }
           cancelButton={
             <ButtonComponent
