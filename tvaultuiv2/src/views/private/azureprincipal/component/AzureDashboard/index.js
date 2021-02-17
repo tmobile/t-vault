@@ -355,7 +355,7 @@ const AzureDashboard = () => {
             <ColumnHeader>
               <div style={{ margin: '0 1rem' }}>
                 <TitleOne extraCss={ListHeader}>
-                  {`Azure Principal (${azureList?.length})`}
+                  {`Azure Service Principal (${azureList?.length})`}
                 </TitleOne>
               </div>
               <SearchWrap>
@@ -396,7 +396,7 @@ const AzureDashboard = () => {
                         <NoListWrap>
                           <NoData
                             imageSrc={NoSafesIcon}
-                            description="No azure principal are associated with you yet."
+                            description="No azure service principal are associated with you yet."
                             customStyle={customStyle}
                           />
                         </NoListWrap>

@@ -100,7 +100,7 @@ const TreeRecursive = (props) => {
           key={index}
           secret={secret}
           parentId={item.parentId}
-          versionInfo={getDaysDifference(secretVersionInfo[Object.keys(secret)[0]][0]?.modifiedAt)}
+          versionInfo={getDaysDifference(secretVersionInfo && secretVersionInfo[Object.keys(secret)[0]][0]?.modifiedAt)}
           setSecretprefilledData={setSecretprefilledData}
           type={item.type}
           setIsAddInput={setIsAddInput}
