@@ -293,7 +293,17 @@ script(type='text/ng-template', id='certificatePopup.html')
                           div.key-acceptance-info() {{ notificationEmailErrorMessage }}
                         .col-lg-3.col-md-3.col-sm-3.col-xs-3
                           button.common-btn.dns-add-btn(ng-click="addNotificationEmailCert(notificationEmail)" ng-disabled="!isNotificationEmailSelected") Add Email
-            .common-form.modal-inner-wrapper.aws(ng-show='isCertificateManagePreview')  
+                        .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
+                          .details-input-group(ng-show="keyUsageOptions")
+                            .certificate-form-label(uib-tooltip="") Extended key usage
+                            label.certificate-form-label Server auth&nbsp;
+                              input(type='radio' id='keyUsageType' value="Server" ng-model="selectionKeyUsage"  ng-click="getExtendedKeyUsage('server')" ng-checked="selectionKeyUsage ==  'server'" )
+                            label.certificate-form-label &nbsp;&nbsp;&nbsp;Client auth
+                              input(type='radio' id='keyUsageType' value="Client" ng-model="selectionKeyUsage"  ng-click="getExtendedKeyUsage('client')" ng-checked="selectionKeyUsage == 'client'"  )
+                            label.certificate-form-label &nbsp;&nbsp;&nbsp;Both&nbsp;
+                              input(type='radio' id='keyUsageType' value="Both" ng-model="selectionKeyUsage"  ng-click="getExtendedKeyUsage('both')" ng-checked="selectionKeyUsage == 'both'" )
+
+            .common-form.modal-inner-wrapper.aws(ng-show='isCertificateManagePreview')
               .common-form-row
                 .cert-conf.clearfix
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
@@ -335,7 +345,7 @@ script(type='text/ng-template', id='certificatePopup.html')
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group
                       .certificate-form-label Extended Key Usage :
-                      .cert-preview-details(ng-if="certificateDetails.certType=='Internal'") serverAuth
+                      .cert-preview-details(ng-if="certificateDetails.certType=='Internal'") {{ certificateDetails.keyUsageType }}
                       .cert-preview-details(ng-if="certificateDetails.certType=='External'") serverAuth, clientAuth
                   .col-lg-12.col-md-12.col-sm-12.col-xs-12.common-form-row()
                     .details-input-group

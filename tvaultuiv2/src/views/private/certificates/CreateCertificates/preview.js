@@ -49,6 +49,16 @@ const CancelButton = styled.div`
   }
 `;
 
+function getKeyUsageValue(setKeyValue, certificateType) {
+  if (certificateType === 'internal') {
+    if (setKeyValue === 'client' || setKeyValue === 'Client auth')
+      return 'Client auth';
+    if (setKeyValue === 'server' || setKeyValue === 'Server auth')
+      return 'Server auth';
+    return 'Client Auth , Server Auth';
+  }
+  return 'Client Auth , Server Auth';
+}
 const PreviewCertificate = (props) => {
   const {
     certificateType,
@@ -66,6 +76,7 @@ const PreviewCertificate = (props) => {
     notificationEmails,
     onboard,
     showPreview,
+    setKeyValue,
   } = props;
   const [dnsNames, setDnsNames] = useState([]);
   useEffect(() => {
@@ -134,10 +145,8 @@ const PreviewCertificate = (props) => {
         </EachDetail>
         <EachDetail>
           <Label>Extended Key Usage:</Label>
-          <Value>
-            {certificateType?.toLowerCase() === 'internal'
-              ? 'serverAuth'
-              : 'serverAuth, clientAuth'}
+          <Value capitalize="capitalize">
+            {getKeyUsageValue(setKeyValue, certificateType) || 'N/A'}
           </Value>
         </EachDetail>
         <EachDetail>
@@ -199,6 +208,7 @@ PreviewCertificate.propTypes = {
   owner: PropTypes.string,
   onboard: PropTypes.bool,
   showPreview: PropTypes.bool,
+  setKeyValue: PropTypes.string,
 };
 
 PreviewCertificate.defaultProps = {
@@ -217,6 +227,7 @@ PreviewCertificate.defaultProps = {
   isEditCertificate: false,
   onboard: false,
   showPreview: false,
+  setKeyValue: 'N/A',
 };
 
 export default PreviewCertificate;

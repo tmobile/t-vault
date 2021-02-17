@@ -277,6 +277,7 @@ const CreateCertificates = (props) => {
   const [toastMessage, setToastMessage] = useState('');
   const [ownerEmail, setOwnerEmail] = useState('N/A');
   const [certificateType, setCertificateType] = useState('internal');
+  const [setKeyValue, setExtendedUsageValue] = useState('server');
   const [dnsArray, setDnsArray] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
   const [dnsError, setDnsError] = useState(false);
@@ -509,6 +510,7 @@ const CreateCertificates = (props) => {
         certOwnerEmailId: ownerEmail,
         certOwnerNTId: state.username,
         certType: certificateType.toLowerCase(),
+        keyUsageValue: setKeyValue,
         certificateName: certName,
         dnsList,
         notificationEmail: notificationEmailList.toString(),
@@ -762,6 +764,7 @@ const CreateCertificates = (props) => {
       setNotifyEmailStatus({ status: 'not-available' });
       setNotificationEmailList([]);
       setSearchBy('User');
+      setExtendedUsageValue('server');
     } else {
       setApplicationNameError(false);
     }
@@ -834,6 +837,7 @@ const CreateCertificates = (props) => {
                     owner={ownerEmail}
                     container="VenafiBin_12345"
                     certName={certName}
+                    setKeyValue={setKeyValue}
                     handleClose={handleClose}
                     onEditClicked={() => setShowPreview(false)}
                     onCreateClicked={() => onCreateClicked()}
@@ -1057,6 +1061,26 @@ const CreateCertificates = (props) => {
                           );
                         })}
                       </ArrayList>
+                    )}
+                  {notifyEmailStatus.status === 'available' &&
+                    certificateType === 'internal' && (
+                      <>
+                        <InputFieldLabelWrapper>
+                          <InputLabel>&nbsp; </InputLabel>
+
+                          <InputLabel>
+                            Extended Key Usage Value :
+                            <RequiredCircle margin="1.3rem" />
+                          </InputLabel>
+                          <RadioButtonComponent
+                            menu={['server', 'client', 'both']}
+                            handleChange={(e) =>
+                              setExtendedUsageValue(e.target.value)
+                            }
+                            value={setKeyValue}
+                          />
+                        </InputFieldLabelWrapper>
+                      </>
                     )}
                 </CreateCertificateForm>
                 <CancelSaveWrapper showPreview={showPreview}>
