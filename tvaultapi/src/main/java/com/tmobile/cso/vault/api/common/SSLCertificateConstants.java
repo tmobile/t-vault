@@ -149,4 +149,7 @@ public final class SSLCertificateConstants {
     public static final String KEYUSAGE_VALUE_CLIENT_LABEL= "Client auth";
     public static final String KEYUSAGE_VALUE_SERVER_LABEL= "Server auth";
     public static final String KEYUSAGE_VALUE_VALID_STRING="client|server|both";
+    public static final String APP_NAME_OTHER="Other";
+    public static final String API="api";
+    public static final String UI="ui";
 }

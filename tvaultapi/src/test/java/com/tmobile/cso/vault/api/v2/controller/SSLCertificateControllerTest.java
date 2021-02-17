@@ -2,6 +2,7 @@ package com.tmobile.cso.vault.api.v2.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
@@ -118,8 +119,8 @@ public class SSLCertificateControllerTest {
         sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
 
 
-       when(sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token,"ui")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-       assertEquals(HttpStatus.OK, sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token,"ui").getStatusCode());
+       when(sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token,SSLCertificateConstants.UI)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+       assertEquals(HttpStatus.OK, sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token,SSLCertificateConstants.UI).getStatusCode());
     }
 
     @Test
@@ -142,7 +143,7 @@ public class SSLCertificateControllerTest {
         sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
 
 
-        when(sslCertificateService.generateSSLCertificate(sSLCertificateRequest, userDetails, token,"ui")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(sslCertificateService.generateSSLCertificate(sSLCertificateRequest, userDetails, token,SSLCertificateConstants.UI)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
         assertEquals(HttpStatus.OK, SslCertificateController.generateSSLCertificate(httpServletRequest, token, sSLCertificateRequest).getStatusCode());
     }
@@ -166,10 +167,10 @@ public class SSLCertificateControllerTest {
         sSLCertificateRequest.setTargetSystem(targetSystem);
         sSLCertificateRequest.setTargetSystemServiceRequest(targetSystemServiceRequest);
 
-        when(sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token,"ui")).thenReturn(new ResponseEntity<>
+        when(sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token,SSLCertificateConstants.UI)).thenReturn(new ResponseEntity<>
              (HttpStatus.INTERNAL_SERVER_ERROR));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,
-                sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token,"ui").getStatusCode());
+                sslCertificateService.generateSSLCertificate(sSLCertificateRequest,userDetails,token,SSLCertificateConstants.UI).getStatusCode());
 
     }
     
