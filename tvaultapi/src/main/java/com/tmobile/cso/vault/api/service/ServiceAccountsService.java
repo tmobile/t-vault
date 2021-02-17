@@ -146,7 +146,7 @@ public class  ServiceAccountsService {
 		andFilter.and(new EqualsFilter("objectClass", "user"));
 		andFilter.and(new NotFilter(new EqualsFilter("CN", adMasterServiveAccount)));
 		if (excludeOnboarded) {
-			ResponseEntity<String> responseEntity = getOnboardedServiceAccounts(token, userDetails);
+			ResponseEntity<String> responseEntity = getOnboardedServiceAccounts(token, userDetails, null, null);
 			if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
 				String response = responseEntity.getBody();
 				List<String> onboardedSvcAccs = new ArrayList<String>();
@@ -1973,16 +1973,17 @@ public class  ServiceAccountsService {
 	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> getOnboardedServiceAccounts(String token,  UserDetails userDetails) {
+	public ResponseEntity<String> getOnboardedServiceAccounts(String token,  UserDetails userDetails, Integer limit, Integer offset) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				  put(LogMessage.ACTION, "listOnboardedServiceAccounts").
 			      put(LogMessage.MESSAGE, "Trying to get list of onboaded service accounts").
-			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 			      build()));
 		Response response = null;
 		if (userDetails.isAdmin()) {
 			response = reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token);
+			response = getSubListFromResponse(response, limit, offset);
 		}
 		else {
 			String[] latestPolicies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails);
@@ -1992,6 +1993,11 @@ public class  ServiceAccountsService {
 					onboardedlist.add(policy.substring(10));
 				}
 			}
+			offset = (offset == null) ? 0 : offset;
+			limit = (limit == null) ? onboardedlist.size() : limit;
+
+			onboardedlist = getSubListFromOnboardedSvcAcc(limit, offset, onboardedlist);
+
 			response = new Response();
 			response.setHttpstatus(HttpStatus.OK);
 			response.setSuccess(true);
@@ -2000,10 +2006,10 @@ public class  ServiceAccountsService {
 
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					  put(LogMessage.ACTION, "listOnboardedServiceAccounts").
 				      put(LogMessage.MESSAGE, "Successfully retrieved the list of AD Service Accounts").
-				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				      build()));
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
@@ -2011,6 +2017,64 @@ public class  ServiceAccountsService {
 			return ResponseEntity.status(HttpStatus.OK).body("{\"keys\":[]}");
 		}
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+	}
+
+	/**
+     * To hide the master approle from responses to UI
+     * @param response
+     * @return
+     */
+    public Response getSubListFromResponse(Response response, Integer limit, Integer offset) {
+        ObjectMapper objMapper = new ObjectMapper();
+        String jsonStr = response.getResponse();
+        Map<String,String[]> requestMap = null;
+        try {
+            requestMap = objMapper.readValue(jsonStr, new TypeReference<Map<String,String[]>>() {});
+        } catch (IOException e) {
+            log.error(e);
+        }
+        if (requestMap != null && null != requestMap.get("keys")) {
+			List<String> svcAccList = new ArrayList<>(Arrays.asList((String[]) requestMap.get("keys")));
+
+			offset = (offset == null) ? 0 : offset;
+			limit = (limit == null) ? svcAccList.size() : limit;
+
+			List<String> svcAccListResponse = new ArrayList<>();
+			int maxVal = svcAccList.size() > (limit+offset)?limit+offset : svcAccList.size();
+			for (int i = offset; i < maxVal; i++) {
+				svcAccListResponse.add(svcAccList.get(i));
+			}
+			String svcAccs = svcAccListResponse.stream().collect(Collectors.joining("\", \""));
+			if (StringUtils.isEmpty(svcAccs)) {
+				response.setResponse("{\"keys\": []}");
+			}
+			else {
+				response.setResponse("{\"keys\": [\"" + svcAccs + "\"]}");
+			}
+		}
+        return response;
+    }
+
+    /**
+	 * Method to get the sublist from onboarded service account list
+	 * @param limit
+	 * @param offset
+	 * @param onboardedlist
+	 * @return
+	 */
+	private List<String> getSubListFromOnboardedSvcAcc(Integer limit, Integer offset, List<String> onboardedlist) {
+		if (!onboardedlist.isEmpty()) {
+			Integer totCount = onboardedlist.size();
+			Integer offsetVal = 0;
+			Integer toindex = 0;
+			Integer limitVal = offset + limit;
+
+			offsetVal = (offset <= totCount) ? offset : totCount;
+			toindex = (limitVal <= totCount) ? limitVal : totCount;
+
+			onboardedlist = onboardedlist.subList(offsetVal, toindex);
+		}
+		return onboardedlist;
 	}
 
     /**
@@ -3746,12 +3810,12 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	private List<String> getOnboardedServiceAccountList(String token, UserDetails userDetails) {
-		ResponseEntity<String> onboardedResponse = getOnboardedServiceAccounts(token, userDetails);
+		ResponseEntity<String> onboardedResponse = getOnboardedServiceAccounts(token, userDetails, null, null);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 				put(LogMessage.ACTION, "getOnboardedServiceAccountList").
 				put(LogMessage.MESSAGE, "Start trying to fetch onboarded AD service account.").
-				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 				build()));
 		ObjectMapper objMapper = new ObjectMapper();
 		List<String> onboardedList = new ArrayList<>();
@@ -3763,10 +3827,10 @@ public class  ServiceAccountsService {
 			}
 		} catch (IOException e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "Update onboarded Service Account").
 					put(LogMessage.MESSAGE, String.format ("Error creating onboarded list [%s]", e.getMessage())).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 		}
 		return onboardedList;
@@ -4119,7 +4183,7 @@ public class  ServiceAccountsService {
 	 * @param token
 	 * @return
 	 */
-	public ResponseEntity<String> getServiceAccounts(UserDetails userDetails, String userToken) {
+	public ResponseEntity<String> getServiceAccounts(UserDetails userDetails, String userToken, Integer limit, Integer offset) {
 		oidcUtil.renewUserToken(userDetails.getClientToken());
 		String token = userDetails.getClientToken();
 		if (!userDetails.isAdmin()) {
@@ -4128,37 +4192,69 @@ public class  ServiceAccountsService {
 		String[] policies = policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails);
 
 		policies = filterPoliciesBasedOnPrecedence(Arrays.asList(policies));
-
 		List<Map<String, String>> svcListUsers = new ArrayList<>();
 		Map<String, List<Map<String, String>>> safeList = new HashMap<>();
 		if (policies != null) {
 			for (String policy : policies) {
-				Map<String, String> safePolicy = new HashMap<>();
-				String[] _policies = policy.split("_", -1);
-				if (_policies.length >= 3) {
-					String[] policyName = Arrays.copyOfRange(_policies, 2, _policies.length);
-					String safeName = String.join("_", policyName);
-					String safeType = _policies[1];
-
-					if (policy.startsWith("r_")) {
-						safePolicy.put(safeName, "read");
-					} else if (policy.startsWith("w_")) {
-						safePolicy.put(safeName, "write");
-					} else if (policy.startsWith("d_")) {
-						safePolicy.put(safeName, "deny");
-					}
-					if (!safePolicy.isEmpty()) {
-						if (safeType.equals(TVaultConstants.SVC_ACC_PATH_PREFIX)) {
-							svcListUsers.add(safePolicy);
-						} 
-					}
-				}
+				getSvcAccDetailsFromPolicies(svcListUsers, policy);
 			}
+			limit = (limit == null) ? svcListUsers.size() : limit;
+			offset = (offset == null) ? 0 : offset;
+			svcListUsers = getSublistFromSvcAccList(limit, offset, svcListUsers);
 			safeList.put(TVaultConstants.SVC_ACC_PATH_PREFIX, svcListUsers);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeList));
 	}
-	
+
+	/**
+	 * Method to get the sublist from service account list.
+	 * @param limit
+	 * @param offset
+	 * @param svcListUsers
+	 * @return
+	 */
+	private List<Map<String, String>> getSublistFromSvcAccList(Integer limit, Integer offset,
+			List<Map<String, String>> svcListUsers) {
+		if (!svcListUsers.isEmpty()) {
+			Integer totCount = svcListUsers.size();
+			Integer offsetVal = 0;
+			Integer toindex = 0;
+			Integer limitVal = offset + limit;
+
+			offsetVal = (offset <= totCount) ? offset : totCount;
+			toindex = (limitVal <= totCount) ? limitVal : totCount;
+
+			svcListUsers = svcListUsers.subList(offsetVal, toindex);
+		}
+		return svcListUsers;
+	}
+
+	/**
+	 * Method to get the Service account details from policies
+	 * @param svcListUsers
+	 * @param policy
+	 */
+	private void getSvcAccDetailsFromPolicies(List<Map<String, String>> svcListUsers, String policy) {
+		Map<String, String> safePolicy = new HashMap<>();
+		String[] svcAccPolicies = policy.split("_", -1);
+		if (svcAccPolicies.length >= 3) {
+			String[] policyName = Arrays.copyOfRange(svcAccPolicies, 2, svcAccPolicies.length);
+			String safeName = String.join("_", policyName);
+			String safeType = svcAccPolicies[1];
+
+			if (policy.startsWith("r_")) {
+				safePolicy.put(safeName, "read");
+			} else if (policy.startsWith("w_")) {
+				safePolicy.put(safeName, "write");
+			} else if (policy.startsWith("d_")) {
+				safePolicy.put(safeName, "deny");
+			}
+			if (!safePolicy.isEmpty() && safeType.equals(TVaultConstants.SVC_ACC_PATH_PREFIX)) {
+				svcListUsers.add(safePolicy);
+			}
+		}
+	}
+
 	/**
 	 * Filter service accounts policies based on policy precedence.
 	 * @param policies
