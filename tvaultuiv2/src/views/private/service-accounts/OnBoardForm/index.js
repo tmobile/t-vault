@@ -239,6 +239,10 @@ const SvcDetailsStyles = css`
   font-weight: 600;
   cursor: pointer;
 `;
+const InfoText = styled.div`
+  font-size: 1.3rem;
+  color: #8b8ea6;
+`;
 const useStylesBootstrap = makeStyles((theme) => ({
   tooltip: {
     fontSize: theme.typography.subtitle2.fontSize,
@@ -780,7 +784,7 @@ const OnBoardForm = (props) => {
           description={
             // eslint-disable-next-line no-nested-ternary
             svcPasswordDetails
-              ? `<p>Service account has been activated successfully!</br></br>
+              ? `<p>Service account ${inputServiceName} has been activated successfully!</br></br>
                Please click "Copy Password" button to copy the password and update the dependent services. You may also want to assign permissions for other users or groups to view or modify this service account. Please do so by visiting the "Permission" tab on the right screen.</p>`
               : history?.location?.pathname.includes('/edit-service-accounts')
               ? 'Password rotation configuration for the service account has been updated successfully.'
@@ -910,6 +914,9 @@ const OnBoardForm = (props) => {
                       </RequiredText>
                     </Span>
                   </LabelRequired>
+                  <InfoText>
+                    Select the service account name from the autocomplete field.
+                  </InfoText>
                   <TypeAheadComponent
                     options={[
                       ...serviceAccountsList.map((item) => item.userId),
@@ -1050,6 +1057,11 @@ const OnBoardForm = (props) => {
                     Application Name
                     <RequiredCircle margin="0.5rem" />
                   </InputLabel>
+                  <InfoText>
+                    Please choose the application name to associate with this
+                    service account. Search application from the below
+                    autocomplete box.
+                  </InfoText>
                   <AutoCompleteComponent
                     options={[
                       ...applicationList.map(

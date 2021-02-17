@@ -245,18 +245,24 @@ const CertificateSelectionTabs = (props) => {
               label="Certificate"
               {...a11yProps(0)}
             />
-            {hasPermission && <Tab label="Permissions" {...a11yProps(1)} />}
+            {hasPermission && certificateDetail.certificateStatus && (
+              <Tab label="Permissions" {...a11yProps(1)} />
+            )}
           </Tabs>
-          {value === 0 && certificateMetaData.applicationName && (
-            <DownLoadWrap>
-              <Download
-                certificateMetaData={certificateMetaData}
-                onDownloadChange={(status, val) =>
-                  onDownloadChange(status, val)
-                }
-              />
-            </DownLoadWrap>
-          )}
+          {value === 0 &&
+            certificateMetaData.applicationName &&
+            certificateDetail.certificateStatus &&
+            certificateDetail?.certificateStatus?.toLowerCase() !==
+              'waiting' && (
+              <DownLoadWrap>
+                <Download
+                  certificateMetaData={certificateMetaData}
+                  onDownloadChange={(status, val) =>
+                    onDownloadChange(status, val)
+                  }
+                />
+              </DownLoadWrap>
+            )}
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>

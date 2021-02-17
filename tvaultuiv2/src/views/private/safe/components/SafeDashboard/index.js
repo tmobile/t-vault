@@ -274,10 +274,12 @@ const SafeDashboard = () => {
         if (configData.AUTH_TYPE === 'oidc') {
           if (result[0] && result[0].data) {
             Object.keys(result[0].data).forEach((item) => {
-              const data = makeSafesList(result[0].data[item], item);
-              data.map((value) => {
-                return safesObject[item].push(value);
-              });
+              if (item === 'shared' || item === 'users' || item === 'apps') {
+                const data = makeSafesList(result[0].data[item], item);
+                data.map((value) => {
+                  return safesObject[item].push(value);
+                });
+              }
             });
           }
         } else {

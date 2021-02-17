@@ -351,7 +351,7 @@ const AzureSecrets = (props) => {
   const activateServiceAccount = () => {
     setOpenConfirmationModal(true);
     setModalDetail({
-      title: 'Confirm Activation',
+      title: 'Azure Service Principal Activation',
       desc: Strings.Resources.azureActivateConfirmation,
     });
     setActivateAction({ action: true, response: false });

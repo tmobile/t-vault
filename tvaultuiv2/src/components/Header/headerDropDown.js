@@ -23,8 +23,8 @@ const SelectField = styled.div`
   height: 100%;
   display: flex;
   align-items: center;
-  padding-left: 1.5rem;
   cursor: ${(props) => (!props.readOnly ? 'pointer' : '')};
+  padding-right: 1.5rem;
 `;
 const ArrowSpan = styled.span`
   margin-top: ${(props) => (!props.showOptionList ? '1rem' : '-0.3rem')};
@@ -66,6 +66,10 @@ const CustomSelectOtion = styled(Link)`
     padding-left: 1.5rem;
   }
 `;
+const SelectedOption = styled.div`
+  padding-left: 1.5rem;
+  width: calc(100% - 1.2rem);
+`;
 
 const HeaderSelectComponent = (props) => {
   const {
@@ -96,7 +100,7 @@ const HeaderSelectComponent = (props) => {
           selectedNav={selectedNav}
           width={width}
         >
-          {value === '' ? filledText : value}
+          <SelectedOption>{value === '' ? filledText : value}</SelectedOption>
           <ArrowSpan showOptionList={showOptionList} />
         </SelectField>
         {showOptionList && (

@@ -82,7 +82,6 @@ const NoDataWrapper = styled.div`
     margin: 0 0.4rem;
     color: #fff;
     font-weight: bold;
-    text-transform: uppercase;
   }
 `;
 
@@ -763,6 +762,7 @@ const CertificatesDashboard = () => {
           )}
           {openDeleteConfirmation && (
             <DeletionConfirmationModal
+              certificateData={certificateData}
               openDeleteConfirmation={openDeleteConfirmation}
               handleDeleteConfirmationModalClose={
                 handleDeleteConfirmationModalClose

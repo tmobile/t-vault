@@ -246,7 +246,7 @@ const ViewAzure = (props) => {
   const onActivateClicked = () => {
     setOpenModal({ status: 'activate' });
     setModalDetail({
-      title: 'Confirm Activation',
+      title: 'Azure Service Principal Activation',
       description: Strings.Resources.azureActivateConfirmation,
     });
   };
@@ -274,8 +274,8 @@ const ViewAzure = (props) => {
         setLoading(false);
         setModalDetail({
           title: 'Activation Successful',
-          description:
-            'Azure Service Principal has been activated. You may also want to assign permissions for other users or groups to view or modify this service account.',
+          description: `<p>Azure service principal ${azureDetail.servicePrincipalName} has been activated successfully!</br></br>
+            Azure Service Principal has been activated. You may also want to assign permissions for other users or groups to view or modify this service account.</p>`,
         });
       })
       .catch((err) => {
@@ -427,7 +427,9 @@ const ViewAzure = (props) => {
                 <>
                   {backDropLoader && <BackdropLoader />}
                   <HeaderWrapper>
-                    <Typography variant="h5">View Azure Pincipal</Typography>
+                    <Typography variant="h5">
+                      View Azure Service Pincipal
+                    </Typography>
                   </HeaderWrapper>
                   <IconDescriptionWrapper>
                     <CertIcon src={azureIcon} alt="azure-icon" />
