@@ -135,16 +135,14 @@ public class TVaultConstants {
     public static final Map<String, String> EMAIL_EXT_TEMPLATE_IMAGE_IDS;
     static {
         EMAIL_EXT_TEMPLATE_IMAGE_IDS = Collections.synchronizedMap(new HashMap<String, String>());
-        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("certmanage", "templates/images/certmanage.png");
         EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("certmanagement", "templates/images/certmanagement.png");
         EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("certview", "templates/images/certview.png");
         EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("certificate", "templates/images/certificate.png");
         EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("search", "templates/images/search.png");
-        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("download", "templates/images/download.png");
+        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("certedit", "templates/images/certedit.png");
         EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("ext_download", "templates/images/ext_download.png");
-        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("ext_search", "templates/images/ext_search.png");
-        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("ext_certficate", "templates/images/ext_certficate.png");
         EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("ext_view_edit", "templates/images/ext_view_edit.png");
+        EMAIL_EXT_TEMPLATE_IMAGE_IDS.put("ext_certficate", "templates/images/ext_certficate.png");
     }
 
     public static final String CERT_POLICY_PREFIX="cert";

@@ -327,16 +327,15 @@ public class  AppRoleService {
 	 * @return
 	 */
 	public ResponseEntity<String> readAppRoleRoleId(String token, String rolename){
-
-		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(rolename)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to read roleID of this AppRole\"]}");
-		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION,READ_APPROLE_ID ).
 			      put(LogMessage.MESSAGE, String.format("Trying to read AppRoleId for the role [%s].", rolename)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
+		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(rolename)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to read roleID of this AppRole\"]}");
+		}
 		Response response = reqProcessor.process(READPOLEIDPATH,ROLENAMESTR+rolename+"\"}",token);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -693,7 +692,7 @@ public class  AppRoleService {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, READAPPROLESECRETID).
-			      put(LogMessage.MESSAGE, String.format("Trying to read secret_id for the AppRole[%s]", rolename)).
+			      put(LogMessage.MESSAGE, String.format("Trying to read secret_id for the Role[%s]", rolename)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		if (!userDetails.isAdmin()) {
@@ -875,7 +874,12 @@ public class  AppRoleService {
 	 * @return
 	 */
 	public ResponseEntity<String> createsecretId(String token, AppRoleSecretData appRoleSecretData){
-
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "CreateSecretId").
+			      put(LogMessage.MESSAGE, String.format("Trying to create SecretId for  [%s]",appRoleSecretData.getRole_name() )).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(appRoleSecretData.getRole_name())){
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to create secretID for this AppRole\"]}");
 		}
@@ -915,17 +919,16 @@ public class  AppRoleService {
 	 * @return
 	 */
 	public ResponseEntity<String> readAppRoleSecretId(String token, String rolename){
-
-		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(rolename)) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("{\"errors\":[\"Access denied: no permission to read secretID for this AppRole\"]}");
-		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "Read SecretId").
 			      put(LogMessage.MESSAGE, String.format("Trying to read SecretId for the role [%s]", rolename)).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
+		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(rolename)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("{\"errors\":[\"Access denied: no permission to read secretID for this AppRole\"]}");
+		}
 		Response response = reqProcessor.process("/auth/approle/secretid/lookup",ROLENAMESTR+rolename+"\"}",token);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
@@ -943,17 +946,16 @@ public class  AppRoleService {
 	 * @return
 	 */
 	public ResponseEntity<String> deleteSecretId(String token, AppRoleNameSecretId appRoleNameSecretId){
-
-		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(appRoleNameSecretId.getRole_name())){
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to delete secretId for this approle\"]}");
-		}
-		String jsonStr = JSONUtil.getJSON(appRoleNameSecretId);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "DeleteSecretId").
 			      put(LogMessage.MESSAGE, String.format("Trying to delete SecretId for the role [%s].",appRoleNameSecretId.getRole_name())).
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
+		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(appRoleNameSecretId.getRole_name())){
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: no permission to delete secretId for this approle\"]}");
+		}
+		String jsonStr = JSONUtil.getJSON(appRoleNameSecretId);
 		Response response = reqProcessor.process("/auth/approle/secret/delete",jsonStr,token);
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
