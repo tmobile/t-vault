@@ -285,9 +285,6 @@ public class SSLCertificateService {
     @Value("${sslcertmanager.endpoint.findAllCertificate}")
     private String findAllCertificate;
 
-    @Value("${vault.pagination.limit}")
-	private Integer paginationLimit;
-
     @Autowired
 	private OIDCUtil oidcUtil;
 
@@ -9318,9 +9315,6 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		List<CertificateData> certificatesList = new ArrayList<>();
 		String targetEndpointVal = findAllCertificate;
 
-		limit = (limit == null || limit > paginationLimit) ? paginationLimit : limit;
-		offset = (offset == null)? 0 : offset;
-
 		// Getting all on-boarded internal certificates
 		List<String> onboardedInternalCerts = getCertificateNameList(
 				getListOfCertificates(token, SSLCertificateConstants.INTERNAL));
@@ -9332,19 +9326,16 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		getCertificateListFromNclm(nclmAccessToken, certificatesList, targetEndpointVal, onboardedInternalCerts,
 				onboardedExternalCerts);
 
+		limit = (limit == null) ? certificatesList.size() : limit;
+		offset = (offset == null) ? 0 : offset;
+
 		if (!certificatesList.isEmpty()) {
 			Integer totCount = certificatesList.size();
 			Integer offsetVal = 0;
 			Integer toindex = 0;
 			Integer limitVal = offset + limit;
 
-			if (offset <= totCount) {
-				offsetVal = offset;
-			} else {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body("{\"errors\":[\"No more pending certificates available to onboard\"]}");
-			}
-
+			offsetVal = (offset <= totCount) ? offset : totCount;
 			toindex = (limitVal <= totCount) ? limitVal : totCount;
 
 			certificatesList = certificatesList.subList(offsetVal, toindex);

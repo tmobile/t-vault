@@ -173,7 +173,7 @@ public class ServiceAccountsControllerV2Test {
         String expected = getJSON(onboardedServiceAccounts);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
 
-        when(serviceAccountsService.getOnboardedServiceAccounts(token, userDetails)).thenReturn(responseEntityExpected);
+        when(serviceAccountsService.getOnboardedServiceAccounts(token, userDetails, null, null)).thenReturn(responseEntityExpected);
         
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/serviceaccounts")
                 .header("vault-token", token)
@@ -581,7 +581,7 @@ public class ServiceAccountsControllerV2Test {
         String expected = getJSON(onboardedServiceAccountDetails);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expected);
         
-        when(serviceAccountsService.getServiceAccounts(userDetails, token)).thenReturn(responseEntityExpected);
+        when(serviceAccountsService.getServiceAccounts(userDetails, token, null, null)).thenReturn(responseEntityExpected);
         
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/serviceaccounts/list")
                 .header("vault-token", token)

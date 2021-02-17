@@ -2349,21 +2349,16 @@ public class ServiceAccountsServiceTest {
     public void test_getOnboardedServiceAccounts_admin_success() {
     	UserDetails userDetails = getMockUser(true);
     	String token = userDetails.getClientToken();
-    	// Bevavior setup
-    	String expectedOutput = "{\n" +
-    			"  \"keys\": [\n" +
-    			"    \"testacc02\",\n" +
-    			"    \"testacc03\",\n" +
-    			"    \"testacc04\"\n" +
-    			"  ]\n" +
-    			"}";
+		// Bevavior setup
+		String expectedOutput = "{\"keys\": [\"testacc02\", \"testacc03\", \"testacc04\"]}";
     	Response onboardedSvsAccsResponse = getMockResponse(HttpStatus.OK, true, expectedOutput);
     	when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(onboardedSvsAccsResponse);
 
     	// System under test
     	ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
-    	ResponseEntity<String> responseEntity = serviceAccountsService.getOnboardedServiceAccounts(token, userDetails);
-    	assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+		ResponseEntity<String> responseEntity = serviceAccountsService.getOnboardedServiceAccounts(token, userDetails,
+				null, null);
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     	assertEquals(responseEntityExpected, responseEntity);
 
     }
@@ -2377,9 +2372,10 @@ public class ServiceAccountsServiceTest {
     	when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(onboardedSvsAccsResponse);
 
     	// System under test
-    	ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
-    	ResponseEntity<String> responseEntity = serviceAccountsService.getOnboardedServiceAccounts(token, userDetails);
-    	assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
+		ResponseEntity<String> responseEntity = serviceAccountsService.getOnboardedServiceAccounts(token, userDetails,
+				1, 0);
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     	assertEquals(responseEntityExpected, responseEntity);
     }
     @Test
@@ -2391,9 +2387,10 @@ public class ServiceAccountsServiceTest {
         when(JSONUtil.getJSON(Mockito.any(List.class))).thenReturn("[\"acc1\",\"acc2\"]");
         when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
     	// System under test
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
-    	ResponseEntity<String> responseEntity = serviceAccountsService.getOnboardedServiceAccounts(token, userDetails);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
+		ResponseEntity<String> responseEntity = serviceAccountsService.getOnboardedServiceAccounts(token, userDetails,
+				1, 0);
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     	assertEquals(responseEntityExpected, responseEntity);
 
     }
@@ -4124,7 +4121,7 @@ public class ServiceAccountsServiceTest {
 
         when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         when(JSONUtil.getJSON(Mockito.any())).thenReturn("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"svcacct\":[{\"test\":\"read\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}");
-        ResponseEntity<String> responseEntity = serviceAccountsService.getServiceAccounts(userDetails, token);
+        ResponseEntity<String> responseEntity = serviceAccountsService.getServiceAccounts(userDetails, token, 1, 0);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -4140,7 +4137,7 @@ public class ServiceAccountsServiceTest {
 
         when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         when(JSONUtil.getJSON(Mockito.any())).thenReturn("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"svcacct\":[{\"test\":\"read\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}");
-        ResponseEntity<String> responseEntity = serviceAccountsService.getServiceAccounts(userDetails, token);
+        ResponseEntity<String> responseEntity = serviceAccountsService.getServiceAccounts(userDetails, token, null, null);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

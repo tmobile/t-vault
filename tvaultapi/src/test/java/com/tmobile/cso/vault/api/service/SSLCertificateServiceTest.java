@@ -206,8 +206,6 @@ public class SSLCertificateServiceTest {
         ReflectionTestUtils.setField(sSLCertificateService, "private_single_san_ts_gp_id", 29);
         ReflectionTestUtils.setField(sSLCertificateService, "pacbotGetCertEndpoint", "/pacbot/test");
 
-        ReflectionTestUtils.setField(sSLCertificateService, "paginationLimit", 20);
-
         token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         userDetails.setUsername("normaluser");
         userDetails.setAdmin(true);
