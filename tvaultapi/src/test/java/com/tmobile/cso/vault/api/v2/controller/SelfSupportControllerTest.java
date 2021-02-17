@@ -665,7 +665,7 @@ public class SelfSupportControllerTest {
     			"}";
     	StringBuilder responseMessage = new StringBuilder(role_id_response);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseMessage.toString());
-        when(selfSupportService.listAppRoles(eq(vaultToken), Mockito.any())).thenReturn(responseEntityExpected);
+        when(selfSupportService.listAppRoles(eq(vaultToken), Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(responseEntityExpected);
         mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/approle")
                 .header("vault-token", vaultToken)
                 .header("Content-Type", "application/json;charset=UTF-8"))

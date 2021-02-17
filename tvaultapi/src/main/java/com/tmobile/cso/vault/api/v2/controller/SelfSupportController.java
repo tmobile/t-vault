@@ -424,9 +424,10 @@ public class SelfSupportController {
 	 */
 	@ApiOperation(value = "${SelfSupportController.listAppRoles.value}", notes = "${SelfSupportController.listAppRoles.notes}")
 	@GetMapping (value="/v2/ss/approle",produces="application/json")
-	public ResponseEntity<String> listAppRoles(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
+	public ResponseEntity<String> listAppRoles(HttpServletRequest request, @RequestHeader(value="vault-token") String token, 
+			@RequestParam(name = "limit", required = false) Integer limit, @RequestParam(name = "offset", required = false) Integer offset){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.listAppRoles(token, userDetails);
+		return selfSupportService.listAppRoles(token, userDetails, limit, offset);	
 	}
 
 	/**

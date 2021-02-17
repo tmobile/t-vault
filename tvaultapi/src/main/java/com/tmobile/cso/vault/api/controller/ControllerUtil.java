@@ -147,6 +147,12 @@ public final class ControllerUtil {
 	
 	private static OIDCUtil oidcUtil;
 	private static final String ERROR_STRING= "{\"errors\":[\"Unexpected error :\"";
+	
+	@Value("${vault.pagination.limit}")
+	private Integer approlePaginationLimit;
+	
+	private static Integer paginationLimit;
+	
 
 	@PostConstruct
 	private void initStatic () {
@@ -155,6 +161,7 @@ public final class ControllerUtil {
 		approleAllowedCharacters = this.approleWhitelistedCharacters;
 		sdbNameAllowedCharacters = this.sdbNameWhitelistedCharacters;
 		sscredFileLocation = this.sscredLocation;
+		paginationLimit = this.approlePaginationLimit;
 		readSSCredFile(sscredFileLocation, true);
 		readOIDCCredFile(sscredFileLocation, true);
 		readIAMPortalCredFile(sscredFileLocation, true);
@@ -2953,7 +2960,7 @@ public final class ControllerUtil {
      * @param response
      * @return
      */
-    public static Response hideMasterAppRoleFromResponse(Response response) {
+    public static Response hideMasterAppRoleFromResponse(Response response, Integer limit, Integer offset) {
         ObjectMapper objMapper = new ObjectMapper();
         String jsonStr = response.getResponse();
         Map<String,String[]> requestMap = null;
@@ -2965,13 +2972,21 @@ public final class ControllerUtil {
         if (null != requestMap.get("keys")) {
 			List<String> policyList = new ArrayList<>(Arrays.asList((String[]) requestMap.get("keys")));
 			policyList.removeAll(Arrays.asList(TVaultConstants.MASTER_APPROLES));
-			String policies = policyList.stream().collect(Collectors.joining("\", \""));
+	
+			limit = (limit == null || limit > paginationLimit)?paginationLimit:limit;
+			offset = (offset == null)?0:offset;
+			List<String> policyListResponse = new ArrayList<String>();
+			int maxVal = policyList.size() > (limit+offset)?limit+offset : policyList.size();
+			for (int i = offset; i < maxVal; i++) {
+				policyListResponse.add(policyList.get(i));	
+			}
+			String policies = policyListResponse.stream().collect(Collectors.joining("\", \""));
 			if (StringUtils.isEmpty(policies)) {
 				response.setResponse("{\"keys\": []}");
 			}
 			else {
 				response.setResponse("{\"keys\": [\"" + policies + "\"]}");
-			}
+			}	
 		}
         return response;
     }

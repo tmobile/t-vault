@@ -263,6 +263,7 @@ public class  AppRoleService {
 	 * @return
 	 */
 	public ResponseEntity<String> readAppRoles(String token) {
+		Integer offset = null , limit = null;
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "readAppRoles").
@@ -278,7 +279,7 @@ public class  AppRoleService {
 			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 			      build()));
 		if (response!= null && HttpStatus.OK.equals(response.getHttpstatus()) && TVaultConstants.HIDEMASTERAPPROLE) {
-			response = ControllerUtil.hideMasterAppRoleFromResponse(response);
+			response = ControllerUtil.hideMasterAppRoleFromResponse(response, limit, offset);
 		}
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 	}
@@ -287,7 +288,7 @@ public class  AppRoleService {
 	 * @param token
 	 * @return
 	 */
-	public ResponseEntity<String> listAppRoles(String token,  UserDetails userDetails) {
+	public ResponseEntity<String> listAppRoles(String token,  UserDetails userDetails, Integer limit, Integer offset) {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				  put(LogMessage.ACTION, "listAppRoles").
@@ -311,7 +312,7 @@ public class  AppRoleService {
 			      build()));
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
 			if (TVaultConstants.HIDEMASTERAPPROLE) {
-				response = ControllerUtil.hideMasterAppRoleFromResponse(response);
+				response = ControllerUtil.hideMasterAppRoleFromResponse(response, limit, offset);
 			}
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
