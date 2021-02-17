@@ -88,9 +88,9 @@ public class SelfSupportControllerTest {
         String responseJson = "{  \"keys\": [    \"mysafe01\"  ]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.getFoldersRecursively(userDetails,  "users/safe1")).thenReturn(responseEntityExpected);
+        when(selfSupportService.getFoldersRecursively(userDetails,  "users/safe1", 10, 0)).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/sdb/list?path=users/safe1").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/sdb/list?path=users/safe1&limit=10&offset=0").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
@@ -492,9 +492,9 @@ public class SelfSupportControllerTest {
         String responseJson = "{\"shared\":[{\"s2\":\"read\"}],\"users\":[{\"s1\":\"read\"},{\"s5\":\"read\"}]}";
         ResponseEntity<String> responseEntityExpected =ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(selfSupportService.getSafes(userDetails)).thenReturn(responseEntityExpected);
+        when(selfSupportService.getSafes(userDetails, 10, 0)).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/sdb/safes").requestAttr("UserDetails", userDetails)
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/sdb/safes?limit=10&offset=0").requestAttr("UserDetails", userDetails)
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk())

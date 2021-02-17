@@ -120,6 +120,7 @@ public class SelfSupportServiceTest {
         currentMap.put("user", "");
         ThreadLocalContext.setCurrentMap(currentMap);
         ReflectionTestUtils.setField(selfSupportService, "vaultAuthMethod", "ldap");
+        ReflectionTestUtils.setField(selfSupportService, "paginationLimit", 20);
     }
 
     UserDetails getMockUser(boolean isAdmin) {
@@ -298,9 +299,9 @@ public class SelfSupportServiceTest {
 
         when(policyUtils.getCurrentPolicies(Mockito.any(), eq("normaluser"), Mockito.any())).thenReturn(policies);
         when(safeUtils.getManagedSafes(policies, path)).thenReturn(safes);
-        when(safesService.getFoldersRecursively(token, path)).thenReturn(response);
+        when(safesService.getFoldersRecursively(token, path, 25, 0)).thenReturn(response);
         when(JSONUtil.getJSON(Mockito.any(HashMap.class))).thenReturn("{\"keys\":[\"mysafe01\"]}");
-        ResponseEntity<String> responseEntity = selfSupportService.getFoldersRecursively(userDetails, path);
+        ResponseEntity<String> responseEntity = selfSupportService.getFoldersRecursively(userDetails, path, 25, 0);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -315,8 +316,8 @@ public class SelfSupportServiceTest {
 
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
-        when(safesService.getFoldersRecursively(token, path)).thenReturn(response);
-        ResponseEntity<String> responseEntity = selfSupportService.getFoldersRecursively(userDetails,  path);
+        when(safesService.getFoldersRecursively(token, path, 25, 0)).thenReturn(response);
+        ResponseEntity<String> responseEntity = selfSupportService.getFoldersRecursively(userDetails,  path, 25, 0);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
@@ -1631,7 +1632,7 @@ public class SelfSupportServiceTest {
 
         when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         when(JSONUtil.getJSON(Mockito.any())).thenReturn("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}");
-        ResponseEntity<String> responseEntity = selfSupportService.getSafes(userDetails);
+        ResponseEntity<String> responseEntity = selfSupportService.getSafes(userDetails, 10, 0);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

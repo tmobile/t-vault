@@ -34,6 +34,7 @@ import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.*;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -81,6 +82,9 @@ public class  SelfSupportService {
 
 	@Value("${safe.quota}")
 	private String safeQuota;
+
+	@Value("${vault.pagination.limit}")
+	private Integer paginationLimit;
 
 	@Autowired
 	private RequestProcessor reqProcessor;
@@ -285,21 +289,30 @@ public class  SelfSupportService {
 	}
 	/**
 	 * Read from safe Recursively
-	 * @param token
+	 * @param userDetails
 	 * @param path
+	 * @param limit
+	 * @param offset
 	 * @return
 	 */
-	public ResponseEntity<String> getFoldersRecursively(UserDetails userDetails, String path) {
+	public ResponseEntity<String> getFoldersRecursively(UserDetails userDetails, String path, Integer limit, Integer offset) {
 		String token = userDetails.getClientToken();
 		if (userDetails.isAdmin()) {
-			return safesService.getFoldersRecursively(token, path);
+			return safesService.getFoldersRecursively(token, path, limit, offset);
 		}
 		else {
 			// List of safes based on current user
+			limit = (limit == null || limit > paginationLimit)?paginationLimit:limit;
+			offset = (offset == null)?0:offset;
 			String[] policies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails);
 			String[] safes = safeUtils.getManagedSafes(policies, path);
-			Map<String, String[]> safesMap = new HashMap<String, String[]>();
+			List<String> safeList =  Arrays.asList(safes).stream().skip(offset).limit(limit).collect(Collectors.toList());
+			safes = safeList.toArray(new String[safeList.size()]);
+			int totalCount = safes.length;
+			Map<String, Object> safesMap = new HashMap<String, Object>();
 			safesMap.put("keys", safes);
+			safesMap.put("total", totalCount);
+			safesMap.put("next", (totalCount - (safes.length+ offset)>0?totalCount - (safes.length + offset):-1));
 			return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safesMap));
 		}
 	}
@@ -741,11 +754,15 @@ public class  SelfSupportService {
 	
 	/**
 	 * Get safes having read/write permission
-	 * @param userDetails
 	 * @param token
+	 * @param userDetails
+	 * @param limit
+	 * @param offset
 	 * @return
 	 */
-	public ResponseEntity<String> getSafes(UserDetails userDetails) {
+	public ResponseEntity<String> getSafes(UserDetails userDetails, Integer limit, Integer offset) {
+		limit = (limit == null || limit > 20)?20:limit;
+		offset = (offset == null)?0:offset;
 		oidcUtil.renewUserToken(userDetails.getClientToken());
 		String token = userDetails.getClientToken();
 		if (!userDetails.isAdmin()) {
@@ -787,9 +804,38 @@ public class  SelfSupportService {
 					}
 				}
 			}
-			safeList.put(TVaultConstants.USERS, safeListUsers);
-			safeList.put(TVaultConstants.SHARED, safeListShared);
-			safeList.put(TVaultConstants.APPS, safeListApps);
+
+			int totalUserSafes = safeListUsers.size();
+			int totalSharedSafes = safeListShared.size();
+			int totalAppSafes = safeListApps.size();
+
+
+			safeList.put(TVaultConstants.USERS, safeListUsers.stream().skip(offset).limit(limit).collect(Collectors.toList()));
+			safeList.put(TVaultConstants.SHARED, safeListShared.stream().skip(offset).limit(limit).collect(Collectors.toList()));
+			safeList.put(TVaultConstants.APPS, safeListApps.stream().skip(offset).limit(limit).collect(Collectors.toList()));
+
+			List<Map<String, String>> userSafeCounts = new ArrayList<>();
+			Map<String, String> userSafeCount = new HashedMap();
+
+			userSafeCount.put("total", String.valueOf(totalUserSafes));
+			userSafeCount.put("next", (totalUserSafes - (safeList.get(TVaultConstants.USERS).size() + offset)>0?String.valueOf(totalUserSafes - (safeList.get(TVaultConstants.USERS).size() + offset)):"-1"));
+			userSafeCounts.add(userSafeCount);
+			safeList.put("userSafeCount", userSafeCounts);
+
+			List<Map<String, String>> sharedSafeCounts = new ArrayList<>();
+			Map<String, String> sharedSafeCount = new HashedMap();
+			sharedSafeCount.put("total", String.valueOf(totalSharedSafes));
+			sharedSafeCount.put("next", (totalSharedSafes - (safeList.get(TVaultConstants.SHARED).size() + offset)>0?String.valueOf(totalSharedSafes - (safeList.get(TVaultConstants.SHARED).size() + offset)):"-1"));
+			sharedSafeCounts.add(sharedSafeCount);
+			safeList.put("sharedSafeCount", sharedSafeCounts);
+
+			List<Map<String, String>> appSafeCounts = new ArrayList<>();
+			Map<String, String> appSafeCount = new HashedMap();
+			appSafeCount.put("total", String.valueOf(totalAppSafes));
+			appSafeCount.put("next", (totalAppSafes - (safeList.get(TVaultConstants.APPS).size() + offset)>0?String.valueOf(totalAppSafes - (safeList.get(TVaultConstants.APPS).size() + offset)):"-1"));
+			appSafeCounts.add(appSafeCount);
+			safeList.put("appSafeCount", appSafeCounts);
+
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeList));
 	}

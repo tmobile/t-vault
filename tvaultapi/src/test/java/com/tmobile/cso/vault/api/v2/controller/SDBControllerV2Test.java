@@ -339,9 +339,9 @@ public class SDBControllerV2Test {
         String responseJson = "{  \"keys\": [    \"mysafe01\"  ]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
-        when(safesService.getFoldersRecursively("5PDrOhsy4ig8L3EpsJZSLAMg", "users/safe1")).thenReturn(responseEntityExpected);
+        when(safesService.getFoldersRecursively("5PDrOhsy4ig8L3EpsJZSLAMg", "users/safe1", 20, 0)).thenReturn(responseEntityExpected);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/v2/sdb/list?path=users/safe1")
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/sdb/list?path=users/safe1&limit=20&offset=0")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
                 .header("Content-Type", "application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
