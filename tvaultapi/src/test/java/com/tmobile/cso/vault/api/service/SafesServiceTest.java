@@ -132,6 +132,8 @@ public class SafesServiceTest {
                 "\"T-Vault\",\"tag\":\"T-Vault\",\"tier\":\"Tier II\",\"workflowStatus\":\"Open_CCP\",\"workload\":\"Adaptive Security\"}}";
         when(workloadDetailsService.getWorkloadDetailsByAppName(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(workloadApiResponse));
+        ReflectionTestUtils.setField(safesService, "paginationLimit", 20);
+
 
     }
 
@@ -1959,7 +1961,8 @@ public class SafesServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 
         when(reqProcessor.process("/sdb/list","{\"path\":\""+path+"\"}",token)).thenReturn(response);
-        ResponseEntity<String> responseEntity = safesService.getFoldersRecursively(token, path);
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn("{  \"keys\": [    \"mysafe01\"  ]}");
+        ResponseEntity<String> responseEntity = safesService.getFoldersRecursively(token, path, 25, 0);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }

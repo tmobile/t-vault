@@ -51,9 +51,9 @@ public class SelfSupportController {
 	 */
 	@GetMapping(value="/v2/ss/sdb/list",produces="application/json")
 	@ApiOperation(value = "${SelfSupportController.getFolders.value}", notes = "${SelfSupportController.getFolders.notes}")
-	public ResponseEntity<String> getFoldersRecursively(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path) {
+	public ResponseEntity<String> getFoldersRecursively(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path, @RequestParam( name="limit",required=false) Integer limit, @RequestParam( name="offset",required=false) Integer offset) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.getFoldersRecursively(userDetails,  path);
+		return selfSupportService.getFoldersRecursively(userDetails,  path, limit, offset);
 	}
 	/**
 	 * Gets the list of all available safe names
@@ -411,9 +411,9 @@ public class SelfSupportController {
 	 */
 	@GetMapping(value="/v2/ss/sdb/safes",produces="application/json")
 	@ApiOperation(value = "${SelfSupportController.getsafes.value}", notes = "${SelfSupportController.getsafes.notes}")
-	public ResponseEntity<String> getsafes(HttpServletRequest request, @RequestHeader(value="vault-token") String token) {
+	public ResponseEntity<String> getsafes(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam( name="limit",required=false) Integer limit, @RequestParam( name="offset",required=false) Integer offset) {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.getSafes(userDetails);
+		return selfSupportService.getSafes(userDetails, limit, offset);
 	}
 
 	/**
@@ -424,9 +424,10 @@ public class SelfSupportController {
 	 */
 	@ApiOperation(value = "${SelfSupportController.listAppRoles.value}", notes = "${SelfSupportController.listAppRoles.notes}")
 	@GetMapping (value="/v2/ss/approle",produces="application/json")
-	public ResponseEntity<String> listAppRoles(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
+	public ResponseEntity<String> listAppRoles(HttpServletRequest request, @RequestHeader(value="vault-token") String token, 
+			@RequestParam(name = "limit", required = false) Integer limit, @RequestParam(name = "offset", required = false) Integer offset){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return selfSupportService.listAppRoles(token, userDetails);
+		return selfSupportService.listAppRoles(token, userDetails, limit, offset);	
 	}
 
 	/**

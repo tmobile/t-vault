@@ -140,4 +140,16 @@ public final class SSLCertificateConstants {
     public static final String POPULATE_SSL_CERTIFICATE_REQUEST = "populateSSLCertificateRequest";
     public static final String GET_CERT_DETAILS_BY_METADATA_PATH = "getCertificateDetailsByMatadataPath";
     public static final String UPDATE_SSL_CERTIFICATE = "updateSSLCertificate";
+    public static final String CLIENT_SERVER_TEMPLATE_NAME ="T-Mobile USA Mutual Web Authentication2 NCLM";
+    public static final String CLIENT_TEMPLATE_NAME ="T-MobileUSASimpleClientAuthNCLM";
+    public static final String KEYUSAGE_VALUE_BOTH="both";
+    public static final String KEYUSAGE_VALUE_CLIENT="client";
+    public static final String KEYUSAGE_VALUE_SERVER="server";
+    public static final String KEYUSAGE_VALUE_BOTH_LABEL= "Client auth , Server auth";
+    public static final String KEYUSAGE_VALUE_CLIENT_LABEL= "Client auth";
+    public static final String KEYUSAGE_VALUE_SERVER_LABEL= "Server auth";
+    public static final String KEYUSAGE_VALUE_VALID_STRING="client|server|both";
+    public static final String APP_NAME_OTHER="Other";
+    public static final String API="api";
+    public static final String UI="ui";
 }

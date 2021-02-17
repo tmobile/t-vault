@@ -428,7 +428,7 @@ public class SSLCertificateService {
      * @return
      */
     public ResponseEntity<String> generateSSLCertificate(SSLCertificateRequest sslCertificateRequest,
-                                                               UserDetails userDetails ,String token, String method) {
+                                                               UserDetails userDetails ,String token,String method) {
         CertResponse enrollResponse = new CertResponse();
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
         		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -467,7 +467,7 @@ public class SSLCertificateService {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 			}
 		}		
-		 if(method.equalsIgnoreCase("api")) {
+		 if(method.equalsIgnoreCase(SSLCertificateConstants.API)) {
 	        	boolean isValidAppname = validateAppname(token,userDetails,sslCertificateRequest.getAppName());
 	        	String errorInvalidApp =  "{\"errors\":[\"To create a certificate you must be a member of the applications Cloud Self-Service group. "
 	        			+ "Please go to https://access.t-mobile.com/ and request access to the group r_selfservice_"+sslCertificateRequest.getAppName()+"_admin in the Cloud Access Portal.\"]}";
@@ -640,7 +640,8 @@ public class SSLCertificateService {
                             build()));
 
                     //Step-9  GetEnrollTemplates
-                    CertResponse templateResponse = getEnrollTemplates(certManagerLogin, targetSystemServiceId, updatedSelectedId);
+                    CertResponse templateResponse = getEnrollTemplates(certManagerLogin, targetSystemServiceId,
+                            updatedSelectedId,sslCertificateRequest);
                     log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                             put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
                             put(LogMessage.ACTION, String.format("Get Enrollment template  Completed Successfully [%s] = certificate name = [%s]",
@@ -1400,14 +1401,14 @@ public class SSLCertificateService {
      */
     private void sendDeleteEmail(String token,String certType, String certName, String certOwnerEmailId, String certOwnerNtId,
                                  String subject,
-                                 String operation,CertificateData certData) {
+                                 String operation,CertificateData certData,Map<String, String> metadataParams) {
         DirectoryUser directoryUser = getUserDetails(certOwnerNtId);
         if (directoryUser != null) {
             String enrollService = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ?
                     SSLCertificateConstants.INTERNAL_CERT_ENROLL_STRING :
                     SSLCertificateConstants.EXTERNAL_CERT_ENROLL_STRING);
 
-            String keyUsage = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ? SSLCertificateConstants.INTERNAL_KEY_USAGE :
+            String keyUsage = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ? metadataParams.get("keyUsageValue") :
                     SSLCertificateConstants.EXTERNAL_KEY_USAGE);
 
                  // set template variables
@@ -1448,16 +1449,15 @@ public class SSLCertificateService {
             String enrollService = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ?
                     SSLCertificateConstants.INTERNAL_CERT_ENROLL_STRING :
                     SSLCertificateConstants.EXTERNAL_CERT_ENROLL_STRING);
-
-            String keyUsage = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ?
-                    SSLCertificateConstants.INTERNAL_KEY_USAGE :
-                    SSLCertificateConstants.EXTERNAL_KEY_USAGE);
             SSLCertificateMetadataDetails certMetaData = null;
 
             if (!StringUtils.isEmpty(token)) {
                 //Get the DNS names
                 certMetaData = certificateUtils.getCertificateMetaData(token, certName, certType);
             }
+            String keyUsage = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ?
+                    certMetaData.getKeyUsageValue() :
+                    SSLCertificateConstants.EXTERNAL_KEY_USAGE);
             // set template variables
             Map<String, String> mailTemplateVariables = new HashMap<>();
             mailTemplateVariables.put("name", directoryUser.getDisplayName());
@@ -1663,6 +1663,7 @@ public class SSLCertificateService {
 		String[] notifEmailLst = sslCertificateRequest.getNotificationEmail().split(",");
 		notifEmailLst = Arrays.stream(notifEmailLst).map(String::toLowerCase).distinct().toArray(String[]::new);
 		sslCertificateMetadataDetails.setNotificationEmails(String.join(",", notifEmailLst));
+		sslCertificateMetadataDetails.setKeyUsageValue(getKeyUsageValue(sslCertificateRequest.getKeyUsageValue()));
 
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
                 put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
@@ -1701,6 +1702,28 @@ public class SSLCertificateService {
         rqstParams.put("path", certMetadataPath);
         return ControllerUtil.convetToJson(rqstParams);
 	}
+
+
+    /**
+     * Gte the value of selected extended key usage key
+     * @param keyUsage
+     * @return
+     */
+    private String getKeyUsageValue(String keyUsage) {
+        String keyUsageValue = null;
+        if (!StringUtils.isEmpty(keyUsage)) {
+            if (keyUsage.equalsIgnoreCase(SSLCertificateConstants.KEYUSAGE_VALUE_SERVER)) {
+                keyUsageValue = SSLCertificateConstants.KEYUSAGE_VALUE_SERVER_LABEL;
+            } else if (keyUsage.equalsIgnoreCase(SSLCertificateConstants.KEYUSAGE_VALUE_CLIENT)) {
+                keyUsageValue = SSLCertificateConstants.KEYUSAGE_VALUE_CLIENT_LABEL;
+            } else if (keyUsage.equalsIgnoreCase(SSLCertificateConstants.KEYUSAGE_VALUE_BOTH)) {
+                keyUsageValue = SSLCertificateConstants.KEYUSAGE_VALUE_BOTH_LABEL;
+            }
+        } else {
+            keyUsageValue = SSLCertificateConstants.KEYUSAGE_VALUE_SERVER_LABEL;
+        }
+        return keyUsageValue;
+    }
 
 
     /**
@@ -1762,24 +1785,44 @@ public class SSLCertificateService {
      * @param sslCertificateRequest
      * @return
      */
-	private boolean validateInputData(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails){
-	    boolean isValid=true;
-	    log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-	    		.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-	    		.put(LogMessage.ACTION, SSLCertificateConstants.VALIDATE_INPUT_DATA)
-	    		.put(LogMessage.MESSAGE, "Trying to validate input data")
-	    		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
-	    		.build()));
-	    if((!validateCertficateName(sslCertificateRequest.getCertificateName())) || sslCertificateRequest.getAppName().contains(" ") ||
-	            (!populateCertOwnerEmaild(sslCertificateRequest, userDetails)) ||
-	            sslCertificateRequest.getCertOwnerEmailId().contains(" ") ||  sslCertificateRequest.getCertType().contains(" ") ||
-	            (!sslCertificateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)) 
-	            || (!validateDNSNames(sslCertificateRequest))|| 
-	             (!validateNotificationEmailsForOnboard(sslCertificateRequest.getNotificationEmail()))){
-	        isValid= false;
-	    }
-	    return isValid;
-	}
+    private boolean validateInputData(SSLCertificateRequest sslCertificateRequest, UserDetails userDetails) {
+        boolean isValid = true;
+        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                .put(LogMessage.ACTION, SSLCertificateConstants.VALIDATE_INPUT_DATA)
+                .put(LogMessage.MESSAGE, "Trying to validate input data")
+                .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+                .build()));
+        if ((!validateCertficateName(sslCertificateRequest.getCertificateName())) || sslCertificateRequest.getAppName().contains(" ") ||
+                (!populateCertOwnerEmaild(sslCertificateRequest, userDetails)) ||
+                sslCertificateRequest.getCertOwnerEmailId().contains(" ") || sslCertificateRequest.getCertType().contains(" ") ||
+                (!sslCertificateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING))
+                || (!validateDNSNames(sslCertificateRequest)) ||
+                (!validateNotificationEmailsForOnboard(sslCertificateRequest.getNotificationEmail())) ||
+                (!validatekeyUsageValue(sslCertificateRequest))) {
+            isValid = false;
+        }
+        return isValid;
+    }
+
+    /**
+     * This method will be used to validae the extended key usage value
+     * @param sslCertificateRequest
+     * @return
+     */
+    private boolean validatekeyUsageValue(SSLCertificateRequest sslCertificateRequest) {
+        boolean isValidKeyValue = false;
+        if (sslCertificateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
+            String keyValue = sslCertificateRequest.getKeyUsageValue();
+            if (StringUtils.isEmpty(keyValue) || keyValue.equalsIgnoreCase("null")
+                    || (keyValue.matches(SSLCertificateConstants.KEYUSAGE_VALUE_VALID_STRING))) {
+                isValidKeyValue = true;
+            }
+        } else if (sslCertificateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.EXTERNAL)) {
+            isValidKeyValue = true;
+        }
+        return isValidKeyValue;
+    }
 
 	/**
 	 * Method to validate the certificate name
@@ -1838,6 +1881,10 @@ public class SSLCertificateService {
 	 */
 	private String getValidApplicationName(SSLCertificateRequest sslCertificateRequest) {
 		String appName = sslCertificateRequest.getAppName();
+		if((sslCertificateRequest.getAppName().equalsIgnoreCase(SSLCertificateConstants.APP_NAME_OTHER))) {
+			appName=null;
+			return appName;
+		}
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 				.put(LogMessage.ACTION, SSLCertificateConstants.GET_VALID_APPLICATION_NAME)
@@ -2380,7 +2427,8 @@ public class SSLCertificateService {
      * @return
      * @throws Exception
      */
-    private CertResponse getEnrollTemplates(CertManagerLogin certManagerLogin, int entityid, int caId) throws Exception {
+    private CertResponse getEnrollTemplates(CertManagerLogin certManagerLogin, int entityid, int caId,
+                                            SSLCertificateRequest sslCertificateRequest) throws Exception {
         String enrollEndPoint = "/certmanager/getEnrollTemplates";
         String enrollTemplateCA = enrollTemplateUrl.replace("caid", String.valueOf(caId)).replace(SSLCertificateConstants.ENTITY_ID, String.valueOf(entityid));
         log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
@@ -2389,8 +2437,55 @@ public class SSLCertificateService {
         		.put(LogMessage.MESSAGE, "Trying to get the enroll templates")
         		.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
         		.build()));
-        return reqProcessor.processCert(enrollEndPoint, "", certManagerLogin.getAccess_token(), getCertmanagerEndPoint(enrollTemplateCA));
+        CertResponse certResponse =  reqProcessor.processCert(enrollEndPoint, "", certManagerLogin.getAccess_token(),
+                getCertmanagerEndPoint(enrollTemplateCA));
+        if( (!StringUtils.isEmpty(sslCertificateRequest.getKeyUsageValue()))
+                && (sslCertificateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.INTERNAL))) {
+            String keyUsageValue = sslCertificateRequest.getKeyUsageValue();
+            if (keyUsageValue.equalsIgnoreCase(SSLCertificateConstants.KEYUSAGE_VALUE_CLIENT) || keyUsageValue.equalsIgnoreCase(SSLCertificateConstants.KEYUSAGE_VALUE_BOTH)) {
+                //Update the response with correct template
+                prepareResponseWithTemplateSelectionId(certResponse, keyUsageValue);
+            }
+        }
+        return certResponse;
     }
+
+    /**
+     * Thi method will be used to update the template id based on selected extended key usage (client/server/both)
+     * @param response
+     * @param keyUsageValue
+     * @return
+     */
+    private CertResponse prepareResponseWithTemplateSelectionId(CertResponse response,String keyUsageValue){
+        Gson gson = new GsonBuilder().setLenient().create();
+        JsonObject json = gson.fromJson(response.getResponse(),JsonObject.class);
+        JsonParser jsonParser = new JsonParser();
+        JsonObject jsonObject = (JsonObject) jsonParser.parse(json.toString());
+        JsonObject jsonObject1 = jsonObject.getAsJsonObject("template");
+        JsonArray jsonArray = jsonObject1.getAsJsonArray("items");
+        JsonObject jsonObject2 = null;
+        int selectedId = 0;
+
+        for (int i = 0; i < jsonArray.size(); i++) {
+            jsonObject2 = jsonArray.get(i).getAsJsonObject();
+            if (keyUsageValue.equalsIgnoreCase(SSLCertificateConstants.KEYUSAGE_VALUE_BOTH)) {
+                if (jsonObject2.get("displayName").getAsString().equals(SSLCertificateConstants.CLIENT_SERVER_TEMPLATE_NAME)) {
+                    selectedId = Integer.parseInt(jsonObject2.get("policyLinkId").getAsString());
+                    break;
+                }
+            } else  {
+                if (jsonObject2.get("displayName").getAsString().equals(SSLCertificateConstants.CLIENT_TEMPLATE_NAME)) {
+                    selectedId = Integer.parseInt(jsonObject2.get("policyLinkId").getAsString());
+                    break;
+                }
+            }
+        }
+
+        jsonObject1.addProperty("selectedId",selectedId);
+        response.setResponse(jsonObject.toString());
+        return response;
+    }
+
 
     //Update the CA
 
@@ -7164,7 +7259,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
                        //Send an email for delete in case of internal and external
                        sendDeleteEmail(token, certType, certificateName, certOwnerEmailId, certOwnerNtId,
                                SSLCertificateConstants.CERT_DELETE_SUBJECT + " - " + certificateName,
-                               "deleted", certData);
+                               "deleted", certData,metaDataParams);
                        
                        log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
            					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -9616,7 +9711,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	private boolean validateApplicationNameForOnboard(SSLCertificateOnboardRequest sslCertificateRequest) {
 		boolean isValidAppName = false;
 		ResponseEntity<String> appResponse = workloadDetailsService.getWorkloadDetailsByAppName(sslCertificateRequest.getAppName());
-		if (appResponse != null && HttpStatus.OK.equals(appResponse.getStatusCode())) {
+		if ((!sslCertificateRequest.getAppName().equalsIgnoreCase(SSLCertificateConstants.APP_NAME_OTHER)) || (appResponse != null && HttpStatus.OK.equals(appResponse.getStatusCode()))) {
 			isValidAppName = true;
 		}
 		return isValidAppName;
