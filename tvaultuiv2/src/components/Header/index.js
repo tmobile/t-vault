@@ -144,7 +144,7 @@ const Header = (props) => {
     svcNavItems: [
       { label: 'AD Service Accounts', path: 'service-accounts' },
       { label: 'IAM Service Accounts', path: 'iam-service-accounts' },
-      { label: 'Azure Principal', path: 'azure-principal' },
+      { label: 'Azure Service Principal', path: 'azure-principal' },
     ],
   };
 
@@ -312,7 +312,7 @@ const Header = (props) => {
                   onSelectChange(e, 'svcNavItems');
                   handleOnClick(e);
                 }}
-                width="18rem"
+                width="19rem"
               />
             </HeaderCenter>
           )}

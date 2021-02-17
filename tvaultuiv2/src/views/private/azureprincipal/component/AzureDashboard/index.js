@@ -355,7 +355,7 @@ const AzureDashboard = () => {
             <ColumnHeader>
               <div style={{ margin: '0 1rem' }}>
                 <TitleOne extraCss={ListHeader}>
-                  {`Azure Principal (${azureList?.length})`}
+                  {`Azure Service Principal (${azureList?.length})`}
                 </TitleOne>
               </div>
               <SearchWrap>

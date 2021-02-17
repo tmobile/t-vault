@@ -24,6 +24,7 @@ const SelectField = styled.div`
   display: flex;
   align-items: center;
   cursor: ${(props) => (!props.readOnly ? 'pointer' : '')};
+  padding-right: 1.5rem;
 `;
 const ArrowSpan = styled.span`
   margin-top: ${(props) => (!props.showOptionList ? '1rem' : '-0.3rem')};
@@ -67,7 +68,7 @@ const CustomSelectOtion = styled(Link)`
 `;
 const SelectedOption = styled.div`
   padding-left: 1.5rem;
-  width: calc(100% - 3.5rem);
+  width: calc(100% - 1.2rem);
 `;
 
 const HeaderSelectComponent = (props) => {
