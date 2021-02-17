@@ -97,6 +97,7 @@ public class ControllerUtilTest {
         currentMap.put("apiurl", "http://localhost:8080/vault/v2/sdb");
         currentMap.put("user", "");
         ThreadLocalContext.setCurrentMap(currentMap);
+        ReflectionTestUtils.setField(ControllerUtil.class,"paginationLimit", 20);
     }
 
     Response getMockResponse(HttpStatus status, boolean success, String expectedBody) {
@@ -1221,7 +1222,7 @@ public class ControllerUtilTest {
     	Response response =  getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"demo\",\"iamportal_master_approle\",\"selfservicesupportrole\",\"vault-power-user-role\",\"vault2\",\"vaulttest\",\"vaulttest1\"]}");
     	Response responseExpected =  getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"demo\",\"vault-power-user-role\",\"vault2\",\"vaulttest\",\"vaulttest1\"]}");
     	List<String> policyLists = new ArrayList<>();
-    	Response actualResponse = ControllerUtil.hideMasterAppRoleFromResponse(response, 2, 1);
+    	Response actualResponse = ControllerUtil.hideMasterAppRoleFromResponse(response, 25, 1);
         assertEquals(HttpStatus.OK, actualResponse.getHttpstatus());
         }
 }

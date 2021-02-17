@@ -147,6 +147,12 @@ public final class ControllerUtil {
 	
 	private static OIDCUtil oidcUtil;
 	private static final String ERROR_STRING= "{\"errors\":[\"Unexpected error :\"";
+	
+	@Value("${approle.pagination.limit}")
+	private Integer approlePaginationLimit;
+	
+	private static Integer paginationLimit;
+	
 
 	@PostConstruct
 	private void initStatic () {
@@ -155,6 +161,7 @@ public final class ControllerUtil {
 		approleAllowedCharacters = this.approleWhitelistedCharacters;
 		sdbNameAllowedCharacters = this.sdbNameWhitelistedCharacters;
 		sscredFileLocation = this.sscredLocation;
+		paginationLimit = this.approlePaginationLimit;
 		readSSCredFile(sscredFileLocation, true);
 		readOIDCCredFile(sscredFileLocation, true);
 		readIAMPortalCredFile(sscredFileLocation, true);
@@ -2965,11 +2972,9 @@ public final class ControllerUtil {
         if (null != requestMap.get("keys")) {
 			List<String> policyList = new ArrayList<>(Arrays.asList((String[]) requestMap.get("keys")));
 			policyList.removeAll(Arrays.asList(TVaultConstants.MASTER_APPROLES));
-			
-			if(limit == null || offset == null) {
-				limit = policyList.size();
-	   			offset = 0;
-			}
+	
+			limit = (limit == null || limit > paginationLimit)?paginationLimit:limit;
+			offset = (offset == null)?0:offset;
 			List<String> policyListResponse = new ArrayList<String>();
 			int maxVal = policyList.size() > (limit+offset)?limit+offset : policyList.size();
 			for (int i = offset; i < maxVal; i++) {
