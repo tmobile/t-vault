@@ -52,12 +52,12 @@ const CancelButton = styled.div`
 function getKeyUsageValue(setKeyValue, certificateType) {
   if (certificateType === 'internal') {
     if (setKeyValue === 'client' || setKeyValue === 'Client auth')
-      return 'Client auth';
+      return 'clientAuth';
     if (setKeyValue === 'server' || setKeyValue === 'Server auth')
       return 'Server auth';
-    return 'Client Auth , Server Auth';
+    return 'clientAuth , serverAuth';
   }
-  return 'Client Auth , Server Auth';
+  return 'clientAuth , serverAuth';
 }
 const PreviewCertificate = (props) => {
   const {
