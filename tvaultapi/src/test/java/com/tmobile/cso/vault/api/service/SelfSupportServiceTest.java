@@ -120,7 +120,6 @@ public class SelfSupportServiceTest {
         currentMap.put("user", "");
         ThreadLocalContext.setCurrentMap(currentMap);
         ReflectionTestUtils.setField(selfSupportService, "vaultAuthMethod", "ldap");
-        ReflectionTestUtils.setField(selfSupportService, "paginationLimit", 20);
     }
 
     UserDetails getMockUser(boolean isAdmin) {

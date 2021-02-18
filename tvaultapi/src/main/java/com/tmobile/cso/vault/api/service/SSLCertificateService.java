@@ -9283,7 +9283,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	 * @return
 	 * @throws Exception
 	 */
-	public ResponseEntity<String> getAllOnboardPendingCertificates(String token, UserDetails userDetails)
+	public ResponseEntity<String> getAllOnboardPendingCertificates(String token, UserDetails userDetails, Integer limit, Integer offset)
 			throws Exception {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
@@ -9325,6 +9325,21 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 
 		getCertificateListFromNclm(nclmAccessToken, certificatesList, targetEndpointVal, onboardedInternalCerts,
 				onboardedExternalCerts);
+
+		limit = (limit == null) ? certificatesList.size() : limit;
+		offset = (offset == null) ? 0 : offset;
+
+		if (!certificatesList.isEmpty()) {
+			Integer totCount = certificatesList.size();
+			Integer offsetVal = 0;
+			Integer toindex = 0;
+			Integer limitVal = offset + limit;
+
+			offsetVal = (offset <= totCount) ? offset : totCount;
+			toindex = (limitVal <= totCount) ? limitVal : totCount;
+
+			certificatesList = certificatesList.subList(offsetVal, toindex);
+		}
 
 		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(certificatesList));
 	}

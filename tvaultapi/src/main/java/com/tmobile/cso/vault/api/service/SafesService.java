@@ -69,9 +69,6 @@ public class  SafesService {
 	@Value("${vault.auth.method}")
 	private String vaultAuthMethod;
 
-	@Value("${vault.pagination.limit}")
-	private Integer paginationLimit;
-
 	@Autowired
 	private SafeUtils safeUtils;
 
@@ -2502,8 +2499,6 @@ public class  SafesService {
 	 * @return
 	 */
 	public ResponseEntity<String> getFoldersRecursively(String token, String path, Integer limit, Integer offset) {
-		limit = (limit == null || limit > paginationLimit)?paginationLimit:limit;
-		offset = (offset == null)?0:offset;
 		String _path = "";
 		if( TVaultConstants.APPS.equals(path)||TVaultConstants.SHARED.equals(path)||TVaultConstants.USERS.equals(path)){
 			_path = METADATA+path;
@@ -2538,6 +2533,8 @@ public class  SafesService {
 			}
 		}
 		int totalCount = safeList.size();
+		limit = (limit == null)?totalCount:limit;
+		offset = (offset == null)?0:offset;
 		List<String> filterList = safeList.stream().skip(offset).limit(limit).collect(Collectors.toList());
 		Map<String, Object> safesMap = new HashMap<String, Object>();
 		safesMap.put("keys", filterList.toArray());
