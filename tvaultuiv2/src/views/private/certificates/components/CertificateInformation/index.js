@@ -57,7 +57,16 @@ const AccessDeniedIcon = styled.img`
   width: 16rem;
   height: 16rem;
 `;
-
+function getKeyUsageValue(setKeyValue, certificateType) {
+  if (certificateType === 'internal') {
+    if (setKeyValue === 'client' || setKeyValue === 'Client auth')
+      return 'Client auth';
+    if (setKeyValue === 'server' || setKeyValue === 'Server auth')
+      return 'Server auth';
+    return 'Client Auth , Server Auth';
+  }
+  return 'Client Auth , Server Auth';
+}
 const NoPermission = styled.div`
   color: ${(props) => props.theme.customColor.label.color};
   text-align: center;
@@ -140,9 +149,11 @@ const CertificateInformation = (props) => {
                 <EachDetail>
                   <Label>Extended Key Usage:</Label>
                   <Value>
-                    {certificateMetaData?.certType?.toLowerCase() === 'internal'
-                      ? 'serverAuth'
-                      : 'serverAuth, clientAuth'}
+                    {' '}
+                    {getKeyUsageValue(
+                      certificateMetaData.keyUsageValue,
+                      certificateMetaData.certType
+                    ) || 'N/A'}
                   </Value>
                 </EachDetail>
                 <EachDetail>
