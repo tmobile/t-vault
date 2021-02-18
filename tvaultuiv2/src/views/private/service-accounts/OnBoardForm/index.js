@@ -895,7 +895,7 @@ const OnBoardForm = (props) => {
                     <InfoLine>
                       T-Vault will rotate the Passwords lazily based on password
                       expiration time (known as TTL). Rotation only occurs when
-                      first requests it after the set expiray time
+                      first requests it after the set expiry time
                     </InfoLine>
                   </CollapsibleContainer>
                 </ServiceAcoountHelp>
