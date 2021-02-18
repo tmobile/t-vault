@@ -376,7 +376,7 @@ public class SSLCertificateController {
 	 * @param offset
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.getAllCertificatesOnCertType.value}", notes = "${SSLCertificateController.getAllCertificatesOnCertType.notes}", hidden = true)
+	@ApiOperation(value = "${SSLCertificateController.getAllCertificatesOnCertType.value}", notes = "${SSLCertificateController.getAllCertificatesOnCertType.notes}", hidden = false)
 	@GetMapping(value = "/v2/sslcert/list/{certificate_type}", produces = "application/json")
 	public ResponseEntity<String> getAllCertificatesOnCertType(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,
