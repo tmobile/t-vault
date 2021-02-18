@@ -376,7 +376,7 @@ public class SSLCertificateController {
 	 * @param offset
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.getAllCertificatesOnCertType.value}", notes = "${SSLCertificateController.getAllCertificatesOnCertType.notes}", hidden = true)
+	@ApiOperation(value = "${SSLCertificateController.getAllCertificatesOnCertType.value}", notes = "${SSLCertificateController.getAllCertificatesOnCertType.notes}", hidden = false)
 	@GetMapping(value = "/v2/sslcert/list/{certificate_type}", produces = "application/json")
 	public ResponseEntity<String> getAllCertificatesOnCertType(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,
@@ -409,7 +409,7 @@ public class SSLCertificateController {
 	 * @param token
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.getAllSelfServiceGroups.value}", notes = "${SSLCertificateController.getAllSelfServiceGroups.notes}", hidden = false)
+	@ApiOperation(value = "${SSLCertificateController.getAllSelfServiceGroups.value}", notes = "${SSLCertificateController.getAllSelfServiceGroups.notes}", hidden = true)
 	@GetMapping(value = "/v2/sslcert/grouplist", produces = "application/json")
 	public ResponseEntity<String> getAllSelfServiceGroups(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token) {
