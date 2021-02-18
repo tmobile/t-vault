@@ -7677,15 +7677,15 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		return matcher.matches();
 	}
 
-
-
 	/**
 	 * Get Certificates for non-admin
 	 * @param userDetails
-	 * @param token
+	 * @param certificateType
+	 * @param limit
+	 * @param offset
 	 * @return
 	 */
-	public ResponseEntity<String> getAllCertificatesOnCertType(UserDetails userDetails, String certificateType) {
+	public ResponseEntity<String> getAllCertificatesOnCertType(UserDetails userDetails, String certificateType, Integer limit, Integer offset) {
 		oidcUtil.renewUserToken(userDetails.getClientToken());
 		String token = userDetails.getSelfSupportToken();
 		if (userDetails.isAdmin()) {
@@ -7700,33 +7700,68 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		policies = filterPoliciesBasedOnPrecedence(Arrays.asList(policies));
 
 		List<Map<String, String>> certListUsers = new ArrayList<>();
-		Map<String, List<Map<String, String>>> safeList = new HashMap<>();
+		Map<String, List<Map<String, String>>> certificateList = new HashMap<>();
 		if (policies != null) {
 			for (String policy : policies) {
-				Map<String, String> safePolicy = new HashMap<>();
-				String[] _policies = policy.split("_", -1);
-				if (_policies.length >= 3) {
-					String[] policyName = Arrays.copyOfRange(_policies, 2, _policies.length);
-					String safeName = String.join("_", policyName);
-					String safeType = _policies[1];
-
-					if (policy.startsWith("r_")) {
-						safePolicy.put(safeName, "read");
-					} else if (policy.startsWith("w_")) {
-						safePolicy.put(safeName, "write");
-					} else if (policy.startsWith("d_")) {
-						safePolicy.put(safeName, "deny");
-					}
-					if (!safePolicy.isEmpty()) {
-						if (safeType.equals(certificatePrefix)) {
-							certListUsers.add(safePolicy);
-						}
-					}
-				}
+				getCertificateDetailsFromPolicies(certificatePrefix, certListUsers, policy);
 			}
-			safeList.put(certificatePrefix, certListUsers);
+			limit = (limit == null) ? certListUsers.size() : limit;
+			offset = (offset == null) ? 0 : offset;
+			certListUsers = getSublistFromCertificatesList(limit, offset, certListUsers);
+			certificateList.put(certificatePrefix, certListUsers);
 		}
-		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeList));
+		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(certificateList));
+	}
+
+	/**
+	 * Method to get the sublist from certificates list.
+	 * @param limit
+	 * @param offset
+	 * @param certListUsers
+	 * @return
+	 */
+	private List<Map<String, String>> getSublistFromCertificatesList(Integer limit, Integer offset,
+			List<Map<String, String>> certListUsers) {
+		if (!certListUsers.isEmpty()) {
+			Integer totCount = certListUsers.size();
+			Integer offsetVal = 0;
+			Integer toindex = 0;
+			Integer limitVal = offset + limit;
+
+			offsetVal = (offset <= totCount) ? offset : totCount;
+			toindex = (limitVal <= totCount) ? limitVal : totCount;
+
+			certListUsers = certListUsers.subList(offsetVal, toindex);
+		}
+		return certListUsers;
+	}
+
+	/**
+	 * Method to get the certificate details from policies
+	 * @param certificatePrefix
+	 * @param certListUsers
+	 * @param policy
+	 */
+	private void getCertificateDetailsFromPolicies(String certificatePrefix, List<Map<String, String>> certListUsers,
+			String policy) {
+		Map<String, String> certificatePolicy = new HashMap<>();
+		String[] certificatePolicies = policy.split("_", -1);
+		if (certificatePolicies.length >= 3) {
+			String[] policyName = Arrays.copyOfRange(certificatePolicies, 2, certificatePolicies.length);
+			String certificateName = String.join("_", policyName);
+			String sslCertType = certificatePolicies[1];
+
+			if (policy.startsWith("r_")) {
+				certificatePolicy.put(certificateName, "read");
+			} else if (policy.startsWith("w_")) {
+				certificatePolicy.put(certificateName, "write");
+			} else if (policy.startsWith("d_")) {
+				certificatePolicy.put(certificateName, "deny");
+			}
+			if (!certificatePolicy.isEmpty() && sslCertType.equals(certificatePrefix)) {
+				certListUsers.add(certificatePolicy);
+			}
+		}
 	}
 
 	/**

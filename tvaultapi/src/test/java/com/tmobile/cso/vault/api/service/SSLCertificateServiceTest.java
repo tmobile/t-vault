@@ -6728,7 +6728,7 @@ public class SSLCertificateServiceTest {
 
 	        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
 	        when(JSONUtil.getJSON(Mockito.any())).thenReturn("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"cert\":[{\"certtest.t-mobile.com\":\"read\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}");
-	        ResponseEntity<String> responseEntity = sSLCertificateService.getAllCertificatesOnCertType(userDetails, certificateType);
+	        ResponseEntity<String> responseEntity = sSLCertificateService.getAllCertificatesOnCertType(userDetails, certificateType, 1, 0);
 	        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 	        assertEquals(responseEntityExpected, responseEntity);
 	    }
