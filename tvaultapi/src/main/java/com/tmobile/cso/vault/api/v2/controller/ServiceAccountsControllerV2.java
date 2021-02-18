@@ -61,9 +61,12 @@ public class ServiceAccountsControllerV2 {
 	 */
 	@ApiOperation(value = "${ServiceAccountsControllerV2.getServiceAccounts.value}", notes = "${ServiceAccountsControllerV2.getServiceAccounts.notes}")
 	@GetMapping(value="/v2/serviceaccounts", produces="application/json")
-	public ResponseEntity<String> getServiceAccounts(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
-		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return serviceAccountsService.getOnboardedServiceAccounts(token, userDetails);
+	public ResponseEntity<String> getServiceAccounts(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token,
+			@RequestParam(name = "limit", required = false) Integer limit,
+			@RequestParam(name = "offset", required = false) Integer offset) {
+		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
+		return serviceAccountsService.getOnboardedServiceAccounts(token, userDetails, limit, offset);
 	}
 	/**
 	 * Gets the details of an onboarded service account
@@ -316,9 +319,12 @@ public class ServiceAccountsControllerV2 {
 
 	@ApiOperation(value = "${ServiceAccountsControllerV2.getServiceAccountsList.value}", notes = "${ServiceAccountsControllerV2.getServiceAccountsList.notes}",hidden = false)
 	@GetMapping (value="/v2/serviceaccounts/list",produces="application/json")
-	public ResponseEntity<String> getServiceAccountsList(HttpServletRequest request, @RequestHeader(value="vault-token") String token){
-		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return serviceAccountsService.getServiceAccounts(userDetails, token);
+	public ResponseEntity<String> getServiceAccountsList(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token,
+			@RequestParam(name = "limit", required = false) Integer limit,
+			@RequestParam(name = "offset", required = false) Integer offset) {
+		UserDetails userDetails = (UserDetails) request.getAttribute("UserDetails");
+		return serviceAccountsService.getServiceAccounts(userDetails, token, limit, offset);
 	}
 
 	/**
