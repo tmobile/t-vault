@@ -97,7 +97,6 @@ public class ControllerUtilTest {
         currentMap.put("apiurl", "http://localhost:8080/vault/v2/sdb");
         currentMap.put("user", "");
         ThreadLocalContext.setCurrentMap(currentMap);
-        ReflectionTestUtils.setField(ControllerUtil.class,"paginationLimit", 20);
     }
 
     Response getMockResponse(HttpStatus status, boolean success, String expectedBody) {
