@@ -35,14 +35,13 @@ const SubTitleWrap = styled.div`
   align-items: center;
 `;
 const Flag = styled('span')`
-  opacity: 0.7;
   font-size: ${(props) => props.fontSize};
   font-style: ${(props) => (props.fontStyle ? props.fontStyle : '')};
-  color: ${(props) => props.theme.customColor.secondary.color};
+  color: #a2a1a1;
 `;
 
 const CertType = styled('span')`
-  color: ${(props) => props.theme.customColor.secondary.color};
+  color: #a2a1a1;
   font-size: 1.3rem;
   text-transform: Capitalize;
 `;

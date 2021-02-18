@@ -78,6 +78,8 @@ const HeaderCenter = styled.div`
 const NavLink = styled(Link)`
   text-decoration: none;
   padding: 2.6rem 1rem;
+  padding-left: 1.5rem;
+  width: 15rem;
   font-size: 1.3rem;
   font-weight: bold;
   background: ${(props) =>
@@ -290,7 +292,7 @@ const Header = (props) => {
                   onSelectChange(e, 'customSafesNavItems');
                   handleOnClick(e);
                 }}
-                width="15rem"
+                width="17rem"
               />
               {configData.AUTH_TYPE !== 'userpass' && (
                 <NavLink
@@ -312,7 +314,7 @@ const Header = (props) => {
                   onSelectChange(e, 'svcNavItems');
                   handleOnClick(e);
                 }}
-                width="19rem"
+                width="20rem"
               />
             </HeaderCenter>
           )}

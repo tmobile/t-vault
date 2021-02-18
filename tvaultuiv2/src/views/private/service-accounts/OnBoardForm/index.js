@@ -789,7 +789,7 @@ const OnBoardForm = (props) => {
               : history?.location?.pathname.includes('/edit-service-accounts')
               ? 'Password rotation configuration for the service account has been updated successfully.'
               : `<p> Onboarding
-                of service account has been completed successfully. To continue, the service account needs to be activated by ${userState?.userEmail}. If you are owner of the service account, you need to log out and login again to activate it.</p>`
+                of service account has been completed successfully. To continue, the service account needs to be activated by ${serviceAccountDetails?.managedBy?.userEmail}. If you are owner of the service account, you need to log out and login again to activate it.</p>`
           }
           cancelButton={
             <ButtonComponent
@@ -895,7 +895,7 @@ const OnBoardForm = (props) => {
                     <InfoLine>
                       T-Vault will rotate the Passwords lazily based on password
                       expiration time (known as TTL). Rotation only occurs when
-                      first requests it after the set expiray time
+                      first requests it after the set expiry time
                     </InfoLine>
                   </CollapsibleContainer>
                 </ServiceAcoountHelp>
