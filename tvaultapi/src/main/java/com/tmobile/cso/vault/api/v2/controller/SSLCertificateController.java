@@ -366,23 +366,25 @@ public class SSLCertificateController {
 	public ResponseEntity<String> getAllCertificates(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam(name="certificateName", required = false) String certName,@RequestParam(name = "limit", required = false) Integer limit, @RequestParam(name = "offset", required = false) Integer offset){
 		return sslCertificateService.getAllCertificates(token, certName, limit, offset);
 	}
-	
+
 	/**
 	 * To get list of certificates based on certifcate Types for non-admin.
 	 * @param request
 	 * @param token
 	 * @param certificateType
+	 * @param limit
+	 * @param offset
 	 * @return
 	 */
 	@ApiOperation(value = "${SSLCertificateController.getAllCertificatesOnCertType.value}", notes = "${SSLCertificateController.getAllCertificatesOnCertType.notes}", hidden = true)
 	@GetMapping(value = "/v2/sslcert/list/{certificate_type}", produces = "application/json")
 	public ResponseEntity<String> getAllCertificatesOnCertType(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,
-			@PathVariable("certificate_type") String certificateType) {
+			@PathVariable("certificate_type") String certificateType, @RequestParam(name = "limit", required = false) Integer limit, @RequestParam(name = "offset", required = false) Integer offset) {
 		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
-		return sslCertificateService.getAllCertificatesOnCertType(userDetails, certificateType);
+		return sslCertificateService.getAllCertificatesOnCertType(userDetails, certificateType, limit, offset);
 	}
-	
+
 	/**	
 	 * Check if status is revoked	
 	 * @param certificateName	
