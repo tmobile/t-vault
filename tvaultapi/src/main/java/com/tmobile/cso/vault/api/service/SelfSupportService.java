@@ -83,9 +83,6 @@ public class  SelfSupportService {
 	@Value("${safe.quota}")
 	private String safeQuota;
 
-	@Value("${vault.pagination.limit}")
-	private Integer paginationLimit;
-
 	@Autowired
 	private RequestProcessor reqProcessor;
 
@@ -302,13 +299,15 @@ public class  SelfSupportService {
 		}
 		else {
 			// List of safes based on current user
-			limit = (limit == null || limit > paginationLimit)?paginationLimit:limit;
-			offset = (offset == null)?0:offset;
 			String[] policies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails);
 			String[] safes = safeUtils.getManagedSafes(policies, path);
+			int totalCount = safes.length;
+			limit = (limit == null)?totalCount:limit;
+			offset = (offset == null)?0:offset;
+
 			List<String> safeList =  Arrays.asList(safes).stream().skip(offset).limit(limit).collect(Collectors.toList());
 			safes = safeList.toArray(new String[safeList.size()]);
-			int totalCount = safes.length;
+
 			Map<String, Object> safesMap = new HashMap<String, Object>();
 			safesMap.put("keys", safes);
 			safesMap.put("total", totalCount);
@@ -761,8 +760,6 @@ public class  SelfSupportService {
 	 * @return
 	 */
 	public ResponseEntity<String> getSafes(UserDetails userDetails, Integer limit, Integer offset) {
-		limit = (limit == null || limit > 20)?20:limit;
-		offset = (offset == null)?0:offset;
 		oidcUtil.renewUserToken(userDetails.getClientToken());
 		String token = userDetails.getClientToken();
 		if (!userDetails.isAdmin()) {
@@ -808,7 +805,18 @@ public class  SelfSupportService {
 			int totalUserSafes = safeListUsers.size();
 			int totalSharedSafes = safeListShared.size();
 			int totalAppSafes = safeListApps.size();
-
+			int maxTotal = totalUserSafes;
+			if( totalUserSafes >= totalSharedSafes && totalUserSafes >= totalAppSafes) {
+				maxTotal = totalUserSafes;
+			}
+			else if (totalSharedSafes >= totalUserSafes && totalSharedSafes >= totalAppSafes) {
+				maxTotal = totalSharedSafes;
+			}
+			else {
+				maxTotal = totalAppSafes;
+			}
+			limit = (limit == null)?maxTotal:limit;
+			offset = (offset == null)?0:offset;
 
 			safeList.put(TVaultConstants.USERS, safeListUsers.stream().skip(offset).limit(limit).collect(Collectors.toList()));
 			safeList.put(TVaultConstants.SHARED, safeListShared.stream().skip(offset).limit(limit).collect(Collectors.toList()));
