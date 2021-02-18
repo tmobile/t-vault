@@ -145,7 +145,7 @@ const PreviewCertificate = (props) => {
         </EachDetail>
         <EachDetail>
           <Label>Extended Key Usage:</Label>
-          <Value capitalize="capitalize">
+          <Value>
             {getKeyUsageValue(setKeyValue, certificateType) || 'N/A'}
           </Value>
         </EachDetail>
