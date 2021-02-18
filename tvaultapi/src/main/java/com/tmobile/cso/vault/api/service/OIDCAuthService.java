@@ -49,10 +49,13 @@ import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.springframework.util.StringUtils;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 @Component
 public class OIDCAuthService {
@@ -449,5 +452,47 @@ public class OIDCAuthService {
             groups.setData(groupsList);
         }
         return ResponseEntity.status(HttpStatus.OK).body(groups);
+    }
+    
+    /**
+     * To get build details.
+     * @return
+     */
+    public ResponseEntity<BuildDetails> getBuildDetails(){
+    	
+    	 ClassLoader classLoader = getClass().getClassLoader();
+         URL resource = classLoader.getResource("build_variables.txt");
+         BuildDetails details = new BuildDetails();
+         try {
+         if (resource == null) {
+             throw new IllegalArgumentException("file not found! " + "build_variables.txt");
+         } else {
+        	 File ssFile =  new File(resource.toURI());
+		log.debug("Trying to read build details file");
+		
+			if (ssFile.exists()) {
+				
+				Scanner sc = new Scanner(ssFile);
+				while (sc.hasNextLine()) {
+					String line = sc.nextLine();
+					if (line.startsWith("version")) {
+						String version = line.substring("version=".length(), line.length());
+						log.debug("Successfully read version: from sscred file");
+						details.setVersion(version);
+					}
+					else if (line.startsWith("date")) {
+						String date = line.substring("date=".length(), line.length());
+						log.debug("Successfully read password: from sscred file");
+						details.setBuildDate(date);
+					}
+					
+				}
+				sc.close();
+			}
+		}
+         }catch (Exception e) {
+			log.error(String.format("Unable to read sscred file: [%s]", e.getMessage()));
+		}
+    	return ResponseEntity.status(HttpStatus.OK).body(details);
     }
 }

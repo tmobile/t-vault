@@ -279,6 +279,17 @@ public class OIDCAuthController {
 	@ApiOperation(value = "${OIDCAuthController.searchGroupEmailInAzureAD.value}", notes = "${OIDCAuthController.searchGroupEmailInAzureAD.notes}")
 	public ResponseEntity<DirectoryObjects> searchGroupEmailInAzureAD(@RequestParam("mail") String email){
 		return oidcAuthService.searchGroupEmailInAzureAD(email);
-
 	}
+	
+	/**
+	 * To fetch the build details
+	 * @return
+	 */
+	@GetMapping(value="/v2/auth/build",produces="application/json")
+	@ApiOperation(value = "${OIDCAuthController.getBuildDetails.value}", notes = "${OIDCAuthController.getBuildDetails.notes}")
+	public ResponseEntity<BuildDetails> getBuildDetails(){
+		return oidcAuthService.getBuildDetails();
+	}
+	
+	
 }
