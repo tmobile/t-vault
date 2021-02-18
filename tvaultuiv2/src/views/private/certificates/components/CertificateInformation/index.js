@@ -149,7 +149,6 @@ const CertificateInformation = (props) => {
                 <EachDetail>
                   <Label>Extended Key Usage:</Label>
                   <Value>
-                    {' '}
                     {getKeyUsageValue(
                       certificateMetaData.keyUsageValue,
                       certificateMetaData.certType
