@@ -132,8 +132,6 @@ public class SafesServiceTest {
                 "\"T-Vault\",\"tag\":\"T-Vault\",\"tier\":\"Tier II\",\"workflowStatus\":\"Open_CCP\",\"workload\":\"Adaptive Security\"}}";
         when(workloadDetailsService.getWorkloadDetailsByAppName(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(workloadApiResponse));
-        ReflectionTestUtils.setField(safesService, "paginationLimit", 20);
-
 
     }
 
