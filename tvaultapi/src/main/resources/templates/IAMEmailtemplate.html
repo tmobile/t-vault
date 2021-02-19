@@ -14,7 +14,7 @@
 <body>
     <div>Hello <span data-th-text="${name}"></span>,</div>
     <br/>
-    <div>Onboarding of IAM Services Account <span class="special-text" data-th-text="${svcAccName}"></span> has been completed successfully, and you will now want to activate the same in T-Vault and assign permissions to other users who you want to view or rotate this password.</div>
+    <div>Onboarding of IAM Service Account <span class="special-text" data-th-text="${svcAccName}"></span> has been completed successfully, and you will now want to activate the same in T-Vault and assign permissions to other users who you want to view or rotate this password.</div>
     <div>To do so please complete the following steps:</div>
 
     <h4>Activate IAM Service Account:</h4>
@@ -51,7 +51,7 @@
             <img class ="image" src="permissiontab.png" th:src="|cid:${permissiontab}|"/>
         </li>
         <li>
-            <div>Provide the user name you want to give permissions to and select either read, rotate, or deny depending on the level of access you want to give.</div>
+            <div>Provide the user name you want to give permissions to and select either read, rotate or deny depending on the level of access you want to give.</div>
             <img class ="image" src="adduser.png" th:src="|cid:${adduser}|"/>
         </li>
     </ol>
