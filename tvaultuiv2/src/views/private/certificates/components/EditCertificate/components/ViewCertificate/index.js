@@ -780,13 +780,14 @@ const ViewCertificate = (props) => {
               />
             </CancelButton>
           )}
-          {showRevokeRenewBtn && (
-            <ButtonComponent
-              label="Renew"
-              color="secondary"
-              onClick={() => onCertRenewClicked()}
-            />
-          )}
+          {showRevokeRenewBtn &&
+            certificateData?.certificateStatus?.toLowerCase() !== 'expired' && (
+              <ButtonComponent
+                label="Renew"
+                color="secondary"
+                onClick={() => onCertRenewClicked()}
+              />
+            )}
         </CancelSaveWrapper>
         {responseType === -1 && (
           <SnackbarComponent
