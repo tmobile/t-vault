@@ -313,6 +313,7 @@ const AzureSecrets = (props) => {
 
   useEffect(() => {
     setShowSecret(false);
+    setIsOpen(false);
   }, [value]);
   useEffect(() => {
     if (
