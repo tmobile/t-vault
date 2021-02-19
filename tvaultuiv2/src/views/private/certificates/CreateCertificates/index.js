@@ -770,6 +770,7 @@ const CreateCertificates = (props) => {
     }
   }, [allApplication, applicationName, selfserviceAppName]);
 
+
   return (
     <ComponentError>
       <>
@@ -916,7 +917,8 @@ const CreateCertificates = (props) => {
                   <IncludeDnsWrap>
                     <SwitchComponent
                       checked={isDns}
-                      handleChange={(e) => setIsDns(e.target.checked)}
+                      handleChange={(e) => { setIsDns(e.target.checked);
+                                            setDnsName(''); }}
                       name="dns"
                     />
                     <InputLabel>Enable Additional DNS</InputLabel>
