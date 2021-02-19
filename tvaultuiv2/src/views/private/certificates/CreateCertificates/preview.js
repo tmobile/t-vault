@@ -115,12 +115,12 @@ const PreviewCertificate = (props) => {
           <Label>Application Name:</Label>
           <Value>{applicationName || 'N/A'}</Value>
         </EachDetail>
-        {
-          applicationTag && <EachDetail>
-          <Label>Application Tag:</Label>
-          <Value>{applicationTag || 'N/A'}</Value>
-        </EachDetail>
-        }
+        {applicationTag && (
+          <EachDetail>
+            <Label>Application Tag:</Label>
+            <Value>{applicationTag || 'N/A'}</Value>
+          </EachDetail>
+        )}
         {notificationEmails?.length > 0 && (
           <EachDetail>
             <Label>Notification Emails:</Label>
@@ -165,7 +165,10 @@ const PreviewCertificate = (props) => {
               : 'Entrust CA'}
           </Value>
         </EachDetail>
-        <InfoText>Note : Select the Edit button to modify the input details else Onboard button to Onboard a certificate </InfoText>
+        <InfoText>
+          Note : Select the Edit button to modify the input details else Onboard
+          button to Onboard a certificate.
+        </InfoText>
         {!isEditCertificate && (
           <CancelSaveWrapper>
             <CancelButton>
