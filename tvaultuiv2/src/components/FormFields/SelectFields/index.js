@@ -37,7 +37,7 @@ const SelectOption = styled.ul`
   padding: 0.5rem 0;
   list-style: none;
   position: absolute;
-  height: 10rem;
+  max-height: 15rem;
   overflow-y: auto;
   width: 100%;
   z-index: 2;

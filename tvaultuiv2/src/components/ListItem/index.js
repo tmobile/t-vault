@@ -30,10 +30,9 @@ const ListItemAvatarWrap = styled.div`
   align-items: center;
 `;
 const Flag = styled('span')`
-  opacity: 0.7;
   font-size: ${(props) => props.fontSize};
   font-style: ${(props) => (props.fontStyle ? props.fontStyle : '')};
-  color: ${(props) => props.theme.customColor.secondary.color || '#5e627c'};
+  color: #a2a1a1;
 `;
 
 const FolderIconWrap = styled('div')`
