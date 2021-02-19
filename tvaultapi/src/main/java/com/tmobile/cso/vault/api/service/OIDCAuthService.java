@@ -495,7 +495,7 @@ public class OIDCAuthService {
 		}
          }catch (Exception e) {
 			log.error(String.format("Unable to read sscred file: [%s]", e.getMessage()));
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(details);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(details);
 		}
     	return ResponseEntity.status(HttpStatus.OK).body(details);
     }
