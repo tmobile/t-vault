@@ -165,10 +165,12 @@ const PreviewCertificate = (props) => {
               : 'Entrust CA'}
           </Value>
         </EachDetail>
-        <InfoText>
-          Note : Select the Edit button to modify the input details else Onboard
-          button to Onboard a certificate.
-        </InfoText>
+        {!isEditCertificate && (
+          <InfoText>
+            Note : Select the Edit button to modify the input details else
+            Onboard button to Onboard a certificate.
+          </InfoText>
+        )}
         {!isEditCertificate && (
           <CancelSaveWrapper>
             <CancelButton>
