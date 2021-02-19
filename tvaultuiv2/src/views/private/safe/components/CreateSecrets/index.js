@@ -147,6 +147,7 @@ const CreateSecret = (props) => {
 
   useEffect(() => {
     if (keyId) handleKeyValidation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keyId]);
 
   const handleKeyChange = (key) => {
