@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { debounce } from 'lodash';
 import ReactHtmlParser from 'react-html-parser';
+import Tooltip from '@material-ui/core/Tooltip';
 import { makeStyles } from '@material-ui/core/styles';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useHistory } from 'react-router-dom';
@@ -265,9 +266,22 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const useTooltipStyles = makeStyles((theme) => ({
+  arrow: {
+    color: theme.palette.common.white,
+  },
+  tooltip: {
+    backgroundColor: theme.palette.common.white,
+    color: theme.palette.common.black,
+    fontSize: theme.typography.subtitle2.fontSize,
+    textAlign: 'center',
+  },
+}));
+
 const CreateCertificates = (props) => {
   const { refresh } = props;
   const classes = useStyles();
+  const tooltipClasses = useTooltipStyles();
   const [open, setOpen] = useState(true);
   const [applicationName, setApplicationName] = useState('');
   const [certName, setCertName] = useState('');
@@ -835,10 +849,17 @@ const CreateCertificates = (props) => {
                     <Label>Container:</Label>
                     <Value>VenafiBin_12345</Value>
                   </Container>
-                  <Owner>
-                    <Label>Owner Email:</Label>
-                    <Value>{ownerEmail}</Value>
-                  </Owner>
+                  <Tooltip
+                    classes={tooltipClasses}
+                    arrow
+                    title="Owner/Creator of the certificate"
+                    placement="top"
+                  >
+                    <Owner>
+                      <Label>Owner Email:</Label>
+                      <Value>{ownerEmail}</Value>
+                    </Owner>
+                  </Tooltip>
                 </ContainerOwnerWrap>
                 <PreviewWrap showPreview={showPreview}>
                   <PreviewCertificate
@@ -861,10 +882,17 @@ const CreateCertificates = (props) => {
                 <CreateCertificateForm showPreview={showPreview}>
                   <RadioWrap>
                     <InputRequiredWrap>
-                      <InputLabel>
-                        Certificate Type
-                        <RequiredCircle margin="1.3rem" />
-                      </InputLabel>
+                      <Tooltip
+                        classes={tooltipClasses}
+                        arrow
+                        title="Type of Certificate Private(Internal) or Public(External)"
+                        placement="right"
+                      >
+                        <InputLabel>
+                          Certificate Type
+                          <RequiredCircle margin="1.3rem" />
+                        </InputLabel>
+                      </Tooltip>
                       <div>
                         <RequiredCircle />
                         <RequiredText>Required</RequiredText>
@@ -901,10 +929,17 @@ const CreateCertificates = (props) => {
                     </InputEndWrap>
                   </InputFieldLabelWrapper>
                   <InputFieldLabelWrapper>
-                    <InputLabel>
-                      Application Name
-                      <RequiredCircle margin="1.3rem" />
-                    </InputLabel>
+                    <Tooltip
+                      classes={tooltipClasses}
+                      arrow
+                      title="Name of the Cloud application this certificate will be used for. Only applications you have self-service rights to will be shown"
+                      placement="top"
+                    >
+                      <InputLabel>
+                        Application Name
+                        <RequiredCircle margin="1.3rem" />
+                      </InputLabel>
+                    </Tooltip>
                     <AutoCompleteComponent
                       icon="search"
                       options={[...allApplication.map((item) => item.appName)]}
@@ -924,20 +959,35 @@ const CreateCertificates = (props) => {
                       </InputFieldError>
                     )}
                   </InputFieldLabelWrapper>
-                  <IncludeDnsWrap>
-                    <SwitchComponent
-                      checked={isDns}
-                      handleChange={(e) => {
-                        setIsDns(e.target.checked);
-                        setDnsName('');
-                      }}
-                      name="dns"
-                    />
-                    <InputLabel>Enable Additional DNS</InputLabel>
-                  </IncludeDnsWrap>
+                  <Tooltip
+                    classes={tooltipClasses}
+                    arrow
+                    title="Option to create a SAN Certificate with additional domain names"
+                    placement="top"
+                  >
+                    <IncludeDnsWrap>
+                      <SwitchComponent
+                        checked={isDns}
+                        handleChange={(e) => {
+                          setIsDns(e.target.checked);
+                          setDnsName('');
+                        }}
+                        name="dns"
+                      />
+                      <InputLabel>Enable Additional DNS</InputLabel>
+                    </IncludeDnsWrap>
+                  </Tooltip>
                   {isDns && (
                     <InputFieldLabelWrapper>
-                      <InputLabel>Add DNS</InputLabel>
+                      <Tooltip
+                        classes={tooltipClasses}
+                        arrow
+                        title="Option to create a SAN Certificate with additional domain names"
+                        placement="top"
+                      >
+                        <InputLabel>Add DNS</InputLabel>
+                      </Tooltip>
+
                       <InputEndWrap>
                         <TextFieldComponent
                           value={dnsName}
@@ -994,10 +1044,17 @@ const CreateCertificates = (props) => {
                             value={searchBy}
                           />
                         </SearchInputFieldLabelWrapper>
-                        <InputLabel>
-                          Add User to Notify
-                          <RequiredCircle margin="1.3rem" />
-                        </InputLabel>
+                        <Tooltip
+                          classes={tooltipClasses}
+                          arrow
+                          title="Notification emails list"
+                          placement="top"
+                        >
+                          <InputLabel>
+                            Add User to Notify
+                            <RequiredCircle margin="1.3rem" />
+                          </InputLabel>
+                        </Tooltip>
                       </>
                     )}
                     {notifyEmailStatus.status === 'searching' && (
