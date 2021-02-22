@@ -37,6 +37,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -462,12 +464,16 @@ public class OIDCAuthService {
      * @return
      */
     public ResponseEntity<BuildDetails> getBuildDetails(){
+    	BuildDetails details = new BuildDetails();
+    	try {
+    	Resource resource = new ClassPathResource("classpath:build_variables.txt");
+        InputStream stream = resource.getInputStream();  
     	
-    	 ClassLoader classLoader = getClass().getClassLoader();
-    	 InputStream stream = classLoader.getResourceAsStream("build_variables.txt");
-         BuildDetails details = new BuildDetails();
+//    	 ClassLoader classLoader = getClass().getClassLoader();
+//    	 InputStream stream = classLoader.getResourceAsStream("build_variables.txt");
          
-         try {
+         
+         
          if (stream == null) {
              throw new IllegalArgumentException("file not found! " + "build_variables.txt");
          } else {
