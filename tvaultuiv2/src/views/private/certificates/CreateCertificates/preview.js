@@ -27,7 +27,9 @@ const DnsName = styled.p`
   padding: 0.5rem 0;
   font-size: 1.8rem;
 `;
-
+const InfoText = styled.div`
+  font-size: 1.3rem;
+`;
 const CancelSaveWrapper = styled.div`
   display: ${(props) => (props.showPreview ? 'none' : 'flex')};
   justify-content: flex-end;
@@ -75,8 +77,8 @@ const PreviewCertificate = (props) => {
     owner,
     notificationEmails,
     onboard,
-    showPreview,
     setKeyValue,
+    applicationTag,
   } = props;
   const [dnsNames, setDnsNames] = useState([]);
   useEffect(() => {
@@ -113,6 +115,12 @@ const PreviewCertificate = (props) => {
           <Label>Application Name:</Label>
           <Value>{applicationName || 'N/A'}</Value>
         </EachDetail>
+        {applicationTag && (
+          <EachDetail>
+            <Label>Application Tag:</Label>
+            <Value>{applicationTag || 'N/A'}</Value>
+          </EachDetail>
+        )}
         {notificationEmails?.length > 0 && (
           <EachDetail>
             <Label>Notification Emails:</Label>
@@ -121,7 +129,7 @@ const PreviewCertificate = (props) => {
             })}
           </EachDetail>
         )}
-        {!showPreview && (
+        {dnsNames?.length > 0 && (
           <EachDetail>
             <Label>DNS:</Label>
             {dnsNames?.length > 0 ? (
@@ -157,6 +165,12 @@ const PreviewCertificate = (props) => {
               : 'Entrust CA'}
           </Value>
         </EachDetail>
+        {!isEditCertificate && (
+          <InfoText>
+            Note : Select the Edit button to modify the input details else
+            Onboard button to Onboard a certificate.
+          </InfoText>
+        )}
         {!isEditCertificate && (
           <CancelSaveWrapper>
             <CancelButton>
@@ -207,8 +221,8 @@ PreviewCertificate.propTypes = {
   notificationEmails: PropTypes.arrayOf(PropTypes.any),
   owner: PropTypes.string,
   onboard: PropTypes.bool,
-  showPreview: PropTypes.bool,
   setKeyValue: PropTypes.string,
+  applicationTag: PropTypes.string,
 };
 
 PreviewCertificate.defaultProps = {
@@ -226,8 +240,8 @@ PreviewCertificate.defaultProps = {
   responseType: null,
   isEditCertificate: false,
   onboard: false,
-  showPreview: false,
   setKeyValue: 'N/A',
+  applicationTag: '',
 };
 
 export default PreviewCertificate;

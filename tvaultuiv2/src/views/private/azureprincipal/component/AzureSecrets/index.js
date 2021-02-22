@@ -10,6 +10,8 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import ReportProblemOutlinedIcon from '@material-ui/icons/ReportProblemOutlined';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import Loader from '../../../../../components/Loaders/LoaderSpinner';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import apiService from '../../apiService';
@@ -27,6 +29,8 @@ import PopperElement from '../../../../../components/Popper';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import Error from '../../../../../components/Error';
 import Strings from '../../../../../resources';
+import IconFolderActive from '../../../../../assets/icon_folder_active.png';
+import IconFolderInactive from '../../../../../assets/icon_folder.png';
 
 const UserList = styled.div`
   display: flex;
@@ -91,6 +95,50 @@ const SecretInputfield = styled.input`
     width: 100%;
     margin: 1rem;
   }
+`;
+
+const SecretFolderWrap = styled.div``;
+
+const SecretFolder = styled.div`
+  background: ${BackgroundColor.listBg};
+  outline: none;
+  :hover {
+    background-image: ${(props) => props.theme.gradients.list};
+    color: #fff;
+  }
+
+  .folder--label {
+    outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 0;
+  }
+`;
+const FolderLabel = styled.div`
+  padding-left: 1.5rem;
+  font-size: 1.6rem;
+`;
+const FolderLabelWrap = styled.div`
+  display: flex;
+  align-items: center;
+  padding-left: 2rem;
+  width: 100%;
+  cursor: pointer;
+`;
+
+const Collapsible = styled.div`
+  /* set the height depending on isOpen prop */
+  height: ${(p) => (p.isOpen ? 'auto' : '0')};
+  animation: accordian 0.4s 0s;
+  /* hide the excess content */
+  overflow: hidden;
+`;
+
+const FolderIcon = styled('img')`
+  width: 4rem;
+  height: 4rem;
+  margin-left: 0.8rem;
 `;
 
 const Span = styled('span')`
@@ -231,6 +279,11 @@ const AzureSecrets = (props) => {
     response: false,
   });
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleToggle = () => {
+    setIsOpen(!isOpen);
+  };
 
   /**
    * @function onViewSecretDetails
@@ -260,6 +313,7 @@ const AzureSecrets = (props) => {
 
   useEffect(() => {
     setShowSecret(false);
+    setIsOpen(false);
   }, [value]);
   useEffect(() => {
     if (
@@ -417,69 +471,91 @@ const AzureSecrets = (props) => {
         {response.status === 'success' && azureMetaData.isActivated && (
           <>
             {Object.keys(secretsData).length > 0 ? (
-              <UserList>
-                <SecretDetailsWrap>
-                  <Icon src={lock} alt="lock" />
-                  <InfoWrapper>
-                    <Span>{secretsData.secretKeyId}</Span>
-                    <SecretInputfield
-                      type={showSecret ? 'text' : 'password'}
-                      value={secretsData.secretText}
-                      readOnly
-                    />
-                    <div className="expirationDate">
-                      <div className="expiry">Expires: </div>
-                      <div>{formatDate(secretsData.expiryDate)}</div>
-                    </div>
-                  </InfoWrapper>
-                </SecretDetailsWrap>
-                <FolderIconWrap>
-                  <PopperElement
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'right',
-                    }}
-                    transformOrigin={{
-                      vertical: 'top',
-                      horizontal: 'right',
-                    }}
-                  >
-                    <PopperItem onClick={() => setShowSecret(!showSecret)}>
-                      {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                      <span>{showSecret ? 'Hide Secret' : 'View Secret'}</span>
-                    </PopperItem>
+              <SecretFolderWrap>
+                <SecretFolder>
+                  <div role="button" className="folder--label" tabIndex={0}>
+                    <FolderLabelWrap onClick={(e) => handleToggle(e)}>
+                      {isOpen ? <ExpandMoreIcon /> : <ChevronRightIcon />}
+                      <FolderIcon
+                        alt="folder_icon"
+                        src={isOpen ? IconFolderActive : IconFolderInactive}
+                      />
+                      <FolderLabel>{azureSecretData?.folders[0]}</FolderLabel>
+                    </FolderLabelWrap>
+                  </div>
+                </SecretFolder>
+                <Collapsible isOpen={isOpen}>
+                  <UserList>
+                    <SecretDetailsWrap>
+                      <Icon src={lock} alt="lock" />
+                      <InfoWrapper>
+                        <Span>{secretsData.secretKeyId}</Span>
+                        <SecretInputfield
+                          type={showSecret ? 'text' : 'password'}
+                          value={secretsData.secretText}
+                          readOnly
+                        />
+                        <div className="expirationDate">
+                          <div className="expiry">Expires: </div>
+                          <div>{formatDate(secretsData.expiryDate)}</div>
+                        </div>
+                      </InfoWrapper>
+                    </SecretDetailsWrap>
+                    <FolderIconWrap>
+                      <PopperElement
+                        anchorOrigin={{
+                          vertical: 'bottom',
+                          horizontal: 'right',
+                        }}
+                        transformOrigin={{
+                          vertical: 'top',
+                          horizontal: 'right',
+                        }}
+                      >
+                        <PopperItem onClick={() => setShowSecret(!showSecret)}>
+                          {showSecret ? (
+                            <VisibilityOffIcon />
+                          ) : (
+                            <VisibilityIcon />
+                          )}
+                          <span>
+                            {showSecret ? 'Hide Secret' : 'View Secret'}
+                          </span>
+                        </PopperItem>
 
-                    {azureDetail.access === 'write' && (
-                      <PopperItem onClick={() => onRotateSecret()}>
-                        <img alt="refersh-ic" src={refreshIcon} />
-                        <span>Rotate Secret</span>
-                      </PopperItem>
-                    )}
-                    <CopyToClipboard
-                      text={secretsData.secretKeyId}
-                      onCopy={() =>
-                        onCopyClicked('Secret key is copied to clipboard!')
-                      }
-                    >
-                      <PopperItem>
-                        <FileCopyIcon />
-                        <span>Copy Secret Key</span>
-                      </PopperItem>
-                    </CopyToClipboard>
-                    <CopyToClipboard
-                      text={secretsData.secretText}
-                      onCopy={() =>
-                        onCopyClicked('Password is copied to clipboard!')
-                      }
-                    >
-                      <PopperItem>
-                        <FileCopyIcon />
-                        <span>Copy Password</span>
-                      </PopperItem>
-                    </CopyToClipboard>
-                  </PopperElement>
-                </FolderIconWrap>
-              </UserList>
+                        {azureDetail.access === 'write' && (
+                          <PopperItem onClick={() => onRotateSecret()}>
+                            <img alt="refersh-ic" src={refreshIcon} />
+                            <span>Rotate Secret</span>
+                          </PopperItem>
+                        )}
+                        <CopyToClipboard
+                          text={secretsData.secretKeyId}
+                          onCopy={() =>
+                            onCopyClicked('Secret key is copied to clipboard!')
+                          }
+                        >
+                          <PopperItem>
+                            <FileCopyIcon />
+                            <span>Copy Secret Key</span>
+                          </PopperItem>
+                        </CopyToClipboard>
+                        <CopyToClipboard
+                          text={secretsData.secretText}
+                          onCopy={() =>
+                            onCopyClicked('Password is copied to clipboard!')
+                          }
+                        >
+                          <PopperItem>
+                            <FileCopyIcon />
+                            <span>Copy Password</span>
+                          </PopperItem>
+                        </CopyToClipboard>
+                      </PopperElement>
+                    </FolderIconWrap>
+                  </UserList>
+                </Collapsible>
+              </SecretFolderWrap>
             ) : (
               <NoSecretsContaner>
                 <NoSecretsdispIcon src={NoSecretsIcon} alt="NoSecretsIcon" />

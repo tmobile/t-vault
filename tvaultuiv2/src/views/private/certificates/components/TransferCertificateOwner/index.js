@@ -376,6 +376,7 @@ const CreateCertificates = (props) => {
                   owner={certificateData.certOwnerEmailId}
                   container={certificateData.containerName}
                   isEditCertificate
+                  applicationTag={certificateData?.applicationTag}
                 />
                 <InputFieldLabelWrapper postion>
                   <InputLabel>
