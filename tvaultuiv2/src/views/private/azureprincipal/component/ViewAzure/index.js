@@ -442,7 +442,7 @@ const ViewAzure = (props) => {
                   {backDropLoader && <BackdropLoader />}
                   <HeaderWrapper>
                     <Typography variant="h5">
-                      View Azure Service Pincipal
+                      View Azure Service Principal
                     </Typography>
                   </HeaderWrapper>
                   <IconDescriptionWrapper>

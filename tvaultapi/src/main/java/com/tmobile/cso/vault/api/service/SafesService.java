@@ -2532,10 +2532,13 @@ public class  SafesService {
 						build()));
 			}
 		}
-		int totalCount = safeList.size();
+		List<String> filterListWithoutVersionFolder = safeList.stream().filter(f -> !f.startsWith(TVaultConstants.VERSION_FOLDER_PREFIX)).collect(Collectors.toList());
+
+		int totalCount = filterListWithoutVersionFolder.size();
 		limit = (limit == null)?totalCount:limit;
 		offset = (offset == null)?0:offset;
-		List<String> filterList = safeList.stream().skip(offset).limit(limit).collect(Collectors.toList());
+
+		List<String> filterList = filterListWithoutVersionFolder.stream().skip(offset).limit(limit).collect(Collectors.toList());
 		Map<String, Object> safesMap = new HashMap<String, Object>();
 		safesMap.put("keys", filterList.toArray());
 		safesMap.put("total", totalCount);
