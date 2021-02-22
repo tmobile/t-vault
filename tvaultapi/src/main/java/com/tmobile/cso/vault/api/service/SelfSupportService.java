@@ -301,11 +301,15 @@ public class  SelfSupportService {
 			// List of safes based on current user
 			String[] policies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails);
 			String[] safes = safeUtils.getManagedSafes(policies, path);
-			int totalCount = safes.length;
+
+			List<String> safeListWithOutVersionFolder =  Arrays.asList(safes).stream().filter(f -> !f.startsWith(TVaultConstants.VERSION_FOLDER_PREFIX)).collect(Collectors.toList());
+
+			int totalCount = safeListWithOutVersionFolder.size();
 			limit = (limit == null)?totalCount:limit;
 			offset = (offset == null)?0:offset;
 
-			List<String> safeList =  Arrays.asList(safes).stream().skip(offset).limit(limit).collect(Collectors.toList());
+			List<String> safeList =  safeListWithOutVersionFolder.stream().skip(offset).limit(limit).collect(Collectors.toList());
+
 			safes = safeList.toArray(new String[safeList.size()]);
 
 			Map<String, Object> safesMap = new HashMap<String, Object>();
