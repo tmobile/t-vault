@@ -126,6 +126,7 @@ public class TVaultConstants {
         EMAIL_TEMPLATE_IMAGE_IDS.put("permissiontab", "templates/images/permissiontab.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("adduser", "templates/images/adduser.png");
         EMAIL_TEMPLATE_IMAGE_IDS.put("adadduser", "templates/images/adadduser.png");
+        EMAIL_TEMPLATE_IMAGE_IDS.put("edit", "templates/images/edit.png");
         }
     public static final String HTTP_CONTENT_TYPE_JSON = "application/json";
     public static final String HTTP_CONTENT_TYPE_URL_ENCODED = "application/x-www-form-urlencoded";

@@ -14,38 +14,40 @@
 <body>
     <div>Hello <span data-th-text="${name}"></span>,</div>
     <br/>
-    <div>Onboarding of services account <span class="special-text" data-th-text="${svcAccName}"></span> has been completed successfully, and you will now want to activate the service account in T-Vault and assign permissions to other users who you want to view or reset this accounts password.</div>
+    <div>Onboarding of AD Service Account <span class="special-text" data-th-text="${svcAccName}"></span> has been completed successfully, and you will now want to activate the same in T-Vault and assign permissions to other users who you want to view or reset password.</div>
     <div>To do so please complete the following steps:</div>
 
-    <h4>Activate Service Account:</h4>
+    <h4>Activate AD Service Account:</h4>
     <ol>
-        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your NT account.</li>
+        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault.</a> </li>
         <li>
-            <div>Navigate to the "MANAGE" tab - "AD Service Accounts"</div>
+            <div>Navigate to the "Service Accounts" tab - "AD Service Accounts"</div>
             <img class ="image" src="managetab.png" th:src="|cid:${managetab}|"/>
         </li>
         <li>
-            <div>Select the "View/Edit" option corresponding to the service account you want to activate.</div>
+            <div>Select the AD Service Account you want to activate.</div>
             <img class ="image" src="viewlink.png" th:src="|cid:${viewlink}|"/>
         </li>
         <li>
-            <div>Update any information you need to.</div>
+            <div>To update any information you need to click on edit button and update the details.</div>
+            <img class="image" src="edit.png" th:src="|cid:${edit}|"/>
             <img class="image" src="update.png" th:src="|cid:${update}|"/>
         </li>
         <li>
-            <div>Click the "Activate Service Account" link at the bottom right.</div>
+            <div>To activate the AD Service Account click on edit button and "Activate Service Account".</div>
+            <img class="image" src="edit.png" th:src="|cid:${edit}|"/>
             <img class ="image" src="activate.png" th:src="|cid:${activate}|"/>
         </li>
 
     </ol>
 
     <h4>Assigning Permissions: </h4>
-    <div>Once you are finished activating your service account you can assign permissions to other users or groups you want to have permission to view or reset the password for the account.</div>
+<div>Once you are finished activating your AD Service Account you can assign permissions to other users or groups you want to have permission to view or rotate the password for the account.
     <div data-th-text="${groupContent}"></div>
     <ol>
-        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your NT account.</li>
-        <li>Navigate to the "MANAGE" tab - "AD Service Accounts".</li>
-        <li>Select the "View/Edit" option corresponding to the service account you want to manage.</li>
+        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault.</a> </li>
+        <li>Navigate to the "Service Accounts" tab - "AD Service Accounts".</li>
+        <li>Select the AD Service Account you want to manage.</li>
         <li>
             <div>Select the "Grant Permission" button.</div>
             <img class ="image" src="permission.png" th:src="|cid:${permission}|"/>

@@ -1227,7 +1227,12 @@ public class  AppRoleService {
 	 * @return
 	 */
 	public ResponseEntity<String> deleteSecretIds(String token, AppRoleAccessorIds appRoleAccessorIds, UserDetails userDetails){
-
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "DeleteSecretId").
+			      put(LogMessage.MESSAGE, String.format("Trying to delete SecretId for the role [%s].",appRoleAccessorIds.getRole_name())).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		if (Arrays.asList(TVaultConstants.MASTER_APPROLES).contains(appRoleAccessorIds.getRole_name())) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(String.format(
@@ -1259,7 +1264,7 @@ public class  AppRoleService {
 							  put(LogMessage.ACTION, DELETESECRET).
 						      put(LogMessage.MESSAGE, String.format("Successfully deleted SecretId for the accessor_id [%s]",accessorId)).
 						      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						      build()));
+						      build())); 
 				}
 				else if (HttpStatus.INTERNAL_SERVER_ERROR.equals(deleteSecretIdResponse.getHttpstatus()) && 
 					deleteSecretIdResponse.getResponse().contains("failed to find accessor entry for secret_id_accessor")) {
@@ -1288,6 +1293,12 @@ public class  AppRoleService {
 			if (!CollectionUtils.isEmpty(failedAccessorIds)) {
 				message.append(String.format("Failed to delete the secret_ids for the following accessor_ids: [%s]",StringUtils.join(failedAccessorIds.toArray(), ",")));
 			}
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, DELETESECRET).
+				      put(LogMessage.MESSAGE,"Deletion of SecretId completed successfully").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\""+message+"\"]}");
 		}
 		log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().

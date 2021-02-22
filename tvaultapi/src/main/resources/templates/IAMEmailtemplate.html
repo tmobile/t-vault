@@ -14,54 +14,54 @@
 <body>
     <div>Hello <span data-th-text="${name}"></span>,</div>
     <br/>
-    <div>Onboarding of IAM services account <span class="special-text" data-th-text="${svcAccName}"></span> has been completed successfully, and you will now want to activate the IAM service account in T-Vault and assign permissions to other users who you want to view or rotate this accounts password.</div>
+    <div>Onboarding of IAM Service Account <span class="special-text" data-th-text="${svcAccName}"></span> has been completed successfully, and you will now want to activate the same in T-Vault and assign permissions to other users who you want to view or rotate this password.</div>
     <div>To do so please complete the following steps:</div>
 
     <h4>Activate IAM Service Account:</h4>
     <ol>
-        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your NT account.</li>
+        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault.</a> </li>
         <li>
-            <div>Navigate to the "MANAGE" tab - "IAM Service Accounts".</div>
+            <div>Navigate to the "Service Accounts" tab.</div>
             <img class ="image" src="iammanagetab.png" th:src="|cid:${iammanagetab}|"/>
         </li>
         <li>
-            <div>Select the "View/Edit" option corresponding to the IAM service account you want to activate.</div>
+            <div>Select the "IAM Service Accounts" from dropdown.</div>
             <img class ="image" src="iamviewlink.png" th:src="|cid:${iamviewlink}|"/>
         </li>
         <li>
-            <div>Click the "Activate IAM Service Account" link at the bottom right.</div>
+            <div>Click the rotate icon to activate IAM Service Account.</div>
             <img class ="image" src="iamactivate.png" th:src="|cid:${iamactivate}|"/>
         </li>
 
     </ol>
 
     <h4>Assigning Permissions: </h4>
-    <div>Once you are finished activating your IAM service account you can assign permissions to other users or groups you want to have permission to view or rotate the password for the account.</div>
+    <div>Once you are finished activating your IAM Service Account you can assign permissions to other users or groups you want to have permission to view or rotate the password for the account.</div>
     <div data-th-text="${groupContent}"></div>
     <ol>
-        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your NT account.</li>
-        <li>Navigate to the "MANAGE" tab - "IAM Service Accounts".</li>
-        <li>Select the "View/Edit" option corresponding to the IAM service account you want to manage.</li>
+        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault.</a> </li>
+        <li>Navigate to the "Service Accounts" tab and select "IAM Service Accounts" from dropdown.</li>
+        <li>Select the IAM Service Account you want to manage.</li>
         <li>
-            <div>Select the "Grant Permission" button.</div>
+            <div>Select the "Permissions" button.</div>
             <img class ="image" src="iampermission.png" th:src="|cid:${iampermission}|"/>
         </li>
         <li>
-            <div>Navigate to the "Groups" or "User" tab.</div>
+            <div>Navigate to the Users tab and click on "Add User".</div>
             <img class ="image" src="permissiontab.png" th:src="|cid:${permissiontab}|"/>
         </li>
         <li>
-            <div>Provide the group or user name you want to give permissions to and select either read, rotate, or deny depending on the level of access you want to give.</div>
+            <div>Provide the user name you want to give permissions to and select either read, rotate or deny depending on the level of access you want to give.</div>
             <img class ="image" src="adduser.png" th:src="|cid:${adduser}|"/>
         </li>
     </ol>
     
     <h4>Rotate Secret Key: </h4>
-    <div>Once you are finished activating your IAM service account you can rotate the password for the account.</div>
+    <div>Once you are finished activating your IAM Service Account you can rotate the password for the account.</div>
     <ol>
-        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault</a> using your NT account.</li>
-        <li>Navigate to the "IAM SERVICE ACCOUNTS" tab.</li>
-        <li>Select the IAM service account you want to manage.</li>
+        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault.</a> </li>
+        <li>Navigate to the "Service Accounts" tab and select "IAM Service Accounts" from dropdown.</li>
+        <li>Select the IAM Service Account you want to manage.</li>
         <li>Select the secret folder.</li>
         <li>
             <div>Select the "Rotate secret" link.</div>
