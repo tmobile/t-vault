@@ -10,6 +10,8 @@ import VisibilityIcon from '@material-ui/icons/Visibility';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import apiService from '../../apiService';
@@ -27,6 +29,8 @@ import {
 import PopperElement from '../../../../../components/Popper';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import Error from '../../../../../components/Error';
+import IconFolderActive from '../../../../../assets/icon_folder_active.png';
+import IconFolderInactive from '../../../../../assets/icon_folder.png';
 
 const UserList = styled.div`
   display: flex;
@@ -52,6 +56,50 @@ const UserList = styled.div`
       margin-right: 0.2rem;
     }
   }
+`;
+
+const SecretFolderWrap = styled.div``;
+
+const SecretFolder = styled.div`
+  background: ${BackgroundColor.listBg};
+  outline: none;
+  :hover {
+    background-image: ${(props) => props.theme.gradients.list};
+    color: #fff;
+  }
+
+  .folder--label {
+    outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 0;
+  }
+`;
+const FolderLabel = styled.div`
+  padding-left: 1.5rem;
+  font-size: 1.6rem;
+`;
+const FolderLabelWrap = styled.div`
+  display: flex;
+  align-items: center;
+  padding-left: 2rem;
+  width: 100%;
+  cursor: pointer;
+`;
+
+const Collapsible = styled.div`
+  /* set the height depending on isOpen prop */
+  height: ${(p) => (p.isOpen ? 'auto' : '0')};
+  animation: accordian 0.4s 0s;
+  /* hide the excess content */
+  overflow: hidden;
+`;
+
+const FolderIcon = styled('img')`
+  width: 4rem;
+  height: 4rem;
+  margin-left: 0.8rem;
 `;
 
 const Secret = styled.div`
@@ -187,6 +235,11 @@ const IamServiceAccountSecrets = (props) => {
   const [toastMessage, setToastMessage] = useState('');
   const [openConfirmationModal, setOpenConfirmationModal] = useState({});
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleToggle = () => {
+    setIsOpen(!isOpen);
+  };
 
   useEffect(() => {
     setResponse({ status: secretResponse });
@@ -201,6 +254,7 @@ const IamServiceAccountSecrets = (props) => {
 
   useEffect(() => {
     setShowSecret(false);
+    setIsOpen(false);
   }, [value]);
 
   /**
@@ -460,68 +514,88 @@ const IamServiceAccountSecrets = (props) => {
           accountDetail?.permission !== 'deny' &&
           Object.keys(secretsData).length > 0 &&
           accountDetail.name && (
-            <UserList>
-              <SecretDetailsWrap>
-                <Icon src={lock} alt="lock" />
-                <InfoWrapper>
-                  <Span>{secretsData.accessKeyId}</Span>
-                  <SecretInputfield
-                    type={showSecret ? 'text' : 'password'}
-                    value={secretsData.accessKeySecret}
-                    readOnly
-                  />
-                  <div className="expirationDate">
-                    <div className="expiry">Expires: </div>
-                    <div>{formatDate(secretsData.expiryDate)}</div>
-                  </div>
-                </InfoWrapper>
-              </SecretDetailsWrap>
-              <FolderIconWrap>
-                <PopperElement
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'right',
-                  }}
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                >
-                  <PopperItem onClick={() => onViewSecretsCliked()}>
-                    {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                    <span>
-                      {showSecret ? 'Hide Secret key' : 'View Secret key'}
-                    </span>
-                  </PopperItem>
-                  {accountDetail.permission === 'write' && (
-                    <PopperItem onClick={() => onRotateClicked()}>
-                      <img alt="refersh-ic" src={refreshIcon} />
-                      <span>Rotate Secret</span>
-                    </PopperItem>
-                  )}
-                  <CopyToClipboard
-                    text={secretsData.accessKeySecret}
-                    onCopy={() => onCopyClicked()}
-                  >
-                    <PopperItem>
-                      <FileCopyIcon />
-                      <span>Copy Secret Key</span>
-                    </PopperItem>
-                  </CopyToClipboard>
-                  <CopyToClipboard
-                    text={secretsData.accessKeyId}
-                    onCopy={() =>
-                      onCopyClicked('Copied Access Id To Clipboard!')
-                    }
-                  >
-                    <PopperItem>
-                      <FileCopyIcon />
-                      <span>Copy Access Key</span>
-                    </PopperItem>
-                  </CopyToClipboard>
-                </PopperElement>
-              </FolderIconWrap>
-            </UserList>
+            <SecretFolderWrap>
+              <SecretFolder>
+                <div role="button" className="folder--label" tabIndex={0}>
+                  <FolderLabelWrap onClick={(e) => handleToggle(e)}>
+                    {isOpen ? <ExpandMoreIcon /> : <ChevronRightIcon />}
+                    <FolderIcon
+                      alt="folder_icon"
+                      src={isOpen ? IconFolderActive : IconFolderInactive}
+                    />
+                    <FolderLabel>{accountSecretData?.folders[0]}</FolderLabel>
+                  </FolderLabelWrap>
+                </div>
+              </SecretFolder>
+              <Collapsible isOpen={isOpen}>
+                <UserList>
+                  <SecretDetailsWrap>
+                    <Icon src={lock} alt="lock" />
+                    <InfoWrapper>
+                      <Span>{secretsData.accessKeyId}</Span>
+                      <SecretInputfield
+                        type={showSecret ? 'text' : 'password'}
+                        value={secretsData.accessKeySecret}
+                        readOnly
+                      />
+                      <div className="expirationDate">
+                        <div className="expiry">Expires: </div>
+                        <div>{formatDate(secretsData.expiryDate)}</div>
+                      </div>
+                    </InfoWrapper>
+                  </SecretDetailsWrap>
+                  <FolderIconWrap>
+                    <PopperElement
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                      }}
+                      transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                      }}
+                    >
+                      <PopperItem onClick={() => onViewSecretsCliked()}>
+                        {showSecret ? (
+                          <VisibilityOffIcon />
+                        ) : (
+                          <VisibilityIcon />
+                        )}
+                        <span>
+                          {showSecret ? 'Hide Secret key' : 'View Secret key'}
+                        </span>
+                      </PopperItem>
+                      {accountDetail.permission === 'write' && (
+                        <PopperItem onClick={() => onRotateClicked()}>
+                          <img alt="refersh-ic" src={refreshIcon} />
+                          <span>Rotate Secret</span>
+                        </PopperItem>
+                      )}
+                      <CopyToClipboard
+                        text={secretsData.accessKeySecret}
+                        onCopy={() => onCopyClicked()}
+                      >
+                        <PopperItem>
+                          <FileCopyIcon />
+                          <span>Copy Secret Key</span>
+                        </PopperItem>
+                      </CopyToClipboard>
+                      <CopyToClipboard
+                        text={secretsData.accessKeyId}
+                        onCopy={() =>
+                          onCopyClicked('Copied Access Id To Clipboard!')
+                        }
+                      >
+                        <PopperItem>
+                          <FileCopyIcon />
+                          <span>Copy Access Key</span>
+                        </PopperItem>
+                      </CopyToClipboard>
+                    </PopperElement>
+                  </FolderIconWrap>
+                </UserList>
+              </Collapsible>
+            </SecretFolderWrap>
           )}
         {response.status === 'error' && (
           <Error
