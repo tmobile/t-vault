@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { debounce } from 'lodash';
+import Tooltip from '@material-ui/core/Tooltip';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
@@ -157,9 +158,22 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const useTooltipStyles = makeStyles((theme) => ({
+  arrow: {
+    color: theme.palette.common.white,
+  },
+  tooltip: {
+    backgroundColor: theme.palette.common.white,
+    color: theme.palette.common.black,
+    fontSize: theme.typography.subtitle2.fontSize,
+    textAlign: 'center',
+  },
+}));
+
 const CreateModal = (props) => {
   const { refresh } = props;
   const classes = useStyles();
+  const tooltipClasses = useTooltipStyles();
   const [applicationName, setApplicationName] = useState('');
   const [allApplication, setAllApplication] = useState([]);
   const [open, setOpen] = useState(true);
@@ -684,10 +698,17 @@ const CreateModal = (props) => {
                         />
                       </InputFieldLabelWrapper>
                       <InputFieldLabelWrapper>
-                        <InputLabel>
-                          Application Name
-                          <RequiredCircle margin="1.3rem" />
-                        </InputLabel>
+                        <Tooltip
+                          classes={tooltipClasses}
+                          arrow
+                          title="Name of the Cloud application this safe will be used for. Only applications you have self-service rights to will be shown"
+                          placement="top"
+                        >
+                          <InputLabel>
+                            Application Name
+                            <RequiredCircle margin="1.3rem" />
+                          </InputLabel>
+                        </Tooltip>
                         <AutoCompleteComponent
                           icon="search"
                           options={[
@@ -708,6 +729,7 @@ const CreateModal = (props) => {
                           }
                         />
                       </InputFieldLabelWrapper>
+
                       <InputFieldLabelWrapper>
                         <InputLabel>
                           Description
