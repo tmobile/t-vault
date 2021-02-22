@@ -321,6 +321,7 @@ const CreateCertificates = (props) => {
   const isMobileScreen = useMediaQuery(small);
   const history = useHistory();
   const [state] = useStateValue();
+  const [duplicateEmail, setDuplicateEmail] = useState(false);
 
   const { trackPageView, trackEvent } = useMatomo();
 
@@ -362,6 +363,16 @@ const CreateCertificates = (props) => {
         setEmailErrorMsg('Please enter a valid group email or not available!');
       } else {
         setIsValidEmail(true);
+      }
+      if (
+        notificationEmailList &&
+        notificationEmailList?.includes(
+          notifyUserSelected?.userEmail?.toLowerCase()
+        )
+      ) {
+        setDuplicateEmail(true);
+      } else {
+        setDuplicateEmail(false);
       }
     }
   }, [notifyEmail, notifyUserSelected, autoLoader, options, searchBy]);
@@ -1082,12 +1093,14 @@ const CreateCertificates = (props) => {
                             }
                             error={
                               notifyEmail?.length > 2 &&
-                              (emailError || !isValidEmail)
+                              (emailError || !isValidEmail || duplicateEmail)
                             }
                             helperText={
                               notifyEmail?.length > 2 &&
                               (emailError || !isValidEmail)
                                 ? emailErrorMsg
+                                : duplicateEmail
+                                ? 'Duplicate Email !'
                                 : ''
                             }
                             styling={{ bottom: '5rem' }}

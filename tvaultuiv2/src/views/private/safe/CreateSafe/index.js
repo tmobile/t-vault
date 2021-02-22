@@ -196,6 +196,7 @@ const CreateModal = (props) => {
   const history = useHistory();
   const [ownerSelected, setOwnerSelected] = useState(false);
   const [modalDecription, setModalDecription] = useState('');
+  const[openTransferConfirmationModal,setOpenTransferConfirmationModal] = useState(false);
 
   const { trackPageView, trackEvent } = useMatomo();
 
@@ -551,9 +552,39 @@ const CreateModal = (props) => {
     history.goBack();
   };
 
+  const handleTransferConfirmationClose = () =>{
+    setOpenTransferConfirmationModal(false);
+  }
+
+  const handleTransferConfirm = () =>{
+    setOpenModal({ status: 'transfer' });
+    setOpenTransferConfirmationModal(false);
+  }
+
   return (
     <ComponentError>
       <>
+        <ConfirmationModal
+          open={openTransferConfirmationModal}
+          handleClose={handleTransferConfirmationClose}
+          title="Transfer Safe"
+          description="Are you sure, do you want to transfer ownership for this safe?"
+          cancelButton={
+            <ButtonComponent
+              label="Cancel"
+              color="primary"
+              onClick={() => handleTransferConfirmationClose() }
+              width="100%"
+            />
+          }
+          confirmButton={
+            <ButtonComponent
+              label="Confirm"
+              color="secondary"
+              onClick={() => handleTransferConfirm() }
+            />
+          }
+        />
         {openModal.status === 'confirmation' && (
           <ConfirmationModal
             open
@@ -762,7 +793,7 @@ const CreateModal = (props) => {
                           <ButtonComponent
                             label="Transfer"
                             color="secondary"
-                            onClick={() => setOpenModal({ status: 'transfer' })}
+                            onClick={() => setOpenTransferConfirmationModal(true)}
                             width={isMobileScreen ? '100%' : ''}
                           />
                         </CancelButton>
