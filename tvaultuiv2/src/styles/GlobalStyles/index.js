@@ -162,7 +162,7 @@ export const InstructionText = styled.p`
 `;
 
 export const GlobalModalWrapper = styled.section`
-  background-color: ${(props) => props.theme.palette.background.modal};
+  background-color: ${(props) => props?.theme?.palette?.background?.modal};
   padding: 5.5rem 6rem 6rem 6rem;
   border: none;
   outline: none;
@@ -180,5 +180,22 @@ export const GlobalModalWrapper = styled.section`
     padding: 2rem;
     margin: 0;
     height: fit-content;
+  }
+  ${(props) => (props.extraCss ? props.extraCss : '')}
+`;
+
+export const NoDataWrapper = styled.section`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  margin-top: 1rem;
+  p {
+    ${mediaBreakpoints.small} {
+      margin-top: 2rem;
+      margin-bottom: 4rem;
+      width: 75%;
+    }
   }
 `;

@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-indent */
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
@@ -14,22 +14,9 @@ import AddAppRole from '../../../../../../../components/AddAppRole';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../../../components/Error';
+import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
-
-const NoDataWrapper = styled.section`
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  p {
-    ${small} {
-      margin-top: 2rem;
-      margin-bottom: 4rem;
-      width: 75%;
-    }
-  }
-`;
 
 const bgIconStyle = {
   width: '10rem',
@@ -58,6 +45,7 @@ const AppRoles = (props) => {
     onNewAppRoleChange,
     newAppRole,
     updateToastMessage,
+    selectedParentTab,
   } = props;
 
   const [response, setResponse] = useState({ status: 'loading' });
@@ -171,6 +159,13 @@ const AppRoles = (props) => {
     onNewAppRoleChange();
   };
 
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      onCancelClicked();
+    }
+    // eslint-disable-next-line
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
       <>
@@ -179,6 +174,7 @@ const AppRoles = (props) => {
         )}
         {response.status === 'add' && (
           <AddAppRole
+            roles={safeData?.response['app-roles']}
             handleSaveClick={(role, access) => onSubmit(role, access)}
             handleCancelClick={() => onCancelClicked()}
           />
@@ -248,5 +244,6 @@ AppRoles.propTypes = {
   newAppRole: PropTypes.bool.isRequired,
   onNewAppRoleChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 export default AppRoles;

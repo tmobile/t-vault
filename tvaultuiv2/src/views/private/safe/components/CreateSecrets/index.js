@@ -15,14 +15,14 @@ import {
   RequiredWrap,
   SubHeading,
 } from '../../../../../styles/GlobalStyles';
-import { ColorBackArrow } from '../../../../../assets/SvgIcons';
+import { BackArrow } from '../../../../../assets/SvgIcons';
 
 const SecretWrapper = styled.section`
   padding: 4rem;
   display: flex;
   flex-direction: column;
   background-color: ${(props) =>
-    props.theme.palette.background.paper || '#20232e'};
+    props.theme.palette?.background?.paper || '#20232e'};
   ${mediaBreakpoints.small} {
     padding: 2rem;
     height: 100%;
@@ -32,13 +32,10 @@ const SecretWrapper = styled.section`
 const FormWrapper = styled.form`
   margin-top: 4rem;
 `;
-
-const KeyIdInputRequirements = styled.p`
-  color: #fff;
-  opacity: 0.4;
-  font-size: 1.3rem;
-  margin-bottom: 2rem;
+const InputFieldWrapper = styled.div`
+  margin-top: 1.5rem;
 `;
+
 const CancelSaveWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
@@ -71,6 +68,7 @@ const extraCss = css`
 
 const CreateSecret = (props) => {
   const {
+    existingSecrets,
     handleSecretSave,
     handleSecretCancel,
     parentId,
@@ -78,46 +76,107 @@ const CreateSecret = (props) => {
   } = props;
   const [secret, setSecret] = useState('');
   const [keyId, setKeyId] = useState('');
-  const [keyErrorMessage, setKeyErrorMessage] = useState(null);
+  const [keyErrorMessage, setKeyErrorMessage] = useState(false);
   const [valueErrorMessage, setValueErrorMessage] = useState(null);
-
+  const [diabledCreate, setDiabledCreate] = useState(true);
   // screen resolution handler
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const [existingKey, setExistingKey] = useState(false);
+  const [existingKeyArray, setExistingKeyArray] = useState([]);
 
   // prefetch input data if any(i.e while editing)
   useEffect(() => {
-    setKeyId(Object.keys(secretprefilledData)[0]);
-    setSecret(Object.values(secretprefilledData)[0]);
+    if (Object.keys(secretprefilledData).length > 0) {
+      setKeyId(Object.keys(secretprefilledData)[0]);
+      setSecret(Object.values(secretprefilledData)[0]);
+    }
   }, [secretprefilledData]);
 
-  const handleValidation = (value, type) => {
-    if (type === 'key') {
-      setKeyErrorMessage(value.length < 3 || !value.match(/^[a-zA-Z0-9_]*$/g));
+  useEffect(() => {
+    if (existingSecrets) {
+      const array = [];
+      existingSecrets.forEach((data) => {
+        array.push(Object.keys(data)[0]);
+      });
+      setExistingKeyArray([...array]);
+    }
+  }, [existingSecrets]);
+
+  useEffect(() => {
+    if (
+      keyId === '' ||
+      secret === '' ||
+      keyErrorMessage ||
+      valueErrorMessage ||
+      existingKey ||
+      (Object.keys(secretprefilledData).length > 0 &&
+        Object.keys(secretprefilledData)[0] === keyId &&
+        Object.values(secretprefilledData)[0] === secret)
+    ) {
+      setDiabledCreate(true);
     } else {
-      setValueErrorMessage(value.length < 3);
+      setDiabledCreate(false);
+    }
+  }, [
+    keyId,
+    secret,
+    valueErrorMessage,
+    keyErrorMessage,
+    secretprefilledData,
+    existingKey,
+  ]);
+
+  const handleValidation = (value, type) => {
+    if (type === 'value') {
+      setValueErrorMessage(value.length < 1);
     }
   };
 
+  const handleKeyValidation = () => {
+    if (
+      Object.keys(secretprefilledData).length === 0 &&
+      existingKeyArray &&
+      existingKeyArray.includes(keyId)
+    ) {
+      setExistingKey(true);
+    } else {
+      setExistingKey(false);
+    }
+    setKeyErrorMessage(keyId.length < 1 || !keyId.match(/^[a-zA-Z0-9_]*$/g));
+  };
+
+  useEffect(() => {
+    if (keyId) handleKeyValidation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keyId]);
+
   const handleKeyChange = (key) => {
     setKeyId(key);
-    handleValidation(key, 'key');
   };
 
   const handleValueChange = (value) => {
     setSecret(value);
     handleValidation(value, 'value');
   };
-
+  const getHelperMessage = () => {
+    if (keyErrorMessage) {
+      return 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.';
+    }
+    if (existingKey) {
+      return 'This key id already exists in this folder.Please try a diffrent key id to continue to add secret.';
+    }
+    return 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.';
+  };
   return (
     <ComponentError>
       <SecretWrapper>
         <SubHeading extraCss={extraCss}>
           {isMobileScreen && (
             <BackButton onClick={() => handleSecretCancel(false)}>
-              <ColorBackArrow />
+              <BackArrow />
             </BackButton>
           )}
-          Add Secrets
+          Add Secret
         </SubHeading>
         <FormWrapper>
           <LabelRequired>
@@ -130,34 +189,31 @@ const CreateSecret = (props) => {
               <RequiredText>Required</RequiredText>
             </RequiredWrap>
           </LabelRequired>
-
           <TextFieldComponent
             placeholder="Key Id"
             value={keyId || ''}
+            name="keyId"
             onChange={(e) => handleKeyChange(e.target.value)}
             fullWidth
-            error={!!keyErrorMessage}
-            helperText={
-              keyErrorMessage
-                ? 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.'
-                : ''
-            }
+            characterLimit={256}
+            error={!!keyErrorMessage || existingKey}
+            helperText={getHelperMessage()}
           />
-          <KeyIdInputRequirements>
-            Please enter a minimum of 3 characters lowercase alphabets, number
-            and underscores only
-          </KeyIdInputRequirements>
-          <InputLabel>
-            Secret
-            <RequiredCircle margin="0.5rem" />
-          </InputLabel>
-          <TextFieldComponent
-            placeholder="Secret"
-            value={secret || ''}
-            onChange={(e) => handleValueChange(e.target.value)}
-            fullWidth
-            error={!!valueErrorMessage}
-          />
+          <InputFieldWrapper>
+            <InputLabel>
+              Secret
+              <RequiredCircle margin="0.5rem" />
+            </InputLabel>
+            <TextFieldComponent
+              placeholder="Secret"
+              name="safeSecret"
+              value={secret || ''}
+              onChange={(e) => handleValueChange(e.target.value)}
+              fullWidth
+              error={!!valueErrorMessage}
+              characterLimit={2048}
+            />
+          </InputFieldWrapper>
           <CancelSaveWrapper>
             <CancelButton>
               <ButtonComponent
@@ -176,9 +232,7 @@ const CreateSecret = (props) => {
               icon={Object.keys(secretprefilledData).length === 0 ? 'add' : ''}
               color="secondary"
               width={isMobileScreen ? '100%' : ''}
-              disabled={
-                !secret || !keyId || valueErrorMessage || keyErrorMessage
-              }
+              disabled={diabledCreate}
               onClick={() =>
                 handleSecretSave({
                   key: keyId.toLowerCase(),
@@ -198,7 +252,8 @@ CreateSecret.propTypes = {
   handleSecretSave: PropTypes.func,
   handleSecretCancel: PropTypes.func,
   parentId: PropTypes.string,
-  secretprefilledData: PropTypes.objectOf(PropTypes.object),
+  secretprefilledData: PropTypes.objectOf(PropTypes.any),
+  existingSecrets: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 CreateSecret.defaultProps = {
   handleSecretSave: () => {},

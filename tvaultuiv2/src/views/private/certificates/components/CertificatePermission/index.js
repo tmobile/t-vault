@@ -7,8 +7,10 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 import PermissionsTabs from '../../../../../components/PermissionTabs';
 import TabPanel from '../../../../../components/TabPanel';
 import { TabWrapper } from '../../../../../styles/GlobalStyles';
-import Users from './components/users';
-import Groups from './components/groups';
+import Users from './components/Users';
+import Groups from './components/Groups';
+import AppRoles from './components/AppRoles';
+import AwsApplications from './components/AwsApplications';
 
 const PermissionTabsWrapper = styled('div')`
   height: calc(100% - 3.7rem);
@@ -16,10 +18,19 @@ const PermissionTabsWrapper = styled('div')`
 `;
 
 const CertificatePermission = (props) => {
-  const { certificateMetaData, responseStatus, fetchDetail, username } = props;
+  const {
+    certificateMetaData,
+    responseStatus,
+    fetchDetail,
+    username,
+    userDetails,
+    selectedParentTab,
+  } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
   const [newGroup, setNewGroup] = useState(false);
+  const [newAwsApplication, setNewAwsApplication] = useState(false);
+  const [newAppRole, setNewAppRole] = useState(false);
   const [count, setCount] = useState(0);
   const [toastResponse, setToastResponse] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
@@ -27,6 +38,11 @@ const CertificatePermission = (props) => {
   const initialObject = {
     0: { label: 'users', addBtnCallback: () => setNewUser(true) },
     1: { label: 'groups', addBtnCallback: () => setNewGroup(true) },
+    2: {
+      label: 'aws applications',
+      addBtnCallback: () => setNewAwsApplication(true),
+    },
+    3: { label: 'app roles', addBtnCallback: () => setNewAppRole(true) },
   };
 
   useEffect(() => {
@@ -40,9 +56,27 @@ const CertificatePermission = (props) => {
         if (certificateMetaData.groups) {
           setCount(Object.keys(certificateMetaData.groups).length);
         }
+      } else if (value === 2) {
+        if (certificateMetaData['aws-roles']) {
+          setCount(Object.keys(certificateMetaData['aws-roles']).length);
+        }
+      } else if (value === 3) {
+        if (certificateMetaData['app-roles']) {
+          setCount(Object.keys(certificateMetaData['app-roles']).length);
+        }
       }
     }
-  }, [value, certificateMetaData]);
+  }, [value, certificateMetaData, userDetails]);
+
+  useEffect(() => {
+    setValue(0);
+  }, [certificateMetaData]);
+
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      setValue(0);
+    }
+  }, [selectedParentTab]);
 
   const onAddLabelBtnClicked = () => {
     Object.keys(initialObject).map((item) => {
@@ -92,6 +126,8 @@ const CertificatePermission = (props) => {
                 updateToastMessage={(res, message) =>
                   updateToastMessage(res, message)
                 }
+                userDetails={userDetails}
+                selectedParentTab={selectedParentTab}
               />
             </TabPanel>
             <TabPanel value={value} index={1}>
@@ -105,6 +141,35 @@ const CertificatePermission = (props) => {
                 updateToastMessage={(res, message) =>
                   updateToastMessage(res, message)
                 }
+                selectedParentTab={selectedParentTab}
+              />
+            </TabPanel>
+            <TabPanel value={value} index={2}>
+              <AwsApplications
+                certificateMetaData={certificateMetaData}
+                refresh={fetchDetail}
+                responseStatus={responseStatus}
+                username={username}
+                newAwsApplication={newAwsApplication}
+                onNewAwsChange={() => setNewAwsApplication(false)}
+                updateToastMessage={(res, message) =>
+                  updateToastMessage(res, message)
+                }
+                selectedParentTab={selectedParentTab}
+              />
+            </TabPanel>
+            <TabPanel value={value} index={3}>
+              <AppRoles
+                certificateMetaData={certificateMetaData}
+                refresh={fetchDetail}
+                username={username}
+                responseStatus={responseStatus}
+                newAppRole={newAppRole}
+                onNewAppRoleChange={() => setNewAppRole(false)}
+                updateToastMessage={(res, message) =>
+                  updateToastMessage(res, message)
+                }
+                selectedParentTab={selectedParentTab}
               />
             </TabPanel>
           </PermissionTabsWrapper>
@@ -135,6 +200,8 @@ CertificatePermission.propTypes = {
   fetchDetail: PropTypes.func.isRequired,
   responseStatus: PropTypes.string.isRequired,
   username: PropTypes.string.isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 
 export default CertificatePermission;

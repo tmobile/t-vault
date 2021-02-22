@@ -30,6 +30,9 @@
         'MESSAGE_DELETE_SUCCESS'   : ' deleted Successfully',
         'MESSAGE_RESET_SUCCESS'   : ' reset Successfully',
         'MESSAGE_OFFBOARD_SUCCESS'   : ' offboarded Successfully',
-        'MESSAGE_ONBOARD_SUCCESS'   : ' onboarded Successfully'
+        'MESSAGE_ONBOARD_SUCCESS'   : ' onboarded Successfully',
+        'COPY_ACCESSKEY_TO_CLIPBOARD': 'Access key copied to clipboard',
+        'COPY_SECRETKEY_TO_CLIPBOARD': 'Secret key copied to clipboard',
+        'COPY_SECRETTEXT_TO_CLIPBOARD': 'Secret text copied to clipboard'       
     } );
 } )( angular.module( 'vault.constants.SuccessMessage', [] ) );

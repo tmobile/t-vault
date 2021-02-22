@@ -5,22 +5,25 @@
             span.au-table-row-input {{vm.folderName}}
         .col-lg-1.col-md-1.col-sm-1.col-xs-1.column-value-wrapper
             .invisible CLEARFIX
-        .cell.col-lg-3.col-md-3.col-sm-3.col-xs-3.column-value-wrapper
+        .cell.col-lg-2.col-md-2.col-sm-2.col-xs-2.column-value-wrapper
             .invisible CLEARFIX
-        .cell.col-lg-2.col-md-2.col-sm-2.col-xs-2.column-value-wrapper.center-text
+        .cell.col-lg-1.col-md-1.col-sm-1.col-xs-1.column-value-wrapper.center-text
             .invisible CLEARFIX
         .cell.col-lg-2.col-md-2.col-sm-2.col-xs-3.column-value-wrapper
             .list-icon.icon-delete(ng-if="vm.write" ng-click="vm.deleteFolder($event)")
+        .cell.col-lg-2.col-md-2.col-sm-2.col-xs-3.column-value-wrapper.last-activity
+            span(ng-if="vm.lastChangedDetails==''") - 
+            span(ng-if="vm.lastChangedDetails!='' && vm.lastChangedDetails.folderModifiedAtFormatted !=''" uib-tooltip="{{vm.lastChangedDetails.folderModifiedBy}}" tooltip-placement="left" tooltip-popup-delay="200") {{ vm.lastChangedDetails.folderModifiedAtFormatted }}
 
 
     form.row.accordion-list-wrapper(ng-if="vm.isSecret")
-        .cell.pink-text.col-lg-4.col-md-4.col-sm-4.col-xs-3.column-value-wrapper.fits-contents
+        .cell.pink-text.col-lg-3.col-md-3.col-sm-3.col-xs-3.column-value-wrapper.fits-contents
             img.list-icon.folder(src="assets/icons/safe.svg" )
             input.form-control.input-box-style.input-disabled-text-wrapper.folder-row-key-wrapper(rows="1" ng-model="vm.item.key" ng-disabled="true" required)
             .list-icon.icon-content_copy.vertical-sub-align(ng-if="vm.isSecret" ng-click="vm.copyToClipboard($event, vm.item.key, 'COPY_KEY_TO_CLIPBOARD')")
         .col-lg-1.col-md-1.col-sm-1.col-xs-1.column-value-wrapper
             .invisible CLEARFIX
-        .cell.col-lg-4.col-md-4.col-sm-4.col-xs-4.column-value-wrapper
+        .cell.col-lg-3.col-md-3.col-sm-3.col-xs-3.column-value-wrapper
             input.form-control.input-box-style.au-textarea.input-disabled-text-wrapper.folder-row-secret-wrapper(rows="1" au-display="{{!vm.editing && !vm.showPassword}}" ng-disabled="true" ng-value="vm.item.value.replace(vm.anyRegex, '\u00B7')")
             input.form-control.input-box-style.au-textarea.input-disabled-text-wrapper.folder-row-secret-wrapper(rows="1" au-display="{{!vm.editing && vm.showPassword}}" ng-disabled="true" ng-value="vm.item.value")
             input.form-control.input-box-style.au-textarea.input-disabled-text-wrapper.folder-row-secret-wrapper(rows="1" au-display="{{vm.editing}}" ng-model="vm.item.value" required)
@@ -33,3 +36,6 @@
         .cell.col-lg-2.col-md-2.col-sm-2.col-xs-3.column-value-wrapper
             .list-icon.icon-mode_edit(ng-if="vm.isSecret && vm.write" ng-click="vm.edit()")
             .list-icon.icon-delete(ng-if="vm.write" ng-click="vm.deleteSecret($event) ")
+        .cell.col-lg-2.col-md-2.col-sm-2.col-xs-3.column-value-wrapper.last-activity
+            span(ng-if="vm.lastChangedDetails==''") - 
+            span(ng-if="vm.lastChangedDetails!='' && vm.lastChangedDetails.modifiedAtFormatted !=''" uib-tooltip="{{vm.lastChangedDetails.modifiedBy}}" tooltip-placement="left" tooltip-popup-delay="200") {{ vm.lastChangedDetails.modifiedAtFormatted }}

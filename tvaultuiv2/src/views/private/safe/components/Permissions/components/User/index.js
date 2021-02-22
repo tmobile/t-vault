@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-indent */
 import React, { useState, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
@@ -11,26 +11,12 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import PermissionsList from '../../../../../../../components/PermissionsList';
 import Error from '../../../../../../../components/Error';
+import UserPermissionsList from '../../../../../../../components/UserPermissionsList';
+import Strings from '../../../../../../../resources';
+import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
-
-const NoDataWrapper = styled.section`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-
-  p {
-    ${small} {
-      margin-top: 2rem;
-      margin-bottom: 4rem;
-      width: 75%;
-    }
-  }
-`;
 
 const bgIconStyle = {
   width: '10rem',
@@ -57,9 +43,10 @@ const User = (props) => {
     newPermission,
     onNewPermissionChange,
     safeData,
-    fetchPermission,
     updateToastMessage,
     refresh,
+    userDetails,
+    selectedParentTab,
   } = props;
 
   const [editUser, setEditUser] = useState('');
@@ -96,9 +83,8 @@ const User = (props) => {
       .then(async (res) => {
         if (res && res.data?.Message) {
           updateToastMessage(1, res.data.Message);
-          setResponse({ status: '' });
-          await fetchPermission();
-          refresh();
+          setResponse({ status: 'loading' });
+          await refresh();
         }
       })
       .catch((err) => {
@@ -116,13 +102,14 @@ const User = (props) => {
       .then(async (res) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
-          setResponse({ status: '' });
-          await fetchPermission();
         }
+        await refresh();
       })
       .catch((err) => {
-        if (err.response?.data?.messages && err.response.data.messages[0]) {
-          updateToastMessage(-1, err.response.data.messages[0]);
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          updateToastMessage(-1, err.response.data.errors[0]);
+        } else {
+          updateToastMessage(-1, 'Something went wrong!');
         }
         setResponse({ status: 'success' });
       });
@@ -135,7 +122,7 @@ const User = (props) => {
       username: user.toLowerCase(),
     };
     await onSaveClicked(value);
-    refresh();
+    setResponse({ status: 'loading' });
     onNewPermissionChange();
   };
 
@@ -155,8 +142,10 @@ const User = (props) => {
         }
       })
       .catch((err) => {
-        if (err.response?.data?.messages && err.response.data.messages[0]) {
-          updateToastMessage(-1, err.response.data.messages[0]);
+        if (err.response?.data?.errors && err.response.data.errors[0]) {
+          updateToastMessage(-1, err.response.data.errors[0]);
+        } else {
+          updateToastMessage(-1, 'Something went wrong!');
         }
         setResponse({ status: 'success' });
       });
@@ -173,6 +162,13 @@ const User = (props) => {
     setResponse({ status: 'edit' });
   };
 
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      onCancelClicked();
+    }
+    // eslint-disable-next-line
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
       <>
@@ -181,9 +177,9 @@ const User = (props) => {
         )}
         {response.status === 'add' && (
           <AddUser
+            users={safeData?.response?.users}
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
-            refresh={refresh}
           />
         )}
         {response.status === 'edit' && (
@@ -192,28 +188,28 @@ const User = (props) => {
             handleCancelClick={onCancelClicked}
             username={editUser}
             access={editAccess}
-            refresh={refresh}
           />
         )}
-        {response.status === 'success' && safeData && safeData.response && (
+        {response.status === 'success' && (
           <>
-            {safeData.response?.users &&
-              Object.keys(safeData.response?.users).length > 0 && (
-                <PermissionsList
+            {userDetails?.length > 0 &&
+              safeData?.response?.users &&
+              Object.keys(safeData.response.users).length > 0 && (
+                <UserPermissionsList
                   list={safeData.response.users}
                   onEditClick={(key, value) => onEditClick(key, value)}
                   onDeleteClick={(key) => onDeleteClick(key)}
+                  userDetails={userDetails}
                 />
               )}
-            {(safeData.response.users === null ||
-              !safeData.response.users ||
-              (safeData.response.users &&
-                Object.keys(safeData.response.users).length === 0)) && (
+            {(!safeData?.response?.users ||
+              userDetails?.length === 0 ||
+              (Object.keys(safeData?.response?.users)?.length === 1 &&
+                Object.values(safeData?.response?.users)[0] === 'sudo')) && (
               <NoDataWrapper>
                 <NoData
                   imageSrc={noPermissionsIcon}
-                  description="No <strong>users</strong> are given permission to access this safe,
-                    add users to access the safe"
+                  description={Strings.Resources.noUsersPermissionFound}
                   actionButton={
                     // eslint-disable-next-line react/jsx-wrap-multilines
                     <ButtonComponent
@@ -244,8 +240,9 @@ User.propTypes = {
   newPermission: PropTypes.bool.isRequired,
   onNewPermissionChange: PropTypes.func.isRequired,
   safeData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 export default User;

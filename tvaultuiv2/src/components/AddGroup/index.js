@@ -1,14 +1,12 @@
 /* eslint-disable no-nested-ternary */
 import React, { useState, useEffect, useCallback } from 'react';
 import { debounce } from 'lodash';
-import { makeStyles } from '@material-ui/core/styles';
 import { InputLabel, Typography } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../breakpoints';
-import AutoCompleteComponent from '../FormFields/AutoComplete';
 import ButtonComponent from '../FormFields/ActionButton';
 import apiService from '../../views/private/safe/apiService';
 import LoaderSpinner from '../Loaders/LoaderSpinner';
@@ -20,11 +18,12 @@ import {
   RequiredCircle,
   RequiredText,
 } from '../../styles/GlobalStyles';
+import TypeAheadComponent from '../TypeAheadComponent';
 
 const { small, smallAndMedium } = mediaBreakpoints;
 
 const PermissionWrapper = styled.div`
-  padding: 1rem 4rem 4rem 4rem;
+  padding: 3rem 4rem 4rem 4rem;
   background-color: #1f232e;
   display: flex;
   flex-direction: column;
@@ -50,7 +49,7 @@ const HeaderWrapper = styled.div`
 `;
 
 const InputWrapper = styled.div`
-  margin-top: 4rem;
+  margin-top: 3rem;
   margin-bottom: 2.4rem;
   position: relative;
   .MuiInputLabel-root {
@@ -92,30 +91,26 @@ const customStyle = css`
   color: red;
 `;
 
-const useStyles = makeStyles(() => ({
-  icon: {
-    color: '#5e627c',
-    fontSize: '2rem',
-  },
-}));
-
 const AddGroup = (props) => {
   const {
     handleCancelClick,
     handleSaveClick,
+    groups,
     groupname,
     access,
     isSvcAccount,
     isCertificate,
+    isIamAzureSvcAccount,
   } = props;
-  const classes = useStyles();
   const [radioValue, setRadioValue] = useState('read');
   const [searchValue, setSearchValue] = useState('');
   const [options, setOptions] = useState([]);
   const [disabledSave, setDisabledSave] = useState(true);
   const [searchLoader, setSearchLoader] = useState(false);
-  const [isValidGroupName, setIsValidGroupName] = useState(true);
+  const [isValidGroupName, setIsValidGroupName] = useState(false);
+  const [radioArray, setRadioArray] = useState([]);
   const isMobileScreen = useMediaQuery(small);
+  const [existingGroup, setExistingGroup] = useState(false);
 
   useEffect(() => {
     setSearchValue(groupname);
@@ -135,33 +130,40 @@ const AddGroup = (props) => {
   }, [searchValue, searchLoader, options]);
 
   useEffect(() => {
-    if (configData.AD_GROUP_AUTOCOMPLETE) {
-      if (groupname) {
-        if (
-          (groupname.toLowerCase() !== searchValue?.toLowerCase() &&
-            !isValidGroupName) ||
-          (groupname.toLowerCase() === searchValue?.toLowerCase() &&
-            access === radioValue)
-        ) {
+    if (searchValue && configData.AD_GROUP_AUTOCOMPLETE) {
+      if (
+        groups &&
+        !Object.keys(groups)?.includes(searchValue?.toLowerCase()) &&
+        !Object.keys(groups)?.includes(searchValue)
+      ) {
+        setExistingGroup(false);
+        if (groupname) {
+          if (access === radioValue) {
+            setDisabledSave(true);
+          } else {
+            setDisabledSave(false);
+          }
+        } else if (!isValidGroupName || searchValue === '') {
           setDisabledSave(true);
         } else {
           setDisabledSave(false);
         }
-      } else if (!isValidGroupName || searchValue === '') {
-        setDisabledSave(true);
       } else {
-        setDisabledSave(false);
+        setExistingGroup(true);
+        setDisabledSave(true);
       }
-    } else if (
-      (groupname.toLowerCase() === searchValue?.toLowerCase() &&
-        access === radioValue) ||
-      searchValue === ''
-    ) {
-      setDisabledSave(true);
     } else {
       setDisabledSave(false);
     }
-  }, [searchValue, radioValue, access, groupname, isValidGroupName]);
+  }, [
+    searchValue,
+    existingGroup,
+    groups,
+    radioValue,
+    access,
+    groupname,
+    isValidGroupName,
+  ]);
 
   const callSearchApi = useCallback(
     debounce(
@@ -193,17 +195,33 @@ const AddGroup = (props) => {
     []
   );
 
+  useEffect(() => {
+    if (isIamAzureSvcAccount) {
+      setRadioArray(['read', 'rotate', 'deny']);
+    } else if (isCertificate) {
+      setRadioArray(['read', 'deny']);
+    } else if (isSvcAccount) {
+      setRadioArray(['read', 'reset', 'deny']);
+    } else {
+      setRadioArray(['read', 'write', 'deny']);
+    }
+  }, [isIamAzureSvcAccount, isSvcAccount, isCertificate]);
+
   const onSearchChange = (e) => {
-    if (e) {
+    if (e && e?.target?.value) {
       setSearchValue(e.target.value);
-      if (e.target.value !== '' && e.target.value?.length > 2) {
+      if (e.target?.value !== '' && e.target?.value?.length > 2) {
         callSearchApi(e.target.value);
       }
+    } else {
+      setSearchValue('');
     }
   };
 
   const onSelected = (e, val) => {
-    setSearchValue(val);
+    if (val) {
+      setSearchValue(val);
+    }
   };
 
   return (
@@ -223,24 +241,39 @@ const AddGroup = (props) => {
           </InputLabel>
           {configData.AD_GROUP_AUTOCOMPLETE ? (
             <>
-              <AutoCompleteComponent
+              <TypeAheadComponent
                 options={options}
                 icon="search"
-                classes={classes}
-                searchValue={searchValue}
+                loader={searchLoader}
+                disabled={!!(groupname && access)}
+                userInput={searchValue}
                 onSelected={(e, val) => onSelected(e, val)}
                 onChange={(e) => onSearchChange(e)}
                 placeholder="Groupname - Enter min 3 characters"
-                error={groupname !== searchValue && !isValidGroupName}
+                name="grpVal"
+                error={
+                  (groupname !== searchValue && !isValidGroupName) ||
+                  existingGroup
+                }
                 helperText={
                   groupname !== searchValue && !isValidGroupName
                     ? `Group name ${searchValue} does not exist!`
+                    : existingGroup
+                    ? 'Permission already exists!'
                     : ''
                 }
+                styling={{
+                  padding: '0.6rem',
+                  maxHeight: '16rem',
+                }}
+                characterLimit={100}
               />
               <InstructionText>
                 Search the T-Mobile system to add groups
               </InstructionText>
+              {isCertificate && (<InstructionText>
+                Note: Denying the admin will not take any effect for groups.
+              </InstructionText>)}
               {searchLoader && <LoaderSpinner customStyle={customStyle} />}
             </>
           ) : (
@@ -255,13 +288,7 @@ const AddGroup = (props) => {
         </InputWrapper>
         <RadioButtonWrapper>
           <RadioButtonComponent
-            menu={
-              isSvcAccount
-                ? ['read', 'reset', 'deny']
-                : isCertificate
-                ? ['read', 'deny']
-                : ['read', 'write', 'deny']
-            }
+            menu={radioArray}
             handleChange={(e) => setRadioValue(e.target.value)}
             value={radioValue}
           />
@@ -289,19 +316,25 @@ const AddGroup = (props) => {
 };
 
 AddGroup.propTypes = {
-  handleSaveClick: PropTypes.func.isRequired,
-  handleCancelClick: PropTypes.func.isRequired,
+  handleSaveClick: PropTypes.func,
+  handleCancelClick: PropTypes.func,
   groupname: PropTypes.string,
   access: PropTypes.string,
   isSvcAccount: PropTypes.bool,
   isCertificate: PropTypes.bool,
+  groups: PropTypes.objectOf(PropTypes.any),
+  isIamAzureSvcAccount: PropTypes.bool,
 };
 
 AddGroup.defaultProps = {
+  handleSaveClick: () => {},
+  handleCancelClick: () => {},
   groupname: '',
   access: 'read',
+  groups: {},
   isSvcAccount: false,
   isCertificate: false,
+  isIamAzureSvcAccount: false,
 };
 
 export default AddGroup;

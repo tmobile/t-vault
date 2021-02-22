@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import SyncAltIcon from '@material-ui/icons/SyncAlt';
 import { IconDeleteActive, IconEdit } from '../../../../../assets/SvgIcons';
 import PopperElement from '../../../../../components/Popper';
-import { customColor } from '../../../../../theme';
 
 const FolderIconWrap = styled('div')`
   display: flex;
@@ -32,7 +31,7 @@ const PopperItem = styled.div`
     margin-right: 0.75rem;
   }
   :hover {
-    background: ${customColor.magenta};
+    background: ${(props) => props.theme.gradients.list || 'none'};
   }
 `;
 
@@ -42,6 +41,7 @@ const EditDeletePopper = (props) => {
     onEditClicked,
     admin,
     onTransferOwnerClicked,
+    manage,
   } = props;
   return (
     <div>
@@ -59,13 +59,15 @@ const EditDeletePopper = (props) => {
           {admin && (
             <PopperItem onClick={onTransferOwnerClicked}>
               <SyncAltIcon style={{ fill: '#fff' }} />
-              <span>Transfer Owner</span>
+              <span>Transfer</span>
             </PopperItem>
           )}
-          <PopperItem onClick={onEditClicked}>
-            <IconEdit />
-            <span>Edit</span>
-          </PopperItem>
+          {(admin || manage) && (
+            <PopperItem onClick={onEditClicked}>
+              <IconEdit />
+              <span>Edit</span>
+            </PopperItem>
+          )}
           {admin && (
             <PopperItem onClick={onDeleteClicked}>
               <IconDeleteActive />
@@ -83,10 +85,12 @@ EditDeletePopper.propTypes = {
   onDeleteClicked: PropTypes.func.isRequired,
   admin: PropTypes.bool,
   onTransferOwnerClicked: PropTypes.func,
+  manage: PropTypes.bool,
 };
 EditDeletePopper.defaultProps = {
   admin: false,
   onTransferOwnerClicked: () => {},
+  manage: false,
 };
 
 export default EditDeletePopper;

@@ -11,7 +11,7 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     padding: theme.spacing(1),
     color: theme.palette.common.white,
-    backgroundColor: theme.customColor.hoverColor.list || '#151820',
+    backgroundColor: '#2a2e3e',
   },
 }));
 const PopoverItemWrap = styled.div``;

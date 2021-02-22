@@ -22,6 +22,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -51,18 +52,20 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.SSLCertificateConstants;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
-
-import javax.xml.ws.Service;
+import com.tmobile.cso.vault.api.utils.TokenUtils;
 
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
@@ -74,12 +77,20 @@ public class ControllerUtilTest {
     @Mock
     RequestProcessor reqProcessor;
     
+    @Mock
+    TokenUtils tokenUtils;
+    
+    @Mock
+    OIDCUtil oidcUtil;
+    
     @Before
     public void setUp() {
         PowerMockito.mockStatic(JSONUtil.class);
 
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
         Whitebox.setInternalState(ControllerUtil.class, "reqProcessor", reqProcessor);
+        Whitebox.setInternalState(ControllerUtil.class, "oidcUtil", oidcUtil);
+
         when(JSONUtil.getJSON(Mockito.any(ImmutableMap.class))).thenReturn("log");
 
         Map<String, String> currentMap = new HashMap<>();
@@ -299,12 +310,43 @@ public class ControllerUtilTest {
         String userName = "testuser1";
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"approle_normal_user\",\"w_users_safe01\"],\"ttl\":0}}");
         when(reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token)).thenReturn(userResponse);
-
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
         ReflectionTestUtils.setField(ControllerUtil.class,"vaultAuthMethod", "userpass");
         Map<String,String> acessInfo = new HashMap<>();
         acessInfo.put("testuser1", "write");
 
-        ControllerUtil.updateUserPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token);
+        ControllerUtil.updateUserPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token, userDetails);
+        assertTrue(true);
+    }
+    
+    @Test
+    public void test_updateUserPolicyAssociationOnSDBDelete_oidc_successfully() {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String userName = "testuser1";
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"approle_normal_user\",\"w_users_safe01\"],\"ttl\":0}}");
+        when(reqProcessor.process("/auth/userpass/read","{\"username\":\""+userName+"\"}",token)).thenReturn(userResponse);
+
+        ReflectionTestUtils.setField(ControllerUtil.class,"vaultAuthMethod", "oidc");
+        Map<String,String> acessInfo = new HashMap<>();
+        acessInfo.put("testuser1", "write");
+        
+        OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+		oidcEntityResponse.setEntityName("entity");
+		List<String> policies = new ArrayList<>();
+		policies.add("safeadmin");
+		oidcEntityResponse.setPolicies(policies);
+        ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
+				.body(oidcEntityResponse);
+
+		when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
+		UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
+		Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+		when(oidcUtil.updateOIDCEntity(any(), any()))
+				.thenReturn(responseEntity3);
+		when(oidcUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(responseEntity2);
+        ControllerUtil.updateUserPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token, userDetails);
         assertTrue(true);
     }
 
@@ -314,12 +356,45 @@ public class ControllerUtilTest {
         String groupName = "group1";
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"approle_normal_user\",\"w_users_safe01\"],\"ttl\":0}}");
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token)).thenReturn(userResponse);
-
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
         ReflectionTestUtils.setField(ControllerUtil.class,"vaultAuthMethod", "ldap");
         Map<String,String> acessInfo = new HashMap<>();
         acessInfo.put("group1", "write");
 
-        ControllerUtil.updateGroupPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token);
+        ControllerUtil.updateGroupPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token, userDetails);
+        assertTrue(true);
+    }
+    
+    @Test
+    public void test_updateGroupPolicyAssociationOnSDBDelete_oidc_successfully() {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String groupName = "group1";
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"approle_normal_user\",\"w_users_safe01\"],\"ttl\":0}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\""+groupName+"\"}",token)).thenReturn(userResponse);
+
+        ReflectionTestUtils.setField(ControllerUtil.class,"vaultAuthMethod", "oidc");
+        Map<String,String> acessInfo = new HashMap<>();
+        acessInfo.put("group1", "write");
+        
+        List<String> policies = new ArrayList<>();
+        policies.add("default");
+        policies.add("w_shared_mysafe02");
+        policies.add("r_shared_mysafe01");
+        List<String> currentpolicies = new ArrayList<>();
+        currentpolicies.add("default");
+        currentpolicies.add("w_shared_mysafe01");
+        currentpolicies.add("w_shared_mysafe02");
+        OIDCGroup oidcGroup = new OIDCGroup("123-123-123", currentpolicies);
+        when(oidcUtil.getIdentityGroupDetails(any(), any())).thenReturn(oidcGroup);
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.NO_CONTENT);
+        when(oidcUtil.updateGroupPolicies(token, "mygroup01", policies, currentpolicies, oidcGroup.getId())).thenReturn(response);
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("testuser1");
+
+        ControllerUtil.updateGroupPolicyAssociationOnSDBDelete("users/safe01", acessInfo,  token, userDetails);
         assertTrue(true);
     }
 
@@ -498,8 +573,8 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_areSDBInputsValid_safe()  {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("safe01", "youremail@yourcompany.com", null, "My first safe");
+    public void testareSDBInputsValidsafe()  {
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("shared/safe01",safeBasicDetails);
 
         boolean valid = ControllerUtil.areSDBInputsValid(safe);
@@ -515,6 +590,7 @@ public class ControllerUtilTest {
         dataParam.put("description", "Safe 01");
         requestParams.put("data", dataParam);
         requestParams.put("path", "users/safe01");
+        dataParam.put("appName", "t-vault");
 
         boolean valid = ControllerUtil.areSDBInputsValidForUpdate(requestParams);
         assertTrue(valid);
@@ -587,8 +663,8 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_converSDBInputsToLowerCase() throws IOException {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("Safe01", "youremail@yourcompany.com", null, "My first safe");
+    public void testconverSDBInputsToLowerCase() throws IOException {
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("Safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("Shared/safe01",safeBasicDetails);
         String jsonStr = "{\"path\":\"Shared/Safe01\",\"safeBasicDetails\":{\"name\":\"Safe01\",\"ownwe\":\"youremail@yourcompany.com\", \"description\":\"My first safe\"}}";
         String jsonStrlowercase = "{\"path\":\"shared/safe01\",\"safeBasicDetails\":{\"name\":\"safe01\",\"ownwe\":\"youremail@yourcompany.com\", \"description\":\"My first safe\"}}";
@@ -601,8 +677,8 @@ public class ControllerUtilTest {
     }
 
     @Test
-    public void test_converSDBInputsToLowerCase_safe()  {
-        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("Safe01", "youremail@yourcompany.com", null, "My first safe");
+    public void testconverSDBInputsToLowerCasesafe()  {
+        SafeBasicDetails safeBasicDetails = new SafeBasicDetails("Safe01", "youremail@yourcompany.com", null, "My first safe","T-Vault","tvt");
         Safe safe = new Safe("Shared/safe01",safeBasicDetails);
         ControllerUtil.converSDBInputsToLowerCase(safe);
         assertEquals("shared/safe01", safe.getPath());
@@ -974,6 +1050,7 @@ public class ControllerUtilTest {
     	SSCred expected = new SSCred();
     	expected.setUsername("c2FmZWFkbWlu");
     	expected.setPassword("c2FmZWFkbWlu");
+        ReflectionTestUtils.setField(ControllerUtil.class,"sscred", expected);
     	SSCred actual = ControllerUtil.readSSCredFile(sscredFile.getParent(), isDelete);
     	assertNotNull(actual);
     	assertEquals(expected.getUsername(), actual.getUsername());
@@ -1001,6 +1078,60 @@ public class ControllerUtilTest {
     	return sscredFile;
     }
 
+    private File getOIDCCredFile() throws IOException {
+        TemporaryFolder folder= new TemporaryFolder();
+        folder.create();
+        File oidccredFile = folder.newFile("oidccred");
+        PrintWriter pw =  new PrintWriter(oidccredFile);
+        pw.write("OIDC_CLIENT_NAME=clientname1"+ System.getProperty("line.separator") +
+                "OIDC_CLIENT_ID=123123" + System.getProperty("line.separator") +
+                "OIDC_CLIENT_SECRET=abcd123123" + System.getProperty("line.separator") +
+                "BOUND_AUDIENCES=defg123123" + System.getProperty("line.separator") +
+                "OIDC_DISCOVERY_URL=https://login.microsoftonline.com/123123/v2.0"
+                + System.getProperty("line.separator") +
+                "AD_LOGIN_URL=https://login.microsoftonline.com/123123/oauth2/token");
+        pw.close();
+        return oidccredFile;
+    }
+
+    @Test
+    public void test_readOIDCCredFile() throws IOException{
+        File oidccredFile = getOIDCCredFile();
+        boolean isDelete = true;
+        OIDCCred expected = new OIDCCred();
+        expected.setClientId("123123");
+        expected.setClientName("clientname1");
+        expected.setClientSecret("abcd123123");
+        expected.setBoundAudiences("defg123123");
+        expected.setDiscoveryUrl("https://login.microsoftonline.com/123123/v2.0");
+        expected.setAdLoginUrl("https://login.microsoftonline.com/123123/oauth2/token");
+        ReflectionTestUtils.setField(ControllerUtil.class,"oidcCred", expected);
+        OIDCCred actual = ControllerUtil.readOIDCCredFile(oidccredFile.getAbsolutePath(), isDelete);
+        assertNotNull(actual);
+        assertEquals(expected.getClientName(), actual.getClientName());
+        assertEquals(expected.getClientId(), actual.getClientId());
+        assertEquals(expected.getClientSecret(), actual.getClientSecret());
+        assertEquals(expected.getBoundAudiences(), actual.getBoundAudiences());
+        assertEquals(expected.getDiscoveryUrl(), actual.getDiscoveryUrl());
+        assertEquals(expected.getAdLoginUrl(), actual.getAdLoginUrl());
+    }
+
+    @Test
+    public void test_readOIDCCredFile_Failure() throws IOException{
+        File oidccredFile = getOIDCCredFile();
+        boolean isDelete = true;
+        OIDCCred expected = new OIDCCred();
+        expected.setClientId("123123");
+        expected.setClientName("clientname1");
+        expected.setClientSecret("abcd123123");
+        expected.setBoundAudiences("defg123123");
+        expected.setDiscoveryUrl("https://login.microsoftonline.com/123123/v2.0");
+        expected.setAdLoginUrl("https://login.microsoftonline.com/123123/oauth2/token");
+        ReflectionTestUtils.setField(ControllerUtil.class,"oidcCred", null);
+        OIDCCred actual = ControllerUtil.readOIDCCredFile(oidccredFile.getAbsolutePath(), isDelete);
+        assertNull(actual);
+    }
+
     @Test
     public void test_updateMetadataOnSvcUpdate_successfully() {
         String token = "7QPMPIGiyDFlJkrK3jFykUqa";
@@ -1023,4 +1154,74 @@ public class ControllerUtilTest {
         Response actualResponse = ControllerUtil.updateMetadataOnSvcUpdate(path, serviceAccount, token);
         assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
     }
+    
+    @Test
+    public void test_updateMetadata1_successfully() throws JsonProcessingException {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Map<String,String> params = new HashMap<String,String>();
+        params.put("status", "Revoked");
+        String path = SSLCertificateConstants.SSL_CERT_PATH + "/testCert";
+       
+
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(response);
+
+        Boolean isUpdated = ControllerUtil.updateMetaDataOnPath(path, params, token);
+        assertEquals(Boolean.TRUE, isUpdated);
+    }
+    
+    @Test
+    public void test_updateMetadata1_failed() throws JsonProcessingException {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        Map<String,String> params = new HashMap<String,String>();
+        params.put("status", "Revoked");
+        String path = SSLCertificateConstants.SSL_CERT_PATH + "/testCert";
+       
+
+        Response response = getMockResponse(HttpStatus.BAD_REQUEST, false, "");
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(response);
+
+        Boolean isUpdated = ControllerUtil.updateMetaDataOnPath(path, params, token);
+        assertEquals(Boolean.FALSE, isUpdated);
+    }
+    
+    @Test
+    public void test_updateMetadataOnSvcPwdReset_successfully() {
+        String token = "7QPMPIGiyDFlJkrK3jFykUqa";
+        String path = TVaultConstants.SVC_ACC_ROLES_PATH + "testacc02";
+        ADServiceAccountCreds adServiceAccountCreds = new ADServiceAccountCreds();
+        adServiceAccountCreds.setCurrent_password("current_password");
+        adServiceAccountCreds.setLast_password("last_password");
+        adServiceAccountCreds.setUsername("username");
+        ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+        adServiceAccountResetDetails.setModifiedBy("modifiedBy");
+        adServiceAccountResetDetails.setModifiedAt(1610607707296l);
+        adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+ 
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{ \"initialPasswordReset\": false,\"modifiedBy\":\"modifiedby\",\"modifiedAt\":\"modifiedAt\",\"managedBy\": \"svcuser2\",\"name\": \"svc_vault_test2\",\"users\": {\"svcuser1\": \"sudo\"}}}");
+        when(reqProcessor.process(eq("/read"),Mockito.any(),eq(token))).thenReturn(metaResponse);
+        when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
+        Response actualResponse = ControllerUtil.updateMetadataOnSvcPwdReset(path, adServiceAccountResetDetails, token);
+        assertEquals(HttpStatus.NO_CONTENT, actualResponse.getHttpstatus());
+    }  
+    
+    @Test
+    public void test_hideMasterAppRoleFromResponse_successfully() {
+    	 
+    	Response response =  getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"demo\",\"iamportal_master_approle\",\"selfservicesupportrole\",\"vault-power-user-role\",\"vault2\",\"vaulttest\",\"vaulttest1\"]}");
+    	Response responseExpected =  getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"demo\",\"vault-power-user-role\",\"vault2\",\"vaulttest\",\"vaulttest1\"]}");
+    	List<String> policyLists = new ArrayList<>();
+    	Response actualResponse = ControllerUtil.hideMasterAppRoleFromResponse(response, null,null);
+        assertEquals(HttpStatus.OK, actualResponse.getHttpstatus());
+        }
+    
+    @Test
+    public void test_hideMasterAppRoleFromResponseOffset_successfully() {
+    	 
+    	Response response =  getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"demo\",\"iamportal_master_approle\",\"selfservicesupportrole\",\"vault-power-user-role\",\"vault2\",\"vaulttest\",\"vaulttest1\"]}");
+    	Response responseExpected =  getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"demo\",\"vault-power-user-role\",\"vault2\",\"vaulttest\",\"vaulttest1\"]}");
+    	List<String> policyLists = new ArrayList<>();
+    	Response actualResponse = ControllerUtil.hideMasterAppRoleFromResponse(response, 25, 1);
+        assertEquals(HttpStatus.OK, actualResponse.getHttpstatus());
+        }
 }

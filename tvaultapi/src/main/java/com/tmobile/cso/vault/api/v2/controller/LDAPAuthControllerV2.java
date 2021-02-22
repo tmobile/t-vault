@@ -1,7 +1,7 @@
 // =========================================================================
 // Copyright 2019 T-Mobile, US
 // 
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -52,7 +52,7 @@ public class LDAPAuthControllerV2 {
 	 * Sample output
 	 * 		{"client_token":"beae9c3d-c466-822b-e9c5-e490de1975c0"}
 	 */
-	@ApiOperation(value = "${LDAPAuthControllerV2.authenticateLdap.value}", notes = "${LDAPAuthControllerV2.authenticateLdap.notes}")
+	@ApiOperation(value = "${LDAPAuthControllerV2.authenticateLdap.value}", notes = "${LDAPAuthControllerV2.authenticateLdap.notes}", hidden = true)
 	@PostMapping(value="/v2/auth/ldap/login",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> authenticateLdap( @RequestBody UserLogin userLogin){
 		return ldapAuthService.authenticateLdap(userLogin);
@@ -65,7 +65,7 @@ public class LDAPAuthControllerV2 {
 	 * @return Httpstatus 200 if group is successfully configured
 	 * 
 	 */
-	@ApiOperation(value = "${LDAPAuthControllerV2.configureLdapGroup.value}", notes = "${LDAPAuthControllerV2.configureLdapGroup.notes}")
+	@ApiOperation(value = "${LDAPAuthControllerV2.configureLdapGroup.value}", notes = "${LDAPAuthControllerV2.configureLdapGroup.notes}", hidden = true)
 	@PutMapping(value="/v2/auth/ldap/groups",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> configureLdapGroup(@RequestHeader(value="vault-token") String token, @RequestBody LDAPGroup ldapGroup){
 		return ldapAuthService.configureLdapGroup(token, ldapGroup);
@@ -79,7 +79,7 @@ public class LDAPAuthControllerV2 {
 	 * 		{ "keys": ["ldapgroup1","ldapgroup2"] }
 	 *
 	 */
-	@ApiOperation(value = "${LDAPAuthControllerV2.listLdapGroups.value}", notes = "${LDAPAuthControllerV2.listLdapGroups.notes}")
+	@ApiOperation(value = "${LDAPAuthControllerV2.listLdapGroups.value}", notes = "${LDAPAuthControllerV2.listLdapGroups.notes}", hidden = true)
 	@GetMapping(value="/v2/auth/ldap/groups",produces="application/json")
 	public ResponseEntity<String> listLdapGroups(@RequestHeader(value="vault-token",required=false) String token){
 		return ldapAuthService.listLdapGroups(token);
@@ -94,7 +94,7 @@ public class LDAPAuthControllerV2 {
 	 * Sample output
 	 * 	 {"data":{"policies":"c,d,default"}}
 	 */
-	@ApiOperation(value = "${LDAPAuthControllerV2.fetchLdapGroup.value}", notes = "${LDAPAuthControllerV2.fetchLdapGroup.notes}")
+	@ApiOperation(value = "${LDAPAuthControllerV2.fetchLdapGroup.value}", notes = "${LDAPAuthControllerV2.fetchLdapGroup.notes}", hidden = true)
 	@GetMapping(value="/v2/auth/ldap/groups/{groupname}",produces="application/json")
 	public ResponseEntity<String> fetchLdapGroup(@RequestHeader(value="vault-token") String token,@PathVariable("groupname" ) String groupname){
 		return ldapAuthService.fetchLdapGroup(token, groupname);
@@ -105,7 +105,7 @@ public class LDAPAuthControllerV2 {
 	 * @param groupname
 	 * @return
 	 */
-	@ApiOperation(value = "${LDAPAuthControllerV2.deleteLdapGroup.value}", notes = "${LDAPAuthControllerV2.deleteLdapGroup.notes}")
+	@ApiOperation(value = "${LDAPAuthControllerV2.deleteLdapGroup.value}", notes = "${LDAPAuthControllerV2.deleteLdapGroup.notes}", hidden = true)
 	@DeleteMapping(value="/v2/auth/ldap/groups/{groupname}",produces="application/json")
 	public ResponseEntity<String> deleteLdapGroup(@RequestHeader(value="vault-token") String token,@PathVariable("groupname" ) String groupname){
 		return ldapAuthService.deleteLdapGroup(token, groupname);	
@@ -120,7 +120,7 @@ public class LDAPAuthControllerV2 {
 	 * 		{ "Messages": ["LDAP user configured"]  }
 	 * 
 	 */
-	@ApiOperation(value = "${LDAPAuthControllerV2.configureLdapUser.value}", notes = "${LDAPAuthControllerV2.configureLdapUser.notes}")
+	@ApiOperation(value = "${LDAPAuthControllerV2.configureLdapUser.value}", notes = "${LDAPAuthControllerV2.configureLdapUser.notes}", hidden = true)
 	@PutMapping(value="/v2/auth/ldap/users",consumes="application/json",produces="application/json")
 	public ResponseEntity<String> configureLdapUser(@RequestHeader(value="vault-token") String token, @RequestBody LDAPUser ldapUser){
 		return ldapAuthService.configureLdapUser(token, ldapUser);
@@ -149,7 +149,7 @@ public class LDAPAuthControllerV2 {
 	 * 		{"groups":"group1,group2","policies":"policy1,policy2"}
 	 *  }
 	 */
-	@ApiOperation(value = "${LDAPAuthControllerV2.fetchLdapUser.value}", notes = "${LDAPAuthControllerV2.fetchLdapUser.notes}")
+	@ApiOperation(value = "${LDAPAuthControllerV2.fetchLdapUser.value}", notes = "${LDAPAuthControllerV2.fetchLdapUser.notes}", hidden = true)
 	@GetMapping(value="/v2/auth/ldap/users/{username}",produces="application/json")
 	public ResponseEntity<String> fetchLdapUser(@RequestHeader(value="vault-token") String token,@PathVariable("username" ) String username){
 		return ldapAuthService.fetchLdapUser(token, username);
@@ -161,7 +161,7 @@ public class LDAPAuthControllerV2 {
 	 * @return Httpstatus 200 if user successfully deleted.
 	 * 
 	 */
-	@ApiOperation(value = "${LDAPAuthControllerV2.deleteLdapUser.value}", notes = "${LDAPAuthControllerV2.deleteLdapUser.notes}")
+	@ApiOperation(value = "${LDAPAuthControllerV2.deleteLdapUser.value}", notes = "${LDAPAuthControllerV2.deleteLdapUser.notes}", hidden = true)
 	@DeleteMapping(value="/v2/auth/ldap/users/{username}",produces="application/json")
 	public ResponseEntity<String> deleteLdapUser(@RequestHeader(value="vault-token") String token,@PathVariable("username" ) String username){
 		return ldapAuthService.deleteLdapUser(token, username);

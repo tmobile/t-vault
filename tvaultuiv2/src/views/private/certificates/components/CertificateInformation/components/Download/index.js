@@ -34,22 +34,22 @@ const PopperItem = styled.div`
     margin-right: 0.75rem;
   }
   :hover {
-    background: ${customColor.magenta};
+    background: ${(props) => props.theme.gradients.list || 'none'};
   }
 `;
 const Download = (props) => {
   const { certificateMetaData, onDownloadChange } = props;
-  const [isPrivateKey, setIsPrivateKey] = useState(false);
+  const [typeOfDownload, setTypeOfDownload] = useState('');
   const [openDownloadModal, setOpenDownloadModal] = useState(false);
 
   const onPopperItemClicked = (val) => {
-    setIsPrivateKey(val);
+    setTypeOfDownload(val);
     setOpenDownloadModal(true);
   };
 
   const onCloseDownloadModal = () => {
     setOpenDownloadModal(false);
-    setIsPrivateKey(false);
+    setTypeOfDownload('');
   };
 
   const onPrivateDownloadClicked = (payload, type) => {
@@ -104,7 +104,7 @@ const Download = (props) => {
     <div>
       <DownloadModal
         onCloseDownloadModal={onCloseDownloadModal}
-        isPrivateKey={isPrivateKey}
+        typeOfDownload={typeOfDownload}
         openDownloadModal={openDownloadModal}
         onPemDerFormatClicked={(type) => onPemDerFormatClicked(type)}
         certificateMetaData={certificateMetaData}
@@ -122,20 +122,30 @@ const Download = (props) => {
               {...bindPopover(popupState)}
               anchorOrigin={{
                 vertical: 'bottom',
-                horizontal: 'center',
+                horizontal: 'right',
               }}
               transformOrigin={{
                 vertical: 'top',
-                horizontal: 'center',
+                horizontal: 'right',
               }}
               classes={classes}
             >
               <PoperItemWrap>
-                <PopperItem onClick={() => onPopperItemClicked(true)}>
-                  <span>Download certificate with private key</span>
+                <PopperItem
+                  onClick={() => {
+                    onPopperItemClicked('private');
+                    popupState.close();
+                  }}
+                >
+                  <span>Download w/ Private Key</span>
                 </PopperItem>
-                <PopperItem onClick={() => onPopperItemClicked(false)}>
-                  <span>Download certificate in PEM/DER format</span>
+                <PopperItem
+                  onClick={() => {
+                    onPopperItemClicked('pem-der');
+                    popupState.close();
+                  }}
+                >
+                  <span>Download w/ PEM/DER Format</span>
                 </PopperItem>
               </PoperItemWrap>
             </Popover>

@@ -6,8 +6,6 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { makeStyles } from '@material-ui/core/styles';
 import Checkbox from '@material-ui/core/Checkbox';
 import PropTypes from 'prop-types';
-// import VisibilityIcon from '@material-ui/icons/Visibility';
-// import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
@@ -27,7 +25,6 @@ const SecretsList = styled.div`
   margin-top: 0.5rem;
   justify-content: space-between;
   align-items: center;
-  background-color: ${BackgroundColor.listBg};
   padding: 1.2rem 0 0;
   height: calc(100% - 3.8rem);
   overflow: auto;
@@ -127,7 +124,7 @@ const AppRoleSecrets = (props) => {
    */
   const onCopyClicked = () => {
     // setResponseType(1);
-    setStatus({ status: 'success', message: 'Secret copied to clipboard' });
+    setStatus({ status: 'success', message: 'AccessorID copied to clipboard' });
   };
   const onToastClose = () => {
     setStatus({});
@@ -178,6 +175,7 @@ const AppRoleSecrets = (props) => {
     setCheckedSecretIds([...tempChecks]);
     setCheckBoxClicked(true);
   };
+
   return (
     <ComponentError>
       <>
@@ -185,13 +183,13 @@ const AppRoleSecrets = (props) => {
           open={openConfirmationModal}
           handleClose={handleClose}
           title="Confirmation"
-          description="Are you sure you want to Delete the secretId?"
+          description="Are you sure you want to delete the AccessorID?"
           cancelButton={
             <ButtonComponent
               label="Cancel"
               color="primary"
               onClick={() => handleClose()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '44%'}
             />
           }
           confirmButton={
@@ -199,7 +197,7 @@ const AppRoleSecrets = (props) => {
               label="Confirm"
               color="secondary"
               onClick={() => onDeleteSecretId()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '44%'}
             />
           }
         />
@@ -242,7 +240,7 @@ const AppRoleSecrets = (props) => {
                   >
                     <PopperItem>
                       <FileCopyIcon />
-                      <span>Copy SecretId</span>
+                      <span>Copy AccessorID</span>
                     </PopperItem>
                   </CopyToClipboard>
                 </PopperElement>
@@ -257,14 +255,14 @@ const AppRoleSecrets = (props) => {
                     label="Cancel"
                     color="primary"
                     onClick={() => handleDeleteSlideUp(false)}
-                    width={isMobileScreen ? '100%' : '38%'}
+                    width={isMobileScreen ? '100%' : '45%'}
                   />
                 </div>
                 <ButtonComponent
                   label="Delete"
                   color="secondary"
                   onClick={() => onDeleteClicked()}
-                  width={isMobileScreen ? '100%' : '38%'}
+                  width={isMobileScreen ? '100%' : '45%'}
                 />
               </OptionsWrap>
             </DeleteOptionWrap>
@@ -292,7 +290,7 @@ const AppRoleSecrets = (props) => {
 };
 
 AppRoleSecrets.propTypes = {
-  secretIds: PropTypes.arrayOf(PropTypes.array).isRequired,
+  secretIds: PropTypes.arrayOf(PropTypes.any).isRequired,
   deleteSecretIds: PropTypes.func,
 };
 

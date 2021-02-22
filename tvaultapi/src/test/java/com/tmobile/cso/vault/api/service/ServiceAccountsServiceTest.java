@@ -30,7 +30,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -52,10 +51,13 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.bo.ADServiceAccount;
 import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
+import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
 import com.tmobile.cso.vault.api.process.Response;
 
@@ -63,7 +65,7 @@ import com.tmobile.cso.vault.api.process.Response;
 @RunWith(PowerMockRunner.class)
 @ComponentScan(basePackages={"com.tmobile.cso.vault.api"})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@PrepareForTest({ControllerUtil.class, JSONUtil.class})
+@PrepareForTest({ControllerUtil.class, JSONUtil.class, OIDCUtil.class})
 @PowerMockIgnore({"javax.management.*"})
 public class ServiceAccountsServiceTest {
 
@@ -97,13 +99,21 @@ public class ServiceAccountsServiceTest {
     @Mock
     EmailUtils emailUtils;
 
+    @Mock
+    OIDCUtil OIDCUtil;
 
+    @Mock 
+    CommonUtils commonUtils;
+    
     @Before
     public void setUp() {
         PowerMockito.mockStatic(ControllerUtil.class);
         PowerMockito.mockStatic(JSONUtil.class);
+        PowerMockito.mockStatic(OIDCUtil.class);
 
         Whitebox.setInternalState(ControllerUtil.class, "log", LogManager.getLogger(ControllerUtil.class));
+        Whitebox.setInternalState(OIDCUtil.class, "log", LogManager.getLogger(OIDCUtil.class));
+
         when(JSONUtil.getJSON(Mockito.any(ImmutableMap.class))).thenReturn("log");
 
         Map<String, String> currentMap = new HashMap<>();
@@ -157,12 +167,34 @@ public class ServiceAccountsServiceTest {
         adServiceAccount.setOwner("testacc01");
         return adServiceAccount;
     }
+
     private List<ADServiceAccount> generateADSerivceAccounts() {
     	List<ADServiceAccount> allServiceAccounts = new ArrayList<ADServiceAccount>();
     	allServiceAccounts.add(generateADServiceAccount("testacc01"));
     	return allServiceAccounts;
     }
 
+    private ADServiceAccount generateADServiceAccountWithName(String  name) {
+        ADServiceAccount adServiceAccount = new ADServiceAccount();
+        adServiceAccount.setDisplayName(name);
+        adServiceAccount.setGivenName(name);
+        adServiceAccount.setUserEmail("testacc01@t-mobile.com");
+        adServiceAccount.setUserId("testuser");
+        adServiceAccount.setUserName(name);
+        adServiceAccount.setPurpose("This is a test user account");
+        adServiceAccount.setAccountExpires("Never");
+        adServiceAccount.setPwdLastSet("2019-05-14 07:09:32");
+        adServiceAccount.setMaxPwdAge(31536000);
+        adServiceAccount.setPasswordExpiry("2020-05-13 07:09:32 (358 days)");
+        ADUserAccount adUserAccount = new ADUserAccount();
+        adUserAccount.setUserName("testuser");
+        adServiceAccount.setManagedBy(adUserAccount);
+        adServiceAccount.setAccountStatus("active");
+        adServiceAccount.setLockStatus("unlocked");
+        adServiceAccount.setMemberOf("CN=r_adds_svcacct_standard,OU=Roles,OU=Security,OU=Groups,DC=abc,DC=def,DC=ghi,DC=com");
+        adServiceAccount.setOwner("testacc01");
+        return adServiceAccount;
+    }
 
     private ADServiceAccountObjects generateADServiceAccountObjects(List<ADServiceAccount> allServiceAccounts) {
 		ADServiceAccountObjects adServiceAccountObjects = new ADServiceAccountObjects();
@@ -476,7 +508,7 @@ public class ServiceAccountsServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc03\"]}");
         when(reqProcessor.process(Mockito.anyString(),Mockito.anyObject(),Mockito.anyString())).thenReturn(response);
-        
+
         when(JSONUtil.getJSON((ServiceAccountTTL)Mockito.any())).thenReturn(getJSON(serviceAccountTTL));
         List<ADServiceAccount> allServiceAccounts = new ArrayList<>();
         allServiceAccounts.add(generateADServiceAccount("testacc02"));
@@ -800,7 +832,7 @@ public class ServiceAccountsServiceTest {
 
         ServiceAccountUser serviceAccountUser = new ServiceAccountUser("testacc01", userDetails.getUsername(), "sudo");
         String [] policies = {"o_svcacct_testacc01"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"o_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user1\"}",token)).thenReturn(userResponse);
         Response userResponse2 = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"\"}}");
@@ -849,7 +881,17 @@ public class ServiceAccountsServiceTest {
                 "}}");
         when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
         Response response_no_content = getMockResponse(HttpStatus.NO_CONTENT, true, "");
-        when(reqProcessor.process("/auth/aws/roles/delete","{\"role\":\"role1\"}",token)).thenReturn(response_no_content);
+
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"w_svcacct_testsvcname\" ], \"auth_type\":\"iam\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_svcacct_testacc02\"}}");
         when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role2\"}", token)).thenReturn(appRoleResponse);
         when(appRoleService.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response_no_content);
@@ -866,7 +908,98 @@ public class ServiceAccountsServiceTest {
         // delete meatadata
         when(reqProcessor.process(eq("/delete"),any(),eq(token))).thenReturn(responseNoContent);
         // System under test
-    	String expectedResponse = "{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}";
+		String expectedResponse = "{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+        ResponseEntity<String> responseEntity = serviceAccountsService.offboardServiceAccount(token, onboardedServiceAccount, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testOffboardServiceAccountSuccessWithAWSEC2Role() {
+		UserDetails userDetails = getMockUser(true);
+		String token = userDetails.getClientToken();
+		OnboardedServiceAccount onboardedServiceAccount = generateOnboardedServiceAccount("testacc02", "testacc01");
+
+        ServiceAccountUser serviceAccountUser = new ServiceAccountUser("testacc01", userDetails.getUsername(), "sudo");
+        String [] policies = {"o_svcacct_testacc01"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"o_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user1\"}",token)).thenReturn(userResponse);
+        Response userResponse2 = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user2\"}",token)).thenReturn(userResponse2);
+        Response groupResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResponse);
+
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("o_svcacct_testacc02");
+            List<String> groupResList = new ArrayList<>();
+            resList.add("default");
+            resList.add("r_svcacct_testacc02");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(groupResList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+
+        // Delete policies...
+        ResponseEntity<String> createPolicyResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Access is deleted\"]}");
+        when(accessService.deletePolicyInfo(Mockito.anyString(), Mockito.any())).thenReturn(createPolicyResponse);
+
+        // delete user/group/role associations
+        String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + "/testacc02";
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"groups\": {\n" +
+                "    \"group1\": \"read\"\n" +
+                "  },\n" +
+                "  \"aws-roles\": {\n" +
+                "    \"role1\": \"read\"\n" +
+                "  },\n" +
+                "  \"app-roles\": {\n" +
+                "    \"role2\": \"read\"\n" +
+                "  },\n" +
+                "  \"managedBy\": \"user2\",\n" +
+                "  \"name\": \"testacc02\",\n" +
+                "  \"users\": {\n" +
+                "    \"user1\": \"read\"\n" +
+                "  }\n" +
+                "}}");
+        when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
+        Response response_no_content = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"w_svcacct_testsvcname\" ], \"auth_type\":\"ec2\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(awsAuthService.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_svcacct_testacc02\"}}");
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role2\"}", token)).thenReturn(appRoleResponse);
+        when(appRoleService.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response_no_content);
+        //Delete Account Role...
+		ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+		serviceAccountTTL.setRole_name(onboardedServiceAccount.getName());
+		serviceAccountTTL.setService_account_name(onboardedServiceAccount.getName() + "@aaa.bbb.ccc.com") ;
+		String svc_account_payload = getJSON(serviceAccountTTL);
+		String deleteRoleResponseMsg = "{\"messages\":[\"Successfully deleted service account role.\"]}";
+		Response deleteRoleResponse = getMockResponse(HttpStatus.OK, true, deleteRoleResponseMsg);
+		when(JSONUtil.getJSON(Mockito.any(ServiceAccountTTL.class))).thenReturn(svc_account_payload);
+        when(reqProcessor.process("/ad/serviceaccount/offboard",svc_account_payload,token)).thenReturn(deleteRoleResponse);
+
+        // delete meatadata
+        when(reqProcessor.process(eq("/delete"),any(),eq(token))).thenReturn(responseNoContent);
+        // System under test
+		String expectedResponse = "{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
         ResponseEntity<String> responseEntity = serviceAccountsService.offboardServiceAccount(token, onboardedServiceAccount, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -881,7 +1014,7 @@ public class ServiceAccountsServiceTest {
 
         ServiceAccountUser serviceAccountUser = new ServiceAccountUser("testacc01", userDetails.getUsername(), "sudo");
         String [] policies = {"o_svcacct_testacc01"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"o_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user1\"}",token)).thenReturn(userResponse);
         Response userResponse2 = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"\"}}");
@@ -951,7 +1084,7 @@ public class ServiceAccountsServiceTest {
 
         ServiceAccountUser serviceAccountUser = new ServiceAccountUser("testacc01", userDetails.getUsername(), "sudo");
         String [] policies = {"o_svcacct_testacc01"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"o_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user1\"}",token)).thenReturn(userResponse);
         Response userResponse2 = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"\"}}");
@@ -1026,7 +1159,7 @@ public class ServiceAccountsServiceTest {
 
         ServiceAccountUser serviceAccountUser = new ServiceAccountUser("testacc01", userDetails.getUsername(), "sudo");
         String [] policies = {"o_svcacct_testacc01"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"o_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user1\"}",token)).thenReturn(userResponse);
         Response userResponse2 = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"\"}}");
@@ -1113,11 +1246,88 @@ public class ServiceAccountsServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         String[] latestPolicies = {"o_svcacct_testacc02"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntity = serviceAccountsService.addUserToServiceAccount(token, serviceAccountUser, userDetails, false);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+
+
+    @Test
+    public void test_addUserToServiceAccount_oidc_success() {
+		UserDetails userDetails = getMockUser(true);
+    	String token = userDetails.getClientToken();
+    	ServiceAccountUser serviceAccountUser = new ServiceAccountUser("testacc02", "testacc01", "read");
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testacc01\"}",token)).thenReturn(userResponse);
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),any())).thenReturn(responseNoContent);
+        // System under test
+    	String expectedResponse = "{\"messages\":[\"Successfully added user to the Service Account\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String[] latestPolicies = {"o_svcacct_testacc02"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
+
+      //oidc test cases
+        ReflectionTestUtils.setField(serviceAccountsService, "vaultAuthMethod", "oidc");
+        String mountAccessor = "auth_oidc";
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+
+
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+
+   			OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
+   			oidcLookupEntityRequest.setId(null);
+   			oidcLookupEntityRequest.setAlias_id(null);
+   			oidcLookupEntityRequest.setName(null);
+   			oidcLookupEntityRequest.setAlias_name(directoryUser.getUserEmail());
+   			oidcLookupEntityRequest.setAlias_mount_accessor(mountAccessor);
+   			OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+   			oidcEntityResponse.setEntityName("entity");
+   			List<String> policies = new ArrayList<>();
+   			policies.add("safeadmin");
+   			oidcEntityResponse.setPolicies(policies);
+   			ResponseEntity<DirectoryObjects> responseEntity1 = ResponseEntity.status(HttpStatus.OK).body(users);
+   			when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
+
+   			ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
+   					.body(oidcEntityResponse);
+
+   			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
+   			String entityName = "entity";
+
+   			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+   			when(OIDCUtil.updateOIDCEntity(any(), any()))
+   					.thenReturn(responseEntity3);
+                 when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(responseEntity2);
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.addUserToServiceAccount(token, serviceAccountUser, userDetails, false);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+
     @Test
     public void test_addUserToServiceAccount_userpass_success() {
 		UserDetails userDetails = getMockUser(true);
@@ -1141,7 +1351,7 @@ public class ServiceAccountsServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         String[] latestPolicies = {"o_svcacct_testacc02"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntity = serviceAccountsService.addUserToServiceAccount(token, serviceAccountUser, userDetails, false);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1196,7 +1406,7 @@ public class ServiceAccountsServiceTest {
         String expectedResponse = "{\"messages\":[\"Failed to add user to the Service Account. Metadata update failed\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(expectedResponse);
         String[] latestPolicies = {"o_svcacct_testacc02"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.addUserToServiceAccount(token, serviceAccountUser, userDetails, false);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -1213,7 +1423,7 @@ public class ServiceAccountsServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         String[] latestPolicies = {"o_svcacct_testacc02"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntity = serviceAccountsService.addUserToServiceAccount(token, serviceAccountUser, userDetails, false);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1241,13 +1451,93 @@ public class ServiceAccountsServiceTest {
     	String expectedResponse = "{\"messages\":[\"Successfully removed user from the Service Account\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
         String[] latestPolicies = {"o_svcacct_testacc02"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
 
         ResponseEntity<String> responseEntity = serviceAccountsService.removeUserFromServiceAccount(token, serviceAccountUser, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+
+
+    @Test
+    public void test_removeUserFromServiceAccount_oidc_success() {
+		UserDetails userDetails = getMockUser(true);
+    	String token = userDetails.getClientToken();
+    	ServiceAccountUser serviceAccountUser = new ServiceAccountUser("testacc02", "testacc01", "read");
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"o_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testacc01\"}",token)).thenReturn(userResponse);
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("o_svcacct_testacc02");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),any())).thenReturn(responseNoContent);
+        // System under test
+    	String expectedResponse = "{\"messages\":[\"Successfully removed user from the Service Account\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+        String[] latestPolicies = {"o_svcacct_testacc02"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+
+      //oidc test cases
+        ReflectionTestUtils.setField(serviceAccountsService, "vaultAuthMethod", "oidc");
+        String mountAccessor = "auth_oidc";
+        DirectoryUser directoryUser = new DirectoryUser();
+        directoryUser.setDisplayName("testUser");
+        directoryUser.setGivenName("testUser");
+        directoryUser.setUserEmail("testUser@t-mobile.com");
+        directoryUser.setUserId("testuser01");
+        directoryUser.setUserName("testUser");
+
+        List<DirectoryUser> persons = new ArrayList<>();
+        persons.add(directoryUser);
+
+
+
+        DirectoryObjects users = new DirectoryObjects();
+        DirectoryObjectsList usersList = new DirectoryObjectsList();
+        usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
+        users.setData(usersList);
+
+   			OIDCLookupEntityRequest oidcLookupEntityRequest = new OIDCLookupEntityRequest();
+   			oidcLookupEntityRequest.setId(null);
+   			oidcLookupEntityRequest.setAlias_id(null);
+   			oidcLookupEntityRequest.setName(null);
+   			oidcLookupEntityRequest.setAlias_name(directoryUser.getUserEmail());
+   			oidcLookupEntityRequest.setAlias_mount_accessor(mountAccessor);
+   			OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+   			oidcEntityResponse.setEntityName("entity");
+   			List<String> policies = new ArrayList<>();
+   			policies.add("safeadmin");
+   			oidcEntityResponse.setPolicies(policies);
+   			ResponseEntity<DirectoryObjects> responseEntity1 = ResponseEntity.status(HttpStatus.OK).body(users);
+   			when(OIDCUtil.fetchMountAccessorForOidc(token)).thenReturn(mountAccessor);
+
+   			ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.OK)
+   					.body(oidcEntityResponse);
+
+   			when(tokenUtils.getSelfServiceTokenWithAppRole()).thenReturn(token);
+   			String entityName = "entity";
+
+   			Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+   			when(OIDCUtil.updateOIDCEntity(any(), any()))
+   					.thenReturn(responseEntity3);
+                 when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(responseEntity2);
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.removeUserFromServiceAccount(token, serviceAccountUser, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+
+
+
 
     @Test
     public void test_removeUserFromServiceAccount_failure_initialreset() {
@@ -1258,7 +1548,7 @@ public class ServiceAccountsServiceTest {
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         String[] latestPolicies = {"o_svcacct_testacc02"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntity = serviceAccountsService.removeUserFromServiceAccount(token, serviceAccountUser, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1287,7 +1577,7 @@ public class ServiceAccountsServiceTest {
     	String expectedResponse = "{\"messages\":[\"Successfully removed user from the Service Account\"]}";
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
         String[] latestPolicies = {"o_svcacct_testacc02"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
 
         ResponseEntity<String> responseEntity = serviceAccountsService.removeUserFromServiceAccount(token, serviceAccountUser, userDetails);
@@ -1370,14 +1660,19 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
-        String expectedOutput = getJSON(adServiceAccountCreds);
+        when(commonUtils.getModifiedByInfo(Mockito.any())).thenReturn("test@t-mobile.com");
+        ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+        adServiceAccountResetDetails.setModifiedBy("test@t-mobile.com");
+        adServiceAccountResetDetails.setModifiedAt(1610615328268l);
+        adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+        String expectedOutput = getJSON(adServiceAccountResetDetails);
         Response pwdReadResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
         Response pwdResetResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
-        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountResetDetails.class))).thenReturn(expectedOutput);
 
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
-
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/readpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdReadResponse);
+        when(ControllerUtil.updateMetadataOnSvcPwdReset(Mockito.any(),eq(adServiceAccountResetDetails), eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,expectedOutput));
         when(ControllerUtil.updateMetadataOnSvcaccPwdReset(Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true,expectedOutput));
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
@@ -1398,11 +1693,47 @@ public class ServiceAccountsServiceTest {
         String expectedResponse = "{\"messages\":[\"Successfully added user to the Service Account\"]}";
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         String[] latestPolicies = {"o_svcacct_testacc02"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
 
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName(svcAccName);
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_resetSvcAccPassword_failure_svcacc_decommitioned() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        String svcAccName = "testacc03";
+
+        // for getOnboarderdServiceAccountDetails
+        Map<String,Object> rqstParams = new HashMap<>();
+
+        rqstParams.put("service_account_name",svcAccName);
+        rqstParams.put("ttl", 10);
+        rqstParams.put("last_vault_rotation", "2018-05-24T17:14:38.677370855Z");
+        rqstParams.put("password_last_set","2018-05-24T17:14:38.6038495Z");
+        Response svcAccDetailsRes = getMockResponse(HttpStatus.OK, true, getJSON(rqstParams));
+
+        when(reqProcessor.process("/ad/serviceaccount/details","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(svcAccDetailsRes);
+        // end getOnboarderdServiceAccountDetails
+
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName("testacc04");
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"Unable to reset the password for the service account since it does not exist in Active Directory\"]}");
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails);
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -1441,10 +1772,15 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
-        String expectedOutput = getJSON(adServiceAccountCreds);
+        when(commonUtils.getModifiedByInfo(Mockito.any())).thenReturn("test@t-mobile.com");
+        ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+        adServiceAccountResetDetails.setModifiedBy("test@t-mobile.com");
+        adServiceAccountResetDetails.setModifiedAt(1610615328268l);
+        adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+        String expectedOutput = getJSON(adServiceAccountResetDetails);
         Response pwdReadResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
         Response pwdResetResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
-        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountResetDetails.class))).thenReturn(expectedOutput);
 
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
 
@@ -1468,7 +1804,13 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.updateMetadata(any(),any())).thenReturn(responseNoContent);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         String[] latestPolicies = {"o_svcacct_testacc02"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
+
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName(svcAccName);
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -1510,12 +1852,23 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
-        String expectedOutput = getJSON(adServiceAccountCreds);
+        when(commonUtils.getModifiedByInfo(Mockito.any())).thenReturn("test@t-mobile.com");
+        ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+        adServiceAccountResetDetails.setModifiedBy("test@t-mobile.com");
+        adServiceAccountResetDetails.setModifiedAt(1610615328268l);
+        adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+        String expectedOutput = getJSON(adServiceAccountResetDetails);
         Response pwdReadResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
         Response pwdResetResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
-        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountResetDetails.class))).thenReturn(expectedOutput);
 
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
+
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName(svcAccName);
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
 
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/readpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdReadResponse);
         when(ControllerUtil.updateMetadataOnSvcaccPwdReset(Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.BAD_REQUEST, true,""));
@@ -1562,6 +1915,13 @@ public class ServiceAccountsServiceTest {
         Response pwdResetResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, expectedOutput);
         when(reqProcessor.process("/ad/serviceaccount/resetpwd","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(pwdResetResponse);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedOutput);
+
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName(svcAccName);
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
@@ -1612,6 +1972,11 @@ public class ServiceAccountsServiceTest {
         Response pwdResetResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
 
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName(svcAccName);
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account. Failed to read the updated password after setting ttl to 1 second.\"]}");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
@@ -1646,6 +2011,11 @@ public class ServiceAccountsServiceTest {
         Response svcAccDetailsRes = getMockResponse(HttpStatus.OK, true, getJSON(rqstParams));
         when(reqProcessor.process("/ad/serviceaccount/details","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(svcAccDetailsRes);
 
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName(svcAccName);
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to reset password details for the given service account\"]}");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
@@ -1689,6 +2059,11 @@ public class ServiceAccountsServiceTest {
         Response pwdResetResponse = getMockResponse(HttpStatus.OK, true, pwdResetOutput);
         when(reqProcessor.process(Mockito.eq("/ad/serviceaccount/resetpwd"),Mockito.anyString(),Mockito.eq(token))).thenReturn(pwdResetResponse);
 
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName(svcAccName);
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
 
         String expectedOutput = "{\"errors\":[\"Unable to reset password details for the given service account. Failed to read the updated password.\"]}";
         Response pwdReadResponse = getMockResponse(HttpStatus.BAD_REQUEST, true,"");
@@ -1747,10 +2122,50 @@ public class ServiceAccountsServiceTest {
 
         String expectedOutput = "{\"errors\":[\"Unable to reset password details for the given service account. Failed to reset the service account with original ttl.\"]}";
 
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName(svcAccName);
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedOutput);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.resetSvcAccPassword(token, svcAccName, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_readSvcAccPassword_failure_svcacc_decommitioned() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        String svcAccName = "testacc03";
+
+        ADServiceAccountCreds adServiceAccountCreds = new ADServiceAccountCreds();
+        adServiceAccountCreds.setCurrent_password("current_password");
+        adServiceAccountCreds.setLast_password("last_password");
+        adServiceAccountCreds.setUsername(svcAccName);
+        when(commonUtils.getModifiedByInfo(Mockito.any())).thenReturn("test@t-mobile.com");
+        ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+        adServiceAccountResetDetails.setModifiedBy("test@t-mobile.com");
+        adServiceAccountResetDetails.setModifiedAt(1610615328268l);
+        adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+        String expectedOutput = getJSON(adServiceAccountResetDetails);
+        Response pwdReadResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountResetDetails.class))).thenReturn(expectedOutput);
+        when(reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(pwdReadResponse);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountResetDetails.class))).thenReturn(expectedOutput);
+
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName("testacc04");
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"Unable to read the password for the service account since it does not exist in Active Directory\"]}");
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+        ResponseEntity<String> responseEntity = serviceAccountsService.readSvcAccPassword(token, svcAccName, userDetails);
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
 
@@ -1764,15 +2179,25 @@ public class ServiceAccountsServiceTest {
         adServiceAccountCreds.setCurrent_password("current_password");
         adServiceAccountCreds.setLast_password("last_password");
         adServiceAccountCreds.setUsername(svcAccName);
-        String expectedOutput = getJSON(adServiceAccountCreds);
+        when(commonUtils.getModifiedByInfo(Mockito.any())).thenReturn("test@t-mobile.com");
+        ADServiceAccountResetDetails adServiceAccountResetDetails = new ADServiceAccountResetDetails();
+        adServiceAccountResetDetails.setModifiedBy("test@t-mobile.com");
+        adServiceAccountResetDetails.setModifiedAt(1610608701279l);
+        adServiceAccountResetDetails.setAdServiceAccountCreds(adServiceAccountCreds);
+        String expectedOutput = getJSON(adServiceAccountResetDetails);
         Response pwdReadResponse = getMockResponse(HttpStatus.OK, true,expectedOutput);
-        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountResetDetails.class))).thenReturn(expectedOutput);
         when(reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(pwdReadResponse);
-        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountCreds.class))).thenReturn(expectedOutput);
+        when(JSONUtil.getJSON(Mockito.any(ADServiceAccountResetDetails.class))).thenReturn(expectedOutput);
 
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName(svcAccName);
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
-        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"adGroup\":\"adGroup\",\"appID\":\"appID\",\"appName\":\"appName\",\"appTag\":\"appTag\",\"users\":{\"normaluser\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.readSvcAccPassword(token, svcAccName, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -1788,6 +2213,12 @@ public class ServiceAccountsServiceTest {
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Failed to read service account password. Initial password reset is pending for this Service Account. Please reset the password and try again.\"]}");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
+
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName(svcAccName);
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
 
         Response response = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}");
         String _path = TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName;
@@ -1806,6 +2237,12 @@ public class ServiceAccountsServiceTest {
         Response pwdReadResponse = getMockResponse(HttpStatus.FORBIDDEN, true,"");
         when(reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(pwdReadResponse);
 
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName(svcAccName);
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to read the password details for the given service account\"]}");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.readSvcAccPassword(token, svcAccName, userDetails);
@@ -1822,12 +2259,19 @@ public class ServiceAccountsServiceTest {
         Response pwdReadResponse = getMockResponse(HttpStatus.BAD_REQUEST, true,"");
         when(reqProcessor.process("/ad/serviceaccount/readpwd","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(pwdReadResponse);
 
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName(svcAccName);
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Unable to get password details for the given service account\"]}");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"normaluser\",\"name\":\"svc_vault_test5\",\"users\":{\"normaluser\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntity = serviceAccountsService.readSvcAccPassword(token, svcAccName, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
     }
+
 
     @Test
     public void test_getOnboarderdServiceAccount_success() {
@@ -1905,21 +2349,16 @@ public class ServiceAccountsServiceTest {
     public void test_getOnboardedServiceAccounts_admin_success() {
     	UserDetails userDetails = getMockUser(true);
     	String token = userDetails.getClientToken();
-    	// Bevavior setup
-    	String expectedOutput = "{\n" +
-    			"  \"keys\": [\n" +
-    			"    \"testacc02\",\n" +
-    			"    \"testacc03\",\n" +
-    			"    \"testacc04\"\n" +
-    			"  ]\n" +
-    			"}";
+		// Bevavior setup
+		String expectedOutput = "{\"keys\": [\"testacc02\", \"testacc03\", \"testacc04\"]}";
     	Response onboardedSvsAccsResponse = getMockResponse(HttpStatus.OK, true, expectedOutput);
     	when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(onboardedSvsAccsResponse);
 
     	// System under test
     	ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
-    	ResponseEntity<String> responseEntity = serviceAccountsService.getOnboardedServiceAccounts(token, userDetails);
-    	assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+		ResponseEntity<String> responseEntity = serviceAccountsService.getOnboardedServiceAccounts(token, userDetails,
+				null, null);
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     	assertEquals(responseEntityExpected, responseEntity);
 
     }
@@ -1933,9 +2372,10 @@ public class ServiceAccountsServiceTest {
     	when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(onboardedSvsAccsResponse);
 
     	// System under test
-    	ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
-    	ResponseEntity<String> responseEntity = serviceAccountsService.getOnboardedServiceAccounts(token, userDetails);
-    	assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
+		ResponseEntity<String> responseEntity = serviceAccountsService.getOnboardedServiceAccounts(token, userDetails,
+				1, 0);
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     	assertEquals(responseEntityExpected, responseEntity);
     }
     @Test
@@ -1945,11 +2385,12 @@ public class ServiceAccountsServiceTest {
         String expectedOutput = "{\"keys\":[\"acc1\",\"acc2\"]}";
         String[] latestPolicies = {"o_svcacc_acc1", "o_svcacc_acc2"};
         when(JSONUtil.getJSON(Mockito.any(List.class))).thenReturn("[\"acc1\",\"acc2\"]");
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
     	// System under test
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
-    	ResponseEntity<String> responseEntity = serviceAccountsService.getOnboardedServiceAccounts(token, userDetails);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedOutput);
+		ResponseEntity<String> responseEntity = serviceAccountsService.getOnboardedServiceAccounts(token, userDetails,
+				1, 0);
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     	assertEquals(responseEntityExpected, responseEntity);
 
     }
@@ -1963,7 +2404,7 @@ public class ServiceAccountsServiceTest {
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
 
         String [] policies = {"o_svcacct_svc_vault_test7"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
         ObjectMapper objMapper = new ObjectMapper();
@@ -1986,6 +2427,59 @@ public class ServiceAccountsServiceTest {
         assertEquals(responseEntityExpected, responseEntity);
     }
 
+
+
+    @Test
+    public void test_addGroupToServiceAccount_oidc_successfully() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "reset");
+        UserDetails userDetails = getMockUser(false);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully associated with Service Account\"]}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        String [] policies = {"o_svcacct_svc_vault_test7"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
+        ObjectMapper objMapper = new ObjectMapper();
+        String responseJson = groupResp.getResponse();
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("w_shared_mysafe01");
+            resList.add("w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson)).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+
+        ReflectionTestUtils.setField(serviceAccountsService, "vaultAuthMethod", "oidc");
+        List<String> policie = new ArrayList<>();
+        policie.add("default");
+        policie.add("w_shared_mysafe02");
+        policie.add("r_shared_mysafe01");
+        List<String> currentpolicies = new ArrayList<>();
+        currentpolicies.add("default");
+        currentpolicies.add("w_shared_mysafe01");
+        currentpolicies.add("w_shared_mysafe02");
+        OIDCGroup oidcGroup = new OIDCGroup("123-123-123", currentpolicies);
+        when(OIDCUtil.getIdentityGroupDetails("mygroup01", token)).thenReturn(oidcGroup);
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.NO_CONTENT);
+        when(OIDCUtil.updateGroupPolicies(any(), any(), any(), any(), any())).thenReturn(response);
+
+
+
+        ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
     @Test
     public void test_addGroupToServiceAccount_metadata_failure() {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
@@ -1996,7 +2490,7 @@ public class ServiceAccountsServiceTest {
         Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
         String [] policies = {"o_svcacct_svc_vault_test7"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
         ObjectMapper objMapper = new ObjectMapper();
@@ -2024,7 +2518,7 @@ public class ServiceAccountsServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "reset");
         UserDetails userDetails = getMockUser(true);
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to add group to the Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
         Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
         Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
@@ -2043,7 +2537,7 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(response404);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         String[] latestPolicies = {"o_svcacct_svc_vault_test7"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -2058,7 +2552,7 @@ public class ServiceAccountsServiceTest {
         Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
         String [] policies = {"w_svcacct_svc_vault_test7"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
         ObjectMapper objMapper = new ObjectMapper();
@@ -2089,7 +2583,7 @@ public class ServiceAccountsServiceTest {
         when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         String[] latestPolicies = {"o_svcacct_svc_vault_test7"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntity = serviceAccountsService.addGroupToServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -2105,7 +2599,7 @@ public class ServiceAccountsServiceTest {
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
 
         String [] policies = {"o_svcacct_svc_vault_test7"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
         ObjectMapper objMapper = new ObjectMapper();
@@ -2122,7 +2616,76 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
-        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"write\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test7\",\"users\":{\"smohan11\":\"sudo\"}}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+        ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+
+    @Test
+    public void test_removeGroupFromServiceAccount_oidc_successfully() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "reset");
+        UserDetails userDetails = getMockUser(false);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully removed from Service Account\"]}");
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Group is successfully removed from Service Account\"]}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        String [] policies = {"o_svcacct_svc_vault_test7"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
+        ObjectMapper objMapper = new ObjectMapper();
+        String responseJson = groupResp.getResponse();
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("w_shared_mysafe01");
+            resList.add("w_shared_mysafe02");
+            when(ControllerUtil.getPoliciesAsListFromJson(objMapper, responseJson)).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+        when(tokenUtils.getSelfServiceToken()).thenReturn(token);
+        String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"write\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test7\",\"users\":{\"smohan11\":\"sudo\"}}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
+
+        ReflectionTestUtils.setField(serviceAccountsService, "vaultAuthMethod", "oidc");
+        List<String> policie = new ArrayList<>();
+        policie.add("default");
+        policie.add("w_shared_mysafe02");
+        policie.add("r_shared_mysafe01");
+        List<String> currentpolicies = new ArrayList<>();
+        currentpolicies.add("default");
+        currentpolicies.add("w_shared_mysafe01");
+        currentpolicies.add("w_shared_mysafe02");
+        OIDCGroup oidcGroup = new OIDCGroup("123-123-123", currentpolicies);
+        when(OIDCUtil.getIdentityGroupDetails(any(), any())).thenReturn(oidcGroup);
+
+        Response response1 = new Response();
+        response1.setHttpstatus(HttpStatus.NO_CONTENT);
+        when(OIDCUtil.updateGroupPolicies(any(), any(), any(), any(), any())).thenReturn(response1);
+
 
         ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -2138,7 +2701,7 @@ public class ServiceAccountsServiceTest {
         when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         String[] latestPolicies = {"o_svcacct_svc_vault_test7"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -2155,7 +2718,7 @@ public class ServiceAccountsServiceTest {
         Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
         String [] policies = {"o_svcacct_svc_vault_test7"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
         ObjectMapper objMapper = new ObjectMapper();
@@ -2172,7 +2735,16 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(response404);
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
-        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"write\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test7\",\"users\":{\"smohan11\":\"sudo\"}}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -2184,7 +2756,7 @@ public class ServiceAccountsServiceTest {
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         ServiceAccountGroup serviceAccountGroup = new ServiceAccountGroup("svc_vault_test7", "group1", "reset");
         UserDetails userDetails = getMockUser(true);
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Failed to remove the group from the Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Group configuration failed.Try Again\"]}");
         Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
         Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
@@ -2202,8 +2774,17 @@ public class ServiceAccountsServiceTest {
         }
         when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(response404);
         String[] latestPolicies = {"o_svcacct_svc_vault_test7"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
-        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
+        String metdataJsonString = "{\"data\":{\"groups\": {\"group1\": \"write\"},\"app-roles\":{\"selfserviceoidcsupportrole\":\"read\"},\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test7\",\"users\":{\"smohan11\":\"sudo\"}}}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, metdataJsonString);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(readResponse);
+        Map<String,Object> reqparams = null;
+        try {
+            reqparams = new ObjectMapper().readValue(metdataJsonString, new TypeReference<Map<String, Object>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.parseJson(Mockito.any())).thenReturn(reqparams);
 
         ResponseEntity<String> responseEntity = serviceAccountsService.removeGroupFromServiceAccount(token, serviceAccountGroup, userDetails);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -2219,7 +2800,7 @@ public class ServiceAccountsServiceTest {
         Response response404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
 
         String [] policies = {"w_svcacct_svc_vault_test7"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response groupResp = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\",\"w_shared_mysafe01\",\"w_shared_mysafe02\"],\"ttl\":0,\"groups\":\"admin\"}}");
         when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResp);
         ObjectMapper objMapper = new ObjectMapper();
@@ -2251,7 +2832,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "reset");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
         Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
@@ -2309,7 +2890,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "reset");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
         Response configureAppRoleResponse = getMockResponse(HttpStatus.NOT_FOUND, true, "");
@@ -2332,7 +2913,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "reset");
 
         String [] policies = {"r_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
@@ -2351,7 +2932,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "reset");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
         Response configureAppRoleResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
@@ -2377,7 +2958,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "reset");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
         Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
@@ -2416,7 +2997,7 @@ public class ServiceAccountsServiceTest {
         when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         String[] latestPolicies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.associateApproletoSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2427,13 +3008,13 @@ public class ServiceAccountsServiceTest {
     @Test
     public void test_removeApproleFromSvcAcc_succssfully() throws Exception {
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed from Service Account\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Approle is successfully removed(if existed) from Service Account\"]}");
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
         UserDetails userDetails = getMockUser(false);
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "write");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
         Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
@@ -2462,7 +3043,7 @@ public class ServiceAccountsServiceTest {
         when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         String[] latestPolicies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeApproleFromSvcAcc(userDetails, token, serviceAccountApprole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2478,7 +3059,7 @@ public class ServiceAccountsServiceTest {
         UserDetails userDetails = getMockUser(false);
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "");
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
         when(tokenUtils.getSelfServiceToken()).thenReturn(token);
@@ -2500,7 +3081,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "write");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
         Response configureAppRoleResponse = getMockResponse(HttpStatus.NO_CONTENT, true, "");
@@ -2527,7 +3108,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "write");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
         Response configureAppRoleResponse = getMockResponse(HttpStatus.OK, true, "");
@@ -2582,7 +3163,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountApprole serviceAccountApprole = new ServiceAccountApprole("testsvcname", "role1", "write");
         Response configureAppRoleResponse_404 = getMockResponse(HttpStatus.NOT_FOUND, true, "");
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         when(appRoleService.configureApprole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAppRoleResponse_404);
         Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"w_shared_mysafe01\"}}");
         when(reqProcessor.process("/auth/approle/role/read","{\"role_name\":\"role1\"}",token)).thenReturn(appRoleResponse);
@@ -2637,7 +3218,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "reset");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
                 "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
                 "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
@@ -2667,7 +3248,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "reset");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
                 "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
                 "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
@@ -2697,7 +3278,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "reset");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
                 "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
                 "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
@@ -2727,7 +3308,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "reset");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
                 "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
                 "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
@@ -2757,7 +3338,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "reset");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
                 "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
                 "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
@@ -2801,7 +3382,7 @@ public class ServiceAccountsServiceTest {
         when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         String[] latestPolicies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.addAwsRoleToSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2817,7 +3398,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "reset");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
                 "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
                 "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
@@ -2848,7 +3429,7 @@ public class ServiceAccountsServiceTest {
         when(tokenUtils.getSelfServiceToken()).thenReturn("5PDrOhsy4ig8L3EpsJZSLAMg");
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":false,\"managedBy\":\"smohan11\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         String[] latestPolicies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.removeAWSRoleFromSvcacc(userDetails, token, serviceAccountAWSRole);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntityActual.getStatusCode());
@@ -2864,7 +3445,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "reset");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
                 "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
                 "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
@@ -2894,7 +3475,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "reset");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
                 "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
                 "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
@@ -2924,7 +3505,7 @@ public class ServiceAccountsServiceTest {
         ServiceAccountAWSRole serviceAccountAWSRole = new ServiceAccountAWSRole("testsvcname", "role1", "reset");
 
         String [] policies = {"o_svcacct_testsvcname"};
-        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername())).thenReturn(policies);
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
         String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
                 "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
                 "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
@@ -3120,7 +3701,7 @@ public class ServiceAccountsServiceTest {
         serviceAccount.setTtl(90L);
         serviceAccount.setMax_ttl(89L);
         serviceAccount.setOwner("testacc0`");
-        
+
 		ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
 		serviceAccountTTL.setRole_name(serviceAccount.getName());
 		serviceAccountTTL.setService_account_name(serviceAccount.getName() + "@null") ;
@@ -3161,6 +3742,7 @@ public class ServiceAccountsServiceTest {
         assertEquals(HttpStatus.MULTI_STATUS, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
     }
+
 
     @Test
     public void test_transferSvcAccountOwner_transferSvcAccountOwner_success() throws Exception {
@@ -3221,8 +3803,23 @@ public class ServiceAccountsServiceTest {
         Response onboardResponse = getMockResponse(HttpStatus.OK, true, "{\"messages\":[\"Successfully created service account role.\"]}");
         when(reqProcessor.process(eq("/ad/serviceaccount/onboard"), Mockito.any(), eq(token))).thenReturn(onboardResponse);
 
+        List<ADServiceAccount> svcList = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName("testacc02");
+        svcList.add(adServiceAccount);
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
-        when(ldapTemplate.search(Mockito.anyString(), Mockito.any(), Mockito.any(AttributesMapper.class))).thenReturn(allServiceAccounts);
+
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return allServiceAccounts;
+
+                return svcList;
+            }
+        });
+
+
         when(ControllerUtil.updateMetadataOnSvcUpdate(Mockito.anyString(), Mockito.any(), Mockito.anyString())).thenReturn(getMockResponse(HttpStatus.OK, true,"{}"));
 
         Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
@@ -3239,7 +3836,7 @@ public class ServiceAccountsServiceTest {
         when(ControllerUtil.updateMetadata(any(),any())).thenReturn(responseNoContent);
         when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"testacc02\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
         String[] latestPolicies = {"o_svcacct_testacc02"};
-        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername())).thenReturn(latestPolicies);
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
 
         when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testacc01\"}",token)).thenReturn(userResponse);
         try {
@@ -3254,6 +3851,126 @@ public class ServiceAccountsServiceTest {
         ResponseEntity<String> responseEntityActual =  serviceAccountsService.transferSvcAccountOwner(userDetails, token, svcAccName);
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
+    }
+
+    @Test
+    public void test_transferSvcAccountOwner_transferSvcAccountOwner_success_vaultmethod_oidc_failed() throws Exception {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        String svcAccName = "testacc02";
+        String _path = TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName;
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"groups\": {\n" +
+                "    \"group1\": \"read\"\n" +
+                "  },\n" +
+                "  \"aws-roles\": {\n" +
+                "    \"role1\": \"read\"\n" +
+                "  },\n" +
+                "  \"app-roles\": {\n" +
+                "    \"role2\": \"read\"\n" +
+                "  },\n" +
+                "  \"managedBy\": \"user2\",\n" +
+                "  \"name\": \"testacc02\",\n" +
+                "  \"adGroup\": \"gp1\",\n" +
+                "  \"appID\": \"appid1\",\n" +
+                "  \"appName\": \"appname1\",\n" +
+                "  \"appTag\": \"tag1\",\n" +
+                "  \"initialPasswordReset\": \"true\",\n" +
+                "  \"users\": {\n" +
+                "    \"user2\": \"write\"\n" +
+                "  }\n" +
+                "}}");
+        when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
+        Map<String,Object> rqstParams = new HashMap<>();
+
+        rqstParams.put("service_account_name",svcAccName);
+        rqstParams.put("ttl", 10);
+        rqstParams.put("last_vault_rotation", "2018-05-24T17:14:38.677370855Z");
+        rqstParams.put("password_last_set","2018-05-24T17:14:38.6038495Z");
+        Response svcAccDetailsRes = getMockResponse(HttpStatus.OK, true, getJSON(rqstParams));
+
+        when(reqProcessor.process("/ad/serviceaccount/details","{\"role_name\":\""+svcAccName+"\"}",token)).thenReturn(svcAccDetailsRes);
+
+        String encodedFilter = "(&(userPrincipalName=test*)(objectClass=user)(!(CN=null)))";
+        List<ADServiceAccount> allServiceAccounts = generateADSerivceAccounts();
+        allServiceAccounts.add(generateADServiceAccount("testacc02"));
+        allServiceAccounts.add(generateADServiceAccount("testacc03"));
+        List<ADUserAccount> list = new ArrayList<>();
+        ADUserAccount adUserAccount = new ADUserAccount();
+        adUserAccount.setUserId("user.user11");
+        adUserAccount.setUserName("user11");
+        adUserAccount.setDisplayName("user user11");
+        adUserAccount.setGivenName("user11");
+        adUserAccount.setUserEmail("user11@abc.com");
+        list.add(adUserAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
+        Response response = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"testacc02\"]}");
+        when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(response);
+
+        Response onboardResponse = getMockResponse(HttpStatus.OK, true, "{\"messages\":[\"Successfully created service account role.\"]}");
+        when(reqProcessor.process(eq("/ad/serviceaccount/onboard"), Mockito.any(), eq(token))).thenReturn(onboardResponse);
+
+        List<ADServiceAccount> svcList = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName("testacc02");
+        svcList.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        ReflectionTestUtils.setField(serviceAccountsService, "vaultAuthMethod", "oidc");
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return allServiceAccounts;
+
+                return svcList;
+            }
+        });
+        OIDCEntityResponse oidcEntityResponse = new OIDCEntityResponse();
+        oidcEntityResponse.setEntityName("entity");
+        List<String> policies = new ArrayList<>();
+        policies.add("safeadmin");
+        oidcEntityResponse.setPolicies(policies);
+        ResponseEntity<OIDCEntityResponse> responseEntity2 = ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(oidcEntityResponse);
+        when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(responseEntity2);
+        Response responseEntity3 = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"data\": [\"safeadmin\",\"vaultadmin\"]]");
+        when(OIDCUtil.updateOIDCEntity(any(), any()))
+                .thenReturn(responseEntity3);
+        when(OIDCUtil.oidcFetchEntityDetails(any(), any(), any(), eq(true))).thenReturn(responseEntity2);
+
+        when(ControllerUtil.updateMetadataOnSvcUpdate(Mockito.anyString(), Mockito.any(), Mockito.anyString())).thenReturn(getMockResponse(HttpStatus.OK, true,"{}"));
+
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        when(reqProcessor.process(eq("/auth/ldap/users"),Mockito.any(),eq(token))).thenReturn(userResponse);
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),any())).thenReturn(responseNoContent);
+        when(reqProcessor.process(eq("/sdb"),Mockito.any(),eq(token))).thenReturn(getMockResponse(HttpStatus.OK, true, "{\"data\":{\"initialPasswordReset\":true,\"managedBy\":\"testacc02\",\"name\":\"svc_vault_test5\",\"users\":{\"smohan11\":\"sudo\"}}}"));
+        String[] latestPolicies = {"o_svcacct_testacc02"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
+
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"testacc01\"}",token)).thenReturn(userResponse);
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when (ControllerUtil.updateMetadata(Mockito.any(),Mockito.any())).thenReturn(getMockResponse(HttpStatus.NO_CONTENT, true, ""));
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Service account ownership transferred successfully from testacc02 to testacc01.\"]}");
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.transferSvcAccountOwner(userDetails, token, svcAccName);
+        assertEquals(HttpStatus.MULTI_STATUS, responseEntityActual.getStatusCode());
+        //assertEquals(responseEntityExpected, responseEntityActual);
     }
 
     @Test
@@ -3308,16 +4025,21 @@ public class ServiceAccountsServiceTest {
         when(reqProcessor.process("/ad/serviceaccount/details", "{\"role_name\":\"" + svcAccName + "\"}", token)).thenReturn(svcAccDetailsRes);
 
         String encodedFilter = "(&(userPrincipalName=test*)(objectClass=user)(!(CN=null)))";
-        List<ADUserAccount> list = new ArrayList<>();
-        ADUserAccount adUserAccount = new ADUserAccount();
-        adUserAccount.setUserId("user.user11");
-        adUserAccount.setUserName("user11");
-        adUserAccount.setDisplayName("user user11");
-        adUserAccount.setGivenName("user11");
-        adUserAccount.setUserEmail("user11@abc.com");
-        list.add(adUserAccount);
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName(svcAccName);
+        list.add(adServiceAccount);
         ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
-        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(null);
+
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return null;
+
+                return list;
+            }
+        });
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.MULTI_STATUS).body("{\"errors\":[\"Failed to transfer service account ownership. Unable to read Service account details\"]}");
 
@@ -3325,5 +4047,624 @@ public class ServiceAccountsServiceTest {
         assertEquals(HttpStatus.MULTI_STATUS, responseEntityActual.getStatusCode());
         assertEquals(responseEntityExpected, responseEntityActual);
 
+    }
+
+    @Test
+    public void test_transferSvcAccountOwner_transferSvcAccountOwner_failed_serviceAccount_decommitioned() throws Exception {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
+        String svcAccName = "testacc02";
+        String _path = TVaultConstants.SVC_ACC_ROLES_PATH + svcAccName;
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"groups\": {\n" +
+                "    \"group1\": \"read\"\n" +
+                "  },\n" +
+                "  \"aws-roles\": {\n" +
+                "    \"role1\": \"read\"\n" +
+                "  },\n" +
+                "  \"app-roles\": {\n" +
+                "    \"role2\": \"read\"\n" +
+                "  },\n" +
+                "  \"managedBy\": \"user2\",\n" +
+                "  \"name\": \"testacc02\",\n" +
+                "  \"adGroup\": \"gp1\",\n" +
+                "  \"appID\": \"appid1\",\n" +
+                "  \"appName\": \"appname1\",\n" +
+                "  \"appTag\": \"tag1\",\n" +
+                "  \"initialPasswordReset\": \"true\",\n" +
+                "  \"users\": {\n" +
+                "    \"user2\": \"write\"\n" +
+                "  }\n" +
+                "}}");
+        when(reqProcessor.process("/sdb", "{\"path\":\"" + _path + "\"}", token)).thenReturn(metaResponse);
+        Map<String, Object> rqstParams = new HashMap<>();
+
+        rqstParams.put("service_account_name", svcAccName);
+        rqstParams.put("ttl", 10);
+        rqstParams.put("last_vault_rotation", "2018-05-24T17:14:38.677370855Z");
+        rqstParams.put("password_last_set", "2018-05-24T17:14:38.6038495Z");
+        Response svcAccDetailsRes = getMockResponse(HttpStatus.OK, true, getJSON(rqstParams));
+
+        when(reqProcessor.process("/ad/serviceaccount/details", "{\"role_name\":\"" + svcAccName + "\"}", token)).thenReturn(svcAccDetailsRes);
+
+        String encodedFilter = "(&(userPrincipalName=test*)(objectClass=user)(!(CN=null)))";
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName("testsvcacc12");
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenAnswer(new Answer() {
+            private int count = 0;
+
+            public Object answer(InvocationOnMock invocation) {
+                if (count++ == 1)
+                    return null;
+
+                return list;
+            }
+        });
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"errors\":[\"The Service account does not exist in Active Directory and can't be managed from T-Vault\"]}");
+
+        ResponseEntity<String> responseEntityActual =  serviceAccountsService.transferSvcAccountOwner(userDetails, token, svcAccName);
+        assertEquals(HttpStatus.NOT_FOUND, responseEntityActual.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntityActual);
+
+    }
+
+    @Test
+    public void test_getServiceAccounts_successfully() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String [] policies = {"r_users_s1", "w_users_s2", "r_shared_s3", "w_shared_s4", "r_apps_s5", "w_apps_s6", "d_apps_s7", "w_svcacct_test"};
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"svcacct\":[{\"test\":\"read\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}");
+
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"svcacct\":[{\"test\":\"read\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}");
+        ResponseEntity<String> responseEntity = serviceAccountsService.getServiceAccounts(userDetails, token, 1, 0);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+
+    @Test
+    public void test_getServiceAccounts_successfully_duplicate_policies() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+        String [] policies = {"r_users_s1","r_users_s1", "w_users_s2","w_users_s2", "r_shared_s3", "w_shared_s4",
+                "r_apps_s5","r_apps_s5",  "w_apps_s6", "d_apps_s7","d_apps_s7","d_apps_s7", "w_svcacct_test","w_svcacct_test"};
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"svcacct\":[{\"test\":\"read\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}");
+
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn("{\"shared\":[{\"s3\":\"read\"},{\"s4\":\"write\"}],\"users\":[{\"s1\":\"read\"},{\"s2\":\"write\"}],\"svcacct\":[{\"test\":\"read\"}],\"apps\":[{\"s5\":\"read\"},{\"s6\":\"write\"},{\"s7\":\"deny\"}]}");
+        ResponseEntity<String> responseEntity = serviceAccountsService.getServiceAccounts(userDetails, token, null, null);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_offboardDecommissionedServiceAccount_success() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        OnboardedServiceAccount onboardedServiceAccount = generateOnboardedServiceAccount("testacc02","testacc01");
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn("123123123123");
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName("testacc021");
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
+        String [] policies = {"o_svcacct_testacc01"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"o_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user1\"}",token)).thenReturn(userResponse);
+        Response userResponse2 = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user2\"}",token)).thenReturn(userResponse2);
+        Response groupResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResponse);
+
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("o_svcacct_testacc02");
+            List<String> groupResList = new ArrayList<>();
+            resList.add("default");
+            resList.add("r_svcacct_testacc02");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(groupResList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+
+        // Delete policies...
+        ResponseEntity<String> createPolicyResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Access is deleted\"]}");
+        when(accessService.deletePolicyInfo(Mockito.anyString(), Mockito.any())).thenReturn(createPolicyResponse);
+
+        // delete user/group/role associations
+        String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + "/testacc02";
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"groups\": {\n" +
+                "    \"group1\": \"read\"\n" +
+                "  },\n" +
+                "  \"aws-roles\": {\n" +
+                "    \"role1\": \"read\"\n" +
+                "  },\n" +
+                "  \"app-roles\": {\n" +
+                "    \"role2\": \"read\"\n" +
+                "  },\n" +
+                "  \"managedBy\": \"user2\",\n" +
+                "  \"name\": \"testacc02\",\n" +
+                "  \"users\": {\n" +
+                "    \"user1\": \"read\"\n" +
+                "  }\n" +
+                "}}");
+        when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
+        Response response_no_content = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"w_svcacct_testsvcname\" ], \"auth_type\":\"iam\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(awsiamAuthService.configureAWSIAMRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_svcacct_testacc02\"}}");
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role2\"}", token)).thenReturn(appRoleResponse);
+        when(appRoleService.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response_no_content);
+        //Delete Account Role...
+        ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+        serviceAccountTTL.setRole_name(onboardedServiceAccount.getName());
+        serviceAccountTTL.setService_account_name(onboardedServiceAccount.getName() + "@aaa.bbb.ccc.com") ;
+        String svc_account_payload = getJSON(serviceAccountTTL);
+        String deleteRoleResponseMsg = "{\"messages\":[\"Successfully deleted service account role.\"]}";
+        Response deleteRoleResponse = getMockResponse(HttpStatus.OK, true, deleteRoleResponseMsg);
+        when(JSONUtil.getJSON(Mockito.any(ServiceAccountTTL.class))).thenReturn(svc_account_payload);
+        when(reqProcessor.process("/ad/serviceaccount/offboard",svc_account_payload,token)).thenReturn(deleteRoleResponse);
+
+        // delete meatadata
+        when(reqProcessor.process(eq("/delete"),any(),any())).thenReturn(responseNoContent);
+        // System under test
+        String expectedResponse = "{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+        ResponseEntity<String> responseEntity = serviceAccountsService.offboardDecommissionedServiceAccount(token, onboardedServiceAccount, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void testOffboardDecommissionedSvcAccSuccessWithAWSEc2Role() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        OnboardedServiceAccount onboardedServiceAccount = generateOnboardedServiceAccount("testacc02","testacc01");
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn("123123123123");
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName("testacc021");
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
+        String [] policies = {"o_svcacct_testacc01"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"o_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user1\"}",token)).thenReturn(userResponse);
+        Response userResponse2 = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user2\"}",token)).thenReturn(userResponse2);
+        Response groupResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResponse);
+
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("o_svcacct_testacc02");
+            List<String> groupResList = new ArrayList<>();
+            resList.add("default");
+            resList.add("r_svcacct_testacc02");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(groupResList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+
+        // Delete policies...
+        ResponseEntity<String> createPolicyResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Access is deleted\"]}");
+        when(accessService.deletePolicyInfo(Mockito.anyString(), Mockito.any())).thenReturn(createPolicyResponse);
+
+        // delete user/group/role associations
+        String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + "/testacc02";
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"groups\": {\n" +
+                "    \"group1\": \"read\"\n" +
+                "  },\n" +
+                "  \"aws-roles\": {\n" +
+                "    \"role1\": \"read\"\n" +
+                "  },\n" +
+                "  \"app-roles\": {\n" +
+                "    \"role2\": \"read\"\n" +
+                "  },\n" +
+                "  \"managedBy\": \"user2\",\n" +
+                "  \"name\": \"testacc02\",\n" +
+                "  \"users\": {\n" +
+                "    \"user1\": \"read\"\n" +
+                "  }\n" +
+                "}}");
+        when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
+        Response response_no_content = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\":" +
+                " [ \"w_svcacct_testsvcname\" ], \"auth_type\":\"ec2\"}";
+        Response awsRoleResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+        when(reqProcessor.process("/auth/aws/roles","{\"role\":\"role1\"}",token)).thenReturn(awsRoleResponse);
+
+        Response configureAWSRoleResponse = getMockResponse(HttpStatus.OK, true, "");
+        when(awsAuthService.configureAWSRole(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(configureAWSRoleResponse);
+
+        Response appRoleResponse = getMockResponse(HttpStatus.OK, true, "{\"data\": {\"policies\":\"r_svcacct_testacc02\"}}");
+        when(reqProcessor.process("/auth/approle/role/read", "{\"role_name\":\"role2\"}", token)).thenReturn(appRoleResponse);
+        when(appRoleService.configureApprole(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response_no_content);
+        //Delete Account Role...
+        ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+        serviceAccountTTL.setRole_name(onboardedServiceAccount.getName());
+        serviceAccountTTL.setService_account_name(onboardedServiceAccount.getName() + "@aaa.bbb.ccc.com") ;
+        String svc_account_payload = getJSON(serviceAccountTTL);
+        String deleteRoleResponseMsg = "{\"messages\":[\"Successfully deleted service account role.\"]}";
+        Response deleteRoleResponse = getMockResponse(HttpStatus.OK, true, deleteRoleResponseMsg);
+        when(JSONUtil.getJSON(Mockito.any(ServiceAccountTTL.class))).thenReturn(svc_account_payload);
+        when(reqProcessor.process("/ad/serviceaccount/offboard",svc_account_payload,token)).thenReturn(deleteRoleResponse);
+
+        // delete meatadata
+        when(reqProcessor.process(eq("/delete"),any(),any())).thenReturn(responseNoContent);
+        // System under test
+        String expectedResponse = "{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+        ResponseEntity<String> responseEntity = serviceAccountsService.offboardDecommissionedServiceAccount(token, onboardedServiceAccount, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_offboardDecommissionedServiceAccount_failure() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        OnboardedServiceAccount onboardedServiceAccount = generateOnboardedServiceAccount("testacc02","testacc01");
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn("123123123123");
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName("testacc021");
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
+        String [] policies = {"o_svcacct_testacc01"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"o_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user1\"}",token)).thenReturn(userResponse);
+        Response userResponse2 = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user2\"}",token)).thenReturn(userResponse2);
+        Response groupResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResponse);
+
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("o_svcacct_testacc02");
+            List<String> groupResList = new ArrayList<>();
+            resList.add("default");
+            resList.add("r_svcacct_testacc02");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(groupResList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+
+
+        // Delete policies...
+        ResponseEntity<String> createPolicyResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Access is deleted\"]}");
+        when(accessService.deletePolicyInfo(Mockito.anyString(), Mockito.any())).thenReturn(createPolicyResponse);
+
+        // delete user/group/role associations
+        String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + "/testacc02";
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"groups\": {\n" +
+                "    \"group1\": \"read\"\n" +
+                "  },\n" +
+                "  \"managedBy\": \"user2\",\n" +
+                "  \"name\": \"testacc02\",\n" +
+                "  \"users\": {\n" +
+                "    \"user1\": \"read\"\n" +
+                "  }\n" +
+                "}}");
+        when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
+
+
+        //Delete Account Role...
+        ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+        serviceAccountTTL.setRole_name(onboardedServiceAccount.getName());
+        serviceAccountTTL.setService_account_name(onboardedServiceAccount.getName() + "@aaa.bbb.ccc.com") ;
+        String svc_account_payload = getJSON(serviceAccountTTL);
+        Response deleteRoleResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+        when(JSONUtil.getJSON(Mockito.any(ServiceAccountTTL.class))).thenReturn(svc_account_payload);
+        when(reqProcessor.process("/ad/serviceaccount/offboard",svc_account_payload,token)).thenReturn(deleteRoleResponse);
+
+        // System under test
+        String expectedResponse = "{\"errors\":[\"Failed to offboard AD service account from TVault for password rotation.\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.MULTI_STATUS).body(expectedResponse);
+        ResponseEntity<String> responseEntity = serviceAccountsService.offboardDecommissionedServiceAccount(token, onboardedServiceAccount, userDetails);
+        assertEquals(HttpStatus.MULTI_STATUS, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_offboardDecommissionedServiceAccount_failure_metadata() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        OnboardedServiceAccount onboardedServiceAccount = generateOnboardedServiceAccount("testacc02","testacc01");
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn("123123123123");
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName("testacc021");
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
+        String [] policies = {"o_svcacct_testacc01"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"o_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user1\"}",token)).thenReturn(userResponse);
+        Response userResponse2 = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user2\"}",token)).thenReturn(userResponse2);
+        Response groupResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResponse);
+
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("o_svcacct_testacc02");
+            List<String> groupResList = new ArrayList<>();
+            resList.add("default");
+            resList.add("r_svcacct_testacc02");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(groupResList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+
+
+        // Delete policies...
+        ResponseEntity<String> createPolicyResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Access is deleted\"]}");
+        when(accessService.deletePolicyInfo(Mockito.anyString(), Mockito.any())).thenReturn(createPolicyResponse);
+
+        // delete user/group/role associations
+        String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + "/testacc02";
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"groups\": {\n" +
+                "    \"group1\": \"read\"\n" +
+                "  },\n" +
+                "  \"managedBy\": \"user2\",\n" +
+                "  \"name\": \"testacc02\",\n" +
+                "  \"users\": {\n" +
+                "    \"user1\": \"read\"\n" +
+                "  }\n" +
+                "}}");
+        when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
+
+
+        //Delete Account Role...
+        ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+        serviceAccountTTL.setRole_name(onboardedServiceAccount.getName());
+        serviceAccountTTL.setService_account_name(onboardedServiceAccount.getName() + "@aaa.bbb.ccc.com") ;
+        String svc_account_payload = getJSON(serviceAccountTTL);
+        String deleteRoleResponseMsg = "{\"messages\":[\"Successfully deleted service account role.\"]}";
+        Response deleteRoleResponse = getMockResponse(HttpStatus.OK, true, deleteRoleResponseMsg);
+        when(JSONUtil.getJSON(Mockito.any(ServiceAccountTTL.class))).thenReturn(svc_account_payload);
+        when(reqProcessor.process("/ad/serviceaccount/offboard",svc_account_payload,token)).thenReturn(deleteRoleResponse);
+
+        // delete meatadata
+        Response deleteMetaResponse = getMockResponse(HttpStatus.BAD_REQUEST, false, "");
+        when(reqProcessor.process(eq("/delete"),any(),any())).thenReturn(deleteMetaResponse);
+        // System under test
+        String expectedResponse = "{\"errors\":[\"Failed to offboard AD service account from TVault for password rotation.\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.MULTI_STATUS).body(expectedResponse);
+        ResponseEntity<String> responseEntity = serviceAccountsService.offboardDecommissionedServiceAccount(token, onboardedServiceAccount, userDetails);
+        assertEquals(HttpStatus.MULTI_STATUS, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+
+    @Test
+    public void test_offboardDecommissionedServiceAccount_failed_to_deletePolicies() {
+        UserDetails userDetails = getMockUser(true);
+        String token = userDetails.getClientToken();
+        OnboardedServiceAccount onboardedServiceAccount = generateOnboardedServiceAccount("testacc02","testacc01");
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn("123123123123");
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName("testacc021");
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
+        String [] policies = {"o_svcacct_testacc01"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"o_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user1\"}",token)).thenReturn(userResponse);
+        Response userResponse2 = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user2\"}",token)).thenReturn(userResponse2);
+        Response groupResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResponse);
+
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("o_svcacct_testacc02");
+            List<String> groupResList = new ArrayList<>();
+            resList.add("default");
+            resList.add("r_svcacct_testacc02");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(groupResList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+
+        // Delete policies...
+        ResponseEntity<String> createPolicyResponse = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Deletion of Policy information failed\"]}");
+        when(accessService.deletePolicyInfo(Mockito.anyString(), Mockito.any())).thenReturn(createPolicyResponse);
+
+        // delete user/group/role associations
+        String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + "/testacc02";
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"groups\": {\n" +
+                "    \"group1\": \"read\"\n" +
+                "  },\n" +
+                "  \"managedBy\": \"user2\",\n" +
+                "  \"name\": \"testacc02\",\n" +
+                "  \"users\": {\n" +
+                "    \"user1\": \"read\"\n" +
+                "  }\n" +
+                "}}");
+        when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
+
+
+        //Delete Account Role...
+        ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+        serviceAccountTTL.setRole_name(onboardedServiceAccount.getName());
+        serviceAccountTTL.setService_account_name(onboardedServiceAccount.getName() + "@aaa.bbb.ccc.com") ;
+        String svc_account_payload = getJSON(serviceAccountTTL);
+        String deleteRoleResponseMsg = "{\"messages\":[\"Successfully deleted service account role.\"]}";
+        Response deleteRoleResponse = getMockResponse(HttpStatus.OK, true, deleteRoleResponseMsg);
+        when(JSONUtil.getJSON(Mockito.any(ServiceAccountTTL.class))).thenReturn(svc_account_payload);
+        when(reqProcessor.process("/ad/serviceaccount/offboard",svc_account_payload,token)).thenReturn(deleteRoleResponse);
+
+        // delete meatadata
+        when(reqProcessor.process(eq("/delete"),any(),any())).thenReturn(responseNoContent);
+        // System under test
+        String expectedResponse = "{\"messages\":[\"Successfully completed offboarding of AD service account from TVault for password rotation.\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(expectedResponse);
+        ResponseEntity<String> responseEntity = serviceAccountsService.offboardDecommissionedServiceAccount(token, onboardedServiceAccount, userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_offboardDecommissionedServiceAccount_403() {
+        UserDetails userDetails = getMockUser(false);
+        String token = userDetails.getClientToken();
+        OnboardedServiceAccount onboardedServiceAccount = generateOnboardedServiceAccount("testacc02","testacc01");
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn("123123123123");
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName("testacc021");
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
+        String [] policies = {"o_svcacct_testacc01"};
+        when(policyUtils.getCurrentPolicies(token, userDetails.getUsername(), userDetails)).thenReturn(policies);
+        Response userResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"o_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"admin\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user1\"}",token)).thenReturn(userResponse);
+        Response userResponse2 = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"bound_cidrs\":[],\"max_ttl\":0,\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0,\"groups\":\"\"}}");
+        when(reqProcessor.process("/auth/ldap/users","{\"username\":\"user2\"}",token)).thenReturn(userResponse2);
+        Response groupResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"policies\":[\"default\", \"r_svcacct_testacc02\"],\"ttl\":0}}");
+        when(reqProcessor.process("/auth/ldap/groups","{\"groupname\":\"group1\"}",token)).thenReturn(groupResponse);
+
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "{\"policies\":null}");
+        try {
+            List<String> resList = new ArrayList<>();
+            resList.add("default");
+            resList.add("o_svcacct_testacc02");
+            List<String> groupResList = new ArrayList<>();
+            resList.add("default");
+            resList.add("r_svcacct_testacc02");
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(resList);
+            when(ControllerUtil.getPoliciesAsListFromJson(any(), any())).thenReturn(groupResList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        when(ControllerUtil.configureLDAPUser(eq("testacc01"),any(),any(),eq(token))).thenReturn(responseNoContent);
+        when(ControllerUtil.configureLDAPGroup(any(),any(),any())).thenReturn(responseNoContent);
+        when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
+
+
+        // Delete policies...
+        ResponseEntity<String> createPolicyResponse = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"Access is deleted\"]}");
+        when(accessService.deletePolicyInfo(Mockito.anyString(), Mockito.any())).thenReturn(createPolicyResponse);
+
+        // delete user/group/role associations
+        String _path = TVaultConstants.SVC_ACC_ROLES_METADATA_MOUNT_PATH + "/testacc02";
+        Response metaResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\n" +
+                "  \"groups\": {\n" +
+                "    \"group1\": \"read\"\n" +
+                "  },\n" +
+                "  \"managedBy\": \"user21\",\n" +
+                "  \"name\": \"testacc02\",\n" +
+                "  \"users\": {\n" +
+                "    \"user1\": \"read\"\n" +
+                "  }\n" +
+                "}}");
+        when(reqProcessor.process("/sdb","{\"path\":\""+_path+"\"}",token)).thenReturn(metaResponse);
+
+
+        //Delete Account Role...
+        ServiceAccountTTL serviceAccountTTL = new ServiceAccountTTL();
+        serviceAccountTTL.setRole_name(onboardedServiceAccount.getName());
+        serviceAccountTTL.setService_account_name(onboardedServiceAccount.getName() + "@aaa.bbb.ccc.com") ;
+        String svc_account_payload = getJSON(serviceAccountTTL);
+        Response deleteRoleResponse = getMockResponse(HttpStatus.BAD_REQUEST, true, "");
+        when(JSONUtil.getJSON(Mockito.any(ServiceAccountTTL.class))).thenReturn(svc_account_payload);
+        when(reqProcessor.process("/ad/serviceaccount/offboard",svc_account_payload,token)).thenReturn(deleteRoleResponse);
+
+        // System under test
+        String expectedResponse = "{\"errors\":[\"Failed to offboard AD service account from TVault. Access denied.\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.FORBIDDEN).body(expectedResponse);
+        ResponseEntity<String> responseEntity = serviceAccountsService.offboardDecommissionedServiceAccount(token, onboardedServiceAccount, userDetails);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_offboardDecommissionedServiceAccount_failure_exists_in_AD() {
+        UserDetails userDetails = getMockUser(false);
+        String token = userDetails.getClientToken();
+        OnboardedServiceAccount onboardedServiceAccount = generateOnboardedServiceAccount("testacc02","testacc01");
+
+        when(tokenUtils.getSelfServiceToken()).thenReturn("123123123123");
+        List<ADServiceAccount> list = new ArrayList<>();
+        ADServiceAccount adServiceAccount = generateADServiceAccountWithName("testacc02");
+        list.add(adServiceAccount);
+        ReflectionTestUtils.setField(serviceAccountsService, "ldapTemplate", ldapTemplate);
+        when(ldapTemplate.search(Mockito.anyString(), Mockito.anyString(), Mockito.any(AttributesMapper.class))).thenReturn(list);
+
+        // System under test
+        String expectedResponse = "{\"errors\":[\"Unable to offboard service account. Service account exists in AD.\"]}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(expectedResponse);
+        ResponseEntity<String> responseEntity = serviceAccountsService.offboardDecommissionedServiceAccount(token, onboardedServiceAccount, userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
     }
 }

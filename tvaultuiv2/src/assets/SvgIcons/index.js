@@ -128,6 +128,26 @@ export const IconEdit = (props) => (
   </SvgIcon>
 );
 
+export const IconRelease = (props) => (
+  <SvgIcon {...props}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      fill="none"
+      viewBox="0 0 20 20"
+    >
+      <path
+        stroke="#D0D0D0"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M7.5 17.5H4.167c-.442 0-.866-.176-1.179-.488-.312-.313-.488-.737-.488-1.179V4.167c0-.442.176-.866.488-1.179.313-.312.737-.488 1.179-.488H7.5M13.334 14.167L17.5 10l-4.166-4.167M17.5 10h-10"
+      />
+    </svg>
+  </SvgIcon>
+);
+
 export const IconFolderActive = (props) => (
   <SvgIcon {...props}>
     {' '}
@@ -326,21 +346,6 @@ export const BackArrow = () => (
   >
     <path
       fill="#fff"
-      d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-    />
-  </svg>
-);
-
-export const ColorBackArrow = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    fill="#e20074"
-    viewBox="0 0 24 24"
-  >
-    <path
-      fill="#e20074"
       d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
     />
   </svg>

@@ -28,6 +28,8 @@ const ListItemDetail = (props) => {
   useEffect(() => {
     if (listItemDetails && Object.keys(listItemDetails).length > 0) {
       setData({ ...listItemDetails });
+    } else {
+      setData({});
     }
   }, [listItemDetails]);
 
@@ -40,7 +42,7 @@ const ListItemDetail = (props) => {
     <ComponentError>
       <Section>
         <ListDetailHeader
-          title={data?.name || 'No Title'}
+          title={data?.name || '...'}
           description={description}
           bgImage={ListDetailHeaderBg}
           goBackToList={goBackToList}

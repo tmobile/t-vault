@@ -7,45 +7,48 @@ import ComponentError from '../../../../../../../errorBoundaries/ComponentError/
 import ConfirmationModal from '../../../../../../../components/ConfirmationModal';
 import ButtonComponent from '../../../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../../../breakpoints';
+import Strings from '../../../../../../../resources';
 
 const DeletionConfirmationModal = (props) => {
   const {
+    certificateData,
     openDeleteConfirmation,
     handleDeleteConfirmationModalClose,
     onCertificateDeleteConfirm,
-    deleteResponse,
-    deleteModalDetail,
   } = props;
 
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  console.log(certificateData.certificateStatus);
 
+  const title = certificateData.certificateStatus
+    ? 'Confirmation'
+    : 'Certificate Status';
+  const description = certificateData.certificateStatus
+    ? 'Are you sure you want to delete this certificate?'
+    : Strings.Resources.noTransferOwnerAvailable;
   return (
     <ComponentError>
       <ConfirmationModal
         size={isMobileScreen ? 'large' : ''}
         open={openDeleteConfirmation}
         handleClose={handleDeleteConfirmationModalClose}
-        title={deleteModalDetail.title}
-        description={deleteModalDetail.description}
+        title={title}
+        description={description}
         cancelButton={
-          !deleteResponse && (
-            <ButtonComponent
-              label="Cancel"
-              color="primary"
-              onClick={() => handleDeleteConfirmationModalClose()}
-            />
-          )
+          <ButtonComponent
+            label="Cancel"
+            color={certificateData.certificateStatus ? 'primary' : 'secondary'}
+            onClick={() => handleDeleteConfirmationModalClose()}
+          />
         }
         confirmButton={
-          <ButtonComponent
-            label={deleteResponse ? 'Close' : 'Confirm'}
-            color="secondary"
-            onClick={() =>
-              deleteResponse
-                ? handleDeleteConfirmationModalClose()
-                : onCertificateDeleteConfirm()
-            }
-          />
+          certificateData.certificateStatus && (
+            <ButtonComponent
+              label="Confirm"
+              color="secondary"
+              onClick={() => onCertificateDeleteConfirm()}
+            />
+          )
         }
       />
     </ComponentError>
@@ -56,8 +59,7 @@ DeletionConfirmationModal.propTypes = {
   openDeleteConfirmation: PropTypes.bool.isRequired,
   handleDeleteConfirmationModalClose: PropTypes.func.isRequired,
   onCertificateDeleteConfirm: PropTypes.func.isRequired,
-  deleteResponse: PropTypes.bool.isRequired,
-  deleteModalDetail: PropTypes.objectOf(PropTypes.any).isRequired,
+  certificateData: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 export default DeletionConfirmationModal;

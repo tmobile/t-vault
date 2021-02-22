@@ -1,11 +1,12 @@
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-curly-newline */
+/* eslint-disable no-nested-ternary */
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
 import { Backdrop } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
-import { css } from 'styled-components';
+import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
@@ -15,7 +16,7 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import mediaBreakpoints from '../../../../../breakpoints';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import ViewIamSvcAccountDetails from './components/ViewIamSvcAccount';
-import apiService from '../../../iam-service-accounts/apiService';
+import apiService from '../../apiService';
 
 const { small } = mediaBreakpoints;
 
@@ -24,8 +25,22 @@ const loaderStyle = css`
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  color: red;
   z-index: 1;
+`;
+
+const LoaderWrap = styled.div`
+  padding: 10rem 20rem;
+  background-color: #2a2e3e;
+  outline: none;
+`;
+
+const StyledModal = styled(Modal)`
+  @-moz-document url-prefix() {
+    .MuiBackdrop-root {
+      position: absolute;
+      height: 105rem;
+    }
+  }
 `;
 
 const useStyles = makeStyles((theme) => ({
@@ -53,11 +68,16 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const ViewIamServiceAccount = (props) => {
-  const { refresh, iamServiceAccountDetails, setViewDetails } = props;
+  const {
+    refresh,
+    iamServiceAccountDetails,
+    setViewDetails,
+    viewAccountData,
+  } = props;
   const classes = useStyles();
   const [open] = useState(true);
   const [status, setStatus] = useState(null);
-  // const [passwordDetails, setPasswordDetails] = useState(null);
+  const [actionPerformed, setActionPerformed] = useState(false);
   const [openModal, setOpenModal] = useState({
     status: '',
     message: '',
@@ -69,6 +89,13 @@ const ViewIamServiceAccount = (props) => {
   // toast close handler
   const onToastClose = () => {
     setStatus({});
+  };
+
+  const handleCloseModal = async (res) => {
+    setViewDetails(false);
+    if (res) {
+      await refresh();
+    }
   };
 
   /**
@@ -88,7 +115,7 @@ const ViewIamServiceAccount = (props) => {
     setOpenModal({
       status: 'open',
       message: 'Confirmation!',
-      description: 'Are you sure, You want to rotate the passoword?',
+      description: 'Are you sure, You want to rotate the password?',
     });
   };
 
@@ -102,7 +129,7 @@ const ViewIamServiceAccount = (props) => {
       status: 'open',
       message: 'IAM Service Account Activation!',
       description:
-        "During the activation. the password of the LAM service account will be rotated to ensure AWS and T-Vault are in sync If you want to continue with activation now please click the 'ACTIVATE IAM SERVICE ACCOUNT’ button below and make sure to update any services depending on the service account with its new password",
+        "During the activation. the password of the IAM service account will be rotated to ensure AWS and T-Vault are in sync. If you want to continue with activation now please click the 'ACTIVATE’ button below and make sure to update any services depending on the service account with its new password",
     });
   };
 
@@ -112,19 +139,37 @@ const ViewIamServiceAccount = (props) => {
    */
   const activateServiceAccount = () => {
     setStatus({ status: 'loading', message: '' });
+    setOpenModal({});
     apiService
       .activateIamServiceAccount(
         iamServiceAccountDetails?.userName,
         iamServiceAccountDetails?.awsAccountId
       )
-      .then((res) => {
-        setStatus({ status: 'success', message: res?.data?.messages[0] });
+      .then(async (res) => {
+        setActionPerformed(true);
+        setOpenModal({ status: '' });
+        if (res?.data?.messages && res?.data?.messages[0]) {
+          setStatus({ status: 'success', message: res.data.messages[0] });
+        } else {
+          setStatus({ status: 'success', message: 'Activation Successful!' });
+        }
+        setTimeout(() => {
+          handleCloseModal(true);
+        }, 1000);
       })
       .catch((err) => {
-        setStatus({
-          status: 'failed',
-          message: err?.response?.data?.errors[0],
-        });
+        setActionPerformed(false);
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+          setStatus({
+            status: 'failed',
+            message: err?.response?.data?.errors[0],
+          });
+        } else {
+          setStatus({
+            status: 'failed',
+            message: 'Something went wrong!',
+          });
+        }
       });
   };
 
@@ -143,17 +188,26 @@ const ViewIamServiceAccount = (props) => {
     setOpenModal({});
     apiService
       .rotateIamServiceAccountPassword(payload)
-      .then(async (res) => {
-        if (res?.data) {
+      .then((res) => {
+        setActionPerformed(true);
+        setOpenModal({ status: '' });
+        if (res?.data?.messages && res?.data?.messages[0]) {
           setStatus({ status: 'success', message: res.data.messages[0] });
+        } else {
+          setStatus({ status: 'success', message: 'Rotation Successful!' });
         }
-        await refresh();
       })
       .catch((err) => {
-        if (err?.response?.data?.errors[0]) {
+        setActionPerformed(false);
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setStatus({
             status: 'failed',
             message: err?.response?.data?.errors[0],
+          });
+        } else {
+          setStatus({
+            status: 'failed',
+            message: 'Something went wrong!',
           });
         }
       });
@@ -165,14 +219,14 @@ const ViewIamServiceAccount = (props) => {
         <ConfirmationModal
           open={openModal?.status === 'open'}
           handleClose={() => handleCloseConfirmationModal()}
-          title={openModal.message}
-          description={openModal?.description}
+          title={openModal.message || ''}
+          description={openModal?.description || ''}
           cancelButton={
             <ButtonComponent
               label="Cancel"
               color="primary"
               onClick={() => handleCloseConfirmationModal()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
           confirmButton={
@@ -186,37 +240,52 @@ const ViewIamServiceAccount = (props) => {
                   ? () => onRotateSecret()
                   : () => activateServiceAccount()
               }
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
         />
         <div>
-          <Modal
-            aria-labelledby="transition-modal-title"
-            aria-describedby="transition-modal-description"
-            className={classes.modal}
-            onClose={() => setViewDetails(false)}
-            open={open}
-            closeAfterTransition
-            BackdropComponent={Backdrop}
-            BackdropProps={{
-              timeout: 500,
-            }}
-          >
-            <Fade in={open}>
-              {!iamServiceAccountDetails ? (
-                <LoaderSpinner customStyle={loaderStyle} />
-              ) : (
-                <ViewIamSvcAccountDetails
-                  iamSvcAccountData={iamServiceAccountDetails}
-                  isMobileScreen={isMobileScreen}
-                  isRotateSecret={rotateSecret}
-                  isActivateIamSvcAcc={isActivateIamSvcAcc}
-                  setViewDetails={setViewDetails}
-                />
-              )}
-            </Fade>
-          </Modal>
+          {!(openModal?.status === 'open') ? (
+            <StyledModal
+              aria-labelledby="transition-modal-title"
+              aria-describedby="transition-modal-description"
+              className={classes.modal}
+              onClose={() => handleCloseModal(actionPerformed)}
+              open={open}
+              closeAfterTransition
+              BackdropComponent={Backdrop}
+              BackdropProps={{
+                timeout: 500,
+              }}
+            >
+              <Fade in={open}>
+                {!iamServiceAccountDetails || status?.status === 'loading' ? (
+                  <LoaderWrap>
+                    <LoaderSpinner customStyle={loaderStyle} />
+                  </LoaderWrap>
+                ) : (
+                  <ViewIamSvcAccountDetails
+                    iamSvcAccountData={iamServiceAccountDetails}
+                    isMobileScreen={isMobileScreen}
+                    isRotateSecret={rotateSecret}
+                    isActivateIamSvcAcc={isActivateIamSvcAcc}
+                    handleCloseModal={() => handleCloseModal(actionPerformed)}
+                    viewAccountData={viewAccountData}
+                  />
+                )}
+              </Fade>
+            </StyledModal>
+          ) : status?.status === 'loading' ? (
+            <ConfirmationModal
+              open
+              handleClose={() => {}}
+              title=""
+              description=""
+              confirmButton={<LoaderSpinner customStyle={loaderStyle} />}
+            />
+          ) : (
+            <></>
+          )}
         </div>
         {status?.status === 'failed' && (
           <SnackbarComponent
@@ -231,7 +300,7 @@ const ViewIamServiceAccount = (props) => {
           <SnackbarComponent
             open
             onClose={() => onToastClose()}
-            message={status?.message || 'Request Successfull!'}
+            message={status?.message || 'Request Successful!'}
           />
         )}
       </>
@@ -242,7 +311,12 @@ const ViewIamServiceAccount = (props) => {
 ViewIamServiceAccount.propTypes = {
   refresh: PropTypes.func.isRequired,
   setViewDetails: PropTypes.func.isRequired,
-  iamServiceAccountDetails: PropTypes.objectOf(PropTypes.any).isRequired,
+  iamServiceAccountDetails: PropTypes.objectOf(PropTypes.any),
+  viewAccountData: PropTypes.objectOf(PropTypes.any).isRequired,
+};
+
+ViewIamServiceAccount.defaultProps = {
+  iamServiceAccountDetails: {},
 };
 
 export default ViewIamServiceAccount;

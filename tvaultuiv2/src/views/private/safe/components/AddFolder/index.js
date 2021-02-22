@@ -9,12 +9,15 @@ import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import mediaBreakpoints from '../../../../../breakpoints';
 import { RequiredCircle, SubHeading } from '../../../../../styles/GlobalStyles';
-import { ColorBackArrow } from '../../../../../assets/SvgIcons';
+import { BackArrow } from '../../../../../assets/SvgIcons';
 
 const AddFolderNameWrapper = styled.div`
   padding: 5.5rem 6rem 6rem 6rem;
-  background-color: ${(props) => props.theme.palette.background.modal};
-  width: ${(props) => props.width || '100%'};
+  background-color: ${(props) =>
+    props.theme?.palette?.background?.modal
+      ? props.theme.palette.background.modal
+      : '#2a2e3e'};
+  width: 70rem;
   ${mediaBreakpoints.semiLarge} {
     padding: 4.5rem 5rem 5rem 5rem;
   }
@@ -66,13 +69,7 @@ const extraCss = css`
 `;
 
 const AddFolder = (props) => {
-  const {
-    width = '100%',
-    handleCancelClick,
-    handleSaveClick,
-    parentId,
-    childrens,
-  } = props;
+  const { handleCancelClick, handleSaveClick, parentId, childrens } = props;
   const [inputValue, setInputValue] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [error, setError] = useState(null);
@@ -86,11 +83,15 @@ const AddFolder = (props) => {
     });
     if (isFolderExist) {
       setErrorMessage(
-        "Folder already exist's, You can't store secrets in folders having same name "
+        "Folder already exists, You can't store secrets in folders having same name "
       );
       setError(true);
     }
-    setError(value.length < 3 || !value.match(/^[a-zA-Z0-9_]*$/g));
+    if (value.length < 3 || !value.match(/^[a-zA-Z0-9_]*$/g)) {
+      setError(true);
+    } else {
+      setError(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -99,11 +100,11 @@ const AddFolder = (props) => {
   };
   return (
     <ComponentError>
-      <AddFolderNameWrapper width={width}>
+      <AddFolderNameWrapper>
         <SubHeading extraCss={extraCss}>
           {isMobileScreen && (
             <BackButton onClick={() => handleCancelClick(false)}>
-              <ColorBackArrow />
+              <BackArrow />
             </BackButton>
           )}
           Add Folder
@@ -118,9 +119,10 @@ const AddFolder = (props) => {
             onChange={(e) => handleChange(e)}
             value={inputValue || ''}
             fullWidth
+            name="folderName"
             error={error}
             helperText={
-              errorMessage && errorMessage.includes("Folder already exist's")
+              errorMessage && errorMessage.includes('Folder already exist')
                 ? errorMessage
                 : 'Please enter a minimum of 3 characters lowercase alphabets, number and underscore only.'
             }
@@ -140,7 +142,7 @@ const AddFolder = (props) => {
               label="Save"
               color="secondary"
               buttonType="containedSecondary"
-              disabled={!inputValue || errorMessage}
+              disabled={!inputValue || error}
               onClick={() =>
                 handleSaveClick({
                   value: inputValue.toLowerCase(),
@@ -157,14 +159,12 @@ const AddFolder = (props) => {
   );
 };
 AddFolder.propTypes = {
-  width: PropTypes.string,
   handleCancelClick: PropTypes.func,
   handleSaveClick: PropTypes.func,
   parentId: PropTypes.string,
   childrens: PropTypes.arrayOf(PropTypes.any),
 };
 AddFolder.defaultProps = {
-  width: '100%',
   handleSaveClick: () => {},
   handleCancelClick: () => {},
   parentId: '',

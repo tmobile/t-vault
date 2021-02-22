@@ -1,18 +1,17 @@
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import IconFolderActive from '../../../../../../assets/icon_folder_active.png';
 import IconFolderInactive from '../../../../../../assets/icon_folder.png';
 
 import ComponentError from '../../../../../../errorBoundaries/ComponentError/component-error';
 import {
-  TitleTwo,
   BackgroundColor,
 } from '../../../../../../styles/GlobalStyles';
 import {
@@ -22,9 +21,10 @@ import {
   IconAddSecret,
 } from '../../../../../../assets/SvgIcons';
 import PopperElement from '../../Popper';
+import SecretItem from '../../SecretItem';
 
 const FolderContainer = styled.div`
-  padding-left: 2rem;
+  padding-left: 0rem;
 `;
 
 const StyledFolder = styled.div`
@@ -35,16 +35,13 @@ const StyledFolder = styled.div`
       props.active ? props.theme.gradients.list : 'none'};
     color: #fff;
   }
+  
   .folder--label {
     outline: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: ${(props) => props.padding || '0'};
-
-    span {
-      margin-left: 0.5rem;
-    }
   }
 `;
 
@@ -76,16 +73,7 @@ const LabelWrap = styled.div`
   align-items: center;
   padding-left: 2rem;
   width: 100%;
-`;
-
-const titleStyles = css`
-  margin-left: 1.6rem;
-`;
-
-const Icon = styled('img')`
-  width: 4rem;
-  height: 4rem;
-  margin-left: 0.8rem;
+  cursor: pointer;
 `;
 
 const PopperItem = styled.div`
@@ -106,27 +94,52 @@ const Folder = (props) => {
   const {
     folderInfo,
     children,
+    value,
+    status,
+    onFolderClosed,
+    versionInfo,
+    setOnFolderClosed,
     setInputType,
     setIsAddInput,
     getChildNodes,
     id,
     onDeleteTreeItem,
     setCurrentNode,
+    userHavePermission,
   } = props;
+
   const [isOpen, setIsOpen] = useState(false);
   const [activeSecrets, setActiveSecrets] = useState([]);
+  const [prevStatus, setPrevStatus] = useState({});
 
   const handleToggle = (e) => {
     e.preventDefault();
     setIsOpen(!isOpen);
     setCurrentNode(id);
+    setOnFolderClosed(!isOpen);
     if (!isOpen) getChildNodes(id);
   };
 
+  useEffect(() => {
+    setPrevStatus(status);
+    if (prevStatus?.status === 'loading' && status.status === 'success') {
+      setIsOpen(false);
+    }
+  }, [status, setPrevStatus, setIsOpen, prevStatus]);
+
+  useEffect(() => {
+    if (onFolderClosed) {
+      setIsOpen(false);
+    }
+  }, [onFolderClosed]);
+
+  useEffect(() => setIsOpen(false), [value]);
+
   const handlePopperClick = (e, type) => {
+    getChildNodes(id, undefined, undefined, false);
     setInputType(type);
     setIsAddInput(e);
-    setIsOpen(e);
+    setIsOpen(false);
   };
 
   const handleActiveSecrets = (folder) => {
@@ -142,10 +155,8 @@ const Folder = (props) => {
   const deleteNode = (treeItem) => {
     onDeleteTreeItem(treeItem);
   };
-  // const editNode = (treeItem) => {
-  //   editTreeItem(treeItem);
-  // };
 
+  
   return (
     <ComponentError>
       <FolderContainer>
@@ -157,68 +168,67 @@ const Folder = (props) => {
         >
           <div role="button" className="folder--label" tabIndex={0}>
             <LabelWrap onClick={(e) => handleToggle(e)}>
-              {isOpen ? <ExpandMoreIcon /> : <ExpandLessIcon />}
-
-              {isOpen ? (
-                <Icon alt="folder--icon" src={IconFolderActive} />
-              ) : (
-                <Icon alt="folder--icon" src={IconFolderInactive} />
-              )}
-
-              <TitleTwo extraCss={titleStyles}>{labelValue}</TitleTwo>
+              {isOpen ? <ExpandMoreIcon /> : <ChevronRightIcon />}
+              <SecretItem
+                title={labelValue}
+                subTitle={`Last updated: ${versionInfo}`}
+                icon={isOpen ? (
+                          IconFolderActive
+                                ) : (
+                                       IconFolderInactive
+                                    )}
+              ></SecretItem>
             </LabelWrap>
 
-            <FolderIconWrap>
-              <PopperElement
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-              >
-                <PopperItem
-                  onClick={() =>
-                    handlePopperClick(true, {
-                      type: 'folder',
-                      currentNode: folderInfo.value,
-                    })
-                  }
+            {userHavePermission?.type === 'write' && (
+              <FolderIconWrap>
+                <PopperElement
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
                 >
-                  <IconAddFolder />
-                  <span>Create Folder</span>
-                </PopperItem>
-                <PopperItem
-                  onClick={() =>
-                    handlePopperClick(true, {
-                      type: 'secret',
-                      currentNode: folderInfo.value,
-                    })
-                  }
-                >
-                  <IconAddSecret />
-                  <span>Create Secret</span>
-                </PopperItem>
-                {/* <PopperItem onClick={() => editNode(folderInfo.id)}>
-                  <IconEdit />
-                  <span>Edit</span>
-                </PopperItem> */}
-                <PopperItem
-                  onClick={() =>
-                    deleteNode({
-                      id: folderInfo.id,
-                      type: folderInfo.type,
-                      parentId: folderInfo.parentId,
-                    })
-                  }
-                >
-                  <IconDeleteActive />
-                  <span> Delete</span>
-                </PopperItem>
-              </PopperElement>
-            </FolderIconWrap>
+                  <PopperItem
+                    onClick={() =>
+                      handlePopperClick(true, {
+                        type: 'folder',
+                        currentNode: folderInfo.value,
+                      })
+                    }
+                  >
+                    <IconAddFolder />
+                    <span>Create Folder</span>
+                  </PopperItem>
+                  <PopperItem
+                    onClick={() =>
+                      handlePopperClick(true, {
+                        type: 'secret',
+                        currentNode: folderInfo.value,
+                      })
+                    }
+                  >
+                    <IconAddSecret />
+                    <span>Create Secret</span>
+                  </PopperItem>
+                  <PopperItem
+                    onClick={() =>
+                      deleteNode({
+                        id: folderInfo.id,
+                        type: folderInfo.type,
+                        parentId: folderInfo.parentId,
+                      })
+                    }
+                  >
+                    <IconDeleteActive />
+                    <span> Delete</span>
+                  </PopperItem>
+                </PopperElement>
+              </FolderIconWrap>
+            )}
           </div>
         </StyledFolder>
         <Collapsible isOpen={isOpen}>{children}</Collapsible>
@@ -236,6 +246,12 @@ Folder.propTypes = {
   setCurrentNode: PropTypes.func,
   id: PropTypes.string,
   onDeleteTreeItem: PropTypes.func,
+  value: PropTypes.number.isRequired,
+  userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
+  onFolderClosed: PropTypes.bool.isRequired,
+  setOnFolderClosed: PropTypes.func.isRequired,
+  status: PropTypes.objectOf(PropTypes.any).isRequired,
+  versionInfo: PropTypes.string.isRequired,
 };
 Folder.defaultProps = {
   folderInfo: {},

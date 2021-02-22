@@ -18,6 +18,7 @@
 package com.tmobile.cso.vault.api.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,8 @@ import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.exception.LogMessage;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
+
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,10 +39,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tmobile.cso.vault.api.common.AzureServiceAccountConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.process.RequestProcessor;
@@ -59,6 +64,10 @@ public class AWSIAMAuthService {
 	private String vaultAuthMethod;
 
 	private static Logger logger = LogManager.getLogger(AWSIAMAuthService.class);
+	
+	private static final String POLICIESSTR = "policies";
+	private static final String ROLESTR = "{\"role\":\"";
+	private static final String ROLENONEXISTSTR = "{\"errors\":[\"IAM Role doesn't exist\"]}";
 
 	/**
 	 * Registers a role in the method.
@@ -67,8 +76,21 @@ public class AWSIAMAuthService {
 	 * @return
 	 */
 	public ResponseEntity<String> createIAMRole(AWSIAMRole awsiamRole, String token, UserDetails userDetails) throws TVaultValidationException{
+		if(!ArrayUtils.isEmpty(awsiamRole.getPolicies())) {
+			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.ACTION, "Checking whether policy is added as an input param for creating AWS IAM role").
+					put(LogMessage.MESSAGE, String.format("Trying to create AWS IAM Role [%s]", awsiamRole.getRole())).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					build()));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Policies are not permitted during role creation.\"]}");
+		}
+		logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "Create AWS IAM role")
+				.put(LogMessage.MESSAGE, String.format("Trying to create AWS IAM Role [%s]", awsiamRole.getRole()))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		if (!ControllerUtil.areAWSIAMRoleInputsValid(awsiamRole)) {
-			//return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
 			throw new TVaultValidationException("Invalid inputs for the given aws login type");
 		}
 		String jsonStr = JSONUtil.getJSON(awsiamRole);
@@ -76,10 +98,21 @@ public class AWSIAMAuthService {
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 			String metadataJson = ControllerUtil.populateAWSMetaJson(awsiamRole.getRole(), userDetails.getUsername());
 			if(ControllerUtil.createMetadata(metadataJson, token)) {
+				boolean awsiamRoleMetaDataCreationStatus = ControllerUtil.createMetadata(metadataJson, token);
+				String awsiamroleUsermetadataJson = ControllerUtil.populateUserMetaJson(awsiamRole.getRole(), userDetails.getUsername(),awsiamRole.getAuth_type());
+				boolean awsiamRoleUserMetaDataCreationStatus = ControllerUtil.createMetadata(awsiamroleUsermetadataJson, token);
+				if(awsiamRoleMetaDataCreationStatus && awsiamRoleUserMetaDataCreationStatus) {
+				logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						put(LogMessage.ACTION, "Creating AWS IAM role").
+						put(LogMessage.MESSAGE, String.format("AWS IAM Role [%s] created successfully by [%s].", awsiamRole.getRole(),userDetails.getUsername())).
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+						build()));
 				return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS IAM Role created successfully \"]}");
+				}
 			}
 			// revert role creation
-			Response deleteResponse = reqProcessor.process("/auth/aws/iam/roles/delete","{\"role\":\""+awsiamRole.getRole()+"\"}",token);
+			Response deleteResponse = reqProcessor.process("/auth/aws/iam/roles/delete",ROLESTR+awsiamRole.getRole()+"\"}",token);
 			if (deleteResponse.getHttpstatus().equals(HttpStatus.NO_CONTENT)) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"AWS IAM role creation failed.\"]}");
 			}
@@ -100,9 +133,21 @@ public class AWSIAMAuthService {
 	 */
 	public ResponseEntity<String> updateIAMRole(String token, AWSIAMRole awsiamRole) throws TVaultValidationException{
 		if (!ControllerUtil.areAWSIAMRoleInputsValid(awsiamRole)) {
-			//return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
 			throw new TVaultValidationException("Invalid inputs for the given aws login type");
 		}
+		AWSIAMMetadataDetails existingIamRole =readIAMRoleDetails(token, awsiamRole.getRole());
+		if (existingIamRole == null) {
+			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					  put(LogMessage.ACTION, "updateAWSIAMRole").
+				      put(LogMessage.MESSAGE, String.format("Unable to read Role information. Role [%s] doesn't exist", awsiamRole.getRole())).
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+				      build()));
+			return ResponseEntity.status(HttpStatus.OK).body(ROLENONEXISTSTR);
+
+		}
+		String[] existingPolicy=existingIamRole.getPolicies();
+		awsiamRole.setPolicies(existingPolicy);
 		String jsonStr = JSONUtil.getJSON(awsiamRole);
 		ObjectMapper objMapper = new ObjectMapper();
 		String currentPolicies = "";
@@ -111,11 +156,9 @@ public class AWSIAMAuthService {
 
 		try {
 			JsonNode root = objMapper.readTree(jsonStr);
-			roleName = root.get("role").asText();
-			if(root.get("policies") != null)
-				latestPolicies = root.get("policies").asText();
+			currentPolicies = root.get("policies").asText();
+			latestPolicies = currentPolicies;   
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Update IAM role").
@@ -124,30 +167,6 @@ public class AWSIAMAuthService {
 					build()));
 		}
 
-		Response awsResponse = reqProcessor.process("/auth/aws/iam/roles","{\"role\":\""+roleName+"\"}",token);
-		String responseJson="";	
-
-		if(HttpStatus.OK.equals(awsResponse.getHttpstatus())){
-			responseJson = awsResponse.getResponse();	
-			try {
-				Map<String,Object> responseMap; 
-				responseMap = objMapper.readValue(responseJson, new TypeReference<Map<String, Object>>(){});
-				@SuppressWarnings("unchecked")
-				List<String> policies  = (List<String>) responseMap.get("policies");
-				currentPolicies = policies.stream().collect(Collectors.joining(",")).toString();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
-						put(LogMessage.ACTION, "Update IAM role").
-						put(LogMessage.MESSAGE, "Failed to extract from IAM read response").
-						put(LogMessage.RESPONSE, awsResponse.getResponse()).
-						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
-						build()));
-			}
-		}else{
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Update failed . AWS Role does not exist \"]}");
-		}
 
 		Response response = reqProcessor.process("/auth/aws/roles/delete",jsonStr,token);
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
@@ -165,13 +184,72 @@ public class AWSIAMAuthService {
 		}
 	}
 	/**
+	 * 
+	 * @param token
+	 * @param role
+	 * @return
+	 * @throws TVaultValidationException
+	 */
+	private AWSIAMMetadataDetails readIAMRoleDetails(String token, String role) throws TVaultValidationException {
+		AWSIAMMetadataDetails awsiamMetadataDetails=null;
+		Response awsIamResponse = reqProcessor.process("/auth/aws/iam/roles",ROLESTR+role+"\"}",token);
+		String responseJson = awsIamResponse.getResponse();	
+		Map<String, Object> responseMap = null;
+		if(HttpStatus.OK.equals(awsIamResponse.getHttpstatus())) {
+			try {
+				responseMap = new ObjectMapper().readValue(responseJson, new TypeReference<Map<String, Object>>(){});
+			}catch (IOException e) {
+				logger.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+						  put(LogMessage.ACTION, "getIAMRole").
+					      put(LogMessage.MESSAGE, "Reading IAMRole failed").
+					      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					      build()));
+				return awsiamMetadataDetails;
+			}
+			if (responseMap != null) {
+				String authType=(String) responseMap.get("auth_type");
+				if(!authType.equalsIgnoreCase("iam")) {
+					throw new TVaultValidationException("Please enter an AWS IAM role");
+				}
+				String[] policies = null;
+				if (responseMap.get(POLICIESSTR) != null && ((ArrayList<String>)responseMap.get(POLICIESSTR)) != null) {
+					ArrayList<String> policiesList = ((ArrayList<String>)responseMap.get(POLICIESSTR));
+					String policyString = policiesList.stream().collect(Collectors.joining(",")).toString();
+					policies = policyString.split(",");
+				}
+				awsiamMetadataDetails = new AWSIAMMetadataDetails
+						((responseMap.get("auth_type").toString()),
+						(null),
+						(role),
+						(policies),
+						(null),
+						(null),
+						((Integer)responseMap.get("max_ttl")),
+						((Boolean)responseMap.get("disallow_reauthentication")).booleanValue(),
+						((Boolean)responseMap.get("allow_instance_migration")).booleanValue(),
+						((Boolean)responseMap.get("resolve_aws_unique_ids")).booleanValue()
+						);
+			}
+			return awsiamMetadataDetails;
+		}
+		logger.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "getIAMRole").
+			      put(LogMessage.MESSAGE, "Reading IAMRole failed").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
+		return awsiamMetadataDetails;
+	}
+
+	/**
 	 * Gets the registered role
 	 * @param token
 	 * @param role
 	 * @return
 	 */
 	public ResponseEntity<String> fetchIAMRole(String token, String role){
-		String jsoninput= "{\"role\":\""+role+"\"}";
+		String jsoninput= ROLESTR+role+"\"}";
 		Response response = reqProcessor.process("/auth/aws/iam/roles",jsoninput,token);
 		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());	
 	}
@@ -193,7 +271,7 @@ public class AWSIAMAuthService {
 	 */
 	public ResponseEntity<String> deleteIAMRole(String token, String role){
 
-		Response response = reqProcessor.process("/auth/aws/iam/roles/delete","{\"role\":\""+role+"\"}",token);
+		Response response = reqProcessor.process("/auth/aws/iam/roles/delete",ROLESTR+role+"\"}",token);
 		if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
 			return ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"IAM Role deleted \"]}");
 		}else{
@@ -209,19 +287,30 @@ public class AWSIAMAuthService {
 	 * @return
 	 */
 	public Response configureAWSIAMRole(String roleName,String policies,String token ){
+		logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "configureAWSIAMRole")
+				.put(LogMessage.MESSAGE, String.format("Trying to configure AWS IAM Role [%s]", roleName))
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 		ObjectMapper objMapper = new ObjectMapper();
-		Map<String,String>configureRoleMap = new HashMap<String,String>();
+		Map<String,String>configureRoleMap = new HashMap<>();
 		configureRoleMap.put("role", roleName);
-		configureRoleMap.put("policies", policies);
+		configureRoleMap.put(POLICIESSTR, policies);
 		String awsConfigJson ="";
 		try {
 			awsConfigJson = objMapper.writeValueAsString(configureRoleMap);
+			logger.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					put(LogMessage.ACTION, "configureAWSIAMRole").
+					put(LogMessage.MESSAGE, String.format("AWS IAM Role [%s] successfully associated.",roleName)).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+					build()));
 		} catch (JsonProcessingException e) {
 			logger.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
-					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
 					put(LogMessage.ACTION, "configureAWSIAMRole").
 					put(LogMessage.MESSAGE, String.format ("Unable to create awsConfigJson with message [%s] for roleName [%s] policies [%s] ", e.getMessage(), roleName, policies)).
-					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
 					build()));
 		}
 		return reqProcessor.process("/auth/aws/iam/roles/update",awsConfigJson,token);

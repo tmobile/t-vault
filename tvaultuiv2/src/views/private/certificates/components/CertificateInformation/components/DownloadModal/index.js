@@ -111,14 +111,6 @@ const NonPrivateCancel = styled.div`
 `;
 
 const useStyles = makeStyles((theme) => ({
-  select: {
-    '&.MuiFilledInput-root.Mui-focused': {
-      backgroundColor: '#fff',
-    },
-  },
-  dropdownStyle: {
-    backgroundColor: '#fff',
-  },
   modal: {
     display: 'flex',
     alignItems: 'center',
@@ -137,7 +129,7 @@ const useStyles = makeStyles((theme) => ({
 const DownloadModal = (props) => {
   const {
     onCloseDownloadModal,
-    isPrivateKey,
+    typeOfDownload,
     openDownloadModal,
     onPemDerFormatClicked,
     certificateMetaData,
@@ -149,13 +141,19 @@ const DownloadModal = (props) => {
   const [formatType, setFormatType] = useState('DER-P12');
   const [password, setPassword] = useState('');
   const isMobileScreen = useMediaQuery(small);
-  const [helperText] = useState('');
   const [issuerChain, setIssuerChain] = useState(true);
   const [selectItem] = useState([
     { name: 'DER-P12', value: 'pkcs12der' },
     { name: 'PER-PFX', value: 'pembundle' },
     { name: 'PEM-OPENSSL', value: 'pkcs12pem' },
   ]);
+
+  const onCloseModal = () => {
+    setIssuerChain(true);
+    setFormatType('DER-P12');
+    setPassword('');
+    onCloseDownloadModal();
+  };
 
   const onPriDownload = () => {
     let type = '';
@@ -175,6 +173,7 @@ const DownloadModal = (props) => {
       type = 'p12';
     }
     onPrivateDownloadClicked(payload, type);
+    onCloseModal();
   };
 
   return (
@@ -184,7 +183,7 @@ const DownloadModal = (props) => {
         aria-describedby="transition-modal-description"
         className={classes.modal}
         open={openDownloadModal}
-        onClose={() => onCloseDownloadModal()}
+        onClose={() => onCloseModal()}
         closeAfterTransition
         BackdropComponent={Backdrop}
         BackdropProps={{
@@ -194,7 +193,7 @@ const DownloadModal = (props) => {
         <Fade in={openDownloadModal}>
           <ModalWrapper>
             <Header>Download Certificate</Header>
-            {isPrivateKey && (
+            {typeOfDownload === 'private' && (
               <PrivateKeyWrap>
                 <Description>
                   Download certificate with private key.
@@ -221,9 +220,7 @@ const DownloadModal = (props) => {
                   <SelectComponent
                     menu={[...selectItem.map((item) => item.name)]}
                     value={formatType}
-                    classes={classes}
-                    onChange={(e) => setFormatType(e.target.value)}
-                    helperText={helperText}
+                    onChange={(e) => setFormatType(e)}
                   />
                 </InputFieldLabelWrapper>
                 <IncludeChainWrap>
@@ -239,7 +236,7 @@ const DownloadModal = (props) => {
                     <ButtonComponent
                       label="Cancel"
                       color="primary"
-                      onClick={() => onCloseDownloadModal()}
+                      onClick={() => onCloseModal()}
                       width={isMobileScreen ? '100%' : ''}
                     />
                   </CancelButton>
@@ -253,7 +250,7 @@ const DownloadModal = (props) => {
                 </CancelSaveWrapper>
               </PrivateKeyWrap>
             )}
-            {!isPrivateKey && (
+            {typeOfDownload === 'pem-der' && (
               <>
                 <Description>
                   Download certificate in PEM or DER format.
@@ -278,7 +275,7 @@ const DownloadModal = (props) => {
                   <ButtonComponent
                     label="Cancel"
                     color="primary"
-                    onClick={() => onCloseDownloadModal()}
+                    onClick={() => onCloseModal()}
                     width={isMobileScreen ? '100%' : ''}
                   />
                 </NonPrivateCancel>
@@ -293,7 +290,7 @@ const DownloadModal = (props) => {
 
 DownloadModal.propTypes = {
   onCloseDownloadModal: PropTypes.func.isRequired,
-  isPrivateKey: PropTypes.bool.isRequired,
+  typeOfDownload: PropTypes.string.isRequired,
   openDownloadModal: PropTypes.bool.isRequired,
   onPemDerFormatClicked: PropTypes.func.isRequired,
   onPrivateDownloadClicked: PropTypes.func.isRequired,

@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-indent */
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
@@ -16,22 +16,9 @@ import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner
 import Error from '../../../../../../../components/Error';
 import Strings from '../../../../../../../resources';
 import { checkAccess } from '../../../../../../../services/helper-function';
+import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
-
-const NoDataWrapper = styled.section`
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  p {
-    ${small} {
-      margin-top: 2rem;
-      margin-bottom: 4rem;
-      width: 75%;
-    }
-  }
-`;
 
 const bgIconStyle = {
   width: '10rem',
@@ -56,10 +43,12 @@ const AppRoles = (props) => {
   const {
     accountDetail,
     accountMetaData,
-    fetchPermission,
+    refresh,
     onNewAppRoleChange,
     newAppRole,
     updateToastMessage,
+    permissionResponse,
+    selectedParentTab,
   } = props;
 
   const [response, setResponse] = useState({ status: 'loading' });
@@ -69,19 +58,10 @@ const AppRoles = (props) => {
 
   const isMobileScreen = useMediaQuery(small);
 
-  // on svc account meta data is available.
+  // on iam svc account meta data is available.
   useEffect(() => {
-    if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
-      if (Object.keys(accountMetaData?.response).length !== 0) {
-        setResponse({ status: 'success' });
-      } else if (accountMetaData.error !== '') {
-        setResponse({ status: 'error' });
-      }
-    } else {
-      setResponse({ status: '' });
-    }
-  }, [accountMetaData]);
-
+    setResponse({ status: permissionResponse });
+  }, [permissionResponse]);
   // When add app role button is clicked.
   useEffect(() => {
     if (newAppRole) {
@@ -91,7 +71,7 @@ const AppRoles = (props) => {
 
   const constructPayload = (role, access) => {
     const data = {
-      access: checkAccess(access,"iamsvcaccount"),
+      access: checkAccess(access, 'iamsvcaccount'),
       approlename: role,
       awsAccountId: accountDetail.iamAccountId,
       iamSvcAccName: accountDetail.name,
@@ -101,7 +81,7 @@ const AppRoles = (props) => {
 
   /**
    * @function onDeleteClick
-   * @description function to delete the app role from the svc account app role list.
+   * @description function to delete the app role from the iam svc account app role list.
    * @param {role} string app role name.
    * @param {access} string permission of the app role.
    */
@@ -114,7 +94,7 @@ const AppRoles = (props) => {
         if (res && res.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -127,7 +107,7 @@ const AppRoles = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the app rolr to the svc account app role list.
+   * @description function to save the app rolr to the iam svc account app role list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {
@@ -138,7 +118,7 @@ const AppRoles = (props) => {
         if (res?.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -195,7 +175,7 @@ const AppRoles = (props) => {
   const onEditClick = (key, value) => {
     setEditClicked(true);
     if (value === 'write') {
-      setEditAccess('reset');
+      setEditAccess('rotate');
     } else {
       setEditAccess(value);
     }
@@ -212,6 +192,13 @@ const AppRoles = (props) => {
     onNewAppRoleChange();
   };
 
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      onCancelClicked();
+    }
+    // eslint-disable-next-line
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
       <>
@@ -220,9 +207,10 @@ const AppRoles = (props) => {
         )}
         {response.status === 'add' && (
           <AddAppRole
+            roles={accountMetaData?.response['app-roles']}
             handleSaveClick={(role, access) => onSubmit(role, access)}
             handleCancelClick={() => onCancelClicked()}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'edit' && (
@@ -232,7 +220,7 @@ const AppRoles = (props) => {
             access={editAccess}
             editClicked={editClicked}
             role={editRole}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
 
@@ -247,7 +235,7 @@ const AppRoles = (props) => {
                     list={accountMetaData.response['app-roles']}
                     onEditClick={(key, value) => onEditClick(key, value)}
                     onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                    isIamSvcAccount
+                    isIamAzureSvcAccount
                   />
                 )}
               {(!accountMetaData.response['app-roles'] ||
@@ -256,7 +244,7 @@ const AppRoles = (props) => {
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description={Strings.Resources.noAppRolePermissionFound}
+                    description={Strings.Resources.noAppRolePermissionFoundIam}
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent
@@ -287,9 +275,11 @@ const AppRoles = (props) => {
 AppRoles.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
+  refresh: PropTypes.func.isRequired,
   newAppRole: PropTypes.bool.isRequired,
   onNewAppRoleChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  permissionResponse: PropTypes.string.isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 export default AppRoles;

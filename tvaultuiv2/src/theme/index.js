@@ -332,7 +332,7 @@ const customTheme = createMuiTheme({
     },
     MuiFilledInput: {
       root: {
-        padding: '1rem',
+        padding: '1rem 1rem 1rem 1.5rem',
         borderTopLeftRadius: '0',
         borderTopRightRadius: '0',
         fontSize: '1.4rem',
@@ -347,7 +347,7 @@ const customTheme = createMuiTheme({
         padding: '0.3rem 0',
       },
       adornedStart: {
-        paddingLeft: '1rem',
+        paddingLeft: '1.5rem',
       },
       multiline: {
         padding: '1.5rem 1rem',

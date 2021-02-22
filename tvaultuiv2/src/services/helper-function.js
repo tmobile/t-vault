@@ -1,7 +1,10 @@
+/* eslint-disable import/no-cycle */
 /* eslint-disable guard-for-in */
 /* eslint-disable array-callback-return */
 /* eslint-disable consistent-return */
 // eslint-disable-next-line import/prefer-default-export
+
+import apiService from '../views/private/safe/apiService';
 
 const FileDownload = require('js-file-download');
 
@@ -48,15 +51,16 @@ export const findItemAndRemove = (arr, key, id) => {
   const tempArr = [...arr];
   const indexofItem =
     tempArr[0] && tempArr[0][key].findIndex((item) => item.id === id);
-  if (indexofItem) tempArr[0][key].splice(indexofItem, 1);
+  if (indexofItem >= 0) tempArr[0][key].splice(indexofItem, 1);
   return tempArr;
 };
 
-export const findElementAndUpdate = (arr, parentId, item) => {
+export const findElementAndUpdate = (arr, parentId, item, versionInfo) => {
   if (arr?.length === 0) return;
   const tempArr = [...arr];
   const itemToUpdate = findElementById(tempArr, parentId, 'children');
   if (Array.isArray(item)) {
+    itemToUpdate.versionInfo=[...versionInfo]
     if (!itemToUpdate?.children?.length) {
       itemToUpdate.children = [...itemToUpdate.children, ...item];
       return tempArr;
@@ -160,6 +164,7 @@ export const validateEmail = (email) => {
     const res = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //eslint-disable-line
     return res.test(email);
   }
+  return false;
 };
 
 export const removeDuplicate = (arr) => {
@@ -194,9 +199,10 @@ export const formatSecondsToTime = (seconds) => {
 };
 export const checkAccess = (access, type) => {
   let val = '';
-  if (access === 'write') {
+  if (access === 'write' || access === 'reset') {
     if (type?.toLowerCase() === 'iamsvcaccount') {
       val = 'rotate';
+      return val;
     }
     val = 'reset';
   } else {
@@ -205,13 +211,14 @@ export const checkAccess = (access, type) => {
   return val;
 };
 
-export const getDaysDifference = (start, end) => {
-  const date1 = new Date(start);
+export const getDaysDifference = (end) => {
+  const date1 = new Date();
   const date2 = new Date(end);
-  const diffInTime = date2.getTime() - date1.getTime();
+  const diffInTime = Math.abs(date2.getTime() - date1.getTime());
   const diffInTimeDays = diffInTime / (1000 * 3600 * 24);
   return Math.ceil(diffInTimeDays);
 };
+
 export const convertToCSV = (objArray) => {
   const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
   let str = '';
@@ -246,4 +253,42 @@ export const addLeadingZeros = (value) => {
     val = `0${value}`;
   }
   return val;
+};
+
+export const getEachUsersDetails = (data) => {
+  if (data && Object.keys(data).length > 0) {
+    const userNameArray = [];
+    Object.keys(data).map((item) => {
+      return userNameArray.push(item);
+    });
+    return apiService
+      .getUsersDetails(userNameArray?.join())
+      .then((res) => {
+        if (res.data.data.values) {
+          return res.data.data.values;
+        }
+        return null;
+      })
+      .catch(() => {
+        return null;
+      });
+  }
+  return null;
+};
+
+export const calculateHoursMinsSec = (seconds) => {
+  const d = Math.floor(seconds / (3600 * 24));
+  const h = Math.floor((seconds % (3600 * 24)) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  if (d > 0) {
+    return d === 1 ? `${d} day` : `${d} days`;
+  }
+  if (h > 0) {
+    return d === 1 ? `${h} hour` : `${h} hours`;
+  }
+  if (m > 0) {
+    return d === 1 ? `${m} minute` : `${m} minutes`;
+  }
+  return s === 1 ? `${s} second` : `${s} seconds`;
 };

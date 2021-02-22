@@ -37,6 +37,8 @@ public class ServiceAccountMetadataDetails implements Serializable {
     private String appName;
     private String appID;
     private String appTag;
+    private String modifiedBy;
+    private Long modifiedAt;
 
     /**
      *
@@ -146,7 +148,6 @@ public class ServiceAccountMetadataDetails implements Serializable {
     public String getAppTag() {
         return appTag;
     }
-
     /**
      *
      * @param appTag
@@ -154,4 +155,36 @@ public class ServiceAccountMetadataDetails implements Serializable {
     public void setAppTag(String appTag) {
         this.appTag = appTag;
     }
+    
+    /**
+     * 
+     * @return modifiedBy
+     */
+	public String getModifiedBy() {
+		return modifiedBy;
+	}
+	
+	/**
+	 * 
+	 * @param modifiedBy
+	 */
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+	
+	/**
+	 * 
+	 * @return modifiedAt
+	 */
+	public Long getModifiedAt() {
+		return modifiedAt;
+	}
+	
+	/**
+	 * 
+	 * @param modifiedAt
+	 */
+	public void setModifiedAt(Long modifiedAt) {
+		this.modifiedAt = modifiedAt;
+	}
 }

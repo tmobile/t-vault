@@ -19,6 +19,10 @@ package com.tmobile.cso.vault.api.model;
 
 import java.io.Serializable;
 
+import javax.validation.constraints.NotNull;
+
+import org.hibernate.validator.constraints.NotEmpty;
+
 import io.swagger.annotations.ApiModelProperty;
 
 public class SafeBasicDetails implements Serializable{
@@ -48,8 +52,16 @@ public class SafeBasicDetails implements Serializable{
 	 */
 	private String ownerid;
 	
-	/**
-	 * 
+	/**	
+	 * 	
+	 */	
+	private String appName;	
+	/**	
+	 * 	
+	 */
+	private String applicationTag;
+	/**	
+	 * 	
 	 */
 	public SafeBasicDetails() {
 		super();
@@ -60,22 +72,26 @@ public class SafeBasicDetails implements Serializable{
 	 * @param type
 	 * @param description
 	 */
-	public SafeBasicDetails(String name, String owner, String type, String description) {
+	public SafeBasicDetails(String name, String owner, String type, String description,String appName,String applicationTag) {
 		super();
 		this.name = name;
 		this.owner = owner;
 		this.type = type;
 		this.description = description;
+		this.appName = appName;
+		this.applicationTag = applicationTag;
 	}
 	
-	
-	public SafeBasicDetails(String name, String owner, String type, String description, String ownerid) {
+	public SafeBasicDetails(String name, String owner, String type, String description, String ownerid,
+			String appName,String applicationTag) {
 		super();
 		this.name = name;
 		this.owner = owner;
 		this.type = type;
 		this.description = description;
 		this.ownerid = ownerid;
+		this.appName = appName;
+		this.applicationTag = applicationTag;
 	}
 	/**
 	 * @return the name
@@ -141,6 +157,32 @@ public class SafeBasicDetails implements Serializable{
 	 */
 	public void setOwnerid(String ownerid) {
 		this.ownerid = ownerid;
+	}
+	/**
+	 * @return the appName
+	 */
+	@ApiModelProperty(example="tvt")
+	public String getAppName() {
+		return appName;
+	}
+	/**
+	 * @param ownerid the appName to set
+	 */
+	public void setAppName(String appName) {
+		this.appName = appName;
+	}
+	/**
+	 * @return the applicationTag
+	 */
+	@ApiModelProperty(example="tvt", hidden=true)
+	public String getApplicationTag() {
+		return applicationTag;
+	}
+	/**
+	 * @param applicationTag the applicationTag to set
+	 */
+	public void setApplicationTag(String applicationTag) {
+		this.applicationTag = applicationTag;
 	}
 	
 

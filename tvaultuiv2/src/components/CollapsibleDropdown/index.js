@@ -19,7 +19,7 @@ const Container = styled('div')`
 const useStyles = makeStyles((theme) => ({
   container: {
     display: 'flex',
-    margin: theme.spacing(1),
+    margin: `${theme.spacing(1)}px 0`,
   },
 }));
 
@@ -64,14 +64,14 @@ const CollapseDropdown = (props) => {
 };
 CollapseDropdown.propTypes = {
   children: PropTypes.node,
-  customStyles: PropTypes.objectOf(PropTypes.object),
+  customStyles: PropTypes.objectOf(PropTypes.any),
   titleMore: PropTypes.string.isRequired,
   titleLess: PropTypes.string,
   elevation: PropTypes.number,
   setIsAutoExpand: PropTypes.func,
   isAutoExpand: PropTypes.bool,
   collapseStyles: PropTypes.string,
-  titleCss: PropTypes.string,
+  titleCss: PropTypes.arrayOf(PropTypes.any),
   extraCss: PropTypes.string,
 };
 CollapseDropdown.defaultProps = {
@@ -82,7 +82,7 @@ CollapseDropdown.defaultProps = {
   isAutoExpand: false,
   collapseStyles: '',
   titleLess: 'View Less',
-  titleCss: '',
+  titleCss: {},
   extraCss: '',
 };
 export default CollapseDropdown;

@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React from 'react';
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
@@ -55,9 +56,9 @@ const PermissionsList = (props) => {
     list,
     onDeleteClick,
     isSvcAccount,
-    isIamSvcAccount,
+    isIamAzureSvcAccount,
   } = props;
-  //get logged in user info
+  // get logged in user info
   const state = useStateValue();
 
   return (
@@ -66,8 +67,8 @@ const PermissionsList = (props) => {
         <EachUserWrap
           key={key}
           inActitveStyles={
-            state[0]?.username?.toLowerCase() === key.toLowerCase() &&
-            isIamSvcAccount
+            state[0]?.username?.toLowerCase() === key?.toLowerCase() &&
+            isIamAzureSvcAccount
               ? 'pointer-events:none;opacity:0.5'
               : ''
           }
@@ -79,8 +80,8 @@ const PermissionsList = (props) => {
               <TitleFour extraCss={permissionStyles}>
                 {isSvcAccount && value === 'write'
                   ? 'reset'
-                  : isIamSvcAccount && value === 'write'
-                  ? 'Rotate'
+                  : isIamAzureSvcAccount && value === 'write'
+                  ? 'rotate'
                   : value}
               </TitleFour>
             </Details>
@@ -99,12 +100,12 @@ PermissionsList.propTypes = {
   onEditClick: PropTypes.func.isRequired,
   list: PropTypes.objectOf(PropTypes.any).isRequired,
   isSvcAccount: PropTypes.bool,
-  isIamSvcAccount: PropTypes.bool,
+  isIamAzureSvcAccount: PropTypes.bool,
 };
 
 PermissionsList.defaultProps = {
   isSvcAccount: false,
-  isIamSvcAccount: false,
+  isIamAzureSvcAccount: false,
 };
 
 export default PermissionsList;

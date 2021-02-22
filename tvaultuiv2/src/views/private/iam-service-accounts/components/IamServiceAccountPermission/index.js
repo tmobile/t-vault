@@ -1,14 +1,12 @@
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import Users from './components/Users';
 import Groups from './components/Groups';
 import AppRoles from './components/AppRoles';
 import AwsApplications from './components/AwsApplications';
-import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
-import Error from '../../../../../components/Error';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import PermissionsTabs from '../../../../../components/PermissionTabs';
 import TabPanel from '../../../../../components/TabPanel';
@@ -23,30 +21,15 @@ const PermissionTabsWrapper = styled('div')`
   }
 `;
 
-const customStyle = css`
-  height: 100%;
-  transform: translate(-50%, -50%);
-  position: absolute;
-  left: 50%;
-  top: 50%;
-`;
-
-const NoPermission = styled.div`
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #5a637a;
-`;
-
 const IamServiceAccountPermission = (props) => {
   const {
     accountDetail,
-    refresh,
     accountMetaData,
-    parentStatus,
     fetchPermission,
-    isIamSvcAccountActive,
+    permissionResponse,
+    userDetails,
+    refresh,
+    selectedParentTab,
   } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
@@ -54,7 +37,6 @@ const IamServiceAccountPermission = (props) => {
   const [newAwsApplication, setNewAwsApplication] = useState(false);
   const [newAppRole, setNewAppRole] = useState(false);
   const [count, setCount] = useState(0);
-  const [response, setResponse] = useState({ status: 'loading' });
   const [toastResponse, setToastResponse] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -69,18 +51,14 @@ const IamServiceAccountPermission = (props) => {
   };
 
   useEffect(() => {
-    setResponse({ status: parentStatus });
-  }, [parentStatus]);
-
-  useEffect(() => {
     if (
       accountMetaData.response &&
       Object.keys(accountMetaData?.response).length !== 0
     ) {
       setCount(0);
       if (value === 0) {
-        if (accountMetaData.response.users) {
-          setCount(Object.keys(accountMetaData.response.users).length);
+        if (userDetails) {
+          setCount(userDetails.length);
         }
       } else if (value === 1) {
         if (accountMetaData.response.groups) {
@@ -96,7 +74,7 @@ const IamServiceAccountPermission = (props) => {
         }
       }
     }
-  }, [value, accountMetaData]);
+  }, [value, accountMetaData, userDetails]);
 
   const onAddLabelBtnClicked = () => {
     Object.keys(initialObject).map((item) => {
@@ -123,102 +101,105 @@ const IamServiceAccountPermission = (props) => {
     setValue(newValue);
   };
 
+  useEffect(() => {
+    setValue(0);
+    setNewUser(false);
+    setNewGroup(false);
+    setNewAppRole(false);
+    setNewAwsApplication(false);
+  }, [accountDetail]);
+
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      setValue(0);
+    }
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
-      <>
-        {response.status === 'loading' && (
-          <LoaderSpinner customStyle={customStyle} />
+      <TabWrapper>
+        <PermissionsTabs
+          onAddLabelBtnClicked={onAddLabelBtnClicked}
+          count={count}
+          onTabChange={onTabChange}
+          value={value}
+        />
+        <PermissionTabsWrapper>
+          <TabPanel value={value} index={0}>
+            <Users
+              accountDetail={accountDetail}
+              newPermission={newPermission}
+              onNewPermissionChange={() => setNewUser(false)}
+              accountMetaData={accountMetaData}
+              refresh={fetchPermission}
+              updateToastMessage={(res, message) =>
+                updateToastMessage(res, message)
+              }
+              userDetails={userDetails}
+              permissionResponse={permissionResponse}
+              selectedParentTab={selectedParentTab}
+            />
+          </TabPanel>
+          <TabPanel value={value} index={1}>
+            <Groups
+              accountDetail={accountDetail}
+              newGroup={newGroup}
+              onNewGroupChange={() => setNewGroup(false)}
+              accountMetaData={accountMetaData}
+              updateToastMessage={(res, message) =>
+                updateToastMessage(res, message)
+              }
+              refresh={refresh}
+              permissionResponse={permissionResponse}
+              selectedParentTab={selectedParentTab}
+            />
+          </TabPanel>
+          <TabPanel value={value} index={2}>
+            <AwsApplications
+              accountDetail={accountDetail}
+              newAwsApplication={newAwsApplication}
+              onNewAwsChange={() => setNewAwsApplication(false)}
+              accountMetaData={accountMetaData}
+              updateToastMessage={(res, message) =>
+                updateToastMessage(res, message)
+              }
+              refresh={fetchPermission}
+              permissionResponse={permissionResponse}
+              selectedParentTab={selectedParentTab}
+            />
+          </TabPanel>
+          <TabPanel value={value} index={3}>
+            <AppRoles
+              accountDetail={accountDetail}
+              newAppRole={newAppRole}
+              onNewAppRoleChange={() => setNewAppRole(false)}
+              accountMetaData={accountMetaData}
+              updateToastMessage={(res, message) =>
+                updateToastMessage(res, message)
+              }
+              refresh={fetchPermission}
+              permissionResponse={permissionResponse}
+              selectedParentTab={selectedParentTab}
+            />
+          </TabPanel>
+        </PermissionTabsWrapper>
+        {toastResponse === -1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            severity="error"
+            icon="error"
+            message={toastMessage || 'Something went wrong!'}
+          />
         )}
-        {response.status === 'error' && (
-          <Error description="Something went wrong!" />
+        {toastResponse === 1 && (
+          <SnackbarComponent
+            open
+            onClose={() => onToastClose()}
+            message={toastMessage || 'Successful'}
+          />
         )}
-        {response.status === 'success' && (
-          <>
-            {accountDetail?.active || isIamSvcAccountActive ? (
-              <>
-                <TabWrapper>
-                  <PermissionsTabs
-                    onAddLabelBtnClicked={onAddLabelBtnClicked}
-                    count={count}
-                    onTabChange={onTabChange}
-                    value={value}
-                  />
-                  <PermissionTabsWrapper>
-                    <TabPanel value={value} index={0}>
-                      <Users
-                        accountDetail={accountDetail}
-                        newPermission={newPermission}
-                        onNewPermissionChange={() => setNewUser(false)}
-                        accountMetaData={accountMetaData}
-                        refresh={refresh}
-                        updateToastMessage={(res, message) =>
-                          updateToastMessage(res, message)
-                        }
-                      />
-                    </TabPanel>
-                    <TabPanel value={value} index={1}>
-                      <Groups
-                        accountDetail={accountDetail}
-                        newGroup={newGroup}
-                        onNewGroupChange={() => setNewGroup(false)}
-                        accountMetaData={accountMetaData}
-                        updateToastMessage={(res, message) =>
-                          updateToastMessage(res, message)
-                        }
-                        fetchPermission={fetchPermission}
-                      />
-                    </TabPanel>
-                    <TabPanel value={value} index={2}>
-                      <AwsApplications
-                        accountDetail={accountDetail}
-                        newAwsApplication={newAwsApplication}
-                        onNewAwsChange={() => setNewAwsApplication(false)}
-                        accountMetaData={accountMetaData}
-                        updateToastMessage={(res, message) =>
-                          updateToastMessage(res, message)
-                        }
-                        fetchPermission={fetchPermission}
-                      />
-                    </TabPanel>
-                    <TabPanel value={value} index={3}>
-                      <AppRoles
-                        accountDetail={accountDetail}
-                        newAppRole={newAppRole}
-                        onNewAppRoleChange={() => setNewAppRole(false)}
-                        accountMetaData={accountMetaData}
-                        updateToastMessage={(res, message) =>
-                          updateToastMessage(res, message)
-                        }
-                        fetchPermission={fetchPermission}
-                      />
-                    </TabPanel>
-                  </PermissionTabsWrapper>
-                  {toastResponse === -1 && (
-                    <SnackbarComponent
-                      open
-                      onClose={() => onToastClose()}
-                      severity="error"
-                      icon="error"
-                      message={toastMessage || 'Something went wrong!'}
-                    />
-                  )}
-                  {toastResponse === 1 && (
-                    <SnackbarComponent
-                      open
-                      onClose={() => onToastClose()}
-                      message={toastMessage || 'Successful'}
-                    />
-                  )}
-                </TabWrapper>
-              </>
-            ) : (
-              <NoPermission>
-                Please activate the iam service account to add permissions
-              </NoPermission>
-            )}
-          </>
-        )}
-      </>
+      </TabWrapper>
     </ComponentError>
   );
 };
@@ -226,10 +207,11 @@ const IamServiceAccountPermission = (props) => {
 IamServiceAccountPermission.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any),
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
-  refresh: PropTypes.func.isRequired,
-  parentStatus: PropTypes.string.isRequired,
   fetchPermission: PropTypes.func,
-  isIamSvcAccountActive: PropTypes.bool.isRequired,
+  permissionResponse: PropTypes.string.isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
+  refresh: PropTypes.func.isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 
 IamServiceAccountPermission.defaultProps = {

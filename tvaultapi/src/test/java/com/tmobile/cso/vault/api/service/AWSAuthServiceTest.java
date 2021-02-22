@@ -48,7 +48,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -63,7 +62,7 @@ public class AWSAuthServiceTest {
     AWSAuthService awsAuthService;
 
     @Mock
-    RequestProcessor reqProcessor;
+    RequestProcessor reqProcessor;    
 
     @Before
     public void setUp() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
@@ -100,7 +99,7 @@ public class AWSAuthServiceTest {
     }
 
     @Test
-    public void test_createRole_successfully() {
+    public void testcreateRolesuccessfully() {
 
         Response response = new Response();
         response.setHttpstatus(HttpStatus.OK);
@@ -109,7 +108,7 @@ public class AWSAuthServiceTest {
         AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
                 "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
                 "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
-                "\"[prod, dev\"]");
+                "");
 
         String jsonStr = "{\"auth_type\": \"ec2\", \"role\": \"mytestawsrole\", \"bound_ami_id\": \"ami-fce3c696\", " +
                 "\"bound_account_id\": 1234567890123, \"bound_region\": \"us-east-2\",\"bound_vpc_id\": " +
@@ -118,12 +117,13 @@ public class AWSAuthServiceTest {
                 "\"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\",  " +
                 "\"policies\": \"\\\"[prod, dev\\\"]\"}";
 
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role created \"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS EC2 Role created \"]}");
         when(reqProcessor.process("/auth/aws/roles/create", jsonStr, token)).thenReturn(responseNoContent);
         when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(response);
         when(JSONUtil.getJSON(awsLoginRole)).thenReturn(jsonStr);
         UserDetails userDetails = getMockUser(true);
         when(ControllerUtil.createMetadata(Mockito.any(), eq(token))).thenReturn(true);
+        when(ControllerUtil.populateUserMetaJson(Mockito.any(), Mockito.any())).thenReturn("awsec2RoleUserMetaDataCreationStatus");
         when(reqProcessor.process(eq("/write"),Mockito.any(),eq(token))).thenReturn(responseNoContent);
         ResponseEntity<String> responseEntity = null;
         try {
@@ -146,7 +146,7 @@ public class AWSAuthServiceTest {
         AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
                 "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
                 "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
-                "\"[prod, dev\"]");
+                "");
 
         String jsonStr = "{\"auth_type\": \"ec2\", \"role\": \"mytestawsrole\", \"bound_ami_id\": \"ami-fce3c696\", " +
                 "\"bound_account_id\": 1234567890123, \"bound_region\": \"us-east-2\",\"bound_vpc_id\": " +
@@ -185,7 +185,7 @@ public class AWSAuthServiceTest {
         AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
                 "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
                 "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
-                "\"[prod, dev\"]");
+                "");
 
         String jsonStr = "{\"auth_type\": \"ec2\", \"role\": \"mytestawsrole\", \"bound_ami_id\": \"ami-fce3c696\", " +
                 "\"bound_account_id\": 1234567890123, \"bound_region\": \"us-east-2\",\"bound_vpc_id\": " +
@@ -213,7 +213,7 @@ public class AWSAuthServiceTest {
         assertEquals(responseEntityExpected, responseEntity);
     }
 
-    @Test(expected = TVaultValidationException.class)
+    @Test()
     public void test_createRole_failure_400() throws TVaultValidationException{
 
         Response response = new Response();
@@ -242,14 +242,14 @@ public class AWSAuthServiceTest {
         AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
                 "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
                 "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
-                "\"[prod, dev\"]");
+                "");
 
         String jsonStr = "{\"auth_type\": \"ec2\", \"role\": \"mytestawsrole\", \"bound_ami_id\": \"ami-fce3c696\", " +
                 "\"bound_account_id\": 1234567890123, \"bound_region\": \"us-east-2\",\"bound_vpc_id\": " +
                 "\"vpc-2f09a348\", \"bound_subnet_id\": \"subnet-1122aabb\", \"bound_iam_role_arn\": " +
                 "\"arn:aws:iam::8987887:role/test-role\",  \"bound_iam_instance_profile_arn\":" +
                 "\"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\",  " +
-                "\"policies\": \"\\\"[prod, dev\\\"]\"}";
+                "\"policies\": \"\\\"[default\\\"]\"}";
 
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errors\":[\"Internal Server Error\"]}");
         when(reqProcessor.process("/auth/aws/roles/create", jsonStr, token)).thenReturn(responseServerError);
@@ -279,7 +279,7 @@ public class AWSAuthServiceTest {
         String roleName = "mytestawsrole";
         String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
                 "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
-                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"],\"policies\": [ \"\\\"[prod\",\"dev\\\"]\" ]}";
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"]\" ]}";
         Response readResponse = getMockResponse(HttpStatus.OK, true, responseBody);
 
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
@@ -314,7 +314,100 @@ public class AWSAuthServiceTest {
             e.printStackTrace();
         }
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_updateRole_failed_role_delete_api() {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+
+        String roleName = "mytestawsrole";
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"]\" ]}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+
+        Response responseNoContent = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "");
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        String jsonStr = "{\"auth_type\": \"ec2\", \"role\": \"mytestawsrole\", \"bound_ami_id\": \"ami-fce3c696\", " +
+                "\"bound_account_id\": 1234567890123, \"bound_region\": \"us-east-2\",\"bound_vpc_id\": " +
+                "\"vpc-2f09a348\", \"bound_subnet_id\": \"subnet-1122aabb\", \"bound_iam_role_arn\": " +
+                "\"arn:aws:iam::8987887:role/test-role\",  \"bound_iam_instance_profile_arn\":" +
+                "\"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\",  " +
+                "\"policies\": \"\\\"[prod, dev\\\"]\"}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role updated \"]}");
+
+        when(reqProcessor.process("/auth/aws/roles", "{\"role\":\"" + roleName + "\"}", token)).thenReturn(readResponse);
+        when(reqProcessor.process("/auth/aws/roles/delete", jsonStr, token)).thenReturn(responseNoContent);
+        when(reqProcessor.process("/auth/aws/roles/update", jsonStr, token)).thenReturn(responseNoContent);
+
+        when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(response);
+        when(JSONUtil.getJSON(awsLoginRole)).thenReturn(jsonStr);
+
+        ResponseEntity<String> responseEntity = null;
+        try {
+            when(ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)).thenReturn(true);
+            responseEntity = awsAuthService.updateRole(token, awsLoginRole);
+        } catch (TVaultValidationException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @Test
+    public void test_updateRole_failed_role_update_api() {
+
+        Response response = new Response();
+        response.setHttpstatus(HttpStatus.OK);
+
+        String roleName = "mytestawsrole";
+        String responseBody = "{ \"bound_account_id\": [ \"1234567890123\"],\"bound_ami_id\": [\"ami-fce3c696\" ], \"bound_iam_instance_profile_arn\": [\n" +
+                "  \"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\" ], \"bound_iam_role_arn\": [\"arn:aws:iam::8987887:role/test-role\" ], " +
+                "\"bound_vpc_id\": [    \"vpc-2f09a348\"], \"bound_subnet_id\": [ \"subnet-1122aabb\"],\"bound_region\": [\"us-east-2\"]\" ]}";
+        Response readResponse = getMockResponse(HttpStatus.OK, true, responseBody);
+
+        Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
+
+        Response responseNoContentFailed = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, "");
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
+                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
+                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
+                "\"[prod, dev\"]");
+
+        String jsonStr = "{\"auth_type\": \"ec2\", \"role\": \"mytestawsrole\", \"bound_ami_id\": \"ami-fce3c696\", " +
+                "\"bound_account_id\": 1234567890123, \"bound_region\": \"us-east-2\",\"bound_vpc_id\": " +
+                "\"vpc-2f09a348\", \"bound_subnet_id\": \"subnet-1122aabb\", \"bound_iam_role_arn\": " +
+                "\"arn:aws:iam::8987887:role/test-role\",  \"bound_iam_instance_profile_arn\":" +
+                "\"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\",  " +
+                "\"policies\": \"\\\"[prod, dev\\\"]\"}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"AWS Role updated \"]}");
+
+        when(reqProcessor.process("/auth/aws/roles", "{\"role\":\"" + roleName + "\"}", token)).thenReturn(readResponse);
+        when(reqProcessor.process("/auth/aws/roles/delete", jsonStr, token)).thenReturn(responseNoContent);
+        when(reqProcessor.process("/auth/aws/roles/update", jsonStr, token)).thenReturn(responseNoContentFailed);
+
+        when(ControllerUtil.updateMetaDataOnConfigChanges(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(response);
+        when(JSONUtil.getJSON(awsLoginRole)).thenReturn(jsonStr);
+
+        ResponseEntity<String> responseEntity = null;
+        try {
+            when(ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)).thenReturn(true);
+            responseEntity = awsAuthService.updateRole(token, awsLoginRole);
+        } catch (TVaultValidationException e) {
+            e.printStackTrace();
+        }
+       // assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
     @Test(expected = TVaultValidationException.class)
@@ -331,43 +424,6 @@ public class AWSAuthServiceTest {
         ResponseEntity<String> responseEntity = null;
         when(ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)).thenReturn(false);
         responseEntity = awsAuthService.updateRole(token, awsLoginRole);
-    }
-
-    @Test
-    public void test_updateRole_failure_404() {
-
-        Response response = new Response();
-        response.setHttpstatus(HttpStatus.OK);
-        String roleName = "mytestawsrole";
-
-        Response responseError = getMockResponse(HttpStatus.BAD_REQUEST, true, "{\"messages\":[\"Update failed . AWS Role does not exist \"]}");
-        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
-        AWSLoginRole awsLoginRole = new AWSLoginRole("ec2", "mytestawsrole", "ami-fce3c696",
-                "1234567890123", "us-east-2", "vpc-2f09a348", "subnet-1122aabb",
-                "arn:aws:iam::8987887:role/test-role", "arn:aws:iam::877677878:instance-profile/exampleinstanceprofile",
-                "\"[prod, dev\"]");
-
-        String jsonStr = "{\"auth_type\": \"ec2\", \"role\": \"mytestawsrole\", \"bound_ami_id\": \"ami-fce3c696\", " +
-                "\"bound_account_id\": 1234567890123, \"bound_region\": \"us-east-2\",\"bound_vpc_id\": " +
-                "\"vpc-2f09a348\", \"bound_subnet_id\": \"subnet-1122aabb\", \"bound_iam_role_arn\": " +
-                "\"arn:aws:iam::8987887:role/test-role\",  \"bound_iam_instance_profile_arn\":" +
-                "\"arn:aws:iam::877677878:instance-profile/exampleinstanceprofile\",  " +
-                "\"policies\": \"\\\"[prod, dev\\\"]\"}";
-
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Update failed . AWS Role does not exist \"]}");
-        when(reqProcessor.process("/auth/aws/roles", "{\"role\":\"" + roleName + "\"}", token)).thenReturn(responseError);
-
-        when(JSONUtil.getJSON(awsLoginRole)).thenReturn(jsonStr);
-
-        ResponseEntity<String> responseEntity = null;
-        try {
-            when(ControllerUtil.areAWSEC2RoleInputsValid(awsLoginRole)).thenReturn(true);
-            responseEntity = awsAuthService.updateRole(token, awsLoginRole);
-        } catch (TVaultValidationException e) {
-            e.printStackTrace();
-        }
-        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
-        assertEquals(responseEntityExpected, responseEntity);
     }
 
     @Test
@@ -388,6 +444,81 @@ public class AWSAuthServiceTest {
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
+    }
+
+
+    @Test
+    public void test_deleteRole_failed_deleted_request() {
+
+        Response response = getMockResponse(HttpStatus.NO_CONTENT, false, "");
+        Response response1 = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, "");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Role deleted \"]}");
+        when(reqProcessor.process("/auth/aws/roles/delete", "{\"role\":\"mytestawsrole\"}", token)).thenReturn(response);
+        UserDetails userDetails = getMockUser(false);
+        String metadatajson = "{ \"path\": \"metadata/awsrole/mytestawsrole\", \"data\": {\"createdBy\":\"normaluser\"}}";
+        when(ControllerUtil.populateAWSMetaJson("mytestawsrole", userDetails.getUsername())).thenReturn(metadatajson);
+        when(reqProcessor.process("/delete",metadatajson,token)).thenReturn(response1);
+        Response permissonResponse = getMockResponse(HttpStatus.OK, false, "");
+        when(ControllerUtil.canDeleteRole("mytestawsrole", token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH)).thenReturn(permissonResponse);
+        ResponseEntity<String> responseEntity = awsAuthService.deleteRole(token, "mytestawsrole", userDetails);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void test_deleteRole_failed_bad_request() {
+
+        Response response = getMockResponse(HttpStatus.BAD_REQUEST, false, "");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"messages\":[\"Role deleted \"]}");
+        when(reqProcessor.process("/auth/aws/roles/delete", "{\"role\":\"mytestawsrole\"}", token)).thenReturn(response);
+        UserDetails userDetails = getMockUser(false);
+        String metadatajson = "{ \"path\": \"metadata/awsrole/mytestawsrole\", \"data\": {\"createdBy\":\"normaluser\"}}";
+        when(ControllerUtil.populateAWSMetaJson("mytestawsrole", userDetails.getUsername())).thenReturn(metadatajson);
+        when(reqProcessor.process("/delete",metadatajson,token)).thenReturn(response);
+        Response permissonResponse = getMockResponse(HttpStatus.BAD_REQUEST, false, "");
+        when(ControllerUtil.canDeleteRole("mytestawsrole", token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH)).thenReturn(permissonResponse);
+        ResponseEntity<String> responseEntity = awsAuthService.deleteRole(token, "mytestawsrole", userDetails);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void test_deleteRole_failed_unauthorized() {
+
+        Response response = getMockResponse(HttpStatus.UNAUTHORIZED, false, "");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        when(reqProcessor.process("/auth/aws/roles/delete", "{\"role\":\"mytestawsrole\"}", token)).thenReturn(response);
+        UserDetails userDetails = getMockUser(false);
+        String metadatajson = "{ \"path\": \"metadata/awsrole/mytestawsrole\", \"data\": {\"createdBy\":\"normaluser\"}}";
+        when(ControllerUtil.populateAWSMetaJson("mytestawsrole", userDetails.getUsername())).thenReturn(metadatajson);
+        when(reqProcessor.process("/delete",metadatajson,token)).thenReturn(response);
+        Response permissonResponse = getMockResponse(HttpStatus.UNAUTHORIZED, false, "");
+        when(ControllerUtil.canDeleteRole("mytestawsrole", token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH)).thenReturn(permissonResponse);
+        ResponseEntity<String> responseEntity = awsAuthService.deleteRole(token, "mytestawsrole", userDetails);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+    }
+
+
+    @Test
+    public void test_deleteRole_failed_delete_response() {
+
+        Response response = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, false, "");
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"messages\":[\"Role deleted \"]}");
+        when(reqProcessor.process("/auth/aws/roles/delete", "{\"role\":\"mytestawsrole\"}", token)).thenReturn(response);
+        UserDetails userDetails = getMockUser(false);
+        String metadatajson = "{ \"path\": \"metadata/awsrole/mytestawsrole\", \"data\": {\"createdBy\":\"normaluser\"}}";
+        when(ControllerUtil.populateAWSMetaJson("mytestawsrole", userDetails.getUsername())).thenReturn(metadatajson);
+        when(reqProcessor.process("/delete",metadatajson,token)).thenReturn(response);
+        Response permissonResponse = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "");
+        when(ControllerUtil.canDeleteRole("mytestawsrole", token, userDetails, TVaultConstants.AWSROLE_METADATA_MOUNT_PATH)).thenReturn(permissonResponse);
+        ResponseEntity<String> responseEntity = awsAuthService.deleteRole(token, "mytestawsrole", userDetails);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
     }
 
     @Test
@@ -428,7 +559,7 @@ public class AWSAuthServiceTest {
 
     }
 
-    @Test
+   @Test
     public void test_configureClient_successfully() {
 
         String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
@@ -448,6 +579,24 @@ public class AWSAuthServiceTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
 
+    }
+
+    @Test
+    public void test_configureClient_failed() {
+
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        AWSClientConfiguration awsClientConfiguration = new AWSClientConfiguration();
+        awsClientConfiguration.setAccess_key("accesskey");
+        awsClientConfiguration.setSecret_key("secretKey");
+
+        Response response = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "");
+        String jsonStr = "{ \"access_key\": \"string\", \"secret_key\": \"string\"}";
+        when(reqProcessor.process("/auth/aws/config/configureclient", jsonStr, token)).thenReturn(response);
+        when(JSONUtil.getJSON(awsClientConfiguration)).thenReturn(jsonStr);
+
+        ResponseEntity<String> responseEntity = awsAuthService.configureClient(awsClientConfiguration, token);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
     @Test
@@ -485,6 +634,25 @@ public class AWSAuthServiceTest {
         ResponseEntity<String> responseEntity = awsAuthService.createSTSRole(awsStsRole, token);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
+
+    }
+
+    @Test
+    public void test_createSTSRole_Failed() {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        AWSStsRole awsStsRole = new AWSStsRole();
+        awsStsRole.setAccount_id("account_id1");
+        awsStsRole.setSts_role("sts_role1");
+
+        String jsonStr = "{ \"account_id\": \"account_id1\", \"sts_role\": \"sts_role1\"}";
+        Response response = getMockResponse(HttpStatus.INTERNAL_SERVER_ERROR, true, "");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"messages\":[\"STS Role created successfully \"]}");
+
+        when(reqProcessor.process("/auth/aws/config/sts/create",jsonStr, token)).thenReturn(response);
+        when(JSONUtil.getJSON(awsStsRole)).thenReturn(jsonStr);
+
+        ResponseEntity<String> responseEntity = awsAuthService.createSTSRole(awsStsRole, token);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
 
     }
 
@@ -551,6 +719,75 @@ public class AWSAuthServiceTest {
         assertEquals(responseEntityExpected, responseEntity);
 
     }
+
+    @Test
+    public void test_authenticate_AWS_EC2_with_invalid_request() {
+
+        String jsonLoginStr = "{\n" +
+                "  \"role\": \"nonce\",\n" +
+                "  \"pkcs7\": \"MIIBjwYJKoZIhvcNAQcDoIIBgDCCAXwCAQAxggE4MIIBNAIBADCBnDCBlDELMAkGA1UEBhMCWkEx====\"\n" +
+                "}";
+        AWSAuthLogin awsAuthLogin = new AWSIAMLogin();
+        awsAuthLogin.setIam_http_request_method("POST");
+        awsAuthLogin.setIam_request_body("{}");
+        awsAuthLogin.setIam_request_headers("{\"token\":\"4qJC0tWjMDIKjRDDmtcUAZBt\"}");
+        awsAuthLogin.setIam_request_url("http://testurl.com");
+        awsAuthLogin.setRole("nonce");
+        awsAuthLogin.setPkcs7("MIIBjwYJKoZIhvcNAQcDoIIBgDCCAXwCAQAxggE4MIIBNAIBADCBnDCBlDELMAkGA1UEBhMCWkEx====");
+
+        Response response = getMockResponse(HttpStatus.BAD_REQUEST, false, "");
+        ResponseEntity<String> responseEntityExpected =  ResponseEntity.badRequest().body("{\"errors\":[\"Not a " +
+                "valid request. Parameter 'nonce' is not expected \"]}");
+
+        AWSLogin login = new AWSLogin();
+        login.setPkcs7(awsAuthLogin.getPkcs7());
+        login.setRole(awsAuthLogin.getRole());
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonLoginStr);
+
+        when(ControllerUtil.areAwsLoginInputsValid(AWSAuthType.EC2, awsAuthLogin)).thenReturn(true);
+        when(reqProcessor.process(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = awsAuthService.authenticate(AWSAuthType.EC2, awsAuthLogin);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+
+    }
+
+    @Test
+    public void test_authenticate_failed() {
+
+        String jsonLoginStr = "{\n" +
+                "  \"role\": \"testawsrole\",\n" +
+                "  \"pkcs7\": \"MIIBjwYJKoZIhvcNAQcDoIIBgDCCAXwCAQAxggE4MIIBNAIBADCBnDCBlDELMAkGA1UEBhMCWkEx====\"\n" +
+                "}";
+        AWSAuthLogin awsAuthLogin = new AWSIAMLogin();
+        awsAuthLogin.setIam_http_request_method("POST");
+        awsAuthLogin.setIam_request_body("{}");
+        awsAuthLogin.setIam_request_headers("{\"token\":\"4qJC0tWjMDIKjRDDmtcUAZBt\"}");
+        awsAuthLogin.setIam_request_url("http://testurl.com");
+        awsAuthLogin.setRole("testawsrole");
+        awsAuthLogin.setPkcs7("MIIBjwYJKoZIhvcNAQcDoIIBgDCCAXwCAQAxggE4MIIBNAIBADCBnDCBlDELMAkGA1UEBhMCWkEx====");
+
+        Response response = getMockResponse(HttpStatus.BAD_REQUEST, false, "Invalid inputs for the given aws login " +
+                "type");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid inputs for the given aws login type");
+
+        AWSLogin login = new AWSLogin();
+        login.setPkcs7(awsAuthLogin.getPkcs7());
+        login.setRole(awsAuthLogin.getRole());
+        when(JSONUtil.getJSON(Mockito.any())).thenReturn(jsonLoginStr);
+
+        when(ControllerUtil.areAwsLoginInputsValid(AWSAuthType.EC2, awsAuthLogin)).thenReturn(false);
+        when(reqProcessor.process(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(response);
+
+        ResponseEntity<String> responseEntity = awsAuthService.authenticate(AWSAuthType.EC2, awsAuthLogin);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+
+    }
+
 
     @Test
     public void test_authenticate_AWS_IAM_successfully() {

@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
 import { Backdrop } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
-import { css } from 'styled-components';
+import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import PropTypes from 'prop-types';
 import { useHistory } from 'react-router-dom';
@@ -18,6 +18,17 @@ import apiService from '../../apiService';
 import ViewCertificate from './components/ViewCertificate';
 import { getDaysDifference } from '../../../../../services/helper-function';
 import RevokeCertificate from './components/RevokeCertificate';
+import DeleteCertificate from './components/DeleteCertificate';
+import UpdateCertificate from './components/UpdateCertificate';
+
+const StyledModal = styled(Modal)`
+  @-moz-document url-prefix() {
+    .MuiBackdrop-root {
+      position: absolute;
+      height: 215rem;
+    }
+  }
+`;
 
 const { small } = mediaBreakpoints;
 
@@ -61,16 +72,16 @@ const EditCertificate = (props) => {
     title: '',
     description: '',
   });
-  const [open] = useState(true);
+  const [open, setOpen] = useState(true);
   const [certificateData, setCertificateData] = useState({});
   const [openModal, setOpenModal] = useState({ status: 'edit' });
   const [loading, setLoading] = useState(true);
   const [showRevokeRenewBtn, setShowRevokeRenewBtn] = useState(true);
-  const [actionResponse, setActionResponse] = useState(false);
   const [revokeMenu, setRevokeMenu] = useState([]);
   const [allRevokeReason, setAllRevokeReason] = useState([]);
   const [editActionPerform, setEditActionPerform] = useState(false);
-
+  const [updatePayload, setUpdatePayload] = useState({});
+  const [renewPossible, setRenewPossible] = useState(true);
   const isMobileScreen = useMediaQuery(small);
   const history = useHistory();
 
@@ -139,6 +150,18 @@ const EditCertificate = (props) => {
       });
   };
 
+  const constructConfirmationMessage = () => {
+    const desc = `Certificate expiring in ${getDaysDifference(
+      certificateData.expiryDate
+    )} Days . Do you want 
+    to renew this certificate?`;
+    setModalDetail({
+      title: 'Renew Confirmation',
+      description: desc,
+    });
+    setRenewPossible(true);
+  };
+
   /**
    * @function onCertRenewClicked
    * @description function when user clicked the renew certificate calculate the difference.
@@ -146,16 +169,22 @@ const EditCertificate = (props) => {
   const onCertRenewClicked = () => {
     clearModalDetail();
     setOpenModal({ status: 'renew' });
-    const diff = getDaysDifference(
-      certificateData.createDate,
-      certificateData.expiryDate
-    );
-    const desc = `Certificate expiring in ${diff} Days . Do you want 
-    to renew this certificate?`;
-    setModalDetail({
-      title: 'Renew Confirmation',
-      description: desc,
-    });
+
+    if (certificateData.certType === 'external') {
+      const diff = getDaysDifference(certificateData.createDate);
+      if (diff < 30) {
+        setModalDetail({
+          title: 'Confirmation',
+          description:
+            'External certificate can be renewed only after a month of certificate creation',
+        });
+        setRenewPossible(false);
+      } else {
+        constructConfirmationMessage();
+      }
+    } else {
+      constructConfirmationMessage();
+    }
   };
 
   /**
@@ -174,12 +203,11 @@ const EditCertificate = (props) => {
       .then((res) => {
         if (res?.data?.messages && res.data.messages[0]) {
           setModalDetail({
-            title: 'Successfull',
+            title: 'Successful',
             description: res.data.messages[0],
           });
         }
         setLoading(false);
-        setActionResponse(true);
         setEditActionPerform(true);
       })
       .catch((err) => {
@@ -190,7 +218,6 @@ const EditCertificate = (props) => {
           });
         }
         setLoading(false);
-        setActionResponse(true);
       });
   };
 
@@ -220,8 +247,9 @@ const EditCertificate = (props) => {
   }, [certificateData]);
 
   const closeEditModal = async () => {
-    await refresh(editActionPerform);
+    setOpen(false);
     history.goBack();
+    await refresh(editActionPerform);
   };
 
   /**
@@ -232,6 +260,7 @@ const EditCertificate = (props) => {
     if (!loading) {
       setOpenModal({ status: '' });
       closeEditModal();
+      setOpen(false);
     }
   };
 
@@ -241,7 +270,6 @@ const EditCertificate = (props) => {
    */
   const backToEdit = () => {
     setOpenModal({ status: 'edit' });
-    setActionResponse(false);
   };
 
   /**
@@ -261,14 +289,20 @@ const EditCertificate = (props) => {
           setLoading(false);
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        if (err.response.data.errors && err.response.data.errors[0]) {
+          setModalDetail({
+            title: 'Error',
+            description: err.response.data.errors[0],
+          });
+        } else {
+          setModalDetail({
+            title: 'Error',
+            description: 'Something went wrong!',
+          });
+        }
         setOpenModal({ status: 'confirm' });
         setLoading(false);
-        setModalDetail({
-          title: 'Error',
-          description: 'Something went wrong!',
-        });
-        setActionResponse(true);
       });
   };
 
@@ -301,23 +335,21 @@ const EditCertificate = (props) => {
       .then((res) => {
         if (res?.data?.messages && res.data.messages[0]) {
           setModalDetail({
-            title: 'Successfull',
+            title: 'Successful',
             description: res.data.messages[0],
           });
         }
         setLoading(false);
-        setActionResponse(true);
         setEditActionPerform(true);
       })
       .catch((err) => {
         if (err.response.data.errors && err.response.data.errors[0]) {
           setModalDetail({
-            title: 'Successfull',
+            title: 'Error',
             description: err.response.data.errors[0],
           });
         }
         setLoading(false);
-        setActionResponse(true);
       });
   };
 
@@ -329,15 +361,21 @@ const EditCertificate = (props) => {
     setOpenModal({ status: 'edit' });
   };
 
+  const onUpdateCertClicked = (payload) => {
+    setOpenModal({ status: 'update' });
+    setUpdatePayload(payload);
+  };
+
+  const onDeleteClicked = () => {
+    setOpenModal({ status: 'delete' });
+  };
   return (
     <ComponentError>
       <>
         {open && (
           <ConfirmationModal
             open={openModal.status === 'confirm'}
-            handleClose={
-              actionResponse ? backToEdit : handleCloseConfirmationModal
-            }
+            handleClose={handleCloseConfirmationModal}
             title={modalDetail.title}
             description={modalDetail.description}
             confirmButton={
@@ -345,12 +383,8 @@ const EditCertificate = (props) => {
                 <ButtonComponent
                   label="Close"
                   color="secondary"
-                  onClick={() =>
-                    actionResponse
-                      ? backToEdit()
-                      : handleCloseConfirmationModal()
-                  }
-                  width={isMobileScreen ? '100%' : '38%'}
+                  onClick={() => handleCloseConfirmationModal()}
+                  width={isMobileScreen ? '100%' : '45%'}
                 />
               ) : (
                 <LoaderSpinner customStyle={loaderStyle} />
@@ -368,18 +402,40 @@ const EditCertificate = (props) => {
               label="Cancel"
               color="primary"
               onClick={() => onCloseRenewConfirmation()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
           confirmButton={
-            <ButtonComponent
-              label="Renew"
-              color="secondary"
-              onClick={() => onRenewConfirmClicked()}
-              width={isMobileScreen ? '100%' : '38%'}
-            />
+            renewPossible && (
+              <ButtonComponent
+                label="Renew"
+                color="secondary"
+                onClick={() => onRenewConfirmClicked()}
+                width={isMobileScreen ? '100%' : '45%'}
+              />
+            )
           }
         />
+        {openModal.status === 'update' && (
+          <UpdateCertificate
+            handleUpdateConfirmationModalClose={() => backToEdit()}
+            onCloseUpdate={() => closeEditModal()}
+            updateModalOpen={openModal.status === 'update'}
+            onUpdationSuccess={() => setEditActionPerform(true)}
+            loaderStyle={loaderStyle}
+            updatePayload={updatePayload}
+          />
+        )}
+        {openModal.status === 'delete' && (
+          <DeleteCertificate
+            handleDeleteConfirmationModalClose={() => backToEdit()}
+            onCloseDelete={() => closeEditModal()}
+            deleteModalOpen={openModal.status === 'delete'}
+            onDeletionSuccess={() => setEditActionPerform(true)}
+            loaderStyle={loaderStyle}
+            certificateData={certificateData}
+          />
+        )}
         {openModal.status === 'revoke' && (
           <RevokeCertificate
             revokeModalOpen={openModal.status === 'revoke'}
@@ -391,7 +447,7 @@ const EditCertificate = (props) => {
           />
         )}
         {openModal.status === 'edit' && (
-          <Modal
+          <StyledModal
             aria-labelledby="transition-modal-title"
             aria-describedby="transition-modal-description"
             className={classes.modal}
@@ -407,13 +463,14 @@ const EditCertificate = (props) => {
               <ViewCertificate
                 certificateData={certificateData}
                 onCertRenewClicked={onCertRenewClicked}
-                isMobileScreen={isMobileScreen}
                 showRevokeRenewBtn={showRevokeRenewBtn}
                 onCloseModal={() => closeEditModal()}
                 onCertRevokeClicked={onCertRevokeClicked}
+                onUpdateCertClicked={onUpdateCertClicked}
+                onDeleteClicked={onDeleteClicked}
               />
             </Fade>
-          </Modal>
+          </StyledModal>
         )}
       </>
     </ComponentError>

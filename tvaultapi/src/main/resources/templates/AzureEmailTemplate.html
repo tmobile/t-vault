@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        .image {
+            border: 1px solid #eee;
+        }
+        .special-text, h4 {
+            color:#f6006e
+        }
+    </style>
+</head>
+<body>
+    <div>Hello <span data-th-text="${name}"></span>,</div>
+    <br/>
+    <div>Onboarding of Azure Service Principal <span class="special-text" data-th-text="${svcAccName}"></span> has been completed successfully, and you will now want to activate the same in T-Vault and assign permissions to other users who you want to view or rotate password.</div>
+    <div>To do so please complete the following steps:</div>
+
+    <h4>Activate Azure Service Principal:</h4>
+    <ol>
+        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault.</a> </li>
+        <li>
+            <div>Navigate to the "Service Accounts" tab.</div>
+            <img class ="image" src="azuremanagetab.png" th:src="|cid:${azuremanagetab}|"/>
+        </li>
+        <li>
+            <div>Select the "Azure Service Principal" from dropdown.</div>
+            <img class ="image" src="azureviewlink.png" th:src="|cid:${azureviewlink}|"/>
+        </li>
+        <li>
+            <div>Click the rotate icon to activate Azure Service Principal.</div>
+            <img class ="image" src="azureactivate.png" th:src="|cid:${azureactivate}|"/>
+        </li>
+
+    </ol>
+
+    <h4>Assigning Permissions: </h4>
+    <div>Once you are finished activating your Azure Service Principal you can assign permissions to other users or groups you want to have permission to view or rotate the password.</div>
+    <div data-th-text="${groupContent}"></div>
+    <ol>
+        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault.</a> </li>
+        <li>Navigate to the "Service Accounts" tab and select "Azure Service Principal" from dropdown.</li>
+        <li>Select the Azure Service Principal you want to manage.</li>
+        <li>
+            <div>Select the "Permissions" button.</div>
+            <img class ="image" src="iampermission.png" th:src="|cid:${iampermission}|"/>
+        </li>
+        <li>
+            <div>Navigate to the Users tab and click on "Add User".</div>
+            <img class ="image" src="permissiontab.png" th:src="|cid:${permissiontab}|"/>
+        </li>
+        <li>
+            <div>Provide the user name you want to give permissions to and select either read, rotate or deny depending on the level of access you want to give.</div>
+            <img class ="image" src="adduser.png" th:src="|cid:${adduser}|"/>
+        </li>
+    </ol>
+    
+    <h4>Rotate Secret Key: </h4>
+    <div>Once you are finished activating your Azure Service Principal you can rotate the password for the account.</div>
+    <ol>
+        <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault.</a> </li>
+        <li>Navigate to the "Service Accounts" tab and select "Azure Service Principal" from dropdown.</li>
+        <li>Select the Azure Service Principal you want to manage.</li>
+        <li>
+            <div>Select "Rotate secret".</div>
+            <img class ="image" src="azurerotate.png" th:src="|cid:${azurerotate}|"/>
+        </li>
+        
+    </ol>
+
+    <div>Please contact Cloud Support <span class="special-text" data-th-text="${contactLink}"></span> if you need assistance.</div>
+    <br/>
+    <div>Thanks,</div>
+    <div>Support team</div>
+
+</body>
+</html>

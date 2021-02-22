@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { IconDeleteActive, IconEdit } from '../../../../../assets/SvgIcons';
 import PopperElement from '../../../../../components/Popper';
-import { customColor } from '../../../../../theme';
 
 const FolderIconWrap = styled('div')`
   display: flex;
@@ -31,12 +30,12 @@ const PopperItem = styled.div`
     margin-right: 0.75rem;
   }
   :hover {
-    background: ${customColor.magenta};
+    background: ${(props) => props.theme.gradients.list || 'none'};
   }
 `;
 
 const EditDeletePopper = (props) => {
-  const { onDeleteClicked, onEditClicked, admin } = props;
+  const { onDeleteClicked, onEditClicked } = props;
   return (
     <div>
       <FolderIconWrap>
@@ -54,12 +53,10 @@ const EditDeletePopper = (props) => {
             <IconEdit />
             <span>Edit</span>
           </PopperItem>
-          {admin && (
-            <PopperItem onClick={onDeleteClicked}>
-              <IconDeleteActive />
-              <span> Delete</span>
-            </PopperItem>
-          )}
+          <PopperItem onClick={onDeleteClicked}>
+            <IconDeleteActive />
+            <span> Delete</span>
+          </PopperItem>
         </PopperElement>
       </FolderIconWrap>
     </div>
@@ -69,10 +66,7 @@ const EditDeletePopper = (props) => {
 EditDeletePopper.propTypes = {
   onEditClicked: PropTypes.func.isRequired,
   onDeleteClicked: PropTypes.func.isRequired,
-  admin: PropTypes.bool,
 };
-EditDeletePopper.defaultProps = {
-  admin: false,
-};
+EditDeletePopper.defaultProps = {};
 
 export default EditDeletePopper;

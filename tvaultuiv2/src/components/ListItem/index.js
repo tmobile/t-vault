@@ -6,13 +6,13 @@ import Avatar from '@material-ui/core/Avatar';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
 import { TitleOne } from '../../styles/GlobalStyles';
 import ListItemIcon from '../../assets/icon_safes.svg';
-import { customColor } from '../../theme';
 import PopperElement from '../Popper';
 
 const FolderWrap = styled('div')`
   position: relative;
   display: flex;
   width: 100%;
+  height: 4rem;
   text-decoration: none;
   align-items: center;
   justify-content: space-between;
@@ -30,10 +30,9 @@ const ListItemAvatarWrap = styled.div`
   align-items: center;
 `;
 const Flag = styled('span')`
-  opacity: 0.7;
   font-size: ${(props) => props.fontSize};
   font-style: ${(props) => (props.fontStyle ? props.fontStyle : '')};
-  color: ${(props) => props.theme.customColor.secondary.color || '#5e627c'};
+  color: #a2a1a1;
 `;
 
 const FolderIconWrap = styled('div')`
@@ -60,7 +59,7 @@ const PopperItem = styled.div`
     margin-right: 0.75rem;
   }
   :hover {
-    background: ${customColor.magenta};
+    background: ${(props) => props.theme.gradients.list || 'none'};
   }
 `;
 const LabelWrap = styled.div`
@@ -139,7 +138,7 @@ ListItem.propTypes = {
   flag: PropTypes.string,
   showActions: PropTypes.bool.isRequired,
   popperListItems: PropTypes.arrayOf(PropTypes.any),
-  listIconStyles: PropTypes.objectOf(PropTypes.object),
+  listIconStyles: PropTypes.objectOf(PropTypes.any),
 };
 ListItem.defaultProps = {
   subTitle: '',

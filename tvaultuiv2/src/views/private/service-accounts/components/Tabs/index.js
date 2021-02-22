@@ -12,6 +12,7 @@ import ServiceAccountSecrets from '../ServiceAccountSecrets';
 import ServiceAccountPermission from '../ServiceAccountPermission';
 import { useStateValue } from '../../../../../contexts/globalState';
 import apiService from '../../apiService';
+import { getEachUsersDetails } from '../../../../../services/helper-function';
 // styled components goes here
 
 const TabPanelWrap = styled.div`
@@ -80,14 +81,19 @@ const useStyles = makeStyles(() => ({
 }));
 
 const AccountSelectionTabs = (props) => {
-  const { accountDetail, refresh } = props;
+  const {
+    accountDetail,
+    refresh,
+    setOffboardDecomissionedConfirmation,
+  } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
   const [response, setResponse] = useState({ status: 'loading' });
   const [accountSecretData, setAccountSecretData] = useState({});
   const [accountSecretError, setAccountSecretError] = useState('');
-  const [hasSvcAccountAcitve, setHasSvcAccountAcitve] = useState(false);
+  const [hasSvcAccountAcitve, setHasSvcAccountAcitve] = useState(true);
   const [disabledPermission, setDisabledPermission] = useState(false);
+  const [userDetails, setUserDetails] = useState([]);
   const [secretResStatus, setSecretResStatus] = useState({ status: 'loading' });
   const [accountMetaData, setAccountMetaData] = useState({
     response: {},
@@ -98,6 +104,11 @@ const AccountSelectionTabs = (props) => {
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+
+  const accountName = accountDetail?.name;
+  useEffect(() => {
+    setValue(0);
+  }, [accountName]);
 
   // Function to get the secret of the given service account.
   const getSecrets = useCallback(() => {
@@ -112,6 +123,9 @@ const AccountSelectionTabs = (props) => {
           }
         })
         .catch((err) => {
+          if (err?.response?.status === 404) {
+            setOffboardDecomissionedConfirmation(true);
+          }
           if (
             err?.response &&
             err.response.data?.errors &&
@@ -124,24 +138,42 @@ const AccountSelectionTabs = (props) => {
     } else {
       setSecretResStatus({ status: 'no-permission' });
     }
-  }, [accountDetail]);
+  }, [accountDetail, setOffboardDecomissionedConfirmation]);
+
+  const getServiceListMetaData = () => {
+    return apiService
+      .fetchServiceAccountDetails(accountDetail.name)
+      .then((res) => {
+        if (res?.data?.data?.values && res?.data?.data?.values[0]) {
+          return res.data.data.values[0].owner;
+        }
+        return '';
+      })
+      .catch(() => {
+        setResponse({ status: 'error' });
+        setAccountMetaData({ response: {}, error: 'Something went wrong' });
+      });
+  };
 
   // Function to get the metadata of the given service account
   const fetchPermission = useCallback(() => {
     setResponse({ status: 'loading' });
     return apiService
       .updateMetaPath(accountDetail.name)
-      .then((res) => {
+      .then(async (res) => {
         if (res.data && res.data.data) {
-          setResponse({ status: 'success' });
-          if (
-            res.data.data.managedBy.toLowerCase() ===
-            state.username.toLowerCase()
-          ) {
+          const owner = await getServiceListMetaData();
+          if (owner?.toLowerCase() === state?.username?.toLowerCase()) {
             setDisabledPermission(false);
             if (res.data.data.initialPasswordReset) {
               setHasSvcAccountAcitve(true);
               setAccountMetaData({ response: { ...res.data.data }, error: '' });
+              const eachUsersDetails = await getEachUsersDetails(
+                res.data.data.users
+              );
+              if (eachUsersDetails !== null) {
+                setUserDetails([...eachUsersDetails]);
+              }
             } else {
               setHasSvcAccountAcitve(false);
             }
@@ -149,21 +181,30 @@ const AccountSelectionTabs = (props) => {
             setValue(0);
             setDisabledPermission(true);
           }
+          setResponse({ status: 'success' });
         }
       })
       .catch(() => {
         setResponse({ status: 'error' });
+        setValue(0);
+        setDisabledPermission(true);
         setAccountMetaData({ response: {}, error: 'Something went wrong' });
       });
+    // eslint-disable-next-line
   }, [accountDetail, state]);
 
   useEffect(() => {
     setResponse({ status: 'loading' });
-    setSecretResStatus({ status: ' loading' });
+    setSecretResStatus({ status: 'loading' });
     setHasSvcAccountAcitve(false);
+    setValue(0);
+    setHasSvcAccountAcitve(true);
     if (accountDetail?.name) {
       fetchPermission();
       getSecrets();
+    } else {
+      setDisabledPermission(true);
+      setSecretResStatus({ status: 'no-data' });
     }
   }, [accountDetail, fetchPermission, getSecrets]);
 
@@ -193,9 +234,11 @@ const AccountSelectionTabs = (props) => {
             <ServiceAccountSecrets
               accountDetail={accountDetail}
               accountMetaData={accountMetaData}
+              value={value}
               accountSecretData={accountSecretData}
               accountSecretError={accountSecretError}
               secretStatus={secretResStatus.status}
+              hasSvcAccountAcitve={hasSvcAccountAcitve}
             />
           </TabPanel>
           <TabPanel value={value} index={1}>
@@ -206,6 +249,8 @@ const AccountSelectionTabs = (props) => {
               parentStatus={response.status}
               refresh={refresh}
               fetchPermission={fetchPermission}
+              userDetails={userDetails}
+              selectedParentTab={value}
             />
           </TabPanel>
         </TabContentsWrap>
@@ -216,6 +261,7 @@ const AccountSelectionTabs = (props) => {
 AccountSelectionTabs.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any),
   refresh: PropTypes.func.isRequired,
+  setOffboardDecomissionedConfirmation: PropTypes.func.isRequired,
 };
 AccountSelectionTabs.defaultProps = {
   accountDetail: {},

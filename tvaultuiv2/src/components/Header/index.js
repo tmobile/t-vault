@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import DescriptionIcon from '@material-ui/icons/Description';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { withRouter, Link as RRDLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Link from '@material-ui/core/Link';
@@ -13,6 +14,8 @@ import menu from '../../assets/menu.svg';
 import Sidebar from '../Sidebar';
 import UserLogout from './userLogout';
 import configData from '../../config/config';
+import configUrl from '../../config';
+import HeaderSelectComponent from './headerDropDown';
 
 const { small, smallAndMedium, semiLarge } = mediaBreakpoints;
 
@@ -23,7 +26,7 @@ const HeaderWrap = styled('header')`
   top: 0;
   width: 100%;
   z-index: 10;
-  ${smallAndMedium} {
+  @media (max-width: 1044px) {
     box-shadow: 0 5px 15px 0 rgba(226, 0, 116, 0.5);
   }
 `;
@@ -38,7 +41,7 @@ const Container = styled.div`
   ${semiLarge} {
     margin: 0 3.5rem;
   }
-  ${smallAndMedium} {
+  @media (max-width: 1044px) {
     justify-content: ${(props) => (props.isLogin ? 'center' : 'space-between')};
     padding: 0 2rem;
   }
@@ -46,7 +49,7 @@ const Container = styled.div`
 
 const MenuIcon = styled.img`
   display: none;
-  ${smallAndMedium} {
+  @media (max-width: 1044px) {
     display: block;
     position: absolute;
     left: 3.5rem;
@@ -66,16 +69,18 @@ const TVaultIcon = styled.img`
 
 const HeaderCenter = styled.div`
   display: flex;
-  ${smallAndMedium} {
+  align-items: center;
+  @media (max-width: 1044px) {
     display: none;
   }
 `;
 
 const NavLink = styled(Link)`
   text-decoration: none;
-  margin: 0 0.5rem;
-  padding: 2.5rem 2rem;
-
+  padding: 2.6rem 1rem;
+  padding-left: 1.5rem;
+  width: 15rem;
+  font-size: 1.3rem;
   font-weight: bold;
   background: ${(props) =>
     props.active === 'true' ? props.theme.gradients.nav : 'none'};
@@ -91,7 +96,7 @@ const ProfileIconWrap = styled('div')`
   display: flex;
   align-items: center;
   margin-left: auto;
-  ${smallAndMedium} {
+  @media (max-width: 1044px) {
     display: none;
   }
 `;
@@ -101,7 +106,11 @@ const EachLink = styled.a`
   font-size: 1.4rem;
   display: flex;
   align-items: center;
-  text-decoration: ${(props) => props.decoration};
+  font-weight: bold;
+  text-decoration: underline;
+  @media (max-width: 768px) {
+    margin: 0 0.5rem;
+  }
   svg {
     margin-right: 0.5rem;
   }
@@ -121,10 +130,52 @@ const Header = (props) => {
   const [isLogin, setIsLogin] = useState(false);
   const [currentTab, setCurrentTab] = useState('Safes');
   const { location } = props;
+  const [navItems, setNavItems] = useState({});
   const [userName, setUserName] = useState('User');
   const [state, setState] = useState({
     left: false,
   });
+  const [customSafes, setCustomSafes] = useState('');
+  const [svcSafes, setSvcSafes] = useState('');
+
+  const generalNavItems = {
+    customSafesNavItems: [
+      { label: 'Safes', path: 'safes' },
+      { label: 'Vault AppRoles', path: 'vault-app-roles' },
+    ],
+    svcNavItems: [
+      { label: 'AD Service Accounts', path: 'service-accounts' },
+      { label: 'IAM Service Accounts', path: 'iam-service-accounts' },
+      { label: 'Azure Service Principal', path: 'azure-principal' },
+    ],
+  };
+
+  const userPassNavItems = [
+    {
+      customSafesNavItems: [
+        { label: 'Safes', path: 'safes' },
+        { label: 'Vault AppRoles', path: 'vault-app-roles' },
+      ],
+      svcNavItems: [{ label: 'AD Service Accounts', path: 'service-accounts' }],
+    },
+  ];
+
+  const { trackPageView, trackEvent } = useMatomo();
+
+  useEffect(() => {
+    trackPageView();
+    return () => {
+      trackPageView();
+    };
+  }, [trackPageView]);
+
+  const handleOnClick = (label) => {
+    trackEvent({ category: `${label}-tab`, action: 'click-event' });
+    if (label === 'Certificates') {
+      setCustomSafes('');
+      setSvcSafes('');
+    }
+  };
 
   const toggleDrawer = (anchor, open) => (event) => {
     if (
@@ -136,29 +187,29 @@ const Header = (props) => {
     }
     setState({ ...state, [anchor]: open });
   };
-  const navItems = [
-    { label: 'Safes', path: 'safes' },
-    { label: 'Vault AppRoles', path: 'vault-app-roles' },
-    { label: 'Service Accounts', path: 'service-accounts' },
-    { label: 'Certificates', path: 'certificates' },
-    {label:"IAM Service Accounts", path:"iam-service-accounts"}
-  ];
+
+  useEffect(() => {
+    if (configData.AUTH_TYPE === 'userpass') {
+      setNavItems(userPassNavItems);
+    } else {
+      setNavItems(generalNavItems);
+    }
+    // eslint-disable-next-line
+  }, []);
 
   const hideSideMenu = (anchor, open) => {
     setState({ ...state, [anchor]: open });
   };
 
   const checkToken = () => {
-    const loggedIn = sessionStorage.getItem('token');
-    if (loggedIn) {
-      setIsLogin(true);
-      const name = sessionStorage.getItem('displayName');
-      if (name) {
-        const str = name?.split(',');
-        setUserName(`${str[1]} ${str[0]}` || 'User');
-      }
-    } else {
+    if (window.location.pathname === '/') {
       setIsLogin(false);
+    } else {
+      setIsLogin(true);
+    }
+    const name = sessionStorage.getItem('username');
+    if (name !== null) {
+      setUserName(`${name}` || 'User');
     }
   };
 
@@ -166,7 +217,36 @@ const Header = (props) => {
     checkToken();
     const path = location.pathname.split('/');
     setCurrentTab(path[1]);
-  }, [location]);
+    Object.keys(navItems).map((item) => {
+      return navItems[item].map((ele) => {
+        if (path[1] === ele.path) {
+          if (item === 'customSafesNavItems') {
+            setCustomSafes(ele.label);
+            setSvcSafes('');
+          } else {
+            setSvcSafes(ele.label);
+            setCustomSafes('');
+          }
+        }
+        return null;
+      });
+    });
+  }, [location, navItems]);
+
+  const onSelectChange = (ele, type) => {
+    navItems[type].map((item) => {
+      if (item.label === ele) {
+        if (type === 'customSafesNavItems') {
+          setCustomSafes(ele);
+          setSvcSafes('');
+        } else {
+          setSvcSafes(ele);
+          setCustomSafes('');
+        }
+      }
+      return null;
+    });
+  };
 
   return (
     <ComponentError>
@@ -194,6 +274,7 @@ const Header = (props) => {
                   EachLink={EachLink}
                   DescriptionIcon={DescriptionIcon}
                   currentTab={currentTab}
+                  configData={configData}
                 />
               </SwipeableDrawer>
             </>
@@ -202,17 +283,39 @@ const Header = (props) => {
           <TVaultIcon src={vaultIcon} alt="tvault-logo" />
           {isLogin && (
             <HeaderCenter>
-              {navItems &&
-                navItems.map((item) => (
-                  <NavLink
-                    key={item.label}
-                    to={`/${item.path}`}
-                    component={RRDLink}
-                    active={currentTab === item.path ? 'true' : 'false'}
-                  >
-                    {item.label}
-                  </NavLink>
-                ))}
+              <HeaderSelectComponent
+                menu={[...navItems.customSafesNavItems]}
+                value={customSafes}
+                filledText="Custom Safes"
+                selectedNav={customSafes !== ''}
+                onChange={(e) => {
+                  onSelectChange(e, 'customSafesNavItems');
+                  handleOnClick(e);
+                }}
+                width="17rem"
+              />
+              {configData.AUTH_TYPE !== 'userpass' && (
+                <NavLink
+                  key="Certificates"
+                  to="/certificates"
+                  onClick={() => handleOnClick('Certificates')}
+                  component={RRDLink}
+                  active={currentTab === 'certificates' ? 'true' : 'false'}
+                >
+                  Certificates
+                </NavLink>
+              )}
+              <HeaderSelectComponent
+                menu={[...navItems.svcNavItems]}
+                value={svcSafes}
+                filledText="Service Accounts"
+                selectedNav={svcSafes !== ''}
+                onChange={(e) => {
+                  onSelectChange(e, 'svcNavItems');
+                  handleOnClick(e);
+                }}
+                width="20rem"
+              />
             </HeaderCenter>
           )}
           <>
@@ -226,7 +329,10 @@ const Header = (props) => {
                   Docs
                 </EachLink>
                 <EachLink
-                  href="https://perf-vault.corporate.t-mobile.com/vault/swagger-ui.html"
+                  href={`${configUrl.baseUrl.replace(
+                    '/vault/v2',
+                    ''
+                  )}/vault/swagger-ui.html`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -236,7 +342,10 @@ const Header = (props) => {
             ) : (
               <ProfileIconWrap>
                 <EachLink
-                  href={configData.DOCS_LINK}
+                  href={`${configUrl.baseUrl.replace(
+                    '/vault/v2',
+                    ''
+                  )}/vault/swagger-ui.html`}
                   target="_blank"
                   rel="noopener noreferrer"
                   decoration="none"

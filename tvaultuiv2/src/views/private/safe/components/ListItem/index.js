@@ -11,6 +11,7 @@ const FolderWrap = styled('div')`
   position: relative;
   display: flex;
   width: 100%;
+  height: 4rem;
   text-decoration: none;
   align-items: center;
   justify-content: space-between;
@@ -30,6 +31,7 @@ const SafeAvatarWrap = styled.div`
 `;
 const Flag = styled('span')`
   opacity: 1;
+  color: #a2a1a1;
   font-size: ${(props) => props.fontSize};
   font-style: ${(props) => (props.fontStyle ? props.fontStyle : '')};
 `;

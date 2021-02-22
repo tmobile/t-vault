@@ -15,6 +15,9 @@ const AutoCompleteField = styled(Autocomplete)`
     .MuiAutocomplete-input {
     padding-left: 0;
   }
+  .MuiAutocomplete-inputRoot[class*='MuiFilledInput-root'] {
+    padding-left: 1.5rem;
+  }
   .MuiFilledInput-root.Mui-focused {
     background-color: #fff;
   }
@@ -44,6 +47,8 @@ const AutoCompleteComponent = (props) => {
     onInputBlur,
     name,
     helperText,
+    onKeyDown,
+    disabled,
   } = props;
 
   return (
@@ -54,7 +59,8 @@ const AutoCompleteComponent = (props) => {
       forcePopupIcon={false}
       className={classes || ''}
       onChange={onSelected}
-      inputValue={searchValue}
+      disabled={disabled}
+      inputValue={searchValue === null ? '' : searchValue}
       onInputChange={(e) => onChange(e)}
       renderInput={(params) => (
         <TextField
@@ -67,6 +73,7 @@ const AutoCompleteComponent = (props) => {
           name={name}
           error={error}
           helperText={helperText}
+          onKeyDown={onKeyDown}
           InputProps={{
             ...params.InputProps,
             startAdornment: (
@@ -93,6 +100,8 @@ AutoCompleteComponent.propTypes = {
   helperText: PropTypes.string,
   error: PropTypes.bool,
   name: PropTypes.string,
+  onKeyDown: PropTypes.func,
+  disabled: PropTypes.bool,
 };
 
 AutoCompleteComponent.defaultProps = {
@@ -104,6 +113,8 @@ AutoCompleteComponent.defaultProps = {
   name: '',
   error: false,
   onInputBlur: () => {},
+  onKeyDown: () => {},
+  disabled: false,
 };
 
 setIcon.propTypes = {

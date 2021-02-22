@@ -16,6 +16,7 @@ import CertificateInformation from '../CertificateInformation';
 import CertificatePermission from '../CertificatePermission';
 import Download from '../CertificateInformation/components/Download';
 import SnackbarComponent from '../../../../../components/Snackbar';
+import { getEachUsersDetails } from '../../../../../services/helper-function';
 // import { UserContext } from '../../../../../contexts';
 // styled components goes here
 
@@ -99,6 +100,7 @@ const CertificateSelectionTabs = (props) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [hasPermission, setHasPermission] = useState(false);
   const [toastResponse, setToastResponse] = useState(null);
+  const [userDetails, setUserDetails] = useState([]);
 
   const [state] = useStateValue();
   // const contextObj = useContext(UserContext);
@@ -107,16 +109,26 @@ const CertificateSelectionTabs = (props) => {
     setValue(newValue);
   };
 
+  const getEachUser = async (data) => {
+    const eachUsersDetails = await getEachUsersDetails(data);
+    if (eachUsersDetails !== null) {
+      setUserDetails([...eachUsersDetails]);
+    }
+    setResponse({ status: 'success' });
+  };
+
   const getAllCertificateDetail = () => {
     setResponse({ status: 'loading' });
+    setUserDetails([]);
     const url = `/sslcert?certificateName=${certificateDetail.certificateName}&certType=${certificateDetail.certType}`;
     apiService
       .getCertificateDetail(url)
-      .then((res) => {
-        setResponse({ status: 'success' });
+      .then(async (res) => {
         if (res.data.keys && res.data.keys[0]) {
+          await getEachUser(res.data.keys[0].users);
           setCertificateMetaData({ ...res.data.keys[0] });
         } else if (res.data) {
+          await getEachUser(res.data);
           setCertificateMetaData({ ...res.data });
         } else {
           setCertificateMetaData({});
@@ -134,17 +146,20 @@ const CertificateSelectionTabs = (props) => {
 
   const fetchCertificateDetail = () => {
     setResponse({ status: 'loading' });
+    setUserDetails([]);
     const url = `/sslcert/certificate/${certificateDetail.certType}?certificate_name=${certificateDetail.certificateName}`;
     apiService
       .getCertificateDetail(url)
       .then((res) => {
-        setResponse({ status: 'success' });
         if (res.data.keys && res.data.keys[0]) {
           setCertificateMetaData({ ...res.data.keys[0] });
+          getEachUser(res.data.keys[0].users);
         } else if (res.data) {
           setCertificateMetaData({ ...res.data });
+          getEachUser(res.data);
         } else {
           setCertificateMetaData({});
+          setResponse({ status: 'success' });
         }
       })
       .catch((err) => {
@@ -157,70 +172,35 @@ const CertificateSelectionTabs = (props) => {
       });
   };
 
-  /**
-   * @function checkCertStatus
-   * @description function to check the status of revoked certificate.
-   */
-  const checkCertStatus = () => {
-    setResponse({ status: 'loading' });
-    let url = '';
-    if (certificateDetail.certificateStatus === 'Revoked') {
-      url = `/sslcert/checkstatus/${certificateDetail.certificateName}/${certificateDetail.certType}`;
-    } else {
-      url = `/sslcert/validate/${certificateDetail.certificateName}/${certificateDetail.certType}`;
-    }
-    apiService
-      .checkCertificateStatus(url)
-      .then(() => {
-        setResponse({ status: 'success' });
-        setCertificateMetaData({ ...certificateDetail });
-      })
-      .catch((err) => {
-        if (err?.response?.data?.errors && err.response.data.errors[0]) {
-          if (
-            err.response.data.errors[0] ===
-            'Certificate is in Revoke Requested status'
-          ) {
-            setResponse({ status: 'success' });
-            setCertificateMetaData({ ...certificateDetail });
-          } else {
-            setErrorMessage(err.response.data.errors[0]);
-            setResponse({ status: 'error' });
-            setHasPermission(false);
-            setValue(0);
-          }
-        }
-      });
-  };
-
   useEffect(() => {
     if (Object.keys(certificateDetail).length > 0) {
-      if (!certificateDetail?.applicationName) {
-        fetchCertificateDetail();
-      } else if (
-        certificateDetail.certificateStatus === 'Revoked' ||
-        !certificateDetail.certificateStatus
+      if (
+        !certificateDetail?.applicationName &&
+        !certificateDetail.isOnboardCert
       ) {
-        checkCertStatus();
+        setCertificateMetaData({});
+        fetchCertificateDetail();
       } else {
-        setResponse({ status: 'success' });
         setCertificateMetaData({ ...certificateDetail });
+        if (
+          certificateDetail?.certOwnerNtid?.toLowerCase() ===
+          state?.username?.toLowerCase()
+        ) {
+          getEachUser(certificateDetail?.users);
+        } else {
+          setResponse({ status: 'success' });
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [certificateDetail]);
 
   useEffect(() => {
-    if (
-      certificateMetaData?.users &&
-      Object.keys(certificateMetaData.users).length > 0
-    ) {
-      const available = Object.keys(certificateMetaData.users).find(
-        (key) =>
-          certificateMetaData.users[key] === 'write' &&
-          key.toLowerCase() === state.username.toLowerCase()
-      );
-      if (available) {
+    if (certificateMetaData && Object.keys(certificateMetaData).length > 0) {
+      if (
+        certificateMetaData?.certOwnerNtid?.toLowerCase() ===
+        state?.username?.toLowerCase()
+      ) {
         setHasPermission(true);
       } else {
         setValue(0);
@@ -231,6 +211,12 @@ const CertificateSelectionTabs = (props) => {
       setValue(0);
     }
   }, [certificateMetaData, state]);
+
+  const certName = certificateDetail?.certificateName;
+
+  useEffect(() => {
+    setValue(0);
+  }, [certName]);
 
   const onDownloadChange = (status, val) => {
     setResponse({ status });
@@ -259,18 +245,24 @@ const CertificateSelectionTabs = (props) => {
               label="Certificate"
               {...a11yProps(0)}
             />
-            {hasPermission && <Tab label="Permissions" {...a11yProps(1)} />}
+            {hasPermission && certificateDetail.certificateStatus && (
+              <Tab label="Permissions" {...a11yProps(1)} />
+            )}
           </Tabs>
-          {value === 0 && certificateMetaData.applicationName && (
-            <DownLoadWrap>
-              <Download
-                certificateMetaData={certificateMetaData}
-                onDownloadChange={(status, val) =>
-                  onDownloadChange(status, val)
-                }
-              />
-            </DownLoadWrap>
-          )}
+          {value === 0 &&
+            certificateMetaData.applicationName &&
+            certificateDetail.certificateStatus &&
+            certificateDetail?.certificateStatus?.toLowerCase() !==
+              'waiting' && (
+              <DownLoadWrap>
+                <Download
+                  certificateMetaData={certificateMetaData}
+                  onDownloadChange={(status, val) =>
+                    onDownloadChange(status, val)
+                  }
+                />
+              </DownLoadWrap>
+            )}
         </AppBar>
         <TabContentsWrap>
           <TabPanel value={value} index={0}>
@@ -278,6 +270,7 @@ const CertificateSelectionTabs = (props) => {
               responseStatus={response.status}
               certificateMetaData={certificateMetaData}
               errorMessage={errorMessage}
+              certificateDetail={certificateDetail}
             />
           </TabPanel>
           <TabPanel value={value} index={1}>
@@ -285,7 +278,9 @@ const CertificateSelectionTabs = (props) => {
               responseStatus={response.status}
               certificateMetaData={certificateMetaData}
               fetchDetail={getAllCertificateDetail}
+              userDetails={userDetails}
               username={state.username}
+              selectedParentTab={value}
             />
           </TabPanel>
         </TabContentsWrap>

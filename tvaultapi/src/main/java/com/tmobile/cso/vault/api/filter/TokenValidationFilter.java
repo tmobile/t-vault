@@ -61,6 +61,9 @@ public class TokenValidationFilter extends GenericFilterBean {
 	@Value("${ad.passwordrotation.enable:true}")
 	private boolean isAdPswdRotationEnabled;
 
+	@Value("${vault.auth.method}")
+	private String vaultAuthMethod;
+
 	public TokenValidationFilter() {
 	}
 
@@ -81,7 +84,7 @@ public class TokenValidationFilter extends GenericFilterBean {
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "TokenValidationFilter - doFilter").
-				put(LogMessage.MESSAGE, String.format ("Validating token")).
+				put(LogMessage.MESSAGE, "Validating token").
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
 		if (!StringUtils.isEmpty(clientToken) && !"null".equalsIgnoreCase(clientToken)) {
@@ -104,7 +107,7 @@ public class TokenValidationFilter extends GenericFilterBean {
 					put(LogMessage.MESSAGE, String.format ("Generating SelfService token for the user [%s]", vaultTokenLookupDetails.getUsername())).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			if (!vaultTokenLookupDetails.isAdmin() && isSelfServiceEnabled) {
+			if (isSelfServiceEnabled) {
 				userDetails.setSelfSupportToken(tokenUtils.getSelfServiceToken());
 			}
 			userDetails.setPolicies(vaultTokenLookupDetails.getPolicies());
@@ -112,6 +115,12 @@ public class TokenValidationFilter extends GenericFilterBean {
 			userDetails.setSudoPolicies(null); //TODO: Pre-flight
 			userDetails.setUsername(vaultTokenLookupDetails.getUsername());
 			userDetails.setLeaseDuration(null); //TODO: Pre-flight
+			if (TVaultConstants.OIDC.equals(vaultAuthMethod)) {
+				userDetails.setEmail(vaultTokenLookupDetails.getEmail());
+			}
+
+			ThreadLocalContext.getCurrentMap().put(LogMessage.USER, userDetails.getUsername());
+
 			((HttpServletRequest) request).setAttribute("UserDetails", userDetails);
 		}
 		// Skip the request if requested feature is disabled

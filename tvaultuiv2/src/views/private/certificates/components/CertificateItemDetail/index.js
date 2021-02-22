@@ -24,11 +24,12 @@ const ColumnHeader = styled('div')`
   position: relative;
   height: 17.1rem;
   padding: 2rem;
+  background-color: #151820;
   .list-title-wrap {
-    width: 60%;
+    width: 67%;
     z-index: 2;
     ${mediaBreakpoints.small} {
-      width: 70%;
+      // width: 60%;
       margin-top: 2rem;
     }
   }
@@ -50,7 +51,6 @@ const BackButton = styled.div`
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    text-transform: capitalize;
     font-size: 1.8rem;
     font-weight: bold;
   }
@@ -76,7 +76,6 @@ const ListTitle = styled('h5')`
   margin: 1rem 0 1.2rem;
   text-overflow: ellipsis;
   overflow: hidden;
-  text-transform: capitalize;
   word-break: break-all;
   width: 100%;
   text-overflow: ellipsis;
@@ -99,16 +98,14 @@ const CertificateItemDetail = (props) => {
         {isMobileScreen ? (
           <BackButton onClick={goBackToList}>
             <BackArrow />
-            <span>{name !== 'N/A' ? name : 'No Certificates Added'}</span>
+            <span>{name !== 'N/A' ? name : '...'}</span>
           </BackButton>
         ) : null}
         <ColumnHeader>
           <HeaderBg bgImage={ListDetailHeaderBg} />
           <div className="list-title-wrap">
             {!isMobileScreen && (
-              <ListTitle>
-                {name !== 'N/A' ? name : 'No Certificates Added'}
-              </ListTitle>
+              <ListTitle>{name !== 'N/A' ? name : '...'}</ListTitle>
             )}
             <TitleThree color="#c4c4c4">
               {Strings.Resources.certificateDesc}

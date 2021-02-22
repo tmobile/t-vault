@@ -15,7 +15,7 @@ const Styles = (props) => ({
     zIndex: theme.zIndex.modal + 10,
     color: '#fff',
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
-
+    position: 'absolute',
     ...props.muiBackdropOverides,
   },
 });
@@ -29,7 +29,7 @@ const BackdropLoader = (props) => {
 };
 BackdropLoader.propTypes = {
   color: PropTypes.string,
-  classes: PropTypes.objectOf(PropTypes.object),
+  classes: PropTypes.objectOf(PropTypes.any),
 };
 BackdropLoader.defaultProps = {
   color: 'secondary',

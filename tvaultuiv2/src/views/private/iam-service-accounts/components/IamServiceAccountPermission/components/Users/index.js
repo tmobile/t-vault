@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-indent */
 import React, { useState, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
@@ -11,27 +11,12 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import PermissionsList from '../../../../../../../components/PermissionsList';
-import Strings from '../../../../../../../resources';
 import { checkAccess } from '../../../../../../../services/helper-function';
+import UserPermissionsList from '../../../../../../../components/UserPermissionsList';
+import Error from '../../../../../../../components/Error';
+import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
-
-const NoDataWrapper = styled.section`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-
-  p {
-    ${small} {
-      margin-top: 2rem;
-      margin-bottom: 4rem;
-      width: 75%;
-    }
-  }
-`;
 
 const bgIconStyle = {
   width: '10rem',
@@ -60,6 +45,9 @@ const Users = (props) => {
     accountMetaData,
     updateToastMessage,
     refresh,
+    userDetails,
+    permissionResponse,
+    selectedParentTab,
   } = props;
 
   const [editUser, setEditUser] = useState('');
@@ -67,16 +55,10 @@ const Users = (props) => {
   const [response, setResponse] = useState({ status: 'loading' });
   const isMobileScreen = useMediaQuery(small);
 
-  // on svc account meta data is available.
+  // on iam svc account meta data is available.
   useEffect(() => {
-    if (accountMetaData && Object.keys(accountMetaData).length !== 0) {
-      if (Object.keys(accountMetaData?.response).length !== 0) {
-        setResponse({ status: 'success' });
-      }
-    } else {
-      setResponse({ status: '' });
-    }
-  }, [accountMetaData]);
+    setResponse({ status: permissionResponse });
+  }, [permissionResponse]);
 
   // When add permission button is clicked.
   useEffect(() => {
@@ -87,7 +69,7 @@ const Users = (props) => {
 
   /**
    * @function onDeleteClick
-   * @description function to delete the user from the svc account users list.
+   * @description function to delete the user from the iam svc account users list.
    * @param {username} string username of the user.
    * @param {access} string permission of the user.
    */
@@ -118,7 +100,7 @@ const Users = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the user to the svc account users list.
+   * @description function to save the user to the iam svc account users list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {
@@ -172,8 +154,9 @@ const Users = (props) => {
     setResponse({ status: 'loading' });
     const payload = {
       access: checkAccess(access, 'iamsvcaccount'),
-      svcAccName: accountDetail.name,
-      username,
+      awsAccountId: `${accountDetail.iamAccountId}`,
+      username: username.toLowerCase(),
+      iamSvcAccName: `${accountDetail.name}`,
     };
     apiService
       .deleteUserPermission(payload)
@@ -208,13 +191,20 @@ const Users = (props) => {
    */
   const onEditClick = (key, value) => {
     if (value === 'write') {
-      setEditAccess('reset');
+      setEditAccess('rotate');
     } else {
       setEditAccess(value);
     }
     setEditUser(key);
     setResponse({ status: 'edit' });
   };
+
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      onCancelClicked();
+    }
+    // eslint-disable-next-line
+  }, [selectedParentTab]);
 
   return (
     <ComponentError>
@@ -224,10 +214,10 @@ const Users = (props) => {
         )}
         {response.status === 'add' && (
           <AddUser
+            users={accountMetaData?.response?.users}
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
-            refresh={refresh}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'edit' && (
@@ -236,28 +226,30 @@ const Users = (props) => {
             handleCancelClick={onCancelClicked}
             username={editUser}
             access={editAccess}
-            refresh={refresh}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
         {response.status === 'success' &&
-          accountMetaData &&
-          accountMetaData.response && (
+          accountMetaData?.response &&
+          Object.keys(accountMetaData?.response).length > 0 && (
             <>
-              {Object.keys(accountMetaData.response?.users).length > 0 && (
-                <PermissionsList
-                  list={accountMetaData.response.users}
-                  isIamSvcAccount
-                  onEditClick={(key, value) => onEditClick(key, value)}
-                  onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                />
-              )}
-              {(!accountMetaData.response.users ||
+              {Object.keys(accountMetaData?.response?.users).length > 0 &&
+                userDetails?.length > 0 && (
+                  <UserPermissionsList
+                    list={accountMetaData.response.users}
+                    isIamAzureSvcAccount
+                    onEditClick={(key, value) => onEditClick(key, value)}
+                    onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                    userDetails={userDetails}
+                  />
+                )}
+              {(!accountMetaData?.response?.users ||
+                userDetails.length === 0 ||
                 Object.keys(accountMetaData.response.users).length === 0) && (
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description={Strings.Resources.noUsersPermissionFound}
+                    description={'No <strong>Users</strong> are given permission to access this IAM service account, add users to access the account.'}
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent
@@ -275,6 +267,11 @@ const Users = (props) => {
               )}
             </>
           )}
+        {response.status === 'error' && (
+          <Error
+            description={accountMetaData.error || 'Something went wrong!'}
+          />
+        )}
       </>
     </ComponentError>
   );
@@ -287,5 +284,8 @@ Users.propTypes = {
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
+  permissionResponse: PropTypes.string.isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 export default Users;

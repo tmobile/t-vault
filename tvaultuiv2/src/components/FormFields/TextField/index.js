@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-duplicate-props */
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -24,8 +25,11 @@ const StyleTextField = styled(TextField)`
       props.primary === 'primary' ? '#fff' : '#20232e'};
   }
   .MuiFormHelperText-root.Mui-error {
-    font-size: 1.2rem;
-    margin: 1rem 0 0;
+    font-size: 1.3rem;
+  }
+  .MuiFilledInput-multiline {
+    height: auto;
+    padding: 1.5rem 1.5rem;
   }
 `;
 
@@ -54,6 +58,7 @@ const TextFieldComponent = (props) => {
     name,
     readOnly,
     onKeyDown,
+    characterLimit,
   } = props;
 
   return (
@@ -75,6 +80,7 @@ const TextFieldComponent = (props) => {
       onBlur={onInputBlur}
       onKeyDown={onKeyDown}
       autoComplete="off"
+      inputProps={{ maxLength: characterLimit, 'data-testid': `${name}` }}
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
@@ -92,7 +98,8 @@ TextFieldComponent.propTypes = {
   placeholder: PropTypes.string.isRequired,
   onChange: PropTypes.func,
   onInputBlur: PropTypes.func,
-  value: PropTypes.string,
+  // eslint-disable-next-line react/forbid-prop-types
+  value: PropTypes.any.isRequired,
   multiline: PropTypes.bool,
   fullWidth: PropTypes.bool,
   color: PropTypes.string,
@@ -104,11 +111,11 @@ TextFieldComponent.propTypes = {
   name: PropTypes.string,
   readOnly: PropTypes.bool,
   onKeyDown: PropTypes.func,
+  characterLimit: PropTypes.number,
 };
 
 TextFieldComponent.defaultProps = {
   icon: '',
-  value: '',
   name: '',
   multiline: false,
   fullWidth: false,
@@ -122,6 +129,7 @@ TextFieldComponent.defaultProps = {
   readOnly: false,
   onChange: () => {},
   onKeyDown: () => {},
+  characterLimit: 1024,
 };
 
 setIcon.propTypes = {

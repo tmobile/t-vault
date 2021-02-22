@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-indent */
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
@@ -17,22 +17,9 @@ import AddAwsApplicationModal from '../../../../../../../components/AddAwsApplic
 import EditAwsApplication from '../../../../../../../components/EditAwsApplication';
 import Strings from '../../../../../../../resources';
 import { checkAccess } from '../../../../../../../services/helper-function';
+import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
-
-const NoDataWrapper = styled.section`
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  p {
-    ${small} {
-      margin-top: 2rem;
-      margin-bottom: 4rem;
-      width: 75%;
-    }
-  }
-`;
 
 const bgIconStyle = {
   width: '10rem',
@@ -61,6 +48,7 @@ const AwsApplications = (props) => {
     onNewAwsChange,
     newAwsApplication,
     updateToastMessage,
+    selectedParentTab,
   } = props;
 
   const [editAws, setEditAws] = useState('');
@@ -230,6 +218,13 @@ const AwsApplications = (props) => {
     setResponse({ status: 'edit' });
   };
 
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      onCancelClicked();
+    }
+    // eslint-disable-next-line
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
       <>
@@ -239,6 +234,7 @@ const AwsApplications = (props) => {
         {response.status === 'add' && (
           <AddAwsApplicationModal
             open
+            roles={accountMetaData?.response['aws-roles']}
             handleSaveClick={(data, access) => onSubmit(data, access)}
             handleCancelClick={onCancelClicked}
             handleModalClose={() => onCancelClicked()}
@@ -257,7 +253,7 @@ const AwsApplications = (props) => {
           />
         )}
         {accountMetaData &&
-          accountMetaData.response &&
+          accountMetaData?.response &&
           response.status === 'success' && (
             <>
               {accountMetaData.response['aws-roles'] &&
@@ -276,7 +272,7 @@ const AwsApplications = (props) => {
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description={Strings.Resources.noAwsPermissionFound}
+                    description={Strings.Resources.noAwsPermissionFoundSvcAcc}
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent
@@ -311,5 +307,6 @@ AwsApplications.propTypes = {
   newAwsApplication: PropTypes.bool.isRequired,
   onNewAwsChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 export default AwsApplications;

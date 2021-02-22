@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-indent */
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
@@ -15,23 +15,9 @@ import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../../../components/Error';
 import { checkAccess } from '../../../../../../../services/helper-function';
-import Strings from '../../../../../../../resources';
+import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
-
-const NoDataWrapper = styled.section`
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  p {
-    ${small} {
-      margin-top: 2rem;
-      margin-bottom: 4rem;
-      width: 75%;
-    }
-  }
-`;
 
 const bgIconStyle = {
   width: '10rem',
@@ -56,10 +42,12 @@ const Groups = (props) => {
   const {
     accountDetail,
     accountMetaData,
-    fetchPermission,
+    refresh,
     onNewGroupChange,
     newGroup,
+    permissionResponse,
     updateToastMessage,
+    selectedParentTab,
   } = props;
 
   const [editGroup, setEditGroup] = useState('');
@@ -68,21 +56,10 @@ const Groups = (props) => {
 
   const isMobileScreen = useMediaQuery(small);
 
-  // on svc account meta data is available.
+  // on iam svc account meta data is available.
   useEffect(() => {
-    if (
-      accountMetaData?.response &&
-      Object.keys(accountMetaData.response).length !== 0
-    ) {
-      if (Object.keys(accountMetaData?.response).length !== 0) {
-        setResponse({ status: 'success' });
-      } else if (accountMetaData.error !== '') {
-        setResponse({ status: 'error' });
-      }
-    } else {
-      setResponse({ status: '' });
-    }
-  }, [accountMetaData]);
+    setResponse({ status: permissionResponse });
+  }, [permissionResponse]);
 
   // When add group button is clicked.
   useEffect(() => {
@@ -93,7 +70,7 @@ const Groups = (props) => {
 
   /**
    * @function onDeleteClick
-   * @description function to delete the group from the svc account group list.
+   * @description function to delete the group from the iam svc account group list.
    * @param {username} string groupname of the group.
    * @param {access} string permission of the group.
    */
@@ -111,7 +88,7 @@ const Groups = (props) => {
         if (res?.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -124,7 +101,7 @@ const Groups = (props) => {
 
   /**
    * @function onSaveClicked
-   * @description function to save the group to the svc account groups list.
+   * @description function to save the group to the iam svc account groups list.
    * @param {data} object payload to call api.
    */
   const onSaveClicked = (data) => {
@@ -135,7 +112,7 @@ const Groups = (props) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -210,13 +187,20 @@ const Groups = (props) => {
    */
   const onEditClick = (key, value) => {
     if (value === 'write') {
-      setEditAccess('reset');
+      setEditAccess('rotate');
     } else {
       setEditAccess(value);
     }
     setEditGroup(key);
     setResponse({ status: 'edit' });
   };
+
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      onCancelClicked();
+    }
+    // eslint-disable-next-line
+  }, [selectedParentTab]);
 
   return (
     <ComponentError>
@@ -226,9 +210,10 @@ const Groups = (props) => {
         )}
         {response.status === 'add' && (
           <AddGroup
+            groups={accountMetaData?.response?.groups}
             handleSaveClick={(group, access) => onSubmit(group, access)}
             handleCancelClick={onCancelClicked}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
 
@@ -240,7 +225,7 @@ const Groups = (props) => {
             handleCancelClick={onCancelClicked}
             groupname={editGroup}
             access={editAccess}
-            isSvcAccount
+            isIamAzureSvcAccount
           />
         )}
         {accountMetaData &&
@@ -253,7 +238,7 @@ const Groups = (props) => {
                     list={accountMetaData.response.groups}
                     onEditClick={(key, value) => onEditClick(key, value)}
                     onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                    isIamSvcAccount
+                    isIamAzureSvcAccount
                   />
                 )}
               {(!accountMetaData.response.groups ||
@@ -261,7 +246,7 @@ const Groups = (props) => {
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description={Strings.Resources.noGroupsPermissionFound}
+                    description={'No <strong>Groups</strong> are given permission to access this IAM service account, add groups to access the account.'}
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent
@@ -292,9 +277,11 @@ const Groups = (props) => {
 Groups.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
+  refresh: PropTypes.func.isRequired,
   newGroup: PropTypes.bool.isRequired,
   onNewGroupChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  permissionResponse: PropTypes.string.isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 export default Groups;

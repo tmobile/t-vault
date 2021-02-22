@@ -4,19 +4,20 @@ import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { Route, Switch, Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import { useIdleTimer } from 'react-idle-timer';
-
+import * as msal from '@azure/msal-browser';
 import Safe from './private/safe';
 import ScaledLoader from '../components/Loaders/ScaledLoader';
 import { UserContextProvider } from '../contexts';
 import { revokeToken, renewToken } from './public/HomePage/utils';
-import { addLeadingZeros } from '../services/helper-function';
 import configData from '../config/config';
+import configUrl from '../config/index';
 
 const Home = lazy(() => import('./public/HomePage'));
 const VaultAppRoles = lazy(() => import('./private/vault-app-roles'));
 const Certificates = lazy(() => import('./private/certificates'));
 const ServiceAccounts = lazy(() => import('./private/service-accounts'));
 const IamServiceAccounts = lazy(() => import('./private/iam-service-accounts'));
+const AzurePrincipal = lazy(() => import('./private/azureprincipal'));
 
 const LoaderWrap = styled('div')`
   height: 100vh;
@@ -32,37 +33,25 @@ const Wrapper = styled.section`
 
 const PrivateRoutes = () => {
   const [idleTimer] = useState(1000 * 60 * 3);
-  const [timeWhenLoggedIn] = useState(new Date().getTime());
-  const [endTime, setEndTime] = useState(
-    new Date(new Date().getTime() + 30 * 60 * 1000)
+  const [timeWhenLoggedIn, setTimeWhenLoggedIn] = useState(
+    new Date().getTime()
   );
+  const [startingMinutes, setStartingMinutes] = useState(27);
 
-  const calculateCountdown = () => {
-    let diff = (Date.parse(endTime) - Date.parse(new Date())) / 1000;
-    if (diff <= 0) return false;
-    const timeLeft = {
-      min: 0,
-      sec: 0,
-    };
-    if (diff >= 60) {
-      timeLeft.min = Math.floor(diff / 60);
-      diff -= timeLeft.min * 60;
-    }
-    timeLeft.sec = diff;
-    return timeLeft;
-  };
+  let timerVal = startingMinutes * 60;
 
   const countDownTimer = () => {
     let timeStamp;
     const initCountdown = () => {
       timeStamp = setInterval(() => {
-        const dateVal = calculateCountdown();
-        if (dateVal.min === 0 && dateVal.sec <= 1) {
+        const minutes = Math.floor(timerVal / 60);
+        let seconds = timerVal % 60;
+        seconds = seconds < 10 ? `0${seconds}` : seconds;
+        if (timerVal === 0) {
           loggedOut();
-        } else if (dateVal !== false) {
-          document.title = `${dateVal.min}:${addLeadingZeros(
-            dateVal.sec
-          )} until your session timeout!`;
+        } else {
+          document.title = `${minutes}:${seconds} until your session timeout!`;
+          timerVal -= 1;
         }
       }, 1000);
     };
@@ -83,7 +72,19 @@ const PrivateRoutes = () => {
   const loggedOut = async () => {
     document.title = 'Your session has expired.';
     timer.cancelCountdown();
-    await revokeToken();
+    if (configData.AUTH_TYPE === 'oidc') {
+      const config = {
+        auth: {
+          clientId: sessionStorage.getItem('clientId'),
+          redirectUri: configUrl.redirectUrl, // defaults to application start page
+          postLogoutRedirectUri: configUrl.redirectUrl,
+        },
+      };
+
+      const myMsal = new msal.PublicClientApplication(config);
+      myMsal.logout();
+      await revokeToken();
+    }
     window.location.href = '/';
     sessionStorage.clear();
   };
@@ -94,38 +95,55 @@ const PrivateRoutes = () => {
     }
   };
 
+  const callRenewApi = async () => {
+    setStartingMinutes(27);
+    try {
+      await renewToken();
+    } catch (err) {
+      loggedOut();
+    }
+  };
+
+  // when idle
   const handleOnActive = async () => {
     if (window.location.pathname !== '/' && configData.AUTH_TYPE === 'oidc') {
       if (getRemainingTime() === 0) {
         document.title = 'VAULT';
         timer.cancelCountdown();
-        try {
-          await renewToken();
-        } catch (err) {
-          loggedOut();
-        }
-        setEndTime(new Date(new Date().getTime() + 30 * 60 * 1000));
+        setTimeWhenLoggedIn(new Date().getTime());
+        await callRenewApi();
       }
     }
   };
 
-  const handleOnAction = () => {
+  const handleOnAction = async () => {
     if (window.location.pathname !== '/') {
-      const diff = Math.abs(timeWhenLoggedIn - getLastActiveTime());
+      const lastActive = getLastActiveTime();
+      const lastIdle = getLastIdleTime();
+      const diffBetweenLastIdle = (lastActive - lastIdle) / 60000;
+      const diff = Math.abs(timeWhenLoggedIn - lastActive);
       const minutes = diff / 60000;
       if (configData.AUTH_TYPE !== 'oidc' && minutes > 30) {
         loggedOut();
+      } else if (
+        configData.AUTH_TYPE === 'oidc' &&
+        minutes > 27 &&
+        diffBetweenLastIdle > 30
+      ) {
+        setTimeWhenLoggedIn(new Date().getTime());
+        await callRenewApi();
       }
     }
   };
 
-  const { getRemainingTime, getLastActiveTime } = useIdleTimer({
-    timeout: idleTimer,
-    onIdle: handleOnIdle,
-    onActive: handleOnActive,
-    onAction: handleOnAction,
-    debounce: 250,
-  });
+  const { getRemainingTime, getLastActiveTime, getLastIdleTime } = useIdleTimer(
+    {
+      timeout: idleTimer,
+      onIdle: handleOnIdle,
+      onActive: handleOnActive,
+      onAction: handleOnAction,
+    }
+  );
 
   return (
     <UserContextProvider>
@@ -174,6 +192,14 @@ const PrivateRoutes = () => {
             render={(routeProps) => (
               <Wrapper>
                 <Safe routeProps={routeProps} />
+              </Wrapper>
+            )}
+          />
+          <Route
+            path="/azure-principal"
+            render={(routeProps) => (
+              <Wrapper>
+                <AzurePrincipal routeProps={routeProps} />
               </Wrapper>
             )}
           />

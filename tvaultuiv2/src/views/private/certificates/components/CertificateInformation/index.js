@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import Loader from '../../../../../components/Loaders/LoaderSpinner';
 import mediaBreakPoint from '../../../../../breakpoints';
+import accessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
 
 const DetailsWrap = styled.div`
   padding: 0 4rem;
@@ -32,14 +33,12 @@ const Label = styled.p`
 
 const Value = styled.p`
   font-size: 1.6rem;
-  text-transform: capitalize;
+  text-transform: ${(props) => props.capitalize || ''};
 `;
 
 const DnsName = styled.p`
-  border-bottom: 1px solid #5e627c;
   padding: 0.5rem 0;
   font-size: 1.6rem;
-  text-transform: capitalize;
 `;
 
 const customStyle = css`
@@ -50,8 +49,28 @@ const ErrorWrap = styled.div`
   height: 100%;
   display: flex;
   justify-content: center;
+  flex-direction: column;
   align-items: center;
+`;
+
+const AccessDeniedIcon = styled.img`
+  width: 16rem;
+  height: 16rem;
+`;
+function getKeyUsageValue(setKeyValue, certificateType) {
+  if (certificateType === 'internal') {
+    if (setKeyValue === 'client' || setKeyValue === 'Client auth')
+      return 'Client auth';
+    if (setKeyValue === 'server' || setKeyValue === 'Server auth')
+      return 'Server auth';
+    return 'Client Auth , Server Auth';
+  }
+  return 'Client Auth , Server Auth';
+}
+const NoPermission = styled.div`
   color: ${(props) => props.theme.customColor.label.color};
+  text-align: center;
+  margin-top: 2rem;
 `;
 
 const CertificateInformation = (props) => {
@@ -80,72 +99,102 @@ const CertificateInformation = (props) => {
       <>
         {response.status === 'loading' && <Loader customStyle={customStyle} />}
         {response.status === 'success' && (
-          <DetailsWrap>
-            <EachDetail>
-              <Label>Container:</Label>
-              <Value>{certificateMetaData.containerName || 'N/A'}</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Owner Email:</Label>
-              <Value>{certificateMetaData.certOwnerEmailId || 'N/A'}</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Certificate Type:</Label>
-              <Value>{certificateMetaData.certType || 'N/A'}</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Certificate Name:</Label>
-              <Value>{certificateMetaData.certificateName || 'N/A'}</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Aplication Name:</Label>
-              <Value>{certificateMetaData.applicationTag || 'N/A'}</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Validity:</Label>
-              {certificateMetaData?.createDate ? (
-                <Value>
-                  {new Date(certificateMetaData?.createDate).toDateString()}
-                  {' - '}
-                  {new Date(certificateMetaData?.expiryDate).toDateString()}
-                </Value>
-              ) : (
-                <Value>N/A</Value>
-              )}
-            </EachDetail>
-            <EachDetail>
-              <Label>Signature Algorithm:</Label>
-              <Value>SHA256-RSA</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Key Usage:</Label>
-              <Value>digitalSignature, keyEncipherment</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Extended Key Usage:</Label>
-              <Value>serverAuth</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Enroll Service:</Label>
-              <Value>T-Mobile Issuing CA 01 - SHA2</Value>
-            </EachDetail>
-            <EachDetail>
-              <Label>Dns:</Label>
-              {certificateMetaData.dnsNames && dnsNames.length > 0 ? (
-                <>
-                  {dnsNames?.map((item) => {
-                    return (
-                      <DnsName key={item}>{item.replace(/"/g, '')}</DnsName>
-                    );
-                  })}
-                </>
-              ) : (
-                'N/A'
-              )}
-            </EachDetail>
-          </DetailsWrap>
+          <>
+            {!certificateMetaData.isOnboardCert ? (
+              <DetailsWrap>
+                {certificateMetaData?.containerName && (
+                  <EachDetail>
+                    <Label>Container:</Label>
+                    <Value>{certificateMetaData.containerName || 'N/A'}</Value>
+                  </EachDetail>
+                )}
+                <EachDetail>
+                  <Label>Owner Email:</Label>
+                  <Value>{certificateMetaData.certOwnerEmailId || 'N/A'}</Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Certificate Type:</Label>
+                  <Value capitalize="capitalize">
+                    {certificateMetaData.certType || 'N/A'}
+                  </Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Certificate Name:</Label>
+                  <Value>{certificateMetaData.certificateName || 'N/A'}</Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Application Name:</Label>
+                  <Value>{certificateMetaData.applicationTag || 'N/A'}</Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Validity:</Label>
+                  {certificateMetaData?.createDate ? (
+                    <Value>
+                      {new Date(certificateMetaData?.createDate).toDateString()}
+                      {' - '}
+                      {new Date(certificateMetaData?.expiryDate).toDateString()}
+                    </Value>
+                  ) : (
+                    <Value>N/A</Value>
+                  )}
+                </EachDetail>
+                <EachDetail>
+                  <Label>Signature Algorithm:</Label>
+                  <Value>SHA256-RSA</Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Key Usage:</Label>
+                  <Value>digitalSignature, keyEncipherment</Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Extended Key Usage:</Label>
+                  <Value>
+                    {getKeyUsageValue(
+                      certificateMetaData.keyUsageValue,
+                      certificateMetaData.certType
+                    ) || 'N/A'}
+                  </Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>Enroll Service:</Label>
+                  <Value>
+                    {certificateMetaData?.certType?.toLowerCase() === 'internal'
+                      ? 'T-Mobile Issuing CA 01 - SHA2'
+                      : 'Entrust CA'}
+                  </Value>
+                </EachDetail>
+                <EachDetail>
+                  <Label>DNS:</Label>
+                  {certificateMetaData.dnsNames && dnsNames.length > 0 ? (
+                    <>
+                      {dnsNames?.map((item) => {
+                        return (
+                          <DnsName key={item}>{item.replace(/"/g, '')}</DnsName>
+                        );
+                      })}
+                    </>
+                  ) : (
+                    'N/A'
+                  )}
+                </EachDetail>
+              </DetailsWrap>
+            ) : (
+              <ErrorWrap>
+                <AccessDeniedIcon
+                  src={accessDeniedLogo}
+                  alt="accessDeniedLogo"
+                />
+                <NoPermission>Certificate is not onboarded!</NoPermission>
+              </ErrorWrap>
+            )}
+          </>
         )}
-        {response.status === 'error' && <ErrorWrap>{errorMessage}</ErrorWrap>}
+        {response.status === 'error' && (
+          <ErrorWrap>
+            <AccessDeniedIcon src={accessDeniedLogo} alt="accessDeniedLogo" />
+            <NoPermission>{errorMessage}</NoPermission>
+          </ErrorWrap>
+        )}
       </>
     </ComponentError>
   );

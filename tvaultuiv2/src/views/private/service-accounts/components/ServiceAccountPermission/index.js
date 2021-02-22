@@ -43,6 +43,8 @@ const ServiceAccountPermission = (props) => {
     hasSvcAccountAcitve,
     parentStatus,
     fetchPermission,
+    userDetails,
+    selectedParentTab,
   } = props;
   const [value, setValue] = useState(0);
   const [newPermission, setNewUser] = useState(false);
@@ -92,7 +94,7 @@ const ServiceAccountPermission = (props) => {
         }
       }
     }
-  }, [value, accountMetaData]);
+  }, [value, accountMetaData, userDetails]);
 
   const onAddLabelBtnClicked = () => {
     Object.keys(initialObject).map((item) => {
@@ -118,6 +120,20 @@ const ServiceAccountPermission = (props) => {
   const onTabChange = (newValue) => {
     setValue(newValue);
   };
+
+  useEffect(() => {
+    setValue(0);
+    setNewUser(false);
+    setNewGroup(false);
+    setNewAppRole(false);
+    setNewAwsApplication(false);
+  }, [accountDetail]);
+
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      setValue(0);
+    }
+  }, [selectedParentTab]);
 
   return (
     <ComponentError>
@@ -150,6 +166,8 @@ const ServiceAccountPermission = (props) => {
                         updateToastMessage={(res, message) =>
                           updateToastMessage(res, message)
                         }
+                        userDetails={userDetails}
+                        selectedParentTab={selectedParentTab}
                       />
                     </TabPanel>
                     <TabPanel value={value} index={1}>
@@ -161,7 +179,8 @@ const ServiceAccountPermission = (props) => {
                         updateToastMessage={(res, message) =>
                           updateToastMessage(res, message)
                         }
-                        fetchPermission={fetchPermission}
+                        refresh={refresh}
+                        selectedParentTab={selectedParentTab}
                       />
                     </TabPanel>
                     <TabPanel value={value} index={2}>
@@ -174,6 +193,7 @@ const ServiceAccountPermission = (props) => {
                           updateToastMessage(res, message)
                         }
                         fetchPermission={fetchPermission}
+                        selectedParentTab={selectedParentTab}
                       />
                     </TabPanel>
                     <TabPanel value={value} index={3}>
@@ -186,6 +206,7 @@ const ServiceAccountPermission = (props) => {
                           updateToastMessage(res, message)
                         }
                         fetchPermission={fetchPermission}
+                        selectedParentTab={selectedParentTab}
                       />
                     </TabPanel>
                   </PermissionTabsWrapper>
@@ -222,14 +243,17 @@ ServiceAccountPermission.propTypes = {
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   refresh: PropTypes.func.isRequired,
   hasSvcAccountAcitve: PropTypes.bool,
-  parentStatus: PropTypes.string.isRequired,
+  parentStatus: PropTypes.string,
   fetchPermission: PropTypes.func,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 
 ServiceAccountPermission.defaultProps = {
   accountDetail: {},
   hasSvcAccountAcitve: false,
   fetchPermission: () => {},
+  parentStatus: '',
 };
 
 export default ServiceAccountPermission;

@@ -14,8 +14,6 @@ import IpadRectangle from '../../../assets/Login/ipad-rectangle.svg';
 import MobRectangle from '../../../assets/Login/mob-rectangle.svg';
 import ButtonComponent from '../../../components/FormFields/ActionButton';
 import Speaker from '../../../assets/Login/speaker.png';
-// import MobSpeaker from '../../../assets/Login/mob-speaker.svg';
-// import MobLoginHeaderText from '../../../assets/Login/mob-loginheadertext.svg';
 import LoginHeaderText from '../../../assets/Login/login-header-text.svg';
 import AllGroups from '../../../assets/Login/allgroups.svg';
 import Store from '../../../assets/Login/store.svg';
@@ -32,7 +30,6 @@ import configData from '../../../config/config';
 import LoginModal from './LoginModal';
 import SnackbarComponent from '../../../components/Snackbar';
 import { renewToken } from './utils';
-import { ldapResponse, userpassResponse } from './__mock/loginResponse';
 
 const { smallAndMedium, small } = mediaBreakpoints;
 
@@ -203,13 +200,6 @@ const SignUp = styled.a`
   }
 `;
 
-const ForgetPwd = styled.a`
-  text-decoration: none;
-  color: #fff;
-  margin-top: 1.5rem;
-  display: block;
-`;
-
 const RightColumn = styled.div`
   background: url(${(props) => props.AllGroups || ''});
   background-size: contain;
@@ -368,16 +358,21 @@ const LoginPage = () => {
   const { search } = useLocation();
   const urlParams = queryString.parse(search);
 
+  const checkAdmin = (value) => {
+    if (value === 'yes') {
+      sessionStorage.setItem('isAdmin', true);
+    } else {
+      sessionStorage.setItem('isAdmin', false);
+    }
+  };
+
   const getOwnerAllDetails = (loggedInUser) => {
     return apiService
       .getOwnerDetails(loggedInUser)
       .then((res) => {
         if (res.data.data.values && res.data.data.values[0]) {
           if (res.data.data.values[0].userEmail) {
-            sessionStorage.setItem(
-              'owner',
-              res.data.data.values[0].userEmail.toLowerCase()
-            );
+            sessionStorage.setItem('owner', res.data.data.values[0].userEmail);
             sessionStorage.setItem(
               'displayName',
               res.data.data.values[0].displayName.toLowerCase()
@@ -412,8 +407,8 @@ const LoginPage = () => {
   };
 
   useEffect(() => {
-    sessionStorage.clear();
     if (urlParams?.code && urlParams?.state) {
+      sessionStorage.clear();
       setResponse({ status: 'loading' });
       axios
         .get(
@@ -423,11 +418,7 @@ const LoginPage = () => {
           if (res?.data) {
             setResponse({ status: 'loading' });
             sessionStorage.setItem('token', res.data.client_token);
-            if (res?.data?.admin === 'yes') {
-              sessionStorage.setItem('isAdmin', true);
-            } else {
-              sessionStorage.setItem('isAdmin', false);
-            }
+            checkAdmin(res?.data?.admin);
             await getLoggedInUserName();
             await renewToken();
             dispatch({ type: 'CALLBACK_DATA', payload: { ...res.data } });
@@ -468,20 +459,19 @@ const LoginPage = () => {
 
   const ldapApiCall = (payload) => {
     axios
-      .post(`${configUrl.baseUrl}/auth/ldap/login`, payload)
-      .then(() => {
-        // TODO: ONCE THE API IS ACTIVE REPLACE MOCK DATA ldapResponse WITH RESPONSE
-        sessionStorage.setItem('token', ldapResponse.client_token);
-        if (ldapResponse.admin === 'yes') {
-          sessionStorage.setItem('isAdmin', true);
-        } else {
-          sessionStorage.setItem('isAdmin', false);
+      .post(`${configUrl.baseUrl}/auth/tvault/login`, payload)
+      .then(async (res) => {
+        if (res?.data) {
+          sessionStorage.setItem('token', res.data.client_token);
+          checkAdmin(res?.data?.admin);
+          sessionStorage.setItem('access', JSON.stringify(res.data.access));
+          sessionStorage.setItem('username', payload.username.toLowerCase());
+          await getOwnerAllDetails(payload.username.toLowerCase());
+          window.location = '/safes';
         }
-        sessionStorage.setItem('policies', ldapResponse.policies);
-        window.location = '/safes';
       })
       .catch((err) => {
-        if (err.response.data.errors && err.response.data.errors[0]) {
+        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setToastMessage(err.response.data.errors[0]);
         }
         setResponseType(-1);
@@ -491,20 +481,17 @@ const LoginPage = () => {
 
   const userpassApiCall = (payload) => {
     axios
-      .post(`${configUrl.baseUrl}/auth/userpass/login`, payload)
-      .then(() => {
-        // TODO: ONCE THE API IS ACTIVE REPLACE MOCK DATA userpassResponse WITH RESPONSE
-        sessionStorage.setItem('token', userpassResponse.response.client_token);
-        if (userpassResponse.response.admin === 'yes') {
-          sessionStorage.setItem('isAdmin', true);
-        } else {
-          sessionStorage.setItem('isAdmin', false);
-        }
-        sessionStorage.setItem('policies', userpassResponse.response.policies);
+      .post(`${configUrl.baseUrl}/auth/tvault/login`, payload)
+      .then(async (res) => {
+        sessionStorage.setItem('token', res.data.client_token);
+        checkAdmin(res?.data?.admin);
+        sessionStorage.setItem('access', JSON.stringify(res.data.access));
+        sessionStorage.setItem('username', payload.username.toLowerCase());
+        await getOwnerAllDetails(payload.username.toLowerCase());
         window.location = '/safes';
       })
       .catch((err) => {
-        if (err.response.data.errors && err.response.data.errors[0]) {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
           setToastMessage(err.response.data.errors[0]);
         }
         setResponseType(-1);
@@ -582,13 +569,6 @@ const LoginPage = () => {
                       Sign Up
                     </SignUp>
                   </ButtonWrap>
-                  <ForgetPwd
-                    href={configData.FORGOT_PASSWORD_LINK}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Forget Password ?
-                  </ForgetPwd>
                 </LeftColumn>
                 <RightColumn AllGroups={AllGroups} />
               </FirstRow>

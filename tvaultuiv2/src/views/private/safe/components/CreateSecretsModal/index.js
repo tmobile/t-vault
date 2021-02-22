@@ -36,6 +36,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 const CreateSecretModal = (props) => {
   const {
+    existingSecrets,
     openModal,
     setOpenModal,
     handleSecretSave,
@@ -64,6 +65,7 @@ const CreateSecretModal = (props) => {
       >
         <ModalWrapper>
           <CreateSecret
+            existingSecrets={existingSecrets}
             parentId={parentId}
             handleSecretCancel={handleSecretCancel}
             handleSecretSave={handleSecretSave}
@@ -81,7 +83,8 @@ CreateSecretModal.propTypes = {
   handleSecretSave: PropTypes.func,
   handleSecretCancel: PropTypes.func,
   parentId: PropTypes.string,
-  secretprefilledData: PropTypes.objectOf(PropTypes.object),
+  secretprefilledData: PropTypes.objectOf(PropTypes.any),
+  existingSecrets: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 CreateSecretModal.defaultProps = {
   openModal: false,

@@ -12,14 +12,18 @@ const ColumnHeader = styled('div')`
   justify-content: flex-end;
   position: relative;
   height: 17.1rem;
+  background-color: #151820;
   padding: 2rem;
   .list-title-wrap {
-    width: 62%;
+    width: 67%;
     z-index: 2;
     ${mediaBreakpoints.small} {
-      width: 70%;
+      width: 60%;
       margin-left: 11rem;
       margin-bottom: 2rem;
+    }
+    ${mediaBreakpoints.medium} {
+      width: 60%;
     }
   }
   ${mediaBreakpoints.small} {
@@ -33,7 +37,6 @@ const ListTitle = styled('h5')`
   margin: 1rem 0 1.2rem;
   text-overflow: ellipsis;
   overflow: hidden;
-  text-transform: capitalize;
   ${mediaBreakpoints.medium} {
     font-size: 1.8rem;
   }
@@ -46,7 +49,7 @@ const Description = styled.div`
     font-size: 1.2rem;
   }
   ${mediaBreakpoints.small} {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     p {
       margin: 0;
     }
@@ -64,7 +67,6 @@ const BackButton = styled.div`
     margin-left: 1rem;
     font-size: 1.8rem;
     font-weight: bold;
-    text-transform: capitalize;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
@@ -79,7 +81,7 @@ const HeaderBg = styled('div')`
   top: -0.8rem;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: 0rem;
   background: url(${(props) => props.bgImage || ''});
   background-repeat: no-repeat;
   background-size: cover;

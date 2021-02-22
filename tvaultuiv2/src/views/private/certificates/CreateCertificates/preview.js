@@ -21,14 +21,15 @@ const Label = styled.p`
 
 const Value = styled.p`
   font-size: 1.8rem;
-  text-transform: capitalize;
+  text-transform: ${(props) => props.capitalize || ''};
 `;
 const DnsName = styled.p`
-  text-decoration: underline;
-  padding: 1rem 0;
+  padding: 0.5rem 0;
   font-size: 1.8rem;
 `;
-
+const InfoText = styled.div`
+  font-size: 1.3rem;
+`;
 const CancelSaveWrapper = styled.div`
   display: ${(props) => (props.showPreview ? 'none' : 'flex')};
   justify-content: flex-end;
@@ -50,6 +51,16 @@ const CancelButton = styled.div`
   }
 `;
 
+function getKeyUsageValue(setKeyValue, certificateType) {
+  if (certificateType === 'internal') {
+    if (setKeyValue === 'client' || setKeyValue === 'Client auth')
+      return 'clientAuth';
+    if (setKeyValue === 'server' || setKeyValue === 'Server auth')
+      return 'Server auth';
+    return 'clientAuth , serverAuth';
+  }
+  return 'clientAuth , serverAuth';
+}
 const PreviewCertificate = (props) => {
   const {
     certificateType,
@@ -64,6 +75,10 @@ const PreviewCertificate = (props) => {
     isEditCertificate,
     container,
     owner,
+    notificationEmails,
+    onboard,
+    setKeyValue,
+    applicationTag,
   } = props;
   const [dnsNames, setDnsNames] = useState([]);
   useEffect(() => {
@@ -90,28 +105,44 @@ const PreviewCertificate = (props) => {
         </EachDetail>
         <EachDetail>
           <Label>Certificate Type:</Label>
-          <Value>{certificateType || 'N/A'}</Value>
+          <Value capitalize="capitalize">{certificateType || 'N/A'}</Value>
         </EachDetail>
         <EachDetail>
           <Label>Certificate Name:</Label>
           <Value>{certName || 'N/A'}</Value>
         </EachDetail>
         <EachDetail>
-          <Label>Aplication Name:</Label>
+          <Label>Application Name:</Label>
           <Value>{applicationName || 'N/A'}</Value>
         </EachDetail>
-        <EachDetail>
-          <Label>Dns:</Label>
-          {dnsNames?.length > 0 ? (
-            <>
-              {dnsNames?.map((item) => {
-                return <DnsName key={item}>{item}</DnsName>;
-              })}
-            </>
-          ) : (
-            'N/A'
-          )}
-        </EachDetail>
+        {applicationTag && (
+          <EachDetail>
+            <Label>Application Tag:</Label>
+            <Value>{applicationTag || 'N/A'}</Value>
+          </EachDetail>
+        )}
+        {notificationEmails?.length > 0 && (
+          <EachDetail>
+            <Label>Notification Emails:</Label>
+            {notificationEmails?.map((item) => {
+              return <DnsName key={item}>{item}</DnsName>;
+            })}
+          </EachDetail>
+        )}
+        {dnsNames?.length > 0 && (
+          <EachDetail>
+            <Label>DNS:</Label>
+            {dnsNames?.length > 0 ? (
+              <>
+                {dnsNames?.map((item) => {
+                  return <DnsName key={item}>{item}</DnsName>;
+                })}
+              </>
+            ) : (
+              'N/A'
+            )}
+          </EachDetail>
+        )}
         <EachDetail>
           <Label>Signature Algorithm:</Label>
           <Value>SHA256-RSA</Value>
@@ -122,12 +153,24 @@ const PreviewCertificate = (props) => {
         </EachDetail>
         <EachDetail>
           <Label>Extended Key Usage:</Label>
-          <Value>serverAuth</Value>
+          <Value>
+            {getKeyUsageValue(setKeyValue, certificateType) || 'N/A'}
+          </Value>
         </EachDetail>
         <EachDetail>
           <Label>Enroll Service:</Label>
-          <Value>T-Mobile Issuing CA 01 - SHA2</Value>
+          <Value>
+            {certificateType?.toLowerCase() === 'internal'
+              ? 'T-Mobile Issuing CA 01 - SHA2'
+              : 'Entrust CA'}
+          </Value>
         </EachDetail>
+        {!isEditCertificate && (
+          <InfoText>
+            Note : Select the Edit button to modify the input details else
+            Onboard button to Onboard a certificate.
+          </InfoText>
+        )}
         {!isEditCertificate && (
           <CancelSaveWrapper>
             <CancelButton>
@@ -149,8 +192,8 @@ const PreviewCertificate = (props) => {
               />
             </CancelButton>
             <ButtonComponent
-              label="Create"
-              icon="add"
+              label={onboard ? 'Onboard' : 'Create'}
+              icon={onboard ? '' : 'add'}
               color="secondary"
               disabled={responseType === 0}
               onClick={() => onCreateClicked()}
@@ -175,7 +218,11 @@ PreviewCertificate.propTypes = {
   responseType: PropTypes.number,
   isEditCertificate: PropTypes.bool,
   container: PropTypes.string,
+  notificationEmails: PropTypes.arrayOf(PropTypes.any),
   owner: PropTypes.string,
+  onboard: PropTypes.bool,
+  setKeyValue: PropTypes.string,
+  applicationTag: PropTypes.string,
 };
 
 PreviewCertificate.defaultProps = {
@@ -185,12 +232,16 @@ PreviewCertificate.defaultProps = {
   applicationName: 'N/A',
   certName: 'N/A',
   dns: [],
+  notificationEmails: [],
   handleClose: () => {},
   onCreateClicked: () => {},
   onEditClicked: () => {},
   isMobileScreen: false,
   responseType: null,
   isEditCertificate: false,
+  onboard: false,
+  setKeyValue: 'N/A',
+  applicationTag: '',
 };
 
 export default PreviewCertificate;

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
@@ -9,6 +10,19 @@ import { useStateValue } from '../../../contexts/globalState';
 
 const Certificates = (props) => {
   const [, dispatch] = useStateValue();
+
+  useEffect(() => {
+    if (!JSON.parse(sessionStorage.getItem('isAdmin'))) {
+      apiService
+        .getNonAdminAppNameList()
+        .then((res) => {
+          if (res) {
+            sessionStorage.setItem('selfServiceAppNames', res.data);
+          }
+        })
+        .catch((err) => console.log('err', err));
+    }
+  }, []);
 
   useEffect(() => {
     apiService

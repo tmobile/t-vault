@@ -31,13 +31,14 @@ angular.module('vault.services.VaultUtility', [])
                 if (forOwner) {
                     DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetData;
                 } else if (searchFieldName === "userName" && self.authType.toLowerCase() === 'ldap') {
-                    DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetDataUsingCorpID;
+                    //DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetDataUsingCorpID;
+                    DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetDataUsingNTID;
                 } else if(searchFieldName === "userName" && self.authType.toLowerCase() === 'ldap1900') {
                     DataUrl = RestEndpoints.baseURL + RestEndpoints.usersGetData;
                 } else if (searchFieldName === "groupName") {
-                    DataUrl = RestEndpoints.baseURL + RestEndpoints.groupGetData;
+                    DataUrl = RestEndpoints.baseURL + RestEndpoints.groupGetDataFromAAD;
                 }                                
-                DataUrl = DataUrl + searchFieldText;              
+                DataUrl = DataUrl + encodeURIComponent(searchFieldText);
                  try {
                      data.loadingDataFrDropdown = true;
                      // Abort pending requests before making new request
@@ -130,10 +131,16 @@ angular.module('vault.services.VaultUtility', [])
             var users = dataFrmApi;
             users.forEach(function(item) {
                 var userName = item["userName"].toLowerCase();
-                if(userName.includes(searchText.toLowerCase())) {
-                    if (item["userName"]) {                               
-                        data.push(item["userName"]);
-                    }                
+                var displayName = item["displayName"].toLowerCase();
+                if(displayName.includes(searchText.toLowerCase())) {
+                    if (item["userName"]) {
+                        data.push(item["displayName"] + " (" + item["userName"]+ ")");
+                    }
+                }
+                else if(userName.includes(searchText.toLowerCase())) {
+                    if (item["userName"]) {
+                        data.push(item["displayName"] + " (" + item["userName"]+ ")");
+                    }
                 }
             });
             return data;
@@ -200,5 +207,51 @@ angular.module('vault.services.VaultUtility', [])
                 parentString = parentString.replace(parentString[l], "");
             }
             return parentString;
-        }
+        };
+
+        self.getAllUsersDataForPermissions = function(userNames) {
+            return new Promise(function(resolve, reject) {
+                var data = {};
+                var dataUrl = RestEndpoints.baseURL + RestEndpoints.getUsersDataUsingNTIDs;
+                dataUrl = dataUrl + userNames;
+                 try {
+                     // Abort pending requests before making new request
+                     if (Object.keys(self.canceller).length !== 0) {
+                        self.canceller.resolve();
+                     }
+                    fetchUsersData(dataUrl)
+                     .then(
+                         function(response) {
+                             try {
+                                 data.response = response;
+                                 var dataFrmApi = response.data.data.values;
+
+                                 if (response.statusText !== "OK") {
+                                     data.loadingDataFrDropdown = false;
+                                     data.erroredFrDropdown = false;
+                                     data.successFrDropdown = false;
+                                     resolve(data);
+                                 } else {
+                                     data.dataFrmApi = dataFrmApi;
+                                     data.loadingDataFrDropdown = false;
+                                     data.erroredFrDropdown = false;
+                                     data.successFrDropdown = true;
+                                     resolve(data);
+                                 }
+
+                             } catch (e) {
+                                 data.error = e;
+                                 reject(data.error);
+                             }
+                         },
+                         function(response) {
+                           reject(response);
+                         }
+                     );
+                 } catch (e) {
+                     data.error = e;
+                     reject(data.error);
+                 }
+            });
+        };
     });

@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-indent */
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
@@ -16,22 +16,9 @@ import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner
 import Error from '../../../../../../../components/Error';
 import { checkAccess } from '../../../../../../../services/helper-function';
 import Strings from '../../../../../../../resources';
+import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
-
-const NoDataWrapper = styled.section`
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  p {
-    ${small} {
-      margin-top: 2rem;
-      margin-bottom: 4rem;
-      width: 75%;
-    }
-  }
-`;
 
 const bgIconStyle = {
   width: '10rem',
@@ -56,10 +43,11 @@ const Groups = (props) => {
   const {
     accountDetail,
     accountMetaData,
-    fetchPermission,
     onNewGroupChange,
     newGroup,
     updateToastMessage,
+    refresh,
+    selectedParentTab,
   } = props;
 
   const [editGroup, setEditGroup] = useState('');
@@ -110,7 +98,7 @@ const Groups = (props) => {
         if (res?.data?.messages && res.data?.messages[0]) {
           updateToastMessage(1, res.data.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -134,7 +122,7 @@ const Groups = (props) => {
         if (res && res.data?.messages) {
           updateToastMessage(1, res.data?.messages[0]);
           setResponse({ status: '' });
-          await fetchPermission();
+          await refresh();
         }
       })
       .catch((err) => {
@@ -215,6 +203,13 @@ const Groups = (props) => {
     setResponse({ status: 'edit' });
   };
 
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      onCancelClicked();
+    }
+    // eslint-disable-next-line
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
       <>
@@ -223,6 +218,7 @@ const Groups = (props) => {
         )}
         {response.status === 'add' && (
           <AddGroup
+            groups={accountMetaData?.response?.groups}
             handleSaveClick={(group, access) => onSubmit(group, access)}
             handleCancelClick={onCancelClicked}
             isSvcAccount
@@ -241,7 +237,7 @@ const Groups = (props) => {
           />
         )}
         {accountMetaData &&
-          accountMetaData.response &&
+          accountMetaData?.response &&
           response.status === 'success' && (
             <>
               {accountMetaData.response.groups &&
@@ -289,9 +285,10 @@ const Groups = (props) => {
 Groups.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
-  fetchPermission: PropTypes.func.isRequired,
   newGroup: PropTypes.bool.isRequired,
   onNewGroupChange: PropTypes.func.isRequired,
   updateToastMessage: PropTypes.func.isRequired,
+  refresh: PropTypes.func.isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 export default Groups;

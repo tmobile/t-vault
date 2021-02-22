@@ -37,6 +37,7 @@ export default function TextFieldSelect(props) {
     handleChange,
     value,
     filledText,
+    disabled,
   } = props;
 
   return (
@@ -51,6 +52,7 @@ export default function TextFieldSelect(props) {
       fullWidth={fullWidth}
       variant={variant}
       color={color}
+      disabled={disabled}
       SelectProps={{
         MenuProps: {
           classes: { paper: classes.dropdownStyle },
@@ -84,6 +86,7 @@ TextFieldSelect.propTypes = {
   handleChange: PropTypes.func,
   value: PropTypes.string,
   filledText: PropTypes.string,
+  disabled: PropTypes.bool,
 };
 
 TextFieldSelect.defaultProps = {
@@ -95,4 +98,5 @@ TextFieldSelect.defaultProps = {
   menu: [],
   value: '',
   filledText: '',
+  disabled: false,
 };

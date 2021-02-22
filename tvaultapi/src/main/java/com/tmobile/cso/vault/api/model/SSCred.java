@@ -1,5 +1,5 @@
 // =========================================================================
-// Copyright 2019 T-Mobile, US
+// Copyright 2020 T-Mobile, US
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,15 +36,47 @@ public class SSCred implements Serializable {
      * Password
      */
     private String password;
-	
+
+	/**
+	 * Username
+	 */
+	private String nclmusername;
+	/**
+	 * Password
+	 */
+	private String nclmpassword;
+
+	/**
+	 * Workload token.
+	 */
+	private String cwmToken;
+
 	public SSCred() {
 
 	}
 
-	public SSCred(String username, String password) {
+	public SSCred(String username, String password,String nclmusername,String nclmpassword) {
 		super();
 		this.username = username;
 		this.password = password;
+		this.nclmusername=nclmusername;
+		this.nclmpassword=nclmpassword;
+	}
+
+	public String getNclmusername() {
+		return nclmusername;
+	}
+
+	public void setNclmusername(String nclmusername) {
+		this.nclmusername = nclmusername;
+	}
+
+	public String getNclmpassword() {
+		return nclmpassword;
+	}
+
+	public void setNclmpassword(String nclmpassword) {
+		this.nclmpassword = nclmpassword;
 	}
 
 	/**
@@ -75,4 +107,19 @@ public class SSCred implements Serializable {
 		this.password = password;
 	}
 
+	/**
+	 *
+	 * @return cwmToken
+	 */
+	public String getCwmToken() {
+		return cwmToken;
+	}
+
+	/**
+	 *
+	 * @param cwmToken
+	 */
+	public void setCwmToken(String cwmToken) {
+		this.cwmToken = cwmToken;
+	}
 }

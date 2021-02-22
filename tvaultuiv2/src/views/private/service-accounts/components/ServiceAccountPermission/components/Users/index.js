@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-indent */
 import React, { useState, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
@@ -11,27 +11,11 @@ import mediaBreakpoints from '../../../../../../../breakpoints';
 import AddUser from '../../../../../../../components/AddUser';
 import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
-import PermissionsList from '../../../../../../../components/PermissionsList';
-import Strings from '../../../../../../../resources';
 import { checkAccess } from '../../../../../../../services/helper-function';
+import UserPermissionsList from '../../../../../../../components/UserPermissionsList';
+import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
-
-const NoDataWrapper = styled.section`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-
-  p {
-    ${small} {
-      margin-top: 2rem;
-      margin-bottom: 4rem;
-      width: 75%;
-    }
-  }
-`;
 
 const bgIconStyle = {
   width: '10rem',
@@ -60,6 +44,8 @@ const Users = (props) => {
     accountMetaData,
     updateToastMessage,
     refresh,
+    userDetails,
+    selectedParentTab,
   } = props;
 
   const [editUser, setEditUser] = useState('');
@@ -214,6 +200,13 @@ const Users = (props) => {
     setResponse({ status: 'edit' });
   };
 
+  useEffect(() => {
+    if (selectedParentTab === 0) {
+      onCancelClicked();
+    }
+    // eslint-disable-next-line
+  }, [selectedParentTab]);
+
   return (
     <ComponentError>
       <>
@@ -222,9 +215,9 @@ const Users = (props) => {
         )}
         {response.status === 'add' && (
           <AddUser
+            users={accountMetaData.response?.users}
             handleSaveClick={(user, access) => onSubmit(user, access)}
             handleCancelClick={onCancelClicked}
-            refresh={refresh}
             isSvcAccount
           />
         )}
@@ -234,28 +227,30 @@ const Users = (props) => {
             handleCancelClick={onCancelClicked}
             username={editUser}
             access={editAccess}
-            refresh={refresh}
             isSvcAccount
           />
         )}
         {response.status === 'success' &&
           accountMetaData &&
-          accountMetaData.response && (
+          Object.keys(accountMetaData?.response).length && (
             <>
-              {Object.keys(accountMetaData.response?.users).length > 0 && (
-                <PermissionsList
-                  list={accountMetaData.response.users}
-                  isSvcAccount
-                  onEditClick={(key, value) => onEditClick(key, value)}
-                  onDeleteClick={(key, value) => onDeleteClick(key, value)}
-                />
-              )}
-              {(!accountMetaData.response.users ||
-                Object.keys(accountMetaData.response.users).length === 0) && (
+              {Object.keys(accountMetaData.response?.users).length > 0 &&
+                userDetails.length > 0 && (
+                  <UserPermissionsList
+                    list={accountMetaData.response.users}
+                    isSvcAccount
+                    onEditClick={(key, value) => onEditClick(key, value)}
+                    onDeleteClick={(key, value) => onDeleteClick(key, value)}
+                    userDetails={userDetails}
+                  />
+                )}
+              {(!accountMetaData?.response?.users ||
+                Object.keys(accountMetaData?.response?.users).length === 0 ||
+                userDetails.length === 0) && (
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description={Strings.Resources.noUsersPermissionFound}
+                    description={'No <strong>Users</strong> are given permission to access this service account, add users to access the account.'}
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent
@@ -285,5 +280,7 @@ Users.propTypes = {
   accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   updateToastMessage: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
+  userDetails: PropTypes.arrayOf(PropTypes.any).isRequired,
+  selectedParentTab: PropTypes.number.isRequired,
 };
 export default Users;

@@ -30,7 +30,7 @@ const StyledTree = styled.div`
   }
 `;
 const Tree = (props) => {
-  const { data } = props;
+  const { data, userHavePermission, getSecretDetails, value } = props;
   const [secretsFolder, setSecretsFolder] = useState([]);
   const [isAddInput, setIsAddInput] = useState(false);
   const [inputType, setInputType] = useState({});
@@ -58,48 +58,55 @@ const Tree = (props) => {
    * @param {*} id id of item to update
    * @param {*} parentId parent id
    * @param {*} type type of action
+   * @param {*} loader if loading to be set
    */
 
-  const getChildrenData = (id, idOfItem, type) => {
+  const getChildrenData = (id, idOfItem, type, loader = true) => {
     const tempFolders = [...secretsFolder] || [];
-    setStatus({ status: 'loading', message: 'loading...' });
+
+    if (loader) {
+      setStatus({ status: 'loading', message: 'loading...' });
+    }
     if (id) {
-      apiService
-        .getSecret(id)
-        .then((res) => {
-          setStatus({});
-          if (type?.toLowerCase() === 'deleteparentitem') {
-            const updatedArray = findItemAndRemove(
-              tempFolders,
-              'children',
-              idOfItem
-            );
-            setSecretsFolder([...updatedArray]);
-            return;
-          }
-          const updatedArray = findElementAndUpdate(
+      const secretData = apiService.getSecret(id);
+      const versionInfo = apiService.getVersionInfo(id);
+      Promise.all([secretData,versionInfo]).then(res=>{
+
+        setStatus({});
+        if (type?.toLowerCase() === 'deleteparentitem') {
+          const updatedArray = findItemAndRemove(
             tempFolders,
-            id,
-            res.data.children
+            'children',
+            idOfItem
           );
           setSecretsFolder([...updatedArray]);
-        })
-        .catch((error) => {
-          setStatus({ status: 'failed', message: '' });
-          if (!error.toString().toLowerCase().includes('network')) {
-            if (error.response) {
-              setStatus({
-                status: 'failed',
-                message: '',
-              });
-              return;
-            }
+          return;
+        }
+        const updatedArray = findElementAndUpdate(
+          tempFolders,
+          id,
+          res[0].data.children,
+          res[1].data
+        );
+        setSecretsFolder([...updatedArray]);
+
+      }).catch((error) => {
+        setStatus({ status: 'failed', message: '' });
+        if (!error.toString().toLowerCase().includes('network')) {
+          if (error.response) {
+            setStatus({
+              status: 'failed',
+              message: '',
+            });
+            return;
           }
-          setStatus({
-            status: 'failed',
-            message: 'Network Error',
-          });
+        }
+        setStatus({
+          status: 'failed',
+          message: 'Network Error',
         });
+      });
+
     }
   };
 
@@ -138,6 +145,7 @@ const Tree = (props) => {
       // eslint-disable-next-line no-unused-vars
       .then((res) => {
         getChildrenData(node);
+        setSecretprefilledData({});
         setStatus({
           status: 'success',
           message: res.data.messages[0],
@@ -149,7 +157,10 @@ const Tree = (props) => {
           message: '',
         });
         if (!error.toString().toLowerCase().includes('network')) {
-          if (error.response) {
+          if (
+            error?.response?.data?.errors &&
+            error?.response?.data?.errors[0]
+          ) {
             setStatus({
               status: 'failed',
               message: error.response?.data.errors[0],
@@ -242,6 +253,7 @@ const Tree = (props) => {
     setInputType({ type: 'secret', currentNode: node });
   };
   const handleCancelClick = (val) => {
+    setSecretprefilledData({});
     setIsAddInput(val);
   };
 
@@ -280,13 +292,14 @@ const Tree = (props) => {
     }
     apiService
       .deleteFolder(node.id)
-      .then((res) => {
+      .then(async (res) => {
         if (node?.parentId?.split('/').length === 2) {
           getChildrenData(node.parentId, node.id, 'deleteparentitem');
           setStatus({
             status: 'success',
             message: 'Folder Deleted Successfully',
           });
+          await getSecretDetails();
           return;
         }
         getChildrenData(node.parentId);
@@ -313,6 +326,7 @@ const Tree = (props) => {
       <StyledTree>
         <TreeRecursive
           data={(secretsFolder?.length && secretsFolder[0].children) || []}
+          value={value}
           saveSecretsToFolder={saveSecretsToFolder}
           setCreateSecretBox={setCreateSecretBox}
           handleCancelClick={handleCancelClick}
@@ -324,9 +338,11 @@ const Tree = (props) => {
           status={status}
           setStatus={setStatus}
           getChildrenData={getChildrenData}
+          versionInfo={secretsFolder[0]?.versionInfo}
           onDeleteTreeItem={onDeleteTreeItem}
           secretprefilledData={secretprefilledData}
           setSecretprefilledData={setSecretprefilledData}
+          userHavePermission={userHavePermission}
         />
         {status.status === 'failed' ? (
           <SnackbarComponent
@@ -349,7 +365,11 @@ const Tree = (props) => {
         <ConfirmationModal
           open={deleteModalOpen}
           title="Confirmation"
-          description="Are you sure you want to delete this secret?"
+          description={
+            deletePath?.type?.toLowerCase() === 'secret'
+              ? 'Are you sure you want to delete this secret?'
+              : 'Are you sure you want to delete this folder?'
+          }
           cancelButton={
             <ButtonComponent
               label="Cancel"
@@ -373,6 +393,9 @@ const Tree = (props) => {
 // props validation
 Tree.propTypes = {
   data: PropTypes.arrayOf(PropTypes.any),
+  userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
+  getSecretDetails: PropTypes.func.isRequired,
+  value: PropTypes.number.isRequired,
 };
 
 Tree.defaultProps = {

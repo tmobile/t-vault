@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect } from 'react';
@@ -13,10 +14,11 @@ import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import apiService from '../../apiService';
 import lock from '../../../../../assets/icon_lock.svg';
+import NoSecretsIcon from '../../../../../assets/no-data-secrets.svg';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
-import { useStateValue } from '../../../../../contexts/globalState';
+import accessDeniedLogo from '../../../../../assets/accessdenied-logo.svg';
 import {
   PopperItem,
   BackgroundColor,
@@ -36,14 +38,6 @@ const UserList = styled.div`
   :hover {
     background-image: ${(props) => props.theme.gradients.list || 'none'};
   }
-`;
-
-const Secret = styled.div`
-  -webkit-text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
-  text-security: ${(props) => (props.viewSecret ? 'none' : 'disc')};
-  font-size: 1.2rem;
-  color: #5a637a;
-  word-break: break-all;
 `;
 
 const customStyle = css`
@@ -73,13 +67,25 @@ const FolderIconWrap = styled('div')`
   }
 `;
 
-const NoPermission = styled.div`
+const AccessDeniedWrap = styled.div`
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+`;
+
+const AccessDeniedIcon = styled.img`
+  width: 16rem;
+  height: 16rem;
+`;
+
+const NoPermission = styled.div`
   color: #5a637a;
   text-align: center;
+  margin-top: 2rem;
   span {
     display: contents;
     margin: 0 0.3rem;
@@ -87,13 +93,31 @@ const NoPermission = styled.div`
   }
 `;
 
+const SecretInputfield = styled.input`
+  padding: 0;
+  outline: none;
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  color: #5a637a;
+  word-break: break-all;
+  margin: 0px 1rem;
+  width: 70%;
+  text-align: center;
+  ${mediaBreakpoints.semiMedium} {
+    width: 100%;
+    margin: 1rem;
+  }
+`;
+
 const ServiceAccountSecrets = (props) => {
   const {
     accountDetail,
-    accountMetaData,
     accountSecretError,
+    value,
     accountSecretData,
     secretStatus,
+    hasSvcAccountAcitve,
   } = props;
   const [response, setResponse] = useState({ status: 'loading' });
   const [secretsData, setSecretsData] = useState({});
@@ -101,9 +125,7 @@ const ServiceAccountSecrets = (props) => {
   const [responseType, setResponseType] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
-  const [writePermission, setWritePermission] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-  const [state] = useStateValue();
 
   /**
    * @function handleClose
@@ -112,7 +134,6 @@ const ServiceAccountSecrets = (props) => {
   const handleClose = () => {
     setOpenConfirmationModal(false);
   };
-
   /**
    * @description function to get the secret once the component loads.
    */
@@ -125,7 +146,12 @@ const ServiceAccountSecrets = (props) => {
     if (accountSecretData) {
       setSecretsData({ ...accountSecretData });
     }
+    setShowSecret(false);
   }, [accountSecretData]);
+
+  useEffect(() => {
+    setShowSecret(false);
+  }, [value]);
 
   /**
    * @function onViewSecretsCliked
@@ -188,21 +214,6 @@ const ServiceAccountSecrets = (props) => {
     setResponseType(null);
   };
 
-  /**
-   * @description to check the whether the user have write permission
-   * compare the service account data with loged in user.
-   */
-  useEffect(() => {
-    if (accountMetaData?.response?.users) {
-      Object.entries(accountMetaData.response.users).map(([key, value]) => {
-        if (key === state.username && value === 'write') {
-          return setWritePermission(true);
-        }
-        return setWritePermission(false);
-      });
-    }
-  }, [accountMetaData, state]);
-
   return (
     <ComponentError>
       <>
@@ -216,15 +227,15 @@ const ServiceAccountSecrets = (props) => {
               label="Cancel"
               color="primary"
               onClick={() => handleClose()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
           confirmButton={
             <ButtonComponent
-              label="Confirm"
+              label="Reset"
               color="secondary"
               onClick={() => onResetConfirmedClicked()}
-              width={isMobileScreen ? '100%' : '38%'}
+              width={isMobileScreen ? '100%' : '45%'}
             />
           }
         />
@@ -234,53 +245,76 @@ const ServiceAccountSecrets = (props) => {
         {response.status === 'success' && secretsData && (
           <UserList>
             <Icon src={lock} alt="lock" />
-
-            <Secret type="password" viewSecret={showSecret}>
-              {secretsData.current_password}
-            </Secret>
-
-            <FolderIconWrap>
-              <PopperElement
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-              >
-                <PopperItem onClick={() => onViewSecretsCliked()}>
-                  {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  <span>{showSecret ? 'Hide Secret' : 'View Secret'}</span>
-                </PopperItem>
-                {writePermission && (
-                  <PopperItem onClick={() => onResetClicked()}>
-                    <img alt="refersh-ic" src={IconRefreshCC} />
-                    <span>Rotate Secret</span>
-                  </PopperItem>
-                )}
-                <CopyToClipboard
-                  text={secretsData.current_password}
-                  onCopy={() => onCopyClicked()}
+            <SecretInputfield
+              type={showSecret ? 'text' : 'password'}
+              value={
+                secretsData?.adServiceAccountCreds?.current_password
+                  ? secretsData.adServiceAccountCreds?.current_password
+                  : 'Secret not available!'
+              }
+              readOnly
+            />
+            {secretsData?.adServiceAccountCreds?.current_password && (
+              <FolderIconWrap>
+                <PopperElement
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
                 >
-                  <PopperItem>
-                    <FileCopyIcon />
-                    <span>Copy Secret</span>
+                  <PopperItem onClick={() => onViewSecretsCliked()}>
+                    {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    <span>{showSecret ? 'Hide Secret' : 'View Secret'}</span>
                   </PopperItem>
-                </CopyToClipboard>
-              </PopperElement>
-            </FolderIconWrap>
+                  {accountDetail?.access === 'write' && (
+                    <PopperItem onClick={() => onResetClicked()}>
+                      <img alt="refersh-ic" src={IconRefreshCC} />
+                      <span>Reset Secret</span>
+                    </PopperItem>
+                  )}
+                  <CopyToClipboard
+                    text={secretsData?.adServiceAccountCreds?.current_password}
+                    onCopy={() => onCopyClicked()}
+                  >
+                    <PopperItem>
+                      <FileCopyIcon />
+                      <span>Copy Secret</span>
+                    </PopperItem>
+                  </CopyToClipboard>
+                </PopperElement>
+              </FolderIconWrap>
+            )}
           </UserList>
         )}
         {response.status === 'error' && (
           <Error description={accountSecretError || 'Something went wrong!'} />
         )}
-        {response.status === 'no-permission' && (
-          <NoPermission>
-            Access denied: no permission to read the password details for the{' '}
-            <span>{accountDetail.name}</span> service account.
-          </NoPermission>
+        {(response.status === 'no-permission' ||
+          response.status === 'no-data') && (
+          <AccessDeniedWrap>
+            <AccessDeniedIcon
+              src={
+                response.status === 'no-data' ? NoSecretsIcon : accessDeniedLogo
+              }
+              alt="accessDeniedLogo"
+            />
+            {response.status === 'no-data' ? (
+              <NoPermission>
+                Once you onboard a <span>Service Account</span> you’ll be able
+                to view <span>Secret</span> all here!
+              </NoPermission>
+            ) : (
+              <NoPermission>
+                {hasSvcAccountAcitve
+                  ? 'You do not have permission to view/reset the secrets.'
+                  : 'Please activate the service account!'}
+              </NoPermission>
+            )}
+          </AccessDeniedWrap>
         )}
         {responseType === 1 && (
           <SnackbarComponent
@@ -305,16 +339,18 @@ const ServiceAccountSecrets = (props) => {
 
 ServiceAccountSecrets.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any).isRequired,
-  accountMetaData: PropTypes.objectOf(PropTypes.any).isRequired,
   accountSecretError: PropTypes.string,
   accountSecretData: PropTypes.objectOf(PropTypes.any),
   secretStatus: PropTypes.string,
+  value: PropTypes.number,
+  hasSvcAccountAcitve: PropTypes.bool.isRequired,
 };
 
 ServiceAccountSecrets.defaultProps = {
   accountSecretError: 'Something went wrong!',
   accountSecretData: {},
   secretStatus: 'loading',
+  value: 0,
 };
 
 export default ServiceAccountSecrets;

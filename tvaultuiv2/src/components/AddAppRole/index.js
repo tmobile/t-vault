@@ -1,5 +1,6 @@
+/* eslint-disable no-nested-ternary */
+
 import React, { useState, useEffect } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import { InputLabel, Typography } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import styled, { css } from 'styled-components';
@@ -15,17 +16,18 @@ import {
   RequiredText,
   RequiredWrap,
 } from '../../styles/GlobalStyles';
-import TextFieldSelect from '../FormFields/TextFieldSelect';
+import TextFieldSelect from '../FormFields/SelectFields';
 
 const { small, smallAndMedium } = mediaBreakpoints;
 
 const PermissionWrapper = styled.div`
-  padding: 1rem 4rem 4rem 4rem;
+  padding: 3rem 4rem 4rem 4rem;
   background-color: #1f232e;
   display: flex;
   flex-direction: column;
   margin-top: 2rem;
   position: relative;
+  overflow: hidden;
   ${small} {
     padding: 2.2rem 2.4rem 2.4rem 2.4rem;
   }
@@ -46,8 +48,13 @@ const HeaderWrapper = styled.div`
   }
 `;
 
+const HelperText = styled.div`
+  color: #ee4e4e;
+  font-size: 1.2rem;
+`;
+
 const InputWrapper = styled.div`
-  margin-top: 4rem;
+  margin-top: 3rem;
   margin-bottom: 2.4rem;
   position: relative;
   .MuiInputLabel-root {
@@ -87,11 +94,6 @@ const CancelButton = styled.div`
   }
 `;
 
-const ErrorMessage = styled.p`
-  color: ${(props) => props.theme.palette.error.main || 'red'};
-  font-size: 1.4rem;
-  margin: 0;
-`;
 const customStyle = css`
   position: absolute;
   top: 50%;
@@ -100,39 +102,38 @@ const customStyle = css`
   transform: translate(-50%, -50%);
 `;
 
-const useStyles = makeStyles(() => ({
-  select: {
-    '&.MuiFilledInput-root.Mui-focused': {
-      backgroundColor: '#fff',
-    },
-  },
-  dropdownStyle: {
-    backgroundColor: '#fff',
-    height: '20rem',
-  },
-}));
+const extraSelectCss = css`
+  top: 0;
+  height: 15rem;
+`;
 
 const AddAppRole = (props) => {
-  const classes = useStyles();
   const {
+    roles,
     handleSaveClick,
     handleCancelClick,
     editClicked,
     role,
     access,
     isSvcAccount,
+    isCertificate,
+    isIamAzureSvcAccount,
   } = props;
   const [radioValue, setRadioValue] = useState('read');
   const [selectedValue, setSelectedValue] = useState('');
   const [disabledSave, setDisabledSave] = useState(true);
   const [menu, setMenu] = useState([]);
   const isMobileScreen = useMediaQuery(small);
+  const [radioArray, setRadioArray] = useState([]);
   const [loader, setLoader] = useState(false);
+  const [existingRole, setExistingRole] = useState(false);
 
   useEffect(() => {
-    setSelectedValue(role);
-    setMenu([role]);
-    setRadioValue(access);
+    if (role && access) {
+      setSelectedValue(role);
+      setMenu([role]);
+      setRadioValue(access);
+    }
   }, [role, access]);
 
   useEffect(() => {
@@ -155,18 +156,51 @@ const AddAppRole = (props) => {
   }, [editClicked]);
 
   useEffect(() => {
-    if (editClicked) {
-      if (access === radioValue) {
-        setDisabledSave(true);
+    if (selectedValue) {
+      if (roles && !Object.keys(roles).includes(selectedValue.toLowerCase())) {
+        if (editClicked) {
+          if (access === radioValue) {
+            setDisabledSave(true);
+          } else {
+            setDisabledSave(false);
+          }
+        } else if (selectedValue === '' || menu.length === 0) {
+          setDisabledSave(true);
+        } else {
+          setDisabledSave(false);
+        }
+        setExistingRole(false);
+      } else if (!roles) {
+        if (editClicked) {
+          if (access === radioValue) {
+            setDisabledSave(true);
+          } else {
+            setDisabledSave(false);
+          }
+        } else if (selectedValue === '' || menu.length === 0) {
+          setDisabledSave(true);
+        } else {
+          setDisabledSave(false);
+        }
+        setExistingRole(false);
       } else {
-        setDisabledSave(false);
+        setDisabledSave(true);
+        setExistingRole(true);
       }
-    } else if (selectedValue === '' || menu.length === 0) {
-      setDisabledSave(true);
-    } else {
-      setDisabledSave(false);
     }
-  }, [selectedValue, radioValue, menu, access, editClicked]);
+  }, [selectedValue, roles, radioValue, menu, access, editClicked]);
+
+  useEffect(() => {
+    if (isIamAzureSvcAccount) {
+      setRadioArray(['read', 'rotate', 'deny']);
+    } else if (isCertificate) {
+      setRadioArray(['read', 'deny']);
+    } else if (isSvcAccount) {
+      setRadioArray(['read', 'reset', 'deny']);
+    } else {
+      setRadioArray(['read', 'write', 'deny']);
+    }
+  }, [isIamAzureSvcAccount, isSvcAccount, isCertificate]);
 
   return (
     <ComponentError>
@@ -187,22 +221,26 @@ const AddAppRole = (props) => {
           <TextFieldSelect
             menu={menu}
             value={selectedValue}
-            classes={classes}
-            readOnly={menu.length === 0 || editClicked}
-            handleChange={(e) => setSelectedValue(e.target.value)}
-            filledText="Select role name"
+            disabled={editClicked}
+            readOnly={(menu.length === 0 && !loader) || editClicked}
+            onChange={(e) => setSelectedValue(e)}
+            filledText={
+              menu.length === 0 && !loader
+                ? 'No app role available'
+                : 'Select role name'
+            }
+            extraSelectCss={extraSelectCss}
           />
+          {existingRole ? (
+            <HelperText>Permission Already exists!</HelperText>
+          ) : (
+            <HelperText />
+          )}
         </InputWrapper>
-        {menu.length === 0 && !editClicked && (
-          <ErrorMessage>No app role is available</ErrorMessage>
-        )}
+
         <RadioButtonWrapper>
           <RadioButtonComponent
-            menu={
-              isSvcAccount
-                ? ['read', 'reset', 'deny']
-                : ['read', 'write', 'deny']
-            }
+            menu={radioArray}
             handleChange={(e) => setRadioValue(e.target.value)}
             value={radioValue}
           />
@@ -236,6 +274,9 @@ AddAppRole.propTypes = {
   role: PropTypes.string,
   access: PropTypes.string,
   isSvcAccount: PropTypes.bool,
+  isCertificate: PropTypes.bool,
+  isIamAzureSvcAccount: PropTypes.bool,
+  roles: PropTypes.objectOf(PropTypes.any),
 };
 
 AddAppRole.defaultProps = {
@@ -243,6 +284,9 @@ AddAppRole.defaultProps = {
   role: '',
   editClicked: false,
   isSvcAccount: false,
+  isCertificate: false,
+  isIamAzureSvcAccount: false,
+  roles: {},
 };
 
 export default AddAppRole;

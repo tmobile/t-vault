@@ -17,7 +17,7 @@ const Icon = styled('div')`
   align-items: center;
   justify-content: center;
   margin-left: 0.75rem;
-  padding: 0.5rem 0.4rem 0.5rem 0.8rem;
+  padding: 0.66rem 0.5rem 0.34rem 0.9rem;
   border-radius: 50%;
   :hover {
     background-color: #5a637a;
@@ -43,20 +43,23 @@ const PsudoPopper = (props) => {
     onEditListItemClicked,
     admin,
     onTransferOwnerClicked,
-    isTransferOwner,
+    manage,
+    isSvcAcct,
   } = props;
 
   return (
     <ComponentError>
       <IconWrap>
-        {admin && isTransferOwner && (
+        {admin && isSvcAcct && (
           <TransferOwnerWrap onClick={onTransferOwnerClicked}>
             <SyncAltIcon style={{ fill: '#fff' }} />
           </TransferOwnerWrap>
         )}
-        <Icon onClick={onEditListItemClicked}>
-          <IconEdit />
-        </Icon>
+        {(admin || manage) && (
+          <Icon onClick={onEditListItemClicked}>
+            <IconEdit />
+          </Icon>
+        )}
         {admin && (
           <Icon onClick={onDeletListItemClicked}>
             <IconDeleteActive />
@@ -72,7 +75,8 @@ PsudoPopper.propTypes = {
   onEditListItemClicked: PropTypes.func,
   onTransferOwnerClicked: PropTypes.func,
   admin: PropTypes.bool,
-  isTransferOwner: PropTypes.bool,
+  manage: PropTypes.bool,
+  isSvcAcct: PropTypes.bool,
 };
 
 PsudoPopper.defaultProps = {
@@ -80,7 +84,8 @@ PsudoPopper.defaultProps = {
   onEditListItemClicked: () => {},
   onTransferOwnerClicked: () => {},
   admin: true,
-  isTransferOwner: false,
+  manage: false,
+  isSvcAcct: false,
 };
 
 export default PsudoPopper;

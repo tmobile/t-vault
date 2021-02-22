@@ -20,41 +20,47 @@ const DeletionConfirmationModal = (props) => {
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   return (
     <ComponentError>
-      <ConfirmationModal
-        size={isMobileScreen ? 'large' : ''}
-        open={offBoardSvcAccountConfirmation}
-        handleClose={
-          offBoardSuccessfull
-            ? handleSuccessfullConfirmation
-            : handleConfirmationModalClose
-        }
-        title={offBoardSuccessfull ? 'Offboarding successful!' : 'Confirmation'}
-        description={
-          offBoardSuccessfull
-            ? Strings.Resources.offBoardSuccessfull
-            : Strings.Resources.offBoardConfirmation
-        }
-        cancelButton={
-          !offBoardSuccessfull && (
-            <ButtonComponent
-              label="Cancel"
-              color="primary"
-              onClick={() => handleConfirmationModalClose()}
-            />
-          )
-        }
-        confirmButton={
-          <ButtonComponent
-            label={offBoardSuccessfull ? 'Close' : 'Confirm'}
-            color="secondary"
-            onClick={() =>
+      <>
+        {offBoardSvcAccountConfirmation && (
+          <ConfirmationModal
+            size={isMobileScreen ? 'large' : ''}
+            open={offBoardSvcAccountConfirmation}
+            handleClose={
               offBoardSuccessfull
-                ? handleSuccessfullConfirmation()
-                : onServiceAccountOffBoard()
+                ? handleSuccessfullConfirmation
+                : handleConfirmationModalClose
+            }
+            title={
+              offBoardSuccessfull ? 'Offboarding successful!' : 'Confirmation'
+            }
+            description={
+              offBoardSuccessfull
+                ? Strings.Resources.offBoardSuccessfull
+                : Strings.Resources.offBoardConfirmation
+            }
+            cancelButton={
+              !offBoardSuccessfull && (
+                <ButtonComponent
+                  label="Cancel"
+                  color="primary"
+                  onClick={() => handleConfirmationModalClose()}
+                />
+              )
+            }
+            confirmButton={
+              <ButtonComponent
+                label={offBoardSuccessfull ? 'Close' : 'Confirm'}
+                color="secondary"
+                onClick={() =>
+                  offBoardSuccessfull
+                    ? handleSuccessfullConfirmation()
+                    : onServiceAccountOffBoard()
+                }
+              />
             }
           />
-        }
-      />
+        )}
+      </>
     </ComponentError>
   );
 };

@@ -12,6 +12,7 @@ const ColumnHeader = styled('div')`
   position: relative;
   height: 17.1rem;
   padding: 2rem;
+  background-color: #151820;
   .safe-title-wrap {
     width: 70%;
   }
@@ -44,7 +45,7 @@ const SafeDetailHeader = (props) => {
     <ColumnHeader>
       <HeaderBg bgImage={bgImage} />
       <div className="safe-title-wrap">
-        {!isMobileScreen && <SafeTitle>{title || 'No Safe'}</SafeTitle>}
+        {!isMobileScreen && <SafeTitle>{title || '...'}</SafeTitle>}
         <TitleFour color="#c4c4c4">
           {description ||
             'Create a Safe to see your secrets, folders and permissions here'}
