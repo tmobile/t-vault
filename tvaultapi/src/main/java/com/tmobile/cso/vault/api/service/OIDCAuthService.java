@@ -467,15 +467,9 @@ public class OIDCAuthService {
     	BuildDetails details = new BuildDetails();
     	try {
     	Resource resource = new ClassPathResource("classpath:build_variables.txt");
-        InputStream stream = resource.getInputStream();  
-    	
-//    	 ClassLoader classLoader = getClass().getClassLoader();
-//    	 InputStream stream = classLoader.getResourceAsStream("build_variables.txt");
-         
-         
-         
+        InputStream stream = resource.getInputStream();      
          if (stream == null) {
-             throw new IllegalArgumentException("file not found! " + "build_variables.txt");
+             throw new IllegalArgumentException("File build_variables.txt not found! " );
          } else {
         	 BufferedReader bufRead = new BufferedReader(new InputStreamReader(stream));
         	    String line=null;
@@ -483,14 +477,13 @@ public class OIDCAuthService {
 					if (line.startsWith("version")) {
 						String version = line.substring("version=".length(), line.length());
 						log.debug("Successfully read version: from build details file");
-						details.setVersion(version);
+						details.setVersion(version.substring(version.lastIndexOf("_")+1));
 					}
 					else if (line.startsWith("date")) {
 						String date = line.substring("date=".length(), line.length());
-						log.debug("Successfully read password: from build details file");
+						log.debug("Successfully read date: from build details file");
 						details.setBuildDate(date);
-					}
-					
+					}					
 				}
 				bufRead.close();
 			}
