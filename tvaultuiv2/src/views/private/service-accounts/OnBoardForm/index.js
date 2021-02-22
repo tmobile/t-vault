@@ -245,8 +245,14 @@ const InfoText = styled.div`
   margin-bottom: 0.5rem;
 `;
 const useStylesBootstrap = makeStyles((theme) => ({
+  arrow: {
+    color: theme.palette.common.white,
+  },
   tooltip: {
+    backgroundColor: theme.palette.common.white,
+    color: theme.palette.common.black,
     fontSize: theme.typography.subtitle2.fontSize,
+    textAlign: 'center',
   },
 }));
 
@@ -903,18 +909,25 @@ const OnBoardForm = (props) => {
               </InfoContainer>
               <OnBoardFormContainer>
                 <InputFieldLabelWrapper>
-                  <LabelRequired>
-                    <InputLabel>
-                      Service Account Name
-                      <RequiredCircle margin="0.5rem" />
-                    </InputLabel>
-                    <Span extraStyles="align-self:flex-end;margin-bottom: 0.8rem">
-                      <RequiredCircle margin="0.5rem" />
-                      <RequiredText extraStyles="margin-left:0.4rem">
-                        Required
-                      </RequiredText>
-                    </Span>
-                  </LabelRequired>
+                  <Tooltip
+                    classes={tooltipStyles}
+                    title="Please input a service account name whose password needs to be managed and click 'ONBOARD' "
+                    placement="top"
+                    arrow
+                  >
+                    <LabelRequired>
+                      <InputLabel>
+                        Service Account Name
+                        <RequiredCircle margin="0.5rem" />
+                      </InputLabel>
+                      <Span extraStyles="align-self:flex-end;margin-bottom: 0.8rem">
+                        <RequiredCircle margin="0.5rem" />
+                        <RequiredText extraStyles="margin-left:0.4rem">
+                          Required
+                        </RequiredText>
+                      </Span>
+                    </LabelRequired>
+                  </Tooltip>
                   <InfoText>
                     Select the service account name from the autocomplete field.
                   </InfoText>
@@ -934,6 +947,7 @@ const OnBoardForm = (props) => {
                       '/edit-service-accounts'
                     )}
                   />
+
                   {isServiceFetching && (
                     <LoaderSpinner customStyle={customLoaderStyle} />
                   )}
@@ -1012,9 +1026,16 @@ const OnBoardForm = (props) => {
                       handleChange={handleSwitch}
                       name="rotate password"
                     />
-                    <TitleThree extraCss="margin-left:1rem;">
-                      Enable Auto Password Rotation
-                    </TitleThree>
+                    <Tooltip
+                      classes={tooltipStyles}
+                      title="Check this if possible needs to be enabled for rotation by T-Vault"
+                      placement="top"
+                      arrow
+                    >
+                      <TitleThree extraCss="margin-left:1rem;">
+                        Enable Auto Password Rotation
+                      </TitleThree>
+                    </Tooltip>
                   </TitleTwo>
                   <InputFieldLabelWrapper customCss="width:50%">
                     <Tooltip
