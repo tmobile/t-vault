@@ -265,7 +265,7 @@ const AzureDashboard = () => {
     setInputSearchValue(value);
     if (value?.length > 2) {
       const array = allAzureList?.filter((item) => {
-        return String(item?.name?.toLowerCase()).startsWith(
+        return String(item?.name?.toLowerCase()).includes(
           value?.toLowerCase().trim()
         );
       });
