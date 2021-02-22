@@ -37,8 +37,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -51,16 +49,10 @@ import com.tmobile.cso.vault.api.utils.JSONUtil;
 import com.tmobile.cso.vault.api.utils.ThreadLocalContext;
 import org.springframework.util.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 @Component
 public class OIDCAuthService {
@@ -457,40 +449,5 @@ public class OIDCAuthService {
             groups.setData(groupsList);
         }
         return ResponseEntity.status(HttpStatus.OK).body(groups);
-    }
-    
-    /**
-     * To get build details.
-     * @return
-     */
-    public ResponseEntity<BuildDetails> getBuildDetails(){
-    	BuildDetails details = new BuildDetails();
-    	try {
-    	Resource resource = new ClassPathResource("classpath:build_variables.txt");
-        InputStream stream = resource.getInputStream();      
-         if (stream == null) {
-             throw new IllegalArgumentException("File build_variables.txt not found! " );
-         } else {
-        	 BufferedReader bufRead = new BufferedReader(new InputStreamReader(stream));
-        	    String line=null;
-        	    while((line=bufRead.readLine())!=null){
-					if (line.startsWith("version")) {
-						String version = line.substring("version=".length(), line.length());
-						log.debug("Successfully read version: from build details file");
-						details.setVersion(version.substring(version.lastIndexOf("_")+1));
-					}
-					else if (line.startsWith("date")) {
-						String date = line.substring("date=".length(), line.length());
-						log.debug("Successfully read date: from build details file");
-						details.setBuildDate(date);
-					}					
-				}
-				bufRead.close();
-			}
-         }catch (Exception e) {
-			log.error(String.format("Unable to read build details file: [%s]", e.getMessage()));
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(details);
-		}
-    	return ResponseEntity.status(HttpStatus.OK).body(details);
     }
 }
