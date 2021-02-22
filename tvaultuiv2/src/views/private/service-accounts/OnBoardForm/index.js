@@ -222,7 +222,7 @@ const SvcIcon = styled.img`
 const customLoaderStyle = css`
   position: absolute;
   right: 1.2rem;
-  top: 3.7rem;
+  top: 6.3rem;
   color: red;
 `;
 
@@ -242,6 +242,7 @@ const SvcDetailsStyles = css`
 const InfoText = styled.div`
   font-size: 1.3rem;
   color: #8b8ea6;
+  margin-bottom: 0.5rem;
 `;
 const useStylesBootstrap = makeStyles((theme) => ({
   tooltip: {

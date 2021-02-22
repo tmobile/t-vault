@@ -13,9 +13,10 @@ const Resources = {
     "Service Account Activation. By default passwords are not set to autorotate <br/> <p>Note: When 'Enable Password Rotation' is turned off, the password for this service account will not be autorotated by T-Vault.</p>",
   offBoardConfirmation:
     'Are you sure you want to offboard this Service Account? This will not delete the Service Account from AD server.',
-  offBoardDecommissionedConfirmation: 'This service account is decommissioned',
+  offBoardDecommissionedConfirmation:
+    "The Service account does not exist in Active Directory and can't be managed from T-Vault.",
   offBoardSuccessfull:
-    'Offboarding of Service Account has been completed successfully. The Service Account Password can no longer be managed by T-Vault. For security reasons, you need to log out and log in order for the changes to effect.',
+    'Offboarding of Service Account has been completed successfully.',
   svcNotEnableUpdateMsg:
     'days and will not be enabled for auto rotation by T-Vault even after it is expired. You need to make sure the password for this service account is getting rotated appropriately.',
   svcNotEnableOnboardMsg:
