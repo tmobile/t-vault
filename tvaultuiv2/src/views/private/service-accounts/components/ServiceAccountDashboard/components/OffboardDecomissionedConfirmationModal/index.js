@@ -29,7 +29,11 @@ const OffboardDecomissionedConfirmationModal = (props) => {
             ? handleSuccessfullConfirmation
             : handleConfirmationModalClose
         }
-        title={offBoardSuccessfull ? 'Offboarding successful!' : 'Confirmation'}
+        title={
+          offBoardSuccessfull
+            ? 'Offboarding successful!'
+            : 'Service Account Decommissioned!'
+        }
         description={
           offBoardSuccessfull
             ? Strings.Resources.offBoardSuccessfull

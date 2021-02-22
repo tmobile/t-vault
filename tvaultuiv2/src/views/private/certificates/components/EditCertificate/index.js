@@ -241,6 +241,43 @@ const EditCertificate = (props) => {
         setLoading(true);
         checkCertStatus();
       }
+      if (
+        certificateData.certificateStatus === 'Rejected' &&
+        certificateData.certType === 'external'
+      ) {
+        setOpenModal({ status: 'confirm' });
+        setModalDetail({ title: '', desc: '' });
+        setLoading(true);
+        apiService
+          .deleteCertificate(
+            certificateData.certificateName,
+            `${certificateData.certType}`
+          )
+          .then((res) => {
+            if (res?.data?.messages && res.data.messages[0]) {
+              setModalDetail({
+                title: 'Deletion Successful',
+                description: res.data.messages[0],
+              });
+            }
+            setLoading(false);
+            setEditActionPerform(true);
+          })
+          .catch((err) => {
+            if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
+              setModalDetail({
+                title: 'Error',
+                description: err.response.data.errors[0],
+              });
+            } else {
+              setModalDetail({
+                title: 'Error',
+                description: 'Something went wrong!',
+              });
+            }
+            setLoading(false);
+          });
+      }
       setEditActionPerform(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
