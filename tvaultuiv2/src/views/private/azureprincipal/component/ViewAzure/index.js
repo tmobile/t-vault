@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
+import Tooltip from '@material-ui/core/Tooltip';
 import { Backdrop, Typography } from '@material-ui/core';
 import Fade from '@material-ui/core/Fade';
 import styled, { css } from 'styled-components';
@@ -155,6 +156,18 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const useTooltipStyles = makeStyles((theme) => ({
+  arrow: {
+    color: theme.palette.common.white,
+  },
+  tooltip: {
+    backgroundColor: theme.palette.common.white,
+    color: theme.palette.common.black,
+    fontSize: theme.typography.subtitle2.fontSize,
+    textAlign: 'center',
+  },
+}));
+
 const ViewAzure = (props) => {
   const { viewAzureData, open, onCloseViewAzureModal } = props;
   const classes = useStyles();
@@ -162,6 +175,7 @@ const ViewAzure = (props) => {
     title: '',
     description: '',
   });
+  const tooltipClasses = useTooltipStyles();
   const [openModal, setOpenModal] = useState({ status: 'confirm' });
   const [loading, setLoading] = useState(true);
   const [azureDetail, setAzureDetail] = useState({});
@@ -428,7 +442,7 @@ const ViewAzure = (props) => {
                   {backDropLoader && <BackdropLoader />}
                   <HeaderWrapper>
                     <Typography variant="h5">
-                      View Azure Service Pincipal
+                      View Azure Service Principal
                     </Typography>
                   </HeaderWrapper>
                   <IconDescriptionWrapper>
@@ -469,35 +483,91 @@ const ViewAzure = (props) => {
                 </>
                 <>
                   <EachDetail>
-                    <Label>Azure Service Principal Name:</Label>
+                    <Tooltip
+                      classes={tooltipClasses}
+                      arrow
+                      title="Azure Service Principal Name"
+                      placement="top"
+                    >
+                      <Label>Azure Service Principal Name:</Label>
+                    </Tooltip>
                     <Value>{azureDetail.servicePrincipalName}</Value>
                   </EachDetail>
                   <EachDetail>
-                    <Label>Owner (managedBy):</Label>
+                    <Tooltip
+                      classes={tooltipClasses}
+                      arrow
+                      title="Owner of Azure Service Principal"
+                      placement="top"
+                    >
+                      <Label>Owner (managedBy):</Label>
+                    </Tooltip>
                     <Value>{azureDetail.owner_ntid}</Value>
                   </EachDetail>
                   <EachDetail>
-                    <Label>Owner Email:</Label>
+                    <Tooltip
+                      classes={tooltipClasses}
+                      arrow
+                      title="Owner email for Azure Service Principal"
+                      placement="top"
+                    >
+                      <Label>Owner Email:</Label>
+                    </Tooltip>
                     <Value>{azureDetail.owner_email}</Value>
                   </EachDetail>
                   <EachDetail>
-                    <Label>Tenant ID:</Label>
+                    <Tooltip
+                      classes={tooltipClasses}
+                      arrow
+                      title="Tenant ID"
+                      placement="top"
+                    >
+                      <Label>Tenant ID:</Label>
+                    </Tooltip>
                     <Value>{azureDetail.tenantId}</Value>
                   </EachDetail>
                   <EachDetail>
-                    <Label>Azure Service Principal Client ID:</Label>
+                    <Tooltip
+                      classes={tooltipClasses}
+                      arrow
+                      title="Azure Service Principal Client ID"
+                      placement="top"
+                    >
+                      <Label>Azure Service Principal Client ID:</Label>
+                    </Tooltip>
                     <Value>{azureDetail.servicePrincipalClientId}</Value>
                   </EachDetail>
                   <EachDetail>
-                    <Label>Azure Service Principal ID:</Label>
+                    <Tooltip
+                      classes={tooltipClasses}
+                      arrow
+                      title="Azure Service Principal ID"
+                      placement="top"
+                    >
+                      <Label>Azure Service Principal ID:</Label>
+                    </Tooltip>
                     <Value>{azureDetail.servicePrincipalId}</Value>
                   </EachDetail>
                   <EachDetail>
-                    <Label>Created Date:</Label>
+                    <Tooltip
+                      classes={tooltipClasses}
+                      arrow
+                      title="Azure Service Principal created date"
+                      placement="top"
+                    >
+                      <Label>Created Date:</Label>
+                    </Tooltip>
                     <Value>{azureDetail.createdDate}</Value>
                   </EachDetail>
                   <EachDetail>
-                    <Label>Application Name:</Label>
+                    <Tooltip
+                      classes={tooltipClasses}
+                      arrow
+                      title="Application Name"
+                      placement="top"
+                    >
+                      <Label>Application Name:</Label>
+                    </Tooltip>
                     <Value>{azureDetail.application_name}</Value>
                   </EachDetail>
                 </>
