@@ -29,6 +29,8 @@ const DnsName = styled.p`
 `;
 const InfoText = styled.div`
   font-size: 1.3rem;
+  margin-bottom: 3rem;
+  color: #8b8ea6;
 `;
 const CancelSaveWrapper = styled.div`
   display: ${(props) => (props.showPreview ? 'none' : 'flex')};
