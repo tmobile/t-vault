@@ -565,6 +565,11 @@ const CreateModal = (props) => {
     setOpenTransferConfirmationModal(false);
   };
 
+  const onAppNameChange = (e) => {
+    if (e?.target?.value) {
+      setApplicationName(e?.target?.value);
+    }
+  };
   return (
     <ComponentError>
       <>
@@ -751,7 +756,7 @@ const CreateModal = (props) => {
                           ]}
                           searchValue={applicationName}
                           classes={classes}
-                          onChange={(e) => setApplicationName(e?.target?.value)}
+                          onChange={(e) => onAppNameChange(e)}
                           onSelected={(event, value) =>
                             setApplicationName(value)
                           }
