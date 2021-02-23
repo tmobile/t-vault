@@ -566,7 +566,7 @@ const CreateModal = (props) => {
   };
 
   const onAppNameChange = (e) => {
-    if (e?.target?.value) {
+    if (e?.target?.value || e?.target?.value === '') {
       setApplicationName(e?.target?.value);
     }
   };
@@ -806,6 +806,7 @@ const CreateModal = (props) => {
                               setOpenTransferConfirmationModal(true)
                             }
                             width={isMobileScreen ? '100%' : ''}
+                            disabled={!safeDetails.appName && editSafe}
                           />
                         </CancelButton>
                       )}
