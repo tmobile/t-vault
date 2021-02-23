@@ -243,7 +243,7 @@ const SvcDetailsStyles = css`
 const InfoText = styled.div`
   font-size: 1.3rem;
   color: #8b8ea6;
-  margin-bottom: 0.5rem;
+  margin: 0.8rem 0;
 `;
 
 // Render component goes here
