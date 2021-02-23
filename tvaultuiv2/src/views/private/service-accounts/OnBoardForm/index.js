@@ -31,6 +31,7 @@ import {
   RequiredCircle,
   RequiredText,
   LabelRequired,
+  useStylesBootstrap,
 } from '../../../../styles/GlobalStyles';
 import { customColor } from '../../../../theme';
 import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
@@ -244,17 +245,6 @@ const InfoText = styled.div`
   color: #8b8ea6;
   margin-bottom: 0.5rem;
 `;
-const useStylesBootstrap = makeStyles((theme) => ({
-  arrow: {
-    color: theme.palette.common.white,
-  },
-  tooltip: {
-    backgroundColor: theme.palette.common.white,
-    color: theme.palette.common.black,
-    fontSize: theme.typography.subtitle2.fontSize,
-    textAlign: 'center',
-  },
-}));
 
 // Render component goes here
 const OnBoardForm = (props) => {
@@ -895,14 +885,16 @@ const OnBoardForm = (props) => {
                       </Span>
                       When a service account is activated in T-Vault, the
                       account owner can grant specific permissions to other
-                      users and groups, allowing other read, write and reset the
-                      associated password.
+                      users and groups, allowing others to read and/or reset the
+                      password for the service account as well through T-Vault.
                     </InfoLine>
 
                     <InfoLine>
                       T-Vault will rotate the Passwords lazily based on password
-                      expiration time (known as TTL). Rotation only occurs when
-                      first requests it after the set expiry time
+                      expiration time (known as TTL). i.e. A password is
+                      configured with a TTL of 1 hour will get expire after 1
+                      hour, but the rotation will happen only when it is first
+                      requested after the expiry.
                     </InfoLine>
                   </CollapsibleContainer>
                 </ServiceAcoountHelp>
