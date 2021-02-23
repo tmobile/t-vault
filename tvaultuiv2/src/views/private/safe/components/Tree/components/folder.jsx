@@ -96,6 +96,7 @@ const Folder = (props) => {
     status,
     onFolderClosed,
     versionInfo,
+    modifiedBy,
     setOnFolderClosed,
     setInputType,
     setIsAddInput,
@@ -170,6 +171,7 @@ const Folder = (props) => {
                 title={labelValue}
                 subTitle={`Last updated: ${versionInfo}`}
                 icon={isOpen ? IconFolderActive : IconFolderInactive}
+                modifiedBy={modifiedBy}
               />
             </LabelWrap>
 
@@ -238,6 +240,7 @@ Folder.propTypes = {
   getChildNodes: PropTypes.func,
   setCurrentNode: PropTypes.func,
   id: PropTypes.string,
+  modifiedBy: PropTypes.string.isRequired,
   onDeleteTreeItem: PropTypes.func,
   value: PropTypes.number.isRequired,
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,

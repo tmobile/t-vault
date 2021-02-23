@@ -100,24 +100,31 @@ const TreeRecursive = (props) => {
 
       const secretArray =
         item.value && convertObjectToArray(JSON.parse(item.value));
-      return secretArray.map((secret, index) => (
-        <File
-          key={index}
-          secret={secret}
-          parentId={item.parentId}
-          versionInfo={getDaysDifference(
-            secretVersionInfo &&
-              secretVersionInfo[Object.keys(secret)[0]][0]?.modifiedAt
-          )}
-          setSecretprefilledData={setSecretprefilledData}
-          type={item.type}
-          setIsAddInput={setIsAddInput}
-          setInputType={setInputType}
-          onDeleteTreeItem={onDeleteTreeItem}
-          id={item.id}
-          userHavePermission={userHavePermission}
-        />
-      ));
+      return secretArray.map((secret, index) => {
+        const modifiedAt =
+          secretVersionInfo && secretVersionInfo[Object.keys(secret)[0]];
+        if (Object.keys(secret)[0] !== 'default') {
+          return (
+            <File
+              key={index}
+              secret={secret}
+              parentId={item.parentId}
+              versionInfo={getDaysDifference(
+                modifiedAt && modifiedAt[0]?.modifiedAt
+              )}
+              modifiedBy={modifiedAt ? modifiedAt[0]?.modifiedBy : ''}
+              setSecretprefilledData={setSecretprefilledData}
+              type={item.type}
+              setIsAddInput={setIsAddInput}
+              setInputType={setInputType}
+              onDeleteTreeItem={onDeleteTreeItem}
+              id={item.id}
+              userHavePermission={userHavePermission}
+            />
+          );
+        }
+        return null;
+      });
     }
     // if its a folder render <Folder />
     if (item.type === 'folder') {
@@ -128,6 +135,7 @@ const TreeRecursive = (props) => {
           value={value}
           status={status}
           versionInfo={getDaysDifference(itemVersionInfo?.folderModifiedAt)}
+          modifiedBy={itemVersionInfo?.folderModifiedBy}
           onFolderClosed={onFolderIsClosed}
           setOnFolderClosed={setOnFolderClosed}
           setIsAddInput={setIsAddInput}
