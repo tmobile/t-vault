@@ -56,7 +56,7 @@ function getKeyUsageValue(setKeyValue, certificateType) {
     if (setKeyValue === 'client' || setKeyValue === 'Client auth')
       return 'clientAuth';
     if (setKeyValue === 'server' || setKeyValue === 'Server auth')
-      return 'Server auth';
+      return 'serverAuth';
     return 'clientAuth , serverAuth';
   }
   return 'clientAuth , serverAuth';
