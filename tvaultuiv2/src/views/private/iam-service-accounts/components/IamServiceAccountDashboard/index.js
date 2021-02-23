@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
+import Tooltip from '@material-ui/core/Tooltip';
 import {
   Link,
   Route,
@@ -34,7 +35,10 @@ import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import ViewIamServiceAccount from '../IamServiceAccountPreview';
 import apiService from '../../apiService';
 import Strings from '../../../../../resources';
-import { TitleOne } from '../../../../../styles/GlobalStyles';
+import {
+  TitleOne,
+  useStylesBootstrap,
+} from '../../../../../styles/GlobalStyles';
 import AccountSelectionTabs from '../IamSvcAccountTabs';
 import { ListContent } from '../../../../../styles/GlobalStyles/listingStyle';
 import { getEachUsersDetails } from '../../../../../services/helper-function';
@@ -221,7 +225,7 @@ const IamServiceAccountDashboard = () => {
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
   const location = useLocation();
-
+  const tooltipStyles = useStylesBootstrap();
   const introduction = Strings.Resources.iamServiceAccountDesc;
 
   const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
@@ -459,22 +463,8 @@ const IamServiceAccountDashboard = () => {
         <BorderLine />
         {(account.permission === 'write' || account.active === false) &&
         !isMobileScreen ? (
-          <PopperWrap onClick={(e) => onActionClicked(e)}>
-            <ViewIcon
-              onClick={() =>
-                onViewClicked(
-                  `${account.iamAccountId}_${account.name}`,
-                  account
-                )
-              }
-            >
-              <VisibilityIcon />
-            </ViewIcon>
-          </PopperWrap>
-        ) : null}
-        {isMobileScreen &&
-          (account.permission === 'write' || account.active === false) && (
-            <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
+          <Tooltip classes={tooltipStyles} title="View" placement="top" arrow>
+            <PopperWrap onClick={(e) => onActionClicked(e)}>
               <ViewIcon
                 onClick={() =>
                   onViewClicked(
@@ -485,7 +475,25 @@ const IamServiceAccountDashboard = () => {
               >
                 <VisibilityIcon />
               </ViewIcon>
-            </EditDeletePopperWrap>
+            </PopperWrap>
+          </Tooltip>
+        ) : null}
+        {isMobileScreen &&
+          (account.permission === 'write' || account.active === false) && (
+            <Tooltip classes={tooltipStyles} title="View" placement="top" arrow>
+              <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
+                <ViewIcon
+                  onClick={() =>
+                    onViewClicked(
+                      `${account.iamAccountId}_${account.name}`,
+                      account
+                    )
+                  }
+                >
+                  <VisibilityIcon />
+                </ViewIcon>
+              </EditDeletePopperWrap>
+            </Tooltip>
           )}
       </ListFolderWrap>
     ));
@@ -493,7 +501,7 @@ const IamServiceAccountDashboard = () => {
   return (
     <ComponentError>
       <>
-        <SectionPreview title="iam-service-account-section">
+        <SectionPreview>
           <LeftColumnSection isAccountDetailsOpen={iamServiceAccountClicked}>
             <ColumnHeader>
               <div style={{ margin: '0 1rem' }}>

@@ -11,9 +11,7 @@ import {
   IconDeleteActive,
   IconEdit,
 } from '../../../../../../assets/SvgIcons';
-import {
-  BackgroundColor
-} from '../../../../../../styles/GlobalStyles';
+import { BackgroundColor } from '../../../../../../styles/GlobalStyles';
 import PopperElement from '../../Popper';
 import SnackbarComponent from '../../../../../../components/Snackbar';
 import SecretItem from '../../SecretItem';
@@ -158,11 +156,10 @@ const File = (props) => {
               <IconLock />
             </IconWrap>
             <SecretItem
-            title={secret && Object.keys(secret)[0]}
-            subTitle={`Last Updated: ${versionInfo}`}
-            modifiedBy={modifiedBy}
-            >
-            </SecretItem>
+              title={secret && Object.keys(secret)[0]}
+              subTitle={`Last Updated: ${versionInfo}`}
+              modifiedBy={modifiedBy}
+            />
           </LabelWrap>
           <SecretInputfield
             type={viewSecretValue ? 'text' : 'password'}

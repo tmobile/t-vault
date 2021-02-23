@@ -11,9 +11,7 @@ import IconFolderActive from '../../../../../../assets/icon_folder_active.png';
 import IconFolderInactive from '../../../../../../assets/icon_folder.png';
 
 import ComponentError from '../../../../../../errorBoundaries/ComponentError/component-error';
-import {
-  BackgroundColor,
-} from '../../../../../../styles/GlobalStyles';
+import { BackgroundColor } from '../../../../../../styles/GlobalStyles';
 import {
   IconDeleteActive,
   // IconEdit,
@@ -35,7 +33,7 @@ const StyledFolder = styled.div`
       props.active ? props.theme.gradients.list : 'none'};
     color: #fff;
   }
-  
+
   .folder--label {
     outline: none;
     display: flex;
@@ -157,7 +155,6 @@ const Folder = (props) => {
     onDeleteTreeItem(treeItem);
   };
 
-  
   return (
     <ComponentError>
       <FolderContainer>
@@ -173,13 +170,9 @@ const Folder = (props) => {
               <SecretItem
                 title={labelValue}
                 subTitle={`Last updated: ${versionInfo}`}
-                icon={isOpen ? (
-                          IconFolderActive
-                                ) : (
-                                       IconFolderInactive
-                                    )}
+                icon={isOpen ? IconFolderActive : IconFolderInactive}
                 modifiedBy={modifiedBy}
-              ></SecretItem>
+              />
             </LabelWrap>
 
             {userHavePermission?.type === 'write' && (

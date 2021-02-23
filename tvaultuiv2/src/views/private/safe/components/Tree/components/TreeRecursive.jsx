@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable array-callback-return */
 /* eslint-disable react/no-array-index-key */
 import React, { useState, useEffect } from 'react';
@@ -59,29 +60,31 @@ const TreeRecursive = (props) => {
     setsecretEditData(secretprefilledData);
   }, [secretprefilledData]);
 
- const getDaysDifference = (end) => {
-  if(end){
-    const date1 = new Date();
-    const date2 = new Date(end);
-    const diffInTime = Math.abs(date2.getTime() - date1.getTime());
-    const diffInTimeDays = diffInTime / (1000);
-    let time = Math.ceil(diffInTimeDays);
+  const getDaysDifference = (end) => {
+    if (end) {
+      const date1 = new Date();
+      const date2 = new Date(end);
+      const diffInTime = Math.abs(date2.getTime() - date1.getTime());
+      const diffInTimeDays = diffInTime / 1000;
+      const time = Math.ceil(diffInTimeDays);
 
-      return time < 60 ? "a few Seconds Ago" :
-           ((time/60) < 60 ? `${Math.floor(time/60)} minutes ago` :
-               ((time/3600) < 24 ? `${Math.floor(time/3600)} hours ago` :
-                   `${Math.floor(time/(3600 * 24))} days ago`
-                )
-            )
-    }else{
-      return ' -- ';
+      return time < 60
+        ? 'a few Seconds Ago'
+        : time / 60 < 60
+        ? `${Math.floor(time / 60)} minutes ago`
+        : time / 3600 < 24
+        ? `${Math.floor(time / 3600)} hours ago`
+        : `${Math.floor(time / (3600 * 24))} days ago`;
     }
+    return ' -- ';
   };
 
   let arr = [];
   // eslint-disable-next-line consistent-return
   return data.map((item) => {
-    let itemVersionInfo = versionInfo.filter(i=>i.folderPath === item.id)[0];
+    const itemVersionInfo = versionInfo.filter(
+      (i) => i.folderPath === item.id
+    )[0];
     if (
       item?.children[0]?.type.toLowerCase() === 'secret' &&
       item?.children[0]?.value
@@ -91,31 +94,37 @@ const TreeRecursive = (props) => {
 
     // if its a file render <File />
     if (item.type.toLowerCase() === 'secret') {
-      let secretVersionInfo = versionInfo.filter(i=>i.folderPath === item.id)[0]?.secretVersions
-    
+      const secretVersionInfo = versionInfo.filter(
+        (i) => i.folderPath === item.id
+      )[0]?.secretVersions;
+
       const secretArray =
         item.value && convertObjectToArray(JSON.parse(item.value));
       return secretArray.map((secret, index) => {
-        let modifiedAt = secretVersionInfo && secretVersionInfo[Object.keys(secret)[0]];
-        if(Object.keys(secret)[0] !== 'default' ){
-          return (<File
-            key={index}
-            secret={secret} 
-            parentId={item.parentId}
-            versionInfo={getDaysDifference(modifiedAt && modifiedAt[0]?.modifiedAt)}
-            modifiedBy={(modifiedAt ? modifiedAt[0]?.modifiedBy : '')}
-            setSecretprefilledData={setSecretprefilledData}
-            type={item.type}
-            setIsAddInput={setIsAddInput}
-            setInputType={setInputType}
-            onDeleteTreeItem={onDeleteTreeItem}
-            id={item.id}
-            userHavePermission={userHavePermission}
-        />)
-      } else {
-          return;
-      }
-      })  ;
+        const modifiedAt =
+          secretVersionInfo && secretVersionInfo[Object.keys(secret)[0]];
+        if (Object.keys(secret)[0] !== 'default') {
+          return (
+            <File
+              key={index}
+              secret={secret}
+              parentId={item.parentId}
+              versionInfo={getDaysDifference(
+                modifiedAt && modifiedAt[0]?.modifiedAt
+              )}
+              modifiedBy={modifiedAt ? modifiedAt[0]?.modifiedBy : ''}
+              setSecretprefilledData={setSecretprefilledData}
+              type={item.type}
+              setIsAddInput={setIsAddInput}
+              setInputType={setInputType}
+              onDeleteTreeItem={onDeleteTreeItem}
+              id={item.id}
+              userHavePermission={userHavePermission}
+            />
+          );
+        }
+        return null;
+      });
     }
     // if its a folder render <Folder />
     if (item.type === 'folder') {

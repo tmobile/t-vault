@@ -170,15 +170,17 @@ const SelectionTabs = (props) => {
 
       const secretData = apiService.getSecret(safeDetail.path);
       const versionInfo = apiService.getVersionInfo(safeDetail.path);
-      Promise.all([secretData,versionInfo]).then(responses=>{
-
-        setResponse({ status: 'success' });
-        setSecretsFolder([
-          {
-          ...responses[0].data,
-          versionInfo:responses[1].data}
-        ]);
-      }).catch(() => {
+      Promise.all([secretData, versionInfo])
+        .then((responses) => {
+          setResponse({ status: 'success' });
+          setSecretsFolder([
+            {
+              ...responses[0].data,
+              versionInfo: responses[1].data,
+            },
+          ]);
+        })
+        .catch(() => {
           setResponse({
             status: 'failed',
             message: 'Network Error',
