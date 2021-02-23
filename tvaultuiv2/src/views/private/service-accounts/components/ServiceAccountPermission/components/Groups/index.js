@@ -29,7 +29,7 @@ const customStyle = css`
 `;
 
 const noDataStyle = css`
-  width: 42%;
+  width: 50%;
   ${belowLarge} {
     width: 70%;
   }

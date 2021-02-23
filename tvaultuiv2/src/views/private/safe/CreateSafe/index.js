@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
@@ -196,7 +197,10 @@ const CreateModal = (props) => {
   const history = useHistory();
   const [ownerSelected, setOwnerSelected] = useState(false);
   const [modalDecription, setModalDecription] = useState('');
-  const[openTransferConfirmationModal,setOpenTransferConfirmationModal] = useState(false);
+  const [
+    openTransferConfirmationModal,
+    setOpenTransferConfirmationModal,
+  ] = useState(false);
 
   const { trackPageView, trackEvent } = useMatomo();
 
@@ -552,15 +556,20 @@ const CreateModal = (props) => {
     history.goBack();
   };
 
-  const handleTransferConfirmationClose = () =>{
+  const handleTransferConfirmationClose = () => {
     setOpenTransferConfirmationModal(false);
-  }
+  };
 
-  const handleTransferConfirm = () =>{
+  const handleTransferConfirm = () => {
     setOpenModal({ status: 'transfer' });
     setOpenTransferConfirmationModal(false);
-  }
+  };
 
+  const onAppNameChange = (e) => {
+    if (e?.target?.value) {
+      setApplicationName(e?.target?.value);
+    }
+  };
   return (
     <ComponentError>
       <>
@@ -573,7 +582,7 @@ const CreateModal = (props) => {
             <ButtonComponent
               label="Cancel"
               color="primary"
-              onClick={() => handleTransferConfirmationClose() }
+              onClick={() => handleTransferConfirmationClose()}
               width="100%"
             />
           }
@@ -581,7 +590,7 @@ const CreateModal = (props) => {
             <ButtonComponent
               label="Confirm"
               color="secondary"
-              onClick={() => handleTransferConfirm() }
+              onClick={() => handleTransferConfirm()}
             />
           }
         />
@@ -747,7 +756,7 @@ const CreateModal = (props) => {
                           ]}
                           searchValue={applicationName}
                           classes={classes}
-                          onChange={(e) => setApplicationName(e?.target?.value)}
+                          onChange={(e) => onAppNameChange(e)}
                           onSelected={(event, value) =>
                             setApplicationName(value)
                           }
@@ -793,7 +802,9 @@ const CreateModal = (props) => {
                           <ButtonComponent
                             label="Transfer"
                             color="secondary"
-                            onClick={() => setOpenTransferConfirmationModal(true)}
+                            onClick={() =>
+                              setOpenTransferConfirmationModal(true)
+                            }
                             width={isMobileScreen ? '100%' : ''}
                           />
                         </CancelButton>

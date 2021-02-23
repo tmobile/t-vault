@@ -28,7 +28,7 @@ const customStyle = css`
 `;
 
 const noDataStyle = css`
-  width: 42%;
+  width: 50%;
   ${belowLarge} {
     width: 70%;
   }
@@ -242,7 +242,9 @@ const Users = (props) => {
               <NoDataWrapper>
                 <NoData
                   imageSrc={noPermissionsIcon}
-                  description={'No <strong>Users</strong> are given permission to access this Azure service account, add users to access the account.'}
+                  description={
+                    'No <strong>Users</strong> are given permission to access this Azure service account, add users to access the account.'
+                  }
                   actionButton={
                     // eslint-disable-next-line react/jsx-wrap-multilines
                     <ButtonComponent

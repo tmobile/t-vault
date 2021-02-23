@@ -2,6 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styled, { css } from 'styled-components';
 import { Typography } from '@material-ui/core';
+import Tooltip from '@material-ui/core/Tooltip';
+import { makeStyles } from '@material-ui/core/styles';
 import ButtonComponent from '../../../../../../../components/FormFields/ActionButton';
 import svcHeaderBgimg from '../../../../../../../assets/icon-service-account.svg';
 import mediaBreakpoints from '../../../../../../../breakpoints';
@@ -123,6 +125,18 @@ const Span = styled('span')`
 `;
 const CollapsibleContainer = styled('div')``;
 
+const useTooltipStyles = makeStyles((theme) => ({
+  arrow: {
+    color: theme.palette.common.white,
+  },
+  tooltip: {
+    backgroundColor: theme.palette.common.white,
+    color: theme.palette.common.black,
+    fontSize: theme.typography.subtitle2.fontSize,
+    textAlign: 'center',
+  },
+}));
+
 const ViewIamSvcAccountDetails = (props) => {
   const {
     iamSvcAccountData,
@@ -132,6 +146,7 @@ const ViewIamSvcAccountDetails = (props) => {
     handleCloseModal,
     viewAccountData,
   } = props;
+  const tooltipClasses = useTooltipStyles();
   const onRotateClicked = () => {
     isRotateSecret(true);
   };
@@ -204,31 +219,80 @@ const ViewIamSvcAccountDetails = (props) => {
             </CollapsibleDropdown>
           </InfoContainer>
           <EachDetail>
-            <Label>IAM Service Account Name</Label>
+            <Tooltip
+              classes={tooltipClasses}
+              arrow
+              title="IAM Service Account Name"
+              placement="top"
+            >
+              <Label>IAM Service Account Name</Label>
+            </Tooltip>
             <Value>{iamSvcAccountData?.userName}</Value>
           </EachDetail>
           <EachDetail>
-            <Label>Owner (Managed By)</Label>
+            <Tooltip
+              classes={tooltipClasses}
+              arrow
+              title="Owner of IAM Service Account"
+              placement="top"
+            >
+              <Label>Owner (Managed By)</Label>
+            </Tooltip>
             <Value>{iamSvcAccountData?.owner_ntid}</Value>
           </EachDetail>
           <EachDetail>
-            <Label>Owner Email</Label>
+            <Tooltip
+              classes={tooltipClasses}
+              arrow
+              title="Owner email for IAM Service Account"
+              placement="top"
+            >
+              <Label>Owner Email</Label>
+            </Tooltip>
             <Value>{iamSvcAccountData?.owner_email}</Value>
           </EachDetail>
           <EachDetail>
-            <Label>AWS Account ID</Label>
+            <Tooltip
+              classes={tooltipClasses}
+              arrow
+              title="AWS Account ID"
+              placement="top"
+            >
+              <Label>AWS Account ID</Label>
+            </Tooltip>
             <Value>{iamSvcAccountData?.awsAccountId}</Value>
           </EachDetail>
           <EachDetail>
-            <Label>AWS Account Name</Label>
+            <Tooltip
+              classes={tooltipClasses}
+              arrow
+              title="AWS Account Name"
+              placement="top"
+            >
+              <Label>AWS Account Name</Label>
+            </Tooltip>
             <Value>{iamSvcAccountData?.awsAccountName}</Value>
           </EachDetail>
           <EachDetail>
-            <Label>Created On</Label>
+            <Tooltip
+              classes={tooltipClasses}
+              arrow
+              title="Account created date"
+              placement="top"
+            >
+              <Label>Created On</Label>
+            </Tooltip>
             <Value>{iamSvcAccountData?.createdDate}</Value>
           </EachDetail>
           <EachDetail>
-            <Label>Application Name</Label>
+            <Tooltip
+              classes={tooltipClasses}
+              arrow
+              title="Application Name"
+              placement="top"
+            >
+              <Label>Application Name</Label>
+            </Tooltip>
             <Value>{iamSvcAccountData?.application_name}</Value>
           </EachDetail>
         </PreviewWrap>
