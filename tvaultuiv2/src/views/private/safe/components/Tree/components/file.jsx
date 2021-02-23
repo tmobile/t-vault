@@ -96,6 +96,7 @@ const File = (props) => {
     onDeleteTreeItem,
     setSecretprefilledData,
     type,
+    modifiedBy,
     versionInfo,
     setIsAddInput,
     setInputType,
@@ -159,6 +160,7 @@ const File = (props) => {
             <SecretItem
             title={secret && Object.keys(secret)[0]}
             subTitle={`Last Updated: ${versionInfo}`}
+            modifiedBy={modifiedBy}
             >
             </SecretItem>
           </LabelWrap>
@@ -237,6 +239,7 @@ File.propTypes = {
   onDeleteTreeItem: PropTypes.func,
   parentId: PropTypes.string,
   type: PropTypes.string,
+  modifiedBy: PropTypes.string.isRequired,
   setIsAddInput: PropTypes.func,
   setInputType: PropTypes.func,
   versionInfo: PropTypes.string.isRequired,

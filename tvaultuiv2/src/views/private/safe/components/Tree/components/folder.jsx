@@ -98,6 +98,7 @@ const Folder = (props) => {
     status,
     onFolderClosed,
     versionInfo,
+    modifiedBy,
     setOnFolderClosed,
     setInputType,
     setIsAddInput,
@@ -177,6 +178,7 @@ const Folder = (props) => {
                                 ) : (
                                        IconFolderInactive
                                     )}
+                modifiedBy={modifiedBy}
               ></SecretItem>
             </LabelWrap>
 
@@ -245,6 +247,7 @@ Folder.propTypes = {
   getChildNodes: PropTypes.func,
   setCurrentNode: PropTypes.func,
   id: PropTypes.string,
+  modifiedBy: PropTypes.string.isRequired,
   onDeleteTreeItem: PropTypes.func,
   value: PropTypes.number.isRequired,
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,

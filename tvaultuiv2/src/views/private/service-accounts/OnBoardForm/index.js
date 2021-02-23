@@ -928,9 +928,6 @@ const OnBoardForm = (props) => {
                       </Span>
                     </LabelRequired>
                   </Tooltip>
-                  <InfoText>
-                    Select the service account name from the autocomplete field.
-                  </InfoText>
                   <TypeAheadComponent
                     options={[
                       ...serviceAccountsList.map((item) => item.userId),
@@ -947,7 +944,9 @@ const OnBoardForm = (props) => {
                       '/edit-service-accounts'
                     )}
                   />
-
+                  <InfoText>
+                    Select the service account name from the autocomplete field.
+                  </InfoText>
                   {isServiceFetching && (
                     <LoaderSpinner customStyle={customLoaderStyle} />
                   )}
@@ -1019,7 +1018,8 @@ const OnBoardForm = (props) => {
                     </ServiceAcoountHelp>
                   </ServiceAccountDetailWrap>
                 </InputFieldLabelWrapper>
-                <ToggleWrap>
+                <ToggleWrap>  
+                  <div>
                   <TitleTwo extraCss="display:flex;align-items:center">
                     <SwitchComponent
                       checked={isSwitchOn}
@@ -1037,6 +1037,8 @@ const OnBoardForm = (props) => {
                       </TitleThree>
                     </Tooltip>
                   </TitleTwo>
+                  <InfoText>Check this to enable auto password rotation by T-Vault.</InfoText>
+                  </div>
                   <InputFieldLabelWrapper customCss="width:50%">
                     <Tooltip
                       classes={tooltipStyles}
@@ -1079,11 +1081,6 @@ const OnBoardForm = (props) => {
                     Application Name
                     <RequiredCircle margin="0.5rem" />
                   </InputLabel>
-                  <InfoText>
-                    Please choose the application name to associate with this
-                    service account. Search application from the below
-                    autocomplete box.
-                  </InfoText>
                   <AutoCompleteComponent
                     options={[
                       ...applicationList.map(
@@ -1099,6 +1096,11 @@ const OnBoardForm = (props) => {
                     onChange={(e) => onApplicationNameChange(e)}
                     placeholder="Search for Application Name"
                   />
+                  <InfoText>
+                    Please choose the application name to associate with this
+                    service account. Search application from the below
+                    autocomplete box.
+                  </InfoText>
                   {isAppNameFetchig && (
                     <LoaderSpinner customStyle={customLoaderStyle} />
                   )}

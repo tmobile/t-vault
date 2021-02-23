@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import { makeStyles, Tooltip } from '@material-ui/core';
 
 const Wrapper = styled('div')`
   position: relative;
@@ -30,15 +31,36 @@ const SubTitle = styled.span`
     color: #5e627c;
 `;
 
+const usetooltipStyles = makeStyles((theme) => ({
+  arrow: {
+    color: theme.palette.common.white,
+  },
+  tooltip: {
+    backgroundColor: theme.palette.common.white,
+    color: theme.palette.common.black,
+    fontSize: theme.typography.subtitle2.fontSize,
+    textAlign: 'center',
+  },
+}));
+
 const SecretItem = (props) => {
-  const { title, subTitle, icon } = props;
+  const { title, subTitle, icon, modifiedBy } = props;
+  const toolTipStyles = usetooltipStyles();
   return (
       <Wrapper>
         <LabelWrap>
             {icon && <Icon alt="folder_icon" src={icon} />}
           <Titles>
             <Title >{title}</Title>
-            <SubTitle>{subTitle}</SubTitle>
+            {modifiedBy ? (<Tooltip
+              classes={toolTipStyles}
+              title={modifiedBy}
+              placement="left"
+              arrow
+            >
+              <SubTitle>{subTitle}</SubTitle>
+            </Tooltip>) : (<SubTitle>{subTitle}</SubTitle>)
+            }
           </Titles>
         </LabelWrap>
       </Wrapper>

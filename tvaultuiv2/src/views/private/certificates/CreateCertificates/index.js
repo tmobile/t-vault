@@ -375,7 +375,7 @@ const CreateCertificates = (props) => {
         setDuplicateEmail(false);
       }
     }
-  }, [notifyEmail, notifyUserSelected, autoLoader, options, searchBy]);
+  }, [notifyEmail, notifyUserSelected, autoLoader, options, searchBy, notificationEmailList]);
 
   useEffect(() => {
     if (allApplication?.length > 0) {
