@@ -32,7 +32,7 @@ const customStyle = css`
 `;
 
 const noDataStyle = css`
-  width: 42%;
+  width: 50%;
   ${belowLarge} {
     width: 70%;
   }
@@ -246,7 +246,9 @@ const AppRoles = (props) => {
               <NoDataWrapper>
                 <NoData
                   imageSrc={noPermissionsIcon}
-                  description={Strings.Resources.noAppRolePermissionFoundCertificate}
+                  description={
+                    Strings.Resources.noAppRolePermissionFoundCertificate
+                  }
                   actionButton={
                     // eslint-disable-next-line react/jsx-wrap-multilines
                     <ButtonComponent

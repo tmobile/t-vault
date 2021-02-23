@@ -216,72 +216,74 @@ const TransferSafeOwner = (props) => {
 
   return (
     <ComponentError>
-      <HeaderWrapper>
-        <LeftIcon
-          src={leftArrowIcon}
-          alt="go-back"
-          onClick={() => onTransferCancelClicked()}
-        />
-        <Typography variant="h5">Transfer Safe Ownership</Typography>
-      </HeaderWrapper>
-      <EachValueWrap>
-        <Label>Safe Name:</Label>
-        <Value>{transferData?.name}</Value>
-      </EachValueWrap>
-      <EachValueWrap>
-        <Label>Safe Type:</Label>
-        <Value capitalize="capitalize">{transferData?.type} Safe</Value>
-      </EachValueWrap>
-      <EachValueWrap>
-        <Label>Current Owner:</Label>
-        <Value>{transferData?.owner}</Value>
-      </EachValueWrap>
-      <InputFieldLabelWrapper postion>
-        <InputLabel>
-          New Owner
-          <RequiredCircle margin="0.5rem" />
-        </InputLabel>
-        <TypeAheadComponent
-          options={options?.map(
-            (item) =>
-              `${item?.userEmail?.toLowerCase()}, ${getName(
-                item?.displayName?.toLowerCase()
-              )}, ${item?.userName?.toLowerCase()}`
-          )}
-          loader={autoLoader}
-          userInput={owner}
-          icon="search"
-          name="owner"
-          onSelected={(e, val) => onSelected(e, val)}
-          onChange={(e) => onOwnerChange(e)}
-          placeholder="Search by NTID, Email or Name "
-          error={owner?.length > 2 && (emailError || !isValidEmail)}
-          helperText={
-            owner?.length > 2 && (emailError || !isValidEmail)
-              ? 'Please enter a valid value or not available!'
-              : ''
-          }
-        />
-        <InstructionText>
-          Search the T-Mobile system to add users
-        </InstructionText>
-        {autoLoader && <LoaderSpinner customStyle={autoLoaderStyle} />}
-      </InputFieldLabelWrapper>
-      <CancelSaveWrapper>
-        <CancelButton>
-          <ButtonComponent
-            label="Cancel"
-            color="primary"
+      <>
+        <HeaderWrapper>
+          <LeftIcon
+            src={leftArrowIcon}
+            alt="go-back"
             onClick={() => onTransferCancelClicked()}
           />
-        </CancelButton>
-        <ButtonComponent
-          label="Transfer"
-          color="secondary"
-          disabled={disabledTransfer}
-          onClick={() => onTransfer()}
-        />
-      </CancelSaveWrapper>
+          <Typography variant="h5">Transfer Safe Ownership</Typography>
+        </HeaderWrapper>
+        <EachValueWrap>
+          <Label>Safe Name:</Label>
+          <Value>{transferData?.name}</Value>
+        </EachValueWrap>
+        <EachValueWrap>
+          <Label>Safe Type:</Label>
+          <Value capitalize="capitalize">{transferData?.type} Safe</Value>
+        </EachValueWrap>
+        <EachValueWrap>
+          <Label>Current Owner:</Label>
+          <Value>{transferData?.owner}</Value>
+        </EachValueWrap>
+        <InputFieldLabelWrapper postion>
+          <InputLabel>
+            New Owner
+            <RequiredCircle margin="0.5rem" />
+          </InputLabel>
+          <TypeAheadComponent
+            options={options?.map(
+              (item) =>
+                `${item?.userEmail?.toLowerCase()}, ${getName(
+                  item?.displayName?.toLowerCase()
+                )}, ${item?.userName?.toLowerCase()}`
+            )}
+            loader={autoLoader}
+            userInput={owner}
+            icon="search"
+            name="owner"
+            onSelected={(e, val) => onSelected(e, val)}
+            onChange={(e) => onOwnerChange(e)}
+            placeholder="Search by NTID, Email or Name "
+            error={owner?.length > 2 && (emailError || !isValidEmail)}
+            helperText={
+              owner?.length > 2 && (emailError || !isValidEmail)
+                ? 'Please enter a valid value or not available!'
+                : ''
+            }
+          />
+          <InstructionText>
+            Search the T-Mobile system to add users
+          </InstructionText>
+          {autoLoader && <LoaderSpinner customStyle={autoLoaderStyle} />}
+        </InputFieldLabelWrapper>
+        <CancelSaveWrapper>
+          <CancelButton>
+            <ButtonComponent
+              label="Cancel"
+              color="primary"
+              onClick={() => onTransferCancelClicked()}
+            />
+          </CancelButton>
+          <ButtonComponent
+            label="Transfer"
+            color="secondary"
+            disabled={disabledTransfer}
+            onClick={() => onTransfer()}
+          />
+        </CancelSaveWrapper>
+      </>
     </ComponentError>
   );
 };
