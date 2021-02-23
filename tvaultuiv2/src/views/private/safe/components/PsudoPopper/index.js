@@ -2,8 +2,10 @@ import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import Tooltip from '@material-ui/core/Tooltip';
 import { IconDeleteActive, IconEdit } from '../../../../../assets/SvgIcons';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import { useStylesBootstrap } from '../../../../../styles/GlobalStyles';
 
 const IconWrap = styled('div')`
   display: flex;
@@ -26,25 +28,27 @@ const Icon = styled('div')`
 
 const PsudoPopper = (props) => {
   const { onDeleteSafeClicked, safe, path } = props;
-
+  const tooltipStyles = useStylesBootstrap();
   return (
     <ComponentError>
       <IconWrap>
-        <Link
-          to={{
-            pathname: path,
-            state: { safe },
-          }}
-        >
-          <Icon>
-            {' '}
-            <IconEdit />
+        <Tooltip classes={tooltipStyles} title="Edit" placement="top" arrow>
+          <Link
+            to={{
+              pathname: path,
+              state: { safe },
+            }}
+          >
+            <Icon>
+              <IconEdit />
+            </Icon>
+          </Link>
+        </Tooltip>
+        <Tooltip classes={tooltipStyles} title="Delete" placement="top" arrow>
+          <Icon onClick={onDeleteSafeClicked}>
+            <IconDeleteActive />
           </Icon>
-        </Link>
-        <Icon onClick={onDeleteSafeClicked}>
-          {' '}
-          <IconDeleteActive />
-        </Icon>
+        </Tooltip>
       </IconWrap>
     </ComponentError>
   );

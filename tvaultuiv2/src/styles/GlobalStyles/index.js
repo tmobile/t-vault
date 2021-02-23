@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { makeStyles } from '@material-ui/core/styles';
 import mediaBreakpoints from '../../breakpoints';
 
 export const SubHeading = styled('div')`
@@ -199,3 +200,14 @@ export const NoDataWrapper = styled.section`
     }
   }
 `;
+
+export const useStylesBootstrap = makeStyles(() => ({
+  arrow: {
+    color: '#fff !important',
+  },
+  tooltip: {
+    backgroundColor: '#fff !important',
+    color: '#000 !important',
+    fontSize: '1.4rem !important',
+  },
+}));
