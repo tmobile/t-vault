@@ -175,7 +175,6 @@ const CertificatesDashboard = () => {
   const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
   const [state] = useStateValue();
   const admin = Boolean(state?.isAdmin);
-  const [listOfCertificates, setListOfCertificates] = useState([]);
 
   const compareCertificates = (array1, array2, type) => {
     if (array2.length > 0) {
@@ -296,11 +295,6 @@ const CertificatesDashboard = () => {
           ...externalCertArray,
           ...onboardCertArray,
         ]);
-        setListOfCertificates([
-          ...internalCertArray,
-          ...externalCertArray,
-          ...onboardCertArray,
-        ]);
         setAllCertList([
           ...internalCertArray,
           ...externalCertArray,
@@ -400,7 +394,6 @@ const CertificatesDashboard = () => {
           'external'
         );
         setCertificateList([...internalCertArray, ...externalCertArray]);
-        setListOfCertificates([...internalCertArray, ...externalCertArray]);
         setAllCertList([...internalCertArray, ...externalCertArray]);
         setResponse({ status: 'success' });
       })
@@ -443,15 +436,13 @@ const CertificatesDashboard = () => {
   }, [allCertList, history]);
 
   useEffect(() => {
-    const internalArray = listOfCertificates?.filter(
+    const internalArray = certificateList?.filter(
       (item) => item?.certType === 'internal' && !item.isOnboardCert
     );
-    const externalArray = listOfCertificates?.filter(
+    const externalArray = certificateList?.filter(
       (item) => item?.certType === 'external' && !item.isOnboardCert
     );
-    const onboardArray = listOfCertificates?.filter(
-      (item) => item?.isOnboardCert
-    );
+    const onboardArray = certificateList?.filter((item) => item?.isOnboardCert);
     const allCert =
       internalArray?.length + externalArray?.length + onboardArray?.length;
     const array = [
@@ -466,7 +457,7 @@ const CertificatesDashboard = () => {
       });
     }
     setMenu([...array]);
-  }, [certificateList, admin, allCertList, listOfCertificates]);
+  }, [certificateList, admin, allCertList]);
 
   /**
    * @function onLinkClicked
@@ -498,7 +489,6 @@ const CertificatesDashboard = () => {
    */
   const onSelectChange = (value) => {
     setCertificateType(value);
-    setListOfCertificates([...allCertList]);
     setInputSearchValue('');
     if (value !== 'All Certificates' && value !== 'Onboard Certificates') {
       const filterArray = allCertList.filter(
@@ -529,10 +519,8 @@ const CertificatesDashboard = () => {
             ?.toLowerCase()
             .includes(value?.toLowerCase().trim())
         );
-        setListOfCertificates([...searchArray]);
         setCertificateList([...searchArray]);
       } else {
-        setListOfCertificates([...allCertList]);
         setCertificateList([...allCertList]);
       }
     }
