@@ -326,6 +326,11 @@ const CreateCertificates = (props) => {
   const { trackPageView, trackEvent } = useMatomo();
 
   useEffect(() => {
+    if (!isDns) {
+      setDnsArray([]);
+    }
+  }, [isDns]);
+  useEffect(() => {
     trackPageView();
     return () => {
       trackPageView();
@@ -375,7 +380,14 @@ const CreateCertificates = (props) => {
         setDuplicateEmail(false);
       }
     }
-  }, [notifyEmail, notifyUserSelected, autoLoader, options, searchBy, notificationEmailList]);
+  }, [
+    notifyEmail,
+    notifyUserSelected,
+    autoLoader,
+    options,
+    searchBy,
+    notificationEmailList,
+  ]);
 
   useEffect(() => {
     if (allApplication?.length > 0) {
