@@ -231,7 +231,12 @@ const TransferSafeOwner = (props) => {
         </EachValueWrap>
         <EachValueWrap>
           <Label>Safe Type:</Label>
-          <Value capitalize="capitalize">{transferData?.type} Safe</Value>
+          <Value capitalize="capitalize">
+            {transferData?.type === 'Apps Safe'
+              ? 'Application Safe'
+              : transferData?.type}{' '}
+            Safe
+          </Value>
         </EachValueWrap>
         <EachValueWrap>
           <Label>Current Owner:</Label>

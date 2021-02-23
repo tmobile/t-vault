@@ -1020,7 +1020,7 @@ const OnBoardForm = (props) => {
                       />
                       <Tooltip
                         classes={tooltipStyles}
-                        title="Check this if possible needs to be enabled for rotation by T-Vault"
+                        title="Check this if password needs to be enabled for rotation by T-Vault"
                         placement="top"
                         arrow
                       >

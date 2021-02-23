@@ -598,7 +598,7 @@ const CreateModal = (props) => {
           <ConfirmationModal
             open
             handleClose={onConfirmationModalClose}
-            title="Confirmation"
+            title="Safe Transfer Successful"
             description={modalDecription}
             cancelButton={
               // eslint-disable-next-line react/jsx-wrap-multilines

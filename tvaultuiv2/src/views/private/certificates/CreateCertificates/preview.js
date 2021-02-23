@@ -168,7 +168,7 @@ const PreviewCertificate = (props) => {
         {!isEditCertificate && (
           <InfoText>
             Note : Select the Edit button to modify the input details else
-            Onboard button to Onboard a certificate.
+            Create button to create a certificate.
           </InfoText>
         )}
         {!isEditCertificate && (
