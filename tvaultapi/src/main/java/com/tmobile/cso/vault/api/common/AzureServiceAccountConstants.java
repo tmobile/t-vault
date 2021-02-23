@@ -16,7 +16,7 @@ public class AzureServiceAccountConstants {
 	public static final String AZURE_ROTATE_MSG_STRING = "rotate";
 	
 	public static final String AZURE_SVCACC_CREATION_TITLE = "Onboard Azure Service Account";
-	public static final String AZURE_ONBOARD_EMAIL_SUBJECT="Onboarding Azure Service account %s is successful";
+	public static final String AZURE_ONBOARD_EMAIL_SUBJECT="Onboarding Azure Service Principal %s is successful";
 	public static final String AZURE_EMAIL_TEMPLATE_NAME = "AzureEmailTemplate";
 	public static final String AZURE_ACCESS_MSG_STRING = "access";
 	public static final String AZURE_GROUP_MSG_STRING = "groups";

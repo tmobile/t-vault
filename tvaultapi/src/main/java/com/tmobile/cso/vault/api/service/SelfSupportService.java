@@ -993,6 +993,12 @@ public class  SelfSupportService {
 	 * @return
 	 */
 	public ResponseEntity<String> deleteSecretIds(String userToken, AppRoleAccessorIds appRoleAccessorIds, UserDetails userDetails) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
+				  put(LogMessage.ACTION, "DeleteSecretId").
+			      put(LogMessage.MESSAGE, String.format("Trying to delete SecretId for the role [%s].",appRoleAccessorIds.getRole_name())).
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
+			      build()));
 		return appRoleService.deleteSecretIds(userToken, appRoleAccessorIds, userDetails);
 	}
 	/**
