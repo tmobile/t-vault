@@ -112,7 +112,7 @@ export const convertObjectToArray = (data) => {
   const array = [];
   // eslint-disable-next-line no-restricted-syntax
   for (const [key, value] of Object.entries(data?.data)) {
-    if (key?.toLowerCase() !== 'default') array.push({ [key]: value });
+    array.push({ [key]: value });
   }
   return array;
 };
