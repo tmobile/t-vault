@@ -9538,8 +9538,8 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 					String limitVal = responseMap.get("limit").toString();
 					String offset = responseMap.get("offset").toString();
 					Integer offsetVal = Integer.parseInt(limitVal) + Integer.parseInt(offset);
-					String offsetValString = "limit=1000&offset="+offsetVal;
-					String nextURL = targetEndpointVal.replace("limit=1000", offsetValString);
+					String offsetValString = "offset="+offsetVal;
+					String nextURL = targetEndpointVal.replace("offset=0", offsetValString);
 					certificatesList = getCertificateListFromNclm(nclmAccessToken, certificatesList, nextURL,
 							onboardedInternalCerts, onboardedExternalCerts);
 				}
