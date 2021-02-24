@@ -229,6 +229,7 @@ const CertificateSelectionTabs = (props) => {
     }
     setToastResponse(null);
   };
+  console.log(certificateMetaData);
   return (
     <ComponentError>
       <div className={classes.root}>
@@ -245,14 +246,14 @@ const CertificateSelectionTabs = (props) => {
               label="Certificate"
               {...a11yProps(0)}
             />
-            {hasPermission && certificateDetail.certificateStatus && (
+            {hasPermission && certificateMetaData.certificateStatus && (
               <Tab label="Permissions" {...a11yProps(1)} />
             )}
           </Tabs>
           {value === 0 &&
             certificateMetaData.applicationName &&
-            certificateDetail.certificateStatus &&
-            certificateDetail?.certificateStatus?.toLowerCase() !==
+            certificateMetaData.certificateStatus &&
+            certificateMetaData?.certificateStatus?.toLowerCase() !==
               'waiting' && (
               <DownLoadWrap>
                 <Download

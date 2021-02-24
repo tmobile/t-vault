@@ -15,7 +15,6 @@ import apiService from '../../../../apiService';
 import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 import Error from '../../../../../../../components/Error';
 import { checkAccess } from '../../../../../../../services/helper-function';
-import Strings from '../../../../../../../resources';
 import { NoDataWrapper } from '../../../../../../../styles/GlobalStyles';
 
 const { small, belowLarge } = mediaBreakpoints;
@@ -30,7 +29,7 @@ const customStyle = css`
 `;
 
 const noDataStyle = css`
-  width: 42%;
+  width: 50%;
   ${belowLarge} {
     width: 70%;
   }
@@ -254,7 +253,7 @@ const Groups = (props) => {
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description={Strings.Resources.noGroupsPermissionFound}
+                    description="No <strong>Groups</strong> are given permission to access this service account, add groups to access the service account."
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent

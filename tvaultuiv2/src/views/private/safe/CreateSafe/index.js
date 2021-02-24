@@ -1,7 +1,9 @@
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-curly-newline */
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { debounce } from 'lodash';
+import Tooltip from '@material-ui/core/Tooltip';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
@@ -157,9 +159,22 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const useTooltipStyles = makeStyles((theme) => ({
+  arrow: {
+    color: theme.palette.common.white,
+  },
+  tooltip: {
+    backgroundColor: theme.palette.common.white,
+    color: theme.palette.common.black,
+    fontSize: theme.typography.subtitle2.fontSize,
+    textAlign: 'center',
+  },
+}));
+
 const CreateModal = (props) => {
   const { refresh } = props;
   const classes = useStyles();
+  const tooltipClasses = useTooltipStyles();
   const [applicationName, setApplicationName] = useState('');
   const [allApplication, setAllApplication] = useState([]);
   const [open, setOpen] = useState(true);
@@ -182,6 +197,10 @@ const CreateModal = (props) => {
   const history = useHistory();
   const [ownerSelected, setOwnerSelected] = useState(false);
   const [modalDecription, setModalDecription] = useState('');
+  const [
+    openTransferConfirmationModal,
+    setOpenTransferConfirmationModal,
+  ] = useState(false);
 
   const { trackPageView, trackEvent } = useMatomo();
 
@@ -537,9 +556,44 @@ const CreateModal = (props) => {
     history.goBack();
   };
 
+  const handleTransferConfirmationClose = () => {
+    setOpenTransferConfirmationModal(false);
+  };
+
+  const handleTransferConfirm = () => {
+    setOpenModal({ status: 'transfer' });
+    setOpenTransferConfirmationModal(false);
+  };
+
+  const onAppNameChange = (e) => {
+    if (e?.target?.value) {
+      setApplicationName(e?.target?.value);
+    }
+  };
   return (
     <ComponentError>
       <>
+        <ConfirmationModal
+          open={openTransferConfirmationModal}
+          handleClose={handleTransferConfirmationClose}
+          title="Transfer Safe"
+          description="Are you sure, do you want to transfer ownership for this safe?"
+          cancelButton={
+            <ButtonComponent
+              label="Cancel"
+              color="primary"
+              onClick={() => handleTransferConfirmationClose()}
+              width="100%"
+            />
+          }
+          confirmButton={
+            <ButtonComponent
+              label="Confirm"
+              color="secondary"
+              onClick={() => handleTransferConfirm()}
+            />
+          }
+        />
         {openModal.status === 'confirmation' && (
           <ConfirmationModal
             open
@@ -684,10 +738,17 @@ const CreateModal = (props) => {
                         />
                       </InputFieldLabelWrapper>
                       <InputFieldLabelWrapper>
-                        <InputLabel>
-                          Application Name
-                          <RequiredCircle margin="1.3rem" />
-                        </InputLabel>
+                        <Tooltip
+                          classes={tooltipClasses}
+                          arrow
+                          title="Name of the Cloud application this safe will be used for. Only applications you have self-service rights to will be shown"
+                          placement="top"
+                        >
+                          <InputLabel>
+                            Application Name
+                            <RequiredCircle margin="1.3rem" />
+                          </InputLabel>
+                        </Tooltip>
                         <AutoCompleteComponent
                           icon="search"
                           options={[
@@ -695,7 +756,7 @@ const CreateModal = (props) => {
                           ]}
                           searchValue={applicationName}
                           classes={classes}
-                          onChange={(e) => setApplicationName(e?.target?.value)}
+                          onChange={(e) => onAppNameChange(e)}
                           onSelected={(event, value) =>
                             setApplicationName(value)
                           }
@@ -708,6 +769,7 @@ const CreateModal = (props) => {
                           }
                         />
                       </InputFieldLabelWrapper>
+
                       <InputFieldLabelWrapper>
                         <InputLabel>
                           Description
@@ -740,7 +802,9 @@ const CreateModal = (props) => {
                           <ButtonComponent
                             label="Transfer"
                             color="secondary"
-                            onClick={() => setOpenModal({ status: 'transfer' })}
+                            onClick={() =>
+                              setOpenTransferConfirmationModal(true)
+                            }
                             width={isMobileScreen ? '100%' : ''}
                           />
                         </CancelButton>
