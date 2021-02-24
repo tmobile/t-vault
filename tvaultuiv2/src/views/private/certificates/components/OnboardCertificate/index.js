@@ -373,6 +373,7 @@ const OnboardCertificates = (props) => {
 
   const onPreviewClicked = () => {
     setShowPreviewData(true);
+    setNotifyEmail('');
   };
 
   const callSearchByGroupemailApi = useCallback(
