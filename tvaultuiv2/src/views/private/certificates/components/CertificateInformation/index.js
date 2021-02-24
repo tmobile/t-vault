@@ -57,7 +57,16 @@ const AccessDeniedIcon = styled.img`
   width: 16rem;
   height: 16rem;
 `;
-
+function getKeyUsageValue(setKeyValue, certificateType) {
+  if (certificateType === 'internal') {
+    if (setKeyValue === 'client' || setKeyValue === 'Client auth')
+      return 'clientAuth';
+    if (setKeyValue === 'server' || setKeyValue === 'Server auth')
+      return 'serverAuth';
+    return 'clientAuth , serverAuth';
+  }
+  return 'clientAuth , serverAuth';
+}
 const NoPermission = styled.div`
   color: ${(props) => props.theme.customColor.label.color};
   text-align: center;
@@ -140,9 +149,10 @@ const CertificateInformation = (props) => {
                 <EachDetail>
                   <Label>Extended Key Usage:</Label>
                   <Value>
-                    {certificateMetaData?.certType?.toLowerCase() === 'internal'
-                      ? 'serverAuth'
-                      : 'serverAuth, clientAuth'}
+                    {getKeyUsageValue(
+                      certificateMetaData.keyUsageValue,
+                      certificateMetaData.certType
+                    ) || 'N/A'}
                   </Value>
                 </EachDetail>
                 <EachDetail>
@@ -153,9 +163,9 @@ const CertificateInformation = (props) => {
                       : 'Entrust CA'}
                   </Value>
                 </EachDetail>
-                <EachDetail>
-                  <Label>DNS:</Label>
-                  {certificateMetaData.dnsNames && dnsNames.length > 0 ? (
+                {certificateMetaData.dnsNames && dnsNames.length > 0 && (
+                  <EachDetail>
+                    <Label>DNS:</Label>
                     <>
                       {dnsNames?.map((item) => {
                         return (
@@ -163,10 +173,8 @@ const CertificateInformation = (props) => {
                         );
                       })}
                     </>
-                  ) : (
-                    'N/A'
-                  )}
-                </EachDetail>
+                  </EachDetail>
+                )}
               </DetailsWrap>
             ) : (
               <ErrorWrap>

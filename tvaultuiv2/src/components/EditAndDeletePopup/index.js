@@ -1,9 +1,11 @@
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
+import Tooltip from '@material-ui/core/Tooltip';
 import SyncAltIcon from '@material-ui/icons/SyncAlt';
 import { IconDeleteActive, IconEdit } from '../../assets/SvgIcons';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
+import { useStylesBootstrap } from '../../styles/GlobalStyles';
 
 const IconWrap = styled('div')`
   display: flex;
@@ -46,24 +48,35 @@ const PsudoPopper = (props) => {
     manage,
     isSvcAcct,
   } = props;
-
+  const tooltipStyles = useStylesBootstrap();
   return (
     <ComponentError>
       <IconWrap>
         {admin && isSvcAcct && (
-          <TransferOwnerWrap onClick={onTransferOwnerClicked}>
-            <SyncAltIcon style={{ fill: '#fff' }} />
-          </TransferOwnerWrap>
+          <Tooltip
+            classes={tooltipStyles}
+            title="Transfer Owner"
+            placement="top"
+            arrow
+          >
+            <TransferOwnerWrap onClick={onTransferOwnerClicked}>
+              <SyncAltIcon style={{ fill: '#fff' }} />
+            </TransferOwnerWrap>
+          </Tooltip>
         )}
         {(admin || manage) && (
-          <Icon onClick={onEditListItemClicked}>
-            <IconEdit />
-          </Icon>
+          <Tooltip classes={tooltipStyles} title="Edit" placement="top" arrow>
+            <Icon onClick={onEditListItemClicked}>
+              <IconEdit />
+            </Icon>
+          </Tooltip>
         )}
         {admin && (
-          <Icon onClick={onDeletListItemClicked}>
-            <IconDeleteActive />
-          </Icon>
+          <Tooltip classes={tooltipStyles} title="Delete" placement="top" arrow>
+            <Icon onClick={onDeletListItemClicked}>
+              <IconDeleteActive />
+            </Icon>
+          </Tooltip>
         )}
       </IconWrap>
     </ComponentError>

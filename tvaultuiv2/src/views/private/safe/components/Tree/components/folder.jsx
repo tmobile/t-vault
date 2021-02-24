@@ -11,9 +11,7 @@ import IconFolderActive from '../../../../../../assets/icon_folder_active.png';
 import IconFolderInactive from '../../../../../../assets/icon_folder.png';
 
 import ComponentError from '../../../../../../errorBoundaries/ComponentError/component-error';
-import {
-  BackgroundColor,
-} from '../../../../../../styles/GlobalStyles';
+import { BackgroundColor } from '../../../../../../styles/GlobalStyles';
 import {
   IconDeleteActive,
   // IconEdit,
@@ -35,7 +33,7 @@ const StyledFolder = styled.div`
       props.active ? props.theme.gradients.list : 'none'};
     color: #fff;
   }
-  
+
   .folder--label {
     outline: none;
     display: flex;
@@ -98,6 +96,7 @@ const Folder = (props) => {
     status,
     onFolderClosed,
     versionInfo,
+    modifiedBy,
     setOnFolderClosed,
     setInputType,
     setIsAddInput,
@@ -156,7 +155,6 @@ const Folder = (props) => {
     onDeleteTreeItem(treeItem);
   };
 
-  
   return (
     <ComponentError>
       <FolderContainer>
@@ -172,12 +170,9 @@ const Folder = (props) => {
               <SecretItem
                 title={labelValue}
                 subTitle={`Last updated: ${versionInfo}`}
-                icon={isOpen ? (
-                          IconFolderActive
-                                ) : (
-                                       IconFolderInactive
-                                    )}
-              ></SecretItem>
+                icon={isOpen ? IconFolderActive : IconFolderInactive}
+                modifiedBy={modifiedBy}
+              />
             </LabelWrap>
 
             {userHavePermission?.type === 'write' && (
@@ -245,6 +240,7 @@ Folder.propTypes = {
   getChildNodes: PropTypes.func,
   setCurrentNode: PropTypes.func,
   id: PropTypes.string,
+  modifiedBy: PropTypes.string.isRequired,
   onDeleteTreeItem: PropTypes.func,
   value: PropTypes.number.isRequired,
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,

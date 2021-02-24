@@ -31,6 +31,7 @@ import {
   RequiredCircle,
   RequiredText,
   LabelRequired,
+  useStylesBootstrap,
 } from '../../../../styles/GlobalStyles';
 import { customColor } from '../../../../theme';
 import ComponentError from '../../../../errorBoundaries/ComponentError/component-error';
@@ -242,19 +243,8 @@ const SvcDetailsStyles = css`
 const InfoText = styled.div`
   font-size: 1.3rem;
   color: #8b8ea6;
-  margin-bottom: 0.5rem;
+  margin: 0.8rem 0;
 `;
-const useStylesBootstrap = makeStyles((theme) => ({
-  arrow: {
-    color: theme.palette.common.white,
-  },
-  tooltip: {
-    backgroundColor: theme.palette.common.white,
-    color: theme.palette.common.black,
-    fontSize: theme.typography.subtitle2.fontSize,
-    textAlign: 'center',
-  },
-}));
 
 // Render component goes here
 const OnBoardForm = (props) => {
@@ -895,14 +885,16 @@ const OnBoardForm = (props) => {
                       </Span>
                       When a service account is activated in T-Vault, the
                       account owner can grant specific permissions to other
-                      users and groups, allowing other read, write and reset the
-                      associated password.
+                      users and groups, allowing others to read and/or reset the
+                      password for the service account as well through T-Vault.
                     </InfoLine>
 
                     <InfoLine>
                       T-Vault will rotate the Passwords lazily based on password
-                      expiration time (known as TTL). Rotation only occurs when
-                      first requests it after the set expiry time
+                      expiration time (known as TTL). i.e. A password is
+                      configured with a TTL of 1 hour will get expire after 1
+                      hour, but the rotation will happen only when it is first
+                      requested after the expiry.
                     </InfoLine>
                   </CollapsibleContainer>
                 </ServiceAcoountHelp>
@@ -928,9 +920,6 @@ const OnBoardForm = (props) => {
                       </Span>
                     </LabelRequired>
                   </Tooltip>
-                  <InfoText>
-                    Select the service account name from the autocomplete field.
-                  </InfoText>
                   <TypeAheadComponent
                     options={[
                       ...serviceAccountsList.map((item) => item.userId),
@@ -947,7 +936,9 @@ const OnBoardForm = (props) => {
                       '/edit-service-accounts'
                     )}
                   />
-
+                  <InfoText>
+                    Select the service account name from the autocomplete field.
+                  </InfoText>
                   {isServiceFetching && (
                     <LoaderSpinner customStyle={customLoaderStyle} />
                   )}
@@ -1020,23 +1011,28 @@ const OnBoardForm = (props) => {
                   </ServiceAccountDetailWrap>
                 </InputFieldLabelWrapper>
                 <ToggleWrap>
-                  <TitleTwo extraCss="display:flex;align-items:center">
-                    <SwitchComponent
-                      checked={isSwitchOn}
-                      handleChange={handleSwitch}
-                      name="rotate password"
-                    />
-                    <Tooltip
-                      classes={tooltipStyles}
-                      title="Check this if possible needs to be enabled for rotation by T-Vault"
-                      placement="top"
-                      arrow
-                    >
-                      <TitleThree extraCss="margin-left:1rem;">
-                        Enable Auto Password Rotation
-                      </TitleThree>
-                    </Tooltip>
-                  </TitleTwo>
+                  <div>
+                    <TitleTwo extraCss="display:flex;align-items:center">
+                      <SwitchComponent
+                        checked={isSwitchOn}
+                        handleChange={handleSwitch}
+                        name="rotate password"
+                      />
+                      <Tooltip
+                        classes={tooltipStyles}
+                        title="Check this if password needs to be enabled for rotation by T-Vault"
+                        placement="top"
+                        arrow
+                      >
+                        <TitleThree extraCss="margin-left:1rem;">
+                          Enable Auto Password Rotation
+                        </TitleThree>
+                      </Tooltip>
+                    </TitleTwo>
+                    <InfoText>
+                      Check this to enable auto password rotation by T-Vault.
+                    </InfoText>
+                  </div>
                   <InputFieldLabelWrapper customCss="width:50%">
                     <Tooltip
                       classes={tooltipStyles}
@@ -1079,11 +1075,6 @@ const OnBoardForm = (props) => {
                     Application Name
                     <RequiredCircle margin="0.5rem" />
                   </InputLabel>
-                  <InfoText>
-                    Please choose the application name to associate with this
-                    service account. Search application from the below
-                    autocomplete box.
-                  </InfoText>
                   <AutoCompleteComponent
                     options={[
                       ...applicationList.map(
@@ -1099,6 +1090,11 @@ const OnBoardForm = (props) => {
                     onChange={(e) => onApplicationNameChange(e)}
                     placeholder="Search for Application Name"
                   />
+                  <InfoText>
+                    Please choose the application name to associate with this
+                    service account. Search application from the below
+                    autocomplete box.
+                  </InfoText>
                   {isAppNameFetchig && (
                     <LoaderSpinner customStyle={customLoaderStyle} />
                   )}
