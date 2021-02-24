@@ -46,13 +46,13 @@ const Resources = {
   noAppRolePermissionFound:
     'No <strong>App roles</strong> are given permission to access this safe, add approles to access the safe.',
   noAppRolePermissionFoundIam:
-    'No <strong>App roles</strong> are given permission to access this IAM service account, add applications to access the account.',
+    'No <strong>App roles</strong> are given permission to access this IAM service account, add approles to access the account.',
   noAppRolePermissionFoundAzure:
-    'No <strong>App roles</strong> are given permission to access this Azure service account, add applications to access the account.',
+    'No <strong>App roles</strong> are given permission to access this Azure service account, add approles to access the account.',
   noAppRolePermissionFoundCertificate:
-    'No <strong>App roles</strong> are given permission to access this certificate, add applications to access the certificate.',
+    'No <strong>App roles</strong> are given permission to access this certificate, add approles to access the certificate.',
   noAppRolePermissionFoundSvcAcc:
-    'No <strong>App roles</strong> are given permission to access this service account, add applications to access the account.',
+    'No <strong>App roles</strong> are given permission to access this service account, add approles to access the account.',
   transferConfirmation:
     'Are you sure you want to transfer service account owner?',
   noCertificatesFound:
