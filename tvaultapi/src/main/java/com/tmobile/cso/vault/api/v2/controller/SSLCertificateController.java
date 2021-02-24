@@ -51,7 +51,7 @@ public class SSLCertificateController {
 	 * @param certManagetLoginRequest
 	 * @return
 	 */
-	@ApiOperation(value = "${SSLCertificateController.login.value}", notes = "${SSLCertificateController.login.notes}", hidden = false)
+	@ApiOperation(value = "${SSLCertificateController.login.value}", notes = "${SSLCertificateController.login.notes}", hidden = true)
 	@PostMapping(value="/v2/auth/sslcert/login",produces="application/json")
 	public ResponseEntity<String> authenticate(@RequestBody CertManagerLoginRequest certManagetLoginRequest) throws Exception {
 		return sslCertificateService.authenticate(certManagetLoginRequest);
