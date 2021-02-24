@@ -144,8 +144,8 @@ const DownloadModal = (props) => {
   const [issuerChain, setIssuerChain] = useState(true);
   const [selectItem] = useState([
     { name: 'DER-P12', value: 'pkcs12der' },
-    { name: 'PER-PFX', value: 'pembundle' },
-    { name: 'PEM-OPENSSL', value: 'pkcs12pem' },
+    { name: 'PER-PFX', value: 'pkcs12pem' },
+    { name: 'PEM-OPENSSL', value: 'pembundle' },
   ]);
 
   const onCloseModal = () => {
@@ -166,9 +166,9 @@ const DownloadModal = (props) => {
       issuerChain,
     };
     if (formatType === 'PER-PFX') {
-      type = 'pem';
-    } else if (formatType === 'PEM-OPENSSL') {
       type = 'pfx';
+    } else if (formatType === 'PEM-OPENSSL') {
+      type = 'pem';
     } else {
       type = 'p12';
     }
