@@ -806,7 +806,10 @@ const CreateModal = (props) => {
                               setOpenTransferConfirmationModal(true)
                             }
                             width={isMobileScreen ? '100%' : ''}
-                            disabled={!safeDetails.appName && editSafe}
+                            disabled={
+                              applicationName === '' ||
+                              applicationName === undefined
+                            }
                           />
                         </CancelButton>
                       )}
