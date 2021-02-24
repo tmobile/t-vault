@@ -29,6 +29,8 @@ const DnsName = styled.p`
 `;
 const InfoText = styled.div`
   font-size: 1.3rem;
+  margin-bottom: 3rem;
+  color: #8b8ea6;
 `;
 const CancelSaveWrapper = styled.div`
   display: ${(props) => (props.showPreview ? 'none' : 'flex')};
@@ -56,7 +58,7 @@ function getKeyUsageValue(setKeyValue, certificateType) {
     if (setKeyValue === 'client' || setKeyValue === 'Client auth')
       return 'clientAuth';
     if (setKeyValue === 'server' || setKeyValue === 'Server auth')
-      return 'Server auth';
+      return 'serverAuth';
     return 'clientAuth , serverAuth';
   }
   return 'clientAuth , serverAuth';
@@ -165,12 +167,18 @@ const PreviewCertificate = (props) => {
               : 'Entrust CA'}
           </Value>
         </EachDetail>
-        {!isEditCertificate && (
-          <InfoText>
-            Note : Select the Edit button to modify the input details else
-            Onboard button to Onboard a certificate.
-          </InfoText>
-        )}
+        {!isEditCertificate &&
+          (onboard ? (
+            <InfoText>
+              Note : Select the Edit button to modify the input details else
+              Onboard button to onboard a certificate.
+            </InfoText>
+          ) : (
+            <InfoText>
+              Note : Select the Edit button to modify the input details else
+              Create button to create a certificate.
+            </InfoText>
+          ))}
         {!isEditCertificate && (
           <CancelSaveWrapper>
             <CancelButton>

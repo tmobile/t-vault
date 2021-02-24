@@ -324,6 +324,7 @@ const ViewAzure = (props) => {
           }
           setOpenModal({ status: 'view' });
           setActionPerformed(true);
+          setLoading(false);
         })
         .catch((err) => {
           if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {

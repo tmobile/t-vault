@@ -3,6 +3,8 @@
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
+import { makeStyles } from '@material-ui/core/styles';
+import Tooltip from '@material-ui/core/Tooltip';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import PropTypes from 'prop-types';
 import VisibilityIcon from '@material-ui/icons/Visibility';
@@ -30,7 +32,6 @@ import Error from '../../../../../components/Error';
 const UserList = styled.div`
   margin-top: 2rem;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   background-color: ${BackgroundColor.listBg};
   padding: 1.2rem 0;
@@ -53,9 +54,9 @@ const Icon = styled.img`
 
 const FolderIconWrap = styled('div')`
   margin: 0 1em;
-  display: flex;
-  align-items: center;
   cursor: pointer;
+  position: absolute;
+  right: 0;
   .MuiSvgIcon-root {
     width: 2rem;
     height: 2rem;
@@ -93,6 +94,20 @@ const NoPermission = styled.div`
   }
 `;
 
+const SecretLastUpdated = styled.div`
+  width: 88%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-left: 0.6rem;
+`;
+
+const LastUpdated = styled.div`
+  font-size: 1.2rem;
+  color: #5e627c;
+  cursor: pointer;
+`;
+
 const SecretInputfield = styled.input`
   padding: 0;
   outline: none;
@@ -101,14 +116,26 @@ const SecretInputfield = styled.input`
   font-size: 1.2rem;
   color: #5a637a;
   word-break: break-all;
-  margin: 0px 1rem;
+  margin-bottom: 0.7rem;
   width: 70%;
-  text-align: center;
+  text-align: left;
   ${mediaBreakpoints.semiMedium} {
     width: 100%;
-    margin: 1rem;
+    margin: 1rem 0;
   }
 `;
+
+const useTooltipStyles = makeStyles((theme) => ({
+  arrow: {
+    color: theme.palette.common.white,
+  },
+  tooltip: {
+    backgroundColor: theme.palette.common.white,
+    color: theme.palette.common.black,
+    fontSize: theme.typography.subtitle2.fontSize,
+    textAlign: 'center',
+  },
+}));
 
 const ServiceAccountSecrets = (props) => {
   const {
@@ -126,6 +153,7 @@ const ServiceAccountSecrets = (props) => {
   const [toastMessage, setToastMessage] = useState('');
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
+  const tooltipClasses = useTooltipStyles();
 
   /**
    * @function handleClose
@@ -214,6 +242,25 @@ const ServiceAccountSecrets = (props) => {
     setResponseType(null);
   };
 
+  const getDaysDifference = (end) => {
+    if (end) {
+      const date1 = new Date();
+      const date2 = new Date(end);
+      const diffInTime = Math.abs(date2.getTime() - date1.getTime());
+      const diffInTimeDays = diffInTime / 1000;
+      const time = Math.ceil(diffInTimeDays);
+
+      return time < 60
+        ? 'a few seconds ago'
+        : time / 60 < 60
+        ? `${Math.floor(time / 60)} minutes ago`
+        : time / 3600 < 24
+        ? `${Math.floor(time / 3600)} hours ago`
+        : `${Math.floor(time / (3600 * 24))} days ago`;
+    }
+    return ' -- ';
+  };
+
   return (
     <ComponentError>
       <>
@@ -245,15 +292,27 @@ const ServiceAccountSecrets = (props) => {
         {response.status === 'success' && secretsData && (
           <UserList>
             <Icon src={lock} alt="lock" />
-            <SecretInputfield
-              type={showSecret ? 'text' : 'password'}
-              value={
-                secretsData?.adServiceAccountCreds?.current_password
-                  ? secretsData.adServiceAccountCreds?.current_password
-                  : 'Secret not available!'
-              }
-              readOnly
-            />
+            <SecretLastUpdated>
+              <SecretInputfield
+                type={showSecret ? 'text' : 'password'}
+                value={
+                  secretsData?.adServiceAccountCreds?.current_password
+                    ? secretsData.adServiceAccountCreds?.current_password
+                    : 'Secret not available!'
+                }
+                readOnly
+              />
+              <Tooltip
+                classes={tooltipClasses}
+                arrow
+                title={secretsData.modifiedBy}
+                placement="top"
+              >
+                <LastUpdated>
+                  Last Updated: {getDaysDifference(secretsData.modifiedAt)}
+                </LastUpdated>
+              </Tooltip>
+            </SecretLastUpdated>
             {secretsData?.adServiceAccountCreds?.current_password && (
               <FolderIconWrap>
                 <PopperElement

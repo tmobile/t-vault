@@ -60,12 +60,12 @@ const AccessDeniedIcon = styled.img`
 function getKeyUsageValue(setKeyValue, certificateType) {
   if (certificateType === 'internal') {
     if (setKeyValue === 'client' || setKeyValue === 'Client auth')
-      return 'Client auth';
+      return 'clientAuth';
     if (setKeyValue === 'server' || setKeyValue === 'Server auth')
-      return 'Server auth';
-    return 'Client Auth , Server Auth';
+      return 'serverAuth';
+    return 'clientAuth , serverAuth';
   }
-  return 'Client Auth , Server Auth';
+  return 'clientAuth , serverAuth';
 }
 const NoPermission = styled.div`
   color: ${(props) => props.theme.customColor.label.color};
@@ -163,9 +163,9 @@ const CertificateInformation = (props) => {
                       : 'Entrust CA'}
                   </Value>
                 </EachDetail>
-                <EachDetail>
-                  <Label>DNS:</Label>
-                  {certificateMetaData.dnsNames && dnsNames.length > 0 ? (
+                {certificateMetaData.dnsNames && dnsNames.length > 0 && (
+                  <EachDetail>
+                    <Label>DNS:</Label>
                     <>
                       {dnsNames?.map((item) => {
                         return (
@@ -173,10 +173,8 @@ const CertificateInformation = (props) => {
                         );
                       })}
                     </>
-                  ) : (
-                    'N/A'
-                  )}
-                </EachDetail>
+                  </EachDetail>
+                )}
               </DetailsWrap>
             ) : (
               <ErrorWrap>
