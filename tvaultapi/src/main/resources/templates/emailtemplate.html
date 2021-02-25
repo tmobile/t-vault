@@ -30,35 +30,33 @@
         </li>
         <li>
             <div>To update any information you need to click on edit button and update the details.</div>
-            <img class="image" src="edit.png" th:src="|cid:${edit}|"/>
             <img class="image" src="update.png" th:src="|cid:${update}|"/>
         </li>
         <li>
             <div>To activate the AD Service Account click on edit button and "Activate Service Account".</div>
-            <img class="image" src="edit.png" th:src="|cid:${edit}|"/>
             <img class ="image" src="activate.png" th:src="|cid:${activate}|"/>
         </li>
 
     </ol>
 
     <h4>Assigning Permissions: </h4>
-<div>Once you are finished activating your AD Service Account you can assign permissions to other users or groups you want to have permission to view or rotate the password for the account.</div>
+<div>Once you are finished activating your AD Service Account you can assign permissions to other users or groups you want to have permission to view or reset the password for the account.</div>
     <div data-th-text="${groupContent}"></div>
     <ol>
         <li>Login to <a href="https://vault.corporate.t-mobile.com/" target="_blank">T-Vault.</a> </li>
         <li>Navigate to the "Service Accounts" tab - "AD Service Accounts".</li>
         <li>Select the AD Service Account you want to manage.</li>
         <li>
-            <div>Select the "Grant Permission" button.</div>
+            <div>Select the "Permissions" button.</div>
             <img class ="image" src="permission.png" th:src="|cid:${permission}|"/>
         </li>
         <li>
-            <div>Navigate to the "Groups" or "User" tab.</div>
+            <div>Navigate to the Users tab and click on "Add User".</div>
             <img class ="image" src="permissiontab.png" th:src="|cid:${permissiontab}|"/>
         </li>
         <li>
-            <div>Provide the group or user name you want to give permissions to and select either read, reset, or deny depending on the level of access you want to give.</div>
-            <img class ="image" src="adadduser.png" th:src="|cid:${adadduser}|"/>
+            <div>Provide the group or user name you want to give permissions to and select either read, reset or deny depending on the level of access you want to give.</div>
+            <img class ="image" src="adduser.png" th:src="|cid:${adduser}|"/>
         </li>
     </ol>
 
