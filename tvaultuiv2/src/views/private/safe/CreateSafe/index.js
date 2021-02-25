@@ -801,6 +801,7 @@ const CreateModal = (props) => {
                           width={isMobileScreen ? '100%' : ''}
                         />
                       </CancelButton>
+                      {console.log('applicationName', applicationName)}
                       {editSafe && (
                         <CancelButton>
                           <ButtonComponent

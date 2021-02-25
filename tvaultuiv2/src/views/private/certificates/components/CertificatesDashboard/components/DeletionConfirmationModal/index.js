@@ -18,7 +18,6 @@ const DeletionConfirmationModal = (props) => {
   } = props;
 
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-  console.log(certificateData.certificateStatus);
 
   const title = certificateData.certificateStatus
     ? 'Confirmation'
