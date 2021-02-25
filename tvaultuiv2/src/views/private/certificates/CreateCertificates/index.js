@@ -401,10 +401,13 @@ const CreateCertificates = (props) => {
     setResponseType(0);
     if (state) {
       setResponseType(null);
-      if (state.userEmail) {
+      if (state?.userEmail) {
         setOwnerEmail(state.userEmail);
       }
-      if (state.applicationNameList?.length > 0) {
+      if (
+        state?.applicationNameList !== 'error' &&
+        state?.applicationNameList?.length > 0
+      ) {
         if (!JSON.parse(sessionStorage.getItem('isAdmin'))) {
           const stringVal = sessionStorage.getItem('selfServiceAppNames');
           setSelfserviceAppName(stringVal?.split(','));
@@ -417,7 +420,7 @@ const CreateCertificates = (props) => {
           return null;
         });
         setAllApplication([...array]);
-      } else if (state.applicationNameList === 'error') {
+      } else if (state?.applicationNameList === 'error') {
         setResponseType(-1);
         setToastMessage('Error occured while fetching the application name!');
       }
