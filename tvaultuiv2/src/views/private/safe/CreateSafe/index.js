@@ -143,6 +143,10 @@ const autoLoaderStyle = css`
   color: red;
 `;
 
+const InputLabelWithInfo = styled(InputLabel)`
+  cursor: pointer;
+`;
+
 const useStyles = makeStyles((theme) => ({
   modal: {
     display: 'flex',
@@ -744,10 +748,10 @@ const CreateModal = (props) => {
                           title="Name of the Cloud application this safe will be used for. Only applications you have self-service rights to will be shown"
                           placement="top"
                         >
-                          <InputLabel>
+                          <InputLabelWithInfo>
                             Application Name
                             <RequiredCircle margin="1.3rem" />
-                          </InputLabel>
+                          </InputLabelWithInfo>
                         </Tooltip>
                         <AutoCompleteComponent
                           icon="search"
