@@ -7689,7 +7689,15 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		oidcUtil.renewUserToken(userDetails.getClientToken());
 		String token = userDetails.getSelfSupportToken();
 		if (userDetails.isAdmin()) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(JSONUtil.getJSON(null));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Access denied: No permission to view certificate list\"]}");
+		}
+		if(!(certificateType.equals(SSLCertificateConstants.INTERNAL) || certificateType.equals(SSLCertificateConstants.EXTERNAL))) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+				.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+				.put(LogMessage.ACTION, "getAllCertificatesOnCertType")
+				.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
+				.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		}
 		String certificatePrefix = TVaultConstants.CERT_POLICY_PREFIX;
 		if (certificateType.equals(SSLCertificateConstants.EXTERNAL)) {
