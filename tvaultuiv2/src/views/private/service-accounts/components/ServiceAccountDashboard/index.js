@@ -5,15 +5,7 @@
 import React, { useState, useEffect, useCallback, lazy } from 'react';
 import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import {
-  Link,
-  Route,
-  Switch,
-  useHistory,
-  Redirect,
-  useLocation,
-} from 'react-router-dom';
-
+import { Link, Route, Switch, useHistory, useLocation } from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { useStateValue } from '../../../../../contexts/globalState';
 import sectionHeaderBg from '../../../../../assets/svc_banner_img.png';
@@ -373,9 +365,6 @@ const ServiceAccountDashboard = () => {
           if (listItemDetails.name !== obj.name) {
             setListItemDetails({ ...obj });
           }
-        } else {
-          setListItemDetails(allServiceAccountList[0]);
-          history.push(`/service-accounts/${allServiceAccountList[0].name}`);
         }
       }
     }
@@ -764,16 +753,6 @@ const ServiceAccountDashboard = () => {
             isAccountDetailsOpen={serviceAccountClicked}
           >
             <Switch>
-              {serviceAccountList[0]?.name && (
-                <Redirect
-                  exact
-                  from="/service-accounts"
-                  to={{
-                    pathname: `/service-accounts/${serviceAccountList[0]?.name}`,
-                    state: { data: serviceAccountList[0] },
-                  }}
-                />
-              )}
               <Route
                 path="/service-accounts/:serviceAccountName"
                 render={(routerProps) => (

@@ -429,6 +429,10 @@ const SafeDashboard = () => {
             .includes(inputSearchValue?.toLowerCase().trim())
       );
       setSafeList([...array]);
+    } else if (safeType !== 'All Safes' && inputSearchValue?.length <= 2) {
+      const obj = selectList?.find((item) => item.selected === safeType);
+      sortAnArray(safes[obj.path]);
+      setSafeList([...safes[obj.path]]);
     } else if (safeType === 'All Safes' && inputSearchValue) {
       onSearchChange(inputSearchValue);
     } else if (inputSearchValue === '') {
