@@ -102,7 +102,7 @@ const ViewMoreStyles = css`
   align-items: center;
   font-weight: 600;
   cursor: pointer;
-  margin-left: 5rem;
+  margin-left: 6.1rem;
 `;
 
 const HeaderInfoWrapper = styled.div`
