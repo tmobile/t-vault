@@ -128,7 +128,7 @@ const Tree = (props) => {
       delete currentSecrets.data[Object.keys(secretprefilledData)[0]];
     }
 
-    if (currentSecrets && currentSecrets.data.default) {
+    if (currentSecrets?.data?.default === 'default') {
       delete currentSecrets.data.default;
     }
 
