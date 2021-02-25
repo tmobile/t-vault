@@ -334,12 +334,12 @@ const IamServiceAccountSecrets = (props) => {
     apiService
       .rotateIamServiceAccountPassword(payload)
       .then(async (res) => {
-        setResponse({ status: 'success' });
         if (res?.data) {
           setResponseType(1);
           setToastMessage(
             res.data.messages[0] || 'Password rotated successfully!'
           );
+          setIsOpen(false);
           await getSecrets();
         }
       })

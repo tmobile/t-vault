@@ -482,14 +482,7 @@ const CertificatesDashboard = () => {
     }
   };
 
-  /**
-   * @function onSelectChange
-   * @description function to filter certificates.
-   * @param {string} value selected filter value.
-   */
-  const onSelectChange = (value) => {
-    setCertificateType(value);
-    setInputSearchValue('');
+  const filterCertificate = (value) => {
     if (value !== 'All Certificates' && value !== 'Onboard Certificates') {
       const filterArray = allCertList.filter(
         (cert) =>
@@ -504,6 +497,17 @@ const CertificatesDashboard = () => {
     } else {
       setCertificateList([...allCertList]);
     }
+  };
+
+  /**
+   * @function onSelectChange
+   * @description function to filter certificates.
+   * @param {string} value selected filter value.
+   */
+  const onSelectChange = (value) => {
+    setCertificateType(value);
+    setInputSearchValue('');
+    filterCertificate(value);
   };
 
   /**
@@ -552,6 +556,11 @@ const CertificatesDashboard = () => {
         );
         setCertificateList([...filterArray]);
       }
+    } else if (
+      certificateType !== 'All Certificates' &&
+      inputSearchValue?.length <= 2
+    ) {
+      filterCertificate(certificateType);
     } else if (certificateType === 'All Certificates' && inputSearchValue) {
       onSearchChange(inputSearchValue);
     } else if (inputSearchValue === '') {

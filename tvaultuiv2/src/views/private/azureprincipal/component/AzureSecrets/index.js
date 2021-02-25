@@ -381,6 +381,7 @@ const AzureSecrets = (props) => {
         if (res.data.messages && res.data.messages[0]) {
           setToastMessage(res.data.messages[0]);
         }
+        setIsOpen(false);
         await onViewSecretDetails();
       })
       .catch((err) => {
