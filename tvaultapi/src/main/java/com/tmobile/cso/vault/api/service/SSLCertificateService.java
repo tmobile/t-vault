@@ -8898,7 +8898,11 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 				JsonArray jsonArray = jsonObject.getAsJsonArray(SSLCertificateConstants.CERTIFICATES);
 				setAllActiveCertificates(jsonArray, certificatesList, onboardedInternalCerts, onboardedExternalCerts);
 				if (responseMap.get("next") != null) {
-					String nextURL = responseMap.get("next").toString();
+					String limitVal = (responseMap.get("limit") != null) ? responseMap.get("limit").toString() : "0";
+					String offset = (responseMap.get("offset") != null) ? responseMap.get("offset").toString() : "0";
+					Integer offsetVal = Integer.parseInt(limitVal) + Integer.parseInt(offset);
+					String offsetValString = "offset=" + offsetVal;
+					String nextURL = targetEndpointVal.replace("offset=0", offsetValString);
 					certificatesList = getCertificateListFromNclm(nclmAccessToken, certificatesList, nextURL,
 							onboardedInternalCerts, onboardedExternalCerts);
 				}
