@@ -352,7 +352,7 @@ const OnboardCertificates = (props) => {
   useEffect(() => {
     if (state) {
       if (
-        state.applicationNameList !== 'error' &&
+        state?.applicationNameList !== 'error' &&
         state?.applicationNameList?.length > 0
       ) {
         if (!JSON.parse(sessionStorage.getItem('isAdmin'))) {
