@@ -103,27 +103,24 @@ const TreeRecursive = (props) => {
       return secretArray.map((secret, index) => {
         const modifiedAt =
           secretVersionInfo && secretVersionInfo[Object.keys(secret)[0]];
-        if (Object.keys(secret)[0] !== 'default') {
-          return (
-            <File
-              key={index}
-              secret={secret}
-              parentId={item.parentId}
-              versionInfo={getDaysDifference(
-                modifiedAt && modifiedAt[0]?.modifiedAt
-              )}
-              modifiedBy={modifiedAt ? modifiedAt[0]?.modifiedBy : ''}
-              setSecretprefilledData={setSecretprefilledData}
-              type={item.type}
-              setIsAddInput={setIsAddInput}
-              setInputType={setInputType}
-              onDeleteTreeItem={onDeleteTreeItem}
-              id={item.id}
-              userHavePermission={userHavePermission}
-            />
-          );
-        }
-        return null;
+        return (
+          <File
+            key={index}
+            secret={secret}
+            parentId={item.parentId}
+            versionInfo={getDaysDifference(
+              modifiedAt && modifiedAt[0]?.modifiedAt
+            )}
+            modifiedBy={modifiedAt ? modifiedAt[0]?.modifiedBy : ''}
+            setSecretprefilledData={setSecretprefilledData}
+            type={item.type}
+            setIsAddInput={setIsAddInput}
+            setInputType={setInputType}
+            onDeleteTreeItem={onDeleteTreeItem}
+            id={item.id}
+            userHavePermission={userHavePermission}
+          />
+        );
       });
     }
     // if its a folder render <Folder />

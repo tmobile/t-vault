@@ -362,7 +362,7 @@ const IamServiceAccountSecrets = (props) => {
       type: 'activate',
       title: 'IAM Service Account Activation!',
       description:
-        "During the activation. the password of the IAM service account will be rotated to ensure AWS and T-Vault are in sync. If you want to continue with activation now please click the 'ACTIVATE IAM SERVICE ACCOUNT’ button below and make sure to update any services depending on the service account with its new password.",
+        "During the activation, the password of the IAM service account will be rotated to ensure AWS and T-Vault are in sync. If you want to continue with activation now please click the 'ACTIVATE' button below and make sure to update any services depending on the service account with its new password.",
     });
   };
 
@@ -438,36 +438,38 @@ const IamServiceAccountSecrets = (props) => {
   return (
     <ComponentError>
       <>
-        <ConfirmationModal
-          open={openConfirmationModal?.status === 'open'}
-          handleClose={handleClose}
-          title={openConfirmationModal?.title || ''}
-          description={openConfirmationModal?.description || ''}
-          cancelButton={
-            <ButtonComponent
-              label="Cancel"
-              color="primary"
-              onClick={() => handleClose()}
-              width={isMobileScreen ? '100%' : '45%'}
-            />
-          }
-          confirmButton={
-            <ButtonComponent
-              label={
-                openConfirmationModal?.type === 'activate'
-                  ? 'Activate'
-                  : 'Rotate'
-              }
-              color="secondary"
-              onClick={
-                openConfirmationModal?.type === 'activate'
-                  ? () => onActivateConfirm()
-                  : () => onRotateConfirmedClicked()
-              }
-              width={isMobileScreen ? '100%' : '45%'}
-            />
-          }
-        />
+        {openConfirmationModal?.status === 'open' && (
+          <ConfirmationModal
+            open={openConfirmationModal?.status === 'open'}
+            handleClose={handleClose}
+            title={openConfirmationModal?.title || ''}
+            description={openConfirmationModal?.description || ''}
+            cancelButton={
+              <ButtonComponent
+                label="Cancel"
+                color="primary"
+                onClick={() => handleClose()}
+                width={isMobileScreen ? '100%' : '45%'}
+              />
+            }
+            confirmButton={
+              <ButtonComponent
+                label={
+                  openConfirmationModal?.type === 'activate'
+                    ? 'Activate'
+                    : 'Rotate'
+                }
+                color="secondary"
+                onClick={
+                  openConfirmationModal?.type === 'activate'
+                    ? () => onActivateConfirm()
+                    : () => onRotateConfirmedClicked()
+                }
+                width={isMobileScreen ? '100%' : '45%'}
+              />
+            }
+          />
+        )}
         {response.status === 'loading' && (
           <LoaderSpinner customStyle={customStyle} />
         )}

@@ -98,6 +98,7 @@ const Label = styled.p`
   font-size: 1.3rem;
   color: ${(props) => props.theme.customColor.label.color};
   margin-bottom: 0.9rem;
+  cursor: ${(props) => props.cursor};
 `;
 
 const Value = styled.p`
@@ -490,7 +491,9 @@ const ViewAzure = (props) => {
                       title="Azure Service Principal Name"
                       placement="top"
                     >
-                      <Label>Azure Service Principal Name:</Label>
+                      <Label cursor="pointer">
+                        Azure Service Principal Name:
+                      </Label>
                     </Tooltip>
                     <Value>{azureDetail.servicePrincipalName}</Value>
                   </EachDetail>
@@ -501,7 +504,7 @@ const ViewAzure = (props) => {
                       title="Owner of Azure Service Principal"
                       placement="top"
                     >
-                      <Label>Owner (managedBy):</Label>
+                      <Label cursor="pointer">Owner (managedBy):</Label>
                     </Tooltip>
                     <Value>{azureDetail.owner_ntid}</Value>
                   </EachDetail>
@@ -512,7 +515,7 @@ const ViewAzure = (props) => {
                       title="Owner email for Azure Service Principal"
                       placement="top"
                     >
-                      <Label>Owner Email:</Label>
+                      <Label cursor="pointer">Owner Email:</Label>
                     </Tooltip>
                     <Value>{azureDetail.owner_email}</Value>
                   </EachDetail>
@@ -523,7 +526,7 @@ const ViewAzure = (props) => {
                       title="Tenant ID"
                       placement="top"
                     >
-                      <Label>Tenant ID:</Label>
+                      <Label cursor="pointer">Tenant ID:</Label>
                     </Tooltip>
                     <Value>{azureDetail.tenantId}</Value>
                   </EachDetail>
@@ -534,7 +537,9 @@ const ViewAzure = (props) => {
                       title="Azure Service Principal Client ID"
                       placement="top"
                     >
-                      <Label>Azure Service Principal Client ID:</Label>
+                      <Label cursor="pointer">
+                        Azure Service Principal Client ID:
+                      </Label>
                     </Tooltip>
                     <Value>{azureDetail.servicePrincipalClientId}</Value>
                   </EachDetail>
@@ -545,7 +550,9 @@ const ViewAzure = (props) => {
                       title="Azure Service Principal ID"
                       placement="top"
                     >
-                      <Label>Azure Service Principal ID:</Label>
+                      <Label cursor="pointer">
+                        Azure Service Principal ID:
+                      </Label>
                     </Tooltip>
                     <Value>{azureDetail.servicePrincipalId}</Value>
                   </EachDetail>
@@ -556,7 +563,7 @@ const ViewAzure = (props) => {
                       title="Azure Service Principal created date"
                       placement="top"
                     >
-                      <Label>Created Date:</Label>
+                      <Label cursor="pointer">Created Date:</Label>
                     </Tooltip>
                     <Value>{azureDetail.createdDate}</Value>
                   </EachDetail>
@@ -567,7 +574,7 @@ const ViewAzure = (props) => {
                       title="Application Name"
                       placement="top"
                     >
-                      <Label>Application Name:</Label>
+                      <Label cursor="pointer">Application Name:</Label>
                     </Tooltip>
                     <Value>{azureDetail.application_name}</Value>
                   </EachDetail>

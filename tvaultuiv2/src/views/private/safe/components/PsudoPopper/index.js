@@ -1,11 +1,11 @@
+/* eslint-disable react/jsx-wrap-multilines */
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import Tooltip from '@material-ui/core/Tooltip';
 import { IconDeleteActive, IconEdit } from '../../../../../assets/SvgIcons';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
-import { useStylesBootstrap } from '../../../../../styles/GlobalStyles';
+import TooltipComponent from '../../../../../components/Tooltip';
 
 const IconWrap = styled('div')`
   display: flex;
@@ -28,27 +28,34 @@ const Icon = styled('div')`
 
 const PsudoPopper = (props) => {
   const { onDeleteSafeClicked, safe, path } = props;
-  const tooltipStyles = useStylesBootstrap();
+
   return (
     <ComponentError>
       <IconWrap>
-        <Tooltip classes={tooltipStyles} title="Edit" placement="top" arrow>
-          <Link
-            to={{
-              pathname: path,
-              state: { safe },
-            }}
-          >
-            <Icon>
-              <IconEdit />
+        <TooltipComponent
+          title="Edit"
+          renderContent={
+            <Link
+              to={{
+                pathname: path,
+                state: { safe },
+              }}
+            >
+              <Icon>
+                <IconEdit />
+              </Icon>
+            </Link>
+          }
+        />
+        <TooltipComponent
+          title="Delete"
+          placement="top"
+          renderContent={
+            <Icon onClick={onDeleteSafeClicked}>
+              <IconDeleteActive />
             </Icon>
-          </Link>
-        </Tooltip>
-        <Tooltip classes={tooltipStyles} title="Delete" placement="top" arrow>
-          <Icon onClick={onDeleteSafeClicked}>
-            <IconDeleteActive />
-          </Icon>
-        </Tooltip>
+          }
+        />
       </IconWrap>
     </ComponentError>
   );

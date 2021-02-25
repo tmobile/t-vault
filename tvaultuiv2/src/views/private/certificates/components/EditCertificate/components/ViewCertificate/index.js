@@ -190,12 +190,11 @@ const ViewCertificate = (props) => {
   const [notificationEmailList, setNotificationEmailList] = useState([]);
   const [notifyEmail, setNotifyEmail] = useState('');
   const [notifyEmailError, setNotifyEmailError] = useState(false);
-  const [emailErrorMsg, setEmailErrorMsg] = useState('');
   const [toastMessage, setToastMessage] = useState('');
   const [notifyOptions, setNotifyOptions] = useState([]);
   const [notifyAutoLoader, setNotifyAutoLoader] = useState(false);
   const [isValidEmail, setIsValidEmail] = useState(true);
-  const [isValidNotifyEmail, setIsValidNotifyEmail] = useState(true);
+  const [notifyEmailSelected, setNotifyEmailSelected] = useState(false);
   const [emailError, setEmailError] = useState(false);
   const [projectLeadEmailError, setProjectLeadEmailError] = useState(false);
   const [isValidProjectLeadEmail, setIsValidProjectLeadEmail] = useState(true);
@@ -208,8 +207,6 @@ const ViewCertificate = (props) => {
   const [searchBy, setSearchBy] = useState('User');
 
   const [projectLeadSelected, setProjectLeadselected] = useState({});
-
-  const [notifyUserSelected, setNotifyUserselected] = useState({});
 
   useEffect(() => {
     const admin = sessionStorage.getItem('isAdmin');
@@ -273,35 +270,6 @@ const ViewCertificate = (props) => {
       }
     }
   }, [applicationOwner, ownerSelected, autoLoader, certificateData]);
-
-  useEffect(() => {
-    if (!notifyAutoLoader && notifyEmail?.length > 2) {
-      if (notifyUserSelected?.userEmail && searchBy !== 'GroupEmail') {
-        if (notifyUserSelected?.userEmail.toLowerCase() !== notifyEmail) {
-          setIsValidNotifyEmail(false);
-          setEmailErrorMsg('Please enter a valid user or not available!');
-        } else {
-          setIsValidNotifyEmail(true);
-        }
-      } else if (
-        searchBy === 'GroupEmail' &&
-        !notifyOptions?.find(
-          (item) => item?.toLowerCase() === notifyEmail?.toLowerCase()
-        )
-      ) {
-        setIsValidNotifyEmail(false);
-        setEmailErrorMsg('Please enter a valid group email or not available!');
-      } else {
-        setIsValidNotifyEmail(true);
-      }
-    }
-  }, [
-    notifyEmail,
-    notifyUserSelected,
-    notifyOptions,
-    notifyAutoLoader,
-    searchBy,
-  ]);
 
   useEffect(() => {
     if (projectLeadEmail?.length > 2 && projectLeadSelected?.userEmail) {
@@ -432,13 +400,9 @@ const ViewCertificate = (props) => {
   const onNotifyEmailSelected = (e, val) => {
     if (val) {
       const notifyUserEmail = val?.split(', ')[0];
-      setNotifyUserselected(
-        notifyOptions.filter(
-          (i) => i?.userEmail?.toLowerCase() === notifyUserEmail
-        )[0]
-      );
       setNotifyEmail(notifyUserEmail);
       setNotifyEmailError(false);
+      setNotifyEmailSelected(true);
     }
   };
 
@@ -446,31 +410,30 @@ const ViewCertificate = (props) => {
     const obj = notificationEmailList.find(
       (item) => item.toLowerCase() === notifyEmail.toLowerCase()
     );
-    if (!notifyEmailError && isValidNotifyEmail && notifyEmail !== '') {
+    if (validateEmail(notifyEmail) && notifyEmailSelected) {
       if (!obj) {
         setNotificationEmailList((prev) => [...prev, notifyEmail]);
         setNotifyEmail('');
+        setNotifyEmailError(false);
       } else {
         setNotifyEmailError(true);
-        setEmailError('Duplicate Email!');
       }
+    } else {
+      setNotifyEmailError(false);
     }
   };
 
   const onEmailKeyDownClicked = (e) => {
     if (e?.keyCode === 13) {
       e.preventDefault();
-      if (validateEmail(notifyEmail)) {
-        onAddEmailClicked();
-      } else {
-        setIsValidNotifyEmail(false);
-      }
+      onAddEmailClicked();
     }
   };
 
   const onNotifyEmailChange = (e) => {
     if (e && e?.target?.value !== undefined) {
       setNotifyEmail(e?.target?.value);
+      setNotifyEmailSelected(false);
       if (e.target.value && e.target.value?.length > 2) {
         setNotifyOptions([]);
         setNotifyAutoLoader(true);
@@ -697,14 +660,10 @@ const ViewCertificate = (props) => {
                         ? 'Search by GroupEmail'
                         : 'Search by NTID, Email or Name'
                     }
-                    error={
-                      notifyEmail?.length > 2 &&
-                      (notifyEmailError || !isValidNotifyEmail)
-                    }
+                    error={notifyEmail?.length > 2 && notifyEmailError}
                     helperText={
-                      notifyEmail?.length > 2 &&
-                      (notifyEmailError || !isValidNotifyEmail)
-                        ? emailErrorMsg
+                      notifyEmail?.length > 2 && notifyEmailError
+                        ? 'Duplicate email!'
                         : ''
                     }
                   />
