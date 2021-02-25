@@ -127,6 +127,10 @@ const Span = styled('span')`
   color: #29bd51;
 `;
 
+const InputLabelWithInfo = styled(InputLabel)`
+  cursor: pointer;
+`;
+
 const useStyles = makeStyles((theme) => ({
   modal: {
     display: 'flex',
@@ -494,10 +498,10 @@ const CreateAppRole = (props) => {
               >
                 <InputFieldLabelWrapper postion>
                   <InputLabelWrap>
-                    <InputLabel>
+                    <InputLabelWithInfo>
                       Token Max TTL
                       <RequiredCircle margin="0.5rem" />
-                    </InputLabel>
+                    </InputLabelWithInfo>
                     <InfoIcon src={infoIcon} alt="info-icon" />
                   </InputLabelWrap>
 
@@ -518,10 +522,10 @@ const CreateAppRole = (props) => {
               >
                 <InputFieldLabelWrapper>
                   <InputLabelWrap>
-                    <InputLabel>
+                    <InputLabelWithInfo>
                       Token TTL
                       <RequiredCircle margin="0.5rem" />
-                    </InputLabel>
+                    </InputLabelWithInfo>
                     <InfoIcon src={infoIcon} alt="info-icon-token" />
                   </InputLabelWrap>
 
@@ -542,10 +546,10 @@ const CreateAppRole = (props) => {
               >
                 <InputFieldLabelWrapper>
                   <InputLabelWrap>
-                    <InputLabel>
+                    <InputLabelWithInfo>
                       Secret ID Number Uses
                       <RequiredCircle margin="0.5rem" />
-                    </InputLabel>
+                    </InputLabelWithInfo>
                     <InfoIcon src={infoIcon} alt="info-icon-sec" />
                   </InputLabelWrap>
 
@@ -566,10 +570,10 @@ const CreateAppRole = (props) => {
               >
                 <InputFieldLabelWrapper>
                   <InputLabelWrap>
-                    <InputLabel>
+                    <InputLabelWithInfo>
                       Token Number Uses
                       <RequiredCircle margin="0.5rem" />
-                    </InputLabel>
+                    </InputLabelWithInfo>
 
                     <InfoIcon src={infoIcon} alt="info-icon-token-uses" />
                   </InputLabelWrap>
@@ -590,10 +594,10 @@ const CreateAppRole = (props) => {
               >
                 <InputFieldLabelWrapper>
                   <InputLabelWrap>
-                    <InputLabel>
+                    <InputLabelWithInfo>
                       Secret ID TTL
                       <RequiredCircle margin="0.5rem" />
-                    </InputLabel>
+                    </InputLabelWithInfo>
                     <InfoIcon src={infoIcon} alt="info-icon-secret-id" />
                   </InputLabelWrap>
                   <TextFieldComponent
@@ -614,7 +618,7 @@ const CreateAppRole = (props) => {
                 >
                   <InputFieldLabelWrapper>
                     <InputLabelWrap>
-                      <InputLabel>Permissions</InputLabel>
+                      <InputLabelWithInfo>Permissions</InputLabelWithInfo>
 
                       <InfoIcon src={infoIcon} alt="info-icon-secret-id" />
                     </InputLabelWrap>

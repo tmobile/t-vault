@@ -78,6 +78,7 @@ const Label = styled.p`
   font-size: 1.3rem;
   color: ${(props) => props.theme.customColor.label.color};
   margin-bottom: 0.9rem;
+  cursor: ${(props) => props.cursor};
 `;
 
 const Value = styled.p`
@@ -102,7 +103,7 @@ const ViewMoreStyles = css`
   align-items: center;
   font-weight: 600;
   cursor: pointer;
-  margin-left: 5rem;
+  margin-left: 6.1rem;
 `;
 
 const HeaderInfoWrapper = styled.div`
@@ -225,7 +226,7 @@ const ViewIamSvcAccountDetails = (props) => {
               title="IAM Service Account Name"
               placement="top"
             >
-              <Label>IAM Service Account Name</Label>
+              <Label cursor="pointer">IAM Service Account Name</Label>
             </Tooltip>
             <Value>{iamSvcAccountData?.userName}</Value>
           </EachDetail>
@@ -236,7 +237,7 @@ const ViewIamSvcAccountDetails = (props) => {
               title="Owner of IAM Service Account"
               placement="top"
             >
-              <Label>Owner (Managed By)</Label>
+              <Label cursor="pointer">Owner (Managed By)</Label>
             </Tooltip>
             <Value>{iamSvcAccountData?.owner_ntid}</Value>
           </EachDetail>
@@ -247,7 +248,7 @@ const ViewIamSvcAccountDetails = (props) => {
               title="Owner email for IAM Service Account"
               placement="top"
             >
-              <Label>Owner Email</Label>
+              <Label cursor="pointer">Owner Email</Label>
             </Tooltip>
             <Value>{iamSvcAccountData?.owner_email}</Value>
           </EachDetail>
@@ -258,7 +259,7 @@ const ViewIamSvcAccountDetails = (props) => {
               title="AWS Account ID"
               placement="top"
             >
-              <Label>AWS Account ID</Label>
+              <Label cursor="pointer">AWS Account ID</Label>
             </Tooltip>
             <Value>{iamSvcAccountData?.awsAccountId}</Value>
           </EachDetail>
@@ -269,7 +270,7 @@ const ViewIamSvcAccountDetails = (props) => {
               title="AWS Account Name"
               placement="top"
             >
-              <Label>AWS Account Name</Label>
+              <Label cursor="pointer">AWS Account Name</Label>
             </Tooltip>
             <Value>{iamSvcAccountData?.awsAccountName}</Value>
           </EachDetail>
@@ -280,7 +281,7 @@ const ViewIamSvcAccountDetails = (props) => {
               title="Account created date"
               placement="top"
             >
-              <Label>Created On</Label>
+              <Label cursor="pointer">Created On</Label>
             </Tooltip>
             <Value>{iamSvcAccountData?.createdDate}</Value>
           </EachDetail>
@@ -291,7 +292,7 @@ const ViewIamSvcAccountDetails = (props) => {
               title="Application Name"
               placement="top"
             >
-              <Label>Application Name</Label>
+              <Label cursor="pointer">Application Name</Label>
             </Tooltip>
             <Value>{iamSvcAccountData?.application_name}</Value>
           </EachDetail>

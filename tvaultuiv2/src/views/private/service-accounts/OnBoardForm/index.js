@@ -246,6 +246,10 @@ const InfoText = styled.div`
   margin: 0.8rem 0;
 `;
 
+const InputLabelWithInfo = styled(InputLabel)`
+  cursor: pointer;
+`;
+
 // Render component goes here
 const OnBoardForm = (props) => {
   const { refresh } = props;
@@ -908,10 +912,10 @@ const OnBoardForm = (props) => {
                     arrow
                   >
                     <LabelRequired>
-                      <InputLabel>
+                      <InputLabelWithInfo>
                         Service Account Name
                         <RequiredCircle margin="0.5rem" />
-                      </InputLabel>
+                      </InputLabelWithInfo>
                       <Span extraStyles="align-self:flex-end;margin-bottom: 0.8rem">
                         <RequiredCircle margin="0.5rem" />
                         <RequiredText extraStyles="margin-left:0.4rem">
@@ -1024,7 +1028,7 @@ const OnBoardForm = (props) => {
                         placement="top"
                         arrow
                       >
-                        <TitleThree extraCss="margin-left:1rem;">
+                        <TitleThree extraCss="margin-left:1rem; cursor:pointer">
                           Enable Auto Password Rotation
                         </TitleThree>
                       </Tooltip>
@@ -1041,7 +1045,9 @@ const OnBoardForm = (props) => {
                       placement="top"
                       arrow
                     >
-                      <InputLabel>Password Expiration Time</InputLabel>
+                      <InputLabelWithInfo>
+                        Password Expiration Time
+                      </InputLabelWithInfo>
                     </Tooltip>
                     <TextFieldComponent
                       placeholder={
