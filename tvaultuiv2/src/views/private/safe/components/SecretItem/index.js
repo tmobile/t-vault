@@ -27,6 +27,7 @@ const SubTitle = styled.span`
   font-size: 1.2rem;
   margin-left: 1.6rem;
   color: #5e627c;
+  cursor: ${(props) => props.cursor};
 `;
 
 const usetooltipStyles = makeStyles((theme) => ({
@@ -57,7 +58,7 @@ const SecretItem = (props) => {
               placement="left"
               arrow
             >
-              <SubTitle>{subTitle}</SubTitle>
+              <SubTitle cursor="pointer">{subTitle}</SubTitle>
             </Tooltip>
           ) : (
             <SubTitle>{subTitle}</SubTitle>

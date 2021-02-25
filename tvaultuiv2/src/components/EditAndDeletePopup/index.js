@@ -1,11 +1,11 @@
+/* eslint-disable react/jsx-wrap-multilines */
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import Tooltip from '@material-ui/core/Tooltip';
 import SyncAltIcon from '@material-ui/icons/SyncAlt';
 import { IconDeleteActive, IconEdit } from '../../assets/SvgIcons';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
-import { useStylesBootstrap } from '../../styles/GlobalStyles';
+import TooltipComponent from '../Tooltip';
 
 const IconWrap = styled('div')`
   display: flex;
@@ -48,35 +48,39 @@ const PsudoPopper = (props) => {
     manage,
     isSvcAcct,
   } = props;
-  const tooltipStyles = useStylesBootstrap();
+
   return (
     <ComponentError>
       <IconWrap>
         {admin && isSvcAcct && (
-          <Tooltip
-            classes={tooltipStyles}
-            title="Transfer Owner"
-            placement="top"
-            arrow
-          >
-            <TransferOwnerWrap onClick={onTransferOwnerClicked}>
-              <SyncAltIcon style={{ fill: '#fff' }} />
-            </TransferOwnerWrap>
-          </Tooltip>
+          <TooltipComponent
+            title="Transfer"
+            renderContent={
+              <TransferOwnerWrap onClick={onTransferOwnerClicked}>
+                <SyncAltIcon style={{ fill: '#fff' }} />
+              </TransferOwnerWrap>
+            }
+          />
         )}
         {(admin || manage) && (
-          <Tooltip classes={tooltipStyles} title="Edit" placement="top" arrow>
-            <Icon onClick={onEditListItemClicked}>
-              <IconEdit />
-            </Icon>
-          </Tooltip>
+          <TooltipComponent
+            title="Edit"
+            renderContent={
+              <Icon onClick={onEditListItemClicked}>
+                <IconEdit />
+              </Icon>
+            }
+          />
         )}
         {admin && (
-          <Tooltip classes={tooltipStyles} title="Delete" placement="top" arrow>
-            <Icon onClick={onDeletListItemClicked}>
-              <IconDeleteActive />
-            </Icon>
-          </Tooltip>
+          <TooltipComponent
+            title="Delete"
+            renderContent={
+              <Icon onClick={onDeletListItemClicked}>
+                <IconDeleteActive />
+              </Icon>
+            }
+          />
         )}
       </IconWrap>
     </ComponentError>
