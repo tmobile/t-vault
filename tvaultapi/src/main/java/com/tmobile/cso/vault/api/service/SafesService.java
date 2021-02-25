@@ -2288,7 +2288,7 @@ public class  SafesService {
 				put(LogMessage.MESSAGE, String.format ("Start trying to Delete SDB folder [%s]", path)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-		if(ControllerUtil.isPathValid(path) ){
+		if(ControllerUtil.isPathValid(path) && 	isValidSafe(token, path)){
 			Response response = new Response();
 			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
@@ -2384,7 +2384,7 @@ public class  SafesService {
 						build()));
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 			}
-		}else if(ControllerUtil.isValidDataPath(path)){
+		}else if(ControllerUtil.isValidDataPath(path) && isValidSafe(token, path)){
 			Response response = new Response();
 			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
