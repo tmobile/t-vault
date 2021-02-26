@@ -566,7 +566,7 @@ const CreateCertificates = (props) => {
           });
           if (res.data.messages && res.data.messages[0]) {
             setOpenConfirmationModal(true);
-            setResponseTitle('Successful');
+            setResponseTitle('Certificate Creation Successful!');
             setResponseDesc(res.data.messages[0]);
             await refresh();
           }
@@ -575,7 +575,7 @@ const CreateCertificates = (props) => {
           if (err?.response?.data?.errors && err.response.data.errors[0]) {
             const msg = err.response.data.errors[0];
             setOpenConfirmationModal(true);
-            setResponseTitle('Error');
+            setResponseTitle('Certificate Creation Failed!');
             setResponseDesc(msg.charAt(0).toUpperCase() + msg.slice(1));
           }
           setResponseType(null);
