@@ -663,7 +663,7 @@ const ViewCertificate = (props) => {
                     error={notifyEmail?.length > 2 && notifyEmailError}
                     helperText={
                       notifyEmail?.length > 2 && notifyEmailError
-                        ? 'Duplicate email!'
+                        ? 'Duplicate Email!'
                         : ''
                     }
                   />
