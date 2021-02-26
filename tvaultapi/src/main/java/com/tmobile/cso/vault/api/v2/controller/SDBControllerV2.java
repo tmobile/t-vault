@@ -96,7 +96,7 @@ public class SDBControllerV2 {
 	@DeleteMapping(value="/v2/sdb/delete",produces="application/json")
 	public ResponseEntity<String> deleteFolder(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam("path") String path){
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
-		return safesService.deletefolder(token, path, userDetails);
+		return safesService.deletefolder(token, path, userDetails, false);
 	}
 	/**
 	 * Updates a Safe
