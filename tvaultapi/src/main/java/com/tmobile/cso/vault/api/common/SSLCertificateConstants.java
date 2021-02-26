@@ -152,4 +152,8 @@ public final class SSLCertificateConstants {
     public static final String APP_NAME_OTHER="Other";
     public static final String API="api";
     public static final String UI="ui";
+    public static final String WILDCARD_CERTIFICATE_PREFIX = "*.";
+    public static final String WILDCARD_CERTIFICATE_VAULT_PREFIX = "$.";
+    public static final String WILDCARD_CHAR = "*";
+    public static final String WILDCARD_REPLACE_CHAR = "$";
 }
