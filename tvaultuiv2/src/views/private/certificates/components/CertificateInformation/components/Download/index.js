@@ -81,7 +81,8 @@ const Download = (props) => {
         } else {
           setSuccessErrorDetails({
             title: 'Certificate Download Failed!',
-            desc: 'Unable to download certificate.',
+            desc:
+              'Your request cannot be processed now due to some technical issue. Please try again later.',
           });
         }
         onDownloadChange('success', null);
@@ -114,7 +115,8 @@ const Download = (props) => {
         } else {
           setSuccessErrorDetails({
             title: 'Certificate Download Failed!',
-            desc: 'Unable to download certificate.',
+            desc:
+              'Your request cannot be processed now due to some technical issue. Please try again later.',
           });
         }
         onDownloadChange('success', null);
