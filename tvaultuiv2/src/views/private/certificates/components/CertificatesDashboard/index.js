@@ -36,6 +36,7 @@ import CertificateRelease from '../CertificateRelease';
 import SnackbarComponent from '../../../../../components/Snackbar';
 import OnboardCertificates from '../OnboardCertificate';
 import DeletionConfirmationModal from './components/DeletionConfirmationModal';
+import SuccessAndErrorModal from '../../../../../components/SuccessAndErrorModal';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -168,6 +169,11 @@ const CertificatesDashboard = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [openOnboardModal, setOpenOnboardModal] = useState(false);
   const [openDeleteConfirmation, setOpenDeleteConfirmation] = useState(false);
+  const [successErrorModal, setSuccessErrorModal] = useState(false);
+  const [successErrorDetails, setSuccessErrorDetails] = useState({
+    title: '',
+    desc: '',
+  });
   const classes = useStyles();
   const history = useHistory();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -631,16 +637,34 @@ const CertificatesDashboard = () => {
     setOpenReleaseModal(false);
     apiService
       .onReleasecertificate(data.name, data.type, data.reason)
-      .then(() => {
-        setResponseType(1);
+      .then((res) => {
+        if (res?.data?.messages && res?.data?.messages[0]) {
+          setSuccessErrorDetails({
+            title: 'Certificate Status!',
+            desc: res.data.messages[0],
+          });
+        } else {
+          setSuccessErrorDetails({
+            title: 'Certificate Status!',
+            desc: 'Certificate released successfully!',
+          });
+        }
+        setSuccessErrorModal(true);
         onCloseAllModal(true);
-        setToastMessage('Certificate released successfully!');
       })
       .catch((e) => {
+        setSuccessErrorModal(true);
         if (e?.response?.data?.errors && e?.response?.data?.errors[0]) {
-          setToastMessage(e.response.data.errors[0]);
+          setSuccessErrorDetails({
+            title: 'Certificate Release Failed!',
+            desc: e.response.data.errors[0],
+          });
+        } else {
+          setSuccessErrorDetails({
+            title: 'Certificate Release Failed!',
+            desc: 'Something went wrong!',
+          });
         }
-        setResponseType(-1);
         setResponse({ status: 'success' });
       });
   };
@@ -717,18 +741,39 @@ const CertificatesDashboard = () => {
       )
       .then((res) => {
         if (res?.data?.messages && res?.data?.messages[0]) {
-          setToastMessage(res?.data?.messages[0]);
+          setSuccessErrorDetails({
+            title: 'Certificate Deletion Successful!',
+            desc: res.data.messages[0],
+          });
+        } else {
+          setSuccessErrorDetails({
+            title: 'Certificate Deletion Successful!',
+            desc: 'Certificate deleted successfully',
+          });
         }
-        setResponseType(1);
+        setSuccessErrorModal(true);
         onCloseAllModal(true);
       })
-      .catch((err) => {
-        if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
-          setToastMessage(err.response.data.errors[0]);
+      .catch((e) => {
+        setSuccessErrorModal(true);
+        if (e?.response?.data?.errors && e?.response?.data?.errors[0]) {
+          setSuccessErrorDetails({
+            title: 'Certificate Deletion Failed!',
+            desc: e.response.data.errors[0],
+          });
+        } else {
+          setSuccessErrorDetails({
+            title: 'Certificate Deletion Failed!',
+            desc: 'Something went wrong!',
+          });
         }
-        setResponseType(-1);
         setResponse({ status: 'success' });
       });
+  };
+
+  const handleSuccessAndDeleteModalClose = () => {
+    setSuccessErrorModal(false);
+    setSuccessErrorDetails({ title: '', desc: '' });
   };
 
   const renderList = () => {
@@ -781,6 +826,15 @@ const CertificatesDashboard = () => {
               open={openOnboardModal}
               onCloseModal={(action) => onCloseAllModal(action)}
               onOboardCertClicked={(data) => onOboardCertClicked(data)}
+            />
+          )}
+          {successErrorModal && (
+            <SuccessAndErrorModal
+              title={successErrorDetails.title}
+              description={successErrorDetails.desc}
+              handleSuccessAndDeleteModalClose={() =>
+                handleSuccessAndDeleteModalClose()
+              }
             />
           )}
           <LeftColumnSection>

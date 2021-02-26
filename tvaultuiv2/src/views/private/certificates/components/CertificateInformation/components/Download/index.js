@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useState } from 'react';
 import Popover from '@material-ui/core/Popover';
@@ -9,6 +10,7 @@ import GetAppIcon from '@material-ui/icons/GetApp';
 import { customColor } from '../../../../../../../theme';
 import DownloadModal from '../DownloadModal';
 import apiService from '../../../../apiService';
+import SuccessAndErrorModal from '../../../../../../../components/SuccessAndErrorModal';
 
 const FileDownload = require('js-file-download');
 
@@ -41,6 +43,11 @@ const Download = (props) => {
   const { certificateMetaData, onDownloadChange } = props;
   const [typeOfDownload, setTypeOfDownload] = useState('');
   const [openDownloadModal, setOpenDownloadModal] = useState(false);
+  const [successErrorModal, setSuccessErrorModal] = useState(false);
+  const [successErrorDetails, setSuccessErrorDetails] = useState({
+    title: '',
+    desc: '',
+  });
 
   const onPopperItemClicked = (val) => {
     setTypeOfDownload(val);
@@ -64,8 +71,20 @@ const Download = (props) => {
           `${certificateMetaData.certificateName}.${type}`
         );
       })
-      .catch(() => {
-        onDownloadChange('success', -1);
+      .catch((e) => {
+        setSuccessErrorModal(true);
+        if (e?.response?.data?.errors && e?.response?.data?.errors[0]) {
+          setSuccessErrorDetails({
+            title: 'Certificate Download Failed!',
+            desc: e.response.data.errors[0],
+          });
+        } else {
+          setSuccessErrorDetails({
+            title: 'Certificate Download Failed!',
+            desc: 'Unable to download certificate.',
+          });
+        }
+        onDownloadChange('success', null);
       });
   };
 
@@ -85,9 +104,26 @@ const Download = (props) => {
           `${certificateMetaData.certificateName}.${type}`
         );
       })
-      .catch(() => {
-        onDownloadChange('success', -1);
+      .catch((e) => {
+        setSuccessErrorModal(true);
+        if (e?.response?.data?.errors && e?.response?.data?.errors[0]) {
+          setSuccessErrorDetails({
+            title: 'Certificate Download Failed!',
+            desc: e.response.data.errors[0],
+          });
+        } else {
+          setSuccessErrorDetails({
+            title: 'Certificate Download Failed!',
+            desc: 'Unable to download certificate.',
+          });
+        }
+        onDownloadChange('success', null);
       });
+  };
+
+  const handleSuccessAndDeleteModalClose = () => {
+    setSuccessErrorModal(false);
+    setSuccessErrorDetails({ title: '', desc: '' });
   };
 
   const useStyles = makeStyles((theme) => ({
@@ -110,7 +146,15 @@ const Download = (props) => {
         certificateMetaData={certificateMetaData}
         onPrivateDownloadClicked={onPrivateDownloadClicked}
       />
-
+      {successErrorModal && (
+        <SuccessAndErrorModal
+          title={successErrorDetails.title}
+          description={successErrorDetails.desc}
+          handleSuccessAndDeleteModalClose={() =>
+            handleSuccessAndDeleteModalClose()
+          }
+        />
+      )}
       <PopupState variant="popover" popupId="demo-popup-popover">
         {(popupState) => (
           <div>
