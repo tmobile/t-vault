@@ -129,7 +129,7 @@ const ViewIamServiceAccount = (props) => {
       status: 'open',
       message: 'IAM Service Account Activation!',
       description:
-        "During the activation. the password of the IAM service account will be rotated to ensure AWS and T-Vault are in sync. If you want to continue with activation now please click the 'ACTIVATE’ button below and make sure to update any services depending on the service account with its new password",
+        "During the activation, the password of the IAM service account will be rotated to ensure AWS and T-Vault are in sync. If you want to continue with activation now please click the 'ACTIVATE' button below and make sure to update any services depending on the service account with its new password",
     });
   };
 
@@ -216,34 +216,36 @@ const ViewIamServiceAccount = (props) => {
   return (
     <ComponentError>
       <>
-        <ConfirmationModal
-          open={openModal?.status === 'open'}
-          handleClose={() => handleCloseConfirmationModal()}
-          title={openModal.message || ''}
-          description={openModal?.description || ''}
-          cancelButton={
-            <ButtonComponent
-              label="Cancel"
-              color="primary"
-              onClick={() => handleCloseConfirmationModal()}
-              width={isMobileScreen ? '100%' : '45%'}
-            />
-          }
-          confirmButton={
-            <ButtonComponent
-              label={
-                iamServiceAccountDetails?.isActivated ? 'Rotate' : 'Activate'
-              }
-              color="secondary"
-              onClick={
-                iamServiceAccountDetails?.isActivated
-                  ? () => onRotateSecret()
-                  : () => activateServiceAccount()
-              }
-              width={isMobileScreen ? '100%' : '45%'}
-            />
-          }
-        />
+        {openModal?.status === 'open' && (
+          <ConfirmationModal
+            open={openModal?.status === 'open'}
+            handleClose={() => handleCloseConfirmationModal()}
+            title={openModal.message || ''}
+            description={openModal?.description || ''}
+            cancelButton={
+              <ButtonComponent
+                label="Cancel"
+                color="primary"
+                onClick={() => handleCloseConfirmationModal()}
+                width={isMobileScreen ? '100%' : '45%'}
+              />
+            }
+            confirmButton={
+              <ButtonComponent
+                label={
+                  iamServiceAccountDetails?.isActivated ? 'Rotate' : 'Activate'
+                }
+                color="secondary"
+                onClick={
+                  iamServiceAccountDetails?.isActivated
+                    ? () => onRotateSecret()
+                    : () => activateServiceAccount()
+                }
+                width={isMobileScreen ? '100%' : '45%'}
+              />
+            }
+          />
+        )}
         <div>
           {!(openModal?.status === 'open') ? (
             <StyledModal

@@ -229,7 +229,6 @@ const CertificateSelectionTabs = (props) => {
     }
     setToastResponse(null);
   };
-  console.log(certificateMetaData);
   return (
     <ComponentError>
       <div className={classes.root}>
