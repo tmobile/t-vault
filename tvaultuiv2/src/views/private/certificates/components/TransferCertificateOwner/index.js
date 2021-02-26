@@ -197,7 +197,7 @@ const CreateCertificates = (props) => {
       .then((res) => {
         if (res?.data?.messages && res.data.messages[0]) {
           setModalDetail({
-            title: 'Successful',
+            title: 'Certificate Owner Transfer Successful!',
             description: res.data.messages[0],
           });
         }
@@ -208,7 +208,7 @@ const CreateCertificates = (props) => {
       .catch((err) => {
         if (err?.response?.data?.errors && err.response.data.errors[0]) {
           setModalDetail({
-            title: 'Error',
+            title: 'Certificate Owner Transfer Failed!',
             description: err.response.data.errors[0],
           });
         }

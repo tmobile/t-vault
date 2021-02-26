@@ -39,7 +39,7 @@ const UpdateCertificate = (props) => {
       .then((res) => {
         if (res?.data?.messages && res.data.messages[0]) {
           setModalDetail({
-            title: 'Successful',
+            title: 'Certificate Updation Successful!',
             desc: res.data.messages[0],
           });
         }
@@ -50,12 +50,12 @@ const UpdateCertificate = (props) => {
       .catch((err) => {
         if (err.response.data.errors && err.response.data.errors[0]) {
           setModalDetail({
-            title: 'Error',
+            title: 'Certificate Updation Failed!',
             desc: err.response.data.errors[0],
           });
         } else {
           setModalDetail({
-            title: 'Error',
+            title: 'Certificate Updation Failed!',
             desc: 'Something went wrong!',
           });
         }
