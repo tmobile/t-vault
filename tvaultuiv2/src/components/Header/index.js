@@ -290,7 +290,7 @@ const Header = (props) => {
                   onSelectChange(e, 'customSafesNavItems');
                   handleOnClick(e);
                 }}
-                width="17rem"
+                width="15rem"
               />
               {configData.AUTH_TYPE !== 'userpass' && (
                 <NavLink
