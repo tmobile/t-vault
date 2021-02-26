@@ -404,7 +404,7 @@ public class  SelfSupportService {
 	public ResponseEntity<String> deletefolder(UserDetails userDetails, String path) {
 		if (userDetails.isAdmin()) {
 			//Taking self service token for safe deletion by admin to avoid the read/deny restriction to admin
-			return safesService.deletefolder(userDetails.getSelfSupportToken(), path, userDetails);
+			return safesService.deletefolder(userDetails.getSelfSupportToken(), path, userDetails, true);
 		}
 		else {
 			ResponseEntity<String> isAuthorized = isAuthorized(userDetails, path);
@@ -426,7 +426,7 @@ public class  SelfSupportService {
 						build()));
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"errors\":[\"Access denied: no permission to delete this safe\"]}");
 			}
-			ResponseEntity<String> safe_creation_response = safesService.deletefolder(userDetails.getSelfSupportToken(), path,userDetails);
+			ResponseEntity<String> safe_creation_response = safesService.deletefolder(userDetails.getSelfSupportToken(), path,userDetails, true);
 			return safe_creation_response;
 		}
 	}
