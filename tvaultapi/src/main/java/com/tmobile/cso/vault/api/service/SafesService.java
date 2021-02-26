@@ -2281,14 +2281,15 @@ public class  SafesService {
 	 * @param userDetails
 	 * @return
 	 */
-	public ResponseEntity<String> deletefolder(String token, String path, UserDetails userDetails){
+	public ResponseEntity<String> deletefolder(String token, String path, UserDetails userDetails, Boolean validSafe){
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, DELETE_SDB).
 				put(LogMessage.MESSAGE, String.format ("Start trying to Delete SDB folder [%s]", path)).
 				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 				build()));
-		if(ControllerUtil.isPathValid(path) ){
+		validSafe = !validSafe?isValidSafe(token, path) : validSafe;
+		if(ControllerUtil.isPathValid(path) && validSafe){
 			Response response = new Response();
 			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
@@ -2384,7 +2385,7 @@ public class  SafesService {
 						build()));
 				return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 			}
-		}else if(ControllerUtil.isValidDataPath(path)){
+		}else if(ControllerUtil.isValidDataPath(path) && validSafe) {
 			Response response = new Response();
 			ControllerUtil.recursivedeletesdb("{\"path\":\""+path+"\"}",token,response);
 			if(response.getHttpstatus().equals(HttpStatus.NO_CONTENT)){
@@ -2412,7 +2413,7 @@ public class  SafesService {
 					put(LogMessage.RESPONSE, INVALID_PATH).
 					put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString()).
 					build()));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Invalid 'path' specified\"]}");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Either invalid path specified or access denied for the user to delete the folder/subfolder\"]}");
 		}
 	}
 	
