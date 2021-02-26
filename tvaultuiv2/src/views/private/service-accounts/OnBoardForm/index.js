@@ -223,8 +223,13 @@ const SvcIcon = styled.img`
 const customLoaderStyle = css`
   position: absolute;
   right: 1.2rem;
-  top: 6.3rem;
-  color: red;
+  top: 4rem;
+`;
+
+const customLoaderStyle2 = css`
+  position: absolute;
+  right: 1.2rem;
+  top: 3rem;
 `;
 
 const ViewMoreStyles = css`
@@ -1102,7 +1107,7 @@ const OnBoardForm = (props) => {
                     autocomplete box.
                   </InfoText>
                   {isAppNameFetchig && (
-                    <LoaderSpinner customStyle={customLoaderStyle} />
+                    <LoaderSpinner customStyle={customLoaderStyle2} />
                   )}
                 </InputFieldLabelWrapper>
               </OnBoardFormContainer>
