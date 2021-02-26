@@ -77,9 +77,7 @@ const HeaderCenter = styled.div`
 
 const NavLink = styled(Link)`
   text-decoration: none;
-  padding: 2.6rem 1rem;
-  padding-left: 1.5rem;
-  width: 15rem;
+  padding: 2.6rem 1.5rem;
   font-size: 1.3rem;
   font-weight: bold;
   background: ${(props) =>
