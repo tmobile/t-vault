@@ -98,7 +98,7 @@ const ConfirmationModal = (props) => {
           <ModalWrapper
             size={
               // eslint-disable-next-line no-nested-ternary
-              size === 'large' ? '90%' : size === 'medium' ? '60%' : '35%'
+              size === 'large' ? '90%' : size === 'medium' ? '60%' : '40%'
             }
           >
             <TitleOne color="#e20074" extraCss={titleOneCss}>

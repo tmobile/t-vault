@@ -203,7 +203,7 @@ const EditCertificate = (props) => {
       .then((res) => {
         if (res?.data?.messages && res.data.messages[0]) {
           setModalDetail({
-            title: 'Successful',
+            title: 'Certificate Renewal Successful!',
             description: res.data.messages[0],
           });
         }
@@ -213,7 +213,7 @@ const EditCertificate = (props) => {
       .catch((err) => {
         if (err?.response?.data?.errors && err.response.data.errors[0]) {
           setModalDetail({
-            title: 'Error',
+            title: 'Certificate Renewal Failed!',
             description: err.response.data.errors[0],
           });
         }
@@ -256,7 +256,7 @@ const EditCertificate = (props) => {
           .then((res) => {
             if (res?.data?.messages && res.data.messages[0]) {
               setModalDetail({
-                title: 'Deletion Successful',
+                title: 'Certificate Deletion Successful!',
                 description: res.data.messages[0],
               });
             }
@@ -266,12 +266,12 @@ const EditCertificate = (props) => {
           .catch((err) => {
             if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
               setModalDetail({
-                title: 'Error',
+                title: 'Certificate Deletion Failed!',
                 description: err.response.data.errors[0],
               });
             } else {
               setModalDetail({
-                title: 'Error',
+                title: 'Certificate Deletion Failed!',
                 description: 'Something went wrong!',
               });
             }
@@ -329,12 +329,12 @@ const EditCertificate = (props) => {
       .catch((err) => {
         if (err.response.data.errors && err.response.data.errors[0]) {
           setModalDetail({
-            title: 'Error',
+            title: 'Revocation Reasons Failed!',
             description: err.response.data.errors[0],
           });
         } else {
           setModalDetail({
-            title: 'Error',
+            title: 'Revocation Reasons Failed!',
             description: 'Something went wrong!',
           });
         }
@@ -372,7 +372,7 @@ const EditCertificate = (props) => {
       .then((res) => {
         if (res?.data?.messages && res.data.messages[0]) {
           setModalDetail({
-            title: 'Successful',
+            title: 'Certificate Revocation Successful!',
             description: res.data.messages[0],
           });
         }
@@ -382,7 +382,7 @@ const EditCertificate = (props) => {
       .catch((err) => {
         if (err.response.data.errors && err.response.data.errors[0]) {
           setModalDetail({
-            title: 'Error',
+            title: 'Certificate Revocation Failed!',
             description: err.response.data.errors[0],
           });
         }
