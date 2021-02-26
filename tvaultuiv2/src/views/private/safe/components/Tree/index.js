@@ -70,43 +70,42 @@ const Tree = (props) => {
     if (id) {
       const secretData = apiService.getSecret(id);
       const versionInfo = apiService.getVersionInfo(id);
-      Promise.all([secretData,versionInfo]).then(res=>{
-
-        setStatus({});
-        if (type?.toLowerCase() === 'deleteparentitem') {
-          const updatedArray = findItemAndRemove(
-            tempFolders,
-            'children',
-            idOfItem
-          );
-          setSecretsFolder([...updatedArray]);
-          return;
-        }
-        const updatedArray = findElementAndUpdate(
-          tempFolders,
-          id,
-          res[0].data.children,
-          res[1].data
-        );
-        setSecretsFolder([...updatedArray]);
-
-      }).catch((error) => {
-        setStatus({ status: 'failed', message: '' });
-        if (!error.toString().toLowerCase().includes('network')) {
-          if (error.response) {
-            setStatus({
-              status: 'failed',
-              message: '',
-            });
+      Promise.all([secretData, versionInfo])
+        .then((res) => {
+          setStatus({});
+          if (type?.toLowerCase() === 'deleteparentitem') {
+            const updatedArray = findItemAndRemove(
+              tempFolders,
+              'children',
+              idOfItem
+            );
+            setSecretsFolder([...updatedArray]);
             return;
           }
-        }
-        setStatus({
-          status: 'failed',
-          message: 'Network Error',
+          const updatedArray = findElementAndUpdate(
+            tempFolders,
+            id,
+            res[0].data.children,
+            res[1].data
+          );
+          setSecretsFolder([...updatedArray]);
+        })
+        .catch((error) => {
+          setStatus({ status: 'failed', message: '' });
+          if (!error.toString().toLowerCase().includes('network')) {
+            if (error.response) {
+              setStatus({
+                status: 'failed',
+                message: '',
+              });
+              return;
+            }
+          }
+          setStatus({
+            status: 'failed',
+            message: 'Network Error',
+          });
         });
-      });
-
     }
   };
 
@@ -121,12 +120,18 @@ const Tree = (props) => {
       tempFolders,
       obj.parentId
     );
+
     if (
       currentSecrets &&
       currentSecrets.data[Object.keys(secretprefilledData)[0]]
     ) {
       delete currentSecrets.data[Object.keys(secretprefilledData)[0]];
     }
+
+    if (currentSecrets?.data?.default === 'default') {
+      delete currentSecrets.data.default;
+    }
+
     const folderObj = {};
     folderObj.id = `${obj.parentId}`;
     folderObj.parentId = obj.parentId;

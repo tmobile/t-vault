@@ -177,15 +177,15 @@ public class SSLCertificateControllerTest {
     @Test
     public void test_getCertificates() throws Exception {
         // Mock response        
-        when(sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg", userDetails, "",1,0,"internal")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        assertEquals(HttpStatus.OK, sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails,"",1,0,"internal").getStatusCode());
+        when(sslCertificateService.getAllSSLCertificatesToManage("5PDrOhsy4ig8L3EpsJZSLAMg", userDetails, "",1,0,"internal")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        assertEquals(HttpStatus.OK, sslCertificateService.getAllSSLCertificatesToManage("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails,"",1,0,"internal").getStatusCode());
     }
     
     @Test
     public void test_getCertificates_external() throws Exception {
         // Mock response        
-        when(sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg", userDetails, "",1,0,"external")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        assertEquals(HttpStatus.OK, sslCertificateService.getServiceCertificates("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails,"",1,0,"external").getStatusCode());
+        when(sslCertificateService.getAllSSLCertificatesToManage("5PDrOhsy4ig8L3EpsJZSLAMg", userDetails, "",1,0,"external")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        assertEquals(HttpStatus.OK, sslCertificateService.getAllSSLCertificatesToManage("5PDrOhsy4ig8L3EpsJZSLAMg",userDetails,"",1,0,"external").getStatusCode());
     }
     
 	@Test
@@ -603,7 +603,7 @@ public class SSLCertificateControllerTest {
 				+ "    \"projectLeadEmailId\": \"project@email.com\"    }  ]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 		String expected = responseEntityExpected.getBody();
-		when(sslCertificateService.getServiceCertificates(Mockito.anyString(), Mockito.anyObject(), Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt(), Mockito.anyString()))
+		when(sslCertificateService.getAllSSLCertificatesToManage(Mockito.anyString(), Mockito.anyObject(), Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt(), Mockito.anyString()))
 				.thenReturn(responseEntityExpected);
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/sslcert?certificateName=CertificateName.t-mobile.com&certType=internal").header("vault-token", token)
 				.header("Content-Type", "application/json;charset=UTF-8").requestAttr("UserDetails", userDetails)
