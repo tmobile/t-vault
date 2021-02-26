@@ -129,7 +129,7 @@ public class SDBControllerV2Test {
         String inputJson =new ObjectMapper().writeValueAsString(safe);
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
         UserDetails userDetails = getMockUser(false);
-        when(safesService.deletefolder(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any() , Mockito.any(UserDetails.class))).thenReturn(responseEntityExpected);
+        when(safesService.deletefolder(eq("5PDrOhsy4ig8L3EpsJZSLAMg"), Mockito.any() , Mockito.any(UserDetails.class), Mockito.any())).thenReturn(responseEntityExpected);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/v2/sdb/delete?path=users/safe1")
                 .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
