@@ -1115,7 +1115,7 @@ const CreateCertificates = (props) => {
                               (emailError || !isValidEmail)
                                 ? emailErrorMsg
                                 : duplicateEmail
-                                ? 'Duplicate Email !'
+                                ? 'Duplicate Email!'
                                 : ''
                             }
                             styling={{ bottom: '5rem' }}
