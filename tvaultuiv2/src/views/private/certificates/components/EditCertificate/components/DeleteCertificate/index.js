@@ -42,7 +42,7 @@ const DeleteCertificate = (props) => {
       .then((res) => {
         if (res?.data?.messages && res.data.messages[0]) {
           setDeleteModalDetail({
-            title: 'Deletion Successful',
+            title: 'Certificate Deletion Successful!',
             desc: res.data.messages[0],
           });
         }
@@ -53,12 +53,12 @@ const DeleteCertificate = (props) => {
       .catch((err) => {
         if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setDeleteModalDetail({
-            title: 'Error',
+            title: 'Certificate Deletion Failed!',
             desc: err.response.data.errors[0],
           });
         } else {
           setDeleteModalDetail({
-            title: 'Error',
+            title: 'Certificate Deletion Failed!',
             desc: 'Something went wrong!',
           });
         }
