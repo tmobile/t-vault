@@ -102,7 +102,7 @@ const AppRoles = (props) => {
       .addAppRole(data)
       .then(async (res) => {
         if (res && res.data?.messages) {
-          updateToastMessage(1, res.data?.messages[0]);
+          updateToastMessage(1, res.data?.messages[0].replace(/:/g, ': '));
           setResponse({ status: '' });
           await fetchPermission();
         }

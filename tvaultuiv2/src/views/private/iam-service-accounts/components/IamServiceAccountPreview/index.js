@@ -17,6 +17,7 @@ import mediaBreakpoints from '../../../../../breakpoints';
 import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import ViewIamSvcAccountDetails from './components/ViewIamSvcAccount';
 import apiService from '../../apiService';
+import SuccessAndErrorModal from '../../../../../components/SuccessAndErrorModal';
 
 const { small } = mediaBreakpoints;
 
@@ -78,6 +79,11 @@ const ViewIamServiceAccount = (props) => {
   const [open] = useState(true);
   const [status, setStatus] = useState(null);
   const [actionPerformed, setActionPerformed] = useState(false);
+  const [successErrorDetails, setSuccessErrorDetails] = useState({
+    title: '',
+    desc: '',
+  });
+  const [successErrorModal, setSuccessErrorModal] = useState(false);
   const [openModal, setOpenModal] = useState({
     status: '',
     message: '',
@@ -96,6 +102,12 @@ const ViewIamServiceAccount = (props) => {
     if (res) {
       await refresh();
     }
+  };
+
+  const handleSuccessAndDeleteModalClose = () => {
+    setSuccessErrorDetails({ title: '', desc: '' });
+    setSuccessErrorModal(false);
+    handleCloseModal(actionPerformed);
   };
 
   /**
@@ -145,29 +157,28 @@ const ViewIamServiceAccount = (props) => {
         iamServiceAccountDetails?.userName,
         iamServiceAccountDetails?.awsAccountId
       )
-      .then(async (res) => {
+      .then(() => {
         setActionPerformed(true);
-        setOpenModal({ status: '' });
-        if (res?.data?.messages && res?.data?.messages[0]) {
-          setStatus({ status: 'success', message: res.data.messages[0] });
-        } else {
-          setStatus({ status: 'success', message: 'Activation Successful!' });
-        }
-        setTimeout(() => {
-          handleCloseModal(true);
-        }, 1000);
+        setSuccessErrorDetails({
+          title: 'Activation Successful!',
+          desc: `IAM Service account ${iamServiceAccountDetails.userName} has been activated successfully! </br> IAM Service Account has been activated. You may also want to assign permissions for other users or groups to view or modify this service account. Please do so by clicking the "Permission" button on the next screen.`,
+        });
+        setSuccessErrorModal(true);
+        setStatus({ status: '', message: '' });
       })
       .catch((err) => {
         setActionPerformed(false);
+        setSuccessErrorModal(true);
+        setStatus({ status: '', message: '' });
         if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
-          setStatus({
-            status: 'failed',
-            message: err?.response?.data?.errors[0],
+          setSuccessErrorDetails({
+            title: 'Activation Failed!',
+            desc: err?.response?.data?.errors[0],
           });
         } else {
-          setStatus({
-            status: 'failed',
-            message: 'Something went wrong!',
+          setSuccessErrorDetails({
+            title: 'Activation Failed!',
+            desc: 'Something went wrong!',
           });
         }
       });
@@ -216,6 +227,15 @@ const ViewIamServiceAccount = (props) => {
   return (
     <ComponentError>
       <>
+        {successErrorModal && (
+          <SuccessAndErrorModal
+            title={successErrorDetails.title}
+            description={successErrorDetails.desc}
+            handleSuccessAndDeleteModalClose={() =>
+              handleSuccessAndDeleteModalClose()
+            }
+          />
+        )}
         {openModal?.status === 'open' && (
           <ConfirmationModal
             open={openModal?.status === 'open'}
@@ -247,7 +267,7 @@ const ViewIamServiceAccount = (props) => {
           />
         )}
         <div>
-          {!(openModal?.status === 'open') ? (
+          {!(openModal?.status === 'open') && !successErrorModal ? (
             <StyledModal
               aria-labelledby="transition-modal-title"
               aria-describedby="transition-modal-description"

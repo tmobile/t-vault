@@ -2546,7 +2546,7 @@ public class SafesServiceTest {
 	public void test_deletefolder_failure() {
 		String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
 		String path = "test/mysafe01";
-		ResponseEntity<String> responseEntity = safesService.deletefolder(token, path, getMockUser(true));
+		ResponseEntity<String> responseEntity = safesService.deletefolder(token, path, getMockUser(true), true);
 		assertNotNull(responseEntity);
 	}
 	
