@@ -444,6 +444,7 @@ public class  AWSAuthService {
 		awsiamLogin.setIam_request_body(awsAuthLogin.getIam_request_body());
 		awsiamLogin.setIam_request_headers(awsAuthLogin.getIam_request_headers());
 		awsiamLogin.setIam_request_url(awsAuthLogin.getIam_request_url());
+		awsiamLogin.setRole(awsAuthLogin.getRole());
 		return awsiamLogin;
 	}
 

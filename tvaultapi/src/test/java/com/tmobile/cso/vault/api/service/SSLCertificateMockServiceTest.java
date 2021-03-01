@@ -4711,7 +4711,7 @@ public class SSLCertificateMockServiceTest {
 
         when(reqProcessor.process("/sslcert", "{\"path\":\"/sslcerts/CertificateName.t-mobile.com\"}",token)).thenReturn(response);
 
-        ResponseEntity<String> responseEntityActual = sSLCertificateService.getListOfCertificates(token, certificateType);
+        ResponseEntity<String> responseEntityActual = sSLCertificateService.getListOfCertificates(token, certificateType, 1, 0);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
     }

@@ -302,8 +302,8 @@ public class SSLCertificateController {
 	@GetMapping(value = "/v2/sslcert/certificates/{certificate_type}", produces = "application/json")
 	public ResponseEntity<String> getListOfCertificates(HttpServletRequest request,
 			@RequestHeader(value = "vault-token") String token,
-			@PathVariable("certificate_type") String certificateType) {
-		return sslCertificateService.getListOfCertificates(token, certificateType);
+			@PathVariable("certificate_type") String certificateType, @RequestParam(name = "limit", required = false) Integer limit, @RequestParam(name = "offset", required = false) Integer offset) {
+		return sslCertificateService.getListOfCertificates(token, certificateType, limit, offset);
 	}
 	
 	/**
