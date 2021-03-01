@@ -60,7 +60,7 @@ export const findElementAndUpdate = (arr, parentId, item, versionInfo) => {
   const tempArr = [...arr];
   const itemToUpdate = findElementById(tempArr, parentId, 'children');
   if (Array.isArray(item)) {
-    itemToUpdate.versionInfo=[...versionInfo]
+    itemToUpdate.versionInfo = [...versionInfo];
     if (!itemToUpdate?.children?.length) {
       itemToUpdate.children = [...itemToUpdate.children, ...item];
       return tempArr;
@@ -112,7 +112,15 @@ export const convertObjectToArray = (data) => {
   const array = [];
   // eslint-disable-next-line no-restricted-syntax
   for (const [key, value] of Object.entries(data?.data)) {
-    if (key?.toLowerCase() !== 'default') array.push({ [key]: value });
+    console.log(
+      key?.toLowerCase() !== 'default' && value?.toLowerCase() !== 'default',
+      key,
+      value
+    );
+    if (
+      !(key?.toLowerCase() === 'default' && value?.toLowerCase() === 'default')
+    )
+      array.push({ [key]: value });
   }
   return array;
 };

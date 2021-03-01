@@ -1,9 +1,11 @@
+/* eslint-disable react/jsx-wrap-multilines */
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import SyncAltIcon from '@material-ui/icons/SyncAlt';
 import { IconDeleteActive, IconEdit } from '../../assets/SvgIcons';
 import ComponentError from '../../errorBoundaries/ComponentError/component-error';
+import TooltipComponent from '../Tooltip';
 
 const IconWrap = styled('div')`
   display: flex;
@@ -51,19 +53,34 @@ const PsudoPopper = (props) => {
     <ComponentError>
       <IconWrap>
         {admin && isSvcAcct && (
-          <TransferOwnerWrap onClick={onTransferOwnerClicked}>
-            <SyncAltIcon style={{ fill: '#fff' }} />
-          </TransferOwnerWrap>
+          <TooltipComponent
+            title="Transfer"
+            renderContent={
+              <TransferOwnerWrap onClick={onTransferOwnerClicked}>
+                <SyncAltIcon style={{ fill: '#fff' }} />
+              </TransferOwnerWrap>
+            }
+          />
         )}
         {(admin || manage) && (
-          <Icon onClick={onEditListItemClicked}>
-            <IconEdit />
-          </Icon>
+          <TooltipComponent
+            title="Edit"
+            renderContent={
+              <Icon onClick={onEditListItemClicked}>
+                <IconEdit />
+              </Icon>
+            }
+          />
         )}
         {admin && (
-          <Icon onClick={onDeletListItemClicked}>
-            <IconDeleteActive />
-          </Icon>
+          <TooltipComponent
+            title="Delete"
+            renderContent={
+              <Icon onClick={onDeletListItemClicked}>
+                <IconDeleteActive />
+              </Icon>
+            }
+          />
         )}
       </IconWrap>
     </ComponentError>

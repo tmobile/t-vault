@@ -38,6 +38,7 @@ import { TitleOne } from '../../../../../styles/GlobalStyles';
 import AccountSelectionTabs from '../IamSvcAccountTabs';
 import { ListContent } from '../../../../../styles/GlobalStyles/listingStyle';
 import { getEachUsersDetails } from '../../../../../services/helper-function';
+import TooltipComponent from '../../../../../components/Tooltip';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -94,9 +95,6 @@ const NoDataWrapper = styled.div`
 `;
 
 const PopperWrap = styled.div`
-  position: absolute;
-  right: 4%;
-  z-index: 1;
   display: none;
 `;
 const ListFolderWrap = styled(Link)`
@@ -221,7 +219,6 @@ const IamServiceAccountDashboard = () => {
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const history = useHistory();
   const location = useLocation();
-
   const introduction = Strings.Resources.iamServiceAccountDesc;
 
   const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
@@ -459,18 +456,25 @@ const IamServiceAccountDashboard = () => {
         <BorderLine />
         {(account.permission === 'write' || account.active === false) &&
         !isMobileScreen ? (
-          <PopperWrap onClick={(e) => onActionClicked(e)}>
-            <ViewIcon
-              onClick={() =>
-                onViewClicked(
-                  `${account.iamAccountId}_${account.name}`,
-                  account
-                )
+          <div>
+            <TooltipComponent
+              title="View"
+              renderContent={
+                <PopperWrap onClick={(e) => onActionClicked(e)}>
+                  <ViewIcon
+                    onClick={() =>
+                      onViewClicked(
+                        `${account.iamAccountId}_${account.name}`,
+                        account
+                      )
+                    }
+                  >
+                    <VisibilityIcon />
+                  </ViewIcon>
+                </PopperWrap>
               }
-            >
-              <VisibilityIcon />
-            </ViewIcon>
-          </PopperWrap>
+            />
+          </div>
         ) : null}
         {isMobileScreen &&
           (account.permission === 'write' || account.active === false) && (
@@ -493,7 +497,7 @@ const IamServiceAccountDashboard = () => {
   return (
     <ComponentError>
       <>
-        <SectionPreview title="iam-service-account-section">
+        <SectionPreview>
           <LeftColumnSection isAccountDetailsOpen={iamServiceAccountClicked}>
             <ColumnHeader>
               <div style={{ margin: '0 1rem' }}>

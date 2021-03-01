@@ -1,13 +1,13 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import styled from 'styled-components';
-import { makeStyles } from '@material-ui/core/styles';
 import { Link } from 'react-router-dom';
 import Fab from '@material-ui/core/Fab';
 import Icon from '@material-ui/core/Icon';
 import Tooltip from '@material-ui/core/Tooltip';
 import PropTypes from 'prop-types';
 import ComponentError from '../../../errorBoundaries/ComponentError/component-error';
+import { useStylesBootstrap } from '../../../styles/GlobalStyles';
 
 // styled components
 const FabWrap = styled.div``;
@@ -16,16 +16,7 @@ const setIcon = (props) => {
   const { icon } = props;
   return <Icon>{icon}</Icon>;
 };
-const useStylesBootstrap = makeStyles((theme) => ({
-  arrow: {
-    color: theme.palette.common.white,
-  },
-  tooltip: {
-    backgroundColor: theme.palette.common.white,
-    color: theme.palette.common.black,
-    fontSize: theme.typography.subtitle1.fontSize,
-  },
-}));
+
 const BootstrapTooltip = (options) => {
   const { title, placement, children } = options;
   const classes = useStylesBootstrap();

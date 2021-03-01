@@ -215,7 +215,6 @@ const SafeDashboard = () => {
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const isTabAndMobScreen = useMediaQuery(mediaBreakpoints.smallAndMedium);
   const history = useHistory();
-  const [listOfsafes, setListOfSafes] = useState([]);
 
   const sortAnArray = (array) => {
     array.sort((str1, str2) => {
@@ -313,7 +312,6 @@ const SafeDashboard = () => {
         });
         sortAnArray(arrayList);
         setSafeList([...arrayList]);
-        setListOfSafes([...arrayList]);
         setAllSafeList([...arrayList]);
         setResponse({ status: 'success', message: '' });
       })
@@ -333,11 +331,11 @@ const SafeDashboard = () => {
 
   useEffect(() => {
     setMenu([
-      { name: 'All Safes', count: listOfsafes?.length || 0 },
+      { name: 'All Safes', count: safeList?.length || 0 },
       {
         name: 'User Safes',
         count:
-          listOfsafes?.filter(
+          safeList?.filter(
             (item) =>
               item?.safeType?.toLowerCase() === 'User Safe'.toLowerCase()
           ).length || 0,
@@ -345,7 +343,7 @@ const SafeDashboard = () => {
       {
         name: 'Shared Safes',
         count:
-          listOfsafes?.filter(
+          safeList?.filter(
             (item) =>
               item?.safeType?.toLowerCase() === 'Shared Safe'.toLowerCase()
           ).length || 0,
@@ -353,13 +351,13 @@ const SafeDashboard = () => {
       {
         name: 'Application Safes',
         count:
-          listOfsafes?.filter(
+          safeList?.filter(
             (item) =>
               item?.safeType?.toLowerCase() === 'Application Safe'.toLowerCase()
           ).length || 0,
       },
     ]);
-  }, [allSafeList, safes, safeList, listOfsafes]);
+  }, [allSafeList, safes, safeList]);
 
   useEffect(() => {
     if (allSafeList.length > 0) {
@@ -395,10 +393,8 @@ const SafeDashboard = () => {
             .includes(value?.toLowerCase().trim());
         });
         sortAnArray(array);
-        setListOfSafes([...array]);
         setSafeList([...array]);
       } else {
-        setListOfSafes([...allSafeList]);
         setSafeList([...allSafeList]);
       }
     }
@@ -411,7 +407,6 @@ const SafeDashboard = () => {
    */
   const onSelectChange = (value) => {
     setSafeType(value);
-    setListOfSafes(allSafeList);
     setInputSearchValue('');
     if (value !== 'All Safes') {
       const obj = selectList?.find((item) => item.selected === value);
@@ -434,6 +429,10 @@ const SafeDashboard = () => {
             .includes(inputSearchValue?.toLowerCase().trim())
       );
       setSafeList([...array]);
+    } else if (safeType !== 'All Safes' && inputSearchValue?.length <= 2) {
+      const obj = selectList?.find((item) => item.selected === safeType);
+      sortAnArray(safes[obj.path]);
+      setSafeList([...safes[obj.path]]);
     } else if (safeType === 'All Safes' && inputSearchValue) {
       onSearchChange(inputSearchValue);
     } else if (inputSearchValue === '') {

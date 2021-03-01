@@ -12,7 +12,6 @@ import {
   Redirect,
   useLocation,
 } from 'react-router-dom';
-
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import sectionHeaderBg from '../../../../../assets/azure-banner.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
@@ -27,7 +26,6 @@ import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import apiService from '../../apiService';
 import Strings from '../../../../../resources';
 import { TitleOne } from '../../../../../styles/GlobalStyles';
-
 import {
   ListContainer,
   ListContent,
@@ -35,6 +33,7 @@ import {
 import AzureListItem from '../AzureListItem';
 import ViewAzure from '../ViewAzure';
 import AzureSelectionTabs from '../AzureSelectionTabs';
+import TooltipComponent from '../../../../../components/Tooltip';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -78,9 +77,6 @@ const NoDataWrapper = styled.div`
 `;
 
 const PopperWrap = styled.div`
-  position: absolute;
-  right: 4%;
-  z-index: 1;
   display: none;
 `;
 const ListFolderWrap = styled(Link)`
@@ -324,11 +320,16 @@ const AzureDashboard = () => {
         <AzureListItem title={azure.name} icon={azureIcon} />
         <BorderLine />
         {(azure.isManagable || azure.access === 'write') && !isMobileScreen && (
-          <PopperWrap onClick={(e) => onActionClicked(e)}>
-            <ViewIcon onClick={() => onViewClicked(azure)}>
-              <VisibilityIcon />
-            </ViewIcon>
-          </PopperWrap>
+          <TooltipComponent
+            title="View"
+            renderContent={
+              <PopperWrap onClick={(e) => onActionClicked(e)}>
+                <ViewIcon onClick={() => onViewClicked(azure)}>
+                  <VisibilityIcon />
+                </ViewIcon>
+              </PopperWrap>
+            }
+          />
         )}
         {(azure.isManagable || azure.access === 'write') && isMobileScreen && (
           <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
@@ -343,7 +344,7 @@ const AzureDashboard = () => {
   return (
     <ComponentError>
       <>
-        <SectionPreview title="azure-account-section">
+        <SectionPreview>
           {openViewAzureModal && (
             <ViewAzure
               open={openViewAzureModal}

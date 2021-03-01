@@ -1,9 +1,11 @@
+/* eslint-disable react/jsx-wrap-multilines */
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { IconDeleteActive, IconEdit } from '../../../../../assets/SvgIcons';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
+import TooltipComponent from '../../../../../components/Tooltip';
 
 const IconWrap = styled('div')`
   display: flex;
@@ -30,21 +32,30 @@ const PsudoPopper = (props) => {
   return (
     <ComponentError>
       <IconWrap>
-        <Link
-          to={{
-            pathname: path,
-            state: { safe },
-          }}
-        >
-          <Icon>
-            {' '}
-            <IconEdit />
-          </Icon>
-        </Link>
-        <Icon onClick={onDeleteSafeClicked}>
-          {' '}
-          <IconDeleteActive />
-        </Icon>
+        <TooltipComponent
+          title="Edit"
+          renderContent={
+            <Link
+              to={{
+                pathname: path,
+                state: { safe },
+              }}
+            >
+              <Icon>
+                <IconEdit />
+              </Icon>
+            </Link>
+          }
+        />
+        <TooltipComponent
+          title="Delete"
+          placement="top"
+          renderContent={
+            <Icon onClick={onDeleteSafeClicked}>
+              <IconDeleteActive />
+            </Icon>
+          }
+        />
       </IconWrap>
     </ComponentError>
   );

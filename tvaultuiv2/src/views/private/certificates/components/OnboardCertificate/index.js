@@ -351,7 +351,10 @@ const OnboardCertificates = (props) => {
 
   useEffect(() => {
     if (state) {
-      if (state?.applicationNameList?.length > 0) {
+      if (
+        state?.applicationNameList !== 'error' &&
+        state?.applicationNameList?.length > 0
+      ) {
         if (!JSON.parse(sessionStorage.getItem('isAdmin'))) {
           const stringVal = sessionStorage.getItem('selfServiceAppNames');
           setSelfserviceAppName(stringVal?.split(','));
@@ -373,6 +376,7 @@ const OnboardCertificates = (props) => {
 
   const onPreviewClicked = () => {
     setShowPreviewData(true);
+    setNotifyEmail('');
   };
 
   const callSearchByGroupemailApi = useCallback(

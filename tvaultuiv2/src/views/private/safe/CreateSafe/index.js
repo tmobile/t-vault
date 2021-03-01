@@ -143,6 +143,10 @@ const autoLoaderStyle = css`
   color: red;
 `;
 
+const InputLabelWithInfo = styled(InputLabel)`
+  cursor: pointer;
+`;
+
 const useStyles = makeStyles((theme) => ({
   modal: {
     display: 'flex',
@@ -566,7 +570,7 @@ const CreateModal = (props) => {
   };
 
   const onAppNameChange = (e) => {
-    if (e?.target?.value) {
+    if (e?.target?.value || e?.target?.value === '') {
       setApplicationName(e?.target?.value);
     }
   };
@@ -598,7 +602,7 @@ const CreateModal = (props) => {
           <ConfirmationModal
             open
             handleClose={onConfirmationModalClose}
-            title="Confirmation"
+            title="Safe Transfer Successful"
             description={modalDecription}
             cancelButton={
               // eslint-disable-next-line react/jsx-wrap-multilines
@@ -744,10 +748,10 @@ const CreateModal = (props) => {
                           title="Name of the Cloud application this safe will be used for. Only applications you have self-service rights to will be shown"
                           placement="top"
                         >
-                          <InputLabel>
+                          <InputLabelWithInfo>
                             Application Name
                             <RequiredCircle margin="1.3rem" />
-                          </InputLabel>
+                          </InputLabelWithInfo>
                         </Tooltip>
                         <AutoCompleteComponent
                           icon="search"
@@ -806,6 +810,11 @@ const CreateModal = (props) => {
                               setOpenTransferConfirmationModal(true)
                             }
                             width={isMobileScreen ? '100%' : ''}
+                            disabled={
+                              applicationName === '' ||
+                              applicationName === undefined ||
+                              applicationName === null
+                            }
                           />
                         </CancelButton>
                       )}
