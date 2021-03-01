@@ -5984,7 +5984,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		if(!certificateType.matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)){
     		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "getList Of Certificates")
+					.put(LogMessage.ACTION, "Get list Of Certificates")
 					.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
@@ -5999,7 +5999,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "getListOfCertificates")
+					.put(LogMessage.ACTION, "Get list Of Certificates")
 					.put(LogMessage.MESSAGE, "Certificates fetched from metadata")
 					.put(LogMessage.STATUS, response.getHttpstatus().toString())
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
@@ -6009,7 +6009,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "getListOfCertificates")
+					.put(LogMessage.ACTION, "Get list Of certificates")
 					.put(LogMessage.MESSAGE, "Failed to get certificate list from metadata")
 					.put(LogMessage.STATUS, response.getHttpstatus().toString())
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
