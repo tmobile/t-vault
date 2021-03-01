@@ -522,6 +522,9 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
         when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+        when(certificateUtils.isWildcardCertificate(Mockito.any())).thenReturn(false);
+        when(certificateUtils.getActualCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
 
         ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
@@ -685,7 +688,9 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
         when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
-
+        when(certificateUtils.isWildcardCertificate(Mockito.any())).thenReturn(false);
+        when(certificateUtils.getActualCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
         ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
         //Assert
@@ -847,6 +852,9 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
         when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+        when(certificateUtils.isWildcardCertificate(Mockito.any())).thenReturn(false);
+        when(certificateUtils.getActualCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
 
         ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,"ui");
@@ -1239,6 +1247,9 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
         when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com", certType)).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+        when(certificateUtils.isWildcardCertificate(Mockito.any())).thenReturn(false);
+        when(certificateUtils.getActualCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
 
         ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
@@ -1420,6 +1431,11 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
         when(certificateUtils.getCertificateMetaData(token, "CertificateName.t-mobile.com", certType)).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+
+        when(certificateUtils.isWildcardCertificate(Mockito.any())).thenReturn(true);
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getActualCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
 
         ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
@@ -1619,6 +1635,9 @@ public class SSLCertificateServiceTest {
 
         SSLCertificateMetadataDetails certificateMetadata = getSSLExternalCertificateRequest();
         when(certificateUtils.getCertificateMetaData(any(), anyString(), anyString())).thenReturn(certificateMetadata);
+        when(certificateUtils.isWildcardCertificate(Mockito.any())).thenReturn(false);
+        when(certificateUtils.getActualCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
 
         ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
@@ -1950,6 +1969,9 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.parseJson(metaDataStr)).thenReturn(createCertPolicyMap);
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
         when(reqProcessor.process("/write", metadatajson, token)).thenReturn(responseNoContent);
+        when(certificateUtils.isWildcardCertificate(Mockito.any())).thenReturn(false);
+        when(certificateUtils.getActualCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
 
         ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
@@ -2105,6 +2127,9 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.parseJson(metaDataStr)).thenReturn(createCertPolicyMap);
         when(ControllerUtil.convetToJson(any())).thenReturn(metadatajson);
         when(reqProcessor.process("/write", metadatajson, token)).thenReturn(responseNoContent);
+        when(certificateUtils.isWildcardCertificate(Mockito.any())).thenReturn(false);
+        when(certificateUtils.getActualCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
 
         ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
@@ -5874,6 +5899,10 @@ public class SSLCertificateServiceTest {
         when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "external")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+        when(certificateUtils.isWildcardCertificate(Mockito.any())).thenReturn(false);
+        when(certificateUtils.getActualCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+
         ResponseEntity<?> enrollResponse =
                 sSLCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.UI);
         assertNotNull(enrollResponse);
@@ -7349,6 +7378,9 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
         when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+        when(certificateUtils.isWildcardCertificate(Mockito.any())).thenReturn(false);
+        when(certificateUtils.getActualCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
 
         ResponseEntity<?> enrollResponse =
                 sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertOnboardRequest);
@@ -7474,6 +7506,9 @@ public class SSLCertificateServiceTest {
         when(ControllerUtil.updateMetadata(any(),eq(token))).thenReturn(responseNoContent);
         when(certificateUtils.getCertificateMetaData(token, "certificatename.t-mobile.com", "internal")).thenReturn(certificateMetadata);
         when(certificateUtils.hasAddOrRemovePermission(userDetails, certificateMetadata)).thenReturn(true);
+        when(certificateUtils.isWildcardCertificate(Mockito.any())).thenReturn(false);
+        when(certificateUtils.getActualCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
 
         ResponseEntity<?> enrollResponse =
                 sSLCertificateService.onboardSSLcertificate(userDetails,token, sslCertOnboardRequest);
