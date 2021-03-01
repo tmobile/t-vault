@@ -9529,7 +9529,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		}
 		List<CertificateData> certificatesList = new ArrayList<>();
 		String targetEndpointVal = findAllCertificate;
-
+		Map<String, Object> certificateMap = new HashMap<>();
 		// Getting all on-boarded internal certificates
 		List<String> onboardedInternalCerts = getListOfCertificatesForValidation(token, SSLCertificateConstants.INTERNAL);
 		// Getting all on-boarded external certificates
@@ -9550,9 +9550,13 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			toindex = (limitVal <= totCount) ? limitVal : totCount;
 
 			certificatesList = certificatesList.subList(offsetVal, toindex);
+
+			certificateMap.put("keys", certificatesList);
+			certificateMap.put("total", totCount);
+			certificateMap.put("next", (totCount - (certificatesList.size()+ offset)>0?totCount - (certificatesList.size() + offset):-1));
 		}
 
-		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(certificatesList));
+		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(certificateMap));
 	}
 
 	/**
@@ -9611,7 +9615,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 				if (!ObjectUtils.isEmpty(jsonElement.get("sortedSubjectName"))) {
 					certificateName = getCertficateName(jsonElement.get("sortedSubjectName").getAsString());
 				}
-				if ((certificateName != null) && (!certificateName.toUpperCase().startsWith("CERTTEST"))) {
+				if ((certificateName != null) && (!certificateName.toUpperCase().startsWith("CERTTEST")) && (!certificateName.toUpperCase().startsWith("*.CERTTEST"))) {
 					CertificateData certificateData = new CertificateData();
 					boolean isOnboarded = false;
 					constructCertificateData(jsonElement, certificateData);
@@ -9655,10 +9659,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	private boolean isCertificateAlreadyOnboarded(List<String> onboardedInternalCerts,
 			List<String> onboardedExternalCerts, CertificateData certificateData, boolean isOnboarded) {
 		String certificateName = certificateData.getCertificateName();
-		if ((certificateName != null) && (certificateName.startsWith("*."))) {
-			certificateName = certificateName.replaceFirst("[*]", "#");
-		}
-
+		certificateName = certificateUtils.getVaultCompactibleCertifiacteName(certificateName);
 		if (certificateData.getCertType().equals(SSLCertificateConstants.INTERNAL)
 				&& !CollectionUtils.isEmpty(onboardedInternalCerts)) {
 			isOnboarded = onboardedInternalCerts.stream()
