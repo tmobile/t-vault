@@ -308,5 +308,39 @@ public class CertificateUtilsTest {
         SSLCertificateMetadataDetails certificateMetadataObj = certificateUtils.getCertificateMetaData(userDetails.getClientToken(),CERT_NAME,certType);
         assertEquals(certificateMetadataObj, null);
     }
-    
+
+    @Test
+    public void test_getVaultCompactibleCertifiacteName() {
+        String certificateName = certificateUtils.getVaultCompactibleCertifiacteName("*.certtest.company.com");
+        String expectedCertificateName = "$.certtest.company.com";
+        assertEquals(expectedCertificateName, certificateName);
+    }
+
+
+    @Test
+    public void test_getActualCertifiacteName() {
+        String certificateName = certificateUtils.getActualCertifiacteName("$.certtest.company.com");
+        String expectedCertificateName = "*.certtest.company.com";
+        assertEquals(expectedCertificateName, certificateName);
+    }
+
+    @Test
+    public void test_getVaultCompactibleCertifiacteName_normal() {
+        String certificateName = certificateUtils.getVaultCompactibleCertifiacteName("certtest.company.com");
+        String expectedCertificateName = "certtest.company.com";
+        assertEquals(expectedCertificateName, certificateName);
+    }
+
+
+    @Test
+    public void test_getActualCertifiacteName_normal() {
+        String certificateName = certificateUtils.getActualCertifiacteName("certtest.company.com");
+        String expectedCertificateName = "certtest.company.com";
+        assertEquals(expectedCertificateName, certificateName);
+    }
+
+    @Test
+    public void test_isWildcardCertificate() {
+        assertEquals(true, certificateUtils.isWildcardCertificate("*.certtest.company.com"));
+    }
 }
