@@ -5,8 +5,8 @@ const getAllAdminCertInternal = () => api.get('/sslcert/certificates/internal');
 const getAllAdminCertExternal = () => api.get('/sslcert?certType=external');
 const getAllNonAdminCertInternal = () => api.get('/sslcert/list/internal');
 const getAllNonAdminCertExternal = () => api.get('/sslcert/list/external');
-const getInternalCertificates = () =>
-  api.get('/sslcert?certificateName=&certType=internal');
+const getInternalCertificates = (limit,offset) =>
+  api.get(`/sslcert?certificateName=&certType=internal&limit=${limit ? limit : 20 }&offset=${offset ? offset:0}`);
 const getExternalCertificates = () =>
   api.get('/sslcert?certificateName=&certType=external');
 const deleteCertificate = (name, certType) =>

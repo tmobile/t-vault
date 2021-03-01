@@ -29,7 +29,7 @@ import { useStateValue } from '../../../../../contexts/globalState';
 import SelectWithCountComponent from '../../../../../components/FormFields/SelectWithCount';
 import {
   ListContainer,
-  ListContent,
+  StyledInfiniteScroll,
 } from '../../../../../styles/GlobalStyles/listingStyle';
 import configData from '../../../../../config/config';
 import CertificateRelease from '../CertificateRelease';
@@ -154,7 +154,7 @@ const useStyles = makeStyles((theme) => ({
 const CertificatesDashboard = () => {
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [certificateList, setCertificateList] = useState([]);
-  const [certificateType, setCertificateType] = useState('All Certificates');
+  const [certificateType, setCertificateType] = useState('Internal Certificates');
   const [menu, setMenu] = useState([]);
   const [response, setResponse] = useState({ status: 'success' });
   const [errorMsg, setErrorMsg] = useState('');
@@ -175,6 +175,9 @@ const CertificatesDashboard = () => {
   const isTabScreen = useMediaQuery(mediaBreakpoints.medium);
   const [state] = useStateValue();
   const admin = Boolean(state?.isAdmin);
+  const limit = 20;
+  const [hasMore,setHasMore] = useState(true);
+  const [offset,setOffset] = useState(0);
 
   const compareCertificates = (array1, array2, type) => {
     if (array2.length > 0) {
@@ -191,9 +194,310 @@ const CertificatesDashboard = () => {
     }
   };
 
+  const fetchAdminInternalData = useCallback(async () => {
+    let allCertInternal = [];
+
+    if (configData.AUTH_TYPE === 'oidc' && offset === 0) {
+      allCertInternal = await apiService.getAllAdminCertInternal();
+    }
+    const internalCertificates = await apiService.getInternalCertificates(limit,offset);
+
+    const allApiResponse = Promise.all([
+      allCertInternal,
+      internalCertificates,
+    ]);
+    allApiResponse
+      .then((result) => {
+        const allCertInternalArray = [];
+        const internalCertArray = [];
+        if (configData.AUTH_TYPE === 'oidc') {
+          if (result && result[0]?.data?.data?.keys) {
+            result[0].data.data.keys.map((item) => {
+              return allCertInternalArray.push(item);
+            });
+          }
+        } else {
+          const access = JSON.parse(sessionStorage.getItem('access'));
+          if (Object.keys(access).length > 0) {
+            Object.keys(access).forEach((item) => {
+              if (item === 'cert') {
+                access[item].map((ele) => {
+                  const val = Object.keys(ele);
+                  return allCertInternalArray.push(val[0]);
+                });
+              }
+            });
+          }
+        }
+        if (result && result[1]?.data?.keys) {
+          if(result[1]?.data?.next !== -1){
+            setHasMore(true);
+          }
+          setOffset(offset+limit)
+          result[1].data.keys.map((item) => {
+            if (item.certificateName) {
+              return internalCertArray.push(item);
+            }
+            return null;
+          });
+          compareCertificates(
+            internalCertArray,
+            allCertInternalArray,
+            'internal'
+          );
+        }
+        setCertificateList([
+          ...internalCertArray,
+        ]);
+        setAllCertList([...internalCertArray,]);
+        setResponse({ status: 'success' });
+      })
+      .catch((err) => {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+          setErrorMsg(err.response.data.errors[0]);
+        }
+        setResponse({ status: 'failed' });
+      });
+  },[]);
+
+  const fetchAdminExternalData = useCallback(async () => {
+    let allCertExternal = [];
+    if (configData.AUTH_TYPE === 'oidc') {
+      allCertExternal = await apiService.getAllAdminCertExternal();
+    }
+    const externalCertificates = await apiService.getExternalCertificates();
+    const allApiResponse = Promise.all([
+      allCertExternal,
+      externalCertificates,
+    ]);
+    allApiResponse
+      .then((result) => {
+        const allCertExternalArray = [];
+        const externalCertArray = [];
+        if (configData.AUTH_TYPE === 'oidc') {
+          if (result && result[0]?.data?.data?.keys) {
+            result[0].data.data.keys.map((item) => {
+              return allCertExternalArray.push(item);
+            });
+          }
+        } else {
+          const access = JSON.parse(sessionStorage.getItem('access'));
+          if (Object.keys(access).length > 0) {
+            Object.keys(access).forEach((item) => {
+              if (item === 'externalcerts') {
+                access[item].map((ele) => {
+                  const val = Object.keys(ele);
+                  return allCertExternalArray.push(val[0]);
+                });
+              }
+            });
+          }
+        }
+        if (result && result[1]?.data?.keys) {
+          result[1].data.keys.map((item) => {
+            if (item.certificateName) {
+              return externalCertArray.push(item);
+            }
+            return null;
+          });
+          compareCertificates(
+            externalCertArray,
+            allCertExternalArray,
+            'external'
+          );
+        }
+        setCertificateList([...externalCertArray,]);
+        setAllCertList([...externalCertArray,]);
+        setResponse({ status: 'success' });
+      })
+      .catch((err) => {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+          setErrorMsg(err.response.data.errors[0]);
+        }
+        setResponse({ status: 'failed' });
+      });
+  },[]);
+
+
+  const fetchNonAdminInternalData = useCallback(async () => {
+    
+    let allCertInternal = [];
+    if (configData.AUTH_TYPE === 'oidc') {
+      allCertInternal = await apiService.getAllNonAdminCertInternal();
+    }
+    const internalCertificates = await apiService.getInternalCertificates();
+    const allApiResponse = Promise.all([
+      allCertInternal,
+      internalCertificates,
+    ]);
+    allApiResponse
+      .then((result) => {
+        const allCertificateInternal = [];
+        const internalCertArray = [];
+        if (configData.AUTH_TYPE === 'oidc') {
+          if (result && result[0]?.data?.cert) {
+            result[0].data.cert.map((item) => {
+              return Object.entries(item).map(([key, value]) => {
+                if (value.toLowerCase() !== 'deny') {
+                  return allCertificateInternal.push(key);
+                }
+                return null;
+              });
+            });
+          }
+        } else {
+          const access = JSON.parse(sessionStorage.getItem('access'));
+          if (Object.keys(access).length > 0) {
+            Object.keys(access).forEach((item) => {
+              if (item === 'cert' || item === 'externalcerts') {
+                access[item].map((ele) => {
+                  const val = Object.keys(ele);
+                  if (item === 'cert') {
+                    allCertificateInternal.push(val[0]);
+                  }
+                  return null;
+                });
+              }
+            });
+          }
+        }
+        if (result && result[1]?.data?.keys) {
+          result[1].data.keys.map((item) => {
+            if (item.certificateName) {
+              return internalCertArray.push(item);
+            }
+            return null;
+          });
+        }
+        compareCertificates(
+          internalCertArray,
+          allCertificateInternal,
+          'internal'
+        );
+        setCertificateList([...internalCertArray]);
+        setAllCertList([...internalCertArray,]);
+        setResponse({ status: 'success' });
+      })
+      .catch((err) => {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+          setErrorMsg(err.response.data.errors[0]);
+        }
+        setResponse({ status: 'failed' });
+      });
+    // eslint-disable-next-line
+  }, []);
+
+  const fetchNonAdminExternalData = useCallback(async () => {
+    
+    let allCertExternal = [];
+    if (configData.AUTH_TYPE === 'oidc') {
+      allCertExternal = await apiService.getAllNonAdminCertExternal();
+    }
+    const externalCertificates = await apiService.getExternalCertificates();
+    const allApiResponse = Promise.all([
+      allCertExternal,
+      externalCertificates,
+    ]);
+    allApiResponse
+      .then((result) => {
+        const allCertificateExternal = [];
+        const externalCertArray = [];
+        if (configData.AUTH_TYPE === 'oidc') {
+          if (result && result[0]?.data?.externalcerts) {
+            result[0].data.externalcerts.map((item) =>
+              Object.entries(item).map(
+                ([key]) =>
+                  item[key] !== 'deny' && allCertificateExternal.push(key)
+              )
+            );
+          }
+        } else {
+          const access = JSON.parse(sessionStorage.getItem('access'));
+          if (Object.keys(access).length > 0) {
+            Object.keys(access).forEach((item) => {
+              if (item === 'cert' || item === 'externalcerts') {
+                access[item].map((ele) => {
+                  const val = Object.keys(ele);
+                  if (item === 'externalcerts') {
+                    allCertificateExternal.push(val[0]);
+                  }
+                  return null;
+                });
+              }
+            });
+          }
+        }
+        if (result && result[1]?.data?.keys) {
+          result[1].data.keys.map((item) => {
+            if (item.certificateName) {
+              return externalCertArray.push(item);
+            }
+            return null;
+          });
+        }
+        compareCertificates(
+          externalCertArray,
+          allCertificateExternal,
+          'external'
+        );
+        setCertificateList([...externalCertArray]);
+        setAllCertList([...externalCertArray,]);
+        setResponse({ status: 'success' });
+      })
+      .catch((err) => {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+          setErrorMsg(err.response.data.errors[0]);
+        }
+        setResponse({ status: 'failed' });
+      });
+    // eslint-disable-next-line
+  }, []);
+
+  const fetchOnboardCertificates = useCallback(async () => {
+    apiService.getOnboardCertificates()
+      .then((result) => {
+        const onboardCertArray = [];
+        if (result?.data) {
+          result.data.map((ele) => {
+            ele.isOnboardCert = true;
+            return onboardCertArray.push(ele);
+          });
+        }
+        setCertificateList([
+          ...onboardCertArray,
+        ]);
+        setAllCertList([...onboardCertArray,]);
+        setResponse({ status: 'success' });
+      })
+      .catch((err) => {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+          setErrorMsg(err.response.data.errors[0]);
+        }
+        setResponse({ status: 'failed' });
+      });
+    // eslint-disable-next-line
+  }, []);
+
+const fetchInternalCertificates = () => {
+  setResponse({ status: 'loading' });
+  if (admin) {
+    fetchAdminInternalData();
+  } else {
+    fetchNonAdminInternalData()
+  }
+};
+
+const fetchExternalCertificates = () => {
+  setResponse({ status: 'loading' });
+  if (admin) {
+    fetchAdminExternalData();
+  } else {
+    fetchNonAdminExternalData();
+  }
+}
+
   const clearData = () => {
     setInputSearchValue('');
-    setCertificateType('All Certificates');
     setResponse({ status: 'loading' });
     setAllCertList([]);
     setCertificateList([]);
@@ -213,13 +517,11 @@ const CertificatesDashboard = () => {
     }
     const internalCertificates = await apiService.getInternalCertificates();
     const externalCertificates = await apiService.getExternalCertificates();
-    const onboardCertificates = await apiService.getOnboardCertificates();
     const allApiResponse = Promise.all([
       allCertInternal,
       allCertExternal,
       internalCertificates,
       externalCertificates,
-      onboardCertificates,
     ]);
     allApiResponse
       .then((result) => {
@@ -227,7 +529,6 @@ const CertificatesDashboard = () => {
         const allCertExternalArray = [];
         const internalCertArray = [];
         const externalCertArray = [];
-        const onboardCertArray = [];
         if (configData.AUTH_TYPE === 'oidc') {
           if (result && result[0]?.data?.data?.keys) {
             result[0].data.data.keys.map((item) => {
@@ -284,25 +585,20 @@ const CertificatesDashboard = () => {
             'external'
           );
         }
-        if (result && result[4].data) {
-          result[4].data.map((ele) => {
-            ele.isOnboardCert = true;
-            return onboardCertArray.push(ele);
-          });
-        }
         setCertificateList([
           ...internalCertArray,
           ...externalCertArray,
-          ...onboardCertArray,
         ]);
         setAllCertList([
           ...internalCertArray,
           ...externalCertArray,
-          ...onboardCertArray,
         ]);
         setResponse({ status: 'success' });
       })
-      .catch(() => {
+      .catch((err) => {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+          setErrorMsg(err.response.data.errors[0]);
+        }
         setResponse({ status: 'failed' });
       });
     // eslint-disable-next-line
@@ -397,33 +693,34 @@ const CertificatesDashboard = () => {
         setAllCertList([...internalCertArray, ...externalCertArray]);
         setResponse({ status: 'success' });
       })
-      .catch(() => {
+      .catch((err) => {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+          setErrorMsg(err.response.data.errors[0]);
+        }
         setResponse({ status: 'failed' });
       });
     // eslint-disable-next-line
   }, []);
 
-  /**
-   * @description On component load call fetchData function.
-   */
-  useEffect(() => {
-    setResponse({ status: 'loading' });
-    if (admin) {
-      fetchAdminData().catch((err) => {
-        if (err?.response?.data?.errors && err.response.data.errors[0]) {
-          setErrorMsg(err.response.data.errors[0]);
+  useEffect(()=>{
+    if(certificateType === "Internal Certificates"){
+      fetchInternalCertificates();
+    }else if(certificateType === "External Certificates"){
+      fetchExternalCertificates();
+    }else if(certificateType === "Onboard Certificates"){
+      fetchOnboardCertificates();
+    }else{
+      setResponse({ status: 'loading' });
+        if (admin) {
+          fetchAdminData();
+        } else {
+          fetchNonAdminData();
         }
-        setResponse({ status: 'failed' });
-      });
-    } else {
-      fetchNonAdminData().catch((err) => {
-        if (err?.response?.data?.errors && err.response.data.errors[0]) {
-          setErrorMsg(err.response.data.errors[0]);
-        }
-        setResponse({ status: 'failed' });
-      });
     }
-  }, [fetchAdminData, fetchNonAdminData, admin]);
+    // eslint-disable-next-line
+  },[certificateType, 
+    admin
+  ])
 
   useEffect(() => {
     const url = history?.location?.pathname?.split('/');
@@ -436,24 +733,14 @@ const CertificatesDashboard = () => {
   }, [allCertList, history]);
 
   useEffect(() => {
-    const internalArray = certificateList?.filter(
-      (item) => item?.certType === 'internal' && !item.isOnboardCert
-    );
-    const externalArray = certificateList?.filter(
-      (item) => item?.certType === 'external' && !item.isOnboardCert
-    );
-    const onboardArray = certificateList?.filter((item) => item?.isOnboardCert);
-    const allCert =
-      internalArray?.length + externalArray?.length + onboardArray?.length;
     const array = [
-      { name: 'All Certificates', count: allCert || 0 },
-      { name: 'Internal Certificates', count: internalArray?.length || 0 },
-      { name: 'External Certificates', count: externalArray?.length || 0 },
+      { name: 'Internal Certificates'},
+      { name: 'External Certificates'},
+      { name: 'All Certificates' },
     ];
     if (admin) {
       array.push({
-        name: 'Onboard Certificates',
-        count: onboardArray?.length || 0,
+        name: 'Onboard Certificates'
       });
     }
     setMenu([...array]);
@@ -482,22 +769,6 @@ const CertificatesDashboard = () => {
     }
   };
 
-  const filterCertificate = (value) => {
-    if (value !== 'All Certificates' && value !== 'Onboard Certificates') {
-      const filterArray = allCertList.filter(
-        (cert) =>
-          value.toLowerCase().includes(cert.certType) && !cert.isOnboardCert
-      );
-      setCertificateList([...filterArray]);
-    } else if (value === 'Onboard Certificates') {
-      const filterArray = allCertList.filter(
-        (cert) => cert.isOnboardCert === true
-      );
-      setCertificateList([...filterArray]);
-    } else {
-      setCertificateList([...allCertList]);
-    }
-  };
 
   /**
    * @function onSelectChange
@@ -507,7 +778,6 @@ const CertificatesDashboard = () => {
   const onSelectChange = (value) => {
     setCertificateType(value);
     setInputSearchValue('');
-    filterCertificate(value);
   };
 
   /**
@@ -516,7 +786,6 @@ const CertificatesDashboard = () => {
    * @param {string} value searched input value.
    */
   const onSearchChange = (value) => {
-    if (certificateType === 'All Certificates') {
       if (value?.length > 2) {
         const searchArray = allCertList.filter((item) =>
           item?.certificateName
@@ -527,47 +796,13 @@ const CertificatesDashboard = () => {
       } else {
         setCertificateList([...allCertList]);
       }
-    }
   };
 
   // when both search and filter value is available.
   useEffect(() => {
-    if (
-      certificateType !== 'All Certificates' &&
-      inputSearchValue?.length > 2
-    ) {
-      if (certificateType !== 'Onboard Certificates') {
-        const filterArray = allCertList.filter(
-          (cert) =>
-            certificateType.toLowerCase().includes(cert.certType) &&
-            !cert.isOnboardCert &&
-            cert?.certificateName
-              ?.toLowerCase()
-              .includes(inputSearchValue?.toLowerCase().trim())
-        );
-        setCertificateList([...filterArray]);
-      } else if (certificateType === 'Onboard Certificates') {
-        const filterArray = allCertList.filter(
-          (cert) =>
-            cert.isOnboardCert === true &&
-            cert?.certificateName
-              ?.toLowerCase()
-              .includes(inputSearchValue?.toLowerCase().trim())
-        );
-        setCertificateList([...filterArray]);
-      }
-    } else if (
-      certificateType !== 'All Certificates' &&
-      inputSearchValue?.length <= 2
-    ) {
-      filterCertificate(certificateType);
-    } else if (certificateType === 'All Certificates' && inputSearchValue) {
-      onSearchChange(inputSearchValue);
-    } else if (inputSearchValue === '') {
-      onSelectChange(certificateType);
-    }
+    onSearchChange(inputSearchValue)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputSearchValue, certificateType]);
+  }, [inputSearchValue]);
 
   /**
    * @function onEditListItemClicked
@@ -746,6 +981,12 @@ const CertificatesDashboard = () => {
       />
     );
   };
+  let scrollParentRef = null;
+  const loadMoreData = () =>{
+    if(certificateType==='Internal Certificates'){
+      fetchAdminInternalData();
+    }
+  }
   return (
     <ComponentError>
       <>
@@ -818,8 +1059,20 @@ const CertificatesDashboard = () => {
             {response.status === 'success' && (
               <>
                 {certificateList?.length > 0 && (
-                  <ListContainer>
-                    <ListContent>{renderList()}</ListContent>
+                  <ListContainer ref={(ref) => (scrollParentRef = ref)}>
+                    <StyledInfiniteScroll
+                      pageStart={offset}
+                      loadMore={() => {
+                        loadMoreData();
+                      }}
+                      hasMore={(hasMore)}
+                      threshold={250}
+                      // loader={
+                      //   !status.status === 'loading' ? <div key={0}>Loading...</div> : <></>
+                      // }
+                      useWindow={false}
+                      getScrollParent={() => scrollParentRef}
+                    >{renderList()}</StyledInfiniteScroll>
                   </ListContainer>
                 )}
                 {certificateList?.length === 0 && (
