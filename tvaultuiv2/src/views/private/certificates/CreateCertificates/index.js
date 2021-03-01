@@ -449,19 +449,29 @@ const CreateCertificates = (props) => {
     notificationEmailList,
   ]);
 
+  const WildCardCertificateValidation = (text) => {
+    if (text.includes('*') && !text.startsWith('*.')) {
+      return false;
+    }
+    return true;
+  }
+
   const InputValidation = (text) => {
     if (text) {
-      const res = /^[A-Za-z0-9.-]*?[a-z0-9]$/i;
+      const res = /^[A-Za-z0-9\\*.-]*?[a-z0-9]$/i;
       return (
         res.test(text) &&
-        /^[A-z0-9]/.test(text) &&
-        /[a-z0-9]$/.test(text) &&
+        /^[A-z0-9\\*]/.test(text) &&
+        /[a-z0-9\\*]$/.test(text) &&
         !/(--)/.test(text) &&
-        !/(\.\.)/.test(text)
+        !/(\.\.)/.test(text) &&
+        WildCardCertificateValidation(text)
       );
     }
     return null;
   };
+
+
 
   const onCertificateNameChange = (e) => {
     setCertName(e.target.value);
