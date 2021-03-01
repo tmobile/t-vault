@@ -471,7 +471,7 @@ const CreateCertificates = (props) => {
       setErrorMessage(
         'Certificate name can have alphabets, numbers, . and - characters only, and it should not start or end with special characters(-.)'
       );
-    } else if (value.toLowerCase().includes('.t-mobile.com')) {
+    } else if (value.toLowerCase()?.includes('.t-mobile.com')) {
       setCertNameError(true);
       setErrorMessage('Please enter certificate name without .t-mobile.com.');
     } else {
@@ -481,7 +481,7 @@ const CreateCertificates = (props) => {
   };
 
   const checkDnsAlreadyIncluded = (val) => {
-    if (dnsArray.includes(val)) {
+    if (dnsArray?.includes(val)) {
       setDnsError(true);
       setErrorDnsMessage('DNS name already added!');
     } else {
@@ -515,7 +515,7 @@ const CreateCertificates = (props) => {
       setErrorDnsMessage(
         'DNS can have alphabets, numbers, . and - characters only, and it should not start or end with special characters(-.)'
       );
-    } else if (value && value.toLowerCase().includes('.t-mobile.com')) {
+    } else if (value && value.toLowerCase()?.includes('.t-mobile.com')) {
       setDnsError(true);
       setErrorDnsMessage('Please enter DNS without .t-mobile.com.');
     } else {
@@ -621,7 +621,7 @@ const CreateCertificates = (props) => {
     setNotificationEmailList([]);
     const selectedApp = allApplication.find((item) => appName === item.appName);
     if (!JSON.parse(sessionStorage.getItem('isAdmin'))) {
-      if (selfserviceAppName.includes(selectedApp?.appID)) {
+      if (selfserviceAppName?.includes(selectedApp?.appID)) {
         getNotificationEmailData(selectedApp);
       }
     } else {
@@ -782,15 +782,15 @@ const CreateCertificates = (props) => {
     );
     if (
       applicationName !== '' &&
-      (![...allApplication.map((item) => item.appName)].includes(
+      (![...allApplication.map((item) => item.appName)]?.includes(
         applicationName
       ) ||
         (!JSON.parse(sessionStorage.getItem('isAdmin')) &&
-          !selfserviceAppName.includes(selectedApp?.appID)))
+          !selfserviceAppName?.includes(selectedApp?.appID)))
     ) {
       if (
         !JSON.parse(sessionStorage.getItem('isAdmin')) &&
-        !selfserviceAppName.includes(selectedApp?.appID)
+        !selfserviceAppName?.includes(selectedApp?.appID)
       ) {
         setApplicationNameErrorMsg(
           'You do not have access to this group. Please go here (<a href="https://access.t-mobile.com" target="_blank">https://access.t-mobile.com</a>) to register yourself part of the group.'
