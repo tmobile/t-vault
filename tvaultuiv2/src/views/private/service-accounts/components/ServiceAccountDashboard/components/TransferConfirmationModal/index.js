@@ -25,7 +25,7 @@ const TransferConfirmationModal = (props) => {
         size={isMobileScreen ? 'large' : ''}
         open={transferSvcAccountConfirmation}
         handleClose={onTransferOwnerCancelClicked}
-        title="Confirmation"
+        title="Transfer service account owner"
         description={
           transferResponse
             ? transferResponseDesc

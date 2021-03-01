@@ -31,6 +31,7 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 import Error from '../../../../../components/Error';
 import IconFolderActive from '../../../../../assets/icon_folder_active.png';
 import IconFolderInactive from '../../../../../assets/icon_folder.png';
+import SuccessAndErrorModal from '../../../../../components/SuccessAndErrorModal';
 
 const UserList = styled.div`
   display: flex;
@@ -236,6 +237,11 @@ const IamServiceAccountSecrets = (props) => {
   const [openConfirmationModal, setOpenConfirmationModal] = useState({});
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
   const [isOpen, setIsOpen] = useState(false);
+  const [successErrorModal, setSuccessErrorModal] = useState(false);
+  const [successErrorDetails, setSuccessErrorDetails] = useState({
+    title: '',
+    desc: '',
+  });
 
   const handleToggle = () => {
     setIsOpen(!isOpen);
@@ -387,16 +393,27 @@ const IamServiceAccountSecrets = (props) => {
       .then(async (res) => {
         if (res?.data) {
           setResponse({ status: 'success', message: res.data.messages[0] });
-          setResponseType(1);
-          setToastMessage(res.data.messages[0]);
+          setSuccessErrorDetails({
+            title: 'Activation Successful!',
+            desc: `IAM Service account ${accountDetail?.name} has been activated successfully! </br> IAM Service Account has been activated. You may also want to assign permissions for other users or groups to view or modify this service account. Please do so by clicking the "Permission" button on the next screen.`,
+          });
+          setSuccessErrorModal(true);
           await refresh();
         }
       })
       .catch((err) => {
         if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
-          setResponse({});
-          setToastMessage(err?.response?.data?.errors[0]);
+          setSuccessErrorDetails({
+            title: 'Activation Failed!',
+            desc: err?.response?.data?.errors[0],
+          });
+        } else {
+          setSuccessErrorDetails({
+            title: 'Activation Failed!',
+            desc: 'Something went wrong!',
+          });
         }
+        setResponse({});
         setResponseType(-1);
       });
   };
@@ -428,16 +445,30 @@ const IamServiceAccountSecrets = (props) => {
 
   useEffect(() => {
     if (accountSecretData && Object.keys(accountSecretData).length > 0) {
-      onViewSecretDetails(accountSecretData.folders[0]);
+      onViewSecretDetails(accountSecretData?.folders[0]);
     } else {
       setSecretsData({});
     }
     setShowSecret(false);
   }, [accountSecretData, onViewSecretDetails]);
 
+  const handleSuccessAndDeleteModalClose = () => {
+    setSuccessErrorDetails({ title: '', desc: '' });
+    setSuccessErrorModal(false);
+  };
+
   return (
     <ComponentError>
       <>
+        {successErrorModal && (
+          <SuccessAndErrorModal
+            title={successErrorDetails.title}
+            description={successErrorDetails.desc}
+            handleSuccessAndDeleteModalClose={() =>
+              handleSuccessAndDeleteModalClose()
+            }
+          />
+        )}
         {openConfirmationModal?.status === 'open' && (
           <ConfirmationModal
             open={openConfirmationModal?.status === 'open'}
@@ -525,7 +556,11 @@ const IamServiceAccountSecrets = (props) => {
                       alt="folder_icon"
                       src={isOpen ? IconFolderActive : IconFolderInactive}
                     />
-                    <FolderLabel>{accountSecretData?.folders[0]}</FolderLabel>
+                    <FolderLabel>
+                      {accountSecretData?.folders
+                        ? accountSecretData?.folders[0]
+                        : 'No folder available!'}
+                    </FolderLabel>
                   </FolderLabelWrap>
                 </div>
               </SecretFolder>
