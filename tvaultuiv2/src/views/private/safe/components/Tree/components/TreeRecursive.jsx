@@ -69,7 +69,7 @@ const TreeRecursive = (props) => {
       const time = Math.ceil(diffInTimeDays);
 
       return time < 60
-        ? 'a few Seconds Ago'
+        ? 'a few seconds ago'
         : time / 60 < 60
         ? `${Math.floor(time / 60)} minutes ago`
         : time / 3600 < 24

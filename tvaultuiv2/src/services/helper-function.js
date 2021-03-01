@@ -112,11 +112,6 @@ export const convertObjectToArray = (data) => {
   const array = [];
   // eslint-disable-next-line no-restricted-syntax
   for (const [key, value] of Object.entries(data?.data)) {
-    console.log(
-      key?.toLowerCase() !== 'default' && value?.toLowerCase() !== 'default',
-      key,
-      value
-    );
     if (
       !(key?.toLowerCase() === 'default' && value?.toLowerCase() === 'default')
     )

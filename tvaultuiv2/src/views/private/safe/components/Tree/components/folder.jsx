@@ -244,7 +244,7 @@ Folder.propTypes = {
   onDeleteTreeItem: PropTypes.func,
   value: PropTypes.number.isRequired,
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
-  onFolderClosed: PropTypes.bool.isRequired,
+  onFolderClosed: PropTypes.bool,
   setOnFolderClosed: PropTypes.func.isRequired,
   status: PropTypes.objectOf(PropTypes.any).isRequired,
   versionInfo: PropTypes.string.isRequired,
@@ -252,6 +252,7 @@ Folder.propTypes = {
 Folder.defaultProps = {
   folderInfo: {},
   children: <div />,
+  onFolderClosed: false,
   setInputType: () => {},
   setIsAddInput: () => {},
   getChildNodes: () => {},

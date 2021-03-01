@@ -41,7 +41,7 @@ const Label = styled.p`
 `;
 
 const Value = styled.p`
-  text-transform: capitalize;
+  text-transform: ${(props) => props.capitalize};
 `;
 
 const CancelSaveWrapper = styled.div`
@@ -138,7 +138,9 @@ const CertificateRelease = (props) => {
               </EachValueWrap>
               <EachValueWrap>
                 <Label>Certificate Type:</Label>
-                <Value>{certificateData.certType}</Value>
+                <Value capitalize="capitalize">
+                  {certificateData.certType}
+                </Value>
               </EachValueWrap>
               <InputFieldLabelWrapper>
                 <InputLabel>
