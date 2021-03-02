@@ -5560,7 +5560,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
 		}
-    	ResponseEntity<DirectoryObjects> userResponse = directoryService.searchByUPN(certOwnerEmailId);
+		ResponseEntity<DirectoryObjects> userResponse = directoryService.searchByUPNInGsmAndCorp(certOwnerEmailId);
     	if(userResponse.getStatusCode().equals(HttpStatus.OK)) {
     		 users = userResponse.getBody().getData().getValues();
     		 if(!ObjectUtils.isEmpty(users)) {
@@ -8255,8 +8255,9 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		                    build()));
 		            return null;
 		        }
-		        
-		        ResponseEntity<DirectoryObjects> userResponse = directoryService.searchByUPN(projectLeadEmail);
+
+				ResponseEntity<DirectoryObjects> userResponse = directoryService
+						.searchByUPNInGsmAndCorp(projectLeadEmail);
 		        Object[] users = null;
 		    	DirectoryUser dirUser = new DirectoryUser();
 		    	if(userResponse.getStatusCode().equals(HttpStatus.OK)) {
@@ -9194,7 +9195,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	private boolean validateOwnerEmailForOnboard(SSLCertificateOnboardRequest sslCertificateRequest) {
 		boolean isValidUser = false;
 		ResponseEntity<DirectoryObjects> userResponse = directoryService
-				.searchByUPN(sslCertificateRequest.getCertOwnerEmailId());
+				.searchByUPNInGsmAndCorp(sslCertificateRequest.getCertOwnerEmailId());
 		Object[] users = null;
 		if (userResponse.getStatusCode().equals(HttpStatus.OK)) {
 			users = userResponse.getBody().getData().getValues();
@@ -9485,7 +9486,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		}
 
 		ResponseEntity<DirectoryObjects> userResponse = directoryService
-				.searchByUPN(sslCertificateRequest.getCertOwnerEmailId());
+				.searchByUPNInGsmAndCorp(sslCertificateRequest.getCertOwnerEmailId());
 		Object[] users = null;
 		DirectoryUser dirUser = new DirectoryUser();
 		if (userResponse.getStatusCode().equals(HttpStatus.OK)) {
