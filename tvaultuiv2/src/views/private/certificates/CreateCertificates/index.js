@@ -449,15 +449,23 @@ const CreateCertificates = (props) => {
     notificationEmailList,
   ]);
 
+  const WildCardCertificateValidation = (text) => {
+    if (text.includes('*') && !text.startsWith('*.')) {
+      return false;
+    }
+    return true;
+  };
+
   const InputValidation = (text) => {
     if (text) {
-      const res = /^[A-Za-z0-9.-]*?[a-z0-9]$/i;
+      const res = /^[A-Za-z0-9\\*.-]*?[a-z0-9]$/i;
       return (
         res.test(text) &&
-        /^[A-z0-9]/.test(text) &&
-        /[a-z0-9]$/.test(text) &&
+        /^[A-z0-9\\*]/.test(text) &&
+        /[a-z0-9\\*]$/.test(text) &&
         !/(--)/.test(text) &&
-        !/(\.\.)/.test(text)
+        !/(\.\.)/.test(text) &&
+        WildCardCertificateValidation(text)
       );
     }
     return null;
@@ -471,7 +479,7 @@ const CreateCertificates = (props) => {
       setErrorMessage(
         'Certificate name can have alphabets, numbers, . and - characters only, and it should not start or end with special characters(-.)'
       );
-    } else if (value.toLowerCase().includes('.t-mobile.com')) {
+    } else if (value.toLowerCase()?.includes('.t-mobile.com')) {
       setCertNameError(true);
       setErrorMessage('Please enter certificate name without .t-mobile.com.');
     } else {
@@ -481,7 +489,7 @@ const CreateCertificates = (props) => {
   };
 
   const checkDnsAlreadyIncluded = (val) => {
-    if (dnsArray.includes(val)) {
+    if (dnsArray?.includes(val)) {
       setDnsError(true);
       setErrorDnsMessage('DNS name already added!');
     } else {
@@ -515,7 +523,7 @@ const CreateCertificates = (props) => {
       setErrorDnsMessage(
         'DNS can have alphabets, numbers, . and - characters only, and it should not start or end with special characters(-.)'
       );
-    } else if (value && value.toLowerCase().includes('.t-mobile.com')) {
+    } else if (value && value.toLowerCase()?.includes('.t-mobile.com')) {
       setDnsError(true);
       setErrorDnsMessage('Please enter DNS without .t-mobile.com.');
     } else {
@@ -566,7 +574,7 @@ const CreateCertificates = (props) => {
           });
           if (res.data.messages && res.data.messages[0]) {
             setOpenConfirmationModal(true);
-            setResponseTitle('Successful');
+            setResponseTitle('Certificate Creation Successful!');
             setResponseDesc(res.data.messages[0]);
             await refresh();
           }
@@ -575,7 +583,7 @@ const CreateCertificates = (props) => {
           if (err?.response?.data?.errors && err.response.data.errors[0]) {
             const msg = err.response.data.errors[0];
             setOpenConfirmationModal(true);
-            setResponseTitle('Error');
+            setResponseTitle('Certificate Creation Failed!');
             setResponseDesc(msg.charAt(0).toUpperCase() + msg.slice(1));
           }
           setResponseType(null);
@@ -621,7 +629,7 @@ const CreateCertificates = (props) => {
     setNotificationEmailList([]);
     const selectedApp = allApplication.find((item) => appName === item.appName);
     if (!JSON.parse(sessionStorage.getItem('isAdmin'))) {
-      if (selfserviceAppName.includes(selectedApp?.appID)) {
+      if (selfserviceAppName?.includes(selectedApp?.appID)) {
         getNotificationEmailData(selectedApp);
       }
     } else {
@@ -782,15 +790,15 @@ const CreateCertificates = (props) => {
     );
     if (
       applicationName !== '' &&
-      (![...allApplication.map((item) => item.appName)].includes(
+      (![...allApplication.map((item) => item.appName)]?.includes(
         applicationName
       ) ||
         (!JSON.parse(sessionStorage.getItem('isAdmin')) &&
-          !selfserviceAppName.includes(selectedApp?.appID)))
+          !selfserviceAppName?.includes(selectedApp?.appID)))
     ) {
       if (
         !JSON.parse(sessionStorage.getItem('isAdmin')) &&
-        !selfserviceAppName.includes(selectedApp?.appID)
+        !selfserviceAppName?.includes(selectedApp?.appID)
       ) {
         setApplicationNameErrorMsg(
           'You do not have access to this group. Please go here (<a href="https://access.t-mobile.com" target="_blank">https://access.t-mobile.com</a>) to register yourself part of the group.'

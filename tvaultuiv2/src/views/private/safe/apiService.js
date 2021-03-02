@@ -11,7 +11,7 @@ const editSafe = (payload) => api.put('/ss/sdb', payload);
 const createSafe = (payload) => api.post('/ss/sdb', payload);
 const getOwnerEmail = (owner) =>
   api.get(`/ldap/users?UserPrincipalName=${owner}`);
-
+const getTmoUsers = (user) => api.get(`/tmo/users?UserPrincipalName=${user}`);
 const addUserPermission = (payload) => api.post('/ss/sdb/user', payload);
 const getUsersDetails = (name) => api.get(`/ldap/getusersdetail/${name}`);
 const deleteUserPermission = (payload) => api.delete('/ss/sdb/user', payload);
@@ -42,7 +42,8 @@ const getOwnerTransferEmail = (value) =>
 const transferSafeOwner = (payload) => api.post('/ss/transfersafe', payload);
 
 const getApplicationName = () => api.get('/serviceaccounts/cwm/approles');
-const getVersionInfo = (path) => api.get(`/safes/folders/versioninfo?path=${path}`);
+const getVersionInfo = (path) =>
+  api.get(`/safes/folders/versioninfo?path=${path}`);
 
 export default {
   getSafes,
@@ -52,6 +53,7 @@ export default {
   getManageSharedList,
   createSafe,
   getOwnerEmail,
+  getTmoUsers,
   deleteUserPermission,
   addUserPermission,
   getUserName,

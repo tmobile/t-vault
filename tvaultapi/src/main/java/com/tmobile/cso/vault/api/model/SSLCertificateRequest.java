@@ -44,7 +44,7 @@ public class SSLCertificateRequest implements Serializable {
 
 	@NotNull
 	@NotEmpty
-	@Pattern(regexp = "^[a-zA-Z0-9.-]+$", message = "certificateName can have alphabets, numbers, . and - characters only")
+	@Pattern(regexp = "^[a-zA-Z0-9*.-]+$", message = "certificateName can have alphabets, numbers, . and - characters only")
 	private String certificateName;
 
 	@NotNull

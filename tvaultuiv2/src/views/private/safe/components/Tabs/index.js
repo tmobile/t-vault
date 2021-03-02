@@ -135,9 +135,10 @@ const SelectionTabs = (props) => {
     setResponse({ status: 'loading', message: 'loading...' });
     apiService
       .addFolder(folderObj.id)
-      .then(() => {
+      .then((res) => {
         setResponse({ status: 'success' });
         setToastResponse(1);
+        setToastMessage(res?.data?.messages[0]);
         tempFolders[0].children.push(folderObj);
         setSecretsFolder([...tempFolders]);
       })
