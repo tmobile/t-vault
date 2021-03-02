@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable no-console */
@@ -276,9 +277,13 @@ const OnBoardForm = (props) => {
   const [isAutoExpand, setIsAutoExpand] = useState(false);
   const [serviceAccountsList, setServiceAccountsList] = useState([]);
   const [applicationList, setApplicationList] = useState([]);
-
+  const [
+    offBoardDecommissionedModal,
+    setOffBoardDecommissionedModal,
+  ] = useState(false);
   const [open, setOpen] = useState(true);
   const [isSwitchOn, setIsSwitchOn] = useState(false);
+  const [offBoardSuccessfull, setOffBoardSuccessfull] = useState(false);
   const { trackPageView, trackEvent } = useMatomo();
 
   const history = useHistory();
@@ -603,6 +608,10 @@ const OnBoardForm = (props) => {
       updateServiceAccountDetails(
         history.location.state.serviceAccountDetails.name
       ).catch((err) => {
+        if (err.response.status === 404) {
+          setStatus({});
+          return setOffBoardDecommissionedModal(true);
+        }
         if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
           setStatus({
             status: 'failed',
@@ -613,7 +622,7 @@ const OnBoardForm = (props) => {
             status: 'failed',
           });
         }
-        handleClose();
+        return handleClose();
       });
     }
     fetchAppRoles();
@@ -723,456 +732,544 @@ const OnBoardForm = (props) => {
     );
   };
 
+  const handleOffboardConfirmationModalClose = async () => {
+    handleClose();
+    setOffBoardDecommissionedModal(false);
+    await refresh();
+  };
+
+  const onServiceAccountOffBoard = () => {
+    setStatus({ status: 'loading' });
+    const paylod = {
+      name: history.location.state.serviceAccountDetails.name,
+    };
+    apiService
+      .offBoardServiceAccount(paylod)
+      .then(() => {
+        setOffBoardSuccessfull(true);
+        setStatus({});
+      })
+      .catch((err) => {
+        setStatus({});
+        setStatus({
+          status: 'failed',
+          message: err?.response?.data?.errors[0],
+        });
+        handleOffboardConfirmationModalClose();
+      });
+  };
+
   return (
     <ComponentError>
-      <div>
-        {status.status === 'loading' && <BackdropLoader />}
-        <ConfirmationModal
-          open={onBoardConfirmationModal || isActivateSvc}
-          handleClose={handleConfirmationModalClose}
-          title={
-            // eslint-disable-next-line no-nested-ternary
-            isActivateSvc
-              ? 'Activating Service Account'
-              : history?.location?.pathname.includes('/edit-service-accounts')
-              ? 'Updating Service Account'
-              : 'Onboarding Service Account'
-          }
-          description={
-            isActivateSvc
-              ? "During the activation, the password of the service account will be reset to ensure Active Directory and T-Vault are in sync. If you want to continue with activation now please click the 'ACTIVATE' button below and make sure to update any services depending on the service account with its new password."
-              : onboardUpdateConfirmationMsg
-          }
-          cancelButton={
-            <ButtonComponent
-              label="Cancel"
-              color="primary"
-              onClick={() => handleConfirmationModalClose()}
-              width={isMobileScreen ? '45%' : ''}
-            />
-          }
-          confirmButton={
-            <ButtonComponent
-              label={
-                isActivateSvc
-                  ? 'Activate'
-                  : history?.location?.pathname.includes(
-                      '/edit-service-accounts'
-                    )
-                  ? 'Update'
-                  : 'onboard'
+      <>
+        {offBoardDecommissionedModal && (
+          <>
+            {status.status === 'loading' && <BackdropLoader />}
+            <ConfirmationModal
+              size={isMobileScreen ? 'large' : ''}
+              open
+              handleClose={handleOffboardConfirmationModalClose}
+              title={
+                offBoardSuccessfull
+                  ? 'Offboarding successful!'
+                  : 'Service Account Decommissioned!'
               }
-              color="secondary"
-              onClick={
-                isActivateSvc
-                  ? () => onActivateServiceAccount(inputServiceName)
-                  : history?.location?.pathname.includes(
-                      '/edit-service-accounts'
-                    )
-                  ? () => updateServiceAccount()
-                  : () => onBoardServiceAccount()
+              description={
+                offBoardSuccessfull
+                  ? Strings.Resources.offBoardSuccessfull
+                  : Strings.Resources.offBoardDecommissionedConfirmation
               }
-              width={isMobileScreen ? '45%' : ''}
-            />
-          }
-        />
-        <ConfirmationModal
-          open={postOnBoardModal}
-          handleClose={() => setPostOnBoardModal(false)}
-          title={
-            // eslint-disable-next-line no-nested-ternary
-            svcPasswordDetails
-              ? 'Activation Successful'
-              : history?.location?.pathname.includes('/edit-service-accounts')
-              ? 'Update Successful'
-              : 'Onboarding Successful'
-          }
-          description={
-            // eslint-disable-next-line no-nested-ternary
-            svcPasswordDetails
-              ? `<p>Service account ${inputServiceName} has been activated successfully!</br></br>
-               Please click "Copy Password" button to copy the password and update the dependent services. You may also want to assign permissions for other users or groups to view or modify this service account. Please do so by visiting the "Permission" tab on the right screen.</p>`
-              : history?.location?.pathname.includes('/edit-service-accounts')
-              ? 'Password rotation configuration for the service account has been updated successfully.'
-              : `<p> Onboarding
-                of service account has been completed successfully. To continue, the service account needs to be activated by ${serviceAccountDetails?.managedBy?.userEmail}. If you are owner of the service account, you need to log out and login again to activate it.</p>`
-          }
-          cancelButton={
-            <ButtonComponent
-              label="Close"
-              color="primary"
-              onClick={() => handlePostOnboardModalClose()}
-              width={isMobileScreen ? '100%' : ''}
-            />
-          }
-          confirmButton={
-            svcPasswordDetails ? (
-              <CopyToClipboard
-                text={
-                  svcPasswordDetails?.adServiceAccountCreds?.current_password
-                }
-              >
+              confirmButton={
                 <ButtonComponent
-                  label="Copy Password"
+                  label={offBoardSuccessfull ? 'Close' : 'Offboard'}
                   color="secondary"
-                  onClick={() => copyPassword()}
+                  onClick={() =>
+                    offBoardSuccessfull
+                      ? handleOffboardConfirmationModalClose()
+                      : onServiceAccountOffBoard()
+                  }
+                />
+              }
+            />
+          </>
+        )}
+        {!offBoardDecommissionedModal && (
+          <div>
+            {status.status === 'loading' && <BackdropLoader />}
+            <ConfirmationModal
+              open={onBoardConfirmationModal || isActivateSvc}
+              handleClose={handleConfirmationModalClose}
+              title={
+                // eslint-disable-next-line no-nested-ternary
+                isActivateSvc
+                  ? 'Activating Service Account'
+                  : history?.location?.pathname.includes(
+                      '/edit-service-accounts'
+                    )
+                  ? 'Updating Service Account'
+                  : 'Onboarding Service Account'
+              }
+              description={
+                isActivateSvc
+                  ? "During the activation, the password of the service account will be reset to ensure Active Directory and T-Vault are in sync. If you want to continue with activation now please click the 'ACTIVATE' button below and make sure to update any services depending on the service account with its new password."
+                  : onboardUpdateConfirmationMsg
+              }
+              cancelButton={
+                <ButtonComponent
+                  label="Cancel"
+                  color="primary"
+                  onClick={() => handleConfirmationModalClose()}
                   width={isMobileScreen ? '45%' : ''}
                 />
-              </CopyToClipboard>
-            ) : (
-              <></>
-            )
-          }
-        />
-        <StyledModal
-          aria-labelledby="transition-modal-title"
-          aria-describedby="transition-modal-description"
-          className={classes.modal}
-          open={open}
-          onClose={handleClose}
-          closeAfterTransition
-          BackdropComponent={Backdrop}
-          BackdropProps={{
-            timeout: 500,
-          }}
-        >
-          <Fade in={open}>
-            <Container
-              isShowOnBoardModal={onBoardConfirmationModal || postOnBoardModal}
-            >
-              <HeaderWrapper>
-                <LeftIcon
-                  src={leftArrowIcon}
-                  alt="go-back"
-                  onClick={() => handleClose()}
+              }
+              confirmButton={
+                <ButtonComponent
+                  label={
+                    isActivateSvc
+                      ? 'Activate'
+                      : history?.location?.pathname.includes(
+                          '/edit-service-accounts'
+                        )
+                      ? 'Update'
+                      : 'onboard'
+                  }
+                  color="secondary"
+                  onClick={
+                    isActivateSvc
+                      ? () => onActivateServiceAccount(inputServiceName)
+                      : history?.location?.pathname.includes(
+                          '/edit-service-accounts'
+                        )
+                      ? () => updateServiceAccount()
+                      : () => onBoardServiceAccount()
+                  }
+                  width={isMobileScreen ? '45%' : ''}
                 />
-                <Typography variant="h5">
-                  {history?.location?.pathname.includes(
-                    '/edit-service-accounts'
-                  )
-                    ? 'Edit Service Account'
-                    : 'Onboard Service Account'}
-                </Typography>
-              </HeaderWrapper>
-              <InfoContainer>
-                <HeaderInfoWrapper>
-                  <SvcIcon alt="safe-icon" src={svcHeaderBgimg} />
-                  <InfoLine>
-                    T-Vault can be used to manage the life cycle of Corporate
-                    (CORP) active directory service accounts, for features like
-                    password resets and expiry.
-                  </InfoLine>
-                </HeaderInfoWrapper>
-                <ServiceAcoountHelp
-                  titleMore="View More"
-                  titleLess="View Less"
-                  collapseStyles="background:none"
-                  titleCss={ViewMoreStyles}
-                >
-                  <CollapsibleContainer>
-                    <InfoLine>
-                      <Span>
-                        <strong>On-Boarding: </strong>
-                      </Span>
-                      This step links a service account from active directory to
-                      be self-service managed into T-Vault. This is a one-time
-                      operation.
-                    </InfoLine>
-
-                    <InfoLine>
-                      <Span>
-                        <strong>Service Account Activation: </strong>
-                      </Span>
-                      In order for you to activate the account, the service
-                      account owner needs to rotate the account password once
-                      after on-boarding to sync with the Active Directory.
-                    </InfoLine>
-
-                    <InfoLine>
-                      <Span>
-                        <strong>Granting Permissions: </strong>
-                      </Span>
-                      When a service account is activated in T-Vault, the
-                      account owner can grant specific permissions to other
-                      users and groups, allowing others to read and/or reset the
-                      password for the service account as well through T-Vault.
-                    </InfoLine>
-
-                    <InfoLine>
-                      T-Vault will rotate the Passwords lazily based on password
-                      expiration time (known as TTL). i.e. A password is
-                      configured with a TTL of 1 hour will get expire after 1
-                      hour, but the rotation will happen only when it is first
-                      requested after the expiry.
-                    </InfoLine>
-                  </CollapsibleContainer>
-                </ServiceAcoountHelp>
-              </InfoContainer>
-              <OnBoardFormContainer>
-                <InputFieldLabelWrapper>
-                  <Tooltip
-                    classes={tooltipStyles}
-                    title="Please input a service account name whose password needs to be managed and click 'ONBOARD' "
-                    placement="top"
-                    arrow
-                  >
-                    <LabelRequired>
-                      <InputLabelWithInfo>
-                        Service Account Name
-                        <RequiredCircle margin="0.5rem" />
-                      </InputLabelWithInfo>
-                      <Span extraStyles="align-self:flex-end;margin-bottom: 0.8rem">
-                        <RequiredCircle margin="0.5rem" />
-                        <RequiredText extraStyles="margin-left:0.4rem">
-                          Required
-                        </RequiredText>
-                      </Span>
-                    </LabelRequired>
-                  </Tooltip>
-                  <TypeAheadComponent
-                    options={[
-                      ...serviceAccountsList.map((item) => item.userId),
-                    ]}
-                    loader={isServiceFetching}
-                    icon="search"
-                    classes={classes}
-                    name="inputServiceName"
-                    userInput={inputServiceName}
-                    onSelected={(e, val) => onServiceAccountSelected(e, val)}
-                    onChange={(e) => onServiceAccountNameChange(e)}
-                    placeholder="Search for service account"
-                    disabled={history?.location?.pathname.includes(
+              }
+            />
+            <ConfirmationModal
+              open={postOnBoardModal}
+              handleClose={() => setPostOnBoardModal(false)}
+              title={
+                // eslint-disable-next-line no-nested-ternary
+                svcPasswordDetails
+                  ? 'Activation Successful'
+                  : history?.location?.pathname.includes(
                       '/edit-service-accounts'
-                    )}
-                  />
-                  <InfoText>
-                    Select the service account name from the autocomplete field.
-                  </InfoText>
-                  {isServiceFetching && (
-                    <LoaderSpinner customStyle={customLoaderStyle} />
-                  )}
-                  <ServiceAccountDetailWrap>
+                    )
+                  ? 'Update Successful'
+                  : 'Onboarding Successful'
+              }
+              description={
+                // eslint-disable-next-line no-nested-ternary
+                svcPasswordDetails
+                  ? `<p>Service account ${inputServiceName} has been activated successfully!</br></br>
+               Please click "Copy Password" button to copy the password and update the dependent services. You may also want to assign permissions for other users or groups to view or modify this service account. Please do so by visiting the "Permission" tab on the right screen.</p>`
+                  : history?.location?.pathname.includes(
+                      '/edit-service-accounts'
+                    )
+                  ? 'Password rotation configuration for the service account has been updated successfully.'
+                  : `<p> Onboarding
+                of service account has been completed successfully. To continue, the service account needs to be activated by ${serviceAccountDetails?.managedBy?.userEmail}. If you are owner of the service account, you need to log out and login again to activate it.</p>`
+              }
+              cancelButton={
+                <ButtonComponent
+                  label="Close"
+                  color="primary"
+                  onClick={() => handlePostOnboardModalClose()}
+                  width={isMobileScreen ? '100%' : ''}
+                />
+              }
+              confirmButton={
+                svcPasswordDetails ? (
+                  <CopyToClipboard
+                    text={
+                      svcPasswordDetails?.adServiceAccountCreds
+                        ?.current_password
+                    }
+                  >
+                    <ButtonComponent
+                      label="Copy Password"
+                      color="secondary"
+                      onClick={() => copyPassword()}
+                      width={isMobileScreen ? '45%' : ''}
+                    />
+                  </CopyToClipboard>
+                ) : (
+                  <></>
+                )
+              }
+            />
+            <StyledModal
+              aria-labelledby="transition-modal-title"
+              aria-describedby="transition-modal-description"
+              className={classes.modal}
+              open={open}
+              onClose={handleClose}
+              closeAfterTransition
+              BackdropComponent={Backdrop}
+              BackdropProps={{
+                timeout: 500,
+              }}
+            >
+              <Fade in={open}>
+                <Container
+                  isShowOnBoardModal={
+                    onBoardConfirmationModal || postOnBoardModal
+                  }
+                >
+                  <HeaderWrapper>
+                    <LeftIcon
+                      src={leftArrowIcon}
+                      alt="go-back"
+                      onClick={() => handleClose()}
+                    />
+                    <Typography variant="h5">
+                      {history?.location?.pathname.includes(
+                        '/edit-service-accounts'
+                      )
+                        ? 'Edit Service Account'
+                        : 'Onboard Service Account'}
+                    </Typography>
+                  </HeaderWrapper>
+                  <InfoContainer>
+                    <HeaderInfoWrapper>
+                      <SvcIcon alt="safe-icon" src={svcHeaderBgimg} />
+                      <InfoLine>
+                        T-Vault can be used to manage the life cycle of
+                        Corporate (CORP) active directory service accounts, for
+                        features like password resets and expiry.
+                      </InfoLine>
+                    </HeaderInfoWrapper>
                     <ServiceAcoountHelp
-                      titleMore="Service Account Details"
-                      isAutoExpand={isAutoExpand}
-                      setIsAutoExpand={setIsAutoExpand}
-                      titleCss={SvcDetailsStyles}
+                      titleMore="View More"
+                      titleLess="View Less"
+                      collapseStyles="background:none"
+                      titleCss={ViewMoreStyles}
                     >
-                      <Grid container>
-                        <GridColumn customStyles={GridColumnStyles}>
-                          <GridItem>
-                            <CollapseTitle color={customColor.collapse.title}>
-                              Owner (Managed By):
-                            </CollapseTitle>
-                            <CollapseTitle color="#fff">
-                              {serviceAccountDetails?.managedBy?.displayName}
-                            </CollapseTitle>
-                          </GridItem>
-                          <GridItem>
-                            {' '}
-                            <CollapseTitle>Date Created in AD</CollapseTitle>
-                            <CollapseTitle color="#fff">
-                              {serviceAccountDetails?.creationDate}
-                            </CollapseTitle>
-                          </GridItem>
-                          <GridItem>
-                            {' '}
-                            <CollapseTitle>Account Expiry</CollapseTitle>
-                            <CollapseTitle color="#fff">
-                              {serviceAccountDetails?.accountExpiresFormatted}
-                            </CollapseTitle>
-                          </GridItem>
-                          <GridItem>
-                            <CollapseTitle>Lock Status</CollapseTitle>
-                            <CollapseTitle color="#fff">
-                              {serviceAccountDetails?.lockStatus}
-                            </CollapseTitle>
-                          </GridItem>
-                        </GridColumn>
-                        <GridColumn customStyles={GridColumnStyles}>
-                          <GridItem>
-                            <CollapseTitle>Owner Email</CollapseTitle>
-                            <CollapseTitle color="#fff">
-                              {serviceAccountDetails?.managedBy?.userEmail}
-                            </CollapseTitle>
-                          </GridItem>
-                          <GridItem>
-                            <CollapseTitle>Password Expiry</CollapseTitle>
-                            <CollapseTitle color="#fff">
-                              {serviceAccountDetails?.passwordExpiry}
-                            </CollapseTitle>
-                          </GridItem>
-                          <GridItem>
-                            <CollapseTitle>Account Status</CollapseTitle>
-                            <CollapseTitle color="#fff">
-                              {serviceAccountDetails?.accountStatus}
-                            </CollapseTitle>
-                          </GridItem>
-                          <GridItem>
-                            <CollapseTitle>Purpose</CollapseTitle>
-                            <CollapseTitle color="#fff">
-                              {serviceAccountDetails?.purpose || 'N/A'}
-                            </CollapseTitle>
-                          </GridItem>
-                        </GridColumn>
-                      </Grid>
+                      <CollapsibleContainer>
+                        <InfoLine>
+                          <Span>
+                            <strong>On-Boarding: </strong>
+                          </Span>
+                          This step links a service account from active
+                          directory to be self-service managed into T-Vault.
+                          This is a one-time operation.
+                        </InfoLine>
+
+                        <InfoLine>
+                          <Span>
+                            <strong>Service Account Activation: </strong>
+                          </Span>
+                          In order for you to activate the account, the service
+                          account owner needs to rotate the account password
+                          once after on-boarding to sync with the Active
+                          Directory.
+                        </InfoLine>
+
+                        <InfoLine>
+                          <Span>
+                            <strong>Granting Permissions: </strong>
+                          </Span>
+                          When a service account is activated in T-Vault, the
+                          account owner can grant specific permissions to other
+                          users and groups, allowing others to read and/or reset
+                          the password for the service account as well through
+                          T-Vault.
+                        </InfoLine>
+
+                        <InfoLine>
+                          T-Vault will rotate the Passwords lazily based on
+                          password expiration time (known as TTL). i.e. A
+                          password is configured with a TTL of 1 hour will get
+                          expire after 1 hour, but the rotation will happen only
+                          when it is first requested after the expiry.
+                        </InfoLine>
+                      </CollapsibleContainer>
                     </ServiceAcoountHelp>
-                  </ServiceAccountDetailWrap>
-                </InputFieldLabelWrapper>
-                <ToggleWrap>
-                  <div>
-                    <TitleTwo extraCss="display:flex;align-items:center">
-                      <SwitchComponent
-                        checked={isSwitchOn}
-                        handleChange={handleSwitch}
-                        name="rotate password"
-                      />
+                  </InfoContainer>
+                  <OnBoardFormContainer>
+                    <InputFieldLabelWrapper>
                       <Tooltip
                         classes={tooltipStyles}
-                        title="Check this if password needs to be enabled for rotation by T-Vault"
+                        title="Please input a service account name whose password needs to be managed and click 'ONBOARD' "
                         placement="top"
                         arrow
                       >
-                        <TitleThree extraCss="margin-left:1rem; cursor:pointer">
-                          Enable Auto Password Rotation
-                        </TitleThree>
+                        <LabelRequired>
+                          <InputLabelWithInfo>
+                            Service Account Name
+                            <RequiredCircle margin="0.5rem" />
+                          </InputLabelWithInfo>
+                          <Span extraStyles="align-self:flex-end;margin-bottom: 0.8rem">
+                            <RequiredCircle margin="0.5rem" />
+                            <RequiredText extraStyles="margin-left:0.4rem">
+                              Required
+                            </RequiredText>
+                          </Span>
+                        </LabelRequired>
                       </Tooltip>
-                    </TitleTwo>
-                    <InfoText>
-                      Check this to enable auto password rotation by T-Vault.
-                    </InfoText>
-                  </div>
-                  <InputFieldLabelWrapper customCss="width:50%">
-                    <Tooltip
-                      classes={tooltipStyles}
-                      title="This value needs to be between 1 and 31536000.
+                      <TypeAheadComponent
+                        options={[
+                          ...serviceAccountsList.map((item) => item.userId),
+                        ]}
+                        loader={isServiceFetching}
+                        icon="search"
+                        classes={classes}
+                        name="inputServiceName"
+                        userInput={inputServiceName}
+                        onSelected={(e, val) =>
+                          onServiceAccountSelected(e, val)
+                        }
+                        onChange={(e) => onServiceAccountNameChange(e)}
+                        placeholder="Search for service account"
+                        disabled={history?.location?.pathname.includes(
+                          '/edit-service-accounts'
+                        )}
+                      />
+                      <InfoText>
+                        Select the service account name from the autocomplete
+                        field.
+                      </InfoText>
+                      {isServiceFetching && (
+                        <LoaderSpinner customStyle={customLoaderStyle} />
+                      )}
+                      <ServiceAccountDetailWrap>
+                        <ServiceAcoountHelp
+                          titleMore="Service Account Details"
+                          isAutoExpand={isAutoExpand}
+                          setIsAutoExpand={setIsAutoExpand}
+                          titleCss={SvcDetailsStyles}
+                        >
+                          <Grid container>
+                            <GridColumn customStyles={GridColumnStyles}>
+                              <GridItem>
+                                <CollapseTitle
+                                  color={customColor.collapse.title}
+                                >
+                                  Owner (Managed By):
+                                </CollapseTitle>
+                                <CollapseTitle color="#fff">
+                                  {
+                                    serviceAccountDetails?.managedBy
+                                      ?.displayName
+                                  }
+                                </CollapseTitle>
+                              </GridItem>
+                              <GridItem>
+                                {' '}
+                                <CollapseTitle>
+                                  Date Created in AD
+                                </CollapseTitle>
+                                <CollapseTitle color="#fff">
+                                  {serviceAccountDetails?.creationDate}
+                                </CollapseTitle>
+                              </GridItem>
+                              <GridItem>
+                                {' '}
+                                <CollapseTitle>Account Expiry</CollapseTitle>
+                                <CollapseTitle color="#fff">
+                                  {
+                                    serviceAccountDetails?.accountExpiresFormatted
+                                  }
+                                </CollapseTitle>
+                              </GridItem>
+                              <GridItem>
+                                <CollapseTitle>Lock Status</CollapseTitle>
+                                <CollapseTitle color="#fff">
+                                  {serviceAccountDetails?.lockStatus}
+                                </CollapseTitle>
+                              </GridItem>
+                            </GridColumn>
+                            <GridColumn customStyles={GridColumnStyles}>
+                              <GridItem>
+                                <CollapseTitle>Owner Email</CollapseTitle>
+                                <CollapseTitle color="#fff">
+                                  {serviceAccountDetails?.managedBy?.userEmail}
+                                </CollapseTitle>
+                              </GridItem>
+                              <GridItem>
+                                <CollapseTitle>Password Expiry</CollapseTitle>
+                                <CollapseTitle color="#fff">
+                                  {serviceAccountDetails?.passwordExpiry}
+                                </CollapseTitle>
+                              </GridItem>
+                              <GridItem>
+                                <CollapseTitle>Account Status</CollapseTitle>
+                                <CollapseTitle color="#fff">
+                                  {serviceAccountDetails?.accountStatus}
+                                </CollapseTitle>
+                              </GridItem>
+                              <GridItem>
+                                <CollapseTitle>Purpose</CollapseTitle>
+                                <CollapseTitle color="#fff">
+                                  {serviceAccountDetails?.purpose || 'N/A'}
+                                </CollapseTitle>
+                              </GridItem>
+                            </GridColumn>
+                          </Grid>
+                        </ServiceAcoountHelp>
+                      </ServiceAccountDetailWrap>
+                    </InputFieldLabelWrapper>
+                    <ToggleWrap>
+                      <div>
+                        <TitleTwo extraCss="display:flex;align-items:center">
+                          <SwitchComponent
+                            checked={isSwitchOn}
+                            handleChange={handleSwitch}
+                            name="rotate password"
+                          />
+                          <Tooltip
+                            classes={tooltipStyles}
+                            title="Check this if password needs to be enabled for rotation by T-Vault"
+                            placement="top"
+                            arrow
+                          >
+                            <TitleThree extraCss="margin-left:1rem; cursor:pointer">
+                              Enable Auto Password Rotation
+                            </TitleThree>
+                          </Tooltip>
+                        </TitleTwo>
+                        <InfoText>
+                          Check this to enable auto password rotation by
+                          T-Vault.
+                        </InfoText>
+                      </div>
+                      <InputFieldLabelWrapper customCss="width:50%">
+                        <Tooltip
+                          classes={tooltipStyles}
+                          title="This value needs to be between 1 and 31536000.
                       15min=900s, 1h=3600s,1d=86400s,90d=7776000s,365d=31536000s. Once the TTL is passed, password will be rotated the next time it is requested"
-                      placement="top"
-                      arrow
-                    >
-                      <InputLabelWithInfo>
-                        Password Expiration Time
-                      </InputLabelWithInfo>
-                    </Tooltip>
-                    <TextFieldComponent
-                      placeholder={
-                        serviceAccountDetails?.maxPwdAge === 7776000
-                          ? 'TTL in seconds(max: 7776000)'
-                          : 'TTL in seconds(max: 31536000)'
-                      }
-                      icon="search"
-                      name="inputExpiryTime"
-                      readOnly={!isSwitchOn}
-                      fullWidth
-                      onChange={(val, e) => onExpiryTimeChange(val, e)}
-                      value={inputExpiryTime || ''}
-                      helperText="Enter your custom password expiration time here. Once the expiration time has passed, the password will be rotated the next time it is requested."
-                    />
-                  </InputFieldLabelWrapper>
-                </ToggleWrap>
-                <InputFieldLabelWrapper>
-                  <InputLabel>AD Group Name</InputLabel>
-                  <TextFieldComponent
-                    placeholder="AD Group Name"
-                    name="inputAdGroupName"
-                    fullWidth
-                    onChange={(val, e) => onChange(val, e)}
-                    value={inputAdGroupName || ''}
-                    helperText="Please provide the AD group for which read or reset permission to be granted later"
-                  />
-                </InputFieldLabelWrapper>
-                <InputFieldLabelWrapper>
-                  <InputLabel>
-                    Application Name
-                    <RequiredCircle margin="0.5rem" />
-                  </InputLabel>
-                  <AutoCompleteComponent
-                    options={[
-                      ...applicationList.map(
-                        (item) =>
-                          `${item.appName} (AppId: ${item.appID},AppTag:${item.appTag})`
-                      ),
-                    ]}
-                    name="inputApplicationName"
-                    icon="search"
-                    classes={classes}
-                    searchValue={inputApplicationName}
-                    onSelected={(e, val) => onApplicationNameSelected(e, val)}
-                    onChange={(e) => onApplicationNameChange(e)}
-                    placeholder="Search for Application Name"
-                  />
-                  <InfoText>
-                    Please choose the application name to associate with this
-                    service account. Search application from the below
-                    autocomplete box.
-                  </InfoText>
-                  {isAppNameFetchig && (
-                    <LoaderSpinner customStyle={customLoaderStyle2} />
-                  )}
-                </InputFieldLabelWrapper>
-              </OnBoardFormContainer>
-              <AcionButtons>
-                <ActionButtonWrap>
-                  <BtnWrap>
-                    <ButtonComponent
-                      label="Cancel"
-                      color="primary"
-                      onClick={() => handleCancelClick()}
-                    />
-                  </BtnWrap>
-
-                  <ButtonComponent
-                    label={
-                      history?.location?.pathname.includes(
-                        '/edit-service-accounts'
-                      )
-                        ? 'Update'
-                        : 'Onboard'
-                    }
-                    disabled={getDisabledStatus()}
-                    color="secondary"
-                    buttonType="containedSecondary"
-                    onClick={(e) => handleSaveClick(e)}
-                  />
-                  {userState?.username?.toLowerCase() ===
-                    serviceAccountDetails?.managedBy?.userId?.toLowerCase() &&
-                  !isActiveServiceAccount ? (
-                    <OwnerActionsWrap>
+                          placement="top"
+                          arrow
+                        >
+                          <InputLabelWithInfo>
+                            Password Expiration Time
+                          </InputLabelWithInfo>
+                        </Tooltip>
+                        <TextFieldComponent
+                          placeholder={
+                            serviceAccountDetails?.maxPwdAge === 7776000
+                              ? 'TTL in seconds(max: 7776000)'
+                              : 'TTL in seconds(max: 31536000)'
+                          }
+                          icon="search"
+                          name="inputExpiryTime"
+                          readOnly={!isSwitchOn}
+                          fullWidth
+                          onChange={(val, e) => onExpiryTimeChange(val, e)}
+                          value={inputExpiryTime || ''}
+                          helperText="Enter your custom password expiration time here. Once the expiration time has passed, the password will be rotated the next time it is requested."
+                        />
+                      </InputFieldLabelWrapper>
+                    </ToggleWrap>
+                    <InputFieldLabelWrapper>
+                      <InputLabel>AD Group Name</InputLabel>
+                      <TextFieldComponent
+                        placeholder="AD Group Name"
+                        name="inputAdGroupName"
+                        fullWidth
+                        onChange={(val, e) => onChange(val, e)}
+                        value={inputAdGroupName || ''}
+                        helperText="Please provide the AD group for which read or reset permission to be granted later"
+                      />
+                    </InputFieldLabelWrapper>
+                    <InputFieldLabelWrapper>
+                      <InputLabel>
+                        Application Name
+                        <RequiredCircle margin="0.5rem" />
+                      </InputLabel>
+                      <AutoCompleteComponent
+                        options={[
+                          ...applicationList.map(
+                            (item) =>
+                              `${item.appName} (AppId: ${item.appID},AppTag:${item.appTag})`
+                          ),
+                        ]}
+                        name="inputApplicationName"
+                        icon="search"
+                        classes={classes}
+                        searchValue={inputApplicationName}
+                        onSelected={(e, val) =>
+                          onApplicationNameSelected(e, val)
+                        }
+                        onChange={(e) => onApplicationNameChange(e)}
+                        placeholder="Search for Application Name"
+                      />
+                      <InfoText>
+                        Please choose the application name to associate with
+                        this service account. Search application from the below
+                        autocomplete box.
+                      </InfoText>
+                      {isAppNameFetchig && (
+                        <LoaderSpinner customStyle={customLoaderStyle2} />
+                      )}
+                    </InputFieldLabelWrapper>
+                  </OnBoardFormContainer>
+                  <AcionButtons>
+                    <ActionButtonWrap>
                       <BtnWrap>
                         <ButtonComponent
-                          label="Activate service Account"
-                          disabled={getDisabledStatus()}
-                          color="secondary"
-                          buttonType="containedSecondary"
-                          onClick={() => activateServiceAccount()}
+                          label="Cancel"
+                          color="primary"
+                          onClick={() => handleCancelClick()}
                         />
                       </BtnWrap>
-                    </OwnerActionsWrap>
-                  ) : (
-                    <></>
-                  )}
-                </ActionButtonWrap>
-              </AcionButtons>
-            </Container>
-          </Fade>
-        </StyledModal>
-        {status.status === 'failed' && (
-          <SnackbarComponent
-            open
-            onClose={() => onToastClose()}
-            severity="error"
-            icon="error"
-            message={status?.message || 'Something went wrong!'}
-          />
+
+                      <ButtonComponent
+                        label={
+                          history?.location?.pathname.includes(
+                            '/edit-service-accounts'
+                          )
+                            ? 'Update'
+                            : 'Onboard'
+                        }
+                        disabled={getDisabledStatus()}
+                        color="secondary"
+                        buttonType="containedSecondary"
+                        onClick={(e) => handleSaveClick(e)}
+                      />
+                      {userState?.username?.toLowerCase() ===
+                        serviceAccountDetails?.managedBy?.userId?.toLowerCase() &&
+                      !isActiveServiceAccount ? (
+                        <OwnerActionsWrap>
+                          <BtnWrap>
+                            <ButtonComponent
+                              label="Activate service Account"
+                              disabled={getDisabledStatus()}
+                              color="secondary"
+                              buttonType="containedSecondary"
+                              onClick={() => activateServiceAccount()}
+                            />
+                          </BtnWrap>
+                        </OwnerActionsWrap>
+                      ) : (
+                        <></>
+                      )}
+                    </ActionButtonWrap>
+                  </AcionButtons>
+                </Container>
+              </Fade>
+            </StyledModal>
+            {status.status === 'failed' && (
+              <SnackbarComponent
+                open
+                onClose={() => onToastClose()}
+                severity="error"
+                icon="error"
+                message={status?.message || 'Something went wrong!'}
+              />
+            )}
+            {status.status === 'success' && (
+              <SnackbarComponent
+                open
+                onClose={() => onToastClose()}
+                message={status?.message || 'Request Successful'}
+              />
+            )}
+          </div>
         )}
-        {status.status === 'success' && (
-          <SnackbarComponent
-            open
-            onClose={() => onToastClose()}
-            message={status?.message || 'Request Successful'}
-          />
-        )}
-      </div>
+      </>
     </ComponentError>
   );
 };

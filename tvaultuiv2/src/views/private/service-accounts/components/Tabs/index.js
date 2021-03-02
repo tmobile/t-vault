@@ -85,6 +85,7 @@ const AccountSelectionTabs = (props) => {
     accountDetail,
     refresh,
     setOffboardDecomissionedConfirmation,
+    setServiceAccountMetaData,
   } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
@@ -140,21 +141,6 @@ const AccountSelectionTabs = (props) => {
     }
   }, [accountDetail, setOffboardDecomissionedConfirmation]);
 
-  const getServiceListMetaData = () => {
-    return apiService
-      .fetchServiceAccountDetails(accountDetail.name)
-      .then((res) => {
-        if (res?.data?.data?.values && res?.data?.data?.values[0]) {
-          return res.data.data.values[0].owner;
-        }
-        return '';
-      })
-      .catch(() => {
-        setResponse({ status: 'error' });
-        setAccountMetaData({ response: {}, error: 'Something went wrong' });
-      });
-  };
-
   // Function to get the metadata of the given service account
   const fetchPermission = useCallback(() => {
     setResponse({ status: 'loading' });
@@ -162,8 +148,11 @@ const AccountSelectionTabs = (props) => {
       .updateMetaPath(accountDetail.name)
       .then(async (res) => {
         if (res.data && res.data.data) {
-          const owner = await getServiceListMetaData();
-          if (owner?.toLowerCase() === state?.username?.toLowerCase()) {
+          setServiceAccountMetaData(res.data.data);
+          if (
+            res.data.data.managedBy?.toLowerCase() ===
+            state?.username?.toLowerCase()
+          ) {
             setDisabledPermission(false);
             if (res.data.data.initialPasswordReset) {
               setHasSvcAccountAcitve(true);
@@ -191,7 +180,7 @@ const AccountSelectionTabs = (props) => {
         setAccountMetaData({ response: {}, error: 'Something went wrong' });
       });
     // eslint-disable-next-line
-  }, [accountDetail, state]);
+  }, [accountDetail, state, setServiceAccountMetaData]);
 
   useEffect(() => {
     setResponse({ status: 'loading' });
@@ -262,6 +251,7 @@ AccountSelectionTabs.propTypes = {
   accountDetail: PropTypes.objectOf(PropTypes.any),
   refresh: PropTypes.func.isRequired,
   setOffboardDecomissionedConfirmation: PropTypes.func.isRequired,
+  setServiceAccountMetaData: PropTypes.func.isRequired,
 };
 AccountSelectionTabs.defaultProps = {
   accountDetail: {},
