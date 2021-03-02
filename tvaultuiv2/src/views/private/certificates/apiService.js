@@ -1,7 +1,7 @@
 import api from '../../../services';
 
 const getNonAdminAppNameList = () => api.get('/sslcert/grouplist');
-const getAllAdminCertInternal = () => api.get('/sslcert/certificates/internal');
+const getAllAdminCertInternal = (limit,offset) => api.get(`/sslcert/certificates/internal?limit=${limit ? limit : 20 }&offset=${offset ? offset:0}`);
 const getAllAdminCertExternal = () => api.get('/sslcert?certType=external');
 const getAllNonAdminCertInternal = () => api.get('/sslcert/list/internal');
 const getAllNonAdminCertExternal = () => api.get('/sslcert/list/external');

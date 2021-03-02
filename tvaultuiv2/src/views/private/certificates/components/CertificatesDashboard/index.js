@@ -29,7 +29,7 @@ import { useStateValue } from '../../../../../contexts/globalState';
 import SelectWithCountComponent from '../../../../../components/FormFields/SelectWithCount';
 import {
   ListContainer,
-  StyledInfiniteScroll,
+  ListContent,
 } from '../../../../../styles/GlobalStyles/listingStyle';
 import configData from '../../../../../config/config';
 import CertificateRelease from '../CertificateRelease';
@@ -182,8 +182,12 @@ const CertificatesDashboard = () => {
   const [state] = useStateValue();
   const admin = Boolean(state?.isAdmin);
   const limit = 20;
-  const [hasMore,setHasMore] = useState(true);
+  const [hasMoreAllInternal,setHasMoreAllInternal] = useState(false);
+  const [hasMoreInternal,setHasMoreInternal] = useState(false);
+  const [hasMoreAllExternal,setHasMoreAllExternal] = useState(false);
+  const [hasMoreExternal,setHasMoreExternal] = useState(false);
   const [offset,setOffset] = useState(0);
+  const [isLoading,setIsLoading] = useState(false);
 
   const compareCertificates = (array1, array2, type) => {
     if (array2.length > 0) {
@@ -203,8 +207,8 @@ const CertificatesDashboard = () => {
   const fetchAdminInternalData = useCallback(async () => {
     let allCertInternal = [];
 
-    if (configData.AUTH_TYPE === 'oidc' && offset === 0) {
-      allCertInternal = await apiService.getAllAdminCertInternal();
+    if (configData.AUTH_TYPE === 'oidc' && (offset === 0 || hasMoreAllInternal)) {
+      allCertInternal = await apiService.getAllAdminCertInternal(limit,offset);
     }
     const internalCertificates = await apiService.getInternalCertificates(limit,offset);
 
@@ -214,11 +218,16 @@ const CertificatesDashboard = () => {
     ]);
     allApiResponse
       .then((result) => {
-        const allCertInternalArray = [];
+        let allCertInternalArray = [];
         const internalCertArray = [];
         if (configData.AUTH_TYPE === 'oidc') {
-          if (result && result[0]?.data?.data?.keys) {
-            result[0].data.data.keys.map((item) => {
+          if (result && result[0]?.data?.keys) {
+            if(result[0]?.data?.next === -1){
+              setHasMoreAllInternal(false);
+            }else{
+              setHasMoreAllInternal(true)
+            }
+            result[0].data.keys.map((item) => {
               return allCertInternalArray.push(item);
             });
           }
@@ -235,11 +244,13 @@ const CertificatesDashboard = () => {
             });
           }
         }
+        let list = [...certificateList]
         if (result && result[1]?.data?.keys) {
-          if(result[1]?.data?.next !== -1){
-            setHasMore(true);
+          if(result[1]?.data?.next === '-1'){
+            setHasMoreInternal(false);
+          }else{
+            setHasMoreInternal(true)
           }
-          setOffset(offset+limit)
           result[1].data.keys.map((item) => {
             if (item.certificateName) {
               return internalCertArray.push(item);
@@ -252,11 +263,14 @@ const CertificatesDashboard = () => {
             'internal'
           );
         }
-        setCertificateList([
+        
+        setCertificateList([  ...list, 
           ...internalCertArray,
         ]);
         setAllCertList([...internalCertArray,]);
         setResponse({ status: 'success' });
+        setIsLoading(false);
+        setOffset(offset+limit);
       })
       .catch((err) => {
         if (err?.response?.data?.errors && err.response.data.errors[0]) {
@@ -264,7 +278,7 @@ const CertificatesDashboard = () => {
         }
         setResponse({ status: 'failed' });
       });
-  },[]);
+  },[offset]);
 
   const fetchAdminExternalData = useCallback(async () => {
     let allCertExternal = [];
@@ -1010,7 +1024,6 @@ const fetchExternalCertificates = () => {
     setSuccessErrorModal(false);
     setSuccessErrorDetails({ title: '', desc: '' });
   };
-
   const renderList = () => {
     return (
       <LeftColumn
@@ -1023,15 +1036,25 @@ const fetchExternalCertificates = () => {
         isTabAndMobileScreen={isTabAndMobileScreen}
         history={history}
         certificateList={certificateList}
+        isLoading={isLoading}
       />
     );
   };
-  let scrollParentRef = null;
   const loadMoreData = () =>{
+    setIsLoading(true);
     if(certificateType==='Internal Certificates'){
       fetchAdminInternalData();
     }
   }
+  const handleListScroll = (e)=>{
+    console.log(hasMoreInternal)
+    console.log(hasMoreAllInternal)
+    let element = document.getElementById('scrollList');
+      if((element.scrollHeight - element.offsetHeight - 250 < element.scrollTop) && !isLoading && (hasMoreInternal || hasMoreAllInternal)){
+        loadMoreData();
+      }
+  }
+
   return (
     <ComponentError>
       <>
@@ -1113,20 +1136,10 @@ const fetchExternalCertificates = () => {
             {response.status === 'success' && (
               <>
                 {certificateList?.length > 0 && (
-                  <ListContainer ref={(ref) => (scrollParentRef = ref)}>
-                    <StyledInfiniteScroll
-                      pageStart={offset}
-                      loadMore={() => {
-                        loadMoreData();
-                      }}
-                      hasMore={(hasMore)}
-                      threshold={250}
-                      // loader={
-                      //   !status.status === 'loading' ? <div key={0}>Loading...</div> : <></>
-                      // }
-                      useWindow={false}
-                      getScrollParent={() => scrollParentRef}
-                    >{renderList()}</StyledInfiniteScroll>
+                  <ListContainer>
+                    <ListContent id='scrollList' onScroll={e=>{handleListScroll(e)}}>
+                      {renderList()}
+                    </ListContent>
                   </ListContainer>
                 )}
                 {certificateList?.length === 0 && (

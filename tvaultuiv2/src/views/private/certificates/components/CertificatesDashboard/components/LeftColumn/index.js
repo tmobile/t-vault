@@ -124,6 +124,7 @@ const LeftColumn = (props) => {
     onOnboardClicked,
     history,
     onDeleteCertificateClicked,
+    isLoading,
   } = props;
   const [selectedCert, setSelectedCert] = useState('');
   const [count, setCount] = useState(0);
@@ -234,6 +235,7 @@ const LeftColumn = (props) => {
             </StatusActionWrapper>
           </ListFolderWrap>
         ))}
+        {isLoading ? <div>Loading...</div> :null }
       </>
     </ComponentError>
   );
@@ -248,6 +250,7 @@ LeftColumn.propTypes = {
   onOnboardClicked: PropTypes.func,
   history: PropTypes.objectOf(PropTypes.any).isRequired,
   onDeleteCertificateClicked: PropTypes.func.isRequired,
+  isLoading: PropTypes.func.isRequired,
 };
 
 LeftColumn.defaultProps = {
