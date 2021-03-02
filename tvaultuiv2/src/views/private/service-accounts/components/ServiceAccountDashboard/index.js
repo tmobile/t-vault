@@ -204,6 +204,7 @@ const ServiceAccountDashboard = () => {
     offboardDecomissionedConfirmation,
     setOffboardDecomissionedConfirmation,
   ] = useState(false);
+  const [serviceAccountMetaData, setServiceAccountMetaData] = useState({});
   const [state, dispatch] = useStateValue();
   const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
@@ -326,6 +327,7 @@ const ServiceAccountDashboard = () => {
    */
   const onLinkClicked = (item) => {
     setListItemDetails(item);
+    setServiceAccountMetaData({});
     if (isMobileScreen) {
       setServiceAccountClicked(true);
     }
@@ -365,6 +367,8 @@ const ServiceAccountDashboard = () => {
           if (listItemDetails.name !== obj.name) {
             setListItemDetails({ ...obj });
           }
+        } else {
+          setListItemDetails({});
         }
       }
     }
@@ -435,12 +439,13 @@ const ServiceAccountDashboard = () => {
   };
 
   /**
-   * @function deleteServiceAccount
+   * @function onServiceAccountOffBoard
    * @description function is called when delete is clicked opening
    * the confirmation modal and setting the path.
-   * @param {string} name service acc name to be deleted.
    */
-  const deleteServiceAccount = () => {
+  const onServiceAccountOffBoard = () => {
+    setOffBoardSvcAccountConfirmation(false);
+    setResponse({ status: 'loading' });
     const payload = {
       name: deleteAccName,
     };
@@ -467,30 +472,6 @@ const ServiceAccountDashboard = () => {
       setOffBoardSvcAccountConfirmation(true);
     }
   }, [offBoardSuccessfull]);
-
-  /**
-   * @function onServiceAccountOffBoard
-   * @description function is to fetch the service account details and check username
-   */
-  const onServiceAccountOffBoard = () => {
-    setOffBoardSvcAccountConfirmation(false);
-    setResponse({ status: 'loading' });
-    apiService
-      .fetchServiceAccountDetails(deleteAccName)
-      .then((res) => {
-        let details = {};
-        if (res?.data?.data?.values && res.data.data.values[0]) {
-          details = { ...res.data.data.values[0] };
-          if (details?.managedBy?.userName) {
-            deleteServiceAccount(details.managedBy.userName);
-          }
-        }
-      })
-      .catch(() => {
-        setToastResponse(-1);
-        setResponse({ status: 'success' });
-      });
-  };
 
   const handleDecomissionedOffBoardSuccessful = () => {
     setOffboardDecomissionedConfirmation(false);
@@ -634,6 +615,7 @@ const ServiceAccountDashboard = () => {
       </ListFolderWrap>
     ));
   };
+
   return (
     <ComponentError>
       <>
@@ -651,6 +633,7 @@ const ServiceAccountDashboard = () => {
           handleConfirmationModalClose={handleDecommissionedOffboardModalClose}
           onServiceAccountOffBoard={offBoardDecomissioned}
           itemDetail={listItemDetails}
+          serviceAccountMetaData={serviceAccountMetaData}
         />
         <TransferConfirmationModal
           transferSvcAccountConfirmation={transferSvcAccountConfirmation}
@@ -775,6 +758,7 @@ const ServiceAccountDashboard = () => {
                         setOffboardDecomissionedConfirmation={
                           setOffboardDecomissionedConfirmation
                         }
+                        setServiceAccountMetaData={setServiceAccountMetaData}
                       />
                     }
                   />

@@ -454,7 +454,7 @@ const CreateCertificates = (props) => {
       return false;
     }
     return true;
-  }
+  };
 
   const InputValidation = (text) => {
     if (text) {
@@ -470,8 +470,6 @@ const CreateCertificates = (props) => {
     }
     return null;
   };
-
-
 
   const onCertificateNameChange = (e) => {
     setCertName(e.target.value);
