@@ -414,7 +414,8 @@ const OnboardCertificates = (props) => {
       (value, type) => {
         const userNameSearch = apiService.getUserName(value);
         const emailSearch = apiService.getOwnerTransferEmail(value);
-        Promise.all([userNameSearch, emailSearch])
+        const tmoUser = apiService.getTmoUsers(value);
+        Promise.all([userNameSearch, emailSearch, tmoUser])
           .then((responses) => {
             const array = new Set([]);
             if (responses[0]?.data?.data?.values?.length > 0) {
@@ -427,6 +428,14 @@ const OnboardCertificates = (props) => {
             }
             if (responses[1]?.data?.data?.values?.length > 0) {
               responses[1].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(item);
+                }
+                return null;
+              });
+            }
+            if (responses[2]?.data?.data?.values?.length > 0) {
+              responses[2].data.data.values.map((item) => {
                 if (item.userName) {
                   return array.add(item);
                 }
@@ -677,9 +686,11 @@ const OnboardCertificates = (props) => {
                   <TypeAheadComponent
                     options={options.map(
                       (item) =>
-                        `${item?.userEmail?.toLowerCase()}, ${getName(
-                          item?.displayName?.toLowerCase()
-                        )}, ${item?.userName?.toLowerCase()}`
+                        `${item?.userEmail?.toLowerCase()}, ${
+                          getName(item?.displayName?.toLowerCase()) !== ' '
+                            ? `${getName(item?.displayName?.toLowerCase())}, `
+                            : ''
+                        }${item?.userName?.toLowerCase()}`
                     )}
                     loader={autoLoader}
                     userInput={owner}
@@ -759,9 +770,15 @@ const OnboardCertificates = (props) => {
                               ? notifyOptions
                               : notifyOptions.map(
                                   (item) =>
-                                    `${item?.userEmail?.toLowerCase()}, ${getName(
-                                      item?.displayName?.toLowerCase()
-                                    )}, ${item?.userName?.toLowerCase()}`
+                                    `${item?.userEmail?.toLowerCase()}, ${
+                                      getName(
+                                        item?.displayName?.toLowerCase()
+                                      ) !== ' '
+                                        ? `${getName(
+                                            item?.displayName?.toLowerCase()
+                                          )}, `
+                                        : ''
+                                    }${item?.userName?.toLowerCase()}`
                                 )
                           }
                           loader={notifyAutoLoader}

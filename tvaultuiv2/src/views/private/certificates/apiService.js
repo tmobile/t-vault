@@ -44,6 +44,7 @@ const revokeRequest = (certType, name, payload) =>
   api.post(`/certificates/${certType}/${name}/revocationrequest`, payload);
 
 const getUserName = (user) => api.get(`/ldap/ntusers?displayName=${user}`);
+const getTmoUsers = (user) => api.get(`/tmo/users?UserPrincipalName=${user}`);
 const getOwnerTransferEmail = (owner) =>
   api.get(`/ldap/users?UserPrincipalName=${owner}`);
 const transferOwner = (certType, name, ownerName) =>
@@ -81,6 +82,7 @@ export default {
   deleteCertificateGroup,
   getApplicationName,
   getUserName,
+  getTmoUsers,
   getOwnerEmail,
   createCertificate,
   checkCertificateStatus,
