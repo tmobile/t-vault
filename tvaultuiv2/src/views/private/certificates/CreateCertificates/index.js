@@ -450,7 +450,7 @@ const CreateCertificates = (props) => {
   ]);
 
   const WildCardCertificateValidation = (text) => {
-    if (text.includes('*') && !text.startsWith('*.')) {
+    if ((text.includes('*') && (!JSON.parse(sessionStorage.getItem('isAdmin')) || !text.startsWith('*.')))) {
       return false;
     }
     return true;

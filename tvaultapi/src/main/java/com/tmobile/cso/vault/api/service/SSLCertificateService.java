@@ -1769,17 +1769,18 @@ public class SSLCertificateService {
     /**
      * Validate the DNSNames
      * @param sslCertificateRequest
+     * @param isAdmin
      * @return
      */
-	private boolean validateDNSNames(SSLCertificateRequest sslCertificateRequest) {
+	private boolean validateDNSNames(SSLCertificateRequest sslCertificateRequest, boolean isAdmin) {
         String[] dnsNames = sslCertificateRequest.getDnsList();
         Set<String> set = new HashSet<>();
 
         if(!ArrayUtils.isEmpty(dnsNames)) {
 	        for (String dnsName : dnsNames) {
-	            if (dnsName.contains(" ") || (!dnsName.matches("^[a-zA-Z0-9.-]+$")) || (dnsName.endsWith(certificateNameTailText)) ||
+	            if (dnsName.contains(" ") || (!dnsName.matches("^[a-zA-Z0-9*.-]+$")) || (dnsName.endsWith(certificateNameTailText)) ||
 	                    (dnsName.contains(".-")) || (dnsName.contains("-.")) || (dnsName.contains("..")) || (dnsName.endsWith(".")) ||
-	                    (!set.add(dnsName))) {
+                        ((dnsName.contains("*") && ((!isAdmin || !dnsName.startsWith("*."))))) || dnsName.startsWith(".") || (!set.add(dnsName))) {
 	                return false;
 	            }
 	        }
@@ -1801,11 +1802,11 @@ public class SSLCertificateService {
                 .put(LogMessage.MESSAGE, "Trying to validate input data")
                 .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
                 .build()));
-        if ((!validateCertficateName(sslCertificateRequest.getCertificateName())) || sslCertificateRequest.getAppName().contains(" ") ||
+        if ((!validateCertficateName(sslCertificateRequest.getCertificateName(), userDetails.isAdmin())) || sslCertificateRequest.getAppName().contains(" ") ||
                 (!populateCertOwnerEmaild(sslCertificateRequest, userDetails)) ||
                 sslCertificateRequest.getCertOwnerEmailId().contains(" ") || sslCertificateRequest.getCertType().contains(" ") ||
                 (!sslCertificateRequest.getCertType().matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING))
-                || (!validateDNSNames(sslCertificateRequest)) ||
+                || (!validateDNSNames(sslCertificateRequest, userDetails.isAdmin())) ||
                 (!validateNotificationEmailsForOnboard(sslCertificateRequest.getNotificationEmail())) ||
                 (!validatekeyUsageValue(sslCertificateRequest))) {
             isValid = false;
@@ -1836,12 +1837,14 @@ public class SSLCertificateService {
 	 * Method to validate the certificate name
 	 *
 	 * @param certName
-	 * @return
+	 * @param isAdmin
+     * @return
 	 */
-	private boolean validateCertficateName(String certName) {
+	private boolean validateCertficateName(String certName, boolean isAdmin) {
 		boolean isValid = true;
 		if (certName.contains(" ") || (certName.endsWith(certificateNameTailText)) || (certName.contains(".-"))
-				|| (certName.contains("-.")) || (certName.contains("..")) || (certName.endsWith(".")) || (certName.contains("*") && !certName.startsWith("*."))) {
+				|| (certName.contains("-.")) || (certName.contains("..")) || (certName.endsWith("."))
+                || ((certName.contains("*") && ((!isAdmin) || !certName.startsWith("*.")))) || certName.startsWith(".")) {
 			isValid = false;
 		}
 		return isValid;
