@@ -5970,22 +5970,21 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		return isValid;
 	}
 
-
 	/**
 	 * Get List Of internal or external certificates
-	 * 
 	 * @param token
 	 * @param certificateType
+	 * @param limit
+	 * @param offset
 	 * @return
-	 * @throws Exception
 	 */
-	public ResponseEntity<String> getListOfCertificates(String token, String certificateType) {
+	public ResponseEntity<String> getListOfCertificates(String token, String certificateType, Integer limit, Integer offset) {
 		Response response;
 		String path = "";
 		if(!certificateType.matches(SSLCertificateConstants.CERT_TYPE_MATCH_STRING)){
     		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "getListOfCertificates")
+					.put(LogMessage.ACTION, "Get list Of Certificates")
 					.put(LogMessage.MESSAGE, SSLCertificateConstants.INVALID_INPUT_MSG)
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERRORINVALID);
@@ -6000,15 +5999,17 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		if (HttpStatus.OK.equals(response.getHttpstatus())) {
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "getListOfCertificates")
+					.put(LogMessage.ACTION, "Get list Of Certificates")
 					.put(LogMessage.MESSAGE, "Certificates fetched from metadata")
 					.put(LogMessage.STATUS, response.getHttpstatus().toString())
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+
+			Map<String, Object> certificateMap = getCertificateSublistFromResponse(limit, offset, response);
+			return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(certificateMap));
 		} else {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, "getListOfCertificates")
+					.put(LogMessage.ACTION, "Get list Of certificates")
 					.put(LogMessage.MESSAGE, "Failed to get certificate list from metadata")
 					.put(LogMessage.STATUS, response.getHttpstatus().toString())
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
@@ -6016,7 +6017,76 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
 		}
 	}
-	
+
+	/**
+	 * Method to get the sublist of certificate from response.
+	 * @param limit
+	 * @param offset
+	 * @param response
+	 * @return
+	 */
+	private Map<String, Object> getCertificateSublistFromResponse(Integer limit, Integer offset, Response response) {
+		JsonParser jsonParser = new JsonParser();
+		JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
+		JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
+		List<String> certNames = geMatchCertificates(jsonArray, "");
+		Integer totalCertCount = certNames.size();
+
+		limit = (limit == null)?totalCertCount:limit;
+		offset = (offset == null)?0:offset;
+
+		List<String> certificateSubList =  certNames.stream().skip(offset).limit(limit).collect(Collectors.toList());
+
+		String[] certArray = certificateSubList.toArray(new String[certificateSubList.size()]);
+
+		Map<String, Object> certificateMap = new HashMap<>();
+		certificateMap.put("keys", certArray);
+		certificateMap.put("total", totalCertCount);
+		certificateMap.put("next", (totalCertCount - (certArray.length+ offset)>0?totalCertCount - (certArray.length + offset):-1));
+		return certificateMap;
+	}
+
+	/**
+	 * Get List Of internal or external certificates for validation
+	 *
+	 * @param token
+	 * @param certificateType
+	 * @return
+	 * @throws Exception
+	 */
+	private List<String> getListOfCertificatesForValidation(String token, String certificateType) {
+		Response response;
+		String path = "";
+		List<String> certNames = new ArrayList<>();
+		if (certificateType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL)) {
+			path = SSLCertificateConstants.SSL_CERT_PATH_VALUE;
+		} else {
+			path = SSLCertificateConstants.SSL_CERT_PATH_VALUE_EXT;
+		}
+		response = getMetadata(token, path);
+
+		if(response != null && response.getResponse() != null) {
+			JsonParser jsonParser = new JsonParser();
+			JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
+			JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
+			certNames = geMatchCertificates(jsonArray, "");
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "getListOfCertificates for validation")
+					.put(LogMessage.MESSAGE, "Certificates fetched from metadata")
+					.put(LogMessage.STATUS, response.getHttpstatus().toString())
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		}else {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "getListOfCertificates for validation")
+					.put(LogMessage.MESSAGE, "No certificates available")
+					.put(LogMessage.STATUS, "No certificates available")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+		}
+		return certNames;
+	}
+
 	/**
      * To update the owner of an existing certificate.
      * @param token
@@ -9459,13 +9529,11 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		}
 		List<CertificateData> certificatesList = new ArrayList<>();
 		String targetEndpointVal = findAllCertificate;
-
+		Map<String, Object> certificateMap = new HashMap<>();
 		// Getting all on-boarded internal certificates
-		List<String> onboardedInternalCerts = getCertificateNameList(
-				getListOfCertificates(token, SSLCertificateConstants.INTERNAL));
+		List<String> onboardedInternalCerts = getListOfCertificatesForValidation(token, SSLCertificateConstants.INTERNAL);
 		// Getting all on-boarded external certificates
-		List<String> onboardedExternalCerts = getCertificateNameList(
-				getListOfCertificates(token, SSLCertificateConstants.EXTERNAL));
+		List<String> onboardedExternalCerts = getListOfCertificatesForValidation(token, SSLCertificateConstants.EXTERNAL);
 		getCertificateListFromNclm(nclmAccessToken, certificatesList, targetEndpointVal, onboardedInternalCerts,
 				onboardedExternalCerts);
 
@@ -9482,39 +9550,13 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			toindex = (limitVal <= totCount) ? limitVal : totCount;
 
 			certificatesList = certificatesList.subList(offsetVal, toindex);
+
+			certificateMap.put("keys", certificatesList);
+			certificateMap.put("total", totCount);
+			certificateMap.put("next", (totCount - (certificatesList.size()+ offset)>0?totCount - (certificatesList.size() + offset):-1));
 		}
 
-		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(certificatesList));
-	}
-
-	/**
-	 * Method to get the list of certificate names from ResponseEntity<String>
-	 *
-	 * @param onboardedCerts
-	 * @return
-	 */
-	private List<String> getCertificateNameList(ResponseEntity<String> onboardedCerts) {
-		JsonParser jsonParser = new JsonParser();
-		List<String> certNames = null;
-		try {
-			if (!ObjectUtils.isEmpty(onboardedCerts)) {
-				JsonObject jsonObject = (JsonObject) jsonParser.parse(onboardedCerts.getBody());
-				JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
-				if (!ObjectUtils.isEmpty(jsonArray)) {
-					certNames = new ArrayList<>();
-					for (int i = 0; i < jsonArray.size(); i++) {
-						certNames.add(jsonArray.get(i).toString().replaceAll(CERTNAMEREGEX, ""));
-					}
-				}
-			}
-		} catch (Exception e) {
-			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
-					.put(LogMessage.ACTION, SSLCertificateConstants.GET_ALL_PENDING_CERT_MSG)
-					.put(LogMessage.MESSAGE, "Error in getting the onboarded certificates")
-					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
-		}
-		return certNames;
+		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(certificateMap));
 	}
 
 	/**
@@ -9573,7 +9615,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 				if (!ObjectUtils.isEmpty(jsonElement.get("sortedSubjectName"))) {
 					certificateName = getCertficateName(jsonElement.get("sortedSubjectName").getAsString());
 				}
-				if ((certificateName != null) && (!certificateName.startsWith("*"))) {
+				if ((certificateName != null) && (!certificateName.toUpperCase().startsWith("CERTTEST")) && (!certificateName.toUpperCase().startsWith("*.CERTTEST"))) {
 					CertificateData certificateData = new CertificateData();
 					boolean isOnboarded = false;
 					constructCertificateData(jsonElement, certificateData);
@@ -9616,14 +9658,16 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	 */
 	private boolean isCertificateAlreadyOnboarded(List<String> onboardedInternalCerts,
 			List<String> onboardedExternalCerts, CertificateData certificateData, boolean isOnboarded) {
+		String certificateName = certificateData.getCertificateName();
+		certificateName = certificateUtils.getVaultCompactibleCertifiacteName(certificateName);
 		if (certificateData.getCertType().equals(SSLCertificateConstants.INTERNAL)
 				&& !CollectionUtils.isEmpty(onboardedInternalCerts)) {
 			isOnboarded = onboardedInternalCerts.stream()
-					.anyMatch(certificateData.getCertificateName()::equalsIgnoreCase);
+					.anyMatch(certificateName::equalsIgnoreCase);
 		} else if (certificateData.getCertType().equals(SSLCertificateConstants.EXTERNAL)
 				&& !CollectionUtils.isEmpty(onboardedExternalCerts)) {
 			isOnboarded = onboardedExternalCerts.stream()
-					.anyMatch(certificateData.getCertificateName()::equalsIgnoreCase);
+					.anyMatch(certificateName::equalsIgnoreCase);
 		}
 		return isOnboarded;
 	}
@@ -9858,7 +9902,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		boolean isValidNotificationEmail = true;
 		String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";		
 		for (String notifyEmail: notificationEmail.split(",")) {
-			if((!Pattern.matches(regex, notifyEmail)) && (!notifyEmail.endsWith(certificateNameTailText))) {
+			if((!Pattern.matches(regex, notifyEmail))) {
 				isValidNotificationEmail = false;
 			}
 	    }

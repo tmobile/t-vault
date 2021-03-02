@@ -381,8 +381,8 @@ public class SSLCertificateControllerTest {
 	@Test
     public void test_getListOfCertificates() throws Exception {
         // Mock response        
-        when(sslCertificateService.getListOfCertificates("5PDrOhsy4ig8L3EpsJZSLAMg","internal")).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        assertEquals(HttpStatus.OK, sslCertificateService.getListOfCertificates("5PDrOhsy4ig8L3EpsJZSLAMg","internal").getStatusCode());
+        when(sslCertificateService.getListOfCertificates("5PDrOhsy4ig8L3EpsJZSLAMg","internal",1,0)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        assertEquals(HttpStatus.OK, sslCertificateService.getListOfCertificates("5PDrOhsy4ig8L3EpsJZSLAMg","internal",1,0).getStatusCode());
     }
 	
 	@Test
@@ -708,7 +708,7 @@ public class SSLCertificateControllerTest {
 				+ "    \"projectLeadEmailId\": \"project@email.com\"    }  ]}";
 		ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
 		String expected = responseEntityExpected.getBody();
-		when(sslCertificateService.getListOfCertificates(Mockito.anyString(), Mockito.anyString()))
+		when(sslCertificateService.getListOfCertificates(Mockito.anyString(), Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
 				.thenReturn(responseEntityExpected);
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/v2/sslcert/certificates/internal").header("vault-token", token)
 				.header("Content-Type", "application/json;charset=UTF-8").requestAttr("UserDetails", userDetails)

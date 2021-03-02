@@ -290,8 +290,8 @@ const CertificatesDashboard = () => {
             'external'
           );
         }
-        if (result && result[4].data) {
-          result[4].data.map((ele) => {
+        if (result && result[4]?.data?.keys) {
+          result[4].data.keys.map((ele) => {
             ele.isOnboardCert = true;
             return onboardCertArray.push(ele);
           });
