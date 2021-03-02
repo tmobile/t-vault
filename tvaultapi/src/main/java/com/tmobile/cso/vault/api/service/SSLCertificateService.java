@@ -8929,7 +8929,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 				if (!ObjectUtils.isEmpty(jsonElement.get("sortedSubjectName"))) {
 					certificateName = getCertficateName(jsonElement.get("sortedSubjectName").getAsString());
 				}
-				if ((certificateName != null) && (!certificateName.startsWith("*"))) {
+				if ((certificateName != null) && (!certificateName.startsWith("*")) && (!certificateName.toUpperCase().startsWith("CERTTEST"))) {
 					CertificateData certificateData = new CertificateData();
 					boolean isOnboarded = false;
 					constructCertificateData(jsonElement, certificateData);
@@ -9214,7 +9214,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		boolean isValidNotificationEmail = true;
 		String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";		
 		for (String notifyEmail: notificationEmail.split(",")) {
-			if((!Pattern.matches(regex, notifyEmail)) && (!notifyEmail.endsWith(certificateNameTailText))) {
+			if(!Pattern.matches(regex, notifyEmail)) {
 				isValidNotificationEmail = false;
 			}
 	    }
