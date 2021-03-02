@@ -544,6 +544,7 @@ const CreateCertificates = (props) => {
 
   const onPreviewClicked = () => {
     setNotifyEmail('');
+    setDnsName('');
     setShowPreview(true);
   };
 
