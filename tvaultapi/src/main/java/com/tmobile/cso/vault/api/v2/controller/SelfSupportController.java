@@ -544,4 +544,17 @@ public class SelfSupportController {
 		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
 		return selfSupportService.updateAwsIamRole(userDetails, token, awsiamRole);
 	}
+
+	/**
+	 * Get list of safes with read/write/deny/owner permission.
+	 * @param request
+	 * @param token
+	 * @return
+	 */
+	@GetMapping(value="/v2/ss/sdb/allsafes",produces="application/json")
+	@ApiOperation(value = "${SelfSupportController.getAllSafes.value}", notes = "${SelfSupportController.getAllSafes.notes}")
+	public ResponseEntity<String> getAllSafes(HttpServletRequest request, @RequestHeader(value="vault-token") String token, @RequestParam( name="search",required=false) String searchText) {
+		UserDetails userDetails = (UserDetails) ((HttpServletRequest) request).getAttribute("UserDetails");
+		return selfSupportService.getAllSafes(userDetails, token, searchText);
+	}
 }

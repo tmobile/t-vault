@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
@@ -1443,5 +1444,118 @@ public class  SelfSupportService {
 			accesstoken = userDetails.getSelfSupportToken();
 		}
 		return awsiamAuthService.updateIAMRole(accesstoken, awsiamRole);
+	}
+
+	/**
+	 * Get list of safes with read/write/deny/owner permission.
+	 * @param userDetails
+	 * @param searchText
+	 * @return
+	 */
+	public ResponseEntity<String> getAllSafes(UserDetails userDetails, String token, String searchText) {
+		if (StringUtils.isNotEmpty(searchText) && searchText.length() < 3) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Search text must be of minimum 3 characters.\"]}");
+		}
+		oidcUtil.renewUserToken(userDetails.getClientToken());
+		String[] policies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails);
+
+		// Get manages safes
+		log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "getAllSafes").
+				put(LogMessage.MESSAGE, String.format ("Trying to get managed safe list for user [%s]", userDetails.getUsername())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		List<String> userSafeList = new ArrayList<>();
+		List<String> sharedSafeList = new ArrayList<>();
+		List<String> appsSafeList = new ArrayList<>();
+		if (userDetails.isAdmin()) {
+			userSafeList = getManagedSafeList(token, TVaultConstants.USERS);
+			sharedSafeList = getManagedSafeList(token, TVaultConstants.SHARED);
+			appsSafeList = getManagedSafeList(token, TVaultConstants.APPS);
+		}
+		else {
+			// List of safes based on current user
+			userSafeList = new ArrayList<>(Arrays.asList(safeUtils.getManagedSafes(policies, TVaultConstants.USERS)));
+			sharedSafeList = new ArrayList<>(Arrays.asList(safeUtils.getManagedSafes(policies, TVaultConstants.SHARED)));
+			appsSafeList = new ArrayList<>(Arrays.asList(safeUtils.getManagedSafes(policies, TVaultConstants.APPS)));
+		}
+
+		log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "getAllSafes").
+				put(LogMessage.MESSAGE, String.format ("Trying to get safe permissions for user [%s]", userDetails.getUsername())).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+
+		Map<String, List<String>> safeList = new HashMap<>();
+		if (policies != null) {
+			for (String policy: policies) {
+				String[] _policies = policy.split("_", -1);
+				if (_policies.length >= 3) {
+					String[] policyName = Arrays.copyOfRange(_policies, 2, _policies.length);
+					String safeName = String.join("_", policyName);
+					String safeType = _policies[1];
+					if (safeType.equalsIgnoreCase(TVaultConstants.USERS) && !userSafeList.contains(safeName)) {
+						userSafeList.add(safeName);
+					}
+					else if (safeType.equalsIgnoreCase(TVaultConstants.SHARED) && !sharedSafeList.contains(safeName)) {
+						sharedSafeList.add(safeName);
+					}
+					else if (safeType.equalsIgnoreCase(TVaultConstants.APPS) && !appsSafeList.contains(safeName)) {
+						appsSafeList.add(safeName);
+					}
+				}
+			}
+		}
+
+		// Filter based on searchText if exists
+		if (StringUtils.isNotEmpty(searchText) && searchText.length() >= 3) {
+			userSafeList = userSafeList.stream().filter(s -> s.toLowerCase().startsWith(searchText)).collect(Collectors.toList());
+			sharedSafeList = sharedSafeList.stream().filter(s -> s.toLowerCase().startsWith(searchText)).collect(Collectors.toList());
+			appsSafeList = appsSafeList.stream().filter(s -> s.toLowerCase().startsWith(searchText)).collect(Collectors.toList());
+		}
+		safeList.put(TVaultConstants.USERS, userSafeList);
+		safeList.put(TVaultConstants.SHARED, sharedSafeList);
+		safeList.put(TVaultConstants.APPS, appsSafeList);
+		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeList));
+	}
+
+	/**
+	 * To get managed safe list for a safeType
+	 * @param token
+	 * @param safeType
+	 * @return
+	 */
+	private List<String> getManagedSafeList(String token, String safeType) {
+		String _path = "metadata/"+safeType;
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				put(LogMessage.ACTION, "getManagedSafeList").
+				put(LogMessage.MESSAGE, String.format ("Trying to get managed safe list of type [%s]", safeType)).
+				put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				build()));
+		Response response = reqProcessor.process("/sdb/list","{\"path\":\""+_path+"\"}",token);
+		List<String> safeList = new ArrayList<>();
+		if (response.getHttpstatus().equals(HttpStatus.OK)) {
+			String responseJson = response.getResponse();
+			ObjectMapper objMapper = new ObjectMapper();
+			try {
+				JsonNode safeArray = objMapper.readTree(responseJson).get("keys");
+				if (null != safeArray) {
+					for(JsonNode safe : safeArray){
+						safeList.add(safe.asText());
+					}
+				}
+			} catch (IOException e) {
+				log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+						put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+						put(LogMessage.ACTION, "getManagedSafeList").
+						put(LogMessage.MESSAGE, "Failed to extract safe list from response").
+						put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+						build()));
+			}
+		}
+		return safeList;
 	}
 }
