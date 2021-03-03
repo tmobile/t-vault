@@ -5547,7 +5547,7 @@ public class SSLCertificateServiceTest {
         objList.setValues(values);
         obj.setData(objList);
         
-        when(directoryService.searchByUPN(anyString())).
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
         
         ResponseEntity<?> transferCertResponse =
@@ -5625,7 +5625,7 @@ public class SSLCertificateServiceTest {
         usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
         users.setData(usersList);
         Mockito.doNothing().when(emailUtils).sendTransferEmail(Mockito.any(),Mockito.any(),Mockito.any());
-        when(directoryService.searchByUPN(anyString())).
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
 
         ResponseEntity<?> transferCertResponse =
@@ -5687,7 +5687,7 @@ public class SSLCertificateServiceTest {
         objList.setValues(values);
         obj.setData(objList);
         
-        when(directoryService.searchByUPN(anyString())).
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
         ResponseEntity<?> transferCertResponse =
@@ -5748,7 +5748,7 @@ public class SSLCertificateServiceTest {
         objList.setValues(values);
         obj.setData(objList);
         
-        when(directoryService.searchByUPN(anyString())).
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
         ResponseEntity<?> transferCertResponse =
@@ -7350,7 +7350,7 @@ public class SSLCertificateServiceTest {
         DirectoryObjectsList usersList = new DirectoryObjectsList();
         usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
         users.setData(usersList);
-        when(directoryService.searchByUPN(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
 
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
@@ -7478,7 +7478,7 @@ public class SSLCertificateServiceTest {
         DirectoryObjectsList usersList = new DirectoryObjectsList();
         usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
         users.setData(usersList);
-        when(directoryService.searchByUPN(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
 
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
@@ -7624,7 +7624,7 @@ public class SSLCertificateServiceTest {
         DirectoryObjectsList usersList = new DirectoryObjectsList();
         usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
         users.setData(usersList);
-        when(directoryService.searchByUPN(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
 
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
@@ -7742,7 +7742,7 @@ public class SSLCertificateServiceTest {
         DirectoryObjectsList usersList = new DirectoryObjectsList();
         usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
         users.setData(usersList);
-        when(directoryService.searchByUPN(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
 
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
@@ -7859,7 +7859,7 @@ public class SSLCertificateServiceTest {
         DirectoryObjectsList usersList = new DirectoryObjectsList();
         usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
         users.setData(usersList);
-        when(directoryService.searchByUPN(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
 
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         Response responseForbidden = getMockResponse(HttpStatus.FORBIDDEN, true, "");
@@ -7978,7 +7978,7 @@ public class SSLCertificateServiceTest {
         DirectoryObjectsList usersList = new DirectoryObjectsList();
         usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
         users.setData(usersList);
-        when(directoryService.searchByUPN(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
 
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(false);
@@ -8093,7 +8093,7 @@ public class SSLCertificateServiceTest {
         DirectoryObjectsList usersList = new DirectoryObjectsList();
         usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
         users.setData(usersList);
-        when(directoryService.searchByUPN(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
         Response responseNoContent = getMockResponse(HttpStatus.NO_CONTENT, true, "");
         when(ControllerUtil.createMetadata(Mockito.any(), any())).thenReturn(true);
         when(reqProcessor.process(eq("/access/update"),any(),eq(userDetailToken))).thenReturn(responseNoContent);
@@ -8736,7 +8736,7 @@ public class SSLCertificateServiceTest {
      thenReturn(ResponseEntity.status(HttpStatus.OK).body("success"));
      DirectoryObjects users = new DirectoryObjects();
      users.setData(null);
-     when(directoryService.searchByUPN(anyString())).
+     when(directoryService.searchByUPNInGsmAndCorp(anyString())).
      thenReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(users));
 	when(reqProcessor.process(eq("/read"), anyObject(), anyString())).thenReturn(response);
 	ResponseEntity<String> responseOutput = sSLCertificateService.onboardSSLcertificate(userDetails1,
