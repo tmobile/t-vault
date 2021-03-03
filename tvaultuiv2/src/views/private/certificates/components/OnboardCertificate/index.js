@@ -413,9 +413,8 @@ const OnboardCertificates = (props) => {
     debounce(
       (value, type) => {
         const userNameSearch = apiService.getUserName(value);
-        const emailSearch = apiService.getOwnerTransferEmail(value);
         const tmoUser = apiService.getTmoUsers(value);
-        Promise.all([userNameSearch, emailSearch, tmoUser])
+        Promise.all([userNameSearch, tmoUser])
           .then((responses) => {
             const array = new Set([]);
             if (responses[0]?.data?.data?.values?.length > 0) {
@@ -428,14 +427,6 @@ const OnboardCertificates = (props) => {
             }
             if (responses[1]?.data?.data?.values?.length > 0) {
               responses[1].data.data.values.map((item) => {
-                if (item.userName) {
-                  return array.add(item);
-                }
-                return null;
-              });
-            }
-            if (responses[2]?.data?.data?.values?.length > 0) {
-              responses[2].data.data.values.map((item) => {
                 if (item.userName) {
                   return array.add(item);
                 }
