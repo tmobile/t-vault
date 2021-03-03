@@ -789,4 +789,23 @@ public class SelfSupportControllerTest {
 
     }
 
+    @Test
+    public void test_getAllSafes() throws Exception {
+        String response = "{\n" +
+                "  \"shared\": [],\n" +
+                "  \"users\": [],\n" +
+                "  \"apps\": [\n" +
+                "    \"test1\",\n" +
+                "    \"test2\"\n" +
+                "  ]\n" +
+                "}";
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(response);
+        UserDetails userDetails = getMockUser(false);
+        when(selfSupportService.getAllSafes(eq(userDetails), eq("5PDrOhsy4ig8L3EpsJZSLAMg"), eq("5PDrOhsy4ig8L3EpsJZSLAMg"))).thenReturn(responseEntityExpected);
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/ss/sdb/allsafes")
+                .header("vault-token", "5PDrOhsy4ig8L3EpsJZSLAMg")
+                .header("Content-Type", "application/json;charset=UTF-8"))
+                .andExpect(status().isOk());
+    }
 }
