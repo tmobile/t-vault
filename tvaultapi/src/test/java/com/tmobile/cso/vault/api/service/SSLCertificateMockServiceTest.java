@@ -4664,7 +4664,7 @@ public class SSLCertificateMockServiceTest {
         objList.setValues(values);
         obj.setData(objList);
 
-        when(directoryService.searchByUPN(anyString())).
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
         ResponseEntity<?> transferCertResponse =
@@ -4739,7 +4739,7 @@ public class SSLCertificateMockServiceTest {
         usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
         users.setData(usersList);
         Mockito.doNothing().when(emailUtils).sendTransferEmail(Mockito.any(),Mockito.any(),Mockito.any());
-        when(directoryService.searchByUPN(anyString())).
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
 
         ResponseEntity<?> transferCertResponse =
@@ -4801,7 +4801,7 @@ public class SSLCertificateMockServiceTest {
         objList.setValues(values);
         obj.setData(objList);
 
-        when(directoryService.searchByUPN(anyString())).
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
         ResponseEntity<?> transferCertResponse =
@@ -4862,7 +4862,7 @@ public class SSLCertificateMockServiceTest {
         objList.setValues(values);
         obj.setData(objList);
 
-        when(directoryService.searchByUPN(anyString())).
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
         ResponseEntity<?> transferCertResponse =
