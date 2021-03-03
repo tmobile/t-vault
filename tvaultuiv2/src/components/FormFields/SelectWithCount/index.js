@@ -44,7 +44,7 @@ const SelectWithCountComponent = (props) => {
         return (
           <MenuItemList value={item.name} selected={value} key={index}>
             {item.name}
-            <span>{` (${item.count})`}</span>
+            {item?.count && <span>{` (${item.count})`}</span>}
           </MenuItemList>
         );
       })}

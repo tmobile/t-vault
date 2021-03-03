@@ -1,9 +1,11 @@
 import api from '../../../services';
 
-const getSafes = () => api.get('/ss/sdb/safes');
+const getSafes = (offset) => api.get(`/ss/sdb/safes?limit=20&offset=${offset}`);
 const deleteSafe = (path) => api.delete(`/ss/sdb/delete?path=${path}`);
-const getManageUsersList = () => api.get('/ss/sdb/list?path=users');
-const getManageSharedList = () => api.get('/ss/sdb/list?path=shared');
+const getManageUsersList = (offset) =>
+  api.get(`/ss/sdb/list?path=users&limit=20&offset=${offset}`);
+const getManageSharedList = (offset) =>
+  api.get(`/ss/sdb/list?path=shared&limit=20&offset=${offset}`);
 const getManageAppsList = () => api.get('/ss/sdb/list?path=apps');
 
 const getSafeDetails = (path) => api.get(`/ss/sdb?path=${path}`);
