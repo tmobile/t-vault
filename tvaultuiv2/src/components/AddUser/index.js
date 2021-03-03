@@ -157,7 +157,8 @@ const AddUser = (props) => {
         setSearchLoader(true);
         const userNameSearch = apiService.getUserName(value);
         const emailSearch = apiService.getOwnerEmail(value);
-        Promise.all([userNameSearch, emailSearch])
+        const tmoUsers = apiService.getTmoUsers(value);
+        Promise.all([userNameSearch, emailSearch, tmoUsers])
           .then((responses) => {
             setOptions([]);
             const array = new Set([]);
@@ -171,6 +172,14 @@ const AddUser = (props) => {
             }
             if (responses[1]?.data?.data?.values?.length > 0) {
               responses[1].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(item);
+                }
+                return null;
+              });
+            }
+            if (responses[2]?.data?.data?.values?.length > 0) {
+              responses[2].data.data.values.map((item) => {
                 if (item.userName) {
                   return array.add(item);
                 }
@@ -203,7 +212,12 @@ const AddUser = (props) => {
 
   const onSelected = (e, val) => {
     if (val) {
-      setSearchValue(val?.split(', ')[1]);
+      const res = val?.split(', ');
+      if (res[1]) {
+        setSearchValue(res[1]);
+      } else {
+        setSearchValue(res[2]);
+      }
       setSelectedUser(
         options.filter(
           (i) => i?.userEmail?.toLowerCase() === val?.split(', ')[0]
@@ -214,13 +228,17 @@ const AddUser = (props) => {
   };
 
   const onSaveClick = () => {
-    if (username && access) {
+    if (username && access && username?.includes('(')) {
       const result = username?.match(/\((.*)\)/)[1];
       handleSaveClick(result?.toLowerCase(), radioValue);
+    } else if (username && access) {
+      handleSaveClick(username, radioValue);
     }
+
     if (
       getName(selectedUser?.displayName?.toLowerCase())?.split(', ')[0] !==
-      searchValue
+        searchValue &&
+      selectedUser?.userName?.toLowerCase() !== searchValue
     ) {
       setIsValidUserName(false);
     } else {
@@ -269,9 +287,11 @@ const AddUser = (props) => {
               <TypeAheadComponent
                 options={options.map(
                   (item) =>
-                    `${item?.userEmail?.toLowerCase()}, ${getName(
-                      item?.displayName?.toLowerCase()
-                    )}, ${item?.userName?.toLowerCase()}`
+                    `${item?.userEmail?.toLowerCase()}, ${
+                      getName(item?.displayName?.toLowerCase()) !== ' '
+                        ? `${getName(item?.displayName?.toLowerCase())}, `
+                        : ''
+                    }${item?.userName?.toLowerCase()}`
                 )}
                 loader={searchLoader}
                 icon="search"
@@ -300,12 +320,17 @@ const AddUser = (props) => {
               <InstructionText>
                 Search the T-Mobile system to add users
               </InstructionText>
-              {!isCertificate && !isIamAzureSvcAccount && !isSvcAccount && (<InstructionText>
-                Note: Denying the safe owner(normal user) will not take any effect for users.
-              </InstructionText>)}
-              {isCertificate && (<InstructionText>
-                Note: Denying the admin will not take any effect for users.
-              </InstructionText>)}
+              {!isCertificate && !isIamAzureSvcAccount && !isSvcAccount && (
+                <InstructionText>
+                  Note: Denying the safe owner(normal user) will not take any
+                  effect for users.
+                </InstructionText>
+              )}
+              {isCertificate && (
+                <InstructionText>
+                  Note: Denying the admin will not take any effect for users.
+                </InstructionText>
+              )}
               {searchLoader && <LoaderSpinner customStyle={customStyle} />}
             </>
           ) : (

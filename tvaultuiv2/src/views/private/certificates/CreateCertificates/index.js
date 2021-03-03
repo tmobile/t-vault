@@ -454,7 +454,7 @@ const CreateCertificates = (props) => {
       return false;
     }
     return true;
-  }
+  };
 
   const InputValidation = (text) => {
     if (text) {
@@ -470,8 +470,6 @@ const CreateCertificates = (props) => {
     }
     return null;
   };
-
-
 
   const onCertificateNameChange = (e) => {
     setCertName(e.target.value);
@@ -546,6 +544,7 @@ const CreateCertificates = (props) => {
 
   const onPreviewClicked = () => {
     setNotifyEmail('');
+    setDnsName('');
     setShowPreview(true);
   };
 
@@ -696,7 +695,8 @@ const CreateCertificates = (props) => {
         setAutoLoader(true);
         const userNameSearch = apiService.getUserName(value);
         const emailSearch = apiService.getOwnerTransferEmail(value);
-        Promise.all([userNameSearch, emailSearch])
+        const tmoUser = apiService.getTmoUsers(value);
+        Promise.all([userNameSearch, emailSearch, tmoUser])
           .then((responses) => {
             setOptions([]);
             const array = new Set([]);
@@ -710,6 +710,14 @@ const CreateCertificates = (props) => {
             }
             if (responses[1]?.data?.data?.values?.length > 0) {
               responses[1].data.data.values.map((item) => {
+                if (item.userName) {
+                  return array.add(item);
+                }
+                return null;
+              });
+            }
+            if (responses[2]?.data?.data?.values?.length > 0) {
+              responses[2].data.data.values.map((item) => {
                 if (item.userName) {
                   return array.add(item);
                 }
@@ -1099,9 +1107,15 @@ const CreateCertificates = (props) => {
                                 ? options
                                 : options.map(
                                     (item) =>
-                                      `${item?.userEmail?.toLowerCase()}, ${getName(
-                                        item?.displayName?.toLowerCase()
-                                      )}, ${item?.userName?.toLowerCase()}`
+                                      `${item?.userEmail?.toLowerCase()}, ${
+                                        getName(
+                                          item?.displayName?.toLowerCase()
+                                        ) !== ' '
+                                          ? `${getName(
+                                              item?.displayName?.toLowerCase()
+                                            )}, `
+                                          : ''
+                                      }${item?.userName?.toLowerCase()}`
                                   )
                             }
                             loader={autoLoader}

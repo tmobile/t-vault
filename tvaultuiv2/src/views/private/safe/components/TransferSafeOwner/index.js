@@ -250,9 +250,11 @@ const TransferSafeOwner = (props) => {
           <TypeAheadComponent
             options={options?.map(
               (item) =>
-                `${item?.userEmail?.toLowerCase()}, ${getName(
-                  item?.displayName?.toLowerCase()
-                )}, ${item?.userName?.toLowerCase()}`
+                `${item?.userEmail?.toLowerCase()}, ${
+                  getName(item?.displayName?.toLowerCase()) !== ' '
+                    ? `${getName(item?.displayName?.toLowerCase())}, `
+                    : ''
+                }${item?.userName?.toLowerCase()}`
             )}
             loader={autoLoader}
             userInput={owner}
