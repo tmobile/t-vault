@@ -235,7 +235,7 @@ const LeftColumn = (props) => {
             </StatusActionWrapper>
           </ListFolderWrap>
         ))}
-        {isLoading ? <div>Loading...</div> :null }
+        {isLoading ? <div>Loading...</div> : null}
       </>
     </ComponentError>
   );
@@ -250,7 +250,7 @@ LeftColumn.propTypes = {
   onOnboardClicked: PropTypes.func,
   history: PropTypes.objectOf(PropTypes.any).isRequired,
   onDeleteCertificateClicked: PropTypes.func.isRequired,
-  isLoading: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool.isRequired,
 };
 
 LeftColumn.defaultProps = {
