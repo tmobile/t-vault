@@ -20,6 +20,7 @@ package com.tmobile.cso.vault.api.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.tmobile.cso.vault.api.common.TVaultConstants;
 import com.tmobile.cso.vault.api.controller.ControllerUtil;
 import com.tmobile.cso.vault.api.controller.OIDCUtil;
 import com.tmobile.cso.vault.api.exception.TVaultValidationException;
@@ -49,10 +50,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -3422,5 +3420,77 @@ public class SelfSupportServiceTest {
         assertEquals(responseEntityExpected, responseEntity);
     }
 
+    @Test
+    public void test_getAllSafes_success_admin() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(true);
 
+        String policyArray[] = { "r_users_test1", "r_shared_test2", "r_apps_test3"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(policyArray);
+
+        Response listUserSafesResponse = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"test1\",\"test4\"]}");
+        when(reqProcessor.process("/sdb/list","{\"path\":\"metadata/users\"}",token)).thenReturn(listUserSafesResponse);
+
+        Response listSharedSafesResponse = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"test2\"]}");
+        when(reqProcessor.process("/sdb/list","{\"path\":\"metadata/shared\"}",token)).thenReturn(listUserSafesResponse);
+
+        Response listAppsSafesResponse = getMockResponse(HttpStatus.OK, true, "{\"keys\":[\"test3\",\"test5\"]}");
+        when(reqProcessor.process("/sdb/list","{\"path\":\"metadata/apps\"}",token)).thenReturn(listUserSafesResponse);
+
+        Map<String, List<String>> expectedSafeList = new HashMap<>();
+        List<String> userSafeList = Arrays.asList("test1", "test4");
+        List<String> sharedSafeList = Arrays.asList("test2");
+        List<String> appsSafeList = Arrays.asList("test3", "test5");
+
+        expectedSafeList.put(TVaultConstants.USERS, userSafeList);
+        expectedSafeList.put(TVaultConstants.SHARED, sharedSafeList);
+        expectedSafeList.put(TVaultConstants.APPS, appsSafeList);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(expectedSafeList));
+        ResponseEntity<String> responseEntity = selfSupportService.getAllSafes(userDetails, token, "");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+
+    @Test
+    public void test_getAllSafes_success_searchText() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+
+        String policyArray[] = { "r_users_test1", "r_shared_test2", "r_apps_test3"};
+        when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(policyArray);
+
+        String [] managedUserSafes = { "test4"};
+        String [] managedSharedSafes = { "test5"};
+        String [] managedAppsSafes = { "test6"};
+        when(safeUtils.getManagedSafes(policyArray, TVaultConstants.USERS)).thenReturn(managedUserSafes);
+        when(safeUtils.getManagedSafes(policyArray, TVaultConstants.SHARED)).thenReturn(managedSharedSafes);
+        when(safeUtils.getManagedSafes(policyArray, TVaultConstants.APPS)).thenReturn(managedAppsSafes);
+
+        Map<String, List<String>> expectedSafeList = new HashMap<>();
+        List<String> userSafeList = Arrays.asList("test1");
+        List<String> sharedSafeList = new ArrayList<>();
+        List<String> appsSafeList = new ArrayList<>();
+
+        expectedSafeList.put(TVaultConstants.USERS, userSafeList);
+        expectedSafeList.put(TVaultConstants.SHARED, sharedSafeList);
+        expectedSafeList.put(TVaultConstants.APPS, appsSafeList);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(expectedSafeList));
+        ResponseEntity<String> responseEntity = selfSupportService.getAllSafes(userDetails, token, "test1");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_getAllSafes_failed_404() throws TVaultValidationException {
+        String token = "5PDrOhsy4ig8L3EpsJZSLAMg";
+        UserDetails userDetails = getMockUser(false);
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Search text must be of minimum 3 characters.\"]}");
+        ResponseEntity<String> responseEntity = selfSupportService.getAllSafes(userDetails, token, "t");
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
 }
