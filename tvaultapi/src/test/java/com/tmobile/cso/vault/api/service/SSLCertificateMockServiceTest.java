@@ -4711,7 +4711,7 @@ public class SSLCertificateMockServiceTest {
 
         when(reqProcessor.process("/sslcert", "{\"path\":\"/sslcerts/CertificateName.t-mobile.com\"}",token)).thenReturn(response);
 
-        ResponseEntity<String> responseEntityActual = sSLCertificateService.getListOfCertificates(token, certificateType);
+        ResponseEntity<String> responseEntityActual = sSLCertificateService.getListOfCertificates(token, certificateType, 1, 0);
 
         assertEquals(HttpStatus.OK, responseEntityActual.getStatusCode());
     }
@@ -4770,7 +4770,7 @@ public class SSLCertificateMockServiceTest {
         objList.setValues(values);
         obj.setData(objList);
 
-        when(directoryService.searchByUPN(anyString())).
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
         ResponseEntity<?> transferCertResponse =
@@ -4845,7 +4845,7 @@ public class SSLCertificateMockServiceTest {
         usersList.setValues(persons.toArray(new DirectoryUser[persons.size()]));
         users.setData(usersList);
         Mockito.doNothing().when(emailUtils).sendTransferEmail(Mockito.any(),Mockito.any(),Mockito.any());
-        when(directoryService.searchByUPN(anyString())).
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(users));
 
         ResponseEntity<?> transferCertResponse =
@@ -4907,7 +4907,7 @@ public class SSLCertificateMockServiceTest {
         objList.setValues(values);
         obj.setData(objList);
 
-        when(directoryService.searchByUPN(anyString())).
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
         ResponseEntity<?> transferCertResponse =
@@ -4968,7 +4968,7 @@ public class SSLCertificateMockServiceTest {
         objList.setValues(values);
         obj.setData(objList);
 
-        when(directoryService.searchByUPN(anyString())).
+        when(directoryService.searchByUPNInGsmAndCorp(anyString())).
                 thenReturn(ResponseEntity.status(HttpStatus.OK).body(obj));
 
         ResponseEntity<?> transferCertResponse =

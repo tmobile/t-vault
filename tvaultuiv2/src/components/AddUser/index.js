@@ -156,9 +156,8 @@ const AddUser = (props) => {
       (value) => {
         setSearchLoader(true);
         const userNameSearch = apiService.getUserName(value);
-        const emailSearch = apiService.getOwnerEmail(value);
         const tmoUsers = apiService.getTmoUsers(value);
-        Promise.all([userNameSearch, emailSearch, tmoUsers])
+        Promise.all([userNameSearch, tmoUsers])
           .then((responses) => {
             setOptions([]);
             const array = new Set([]);
@@ -172,14 +171,6 @@ const AddUser = (props) => {
             }
             if (responses[1]?.data?.data?.values?.length > 0) {
               responses[1].data.data.values.map((item) => {
-                if (item.userName) {
-                  return array.add(item);
-                }
-                return null;
-              });
-            }
-            if (responses[2]?.data?.data?.values?.length > 0) {
-              responses[2].data.data.values.map((item) => {
                 if (item.userName) {
                   return array.add(item);
                 }
@@ -287,9 +278,11 @@ const AddUser = (props) => {
               <TypeAheadComponent
                 options={options.map(
                   (item) =>
-                    `${item?.userEmail?.toLowerCase()}, ${getName(
-                      item?.displayName?.toLowerCase()
-                    )}, ${item?.userName?.toLowerCase()}`
+                    `${item?.userEmail?.toLowerCase()}, ${
+                      getName(item?.displayName?.toLowerCase()) !== ' '
+                        ? `${getName(item?.displayName?.toLowerCase())}, `
+                        : ''
+                    }${item?.userName?.toLowerCase()}`
                 )}
                 loader={searchLoader}
                 icon="search"

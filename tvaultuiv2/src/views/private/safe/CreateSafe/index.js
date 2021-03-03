@@ -412,8 +412,8 @@ const CreateModal = (props) => {
       (value) => {
         setAutoLoader(true);
         const userNameSearch = apiService.getUserName(value);
-        const emailSearch = apiService.getOwnerEmail(value);
-        Promise.all([userNameSearch, emailSearch])
+        const tmoUser = apiService.getTmoUsers(value);
+        Promise.all([userNameSearch, tmoUser])
           .then((responses) => {
             setOptions([]);
             const array = new Set([]);
@@ -697,9 +697,14 @@ const CreateModal = (props) => {
                         <TypeAheadComponent
                           options={options.map(
                             (item) =>
-                              `${item?.userEmail?.toLowerCase()}, ${getName(
-                                item?.displayName?.toLowerCase()
-                              )}, ${item?.userName?.toLowerCase()}`
+                              `${item?.userEmail?.toLowerCase()}, ${
+                                getName(item?.displayName?.toLowerCase()) !==
+                                ' '
+                                  ? `${getName(
+                                      item?.displayName?.toLowerCase()
+                                    )}, `
+                                  : ''
+                              }${item?.userName?.toLowerCase()}`
                           )}
                           loader={autoLoader}
                           userInput={owner}

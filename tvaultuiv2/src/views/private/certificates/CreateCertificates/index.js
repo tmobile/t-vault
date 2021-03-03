@@ -450,7 +450,10 @@ const CreateCertificates = (props) => {
   ]);
 
   const WildCardCertificateValidation = (text) => {
-    if (text.includes('*') && !text.startsWith('*.')) {
+    if (
+      text.includes('*') &&
+      (!JSON.parse(sessionStorage.getItem('isAdmin')) || !text.startsWith('*.'))
+    ) {
       return false;
     }
     return true;
@@ -544,6 +547,7 @@ const CreateCertificates = (props) => {
 
   const onPreviewClicked = () => {
     setNotifyEmail('');
+    setDnsName('');
     setShowPreview(true);
   };
 
@@ -693,8 +697,8 @@ const CreateCertificates = (props) => {
       (value) => {
         setAutoLoader(true);
         const userNameSearch = apiService.getUserName(value);
-        const emailSearch = apiService.getOwnerTransferEmail(value);
-        Promise.all([userNameSearch, emailSearch])
+        const tmoUser = apiService.getTmoUsers(value);
+        Promise.all([userNameSearch, tmoUser])
           .then((responses) => {
             setOptions([]);
             const array = new Set([]);
@@ -1097,9 +1101,15 @@ const CreateCertificates = (props) => {
                                 ? options
                                 : options.map(
                                     (item) =>
-                                      `${item?.userEmail?.toLowerCase()}, ${getName(
-                                        item?.displayName?.toLowerCase()
-                                      )}, ${item?.userName?.toLowerCase()}`
+                                      `${item?.userEmail?.toLowerCase()}, ${
+                                        getName(
+                                          item?.displayName?.toLowerCase()
+                                        ) !== ' '
+                                          ? `${getName(
+                                              item?.displayName?.toLowerCase()
+                                            )}, `
+                                          : ''
+                                      }${item?.userName?.toLowerCase()}`
                                   )
                             }
                             loader={autoLoader}
