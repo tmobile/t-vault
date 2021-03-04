@@ -116,6 +116,7 @@ const SelectionTabs = (props) => {
   const addSecretsFolder = () => {
     setEnableAddFolder(true);
   };
+  const [previousVal, setPreviousVal] = useState({});
   // toast close handling
   const onToastClose = (reason) => {
     if (reason === 'clickaway') {
@@ -202,7 +203,13 @@ const SelectionTabs = (props) => {
         let obj = {};
         if (res && res.data?.data) {
           obj = res.data.data;
-          if (res.data.data.users) {
+          if (
+            res.data.data.users &&
+            (obj?.owner?.toLowerCase() ===
+              sessionStorage.getItem('owner')?.toLowerCase() ||
+              obj?.ownerid?.toLowerCase() ===
+                sessionStorage.getItem('username')?.toLowerCase())
+          ) {
             const eachUsersDetails = await getEachUsersDetails(
               res.data.data.users
             );
@@ -226,17 +233,23 @@ const SelectionTabs = (props) => {
   }, [safeDetail]);
 
   useEffect(() => {
-    setResponse({ status: 'loading', message: 'loading...' });
-    if (safeDetail?.manage) {
-      async function fetchData() {
-        await fetchPermission();
-        getSecretDetails();
+    if (
+      Object.keys(previousVal).length === 0 ||
+      previousVal?.name !== safeDetail?.name
+    ) {
+      setResponse({ status: 'loading', message: 'loading...' });
+      if (safeDetail?.name) {
+        async function fetchData() {
+          await fetchPermission();
+          getSecretDetails();
+        }
+        fetchData();
+      } else {
+        setSafePermissionData({});
       }
-      fetchData();
-    } else {
-      setSafePermissionData({});
-      getSecretDetails();
+      setPreviousVal(safeDetail);
     }
+    // eslint-disable-next-line
   }, [safeDetail, fetchPermission, getSecretDetails]);
 
   const safePath = safeDetail?.path;

@@ -219,7 +219,7 @@ const SafeDashboard = () => {
    * @function compareSafesAndList
    * @description function compare safe and manage safes and remove duplication.
    */
-  const compareSafesAndList = useCallback((listArray, type, safesObject) => {
+  const compareSafesAndList = (listArray, type, safesObject) => {
     const value = createSafeArray(listArray, type);
     safesObject[type].map((item) => {
       if (!listArray.includes(item.name)) {
@@ -228,26 +228,66 @@ const SafeDashboard = () => {
       return null;
     });
     value.map((item) => {
-      if (
-        !safesObject[type].some((list) => list.name === item.name) &&
-        !arrayList.some((list) => list.name === item.name)
-      ) {
+      const obj = arrayList.find((ele) => ele.name === item.name);
+      if (!safesObject[type].some((list) => list.name === item.name) && !obj) {
         return safesObject[type].push(item);
       }
       return null;
     });
-  }, []);
+  };
 
   const clearData = () => {
+    const arr = [];
     setSafeOffset(0);
     setAllSafeList([]);
-    setArrayList([]);
+    setArrayList(arr);
     setHasMoreData(true);
     setClearedData(true);
   };
 
+  const safesOidcResponse = (safeTypeList, type, safeObject) => {
+    const data = makeSafesList(safeTypeList, type);
+    data.map((value) => {
+      const obj = arrayList.find((item) => item.name === value.name);
+      if (!obj) {
+        return safeObject[type].push(value);
+      }
+      return null;
+    });
+  };
+
+  const safesLdapUserPassResponse = (type, safeObject) => {
+    const access = JSON.parse(sessionStorage.getItem('access'));
+    if (Object.keys(access).length > 0) {
+      Object.keys(access).forEach((item) => {
+        if (item === type) {
+          const data = makeSafesList(access[item], item);
+          data.map((value) => {
+            const obj = arrayList.find((ele) => ele.name === value.name);
+            if (!obj) {
+              return safeObject[type].push(value);
+            }
+            return null;
+          });
+        }
+      });
+    }
+  };
+
+  const onResponseVariableSet = (safeObject) => {
+    Object.keys(safeObject).map((item) => {
+      return safeObject[item].map((ele) => {
+        return arrayList.push(ele);
+      });
+    });
+    setSafeList([...arrayList]);
+    setAllSafeList([...arrayList]);
+    setIsInfiniteScrollLoading(false);
+    setResponse({ status: 'success', message: '' });
+  };
+
   /**
-   * @function fetchData
+   * @function fetchUserSafesData
    * @description function call all the manage and users safe api.
    */
   const fetchUserSafesData = useCallback(async () => {
@@ -267,28 +307,11 @@ const SafeDashboard = () => {
         setSafeOffset(20 + safeOffset);
         const safesObject = { users: [] };
         if (configData.AUTH_TYPE === 'oidc') {
-          if (result[0] && result[0].data) {
-            const data = makeSafesList(result[0].data.users, 'users');
-            data.map((value) => {
-              const obj = arrayList.find((item) => item.name === value.name);
-              if (!obj) {
-                return safesObject.users.push(value);
-              }
-              return null;
-            });
+          if (result && result[0]?.data) {
+            safesOidcResponse(result[0].data.users, 'users', safesObject);
           }
         } else {
-          const access = JSON.parse(sessionStorage.getItem('access'));
-          if (Object.keys(access).length > 0) {
-            Object.keys(access).forEach((item) => {
-              if (item === 'users') {
-                const data = makeSafesList(access[item], item);
-                data.map((value) => {
-                  return safesObject[item].push(value);
-                });
-              }
-            });
-          }
+          safesLdapUserPassResponse('users', safesObject);
         }
         if (result[1] && result[1]?.data?.keys) {
           compareSafesAndList(result[1].data.keys, 'users', safesObject);
@@ -301,14 +324,7 @@ const SafeDashboard = () => {
         } else {
           setHasMoreData(true);
         }
-        Object.keys(safesObject).map((item) => {
-          return safesObject[item].map((ele) => {
-            return arrayList.push(ele);
-          });
-        });
-        setSafeList([...arrayList]);
-        setIsInfiniteScrollLoading(false);
-        setResponse({ status: 'success', message: '' });
+        onResponseVariableSet(safesObject);
       })
       .catch(() => {
         setResponse({ status: 'failed', message: 'failed' });
@@ -351,27 +367,10 @@ const SafeDashboard = () => {
         const safesObject = { shared: [] };
         if (configData.AUTH_TYPE === 'oidc') {
           if (result[0] && result[0].data) {
-            const data = makeSafesList(result[0].data.shared, 'shared');
-            data.map((value) => {
-              const obj = arrayList.find((item) => item.name === value.name);
-              if (!obj) {
-                return safesObject.shared.push(value);
-              }
-              return null;
-            });
+            safesOidcResponse(result[0].data.shared, 'shared', safesObject);
           }
         } else {
-          const access = JSON.parse(sessionStorage.getItem('access'));
-          if (Object.keys(access).length > 0) {
-            Object.keys(access).forEach((item) => {
-              if (item === 'shared') {
-                const data = makeSafesList(access[item], item);
-                data.map((value) => {
-                  return safesObject[item].push(value);
-                });
-              }
-            });
-          }
+          safesLdapUserPassResponse('shared', safesObject);
         }
         if (result[1] && result[1]?.data?.keys) {
           compareSafesAndList(result[1].data.keys, 'shared', safesObject);
@@ -380,29 +379,22 @@ const SafeDashboard = () => {
           result[0].data.sharedSafeCount[0].next === '-1' &&
           result[1].data.next === -1
         ) {
-          console.log('clearData', arrayList.length);
+          console.log('arrayList', arrayList.length);
           setHasMoreData(false);
         } else {
           setHasMoreData(true);
         }
-        Object.keys(safesObject).map((item) => {
-          return safesObject[item].map((ele) => {
-            return arrayList.push(ele);
-          });
-        });
-        setSafeList([...arrayList]);
-        setAllSafeList([...arrayList]);
-        setIsInfiniteScrollLoading(false);
-        setResponse({ status: 'success', message: '' });
+        onResponseVariableSet(safesObject);
       })
       .catch(() => {
         setResponse({ status: 'failed', message: 'failed' });
       });
+    // eslint-disable-next-line
   }, [safeOffset, arrayList]);
 
   /**
-   * @function fetchData
-   * @description function call all the manage and shared safe api.
+   * @function fetchAppSafesData
+   * @description function call all the manage and apps safe api.
    */
   const fetchAppSafesData = useCallback(async () => {
     let safesApiResponse = [];
@@ -416,28 +408,11 @@ const SafeDashboard = () => {
         setSafeOffset(20 + safeOffset);
         const safesObject = { apps: [] };
         if (configData.AUTH_TYPE === 'oidc') {
-          if (result[0] && result[0].data) {
-            const data = makeSafesList(result[0].data.shared, 'apps');
-            data.map((value) => {
-              const obj = arrayList.find((item) => item.name === value.name);
-              if (!obj) {
-                return safesObject.apps.push(value);
-              }
-              return null;
-            });
+          if (result && result[0]?.data) {
+            safesOidcResponse(result[0].data.apps, 'apps', safesObject);
           }
         } else {
-          const access = JSON.parse(sessionStorage.getItem('access'));
-          if (Object.keys(access).length > 0) {
-            Object.keys(access).forEach((item) => {
-              if (item === 'apps') {
-                const data = makeSafesList(access[item], item);
-                data.map((value) => {
-                  return safesObject[item].push(value);
-                });
-              }
-            });
-          }
+          safesLdapUserPassResponse('apps', safesObject);
         }
         if (result[1] && result[1]?.data?.keys) {
           compareSafesAndList(result[1].data.keys, 'apps', safesObject);
@@ -446,24 +421,17 @@ const SafeDashboard = () => {
           result[0].data.sharedSafeCount[0].next === '-1' &&
           result[1].data.next === -1
         ) {
-          console.log('clearData', arrayList.length);
           setHasMoreData(false);
+          console.log('object', arrayList.length);
         } else {
           setHasMoreData(true);
         }
-        Object.keys(safesObject).map((item) => {
-          return safesObject[item].map((ele) => {
-            return arrayList.push(ele);
-          });
-        });
-        setSafeList([...arrayList]);
-        setAllSafeList([...arrayList]);
-        setResponse({ status: 'success', message: '' });
-        setIsInfiniteScrollLoading(false);
+        onResponseVariableSet(safesObject);
       })
       .catch(() => {
         setResponse({ status: 'failed', message: 'failed' });
       });
+    // eslint-disable-next-line
   }, [arrayList, safeOffset]);
 
   useEffect(() => {
@@ -515,6 +483,15 @@ const SafeDashboard = () => {
     e.preventDefault();
   };
 
+  const callApiBasedOnSafeType = async () => {
+    if (safeType === 'User Safes') {
+      await fetchUserSafesData();
+    } else if (safeType === 'Shared Safes') {
+      await fetchSharedSafesData();
+    } else {
+      await fetchAppSafesData();
+    }
+  };
   /**
    * @function onDeleteSafeClicked
    * @description function to call delete confirmation modal for safe.
@@ -538,11 +515,11 @@ const SafeDashboard = () => {
       .deleteSafe(deletionPath)
       .then(() => {
         setDeletionPath('');
-        setResponse({ status: 'success', message: 'success' });
         setToast(1);
-        // fetchData();
+        clearData();
       })
       .catch(() => {
+        setResponse({ status: 'success', message: 'success' });
         setDeletionPath('');
         setToast(-1);
       });
@@ -590,15 +567,9 @@ const SafeDashboard = () => {
     history.push({ pathname: '/safes/edit-safe', state: { safe } });
   };
 
-  const loadMoreData = async () => {
+  const loadMoreData = () => {
     setIsInfiniteScrollLoading(true);
-    if (safeType === 'User Safes') {
-      await fetchUserSafesData();
-    } else if (safeType === 'Shared Safes') {
-      await fetchSharedSafesData();
-    } else {
-      await fetchAppSafesData();
-    }
+    callApiBasedOnSafeType();
   };
 
   const handleListScroll = () => {
@@ -614,17 +585,16 @@ const SafeDashboard = () => {
 
   useEffect(() => {
     if (clearedData) {
-      if (safeType === 'User Safes') {
-        fetchUserSafesData();
-      } else if (safeType === 'Shared Safes') {
-        fetchSharedSafesData();
-      } else {
-        fetchAppSafesData();
-      }
+      callApiBasedOnSafeType();
       setClearedData(false);
     }
     // eslint-disable-next-line
   }, [clearedData]);
+
+  const fetchData = () => {
+    setResponse({ status: 'loading', message: 'loading' });
+    clearData();
+  };
 
   const renderSafes = () => {
     return safeList.map((safe, index) => {
@@ -790,7 +760,6 @@ const SafeDashboard = () => {
 
           <RightColumnSection clicked={safeClicked}>
             <Switch>
-              {' '}
               {safeList[0]?.name && (
                 <Redirect
                   exact
@@ -808,11 +777,11 @@ const SafeDashboard = () => {
                     resetClicked={() => onResetClicked()}
                     detailData={selectedSafeDetails}
                     params={routerProps}
-                    refresh={() => {}}
+                    refresh={fetchData}
                     renderContent={
                       <SelectionTabs
                         safeDetail={selectedSafeDetails}
-                        refresh={() => {}}
+                        refresh={fetchData}
                       />
                     }
                   />
@@ -825,11 +794,11 @@ const SafeDashboard = () => {
                     detailData={selectedSafeDetails}
                     params={routerProps}
                     resetClicked={() => onResetClicked()}
-                    refresh={() => {}}
+                    refresh={fetchData}
                     renderContent={
                       <SelectionTabs
                         safeDetail={selectedSafeDetails}
-                        refresh={() => {}}
+                        refresh={fetchData}
                       />
                     }
                   />
@@ -859,14 +828,14 @@ const SafeDashboard = () => {
             exact
             path="/safes/create-safe"
             render={(routeProps) => (
-              <CreateSafe routeProps={{ ...routeProps }} refresh={() => {}} />
+              <CreateSafe routeProps={{ ...routeProps }} refresh={fetchData} />
             )}
           />
           <Route
             exact
             path="/safes/edit-safe"
             render={(routeProps) => (
-              <CreateSafe routeProps={{ ...routeProps }} refresh={() => {}} />
+              <CreateSafe routeProps={{ ...routeProps }} refresh={fetchData} />
             )}
           />
         </Switch>
