@@ -309,7 +309,8 @@ const AddUser = (props) => {
                 characterLimit={50}
               />
               <InstructionText>
-                Search the T-Mobile system to add users
+                Search users by email or by user name (lastname, firstname) or
+                by NTid.
               </InstructionText>
               {!isCertificate && !isIamAzureSvcAccount && !isSvcAccount && (
                 <InstructionText>

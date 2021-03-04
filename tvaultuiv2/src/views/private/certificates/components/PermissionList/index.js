@@ -59,7 +59,7 @@ const CertificatePermissionsList = (props) => {
     if (obj) {
       return `${obj.displayName} (${obj.userName})`;
     }
-    return username;
+    return userName;
   };
   return (
     <UserList>

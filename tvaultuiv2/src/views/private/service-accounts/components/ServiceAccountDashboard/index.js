@@ -321,19 +321,6 @@ const ServiceAccountDashboard = () => {
   };
 
   /**
-   * @function onLinkClicked
-   * @description function to check if mobile screen the make safeClicked true
-   * based on that value display left and right side.
-   */
-  const onLinkClicked = (item) => {
-    setListItemDetails(item);
-    setServiceAccountMetaData({});
-    if (isMobileScreen) {
-      setServiceAccountClicked(true);
-    }
-  };
-
-  /**
    * @function onActionClicked
    * @description function to prevent default click.
    * @param {object} e event
@@ -382,7 +369,7 @@ const ServiceAccountDashboard = () => {
 
   const validateNonDecomissioned = (name) => {
     return apiService
-      .getServiceAccountPassword(name)
+      .callServiceAccount(name)
       .then((res) => {
         if (res) {
           return true;
@@ -558,6 +545,27 @@ const ServiceAccountDashboard = () => {
       .catch(() => {
         setToastResponse(-1);
       });
+  };
+
+  /**
+   * @function onLinkClicked
+   * @description function to check if mobile screen the make safeClicked true
+   * based on that value display left and right side.
+   */
+  const onLinkClicked = (item) => {
+    setListItemDetails(item);
+    setVerifyingDecomissioned('loading');
+    validateNonDecomissioned(item.name).then((res) => {
+      if (res === true) {
+        setServiceAccountMetaData({});
+        if (isMobileScreen) {
+          setServiceAccountClicked(true);
+        }
+        setVerifyingDecomissioned('success');
+      } else {
+        setVerifyingDecomissioned('success');
+      }
+    });
   };
 
   const renderList = () => {

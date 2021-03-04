@@ -199,7 +199,6 @@ const Users = (props) => {
     }
     // eslint-disable-next-line
   }, [selectedParentTab]);
-
   return (
     <ComponentError>
       <>
@@ -245,7 +244,9 @@ const Users = (props) => {
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description={'No <strong>Users</strong> are given permission to access this certificate, add users to access the certificate.'}
+                    description={
+                      'No <strong>users</strong> are given permission to access this certificate, add users to access the certificate.'
+                    }
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent

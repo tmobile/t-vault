@@ -42,6 +42,8 @@ const getRevokeReason = (id) =>
   api.get(`/certificates/${id}/revocationreasons`);
 const revokeRequest = (certType, name, payload) =>
   api.post(`/certificates/${certType}/${name}/revocationrequest`, payload);
+const validateExternalCert = (name, certType) =>
+  api.get(`/sslcert/validate/${name}/${certType}`);
 
 const getUserName = (user) => api.get(`/ldap/ntusers?displayName=${user}`);
 const getTmoUsers = (user) => api.get(`/tmo/users?UserPrincipalName=${user}`);
@@ -102,4 +104,5 @@ export default {
   updateCert,
   onOnboardcertificate,
   searchByGroupEmail,
+  validateExternalCert,
 };
