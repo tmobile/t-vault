@@ -9111,5 +9111,59 @@ public class SSLCertificateServiceTest {
         ResponseEntity<String> responseEntity = sSLCertificateService.getAllCertificatesOnCertType(userDetails, certificateType, 1, 0);
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
     }
-    
+
+    @Test
+    public void test_getFullCertificateList_admin() {
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("normaluser");
+        userDetails.setAdmin(true);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+
+        Response internalCertListResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"keys\":[\"certtest1.company.com\",\"certtest2.company.com\"]}}");
+        when(reqProcessor.process("/sslcert","{\"path\":\""+SSLCertificateConstants.SSL_CERT_PATH+"?list=true\"}",token)).thenReturn(internalCertListResponse);
+
+        Response externalCertListResponse = getMockResponse(HttpStatus.OK, true, "{\"data\":{\"keys\":[\"certtestext1.company.com\",\"certtestext2.company.com\"]}}");
+        when(reqProcessor.process("/sslcert","{\"path\":\""+SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH+"?list=true\"}",token)).thenReturn(externalCertListResponse);
+
+        when(JSONUtil.getJSON(Mockito.any(HashMap.class))).thenReturn("{\"internal\":[\"certtest1.company.com\",\"certtest2.company.com\"],\"external\":[\"certtestext1.company.com\", \"certtestext2.company.com\"]}");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"internal\":[\"certtest1.company.com\",\"certtest2.company.com\"],\"external\":[\"certtestext1.company.com\", \"certtestext2.company.com\"]}");
+
+        ResponseEntity<String> responseEntity = sSLCertificateService.getFullCertificateList(token, userDetails, "");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_getFullCertificateList_normaluser() {
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("normaluser");
+        userDetails.setAdmin(false);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+        String [] policies = {"r_cert_certtest1.company.com", "r_externalcerts_certtest2.company.com"};
+
+        when( policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(policies);
+        when(JSONUtil.getJSON(Mockito.any(HashMap.class))).thenReturn("{\"internal\":[\"certtest1.company.com\"],\"external\":[\"certtestext2.company.com\"]}");
+
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"internal\":[\"certtest1.company.com\"],\"external\":[\"certtestext2.company.com\"]}");
+
+        ResponseEntity<String> responseEntity = sSLCertificateService.getFullCertificateList(token, userDetails, "cert");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
+
+    @Test
+    public void test_getFullCertificateList_404() {
+        UserDetails userDetails = new UserDetails();
+        userDetails.setUsername("normaluser");
+        userDetails.setAdmin(false);
+        userDetails.setClientToken(token);
+        userDetails.setSelfSupportToken(token);
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Search text must be of minimum 3 characters.\"]}");
+
+        ResponseEntity<String> responseEntity = sSLCertificateService.getFullCertificateList(token, userDetails, "c");
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(responseEntityExpected, responseEntity);
+    }
 }

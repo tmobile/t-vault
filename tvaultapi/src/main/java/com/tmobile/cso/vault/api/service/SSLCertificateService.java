@@ -11140,4 +11140,143 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		}
 		return matchedlist;
 	}
+
+    /**
+     * To get all certificate names which the user has read/deny/owner permission
+     * @param token
+     * @param userDetails
+     * @param searchText
+     * @return
+     */
+    public ResponseEntity<String> getFullCertificateList(String token, UserDetails userDetails, String searchText) {
+        if (!StringUtils.isEmpty(searchText) && searchText.length() < 3) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Search text must be of minimum 3 characters.\"]}");
+        }
+        Map<String, List<String>> certificateList = new HashMap<>();
+        // For admin users, take certificate names from metadata list
+        if (userDetails.isAdmin()) {
+            // Get internal certificate list from metadata
+            log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "getFullCertificateList")
+                    .put(LogMessage.MESSAGE, "Trying to get all certificates for admin from metadata list")
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+            Response internalCertListResponse = getMetadata(token, SSLCertificateConstants.SSL_CERT_PATH);
+            List<String> internalCertificateNames = getCertificateListFromResponse(internalCertListResponse);
+            // Get external certificate list from metadata
+            Response externalCertListResponse = getMetadata(token, SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH);
+            List<String> externalCertificateNames = getCertificateListFromResponse(externalCertListResponse);
+
+            certificateList.put(SSLCertificateConstants.INTERNAL, internalCertificateNames);
+            certificateList.put(SSLCertificateConstants.EXTERNAL, externalCertificateNames);
+        }
+        else {
+            // for normal users, take certificate names from policy list
+            log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "getFullCertificateList")
+                    .put(LogMessage.MESSAGE, "Trying to get all certificates for normal user from policies")
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+            String[] policies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails);
+            certificateList = extractCertificateNameFromPoilcies(policies);
+        }
+        // Filter based on searchText if exists
+        if (!StringUtils.isEmpty(searchText) && searchText.length() >= 3) {
+            List<String> filterCertNames = certificateList.get(SSLCertificateConstants.INTERNAL).stream().filter(s -> s.toLowerCase().startsWith(searchText)).collect(Collectors.toList());
+            certificateList.put(SSLCertificateConstants.INTERNAL, filterCertNames);
+            filterCertNames = certificateList.get(SSLCertificateConstants.EXTERNAL).stream().filter(s -> s.toLowerCase().startsWith(searchText)).collect(Collectors.toList());
+            certificateList.put(SSLCertificateConstants.EXTERNAL, filterCertNames);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(certificateList));
+    }
+
+    /**
+     * To get certificate name from metadata list response.
+     * @param certResponse
+     * @return
+     */
+    private List<String> getCertificateListFromResponse(Response certResponse) {
+        JsonParser jsonParser = new JsonParser();
+        List<String> certNames = new ArrayList<>();
+        if (HttpStatus.OK.equals(certResponse.getHttpstatus())) {
+            JsonObject jsonObject = (JsonObject) jsonParser.parse(certResponse.getResponse());
+            JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
+            certNames = geMatchCertificates(jsonArray,"");
+        }
+        return certNames;
+    }
+
+    /**
+     * To get certificate names from policy list.
+     * @param policies
+     * @return
+     */
+    private Map<String, List<String>> extractCertificateNameFromPoilcies(String[] policies) {
+        List<String> internalCertificateNames = new ArrayList<>();
+        List<String> externalCertificateNames = new ArrayList<>();
+
+        if (policies != null) {
+            for (String policy : policies) {
+                if (isPolicyOfCertType(policy, SSLCertificateConstants.INTERNAL)) {
+                    // check for internal cert policy
+                    String certificateName = extractValidCertificateName(policy);
+                    if (!StringUtils.isEmpty(certificateName) && !internalCertificateNames.contains(certificateName)) {
+                        internalCertificateNames.add(certificateName);
+                    }
+                }
+                else if (isPolicyOfCertType(policy, SSLCertificateConstants.EXTERNAL)) {
+                    // check for external cert policy
+                    String certificateName = extractValidCertificateName(policy);
+                    if (!StringUtils.isEmpty(certificateName) && !externalCertificateNames.contains(certificateName)) {
+                        externalCertificateNames.add(certificateName);
+                    }
+                }
+            }
+        }
+        Map<String, List<String>> certificateList = new HashMap<>();
+        certificateList.put(SSLCertificateConstants.INTERNAL, internalCertificateNames);
+        certificateList.put(SSLCertificateConstants.EXTERNAL, externalCertificateNames);
+        return certificateList;
+    }
+
+    /**
+     * To check of the policy is of internal or external certificate type.
+     * @param policy
+     * @param certType
+     * @return
+     */
+    private boolean isPolicyOfCertType(String policy, String certType) {
+	    String certTypeName = SSLCertificateConstants.INTERNAL_POLICY_NAME;
+	    if (certType.equals(SSLCertificateConstants.EXTERNAL)) {
+            certTypeName = SSLCertificateConstants.EXTERNAL_POLICY_NAME;
+        }
+        String ownerPolicyPrefix = new StringBuilder().append(SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX)
+                .append(certTypeName).append("_").toString();
+        String readPolicyPrefix = new StringBuilder().append(SSLCertificateConstants.READ_CERT_POLICY_PREFIX)
+                .append(certTypeName).append("_").toString();
+        String writePolicyPrefix = new StringBuilder().append(SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX)
+                .append(certTypeName).append("_").toString();
+        String denyPolicyPrefix = new StringBuilder().append(SSLCertificateConstants.DENY_CERT_POLICY_PREFIX)
+                .append(certTypeName).append("_").toString();
+
+        if (policy.startsWith(ownerPolicyPrefix) || policy.startsWith(readPolicyPrefix)
+                || policy.startsWith(writePolicyPrefix) || policy.startsWith(denyPolicyPrefix)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * To extract valid certificate name from policy.
+     * @param policy
+     * @return
+     */
+    private String extractValidCertificateName(String policy) {
+        String[] certificatePolicies = policy.split("_", -1);
+        if (certificatePolicies.length >= 3) {
+            String[] policyName = Arrays.copyOfRange(certificatePolicies, 2, certificatePolicies.length);
+            return String.join("_", policyName);
+        }
+        return null;
+    }
 }

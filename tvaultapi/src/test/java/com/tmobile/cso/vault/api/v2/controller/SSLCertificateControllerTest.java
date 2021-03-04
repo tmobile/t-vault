@@ -809,4 +809,24 @@ public class SSLCertificateControllerTest {
         when(httpServletRequest.getAttribute("UserDetails")).thenReturn(userDetails);
         assertEquals(HttpStatus.OK, SslCertificateController.saveAppDetailsfForOlderCerts(httpServletRequest, token).getStatusCode());
     }
+
+    @Test
+    public void test_getFullCertificateList() throws Exception {
+        String responseJson = "{\n" +
+                "  \"internal\": [\n" +
+                "    \"certtest24022021.t-mobile.com\",\n" +
+                "    \"certtest240220211.t-mobile.com\",\n" +
+                "    \"certtest240220212.t-mobile.com\"\n" +
+                "  ],\n" +
+                "  \"external\": []\n" +
+                "}";
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body(responseJson);
+        String expected = responseEntityExpected.getBody();
+        when(sslCertificateService.getFullCertificateList(token, userDetails, ""))
+                .thenReturn(responseEntityExpected);
+        mockMvc.perform(MockMvcRequestBuilders.get("/v2/sslcert/allcertificates")
+                .header("vault-token", token)
+                .header("Content-Type", "application/json;charset=UTF-8"))
+                .andExpect(status().isOk());
+    }
 }
