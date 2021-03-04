@@ -250,7 +250,9 @@ const Users = (props) => {
                 <NoDataWrapper>
                   <NoData
                     imageSrc={noPermissionsIcon}
-                    description={'No <strong>Users</strong> are given permission to access this service account, add users to access the account.'}
+                    description={
+                      'No <strong>users</strong> are given permission to access this service account, add users to access the account.'
+                    }
                     actionButton={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <ButtonComponent
