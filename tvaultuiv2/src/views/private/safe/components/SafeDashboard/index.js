@@ -213,7 +213,7 @@ const SafeDashboard = () => {
   const [hasMoreData, setHasMoreData] = useState(true);
   const [safeOffset, setSafeOffset] = useState(0);
   const [clearedData, setClearedData] = useState(false);
-  let arrayList = [];
+  const [arrayList, setArrayList] = useState([]);
 
   /**
    * @function compareSafesAndList
@@ -241,6 +241,7 @@ const SafeDashboard = () => {
   const clearData = () => {
     setSafeOffset(0);
     setAllSafeList([]);
+    setArrayList([]);
     setHasMoreData(true);
     setClearedData(true);
   };
@@ -313,7 +314,7 @@ const SafeDashboard = () => {
         setResponse({ status: 'failed', message: 'failed' });
       });
     // eslint-disable-next-line
-  }, [compareSafesAndList]);
+  }, [safeOffset, arrayList]);
 
   /**
    * @description On component load call fetchUserSafesData function.
@@ -325,13 +326,14 @@ const SafeDashboard = () => {
     fetchUserSafesData().catch(() => {
       setResponse({ status: 'failed', message: 'failed' });
     });
-  }, [fetchUserSafesData]);
+    // eslint-disable-next-line
+  }, []);
 
   /**
    * @function fetchData
    * @description function call all the manage and shared safe api.
    */
-  const fetchSharedSafesData = async () => {
+  const fetchSharedSafesData = useCallback(async () => {
     let safesApiResponse = [];
     if (configData.AUTH_TYPE === 'oidc') {
       safesApiResponse = await apiService.getSafes(safeOffset);
@@ -378,6 +380,7 @@ const SafeDashboard = () => {
           result[0].data.sharedSafeCount[0].next === '-1' &&
           result[1].data.next === -1
         ) {
+          console.log('clearData', arrayList.length);
           setHasMoreData(false);
         } else {
           setHasMoreData(true);
@@ -395,31 +398,32 @@ const SafeDashboard = () => {
       .catch(() => {
         setResponse({ status: 'failed', message: 'failed' });
       });
-  };
+  }, [safeOffset, arrayList]);
 
   /**
    * @function fetchData
    * @description function call all the manage and shared safe api.
    */
-  const fetchAppSafesData = async () => {
+  const fetchAppSafesData = useCallback(async () => {
     let safesApiResponse = [];
     if (configData.AUTH_TYPE === 'oidc') {
-      safesApiResponse = await apiService.getSafes();
+      safesApiResponse = await apiService.getSafes(safeOffset);
     }
-    const appsListApiResponse = await apiService.getManageAppsList();
+    const appsListApiResponse = await apiService.getManageAppsList(safeOffset);
     const allApiResponse = Promise.all([safesApiResponse, appsListApiResponse]);
     allApiResponse
       .then((result) => {
-        const safesObject = { users: [], apps: [], shared: [] };
+        setSafeOffset(20 + safeOffset);
+        const safesObject = { apps: [] };
         if (configData.AUTH_TYPE === 'oidc') {
           if (result[0] && result[0].data) {
-            Object.keys(result[0].data).forEach((item) => {
-              if (item === 'apps') {
-                const data = makeSafesList(result[0].data[item], item);
-                data.map((value) => {
-                  return safesObject[item].push(value);
-                });
+            const data = makeSafesList(result[0].data.shared, 'apps');
+            data.map((value) => {
+              const obj = arrayList.find((item) => item.name === value.name);
+              if (!obj) {
+                return safesObject.apps.push(value);
               }
+              return null;
             });
           }
         } else {
@@ -438,6 +442,15 @@ const SafeDashboard = () => {
         if (result[1] && result[1]?.data?.keys) {
           compareSafesAndList(result[1].data.keys, 'apps', safesObject);
         }
+        if (
+          result[0].data.sharedSafeCount[0].next === '-1' &&
+          result[1].data.next === -1
+        ) {
+          console.log('clearData', arrayList.length);
+          setHasMoreData(false);
+        } else {
+          setHasMoreData(true);
+        }
         Object.keys(safesObject).map((item) => {
           return safesObject[item].map((ele) => {
             return arrayList.push(ele);
@@ -446,11 +459,12 @@ const SafeDashboard = () => {
         setSafeList([...arrayList]);
         setAllSafeList([...arrayList]);
         setResponse({ status: 'success', message: '' });
+        setIsInfiniteScrollLoading(false);
       })
       .catch(() => {
         setResponse({ status: 'failed', message: 'failed' });
       });
-  };
+  }, [arrayList, safeOffset]);
 
   useEffect(() => {
     if (allSafeList.length > 0) {
@@ -488,7 +502,6 @@ const SafeDashboard = () => {
   const onSelectChange = (value) => {
     setSafeType(value);
     setResponse({ status: 'loading', message: 'Loading...' });
-    arrayList = [];
     clearData();
   };
 

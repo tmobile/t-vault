@@ -6,7 +6,8 @@ const getManageUsersList = (offset) =>
   api.get(`/ss/sdb/list?path=users&limit=20&offset=${offset}`);
 const getManageSharedList = (offset) =>
   api.get(`/ss/sdb/list?path=shared&limit=20&offset=${offset}`);
-const getManageAppsList = () => api.get('/ss/sdb/list?path=apps');
+const getManageAppsList = (offset) =>
+  api.get(`/ss/sdb/list?path=apps&limit=20&offset=${offset}`);
 
 const getSafeDetails = (path) => api.get(`/ss/sdb?path=${path}`);
 const editSafe = (payload) => api.put('/ss/sdb', payload);
