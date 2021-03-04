@@ -243,7 +243,10 @@ const SelectionTabs = (props) => {
   useEffect(() => {
     setValue(0);
   }, [safePath]);
-
+  console.log(
+    safePermissionData?.response?.ownerid?.toLowerCase() ===
+      sessionStorage.getItem('username')
+  );
   return (
     <ComponentError>
       <div className={classes.root}>
@@ -256,7 +259,10 @@ const SelectionTabs = (props) => {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            {safeDetail.manage && <Tab label="Permissions" {...a11yProps(1)} />}
+            {safePermissionData?.response?.ownerid?.toLowerCase() ===
+              sessionStorage.getItem('username') && (
+              <Tab label="Permissions" {...a11yProps(1)} />
+            )}
           </Tabs>
           {value === 0 && safeDetail?.access === 'write' && (
             <NamedButton

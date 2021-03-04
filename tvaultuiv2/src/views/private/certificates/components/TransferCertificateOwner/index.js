@@ -223,9 +223,8 @@ const CreateCertificates = (props) => {
       (value) => {
         setAutoLoader(true);
         const userNameSearch = apiService.getUserName(value);
-        const emailSearch = apiService.getOwnerTransferEmail(value);
         const tmoUser = apiService.getTmoUsers(value);
-        Promise.all([userNameSearch, emailSearch, tmoUser])
+        Promise.all([userNameSearch, tmoUser])
           .then((responses) => {
             setOptions([]);
             const array = new Set([]);
@@ -239,14 +238,6 @@ const CreateCertificates = (props) => {
             }
             if (responses[1]?.data?.data?.values?.length > 0) {
               responses[1].data.data.values.map((item) => {
-                if (item.userName) {
-                  return array.add(item);
-                }
-                return null;
-              });
-            }
-            if (responses[2]?.data?.data?.values?.length > 0) {
-              responses[2].data.data.values.map((item) => {
                 if (item.userName) {
                   return array.add(item);
                 }
