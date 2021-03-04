@@ -762,9 +762,9 @@ const OnBoardForm = (props) => {
   return (
     <ComponentError>
       <>
-        {offBoardDecommissionedModal && (
+        {status.status === 'loading' && <BackdropLoader />}
+        {offBoardDecommissionedModal && status.status !== 'loading' && (
           <>
-            {status.status === 'loading' && <BackdropLoader />}
             <ConfirmationModal
               size={isMobileScreen ? 'large' : ''}
               open
@@ -793,9 +793,8 @@ const OnBoardForm = (props) => {
             />
           </>
         )}
-        {!offBoardDecommissionedModal && (
+        {!offBoardDecommissionedModal && status.status !== 'loading' && (
           <div>
-            {status.status === 'loading' && <BackdropLoader />}
             <ConfirmationModal
               open={onBoardConfirmationModal || isActivateSvc}
               handleClose={handleConfirmationModalClose}

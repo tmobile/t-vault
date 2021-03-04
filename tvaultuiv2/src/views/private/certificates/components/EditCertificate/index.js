@@ -248,37 +248,29 @@ const EditCertificate = (props) => {
         setOpenModal({ status: 'confirm' });
         setModalDetail({ title: '', desc: '' });
         setLoading(true);
+        const strName = certificateData.certificateName.replace(/\$./g, '');
         apiService
-          .deleteCertificate(
-            certificateData.certificateName,
-            `${certificateData.certType}`
-          )
-          .then((res) => {
-            if (res?.data?.messages && res.data.messages[0]) {
-              setModalDetail({
-                title: 'Certificate Deletion Successful!',
-                description: res.data.messages[0],
-              });
-            }
+          .validateExternalCert(strName, `${certificateData.certType}`)
+          .then(() => {
+            setOpenModal({ status: 'edit' });
             setLoading(false);
-            setEditActionPerform(true);
           })
           .catch((err) => {
             if (err?.response?.data?.errors && err?.response?.data?.errors[0]) {
               setModalDetail({
-                title: 'Certificate Deletion Failed!',
+                title: 'Certificate Status!',
                 description: err.response.data.errors[0],
               });
             } else {
               setModalDetail({
-                title: 'Certificate Deletion Failed!',
+                title: 'Certificate Status!',
                 description: 'Something went wrong!',
               });
             }
+            setEditActionPerform(true);
             setLoading(false);
           });
       }
-      setEditActionPerform(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [certificateData]);

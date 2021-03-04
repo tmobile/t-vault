@@ -243,10 +243,7 @@ const SelectionTabs = (props) => {
   useEffect(() => {
     setValue(0);
   }, [safePath]);
-  console.log(
-    safePermissionData?.response?.ownerid?.toLowerCase() ===
-      sessionStorage.getItem('username')
-  );
+
   return (
     <ComponentError>
       <div className={classes.root}>
