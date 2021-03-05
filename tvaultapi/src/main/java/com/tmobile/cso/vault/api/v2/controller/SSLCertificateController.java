@@ -593,4 +593,12 @@ public class SSLCertificateController {
 		return sslCertificateService.generateSSLCertificate(sslCertificateRequest,userDetails,token,SSLCertificateConstants.API);
 	}
 
+	@ApiOperation(value = "${SSLCertificateController.getFullCertificateList.value}", notes = "${SSLCertificateController.getFullCertificateList.notes}")
+	@GetMapping(value = "/v2/sslcert/allcertificates", produces = "application/json")
+	public ResponseEntity<String> getFullCertificateList(HttpServletRequest request,
+			@RequestHeader(value = "vault-token") String token,
+			@RequestParam( name="search",required=false) String searchText)  {
+		UserDetails userDetails = (UserDetails) request.getAttribute(USER_DETAILS_STRING);
+		return sslCertificateService.getFullCertificateList(token, userDetails, searchText);
+	}
 }
