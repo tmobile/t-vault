@@ -246,6 +246,7 @@ const SelectionTabs = (props) => {
         fetchData();
       } else {
         setSafePermissionData({});
+        setResponse({ status: 'success' });
       }
       setPreviousVal(safeDetail);
     }

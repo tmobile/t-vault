@@ -31,7 +31,6 @@ import {
   createSafeArray,
 } from '../../../../../services/helper-function';
 import SnackbarComponent from '../../../../../components/Snackbar';
-
 import apiService from '../../apiService';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 
@@ -162,6 +161,24 @@ const noDataStyle = css`
   justify-content: center;
 `;
 
+const ScaledLoaderContainer = styled.div`
+  height: 5rem;
+  display: flex;
+  align-items: center;
+`;
+
+const scaledLoaderFirstChild = css`
+  width: 1.5rem;
+  height: 1.5rem;
+`;
+
+const scaledLoaderLastChild = css`
+  width: 3rem;
+  height: 3rem;
+  left: -1.7rem;
+  top: -0.3rem;
+`;
+
 const EditDeletePopperWrap = styled.div``;
 
 const useStyles = makeStyles(() => ({
@@ -214,6 +231,8 @@ const SafeDashboard = () => {
   const [safeOffset, setSafeOffset] = useState(0);
   const [clearedData, setClearedData] = useState(false);
   const [arrayList, setArrayList] = useState([]);
+  const [limit] = useState(20);
+  const isAdmin = JSON.parse(localStorage.getItem('isAdmin'));
 
   /**
    * @function compareSafesAndList
@@ -274,6 +293,16 @@ const SafeDashboard = () => {
     }
   };
 
+  const checkHasMoreData = (safesArray, listArray) => {
+    if (safesArray?.next === '-1' && listArray?.data?.next === -1 && isAdmin) {
+      setHasMoreData(false);
+    } else if (safesArray?.next === '-1' && !isAdmin) {
+      setHasMoreData(false);
+    } else {
+      setHasMoreData(true);
+    }
+  };
+
   const onResponseVariableSet = (safeObject) => {
     Object.keys(safeObject).map((item) => {
       return safeObject[item].map((ele) => {
@@ -292,19 +321,25 @@ const SafeDashboard = () => {
    */
   const fetchUserSafesData = useCallback(async () => {
     let safesApiResponse = [];
+    let usersListApiResponse = [];
     if (configData.AUTH_TYPE === 'oidc') {
-      safesApiResponse = await apiService.getSafes(safeOffset);
+      safesApiResponse = await apiService.getSafes(limit, safeOffset);
     }
-    const usersListApiResponse = await apiService.getManageUsersList(
-      safeOffset
-    );
+    if (isAdmin) {
+      usersListApiResponse = await apiService.getManageUsersList(
+        limit,
+        safeOffset
+      );
+    } else if (JSON.parse(sessionStorage.getItem('count')) === 0 && !isAdmin) {
+      usersListApiResponse = await apiService.getManageUsersList('', '');
+    }
     const allApiResponse = Promise.all([
       safesApiResponse,
       usersListApiResponse,
     ]);
     allApiResponse
       .then(async (result) => {
-        setSafeOffset(20 + safeOffset);
+        setSafeOffset(limit + safeOffset);
         const safesObject = { users: [] };
         if (configData.AUTH_TYPE === 'oidc') {
           if (result && result[0]?.data) {
@@ -313,17 +348,10 @@ const SafeDashboard = () => {
         } else {
           safesLdapUserPassResponse('users', safesObject);
         }
-        if (result[1] && result[1]?.data?.keys) {
+        if (result && result[1]?.data?.keys) {
           compareSafesAndList(result[1].data.keys, 'users', safesObject);
         }
-        if (
-          result[0].data.userSafeCount[0].next === '-1' &&
-          result[1].data.next === -1
-        ) {
-          setHasMoreData(false);
-        } else {
-          setHasMoreData(true);
-        }
+        checkHasMoreData(result[0]?.data?.userSafeCount[0], result[1]);
         onResponseVariableSet(safesObject);
       })
       .catch(() => {
@@ -336,6 +364,7 @@ const SafeDashboard = () => {
    * @description On component load call fetchUserSafesData function.
    */
   useEffect(() => {
+    sessionStorage.setItem('count', 0);
     setResponse({ status: 'loading', message: 'Loading...' });
     setInputSearchValue('');
     setSafeType('User Safes');
@@ -351,19 +380,25 @@ const SafeDashboard = () => {
    */
   const fetchSharedSafesData = useCallback(async () => {
     let safesApiResponse = [];
+    let sharedListApiResponse = [];
     if (configData.AUTH_TYPE === 'oidc') {
-      safesApiResponse = await apiService.getSafes(safeOffset);
+      safesApiResponse = await apiService.getSafes(limit, safeOffset);
     }
-    const sharedListApiResponse = await apiService.getManageSharedList(
-      safeOffset
-    );
+    if (isAdmin) {
+      sharedListApiResponse = await apiService.getManageSharedList(
+        limit,
+        safeOffset
+      );
+    } else if (JSON.parse(sessionStorage.getItem('count')) === 0 && !isAdmin) {
+      sharedListApiResponse = await apiService.getManageSharedList('', '');
+    }
     const allApiResponse = Promise.all([
       safesApiResponse,
       sharedListApiResponse,
     ]);
     allApiResponse
       .then((result) => {
-        setSafeOffset(20 + safeOffset);
+        setSafeOffset(limit + safeOffset);
         const safesObject = { shared: [] };
         if (configData.AUTH_TYPE === 'oidc') {
           if (result[0] && result[0].data) {
@@ -375,14 +410,7 @@ const SafeDashboard = () => {
         if (result[1] && result[1]?.data?.keys) {
           compareSafesAndList(result[1].data.keys, 'shared', safesObject);
         }
-        if (
-          result[0].data.sharedSafeCount[0].next === '-1' &&
-          result[1].data.next === -1
-        ) {
-          setHasMoreData(false);
-        } else {
-          setHasMoreData(true);
-        }
+        checkHasMoreData(result[0]?.data?.sharedSafeCount[0], result[1]);
         onResponseVariableSet(safesObject);
       })
       .catch(() => {
@@ -397,14 +425,22 @@ const SafeDashboard = () => {
    */
   const fetchAppSafesData = useCallback(async () => {
     let safesApiResponse = [];
+    let appsListApiResponse = [];
     if (configData.AUTH_TYPE === 'oidc') {
-      safesApiResponse = await apiService.getSafes(safeOffset);
+      safesApiResponse = await apiService.getSafes(limit, safeOffset);
     }
-    const appsListApiResponse = await apiService.getManageAppsList(safeOffset);
+    if (isAdmin) {
+      appsListApiResponse = await apiService.getManageAppsList(
+        limit,
+        safeOffset
+      );
+    } else if (JSON.parse(sessionStorage.getItem('count')) === 0 && !isAdmin) {
+      appsListApiResponse = await apiService.getManageAppsList('', '');
+    }
     const allApiResponse = Promise.all([safesApiResponse, appsListApiResponse]);
     allApiResponse
       .then((result) => {
-        setSafeOffset(20 + safeOffset);
+        setSafeOffset(limit + safeOffset);
         const safesObject = { apps: [] };
         if (configData.AUTH_TYPE === 'oidc') {
           if (result && result[0]?.data) {
@@ -416,14 +452,7 @@ const SafeDashboard = () => {
         if (result[1] && result[1]?.data?.keys) {
           compareSafesAndList(result[1].data.keys, 'apps', safesObject);
         }
-        if (
-          result[0].data.sharedSafeCount[0].next === '-1' &&
-          result[1].data.next === -1
-        ) {
-          setHasMoreData(false);
-        } else {
-          setHasMoreData(true);
-        }
+        checkHasMoreData(result[0]?.data?.appSafeCount[0], result[1]);
         onResponseVariableSet(safesObject);
       })
       .catch(() => {
@@ -585,6 +614,9 @@ const SafeDashboard = () => {
       hasMoreData &&
       !isInfiniteScrollLoading
     ) {
+      if (!isAdmin) {
+        sessionStorage.setItem('count', 1);
+      }
       loadMoreData();
     }
   };
@@ -593,6 +625,9 @@ const SafeDashboard = () => {
     if (clearedData) {
       callApiBasedOnSafeType();
       setClearedData(false);
+      if (!isAdmin) {
+        sessionStorage.setItem('count', 0);
+      }
     }
     // eslint-disable-next-line
   }, [clearedData]);
@@ -627,7 +662,7 @@ const SafeDashboard = () => {
             listIconStyles={listIconStyles}
           />
           <BorderLine />
-          {safe.name && safe.manage && !isTabAndMobScreen ? (
+          {(isAdmin || safe.manage) && !isTabAndMobScreen ? (
             <PopperWrap onClick={(e) => onActionClicked(e)}>
               <PsudoPopper
                 onDeleteSafeClicked={(e) => onDeleteSafeClicked(e, safe.path)}
@@ -636,7 +671,7 @@ const SafeDashboard = () => {
               />
             </PopperWrap>
           ) : null}
-          {isTabAndMobScreen && safe.manage && (
+          {isTabAndMobScreen && (safe.manage || isAdmin) && (
             <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
               <EditDeletePopper
                 onDeleteClicked={(e) => onDeleteSafeClicked(e, safe.path)}
@@ -717,7 +752,18 @@ const SafeDashboard = () => {
                       }}
                     >
                       {renderSafes()}
-                      {isInfiniteScrollLoading && <h1>loading...</h1>}
+
+                      {isInfiniteScrollLoading && (
+                        <ScaledLoaderContainer>
+                          <ScaledLoader
+                            contentHeight="80%"
+                            contentWidth="100%"
+                            notAbsolute
+                            scaledLoaderLastChild={scaledLoaderLastChild}
+                            scaledLoaderFirstChild={scaledLoaderFirstChild}
+                          />
+                        </ScaledLoaderContainer>
+                      )}
                     </div>
                   </ListContainer>
                 ) : (

@@ -1,13 +1,14 @@
 import api from '../../../services';
 
-const getSafes = (offset) => api.get(`/ss/sdb/safes?limit=20&offset=${offset}`);
+const getSafes = (limit, offset) =>
+  api.get(`/ss/sdb/safes?limit=${limit}&offset=${offset}`);
 const deleteSafe = (path) => api.delete(`/ss/sdb/delete?path=${path}`);
-const getManageUsersList = (offset) =>
-  api.get(`/ss/sdb/list?path=users&limit=20&offset=${offset}`);
-const getManageSharedList = (offset) =>
-  api.get(`/ss/sdb/list?path=shared&limit=20&offset=${offset}`);
-const getManageAppsList = (offset) =>
-  api.get(`/ss/sdb/list?path=apps&limit=20&offset=${offset}`);
+const getManageUsersList = (limit, offset) =>
+  api.get(`/ss/sdb/list?path=users&limit=${limit}&offset=${offset}`);
+const getManageSharedList = (limit, offset) =>
+  api.get(`/ss/sdb/list?path=shared&limit=${limit}&offset=${offset}`);
+const getManageAppsList = (limit, offset) =>
+  api.get(`/ss/sdb/list?path=apps&limit=${limit}&offset=${offset}`);
 
 const getSafeDetails = (path) => api.get(`/ss/sdb?path=${path}`);
 const editSafe = (payload) => api.put('/ss/sdb', payload);
