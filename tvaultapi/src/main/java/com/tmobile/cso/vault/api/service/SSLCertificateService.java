@@ -11215,7 +11215,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
         List<String> list = new ArrayList<>();
         if (!ObjectUtils.isEmpty(jsonArray)) {
             for (int i = 0; i < jsonArray.size(); i++) {
-                list.add(jsonArray.get(i).getAsString());
+                list.add(certificateUtils.getActualCertifiacteName(jsonArray.get(i).getAsString()));
             }
         }
         return list;
@@ -11236,14 +11236,14 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
                     // check for internal cert policy
                     String certificateName = extractValidCertificateName(policy);
                     if (!StringUtils.isEmpty(certificateName) && !internalCertificateNames.contains(certificateName)) {
-                        internalCertificateNames.add(certificateName);
+                        internalCertificateNames.add(certificateUtils.getActualCertifiacteName((certificateName)));
                     }
                 }
                 else if (isPolicyOfCertType(policy, SSLCertificateConstants.EXTERNAL)) {
                     // check for external cert policy
                     String certificateName = extractValidCertificateName(policy);
                     if (!StringUtils.isEmpty(certificateName) && !externalCertificateNames.contains(certificateName)) {
-                        externalCertificateNames.add(certificateName);
+                        externalCertificateNames.add(certificateUtils.getActualCertifiacteName((certificateName)));
                     }
                 }
             }
