@@ -458,6 +458,14 @@ const SafeDashboard = () => {
    */
   const onSearchChange = (value) => {
     setInputSearchValue(value);
+    if (value.length > 2) {
+      const array = allSafeList.filter((item) =>
+        item?.name?.toLowerCase().includes(value?.toLowerCase().trim())
+      );
+      setSafeList([...array]);
+    } else {
+      setSafeList([...allSafeList]);
+    }
   };
 
   /**
