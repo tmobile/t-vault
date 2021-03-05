@@ -173,6 +173,9 @@ const Header = (props) => {
       setCustomSafes('');
       setSvcSafes('');
     }
+    if (label.path !== 'safes') {
+      sessionStorage.removeItem('safesApiCount');
+    }
   };
 
   const toggleDrawer = (anchor, open) => (event) => {

@@ -232,7 +232,7 @@ const SafeDashboard = () => {
   const [clearedData, setClearedData] = useState(false);
   const [arrayList, setArrayList] = useState([]);
   const [limit] = useState(20);
-  const isAdmin = JSON.parse(localStorage.getItem('isAdmin'));
+  const isAdmin = JSON.parse(sessionStorage.getItem('isAdmin'));
 
   /**
    * @function compareSafesAndList
@@ -265,7 +265,9 @@ const SafeDashboard = () => {
   };
 
   const safesOidcResponse = (safeTypeList, type, safeObject) => {
-    const data = makeSafesList(safeTypeList, type);
+    const listApiCallCount =
+      JSON.parse(sessionStorage.getItem('safesApiCount')) || 0;
+    const data = makeSafesList(safeTypeList, type, listApiCallCount, isAdmin);
     data.map((value) => {
       const obj = arrayList.find((item) => item.name === value.name);
       if (!obj) {
@@ -280,7 +282,14 @@ const SafeDashboard = () => {
     if (Object.keys(access).length > 0) {
       Object.keys(access).forEach((item) => {
         if (item === type) {
-          const data = makeSafesList(access[item], item);
+          const listApiCallCount =
+            JSON.parse(sessionStorage.getItem('count')) || 0;
+          const data = makeSafesList(
+            access[item],
+            item,
+            listApiCallCount,
+            isAdmin
+          );
           data.map((value) => {
             const obj = arrayList.find((ele) => ele.name === value.name);
             if (!obj) {
@@ -330,7 +339,10 @@ const SafeDashboard = () => {
         limit,
         safeOffset
       );
-    } else if (JSON.parse(sessionStorage.getItem('count')) === 0 && !isAdmin) {
+    } else if (
+      !isAdmin &&
+      JSON.parse(sessionStorage.getItem('safesApiCount')) === 0
+    ) {
       usersListApiResponse = await apiService.getManageUsersList('', '');
     }
     const allApiResponse = Promise.all([
@@ -364,7 +376,9 @@ const SafeDashboard = () => {
    * @description On component load call fetchUserSafesData function.
    */
   useEffect(() => {
-    sessionStorage.setItem('count', 0);
+    if (!isAdmin) {
+      sessionStorage.setItem('safesApiCount', 0);
+    }
     setResponse({ status: 'loading', message: 'Loading...' });
     setInputSearchValue('');
     setSafeType('User Safes');
@@ -389,7 +403,10 @@ const SafeDashboard = () => {
         limit,
         safeOffset
       );
-    } else if (JSON.parse(sessionStorage.getItem('count')) === 0 && !isAdmin) {
+    } else if (
+      !isAdmin &&
+      JSON.parse(sessionStorage.getItem('safesApiCount')) === 0
+    ) {
       sharedListApiResponse = await apiService.getManageSharedList('', '');
     }
     const allApiResponse = Promise.all([
@@ -434,7 +451,10 @@ const SafeDashboard = () => {
         limit,
         safeOffset
       );
-    } else if (JSON.parse(sessionStorage.getItem('count')) === 0 && !isAdmin) {
+    } else if (
+      !isAdmin &&
+      JSON.parse(sessionStorage.getItem('safesApiCount')) === 0
+    ) {
       appsListApiResponse = await apiService.getManageAppsList('', '');
     }
     const allApiResponse = Promise.all([safesApiResponse, appsListApiResponse]);
@@ -615,7 +635,7 @@ const SafeDashboard = () => {
       !isInfiniteScrollLoading
     ) {
       if (!isAdmin) {
-        sessionStorage.setItem('count', 1);
+        sessionStorage.setItem('safesApiCount', 1);
       }
       loadMoreData();
     }
@@ -626,7 +646,7 @@ const SafeDashboard = () => {
       callApiBasedOnSafeType();
       setClearedData(false);
       if (!isAdmin) {
-        sessionStorage.setItem('count', 0);
+        sessionStorage.setItem('safesApiCount', 0);
       }
     }
     // eslint-disable-next-line

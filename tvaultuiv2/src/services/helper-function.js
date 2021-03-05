@@ -132,16 +132,20 @@ const setSafeType = (type) => {
   return safeType;
 };
 
-export const makeSafesList = (array, type) => {
+export const makeSafesList = (array, type, count, isAdmin) => {
   const safeArray = [];
   array.map((item) => {
     const data = {
       name: Object.keys(item)[0],
       access: Object.values(item)[0],
       path: `${type}/${Object.keys(item)[0]}`,
-      manage: true,
       safeType: setSafeType(type),
     };
+    if (count === 1 && !isAdmin) {
+      data.manage = false;
+    } else {
+      data.manage = true;
+    }
     safeArray.push(data);
   });
   return safeArray;
