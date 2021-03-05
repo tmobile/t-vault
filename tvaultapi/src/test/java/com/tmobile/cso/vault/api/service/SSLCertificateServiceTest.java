@@ -9129,6 +9129,10 @@ public class SSLCertificateServiceTest {
         when(JSONUtil.getJSON(Mockito.any(HashMap.class))).thenReturn("{\"internal\":[\"certtest1.company.com\",\"certtest2.company.com\"],\"external\":[\"certtestext1.company.com\", \"certtestext2.company.com\"]}");
         ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"internal\":[\"certtest1.company.com\",\"certtest2.company.com\"],\"external\":[\"certtestext1.company.com\", \"certtestext2.company.com\"]}");
 
+        when(certificateUtils.getActualCertifiacteName("certtest1.company.com")).thenReturn("certtest1.company.com");
+        when(certificateUtils.getActualCertifiacteName("certtest2.company.com")).thenReturn("certtest2.company.com");
+        when(certificateUtils.getActualCertifiacteName("certtestext1.company.com")).thenReturn("certtestext1.company.com");
+        when(certificateUtils.getActualCertifiacteName("certtestext2.company.com")).thenReturn("certtestext2.company.com");
         ResponseEntity<String> responseEntity = sSLCertificateService.getFullCertificateList(token, userDetails, "");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(responseEntityExpected, responseEntity);
@@ -9144,9 +9148,10 @@ public class SSLCertificateServiceTest {
         String [] policies = {"r_cert_certtest1.company.com", "r_externalcerts_certtest2.company.com"};
 
         when( policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(policies);
-        when(JSONUtil.getJSON(Mockito.any(HashMap.class))).thenReturn("{\"internal\":[\"certtest1.company.com\"],\"external\":[\"certtestext2.company.com\"]}");
-
-        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"internal\":[\"certtest1.company.com\"],\"external\":[\"certtestext2.company.com\"]}");
+        when(JSONUtil.getJSON(Mockito.any(HashMap.class))).thenReturn("{\"internal\":[\"certtest1.company.com\"],\"external\":[\"certtest2.company.com\"]}");
+        when(certificateUtils.getActualCertifiacteName("certtest1.company.com")).thenReturn("certtest1.company.com");
+        when(certificateUtils.getActualCertifiacteName("certtest2.company.com")).thenReturn("certtest2.company.com");
+        ResponseEntity<String> responseEntityExpected = ResponseEntity.status(HttpStatus.OK).body("{\"internal\":[\"certtest1.company.com\"],\"external\":[\"certtest2.company.com\"]}");
 
         ResponseEntity<String> responseEntity = sSLCertificateService.getFullCertificateList(token, userDetails, "cert");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());

@@ -11201,9 +11201,24 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
         if (HttpStatus.OK.equals(certResponse.getHttpstatus())) {
             JsonObject jsonObject = (JsonObject) jsonParser.parse(certResponse.getResponse());
             JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
-            certNames = geMatchCertificates(jsonArray,"");
+            certNames = geCertificateNamesFromJson(jsonArray);
         }
         return certNames;
+    }
+
+    /**
+     * Get the certificate names from JsonArray
+     * @param jsonArray
+     * @return
+     */
+    private List<String> geCertificateNamesFromJson(JsonArray jsonArray) {
+        List<String> list = new ArrayList<>();
+        if (!ObjectUtils.isEmpty(jsonArray)) {
+            for (int i = 0; i < jsonArray.size(); i++) {
+                list.add(certificateUtils.getActualCertifiacteName(jsonArray.get(i).getAsString()));
+            }
+        }
+        return list;
     }
 
     /**
@@ -11221,14 +11236,14 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
                     // check for internal cert policy
                     String certificateName = extractValidCertificateName(policy);
                     if (!StringUtils.isEmpty(certificateName) && !internalCertificateNames.contains(certificateName)) {
-                        internalCertificateNames.add(certificateName);
+                        internalCertificateNames.add(certificateUtils.getActualCertifiacteName((certificateName)));
                     }
                 }
                 else if (isPolicyOfCertType(policy, SSLCertificateConstants.EXTERNAL)) {
                     // check for external cert policy
                     String certificateName = extractValidCertificateName(policy);
                     if (!StringUtils.isEmpty(certificateName) && !externalCertificateNames.contains(certificateName)) {
-                        externalCertificateNames.add(certificateName);
+                        externalCertificateNames.add(certificateUtils.getActualCertifiacteName((certificateName)));
                     }
                 }
             }
