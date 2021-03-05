@@ -11201,9 +11201,24 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
         if (HttpStatus.OK.equals(certResponse.getHttpstatus())) {
             JsonObject jsonObject = (JsonObject) jsonParser.parse(certResponse.getResponse());
             JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
-            certNames = geMatchCertificates(jsonArray,"");
+            certNames = geCertificateNamesFromJson(jsonArray);
         }
         return certNames;
+    }
+
+    /**
+     * Get the certificate names from JsonArray
+     * @param jsonArray
+     * @return
+     */
+    private List<String> geCertificateNamesFromJson(JsonArray jsonArray) {
+        List<String> list = new ArrayList<>();
+        if (!ObjectUtils.isEmpty(jsonArray)) {
+            for (int i = 0; i < jsonArray.size(); i++) {
+                list.add(jsonArray.get(i).getAsString());
+            }
+        }
+        return list;
     }
 
     /**
