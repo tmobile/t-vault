@@ -522,7 +522,6 @@ const SafeDashboard = () => {
         setResponse({ status: 'success', message: 'success' });
         setDeletionPath('');
         setToast(-1);
-        setResponse({ status: 'success', message: 'success' });
       });
   };
 
