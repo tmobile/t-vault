@@ -236,7 +236,7 @@ File.propTypes = {
   onDeleteTreeItem: PropTypes.func,
   parentId: PropTypes.string,
   type: PropTypes.string,
-  modifiedBy: PropTypes.string.isRequired,
+  modifiedBy: PropTypes.string,
   setIsAddInput: PropTypes.func,
   setInputType: PropTypes.func,
   versionInfo: PropTypes.string.isRequired,
@@ -252,5 +252,6 @@ File.defaultProps = {
   parentId: '',
   type: '',
   setInputType: 'secret',
+  modifiedBy: '',
 };
 export default File;

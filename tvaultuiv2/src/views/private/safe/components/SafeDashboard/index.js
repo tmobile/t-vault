@@ -379,7 +379,6 @@ const SafeDashboard = () => {
           result[0].data.sharedSafeCount[0].next === '-1' &&
           result[1].data.next === -1
         ) {
-          console.log('arrayList', arrayList.length);
           setHasMoreData(false);
         } else {
           setHasMoreData(true);
@@ -422,7 +421,6 @@ const SafeDashboard = () => {
           result[1].data.next === -1
         ) {
           setHasMoreData(false);
-          console.log('object', arrayList.length);
         } else {
           setHasMoreData(true);
         }
