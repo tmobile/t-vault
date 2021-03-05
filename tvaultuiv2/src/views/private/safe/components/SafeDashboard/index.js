@@ -482,6 +482,7 @@ const SafeDashboard = () => {
       .catch(() => {
         setDeletionPath('');
         setToast(-1);
+        setResponse({ status: 'success', message: 'success' });
       });
   };
 
