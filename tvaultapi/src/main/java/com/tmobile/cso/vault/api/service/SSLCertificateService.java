@@ -4864,9 +4864,12 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	 */
 	public ResponseEntity<String> getCertificateDetails(String token, String certificateName, String certificateType) {
 
+		certificateName = certificateUtils.getVaultCompactibleCertifiacteName(certificateName);
+
 		SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token,
 				certificateName, certificateType);
 		if (sslCertificateMetadataDetails != null) {
+			sslCertificateMetadataDetails.setCertificateName(certificateUtils.getActualCertifiacteName(sslCertificateMetadataDetails.getCertificateName()));
 			return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(sslCertificateMetadataDetails));
 		}
 		return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -6915,7 +6918,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	private CertificateData getExternalCertificate(SSLCertificateMetadataDetails certificateMetaData) throws Exception {
 		CertificateData certificateData = null;
 		int containerId = certificateMetaData.getContainerId();
-		String certName = certificateMetaData.getCertificateName();
+		String certName = certificateUtils.getActualCertifiacteName(certificateMetaData.getCertificateName());
 		String nclmAccessToken = getNclmToken();
 		if (StringUtils.isEmpty(nclmAccessToken)) {
 			return null;
@@ -6957,7 +6960,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		        certificateData.setCreateDate(validateString(jsonElement.get("NotBefore")));
 		        certificateData.setContainerName(validateString(jsonElement.get(SSLCertificateConstants.CONTAINER_NAME)));
 		        certificateData.setCertificateStatus(validateString(jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS)));
-		        certificateData.setCertificateName(certName);
+		        certificateData.setCertificateName(certificateUtils.getVaultCompactibleCertifiacteName(certName));
 		        certificateData.setAuthority((!StringUtils.isEmpty(jsonElement.get("enrollServiceInfo")) ?
 		                 validateString(jsonElement.get("enrollServiceInfo").getAsJsonObject().get("name")) :
 		                 null));

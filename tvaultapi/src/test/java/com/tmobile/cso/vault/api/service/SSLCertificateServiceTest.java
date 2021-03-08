@@ -5986,6 +5986,8 @@ public class SSLCertificateServiceTest {
 		String certName = "certificatename.t-mobile.com";
 		when(ControllerUtil.updateMetaDataOnPath(any(), any(), eq(token))).thenReturn(true);
 		when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
+		when(certificateUtils.getActualCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
 		ResponseEntity<?> enrollResponse = sSLCertificateService
 				.validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
 		assertNotNull(enrollResponse);
@@ -6524,6 +6526,8 @@ public class SSLCertificateServiceTest {
 		String certName = "certificatename.t-mobile.com";
 		when(ControllerUtil.updateMetaDataOnPath(any(), any(), eq(token))).thenReturn(true);
 		when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
+		when(certificateUtils.getActualCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
 		ResponseEntity<?> enrollResponse = sSLCertificateService
 				.validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
 		assertNotNull(enrollResponse);
@@ -6600,6 +6604,8 @@ public class SSLCertificateServiceTest {
 		String certName = "certificatename.t-mobile.com";
 		when(ControllerUtil.updateMetaDataOnPath(any(), any(), eq(token))).thenReturn(false);
 		when(certificateUtils.getCertificateMetaData(token, certName, certType)).thenReturn(certificateMetadata);
+		when(certificateUtils.getActualCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
+        when(certificateUtils.getVaultCompactibleCertifiacteName(Mockito.any())).thenReturn("certificatename.t-mobile.com");
 		ResponseEntity<?> enrollResponse = sSLCertificateService
 				.validateApprovalStatusAndGetCertificateDetails(certName, certType, userDetail);
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, enrollResponse.getStatusCode());
