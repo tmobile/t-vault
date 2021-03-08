@@ -11,6 +11,7 @@ import { TitleFour } from '../../../../../../../styles/GlobalStyles';
 import CertificateListItem from '../../../CertificateListItem';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import EditDeletePopper from '../../../EditDeletePopper';
+import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 
 const EditDeletePopperWrap = styled.div`
   display: ${(props) =>
@@ -94,6 +95,10 @@ const extraCss = css`
   ${mediaBreakpoints.smallAndMedium} {
     max-width: 4rem;
   }
+`;
+
+const LoaderContainer = styled.div`
+  margin-top: 1.5rem;
 `;
 
 const OnboardButton = styled.button`
@@ -235,7 +240,11 @@ const LeftColumn = (props) => {
             </StatusActionWrapper>
           </ListFolderWrap>
         ))}
-        {isLoading ? <div>Loading...</div> : null}
+        {isLoading ? (
+          <LoaderContainer styles={{ top: '.5rem' }}>
+            <LoaderSpinner />
+          </LoaderContainer>
+        ) : null}
       </>
     </ComponentError>
   );
