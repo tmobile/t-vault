@@ -135,6 +135,24 @@ const customStyle = css`
   justify-content: center;
 `;
 
+const ScaledLoaderContainer = styled.div`
+  height: 5rem;
+  display: flex;
+  align-items: center;
+`;
+
+const scaledLoaderFirstChild = css`
+  width: 1.5rem;
+  height: 1.5rem;
+`;
+
+const scaledLoaderLastChild = css`
+  width: 3rem;
+  height: 3rem;
+  left: -1.5rem;
+  top: -0.2rem;
+`;
+
 const useStyles = makeStyles((theme) => ({
   contained: { borderRadius: '0.4rem' },
   select: {
@@ -937,6 +955,17 @@ const CertificatesDashboard = () => {
                       }}
                     >
                       {renderList()}
+                      {isLoading && (
+                        <ScaledLoaderContainer>
+                          <ScaledLoader
+                            contentHeight="80%"
+                            contentWidth="100%"
+                            notAbsolute
+                            scaledLoaderLastChild={scaledLoaderLastChild}
+                            scaledLoaderFirstChild={scaledLoaderFirstChild}
+                          />
+                        </ScaledLoaderContainer>
+                      )}
                     </ListContent>
                   </ListContainer>
                 )}
