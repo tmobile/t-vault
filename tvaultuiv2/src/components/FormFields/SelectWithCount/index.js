@@ -17,7 +17,6 @@ const MenuItemList = styled(MenuItem)`
 
 const SelectWithCountComponent = (props) => {
   const { menu, onChange, value, variant, classes, color, readOnly } = props;
-
   return (
     <SelectStyle
       value={value}

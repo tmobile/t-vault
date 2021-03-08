@@ -95,7 +95,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 const SelectionTabs = (props) => {
-  const { safeDetail, refresh } = props;
+  const { safeDetail, refresh, setOwnerOfSafes } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
   const [enabledAddFolder, setEnableAddFolder] = useState(false);
@@ -210,6 +210,7 @@ const SelectionTabs = (props) => {
               obj?.ownerid?.toLowerCase() ===
                 sessionStorage.getItem('username')?.toLowerCase())
           ) {
+            setOwnerOfSafes(true);
             const eachUsersDetails = await getEachUsersDetails(
               res.data.data.users
             );
@@ -222,6 +223,7 @@ const SelectionTabs = (props) => {
         }
       })
       .catch((err) => {
+        setOwnerOfSafes(false);
         setPermissionResponseType(-1);
         if (err.response?.data?.errors && err.response.data.errors[0]) {
           setSafePermissionData({
@@ -230,7 +232,7 @@ const SelectionTabs = (props) => {
           });
         }
       });
-  }, [safeDetail]);
+  }, [safeDetail, setOwnerOfSafes]);
 
   useEffect(() => {
     if (
@@ -341,6 +343,7 @@ const SelectionTabs = (props) => {
 SelectionTabs.propTypes = {
   safeDetail: PropTypes.objectOf(PropTypes.any),
   refresh: PropTypes.func.isRequired,
+  setOwnerOfSafes: PropTypes.func.isRequired,
 };
 SelectionTabs.defaultProps = {
   safeDetail: {},
