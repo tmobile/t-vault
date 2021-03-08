@@ -1017,7 +1017,10 @@ const CertificatesDashboard = () => {
                   exact
                   from="/certificates"
                   to={{
-                    pathname: `/certificates/${certificateList[0]?.certificateName}`,
+                    pathname: `/certificates/${certificateList[0]?.certificateName.replace(
+                      '*.',
+                      ''
+                    )}`,
                     state: { data: certificateList[0] },
                   }}
                 />
