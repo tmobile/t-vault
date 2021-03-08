@@ -11,7 +11,6 @@ import { TitleFour } from '../../../../../../../styles/GlobalStyles';
 import CertificateListItem from '../../../CertificateListItem';
 import ComponentError from '../../../../../../../errorBoundaries/ComponentError/component-error';
 import EditDeletePopper from '../../../EditDeletePopper';
-import LoaderSpinner from '../../../../../../../components/Loaders/LoaderSpinner';
 
 const EditDeletePopperWrap = styled.div`
   display: ${(props) =>
@@ -97,10 +96,6 @@ const extraCss = css`
   }
 `;
 
-const LoaderContainer = styled.div`
-  margin-top: 1.5rem;
-`;
-
 const OnboardButton = styled.button`
   width: 8.3rem;
   height: 2.6rem;
@@ -129,7 +124,6 @@ const LeftColumn = (props) => {
     onOnboardClicked,
     history,
     onDeleteCertificateClicked,
-    isLoading,
   } = props;
   const [selectedCert, setSelectedCert] = useState('');
   const [count, setCount] = useState(0);
@@ -240,11 +234,6 @@ const LeftColumn = (props) => {
             </StatusActionWrapper>
           </ListFolderWrap>
         ))}
-        {isLoading ? (
-          <LoaderContainer styles={{ top: '.5rem' }}>
-            <LoaderSpinner />
-          </LoaderContainer>
-        ) : null}
       </>
     </ComponentError>
   );
@@ -259,7 +248,6 @@ LeftColumn.propTypes = {
   onOnboardClicked: PropTypes.func,
   history: PropTypes.objectOf(PropTypes.any).isRequired,
   onDeleteCertificateClicked: PropTypes.func.isRequired,
-  isLoading: PropTypes.bool.isRequired,
 };
 
 LeftColumn.defaultProps = {

@@ -1,7 +1,8 @@
 /* eslint-disable react/no-array-index-key */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import OutsideClickHandler from 'react-outside-click-handler';
 import TextFieldComponent from '../TextField';
 
 const Wrapper = styled.div`
@@ -20,7 +21,7 @@ const SelectOption = styled.ul`
   width: 100%;
   z-index: 2;
   box-shadow: 0px 1px 3px #000;
-
+  overflow-x: hidden;
   ${(props) => props.extraCss}
 `;
 
@@ -52,40 +53,58 @@ const Type = styled.span`
 
 const SearchboxWithDropdown = (props) => {
   const { onSearchChange, value, menu, onChange, noResultFound } = props;
+  const [showOptions, setShowOptions] = useState(false);
+
+  useEffect(() => {
+    if (menu.length > 0 && value !== '') {
+      setShowOptions(true);
+    } else {
+      setShowOptions(false);
+    }
+  }, [value, menu]);
   return (
     <Wrapper>
-      <TextFieldComponent
-        placeholder="Search - Enter min 3 characters"
-        icon="search"
-        fullWidth
-        onChange={(e) => onSearchChange(e)}
-        value={value || ''}
-        color="secondary"
-        characterLimit={40}
-      />
-      {menu.length > 0 && value !== '' && (
-        <SelectOption>
-          {menu.map((option) => {
-            return (
-              <CustomSelectOption
-                key={option.name}
-                selected={value === option.name}
-                onClick={() => onChange(option)}
-              >
-                <Name>{option.name}</Name>
-                <Type>{option.type}</Type>
-              </CustomSelectOption>
-            );
-          })}
-        </SelectOption>
-      )}
-      {noResultFound !== '' && (
-        <SelectOption>
-          <CustomSelectOption>
-            <Name>{noResultFound}</Name>
-          </CustomSelectOption>
-        </SelectOption>
-      )}
+      <OutsideClickHandler
+        onOutsideClick={() => {
+          setShowOptions(false);
+        }}
+      >
+        <TextFieldComponent
+          placeholder="Search - Enter min 3 characters"
+          icon="search"
+          fullWidth
+          onChange={(e) => onSearchChange(e)}
+          value={value || ''}
+          color="secondary"
+          characterLimit={40}
+        />
+        {showOptions && (
+          <SelectOption>
+            {menu.map((option) => {
+              return (
+                <CustomSelectOption
+                  key={option.name}
+                  selected={value === option.name}
+                  onClick={() => {
+                    setShowOptions(false);
+                    onChange(option);
+                  }}
+                >
+                  <Name>{option.name}</Name>
+                  <Type>{option.type}</Type>
+                </CustomSelectOption>
+              );
+            })}
+          </SelectOption>
+        )}
+        {noResultFound !== '' && (
+          <SelectOption>
+            <CustomSelectOption>
+              <Name>{noResultFound}</Name>
+            </CustomSelectOption>
+          </SelectOption>
+        )}
+      </OutsideClickHandler>
     </Wrapper>
   );
 };

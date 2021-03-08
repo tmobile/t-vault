@@ -7,6 +7,7 @@ import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import { Route, Switch, useHistory, Redirect } from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { debounce } from 'lodash';
 import sectionHeaderBg from '../../../../../assets/certificate-banner.svg';
 import sectionMobHeaderBg from '../../../../../assets/mob-certbg.png';
 import sectionTabHeaderBg from '../../../../../assets/tab-certbg.png';
@@ -15,7 +16,6 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import NoData from '../../../../../components/NoData';
 import noCertificateIcon from '../../../../../assets/nocertificate.svg';
 import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
-import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import Error from '../../../../../components/Error';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
 import CertificatesReviewDetails from '../CertificatesReviewDetails';
@@ -37,8 +37,8 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 import OnboardCertificates from '../OnboardCertificate';
 import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import SuccessAndErrorModal from '../../../../../components/SuccessAndErrorModal';
-import { debounce } from 'lodash';
-
+import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
+import SearchboxWithDropdown from '../../../../../components/FormFields/SearchboxWithDropdown';
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -135,6 +135,31 @@ const customStyle = css`
   justify-content: center;
 `;
 
+const ScaledLoaderContainer = styled.div`
+  height: 5rem;
+  display: flex;
+  align-items: center;
+`;
+
+const scaledLoaderFirstChild = css`
+  width: 1.5rem;
+  height: 1.5rem;
+`;
+
+const scaledLoaderLastChild = css`
+  width: 3rem;
+  height: 3rem;
+  left: -1.5rem;
+  top: -0.2rem;
+`;
+
+const customLoaderStyle = css`
+  position: absolute;
+  right: 1.2rem;
+  top: 1.6rem;
+  color: red;
+`;
+
 const useStyles = makeStyles((theme) => ({
   contained: { borderRadius: '0.4rem' },
   select: {
@@ -191,7 +216,9 @@ const CertificatesDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [allCertificates, setAllCertificates] = useState([]);
   const [dataCleared, setDataCleared] = useState(true);
-  const [searchCertList,setSearchCertList] = useState([]);
+  const [searchCertList, setSearchCertList] = useState([]);
+  const [noResultFound, setNoResultFound] = useState('');
+  const [searchLoader, setSearchLoader] = useState(false);
 
   const compareCertificates = (array1, array2, type) => {
     if (array2.length > 0) {
@@ -242,32 +269,32 @@ const CertificatesDashboard = () => {
   }, [offset, allCertList]);
 
   const fetchAdminExternalData = useCallback(async () => {
-      apiService
-        .getAllAdminCertExternal(limit, offset)
-        .then((result) => {
-          setOffset(offset + limit);
-          const externalCertArray = [];
-          if (result?.data?.keys) {
-            if (result?.data?.next === '-1') {
-              setHasMore(false);
-            } else {
-              setHasMore(true);
-            }
-            result.data.keys.map((item) => {
-              return externalCertArray.push(item);
-            });
+    apiService
+      .getAllAdminCertExternal(limit, offset)
+      .then((result) => {
+        setOffset(offset + limit);
+        const externalCertArray = [];
+        if (result?.data?.keys) {
+          if (result?.data?.next === '-1') {
+            setHasMore(false);
+          } else {
+            setHasMore(true);
           }
-          setCertificateList([...allCertList, ...externalCertArray]);
-          setAllCertList([...allCertList, ...externalCertArray]);
-          setResponse({ status: 'success' });
-          setIsLoading(false);
-        })
-        .catch((err) => {
-          if (err?.response?.data?.errors && err.response.data.errors[0]) {
-            setErrorMsg(err.response.data.errors[0]);
-          }
-          setResponse({ status: 'failed' });
-        });
+          result.data.keys.map((item) => {
+            return externalCertArray.push(item);
+          });
+        }
+        setCertificateList([...allCertList, ...externalCertArray]);
+        setAllCertList([...allCertList, ...externalCertArray]);
+        setResponse({ status: 'success' });
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        if (err?.response?.data?.errors && err.response.data.errors[0]) {
+          setErrorMsg(err.response.data.errors[0]);
+        }
+        setResponse({ status: 'failed' });
+      });
   }, [offset, allCertList]);
 
   const fetchNonAdminInternalData = useCallback(async () => {
@@ -294,7 +321,7 @@ const CertificatesDashboard = () => {
                 return null;
               });
             });
-          setAllCertificates([...allCertificateInternal]);
+            setAllCertificates([...allCertificateInternal]);
           }
         } else {
           const access = JSON.parse(sessionStorage.getItem('access'));
@@ -328,9 +355,9 @@ const CertificatesDashboard = () => {
         }
         const finalList = [...allCertList, ...internalCertArray];
         if (result[1]?.data?.next === '-1') {
-          if(offset === 0){
+          if (offset === 0) {
             compareCertificates(finalList, allCertificateInternal, 'internal');
-          }else{
+          } else {
             compareCertificates(finalList, allCertificates, 'internal');
           }
         }
@@ -354,7 +381,10 @@ const CertificatesDashboard = () => {
     if (configData.AUTH_TYPE === 'oidc' && offset === 0) {
       allCertExternal = apiService.getAllNonAdminCertExternal();
     }
-    const externalCertificates = apiService.getExternalCertificates(limit,offset);
+    const externalCertificates = apiService.getExternalCertificates(
+      limit,
+      offset
+    );
     const allApiResponse = Promise.all([allCertExternal, externalCertificates]);
     allApiResponse
       .then((result) => {
@@ -368,7 +398,7 @@ const CertificatesDashboard = () => {
                   item[key] !== 'deny' && allCertificateExternal.push(key)
               )
             );
-            setAllCertificates([...allCertificateExternal])
+            setAllCertificates([...allCertificateExternal]);
           }
         } else {
           const access = JSON.parse(sessionStorage.getItem('access'));
@@ -385,7 +415,7 @@ const CertificatesDashboard = () => {
               }
             });
           }
-          setAllCertificates([...allCertificateExternal])
+          setAllCertificates([...allCertificateExternal]);
         }
         if (result && result[1]?.data?.keys) {
           result[1].data.keys.map((item) => {
@@ -396,26 +426,20 @@ const CertificatesDashboard = () => {
           });
         }
         const finalList = [...allCertList, ...externalCertArray];
-        if(result[1]?.data?.next === '-1' || result[1]?.data?.next === undefined){
-          if(offset === 0){
-            compareCertificates(
-              finalList,
-              allCertificateExternal,
-              'external'
-            );
-          }else{
-            compareCertificates(
-              finalList,
-              allCertificates,
-              'external'
-            );
+        if (
+          result[1]?.data?.next === '-1' ||
+          result[1]?.data?.next === undefined
+        ) {
+          if (offset === 0) {
+            compareCertificates(finalList, allCertificateExternal, 'external');
+          } else {
+            compareCertificates(finalList, allCertificates, 'external');
           }
-          
         }
         setCertificateList([...finalList]);
         setAllCertList([...finalList]);
         setResponse({ status: 'success' });
-        setOffset(offset+limit);
+        setOffset(offset + limit);
         setIsLoading(false);
       })
       .catch((err) => {
@@ -488,6 +512,7 @@ const CertificatesDashboard = () => {
     setAllCertList([]);
     setAllCertificates([]);
     setInputSearchValue('');
+    setNoResultFound('');
     setResponse({ status: 'loading' });
     setDataCleared(true);
   };
@@ -501,7 +526,6 @@ const CertificatesDashboard = () => {
     } else if (type === 'Onboard Certificates') {
       fetchOnboardCertificates();
     }
-    
   };
 
   useEffect(() => {
@@ -573,28 +597,34 @@ const CertificatesDashboard = () => {
   };
 
   const searchAllcertApi = useCallback(
-    debounce((searchText)=>{
-      const allSearchCerts =[];
-      apiService.searchAllCert(searchText).then(res=>{
-        if(res && res?.data){
-          res.data.internal.map( (item) => 
+    debounce((searchText) => {
+      const allSearchCerts = [];
+      apiService.searchAllCert(searchText).then((res) => {
+        if (res && res?.data) {
+          res.data.internal.map((item) =>
             allSearchCerts.push({
-              certificateName: item,
-              certType: 'internal',
+              name: item,
+              type: 'internal',
             })
           );
-          res.data.external.map( (item) => 
+          res.data.external.map((item) =>
             allSearchCerts.push({
-              certificateName: item,
-              certType: 'external',
+              name: item,
+              type: 'external',
             })
           );
         }
+
+        if (allSearchCerts.length === 0) {
+          setNoResultFound('No records found');
+        }
         setSearchCertList([...allSearchCerts]);
-        setCertificateList([...allSearchCerts]);
-      })
-    },1000),[]);
-  
+        setSearchLoader(false);
+      });
+    }, 1000),
+    []
+  );
+
   /**
    * @function onSearchChange
    * @description function to search certificate.
@@ -602,17 +632,38 @@ const CertificatesDashboard = () => {
    */
   const onSearchChange = (value) => {
     if (value?.length > 2) {
+      setSearchLoader(true);
       searchAllcertApi(value);
     } else {
+      setSearchCertList([]);
+      setNoResultFound('');
       setCertificateList([...allCertList]);
     }
   };
 
-  // when both search and filter value is available.
   useEffect(() => {
     onSearchChange(inputSearchValue);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputSearchValue]);
+
+  const onSearchItemSelected = (v) => {
+    setCertificateList([{ certificateName: v.name, certType: v.type }]);
+    if (v.type === 'internal') {
+      setCertificateType('Internal Certificates');
+    } else if (v.type === 'external') {
+      setCertificateType('External Certificates');
+    }
+
+    setSearchCertList([]);
+  };
+
+  useEffect(() => {
+    if (certificateList.length === 1) {
+      history.push(`/certificates/${certificateList[0].certificateName}`);
+      setListItemDetails(certificateList[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [certificateList]);
 
   /**
    * @function onEditListItemClicked
@@ -842,7 +893,7 @@ const CertificatesDashboard = () => {
     if (
       element.scrollHeight - element.offsetHeight - 250 < element.scrollTop &&
       !isLoading &&
-      (hasMore)
+      hasMore
     ) {
       loadMoreData();
     }
@@ -905,15 +956,16 @@ const CertificatesDashboard = () => {
                 onChange={(e) => onSelectChange(e.target.value)}
               />
               <SearchWrap>
-                <TextFieldComponent
-                  placeholder="Search - Enter min 3 characters"
-                  icon="search"
-                  fullWidth
-                  onChange={(e) => setInputSearchValue(e.target.value)}
+                <SearchboxWithDropdown
+                  onSearchChange={(e) => setInputSearchValue(e?.target?.value)}
                   value={inputSearchValue || ''}
-                  color="secondary"
-                  characterLimit={40}
+                  menu={searchCertList}
+                  onChange={(value) => onSearchItemSelected(value)}
+                  noResultFound={noResultFound}
                 />
+                {searchLoader && inputSearchValue?.length > 2 && (
+                  <LoaderSpinner customStyle={customLoaderStyle} />
+                )}
               </SearchWrap>
             </ColumnHeader>
             {response.status === 'loading' && (
@@ -937,6 +989,17 @@ const CertificatesDashboard = () => {
                       }}
                     >
                       {renderList()}
+                      {isLoading && (
+                        <ScaledLoaderContainer>
+                          <ScaledLoader
+                            contentHeight="80%"
+                            contentWidth="100%"
+                            notAbsolute
+                            scaledLoaderLastChild={scaledLoaderLastChild}
+                            scaledLoaderFirstChild={scaledLoaderFirstChild}
+                          />
+                        </ScaledLoaderContainer>
+                      )}
                     </ListContent>
                   </ListContainer>
                 )}
