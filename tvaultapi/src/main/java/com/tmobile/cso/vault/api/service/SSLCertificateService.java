@@ -2930,6 +2930,7 @@ public class SSLCertificateService {
 											: "",
 									response.getHttpstatus()))
 							.build()));
+					object.addProperty("certificateName", certificateUtils.getActualCertifiacteName(object.get("certificateName").getAsString()));
 					responseArray.add(object);
 				}
 			}
@@ -6042,7 +6043,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		JsonParser jsonParser = new JsonParser();
 		JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
 		JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
-		List<String> certNames = geMatchCertificates(jsonArray, "");
+		List<String> certNames = getMatchedCertificatesBasedOnPermissions(jsonArray);
 		Integer totalCertCount = certNames.size();
 
 		limit = (limit == null)?totalCertCount:limit;
@@ -11296,4 +11297,20 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
         }
         return null;
     }
+
+	/**
+	 * Get the certificate names matches from the permissions list
+	 *
+	 * @param jsonArray
+	 * @return
+	 */
+	private List<String> getMatchedCertificatesBasedOnPermissions(JsonArray jsonArray) {
+		List<String> list = new ArrayList<>();
+		if (!ObjectUtils.isEmpty(jsonArray)) {
+			for (int i = 0; i < jsonArray.size(); i++) {
+				list.add(certificateUtils.getActualCertifiacteName(jsonArray.get(i).toString()));
+			}
+		}
+		return list;
+	}
 }
