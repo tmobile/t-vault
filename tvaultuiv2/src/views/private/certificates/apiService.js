@@ -5,14 +5,15 @@ const getAllAdminCertInternal = (limit, offset) =>
   api.get(`/sslcert/certificates/internal?limit=${limit}&offset=${offset}`);
 const getAllAdminCertExternal = (limit, offset) =>
   api.get(`/sslcert?certType=external&limit=${limit}&offset=${offset}`);
-const getAllNonAdminCertInternal = (limit, offset) =>
-  api.get(`/sslcert/list/internal?limit=${limit}&offset=${offset}`);
+const getAllNonAdminCertInternal = () => api.get(`/sslcert/list/internal`);
 const getAllNonAdminCertExternal = () => api.get('/sslcert/list/external');
 const getInternalCertificates = (limit, offset) =>
   api.get(
     `/sslcert?certificateName=&certType=internal&limit=${limit}&offset=${offset}`
   );
-
+const searchAllCert = (SearchText) => api.get(
+  `/sslcert/allcertificates?search=${SearchText}`
+);
 const getExternalCertificates = () =>
   api.get('/sslcert?certificateName=&certType=external');
 const deleteCertificate = (name, certType) =>
@@ -112,4 +113,5 @@ export default {
   onOnboardcertificate,
   searchByGroupEmail,
   validateExternalCert,
+  searchAllCert,
 };

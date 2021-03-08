@@ -37,6 +37,8 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 import OnboardCertificates from '../OnboardCertificate';
 import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import SuccessAndErrorModal from '../../../../../components/SuccessAndErrorModal';
+import { debounce } from 'lodash';
+
 
 const ColumnSection = styled('section')`
   position: relative;
@@ -184,12 +186,12 @@ const CertificatesDashboard = () => {
   const [state] = useStateValue();
   const admin = Boolean(state?.isAdmin);
   const limit = 20;
-  const [hasMoreAll, setHasMoreAll] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [offset, setOffset] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [allCertificates, setAllCertificates] = useState([]);
   const [dataCleared, setDataCleared] = useState(true);
+  const [searchCertList,setSearchCertList] = useState([]);
 
   const compareCertificates = (array1, array2, type) => {
     if (array2.length > 0) {
@@ -289,11 +291,8 @@ const CertificatesDashboard = () => {
 
   const fetchNonAdminInternalData = useCallback(async () => {
     let allCertInternal = [];
-    if (configData.AUTH_TYPE === 'oidc') {
-      allCertInternal = await apiService.getAllNonAdminCertInternal(
-        limit,
-        offset
-      );
+    if (configData.AUTH_TYPE === 'oidc' && offset === 0) {
+      allCertInternal = await apiService.getAllNonAdminCertInternal();
     }
     const internalCertificates = await apiService.getInternalCertificates(
       limit,
@@ -302,16 +301,10 @@ const CertificatesDashboard = () => {
     const allApiResponse = Promise.all([allCertInternal, internalCertificates]);
     allApiResponse
       .then((result) => {
-        setOffset(offset + limit);
         const allCertificateInternal = [];
         const internalCertArray = [];
         if (configData.AUTH_TYPE === 'oidc') {
           if (result && result[0]?.data?.cert) {
-            if (result[0]?.data?.certCount?.next === '-1') {
-              setHasMoreAll(false);
-            } else {
-              setHasMoreAll(true);
-            }
             result[0].data.cert.map((item) => {
               return Object.entries(item).map(([key, value]) => {
                 if (value.toLowerCase() !== 'deny') {
@@ -320,6 +313,7 @@ const CertificatesDashboard = () => {
                 return null;
               });
             });
+          setAllCertificates([...allCertificateInternal]);
           }
         } else {
           const access = JSON.parse(sessionStorage.getItem('access'));
@@ -336,9 +330,8 @@ const CertificatesDashboard = () => {
               }
             });
           }
+          setAllCertificates([...allCertificateInternal]);
         }
-        const all = [...allCertificates];
-        setAllCertificates([...all, ...allCertificateInternal]);
         if (result && result[1]?.data?.keys) {
           if (result[1]?.data?.next === '-1') {
             setHasMore(false);
@@ -353,12 +346,17 @@ const CertificatesDashboard = () => {
           });
         }
         const finalList = [...allCertList, ...internalCertArray];
-        if (result[0]?.data?.next === -1 || result[1]?.data?.next === -1) {
-          compareCertificates(finalList, allCertificateInternal, 'internal');
+        if (result[1]?.data?.next === '-1') {
+          if(offset === 0){
+            compareCertificates(finalList, allCertificateInternal, 'internal');
+          }else{
+            compareCertificates(finalList, allCertificates, 'internal');
+          }
         }
         setCertificateList([...finalList]);
         setAllCertList([...finalList]);
         setResponse({ status: 'success' });
+        setOffset(offset + limit);
         setIsLoading(false);
       })
       .catch((err) => {
@@ -372,7 +370,7 @@ const CertificatesDashboard = () => {
 
   const fetchNonAdminExternalData = useCallback(async () => {
     let allCertExternal = [];
-    if (configData.AUTH_TYPE === 'oidc') {
+    if (configData.AUTH_TYPE === 'oidc' && offset === 0) {
       allCertExternal = await apiService.getAllNonAdminCertExternal();
     }
     const externalCertificates = await apiService.getExternalCertificates();
@@ -383,17 +381,13 @@ const CertificatesDashboard = () => {
         const externalCertArray = [];
         if (configData.AUTH_TYPE === 'oidc') {
           if (result && result[0]?.data?.externalcerts) {
-            if (result[0]?.data?.next === '-1') {
-              setHasMoreAll(false);
-            } else {
-              setHasMoreAll(true);
-            }
             result[0].data.externalcerts.map((item) =>
               Object.entries(item).map(
                 ([key]) =>
                   item[key] !== 'deny' && allCertificateExternal.push(key)
               )
             );
+            setAllCertificates([...allCertificateExternal])
           }
         } else {
           const access = JSON.parse(sessionStorage.getItem('access'));
@@ -410,6 +404,7 @@ const CertificatesDashboard = () => {
               }
             });
           }
+          setAllCertificates([...allCertificateExternal])
         }
         if (result && result[1]?.data?.keys) {
           result[1].data.keys.map((item) => {
@@ -419,14 +414,28 @@ const CertificatesDashboard = () => {
             return null;
           });
         }
-        compareCertificates(
-          externalCertArray,
-          allCertificateExternal,
-          'external'
-        );
-        setCertificateList([...externalCertArray]);
-        setAllCertList([...externalCertArray]);
+        const finalList = [...allCertList, ...externalCertArray];
+        if(result[1]?.data?.next === '-1' || result[1]?.data?.next === undefined){
+          if(offset === 0){
+            compareCertificates(
+              finalList,
+              allCertificateExternal,
+              'external'
+            );
+          }else{
+            compareCertificates(
+              finalList,
+              allCertificates,
+              'external'
+            );
+          }
+          
+        }
+        setCertificateList([...finalList]);
+        setAllCertList([...finalList]);
         setResponse({ status: 'success' });
+        setOffset(offset+limit);
+        setIsLoading(false);
       })
       .catch((err) => {
         if (err?.response?.data?.errors && err.response.data.errors[0]) {
@@ -494,7 +503,6 @@ const CertificatesDashboard = () => {
   const clearDataAndLoad = () => {
     setOffset(0);
     setHasMore(false);
-    setHasMoreAll(false);
     setCertificateList([]);
     setAllCertList([]);
     setAllCertificates([]);
@@ -587,6 +595,28 @@ const CertificatesDashboard = () => {
     clearDataAndLoad();
   };
 
+  const searchAllcertApi = useCallback(
+    debounce((searchText)=>{
+      const allSearchCerts =[];
+      apiService.searchAllCert(searchText).then(res=>{
+        if(res && res?.data){
+          res.data.internal.map( (item) => 
+            allSearchCerts.push({
+              certificateName: item,
+              certType: 'internal',
+            })
+          );
+          res.data.external.map( (item) => 
+            allSearchCerts.push({
+              certificateName: item,
+              certType: 'external',
+            })
+          );
+        }
+        setSearchCertList([...allSearchCerts]);
+      })
+    },1000),[]);
+  
   /**
    * @function onSearchChange
    * @description function to search certificate.
@@ -594,12 +624,7 @@ const CertificatesDashboard = () => {
    */
   const onSearchChange = (value) => {
     if (value?.length > 2) {
-      const searchArray = allCertList.filter((item) =>
-        item?.certificateName
-          ?.toLowerCase()
-          .includes(value?.toLowerCase().trim())
-      );
-      setCertificateList([...searchArray]);
+      searchAllcertApi(value);
     } else {
       setCertificateList([...allCertList]);
     }
@@ -839,7 +864,7 @@ const CertificatesDashboard = () => {
     if (
       element.scrollHeight - element.offsetHeight - 250 < element.scrollTop &&
       !isLoading &&
-      (hasMore || hasMoreAll)
+      (hasMore)
     ) {
       loadMoreData();
     }
