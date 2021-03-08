@@ -95,7 +95,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 const SelectionTabs = (props) => {
-  const { safeDetail, refresh } = props;
+  const { safeDetail, refresh, setOwnerOfSafes } = props;
   const classes = useStyles();
   const [value, setValue] = useState(0);
   const [enabledAddFolder, setEnableAddFolder] = useState(false);
@@ -116,6 +116,7 @@ const SelectionTabs = (props) => {
   const addSecretsFolder = () => {
     setEnableAddFolder(true);
   };
+  const [previousVal, setPreviousVal] = useState({});
   // toast close handling
   const onToastClose = (reason) => {
     if (reason === 'clickaway') {
@@ -202,7 +203,14 @@ const SelectionTabs = (props) => {
         let obj = {};
         if (res && res.data?.data) {
           obj = res.data.data;
-          if (res.data.data.users) {
+          if (
+            res.data.data.users &&
+            (obj?.owner?.toLowerCase() ===
+              sessionStorage.getItem('owner')?.toLowerCase() ||
+              obj?.ownerid?.toLowerCase() ===
+                sessionStorage.getItem('username')?.toLowerCase())
+          ) {
+            setOwnerOfSafes(true);
             const eachUsersDetails = await getEachUsersDetails(
               res.data.data.users
             );
@@ -215,6 +223,7 @@ const SelectionTabs = (props) => {
         }
       })
       .catch((err) => {
+        setOwnerOfSafes(false);
         setPermissionResponseType(-1);
         if (err.response?.data?.errors && err.response.data.errors[0]) {
           setSafePermissionData({
@@ -223,20 +232,27 @@ const SelectionTabs = (props) => {
           });
         }
       });
-  }, [safeDetail]);
+  }, [safeDetail, setOwnerOfSafes]);
 
   useEffect(() => {
-    setResponse({ status: 'loading', message: 'loading...' });
-    if (safeDetail?.manage) {
-      async function fetchData() {
-        await fetchPermission();
-        getSecretDetails();
+    if (
+      Object.keys(previousVal).length === 0 ||
+      previousVal?.name !== safeDetail?.name
+    ) {
+      setResponse({ status: 'loading', message: 'loading...' });
+      if (safeDetail?.name) {
+        async function fetchData() {
+          await fetchPermission();
+          getSecretDetails();
+        }
+        fetchData();
+      } else {
+        setSafePermissionData({});
+        setResponse({ status: 'success' });
       }
-      fetchData();
-    } else {
-      setSafePermissionData({});
-      getSecretDetails();
+      setPreviousVal(safeDetail);
     }
+    // eslint-disable-next-line
   }, [safeDetail, fetchPermission, getSecretDetails]);
 
   const safePath = safeDetail?.path;
@@ -327,6 +343,7 @@ const SelectionTabs = (props) => {
 SelectionTabs.propTypes = {
   safeDetail: PropTypes.objectOf(PropTypes.any),
   refresh: PropTypes.func.isRequired,
+  setOwnerOfSafes: PropTypes.func.isRequired,
 };
 SelectionTabs.defaultProps = {
   safeDetail: {},
