@@ -242,8 +242,6 @@ const CertificatesDashboard = () => {
   }, [offset, allCertList]);
 
   const fetchAdminExternalData = useCallback(async () => {
-    const oldList = [...allCertList];
-    if (configData.AUTH_TYPE === 'oidc') {
       apiService
         .getAllAdminCertExternal(limit, offset)
         .then((result) => {
@@ -259,8 +257,8 @@ const CertificatesDashboard = () => {
               return externalCertArray.push(item);
             });
           }
-          setCertificateList([...oldList, ...externalCertArray]);
-          setAllCertList([...oldList, ...externalCertArray]);
+          setCertificateList([...allCertList, ...externalCertArray]);
+          setAllCertList([...allCertList, ...externalCertArray]);
           setResponse({ status: 'success' });
           setIsLoading(false);
         })
@@ -270,23 +268,6 @@ const CertificatesDashboard = () => {
           }
           setResponse({ status: 'failed' });
         });
-    } else {
-      const access = JSON.parse(sessionStorage.getItem('access'));
-      const externalCertArray = [];
-      if (Object.keys(access).length > 0) {
-        Object.keys(access).forEach((item) => {
-          if (item === 'externalcerts') {
-            access[item].map((ele) => {
-              const val = Object.keys(ele);
-              return externalCertArray.push(val[0]);
-            });
-          }
-        });
-      }
-      setCertificateList([...externalCertArray]);
-      setAllCertList([...externalCertArray]);
-      setResponse({ status: 'success' });
-    }
   }, [offset, allCertList]);
 
   const fetchNonAdminInternalData = useCallback(async () => {
@@ -366,7 +347,7 @@ const CertificatesDashboard = () => {
         setResponse({ status: 'failed' });
       });
     // eslint-disable-next-line
-  }, [offset,allCertificates,allCertList]);
+  }, [offset,allCertList,certificateList]);
 
   const fetchNonAdminExternalData = useCallback(async () => {
     let allCertExternal = [];
@@ -512,6 +493,7 @@ const CertificatesDashboard = () => {
   };
 
   const loadTypeSpecificData = (type) => {
+    setDataCleared(false);
     if (type === 'Internal Certificates') {
       fetchInternalCertificates();
     } else if (type === 'External Certificates') {
@@ -519,13 +501,8 @@ const CertificatesDashboard = () => {
     } else if (type === 'Onboard Certificates') {
       fetchOnboardCertificates();
     }
-    setDataCleared(false);
+    
   };
-
-  useEffect(() => {
-    loadTypeSpecificData(certificateType);
-    // eslint-disable-next-line
-  },[])
 
   useEffect(() => {
     if (dataCleared === true) {
@@ -614,6 +591,7 @@ const CertificatesDashboard = () => {
           );
         }
         setSearchCertList([...allSearchCerts]);
+        setCertificateList([...allSearchCerts]);
       })
     },1000),[]);
   
