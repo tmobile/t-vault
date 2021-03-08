@@ -236,12 +236,12 @@ const CertificatesDashboard = () => {
         const onboardCertArray = [];
         if (configData.AUTH_TYPE === 'oidc') {
           if (result && result[0]?.data?.data?.keys) {
-            result[0].data.data.keys.map((item) => {
+            result[0].data.keys.map((item) => {
               return allCertInternalArray.push(item);
             });
           }
           if (result && result[1]?.data?.data?.keys) {
-            result[1].data.data.keys.map((item) => {
+            result[1].data.keys.map((item) => {
               return allCertExternalArray.push(item);
             });
           }
@@ -931,7 +931,10 @@ const CertificatesDashboard = () => {
                   exact
                   from="/certificates"
                   to={{
-                    pathname: `/certificates/${certificateList[0]?.certificateName}`,
+                    pathname: `/certificates/${certificateList[0]?.certificateName.replace(
+                      '*.',
+                      ''
+                    )}`,
                     state: { data: certificateList[0] },
                   }}
                 />
