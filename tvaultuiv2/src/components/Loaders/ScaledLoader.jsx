@@ -9,7 +9,7 @@ const LoaderContainer = styled('div')`
   width: ${(props) => props.width};
   height: ${(props) => props.height};
   justify-content: center;
-  position: absolute;
+  position: ${(props) => (props.notAbsolute ? '' : 'absolute')};
 `;
 const loaderRotate = keyframes`
 0% {
@@ -58,6 +58,7 @@ const LoaderWrap = styled('div')`
     -webkit-animation: ${loaderScale} 1s 0s cubic-bezier(0.09, 0.57, 0.49, 0.9)
       infinite;
     animation: ${loaderScale} 1s 0s cubic-bezier(0.09, 0.57, 0.49, 0.9) infinite;
+    ${(props) => props.scaledLoaderFirstChild}
   }
   & > div:last-child {
     position: absolute;
@@ -75,14 +76,28 @@ const LoaderWrap = styled('div')`
       infinite;
     -webkit-animation-duration: 1s;
     animation-duration: 1s;
+    ${(props) => props.scaledLoaderLastChild}
   }
 `;
 
 const Loader = (props) => {
-  const { contentWidth, contentHeight } = props;
+  const {
+    contentWidth,
+    contentHeight,
+    notAbsolute,
+    scaledLoaderFirstChild,
+    scaledLoaderLastChild,
+  } = props;
   return (
-    <LoaderContainer width={contentWidth} height={contentHeight}>
-      <LoaderWrap>
+    <LoaderContainer
+      width={contentWidth}
+      height={contentHeight}
+      notAbsolute={notAbsolute}
+    >
+      <LoaderWrap
+        scaledLoaderFirstChild={scaledLoaderFirstChild}
+        scaledLoaderLastChild={scaledLoaderLastChild}
+      >
         <div />
         <div />
       </LoaderWrap>
@@ -93,10 +108,16 @@ const Loader = (props) => {
 Loader.propTypes = {
   contentWidth: PropTypes.string,
   contentHeight: PropTypes.string,
+  notAbsolute: PropTypes.bool,
+  scaledLoaderFirstChild: PropTypes.arrayOf(PropTypes.any),
+  scaledLoaderLastChild: PropTypes.arrayOf(PropTypes.any),
 };
 Loader.defaultProps = {
   contentWidth: '100%',
   contentHeight: '100%',
+  notAbsolute: false,
+  scaledLoaderLastChild: [],
+  scaledLoaderFirstChild: [],
 };
 
 export default Loader;

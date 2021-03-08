@@ -555,8 +555,9 @@ const CreateModal = (props) => {
     return false;
   };
 
-  const onConfirmationModalClose = () => {
+  const onConfirmationModalClose = async () => {
     setOpen(false);
+    await refresh();
     history.goBack();
   };
 
