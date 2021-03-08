@@ -617,6 +617,8 @@ const CertificatesDashboard = () => {
 
         if (allSearchCerts.length === 0) {
           setNoResultFound('No records found');
+        } else {
+          setNoResultFound('');
         }
         setSearchCertList([...allSearchCerts]);
         setSearchLoader(false);
