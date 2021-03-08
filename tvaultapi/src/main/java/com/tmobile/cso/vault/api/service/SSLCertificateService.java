@@ -2965,12 +2965,12 @@ public class SSLCertificateService {
 		    if (!StringUtils.isEmpty(searchText)) {
 				for (int i = 0; i < jsonArray.size(); i++) {
 					if (jsonArray.get(i).toString().contains(searchText)) {
-						list.add(jsonArray.get(i).toString());
+						list.add(jsonArray.get(i).getAsString());
 					}
 				}
 			} else {
 				for (int i = 0; i < jsonArray.size(); i++) {
-					list.add(jsonArray.get(i).toString());
+					list.add(jsonArray.get(i).getAsString());
 				}
 			}
 		}
@@ -6083,7 +6083,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			JsonParser jsonParser = new JsonParser();
 			JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
 			JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
-			certNames = geMatchCertificates(jsonArray, "");
+			certNames = getMatchedCertificatesBasedOnPermissions(jsonArray);
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "getListOfCertificates for validation")
@@ -9673,7 +9673,6 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	private boolean isCertificateAlreadyOnboarded(List<String> onboardedInternalCerts,
 			List<String> onboardedExternalCerts, CertificateData certificateData, boolean isOnboarded) {
 		String certificateName = certificateData.getCertificateName();
-		certificateName = certificateUtils.getVaultCompactibleCertifiacteName(certificateName);
 		if (certificateData.getCertType().equals(SSLCertificateConstants.INTERNAL)
 				&& !CollectionUtils.isEmpty(onboardedInternalCerts)) {
 			isOnboarded = onboardedInternalCerts.stream()
@@ -11308,7 +11307,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		List<String> list = new ArrayList<>();
 		if (!ObjectUtils.isEmpty(jsonArray)) {
 			for (int i = 0; i < jsonArray.size(); i++) {
-				list.add(certificateUtils.getActualCertifiacteName(jsonArray.get(i).toString()));
+				list.add(certificateUtils.getActualCertifiacteName(jsonArray.get(i).getAsString()));
 			}
 		}
 		return list;
