@@ -11236,16 +11236,16 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
             for (String policy : policies) {
                 if (isPolicyOfCertType(policy, SSLCertificateConstants.INTERNAL)) {
                     // check for internal cert policy
-                    String certificateName = extractValidCertificateName(policy);
+                    String certificateName = certificateUtils.getActualCertifiacteName(extractValidCertificateName(policy));
                     if (!StringUtils.isEmpty(certificateName) && !internalCertificateNames.contains(certificateName)) {
-                        internalCertificateNames.add(certificateUtils.getActualCertifiacteName((certificateName)));
+                        internalCertificateNames.add(certificateName);
                     }
                 }
                 else if (isPolicyOfCertType(policy, SSLCertificateConstants.EXTERNAL)) {
                     // check for external cert policy
-                    String certificateName = extractValidCertificateName(policy);
+                    String certificateName = certificateUtils.getActualCertifiacteName(extractValidCertificateName(policy));
                     if (!StringUtils.isEmpty(certificateName) && !externalCertificateNames.contains(certificateName)) {
-                        externalCertificateNames.add(certificateUtils.getActualCertifiacteName((certificateName)));
+                        externalCertificateNames.add(certificateName);
                     }
                 }
             }
