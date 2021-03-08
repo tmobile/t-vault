@@ -292,9 +292,9 @@ const CertificatesDashboard = () => {
   const fetchNonAdminInternalData = useCallback(async () => {
     let allCertInternal = [];
     if (configData.AUTH_TYPE === 'oidc' && offset === 0) {
-      allCertInternal = await apiService.getAllNonAdminCertInternal();
+      allCertInternal = apiService.getAllNonAdminCertInternal();
     }
-    const internalCertificates = await apiService.getInternalCertificates(
+    const internalCertificates = apiService.getInternalCertificates(
       limit,
       offset
     );
@@ -371,9 +371,9 @@ const CertificatesDashboard = () => {
   const fetchNonAdminExternalData = useCallback(async () => {
     let allCertExternal = [];
     if (configData.AUTH_TYPE === 'oidc' && offset === 0) {
-      allCertExternal = await apiService.getAllNonAdminCertExternal();
+      allCertExternal = apiService.getAllNonAdminCertExternal();
     }
-    const externalCertificates = await apiService.getExternalCertificates();
+    const externalCertificates = apiService.getExternalCertificates(limit,offset);
     const allApiResponse = Promise.all([allCertExternal, externalCertificates]);
     allApiResponse
       .then((result) => {

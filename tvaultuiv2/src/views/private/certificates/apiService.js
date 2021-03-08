@@ -14,8 +14,8 @@ const getInternalCertificates = (limit, offset) =>
 const searchAllCert = (SearchText) => api.get(
   `/sslcert/allcertificates?search=${SearchText}`
 );
-const getExternalCertificates = () =>
-  api.get('/sslcert?certificateName=&certType=external');
+const getExternalCertificates = (limit,offset) =>
+  api.get(`/sslcert?certificateName=&certType=external&limit=${limit}&offset=${offset}`);
 const deleteCertificate = (name, certType) =>
   api.delete(`/certificates/${name}/${certType}`);
 const getOnboardCertificates = (limit, offset) =>
