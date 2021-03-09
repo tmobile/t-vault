@@ -159,6 +159,7 @@ const useStyles = makeStyles(() => ({
 const SafeDashboard = () => {
   const classes = useStyles();
   const [safeList, setSafeList] = useState([]);
+  const [allSafeList, setAllSafeList] = useState([]);
   const [response, setResponse] = useState({});
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [menu] = useState([
@@ -223,6 +224,7 @@ const SafeDashboard = () => {
   const clearData = () => {
     setSafeOffset(0);
     setSafeList([]);
+    setAllSafeList([]);
     setHasMoreData(true);
     setClearedData(true);
     setOwnerOfSafes(false);
@@ -233,21 +235,8 @@ const SafeDashboard = () => {
   };
 
   const safesLdapUserPassResponse = () => {
-    // const access = JSON.parse(sessionStorage.getItem('access'));
-    // if (Object.keys(access).length > 0) {
-    //   Object.keys(access).forEach((item) => {
-    //     if (item === type) {
-    //       const data = makeSafesList(access[item], item);
-    //       data.map((value) => {
-    //         const obj = arrayList.find((ele) => ele.name === value.name);
-    //         if (!obj) {
-    //           return safeObject[type].push(value);
-    //         }
-    //         return null;
-    //       });
-    //     }
-    //   });
-    // }
+    const access = JSON.parse(sessionStorage.getItem('access'));
+    sessionStorage.setItem('safesData', JSON.stringify(access));
   };
 
   const checkHasMoreData = (listArray) => {
@@ -349,7 +338,7 @@ const SafeDashboard = () => {
         setResponse({ status: 'failed', message: 'failed' });
       });
     // eslint-disable-next-line
-  }, [safeOffset]);
+  }, [safeOffset, safeList]);
 
   /**
    * @description On component load call fetchUserSafesData function.
@@ -408,7 +397,7 @@ const SafeDashboard = () => {
         setResponse({ status: 'failed', message: 'failed' });
       });
     // eslint-disable-next-line
-  }, [safeOffset]);
+  }, [safeOffset, safeList]);
 
   /**
    * @function fetchAppSafesData
@@ -554,11 +543,13 @@ const SafeDashboard = () => {
    * @param {string} value selected filter value.
    */
   const onSelectChange = (value) => {
-    setSafeType(value);
-    setInputSearchValue('');
-    setResponse({ status: 'loading', message: 'Loading...' });
-    clearData();
-    setSearchSelectClicked(false);
+    if (response.status !== 'loading') {
+      setSafeType(value);
+      setInputSearchValue('');
+      setResponse({ status: 'loading', message: 'Loading...' });
+      clearData();
+      setSearchSelectClicked(false);
+    }
   };
 
   /**
@@ -708,6 +699,7 @@ const SafeDashboard = () => {
       };
     }
     setSafeList([dataObj]);
+    setAllSafeList([dataObj]);
     setInputSearchValue(value.name);
     setSafeType(`${value.type}s`);
     setSearchSelectClicked(true);
@@ -721,7 +713,7 @@ const SafeDashboard = () => {
         onEditSafeClicked={(safe) => onEditSafeClicked(safe)}
         onDeleteSafeClicked={(e, safe) => onDeleteSafeClicked(e, safe)}
         history={history}
-        safeList={safeList}
+        safeList={!searchSelectClicked ? safeList : allSafeList}
         ownerOfSafes={ownerOfSafes}
         isAdmin={isAdmin}
         searchSelectClicked={searchSelectClicked}
@@ -776,7 +768,7 @@ const SafeDashboard = () => {
                 )}
               </SearchWrap>
             </ColumnHeader>
-            {response.status === 'loading' && (
+            {response.status === 'loading' && allSafeList?.length < 1 && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
             {response.status === 'failed' && (
