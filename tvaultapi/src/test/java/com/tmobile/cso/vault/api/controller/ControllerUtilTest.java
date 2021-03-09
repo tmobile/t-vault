@@ -786,7 +786,7 @@ public class ControllerUtilTest {
     @Test
     public void test_areAwsLoginInputsValid()  {
 
-        AWSAuthLogin awsAuthLogin = new AWSIAMLogin();
+        AWSAuthLogin awsAuthLogin = new AWSAuthLogin();
         awsAuthLogin.setIam_http_request_method("POST");
         awsAuthLogin.setIam_request_body("{}");
         awsAuthLogin.setIam_request_headers("{\"token\":\"4qJC0tWjMDIKjRDDmtcUAZBt\"}");
@@ -800,7 +800,7 @@ public class ControllerUtilTest {
     @Test
     public void test_areAwsLoginInputsValid_EC2()  {
 
-        AWSAuthLogin awsAuthLogin = new AWSIAMLogin();
+        AWSAuthLogin awsAuthLogin = new AWSAuthLogin();
         awsAuthLogin.setIam_http_request_method("POST");
         awsAuthLogin.setIam_request_body("{}");
         awsAuthLogin.setIam_request_headers("{\"token\":\"4qJC0tWjMDIKjRDDmtcUAZBt\"}");

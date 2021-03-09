@@ -245,7 +245,6 @@ public class AWSAuthControllerV2Test {
         awsiamLogin.setIam_request_headers("{\"token\":\"4qJC0tWjMDIKjRDDmtcUAZBt\"}");
         awsiamLogin.setIam_request_url("http://testurl.com");
         awsiamLogin.setRole("testawsrole");
-        awsiamLogin.setPkcs7("MIIBjwYJKoZIhvcNAQcDoIIBgDCCAXwCAQAxggE4MIIBNAIBADCBnDCBlDELMAkGA1UEBhMCWkEx");
 
         String inputJson =new ObjectMapper().writeValueAsString(awsiamLogin);
         String responseMessage = "sample response";
@@ -263,7 +262,7 @@ public class AWSAuthControllerV2Test {
 
     @Test
     public void test_authenticate() throws Exception {
-        AWSAuthLogin awsAuthLogin = new AWSIAMLogin();
+        AWSAuthLogin awsAuthLogin = new AWSAuthLogin();
         awsAuthLogin.setIam_http_request_method("POST");
         awsAuthLogin.setIam_request_body("{}");
         awsAuthLogin.setIam_request_headers("{\"token\":\"5PDrOhsy4ig8L3EpsJZSLAMg\"}");
