@@ -175,6 +175,7 @@ const Header = (props) => {
     }
     if (label.path !== 'safes') {
       sessionStorage.removeItem('safesApiCount');
+      sessionStorage.removeItem('safesList');
     }
   };
 

@@ -171,7 +171,6 @@ const SafeDashboard = () => {
   const [deletionPath, setDeletionPath] = useState('');
   const [toast, setToast] = useState(null);
   const [safeClicked, setSafeClicked] = useState(false);
-  const [allSafeList, setAllSafeList] = useState([]);
   const location = useLocation();
   const [selectedSafeDetails, setSelectedSafeDetails] = useState({});
   const handleClose = () => {
@@ -222,16 +221,15 @@ const SafeDashboard = () => {
   };
 
   const clearData = () => {
-    const arr = [];
     setSafeOffset(0);
-    setAllSafeList([]);
-    setSafeList(arr);
+    setSafeList([]);
     setHasMoreData(true);
     setClearedData(true);
     setOwnerOfSafes(false);
     setSearchSelectClicked(false);
     setNoResultFound('');
     setDataNotAvailableToScroll(false);
+    sessionStorage.removeItem('safesList');
   };
 
   const safesLdapUserPassResponse = () => {
@@ -266,8 +264,9 @@ const SafeDashboard = () => {
       const selectedTypeObj = menu.find((item) => item.name === safeType);
       const array = constructSafesArray(selectedTypeObj?.type);
       const arr1 = [];
+      const safesListArray = JSON.parse(sessionStorage.getItem('safesList'));
       array.map((ele) => {
-        const notAvailableVal = allSafeList.find(
+        const notAvailableVal = safesListArray?.find(
           (item) => item.name === ele.name
         );
         if (!notAvailableVal) {
@@ -283,7 +282,10 @@ const SafeDashboard = () => {
         return null;
       });
       setSafeList((val) => val.concat(arr1));
-      setAllSafeList((val) => val.concat(arr1));
+      sessionStorage.setItem(
+        'safesList',
+        JSON.stringify(safesListArray?.concat(arr1))
+      );
     }
     // eslint-disable-next-line
   }, [dataNotAvailableToScroll]);
@@ -292,7 +294,17 @@ const SafeDashboard = () => {
     setIsInfiniteScrollLoading(false);
     setResponse({ status: 'success', message: '' });
     setSafeList((val) => val.concat(safeArr));
-    setAllSafeList((val) => val.concat(safeArr));
+    if (!isAdmin) {
+      const data = JSON.parse(sessionStorage.getItem('safesList'));
+      if (data === null) {
+        sessionStorage.setItem('safesList', JSON.stringify(safeArr));
+      } else {
+        sessionStorage.setItem(
+          'safesList',
+          JSON.stringify(data.concat(safeArr))
+        );
+      }
+    }
   };
 
   /**
@@ -329,8 +341,9 @@ const SafeDashboard = () => {
         if (result && result[1]?.data?.keys) {
           safesObject = compareSafesAndList(result[1].data.keys, 'users');
         }
-        checkHasMoreData(result[1]);
+
         onResponseVariableSet(safesObject);
+        checkHasMoreData(result[1]);
       })
       .catch(() => {
         setResponse({ status: 'failed', message: 'failed' });
@@ -343,6 +356,7 @@ const SafeDashboard = () => {
    */
   useEffect(() => {
     sessionStorage.setItem('safesApiCount', 0);
+    sessionStorage.removeItem('safesList');
     setResponse({ status: 'loading', message: 'Loading...' });
     setInputSearchValue('');
     setSafeType('User Safes');
@@ -386,8 +400,9 @@ const SafeDashboard = () => {
         if (result && result[1]?.data?.keys) {
           safesObject = compareSafesAndList(result[1].data.keys, 'shared');
         }
-        checkHasMoreData(result[1]);
+
         onResponseVariableSet(safesObject);
+        checkHasMoreData(result[1]);
       })
       .catch(() => {
         setResponse({ status: 'failed', message: 'failed' });
@@ -426,8 +441,8 @@ const SafeDashboard = () => {
         if (result && result[1]?.data?.keys) {
           safesObject = compareSafesAndList(result[1].data.keys, 'apps');
         }
-        checkHasMoreData(result[1]);
         onResponseVariableSet(safesObject);
+        checkHasMoreData(result[1]);
       })
       .catch(() => {
         setResponse({ status: 'failed', message: 'failed' });
@@ -436,24 +451,24 @@ const SafeDashboard = () => {
   }, [safeOffset]);
 
   useEffect(() => {
-    if (allSafeList.length > 0) {
+    if (safeList.length > 0) {
       const val = location.pathname.split('/');
       const safeName = val[val.length - 1];
       if (safeName !== 'create-safe' && safeName !== 'edit-safe') {
-        const obj = allSafeList.find((safe) => safe.name === safeName);
+        const obj = safeList.find((safe) => safe.name === safeName);
         setOwnerOfSafes(false);
         if (obj) {
           setSelectedSafeDetails({ ...obj });
         } else {
-          setSelectedSafeDetails(allSafeList[0]);
-          history.push(`/safes/${allSafeList[0].name}`);
+          setSelectedSafeDetails(safeList[0]);
+          history.push(`/safes/${safeList[0].name}`);
         }
       }
     } else {
       setSelectedSafeDetails({});
     }
     // eslint-disable-next-line
-  }, [allSafeList, location, history]);
+  }, [safeList, location, history]);
 
   const callApiBasedOnSafeType = async () => {
     if (safeType === 'User Safes') {
@@ -694,7 +709,6 @@ const SafeDashboard = () => {
     }
     setSafeList([dataObj]);
     setInputSearchValue(value.name);
-    setAllSafeList([dataObj]);
     setSafeType(`${value.type}s`);
     setSearchSelectClicked(true);
   };
