@@ -637,8 +637,6 @@ const CertificatesDashboard = () => {
   },[])
 
 
-
-
   /**
    * @function onSearchChange
    * @description function to search certificate.
@@ -670,8 +668,24 @@ const CertificatesDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputSearchValue]);
 
+  const fetchCertificateDetail = (certType, certName) => {
+    const url = `/sslcert?certificateName=${certName}&certType=${certType}`;
+    apiService
+      .getCertificateDetail(url)
+      .then((res) => {
+        if (res?.data?.keys[0]) {
+          setSearchSelected([res?.data?.keys[0]]);
+        } else {
+          setSearchSelected([{ certificateName: certName, certType }]);
+        }
+      })
+      .catch(() => {
+        setSearchSelected([{ certificateName: certName, certType }]);
+      });
+  };
+
   const onSearchItemSelected = (v) => {
-    setSearchSelected([{ certificateName: v.name, certType: v.type }]);
+    fetchCertificateDetail(v.type, v.name);
     if (v.type === 'internal') {
       setCertificateType('Internal Certificates');
     } else if (v.type === 'external') {
