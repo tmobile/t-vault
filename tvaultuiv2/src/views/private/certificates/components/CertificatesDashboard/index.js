@@ -505,6 +505,17 @@ const CertificatesDashboard = () => {
     }
   };
 
+  const loadTypeSpecificData = (type) => {
+    setDataCleared(false);
+    if (type === 'Internal Certificates') {
+      fetchInternalCertificates();
+    } else if (type === 'External Certificates') {
+      fetchExternalCertificates();
+    } else if (type === 'Onboard Certificates') {
+      fetchOnboardCertificates();
+    }
+  };
+
   const clearDataAndLoad = () => {
     setOffset(0);
     setHasMore(false);
@@ -517,28 +528,14 @@ const CertificatesDashboard = () => {
     setDataCleared(true);
   };
 
-  const loadTypeSpecificData = (type) => {
-    setDataCleared(false);
-    if (type === 'Internal Certificates') {
-      fetchInternalCertificates();
-    } else if (type === 'External Certificates') {
-      fetchExternalCertificates();
-    } else if (type === 'Onboard Certificates') {
-      fetchOnboardCertificates();
-    }
-  };
-
   useEffect(() => {
     if (dataCleared === true) {
       loadTypeSpecificData(certificateType);
+      setDataCleared(false);
     }
     // eslint-disable-next-line
   },[dataCleared])
 
-  // useEffect(()=>{
-  //   clearDataAndLoad();
-  //   setActionPerformed(false);
-  // },[certificateType,actionPerformed]);
 
   useEffect(() => {
     const url = history?.location?.pathname?.split('/');
@@ -641,8 +638,8 @@ const CertificatesDashboard = () => {
       setSearchCertList([]);
       setNoResultFound('');
     }
-    if (inputSearchValue === '') {
-      onSelectChange(certificateType);
+    if (inputSearchValue === '' && !dataCleared) {
+      clearDataAndLoad();
     }
   };
 
