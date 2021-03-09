@@ -1511,9 +1511,9 @@ public class  SelfSupportService {
 
 		// Filter based on searchText if exists
 		if (StringUtils.isNotEmpty(searchText) && searchText.length() >= 3) {
-			userSafeList = userSafeList.stream().filter(s -> s.toLowerCase().startsWith(searchText)).collect(Collectors.toList());
-			sharedSafeList = sharedSafeList.stream().filter(s -> s.toLowerCase().startsWith(searchText)).collect(Collectors.toList());
-			appsSafeList = appsSafeList.stream().filter(s -> s.toLowerCase().startsWith(searchText)).collect(Collectors.toList());
+			userSafeList = userSafeList.stream().filter(s -> s.toLowerCase().contains(searchText)).collect(Collectors.toList());
+			sharedSafeList = sharedSafeList.stream().filter(s -> s.toLowerCase().contains(searchText)).collect(Collectors.toList());
+			appsSafeList = appsSafeList.stream().filter(s -> s.toLowerCase().contains(searchText)).collect(Collectors.toList());
 		}
 		safeList.put(TVaultConstants.USERS, userSafeList);
 		safeList.put(TVaultConstants.SHARED, sharedSafeList);
