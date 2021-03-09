@@ -768,7 +768,7 @@ const SafeDashboard = () => {
                 )}
               </SearchWrap>
             </ColumnHeader>
-            {response.status === 'loading' && allSafeList?.length < 1 && (
+            {response.status === 'loading' && (
               <ScaledLoader contentHeight="80%" contentWidth="100%" />
             )}
             {response.status === 'failed' && (
@@ -791,7 +791,7 @@ const SafeDashboard = () => {
                     >
                       {renderSafes()}
 
-                      {isInfiniteScrollLoading && (
+                      {isInfiniteScrollLoading && allSafeList.length < 1 && (
                         <ScaledLoaderContainer>
                           <ScaledLoader
                             contentHeight="80%"
