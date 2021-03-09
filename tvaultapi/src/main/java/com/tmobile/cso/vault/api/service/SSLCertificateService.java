@@ -11184,9 +11184,9 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
         }
         // Filter based on searchText if exists
         if (!StringUtils.isEmpty(searchText) && searchText.length() >= 3) {
-            List<String> filterCertNames = certificateList.get(SSLCertificateConstants.INTERNAL).stream().filter(s -> s.toLowerCase().startsWith(searchText)).collect(Collectors.toList());
+            List<String> filterCertNames = certificateList.get(SSLCertificateConstants.INTERNAL).stream().filter(s -> s.toLowerCase().contains(searchText)).collect(Collectors.toList());
             certificateList.put(SSLCertificateConstants.INTERNAL, filterCertNames);
-            filterCertNames = certificateList.get(SSLCertificateConstants.EXTERNAL).stream().filter(s -> s.toLowerCase().startsWith(searchText)).collect(Collectors.toList());
+            filterCertNames = certificateList.get(SSLCertificateConstants.EXTERNAL).stream().filter(s -> s.toLowerCase().contains(searchText)).collect(Collectors.toList());
             certificateList.put(SSLCertificateConstants.EXTERNAL, filterCertNames);
         }
         return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(certificateList));
