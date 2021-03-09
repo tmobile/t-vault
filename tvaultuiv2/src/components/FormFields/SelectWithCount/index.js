@@ -17,7 +17,6 @@ const MenuItemList = styled(MenuItem)`
 
 const SelectWithCountComponent = (props) => {
   const { menu, onChange, value, variant, classes, color, readOnly } = props;
-
   return (
     <SelectStyle
       value={value}
@@ -44,7 +43,7 @@ const SelectWithCountComponent = (props) => {
         return (
           <MenuItemList value={item.name} selected={value} key={index}>
             {item.name}
-            <span>{` (${item.count})`}</span>
+            {item?.count > -1 ? <span>{` (${item.count})`}</span> : ''}
           </MenuItemList>
         );
       })}

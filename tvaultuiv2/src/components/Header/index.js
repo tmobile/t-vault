@@ -173,6 +173,10 @@ const Header = (props) => {
       setCustomSafes('');
       setSvcSafes('');
     }
+    if (label.path !== 'safes') {
+      sessionStorage.removeItem('safesApiCount');
+      sessionStorage.removeItem('safesList');
+    }
   };
 
   const toggleDrawer = (anchor, open) => (event) => {
@@ -290,7 +294,7 @@ const Header = (props) => {
                   onSelectChange(e, 'customSafesNavItems');
                   handleOnClick(e);
                 }}
-                width="15rem"
+                width="16rem"
               />
               {configData.AUTH_TYPE !== 'userpass' && (
                 <NavLink
@@ -312,7 +316,7 @@ const Header = (props) => {
                   onSelectChange(e, 'svcNavItems');
                   handleOnClick(e);
                 }}
-                width="20rem"
+                width="21rem"
               />
             </HeaderCenter>
           )}

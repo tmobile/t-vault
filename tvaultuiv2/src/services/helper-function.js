@@ -120,14 +120,14 @@ export const convertObjectToArray = (data) => {
   return array;
 };
 
-const setSafeType = (type) => {
+export const constructSafeType = (type) => {
   let safeType = '';
   if (type === 'users') {
-    safeType = 'User safe';
+    safeType = 'User Safe';
   } else if (type === 'apps') {
-    safeType = 'Application safe';
+    safeType = 'Application Safe';
   } else if (type === 'shared') {
-    safeType = 'Shared safe';
+    safeType = 'Shared Safe';
   }
   return safeType;
 };
@@ -139,25 +139,32 @@ export const makeSafesList = (array, type) => {
       name: Object.keys(item)[0],
       access: Object.values(item)[0],
       path: `${type}/${Object.keys(item)[0]}`,
-      manage: true,
-      safeType: setSafeType(type),
+      safeType: constructSafeType(type),
+      manage: false,
     };
     safeArray.push(data);
   });
   return safeArray;
 };
 
-export const createSafeArray = (arr, type) => {
+export const createSafeArray = (arr, type, safes) => {
   const safeArray = [];
   arr.map((item) => {
     const data = {
       name: item,
       path: `${type}/${item}`,
       manage: true,
-      safeType: setSafeType(type),
+      safeType: constructSafeType(type),
       access: '',
     };
     safeArray.push(data);
+  });
+  safeArray.map((ele) => {
+    const findObj = safes.find((el) => el.name === ele.name);
+    if (findObj) {
+      // eslint-disable-next-line no-param-reassign
+      ele.access = findObj.access;
+    }
   });
   return safeArray;
 };

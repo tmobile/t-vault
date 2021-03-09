@@ -1,10 +1,10 @@
+/* eslint-disable react/no-array-index-key */
 /* eslint-disable no-return-assign */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable no-param-reassign */
 import React, { useState, useEffect, useCallback, lazy } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import {
-  Link,
   Route,
   Switch,
   Redirect,
@@ -13,41 +13,33 @@ import {
 } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { debounce } from 'lodash';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
 import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
-import safeIcon from '../../../../../assets/icon_safes.svg';
 import FloatingActionButtonComponent from '../../../../../components/FormFields/FloatingActionButton';
 import mediaBreakpoints from '../../../../../breakpoints';
-import TextFieldComponent from '../../../../../components/FormFields/TextField';
 import SafeDetails from '../SafeDetails';
 import SelectionTabs from '../Tabs';
-import ListItem from '../ListItem';
-import PsudoPopper from '../PsudoPopper';
 import Error from '../../../../../components/Error';
 import {
-  makeSafesList,
+  constructSafeType,
   createSafeArray,
 } from '../../../../../services/helper-function';
 import SnackbarComponent from '../../../../../components/Snackbar';
-
 import apiService from '../../apiService';
 import ScaledLoader from '../../../../../components/Loaders/ScaledLoader';
-
+import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import ConfirmationModal from '../../../../../components/ConfirmationModal';
 import ButtonComponent from '../../../../../components/FormFields/ActionButton';
-import EditDeletePopper from '../EditDeletePopper';
 import SelectWithCountComponent from '../../../../../components/FormFields/SelectWithCount';
-import {
-  ListContainer,
-  ListContent,
-  NoResultFound,
-} from '../../../../../styles/GlobalStyles/listingStyle';
+import { ListContainer } from '../../../../../styles/GlobalStyles/listingStyle';
 import configData from '../../../../../config/config';
+import SearchboxWithDropdown from '../../../../../components/FormFields/SearchboxWithDropdown';
+import LeftColumn from './component/leftColumn';
 
 const CreateSafe = lazy(() => import('../../CreateSafe'));
 
-// styled components
 const ColumnSection = styled('section')`
   position: relative;
   background: ${(props) => props.backgroundColor || '#151820'};
@@ -94,48 +86,10 @@ const NoDataWrapper = styled.div`
   color: #5e627c;
 `;
 
-const PopperWrap = styled.div`
-  position: absolute;
-  top: 50%;
-  right: 0%;
-  z-index: 1;
-  width: 5.5rem;
-  transform: translate(-50%, -50%);
-  display: none;
-`;
-
-const SafeFolderWrap = styled(Link)`
-  position: relative;
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  justify-content: space-between;
-  padding: 1.2rem 1.8rem 1.2rem 3.8rem;
-  background-image: ${(props) =>
-    props.active === 'true' ? props.theme.gradients.list : 'none'};
-  color: ${(props) => (props.active === 'true' ? '#fff' : '#4a4a4a')};
-  ${mediaBreakpoints.belowLarge} {
-    padding: 2rem 1.1rem;
-  }
-  :hover {
-    background-image: ${(props) => props.theme.gradients.list || 'none'};
-    color: #fff;
-    ${PopperWrap} {
-      display: block;
-    }
-  }
-`;
-
 const NoSafeWrap = styled.div`
   width: 35%;
 `;
 
-const BorderLine = styled.div`
-  border-bottom: 0.1rem solid #1d212c;
-  width: 90%;
-  position: absolute;
-  bottom: 0;
-`;
 const FloatBtnWrapper = styled('div')`
   position: absolute;
   bottom: 1rem;
@@ -162,7 +116,30 @@ const noDataStyle = css`
   justify-content: center;
 `;
 
-const EditDeletePopperWrap = styled.div``;
+const ScaledLoaderContainer = styled.div`
+  height: 5rem;
+  display: flex;
+  align-items: center;
+`;
+
+const scaledLoaderFirstChild = css`
+  width: 1.5rem;
+  height: 1.5rem;
+`;
+
+const scaledLoaderLastChild = css`
+  width: 3rem;
+  height: 3rem;
+  left: -1.7rem;
+  top: -0.3rem;
+`;
+
+const customStyle = css`
+  position: absolute;
+  right: 1.2rem;
+  top: 1.6rem;
+  color: red;
+`;
 
 const useStyles = makeStyles(() => ({
   select: {
@@ -178,226 +155,386 @@ const useStyles = makeStyles(() => ({
     },
   },
 }));
-const iconStyles = makeStyles(() => ({
-  root: {
-    width: '3.4rem',
-    height: '3.9rem',
-  },
-}));
+
 const SafeDashboard = () => {
   const classes = useStyles();
-  const [safes, setSafes] = useState({
-    users: [],
-    apps: [],
-    shared: [],
-  });
   const [safeList, setSafeList] = useState([]);
+  const [allSafeList, setAllSafeList] = useState([]);
   const [response, setResponse] = useState({});
   const [inputSearchValue, setInputSearchValue] = useState('');
-  const [menu, setMenu] = useState([]);
-  const [selectList] = useState([
-    { selected: 'User Safes', path: 'users' },
-    { selected: 'Shared Safes', path: 'shared' },
-    { selected: 'Application Safes', path: 'apps' },
+  const [menu] = useState([
+    { name: 'User Safes', type: 'users' },
+    { name: 'Shared Safes', type: 'shared' },
+    { name: 'Application Safes', type: 'apps' },
   ]);
-  const [safeType, setSafeType] = useState('All Safes');
+  const [safeType, setSafeType] = useState('User Safes');
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const [deletionPath, setDeletionPath] = useState('');
   const [toast, setToast] = useState(null);
   const [safeClicked, setSafeClicked] = useState(false);
-  const [allSafeList, setAllSafeList] = useState([]);
   const location = useLocation();
   const [selectedSafeDetails, setSelectedSafeDetails] = useState({});
   const handleClose = () => {
     setOpenConfirmationModal(false);
   };
-  const listIconStyles = iconStyles();
   const isMobileScreen = useMediaQuery(mediaBreakpoints.small);
-  const isTabAndMobScreen = useMediaQuery(mediaBreakpoints.smallAndMedium);
   const history = useHistory();
+  const [isInfiniteScrollLoading, setIsInfiniteScrollLoading] = useState(false);
+  const [hasMoreData, setHasMoreData] = useState(true);
+  const [safeOffset, setSafeOffset] = useState(0);
+  const [clearedData, setClearedData] = useState(false);
+  const [searchLoader, setSearchLoader] = useState(false);
+  const [limit] = useState(20);
+  const isAdmin = JSON.parse(sessionStorage.getItem('isAdmin'));
+  const [searchMenu, setSearchMenu] = useState([]);
+  const [noResultFound, setNoResultFound] = useState('');
+  const [ownerOfSafes, setOwnerOfSafes] = useState(false);
+  const [searchSelectClicked, setSearchSelectClicked] = useState(false);
+  const [dataNotAvailableToScroll, setDataNotAvailableToScroll] = useState(
+    false
+  );
 
-  const sortAnArray = (array) => {
-    array.sort((str1, str2) => {
-      const textA = str1.name.toLowerCase();
-      const textB = str2.name.toLowerCase();
-      // eslint-disable-next-line no-nested-ternary
-      return textA < textB ? -1 : textA > textB ? 1 : 0;
+  const constructSafesArray = (type) => {
+    const data = JSON.parse(sessionStorage.getItem('safesData'));
+    const array = [];
+    Object.keys(data).map((ele) => {
+      if (ele === type) {
+        data[ele].map((item) => {
+          return array.push({
+            name: Object.keys(item)[0],
+            access: Object.values(item)[0],
+          });
+        });
+      }
+      return null;
     });
+    return array;
   };
 
   /**
    * @function compareSafesAndList
    * @description function compare safe and manage safes and remove duplication.
    */
-  const compareSafesAndList = useCallback((listArray, type, safesObject) => {
-    const value = createSafeArray(listArray, type);
-    safesObject[type].map((item) => {
-      if (!listArray.includes(item.name)) {
-        item.manage = false;
-      }
-      return null;
-    });
+  const compareSafesAndList = (listArray, type) => {
+    const arrayVal = constructSafesArray(type);
+    const value = createSafeArray(listArray, type, arrayVal);
+    return value;
+  };
 
-    value.map((item) => {
-      if (!safesObject[type].some((list) => list.name === item.name)) {
-        return safesObject[type].push(item);
+  const clearData = () => {
+    setSafeOffset(0);
+    setSafeList([]);
+    setAllSafeList([]);
+    setHasMoreData(true);
+    setClearedData(true);
+    setOwnerOfSafes(false);
+    setSearchSelectClicked(false);
+    setNoResultFound('');
+    setDataNotAvailableToScroll(false);
+    sessionStorage.removeItem('safesList');
+  };
+
+  const safesLdapUserPassResponse = () => {
+    const access = JSON.parse(sessionStorage.getItem('access'));
+    sessionStorage.setItem('safesData', JSON.stringify(access));
+  };
+
+  const checkHasMoreData = (listArray) => {
+    if (listArray?.data?.next === -1) {
+      setHasMoreData(false);
+      setDataNotAvailableToScroll(true);
+    } else {
+      setHasMoreData(true);
+    }
+  };
+
+  useEffect(() => {
+    if (dataNotAvailableToScroll && !isAdmin) {
+      const selectedTypeObj = menu.find((item) => item.name === safeType);
+      const array = constructSafesArray(selectedTypeObj?.type);
+      const arr1 = [];
+      const safesListArray = JSON.parse(sessionStorage.getItem('safesList'));
+      array.map((ele) => {
+        const notAvailableVal = safesListArray?.find(
+          (item) => item.name === ele.name
+        );
+        if (!notAvailableVal) {
+          const data = {
+            name: ele.name,
+            access: ele.access,
+            path: `${selectedTypeObj.type}/${ele.name}`,
+            safeType: constructSafeType(selectedTypeObj.type),
+            manage: false,
+          };
+          arr1.push(data);
+        }
+        return null;
+      });
+      setSafeList((val) => val.concat(arr1));
+      sessionStorage.setItem(
+        'safesList',
+        JSON.stringify(safesListArray?.concat(arr1))
+      );
+    }
+    // eslint-disable-next-line
+  }, [dataNotAvailableToScroll]);
+
+  const onResponseVariableSet = (safeArr) => {
+    setIsInfiniteScrollLoading(false);
+    setResponse({ status: 'success', message: '' });
+    setSafeList((val) => val.concat(safeArr));
+    if (!isAdmin) {
+      const data = JSON.parse(sessionStorage.getItem('safesList'));
+      if (data === null) {
+        sessionStorage.setItem('safesList', JSON.stringify(safeArr));
+      } else {
+        sessionStorage.setItem(
+          'safesList',
+          JSON.stringify(data.concat(safeArr))
+        );
       }
-      return null;
-    });
-  }, []);
+    }
+  };
 
   /**
-   * @function fetchData
-   * @description function call all the manage and safe api.
+   * @function fetchUserSafesData
+   * @description function call all the manage and users safe api.
    */
-  const fetchData = useCallback(async () => {
-    setResponse({ status: 'loading', message: 'Loading...' });
-    setInputSearchValue('');
-    setSafeType('All Safes');
+  const fetchUserSafesData = useCallback(async () => {
     let safesApiResponse = [];
-    if (configData.AUTH_TYPE === 'oidc') {
+    if (
+      configData.AUTH_TYPE === 'oidc' &&
+      JSON.parse(sessionStorage.getItem('safesApiCount')) === 0
+    ) {
       safesApiResponse = await apiService.getSafes();
     }
-    const usersListApiResponse = await apiService.getManageUsersList();
-    const sharedListApiResponse = await apiService.getManageSharedList();
-    const appsListApiResponse = await apiService.getManageAppsList();
+    const usersListApiResponse = await apiService.getManageUsersList(
+      limit,
+      safeOffset
+    );
     const allApiResponse = Promise.all([
       safesApiResponse,
       usersListApiResponse,
-      sharedListApiResponse,
-      appsListApiResponse,
     ]);
     allApiResponse
-      .then((result) => {
-        const safesObject = { users: [], apps: [], shared: [] };
+      .then(async (result) => {
+        setSafeOffset(limit + safeOffset);
+        let safesObject = [];
         if (configData.AUTH_TYPE === 'oidc') {
-          if (result[0] && result[0].data) {
-            Object.keys(result[0].data).forEach((item) => {
-              if (item === 'shared' || item === 'users' || item === 'apps') {
-                const data = makeSafesList(result[0].data[item], item);
-                data.map((value) => {
-                  return safesObject[item].push(value);
-                });
-              }
-            });
+          if (result && result[0]?.data) {
+            sessionStorage.setItem('safesData', JSON.stringify(result[0].data));
           }
         } else {
-          const access = JSON.parse(sessionStorage.getItem('access'));
-          if (Object.keys(access).length > 0) {
-            Object.keys(access).forEach((item) => {
-              if (item === 'shared' || item === 'users' || item === 'apps') {
-                const data = makeSafesList(access[item], item);
-                data.map((value) => {
-                  return safesObject[item].push(value);
-                });
-              }
-            });
-          }
+          safesLdapUserPassResponse();
         }
-        if (result[1] && result[1]?.data?.keys) {
-          compareSafesAndList(result[1].data.keys, 'users', safesObject);
+        if (result && result[1]?.data?.keys) {
+          safesObject = compareSafesAndList(result[1].data.keys, 'users');
         }
-        if (result[2] && result[2]?.data?.keys) {
-          compareSafesAndList(result[2].data.keys, 'shared', safesObject);
-        }
-        if (result[3] && result[3]?.data?.keys) {
-          compareSafesAndList(result[3].data.keys, 'apps', safesObject);
-        }
-        setSafes(safesObject);
-        const arrayList = [];
-        Object.keys(safesObject).map((item) => {
-          return safesObject[item].map((ele) => {
-            return arrayList.push(ele);
-          });
-        });
-        sortAnArray(arrayList);
-        setSafeList([...arrayList]);
-        setAllSafeList([...arrayList]);
-        setResponse({ status: 'success', message: '' });
+
+        onResponseVariableSet(safesObject);
+        checkHasMoreData(result[1]);
       })
       .catch(() => {
         setResponse({ status: 'failed', message: 'failed' });
       });
-  }, [compareSafesAndList]);
+    // eslint-disable-next-line
+  }, [safeOffset, safeList]);
 
   /**
-   * @description On component load call fetchData function.
+   * @description On component load call fetchUserSafesData function.
    */
   useEffect(() => {
-    fetchData().catch(() => {
+    sessionStorage.setItem('safesApiCount', 0);
+    sessionStorage.removeItem('safesList');
+    setResponse({ status: 'loading', message: 'Loading...' });
+    setInputSearchValue('');
+    setSafeType('User Safes');
+    fetchUserSafesData().catch(() => {
       setResponse({ status: 'failed', message: 'failed' });
     });
-  }, [fetchData]);
+    // eslint-disable-next-line
+  }, []);
 
-  useEffect(() => {
-    setMenu([
-      { name: 'All Safes', count: safeList?.length || 0 },
-      {
-        name: 'User Safes',
-        count:
-          safeList?.filter(
-            (item) =>
-              item?.safeType?.toLowerCase() === 'User Safe'.toLowerCase()
-          ).length || 0,
-      },
-      {
-        name: 'Shared Safes',
-        count:
-          safeList?.filter(
-            (item) =>
-              item?.safeType?.toLowerCase() === 'Shared Safe'.toLowerCase()
-          ).length || 0,
-      },
-      {
-        name: 'Application Safes',
-        count:
-          safeList?.filter(
-            (item) =>
-              item?.safeType?.toLowerCase() === 'Application Safe'.toLowerCase()
-          ).length || 0,
-      },
+  /**
+   * @function fetchData
+   * @description function call all the manage and shared safe api.
+   */
+  const fetchSharedSafesData = useCallback(async () => {
+    let safesApiResponse = [];
+    if (
+      configData.AUTH_TYPE === 'oidc' &&
+      JSON.parse(sessionStorage.getItem('safesApiCount')) === 0
+    ) {
+      safesApiResponse = await apiService.getSafes();
+    }
+    const sharedListApiResponse = await apiService.getManageSharedList(
+      limit,
+      safeOffset
+    );
+    const allApiResponse = Promise.all([
+      safesApiResponse,
+      sharedListApiResponse,
     ]);
-  }, [allSafeList, safes, safeList]);
+    allApiResponse
+      .then((result) => {
+        let safesObject = [];
+        setSafeOffset(limit + safeOffset);
+        if (configData.AUTH_TYPE === 'oidc') {
+          if (result && result[0]?.data) {
+            sessionStorage.setItem('safesData', JSON.stringify(result[0].data));
+          }
+        } else {
+          safesLdapUserPassResponse();
+        }
+        if (result && result[1]?.data?.keys) {
+          safesObject = compareSafesAndList(result[1].data.keys, 'shared');
+        }
+
+        onResponseVariableSet(safesObject);
+        checkHasMoreData(result[1]);
+      })
+      .catch(() => {
+        setResponse({ status: 'failed', message: 'failed' });
+      });
+    // eslint-disable-next-line
+  }, [safeOffset, safeList]);
+
+  /**
+   * @function fetchAppSafesData
+   * @description function call all the manage and apps safe api.
+   */
+  const fetchAppSafesData = useCallback(async () => {
+    let safesApiResponse = [];
+    if (
+      configData.AUTH_TYPE === 'oidc' &&
+      JSON.parse(sessionStorage.getItem('safesApiCount')) === 0
+    ) {
+      safesApiResponse = await apiService.getSafes();
+    }
+    const appsListApiResponse = await apiService.getManageAppsList(
+      limit,
+      safeOffset
+    );
+    const allApiResponse = Promise.all([safesApiResponse, appsListApiResponse]);
+    allApiResponse
+      .then((result) => {
+        let safesObject = [];
+        setSafeOffset(limit + safeOffset);
+        if (configData.AUTH_TYPE === 'oidc') {
+          if (result && result[0]?.data) {
+            sessionStorage.setItem('safesData', JSON.stringify(result[0].data));
+          }
+        } else {
+          safesLdapUserPassResponse();
+        }
+        if (result && result[1]?.data?.keys) {
+          safesObject = compareSafesAndList(result[1].data.keys, 'apps');
+        }
+        onResponseVariableSet(safesObject);
+        checkHasMoreData(result[1]);
+      })
+      .catch(() => {
+        setResponse({ status: 'failed', message: 'failed' });
+      });
+    // eslint-disable-next-line
+  }, [safeOffset]);
 
   useEffect(() => {
-    if (allSafeList.length > 0) {
+    if (safeList.length > 0) {
       const val = location.pathname.split('/');
       const safeName = val[val.length - 1];
       if (safeName !== 'create-safe' && safeName !== 'edit-safe') {
-        const obj = allSafeList.find((safe) => safe.name === safeName);
+        const obj = safeList.find((safe) => safe.name === safeName);
+        setOwnerOfSafes(false);
         if (obj) {
           setSelectedSafeDetails({ ...obj });
         } else {
-          setSelectedSafeDetails(allSafeList[0]);
-          history.push(`/safes/${allSafeList[0].name}`);
+          setSelectedSafeDetails(safeList[0]);
+          history.push(`/safes/${safeList[0].name}`);
         }
       }
     } else {
       setSelectedSafeDetails({});
     }
     // eslint-disable-next-line
-  }, [allSafeList, location, history]);
+  }, [safeList, location, history]);
+
+  const callApiBasedOnSafeType = async () => {
+    if (safeType === 'User Safes') {
+      await fetchUserSafesData();
+    } else if (safeType === 'Shared Safes') {
+      await fetchSharedSafesData();
+    } else if (safeType === 'Application Safes') {
+      await fetchAppSafesData();
+    }
+  };
+
+  const callSearchApi = useCallback(
+    debounce(
+      (value) => {
+        setSearchLoader(true);
+        apiService
+          .searchSafes(value)
+          .then((responses) => {
+            setSearchLoader(false);
+            const array = [];
+            Object.keys(responses.data).map((item) => {
+              responses.data[item].map((ele) => {
+                array.push({
+                  name: ele,
+                  type: constructSafeType(item),
+                  path: item,
+                });
+                return null;
+              });
+              return null;
+            });
+            if (array.length > 0) {
+              setSearchMenu([...array]);
+              setNoResultFound('');
+            } else {
+              setSearchMenu([]);
+              setNoResultFound('No result found');
+            }
+          })
+          .catch(() => {
+            setToast(-1);
+            setSearchLoader(false);
+          });
+      },
+      1000,
+      true
+    ),
+    []
+  );
+
+  const clearSearchData = () => {
+    setSearchLoader(false);
+    setSearchMenu([]);
+    setNoResultFound('');
+    setSearchSelectClicked(false);
+  };
 
   /**
    * @function onSearchChange
    * @description function to search safe.
    * @param {string} value searched input value.
    */
-  const onSearchChange = (value) => {
-    setInputSearchValue(value);
-    if (safeType === 'All Safes') {
-      if (value?.length > 2) {
-        const array = allSafeList?.filter((item) => {
-          return item?.name
-            ?.toLowerCase()
-            .includes(value?.toLowerCase().trim());
-        });
-        sortAnArray(array);
-        setSafeList([...array]);
-      } else {
-        setSafeList([...allSafeList]);
-      }
+  const onSearchChange = (e) => {
+    if (e?.target?.value?.length > 2) {
+      setSearchMenu([]);
+      callSearchApi(e?.target?.value);
+    } else if (
+      e?.target?.defaultValue !== '' &&
+      e?.target?.value?.length === 0
+    ) {
+      setResponse({ status: 'loading', message: 'Loading...' });
+      clearData();
+      clearSearchData();
+    } else {
+      clearSearchData();
     }
+    setInputSearchValue(e?.target?.value);
   };
 
   /**
@@ -406,40 +543,14 @@ const SafeDashboard = () => {
    * @param {string} value selected filter value.
    */
   const onSelectChange = (value) => {
-    setSafeType(value);
-    setInputSearchValue('');
-    if (value !== 'All Safes') {
-      const obj = selectList?.find((item) => item.selected === value);
-      sortAnArray(safes[obj.path]);
-      setSafeList([...safes[obj.path]]);
-    } else {
-      setSafeList([...allSafeList]);
+    if (response.status !== 'loading') {
+      setSafeType(value);
+      setInputSearchValue('');
+      setResponse({ status: 'loading', message: 'Loading...' });
+      clearData();
+      setSearchSelectClicked(false);
     }
   };
-
-  // when both search and filter value is available.
-  useEffect(() => {
-    if (safeType !== 'All Safes' && inputSearchValue?.length > 2) {
-      const obj = selectList.find((item) => item.selected === safeType);
-      const array = allSafeList.filter(
-        (item) =>
-          item.path.split('/')[0] === obj.path &&
-          item?.name
-            ?.toLowerCase()
-            .includes(inputSearchValue?.toLowerCase().trim())
-      );
-      setSafeList([...array]);
-    } else if (safeType !== 'All Safes' && inputSearchValue?.length <= 2) {
-      const obj = selectList?.find((item) => item.selected === safeType);
-      sortAnArray(safes[obj.path]);
-      setSafeList([...safes[obj.path]]);
-    } else if (safeType === 'All Safes' && inputSearchValue) {
-      onSearchChange(inputSearchValue);
-    } else if (inputSearchValue === '') {
-      onSelectChange(safeType);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputSearchValue, safeType]);
 
   /**
    * @function onActionClicked
@@ -468,21 +579,19 @@ const SafeDashboard = () => {
    */
   const onDeleteSafeConfirmClicked = () => {
     setResponse({ status: 'loading', message: 'loading' });
-    setSafes({ users: [], apps: [], shared: [] });
     setSafeList([]);
     setOpenConfirmationModal(false);
     apiService
       .deleteSafe(deletionPath)
       .then(() => {
         setDeletionPath('');
-        setResponse({ status: 'success', message: 'success' });
         setToast(1);
-        fetchData();
+        clearData();
       })
       .catch(() => {
+        setResponse({ status: 'success', message: 'success' });
         setDeletionPath('');
         setToast(-1);
-        setResponse({ status: 'success', message: 'success' });
       });
   };
 
@@ -528,51 +637,88 @@ const SafeDashboard = () => {
     history.push({ pathname: '/safes/edit-safe', state: { safe } });
   };
 
-  const renderSafes = () => {
-    return safeList.map((safe) => {
-      return (
-        <SafeFolderWrap
-          key={safe.name}
-          to={{
-            pathname: `/safes/${safe.name}`,
-            state: { safe },
-          }}
-          onClick={() => onLinkClicked()}
-          active={
-            history.location.pathname === `/safes/${safe.name}`
-              ? 'true'
-              : 'false'
+  const loadMoreData = () => {
+    setIsInfiniteScrollLoading(true);
+    callApiBasedOnSafeType();
+  };
+
+  const handleListScroll = () => {
+    const element = document.getElementById('scrollList');
+    if (
+      element.scrollHeight - element.offsetHeight - 250 < element.scrollTop &&
+      hasMoreData &&
+      !isInfiniteScrollLoading
+    ) {
+      sessionStorage.setItem('safesApiCount', 1);
+      loadMoreData();
+    }
+  };
+
+  useEffect(() => {
+    if (clearedData) {
+      callApiBasedOnSafeType();
+      setClearedData(false);
+      sessionStorage.setItem('safesApiCount', 0);
+    }
+    // eslint-disable-next-line
+  }, [clearedData]);
+
+  const fetchData = () => {
+    setResponse({ status: 'loading', message: 'loading' });
+    clearData();
+  };
+
+  const onSearchItemSelected = (value) => {
+    setSearchMenu([]);
+    const data = JSON.parse(sessionStorage.getItem('safesData'));
+    let dataObj = {};
+    Object.keys(data).map((ele) => {
+      if (ele === value.path) {
+        data[ele].map((item) => {
+          if (Object.keys(item)[0] === value.name) {
+            dataObj = {
+              name: value.name,
+              access: Object.values(item)[0],
+              path: `${value.path}/${value.name}`,
+              safeType: value.type,
+              manage: false,
+            };
           }
-        >
-          <ListItem
-            title={safe.name}
-            subTitle={safe.safeType}
-            flag={safe.type}
-            icon={safeIcon}
-            manage={safe.manage}
-            listIconStyles={listIconStyles}
-          />
-          <BorderLine />
-          {safe.name && safe.manage && !isTabAndMobScreen ? (
-            <PopperWrap onClick={(e) => onActionClicked(e)}>
-              <PsudoPopper
-                onDeleteSafeClicked={(e) => onDeleteSafeClicked(e, safe.path)}
-                safe={safe}
-                path="/safes/edit-safe"
-              />
-            </PopperWrap>
-          ) : null}
-          {isTabAndMobScreen && safe.manage && (
-            <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
-              <EditDeletePopper
-                onDeleteClicked={(e) => onDeleteSafeClicked(e, safe.path)}
-                onEditClicked={() => onEditSafeClicked(safe)}
-              />
-            </EditDeletePopperWrap>
-          )}
-        </SafeFolderWrap>
-      );
+          return null;
+        });
+      }
+      return null;
     });
+    if (Object.keys(dataObj)?.length === 0) {
+      dataObj = {
+        name: value.name,
+        access: '',
+        path: `${value.path}/${value.name}`,
+        safeType: value.type,
+        manage: true,
+      };
+    }
+    setSafeList([dataObj]);
+    setAllSafeList([dataObj]);
+    setInputSearchValue(value.name);
+    setSafeType(`${value.type}s`);
+    setSearchSelectClicked(true);
+  };
+
+  const renderSafes = () => {
+    return (
+      <LeftColumn
+        onActionClicked={(e) => onActionClicked(e)}
+        onLinkClicked={(safe) => onLinkClicked(safe)}
+        onEditSafeClicked={(safe) => onEditSafeClicked(safe)}
+        onDeleteSafeClicked={(e, safe) => onDeleteSafeClicked(e, safe)}
+        history={history}
+        safeList={!searchSelectClicked ? safeList : allSafeList}
+        ownerOfSafes={ownerOfSafes}
+        isAdmin={isAdmin}
+        searchSelectClicked={searchSelectClicked}
+      />
+    );
   };
   return (
     <ComponentError>
@@ -610,15 +756,16 @@ const SafeDashboard = () => {
                 onChange={(e) => onSelectChange(e.target.value)}
               />
               <SearchWrap>
-                <TextFieldComponent
-                  placeholder="Search - Enter min 3 characters"
-                  icon="search"
-                  fullWidth
-                  onChange={(e) => onSearchChange(e.target.value)}
+                <SearchboxWithDropdown
+                  onSearchChange={(e) => onSearchChange(e)}
                   value={inputSearchValue || ''}
-                  color="secondary"
-                  characterLimit={40}
+                  menu={searchMenu}
+                  onChange={(value) => onSearchItemSelected(value)}
+                  noResultFound={noResultFound}
                 />
+                {searchLoader && inputSearchValue?.length > 2 && (
+                  <LoaderSpinner customStyle={customStyle} />
+                )}
               </SearchWrap>
             </ColumnHeader>
             {response.status === 'loading' && (
@@ -633,36 +780,49 @@ const SafeDashboard = () => {
               <>
                 {safeList.length > 0 ? (
                   <ListContainer>
-                    <ListContent>{renderSafes()}</ListContent>
+                    <div
+                      onScroll={() => handleListScroll()}
+                      id="scrollList"
+                      style={{
+                        height: '100%',
+                        overflow: 'auto',
+                        width: '100%',
+                      }}
+                    >
+                      {renderSafes()}
+
+                      {isInfiniteScrollLoading && allSafeList.length < 1 && (
+                        <ScaledLoaderContainer>
+                          <ScaledLoader
+                            contentHeight="80%"
+                            contentWidth="100%"
+                            notAbsolute
+                            scaledLoaderLastChild={scaledLoaderLastChild}
+                            scaledLoaderFirstChild={scaledLoaderFirstChild}
+                          />
+                        </ScaledLoaderContainer>
+                      )}
+                    </div>
                   </ListContainer>
                 ) : (
-                  <>
-                    {inputSearchValue ? (
-                      <NoResultFound>
-                        No safe found with name
-                        <div>{inputSearchValue}</div>
-                      </NoResultFound>
-                    ) : (
-                      <NoDataWrapper>
-                        <NoSafeWrap>
-                          <NoData
-                            imageSrc={NoSafesIcon}
-                            description="Create a safe to get started!"
-                            actionButton={
-                              <FloatingActionButtonComponent
-                                href="/safes/create-safe"
-                                color="secondary"
-                                icon="addd"
-                                tooltipTitle="Create New Safe"
-                                tooltipPos="bottom"
-                              />
-                            }
-                            customStyle={noDataStyle}
+                  <NoDataWrapper>
+                    <NoSafeWrap>
+                      <NoData
+                        imageSrc={NoSafesIcon}
+                        description="Create a safe to get started!"
+                        actionButton={
+                          <FloatingActionButtonComponent
+                            href="/safes/create-safe"
+                            color="secondary"
+                            icon="addd"
+                            tooltipTitle="Create New Safe"
+                            tooltipPos="bottom"
                           />
-                        </NoSafeWrap>
-                      </NoDataWrapper>
-                    )}
-                  </>
+                        }
+                        customStyle={noDataStyle}
+                      />
+                    </NoSafeWrap>
+                  </NoDataWrapper>
                 )}
               </>
             )}
@@ -681,7 +841,6 @@ const SafeDashboard = () => {
 
           <RightColumnSection clicked={safeClicked}>
             <Switch>
-              {' '}
               {safeList[0]?.name && (
                 <Redirect
                   exact
@@ -704,6 +863,7 @@ const SafeDashboard = () => {
                       <SelectionTabs
                         safeDetail={selectedSafeDetails}
                         refresh={fetchData}
+                        setOwnerOfSafes={setOwnerOfSafes}
                       />
                     }
                   />
@@ -721,6 +881,7 @@ const SafeDashboard = () => {
                       <SelectionTabs
                         safeDetail={selectedSafeDetails}
                         refresh={fetchData}
+                        setOwnerOfSafes={setOwnerOfSafes}
                       />
                     }
                   />
