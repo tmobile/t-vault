@@ -635,11 +635,14 @@ const CertificatesDashboard = () => {
   const onSearchChange = (value) => {
     if (value?.length > 2) {
       setSearchLoader(true);
+      setDataCleared(false);
       searchAllcertApi(value);
     } else {
       setSearchCertList([]);
       setNoResultFound('');
-      setCertificateList([...allCertList]);
+    }
+    if (inputSearchValue === '') {
+      onSelectChange(certificateType);
     }
   };
 
