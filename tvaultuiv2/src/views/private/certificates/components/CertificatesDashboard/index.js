@@ -149,8 +149,8 @@ const scaledLoaderFirstChild = css`
 const scaledLoaderLastChild = css`
   width: 3rem;
   height: 3rem;
-  left: -1.5rem;
-  top: -0.2rem;
+  left: -1.7rem;
+  top: -0.3rem;
 `;
 
 const customLoaderStyle = css`
