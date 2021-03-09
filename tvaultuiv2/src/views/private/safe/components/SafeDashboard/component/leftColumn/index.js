@@ -71,6 +71,7 @@ const LeftColumn = (props) => {
     onEditSafeClicked,
     onDeleteSafeClicked,
     onActionClicked,
+    searchSelectClicked,
   } = props;
   const listIconStyles = iconStyles();
   const isTabAndMobScreen = useMediaQuery(mediaBreakpoints.smallAndMedium);
@@ -102,7 +103,9 @@ const LeftColumn = (props) => {
                 listIconStyles={listIconStyles}
               />
               <BorderLine />
-              {(safe.manage || isAdmin || ownerOfSafes) &&
+              {(safe.manage ||
+                isAdmin ||
+                (ownerOfSafes && searchSelectClicked)) &&
               !isTabAndMobScreen ? (
                 <PopperWrap onClick={(e) => onActionClicked(e)}>
                   <PsudoPopper
@@ -114,14 +117,17 @@ const LeftColumn = (props) => {
                   />
                 </PopperWrap>
               ) : null}
-              {isTabAndMobScreen && (safe.manage || isAdmin || ownerOfSafes) && (
-                <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
-                  <EditDeletePopper
-                    onDeleteClicked={(e) => onDeleteSafeClicked(e, safe.path)}
-                    onEditClicked={() => onEditSafeClicked(safe)}
-                  />
-                </EditDeletePopperWrap>
-              )}
+              {isTabAndMobScreen &&
+                (safe.manage ||
+                  isAdmin ||
+                  (ownerOfSafes && searchSelectClicked)) && (
+                  <EditDeletePopperWrap onClick={(e) => onActionClicked(e)}>
+                    <EditDeletePopper
+                      onDeleteClicked={(e) => onDeleteSafeClicked(e, safe.path)}
+                      onEditClicked={() => onEditSafeClicked(safe)}
+                    />
+                  </EditDeletePopperWrap>
+                )}
             </SafeFolderWrap>
           );
         })}
@@ -139,6 +145,7 @@ LeftColumn.propTypes = {
   isAdmin: PropTypes.bool.isRequired,
   onActionClicked: PropTypes.func.isRequired,
   ownerOfSafes: PropTypes.bool.isRequired,
+  searchSelectClicked: PropTypes.bool.isRequired,
 };
 
 LeftColumn.defaultProps = {};

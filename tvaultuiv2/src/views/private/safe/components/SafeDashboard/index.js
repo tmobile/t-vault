@@ -189,6 +189,11 @@ const SafeDashboard = () => {
   const [searchMenu, setSearchMenu] = useState([]);
   const [noResultFound, setNoResultFound] = useState('');
   const [ownerOfSafes, setOwnerOfSafes] = useState(false);
+  const [searchSelectClicked, setSearchSelectClicked] = useState(false);
+  const [dataNotAvailableToScroll, setDataNotAvailableToScroll] = useState(
+    false
+  );
+
   const constructSafesArray = (type) => {
     const data = JSON.parse(sessionStorage.getItem('safesData'));
     const array = [];
@@ -224,6 +229,9 @@ const SafeDashboard = () => {
     setHasMoreData(true);
     setClearedData(true);
     setOwnerOfSafes(false);
+    setSearchSelectClicked(false);
+    setNoResultFound('');
+    setDataNotAvailableToScroll(false);
   };
 
   const safesLdapUserPassResponse = () => {
@@ -247,37 +255,38 @@ const SafeDashboard = () => {
   const checkHasMoreData = (listArray) => {
     if (listArray?.data?.next === -1) {
       setHasMoreData(false);
+      setDataNotAvailableToScroll(true);
     } else {
       setHasMoreData(true);
     }
   };
 
-  // useEffect(() => {
-  //   if (allSafeList.length > 0 && !hasMoreData) {
-  //     debugger;
-  //     const selectedTypeObj = menu.find((item) => item.name === safeType);
-  //     const array = constructSafesArray(selectedTypeObj?.type);
-  //     const arr1 = [];
-  //     array.map((ele) => {
-  //       const notAvailableVal = allSafeList.find(
-  //         (item) => item.name === ele.name
-  //       );
-  //       if (!notAvailableVal) {
-  //         const data = {
-  //           name: ele.name,
-  //           access: ele.access,
-  //           path: `${selectedTypeObj.type}/${ele.name}`,
-  //           safeType: constructSafeType(selectedTypeObj.type),
-  //           manage: false,
-  //         };
-  //         arr1.push(data);
-  //       }
-  //       return null;
-  //     });
-  //     setSafeList((val) => val.concat(arr1));
-  //     setAllSafeList((val) => val.concat(arr1));
-  //   }
-  // }, [hasMoreData]);
+  useEffect(() => {
+    if (dataNotAvailableToScroll && !isAdmin) {
+      const selectedTypeObj = menu.find((item) => item.name === safeType);
+      const array = constructSafesArray(selectedTypeObj?.type);
+      const arr1 = [];
+      array.map((ele) => {
+        const notAvailableVal = allSafeList.find(
+          (item) => item.name === ele.name
+        );
+        if (!notAvailableVal) {
+          const data = {
+            name: ele.name,
+            access: ele.access,
+            path: `${selectedTypeObj.type}/${ele.name}`,
+            safeType: constructSafeType(selectedTypeObj.type),
+            manage: false,
+          };
+          arr1.push(data);
+        }
+        return null;
+      });
+      setSafeList((val) => val.concat(arr1));
+      setAllSafeList((val) => val.concat(arr1));
+    }
+    // eslint-disable-next-line
+  }, [dataNotAvailableToScroll]);
 
   const onResponseVariableSet = (safeArr) => {
     setIsInfiniteScrollLoading(false);
@@ -499,6 +508,7 @@ const SafeDashboard = () => {
     setSearchLoader(false);
     setSearchMenu([]);
     setNoResultFound('');
+    setSearchSelectClicked(false);
   };
 
   /**
@@ -533,6 +543,7 @@ const SafeDashboard = () => {
     setInputSearchValue('');
     setResponse({ status: 'loading', message: 'Loading...' });
     clearData();
+    setSearchSelectClicked(false);
   };
 
   /**
@@ -685,6 +696,7 @@ const SafeDashboard = () => {
     setInputSearchValue(value.name);
     setAllSafeList([dataObj]);
     setSafeType(`${value.type}s`);
+    setSearchSelectClicked(true);
   };
 
   const renderSafes = () => {
@@ -698,6 +710,7 @@ const SafeDashboard = () => {
         safeList={safeList}
         ownerOfSafes={ownerOfSafes}
         isAdmin={isAdmin}
+        searchSelectClicked={searchSelectClicked}
       />
     );
   };
