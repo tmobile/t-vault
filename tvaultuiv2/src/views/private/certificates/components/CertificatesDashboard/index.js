@@ -219,6 +219,7 @@ const CertificatesDashboard = () => {
   const [searchCertList, setSearchCertList] = useState([]);
   const [noResultFound, setNoResultFound] = useState('');
   const [searchLoader, setSearchLoader] = useState(false);
+  const [searchSelected, setSearchSelected] = useState([]);
 
   const compareCertificates = (array1, array2, type) => {
     if (array2.length > 0) {
@@ -522,6 +523,7 @@ const CertificatesDashboard = () => {
     setCertificateList([]);
     setAllCertList([]);
     setAllCertificates([]);
+    setSearchSelected([]);
     setInputSearchValue('');
     setNoResultFound('');
     setResponse({ status: 'loading' });
@@ -649,13 +651,12 @@ const CertificatesDashboard = () => {
   }, [inputSearchValue]);
 
   const onSearchItemSelected = (v) => {
-    setCertificateList([{ certificateName: v.name, certType: v.type }]);
+    setSearchSelected([{ certificateName: v.name, certType: v.type }]);
     if (v.type === 'internal') {
       setCertificateType('Internal Certificates');
     } else if (v.type === 'external') {
       setCertificateType('External Certificates');
     }
-
     setSearchCertList([]);
   };
 
@@ -874,7 +875,9 @@ const CertificatesDashboard = () => {
         onDeleteCertificateClicked={(cert) => onDeleteCertificateClicked(cert)}
         isTabAndMobileScreen={isTabAndMobileScreen}
         history={history}
-        certificateList={certificateList}
+        certificateList={
+          searchSelected.length === 1 ? searchSelected : certificateList
+        }
         isLoading={isLoading}
       />
     );
@@ -991,7 +994,7 @@ const CertificatesDashboard = () => {
                       }}
                     >
                       {renderList()}
-                      {isLoading && (
+                      {isLoading && searchSelected.length < 1 && (
                         <ScaledLoaderContainer>
                           <ScaledLoader
                             contentHeight="80%"
