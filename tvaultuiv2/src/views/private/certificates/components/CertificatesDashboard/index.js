@@ -651,6 +651,11 @@ const CertificatesDashboard = () => {
       // searchAllcertApi(value);
       const filteredList = searchCertList.filter((i) => i.name.includes(value));
       setOptions([...filteredList]);
+      if (filteredList.length > 0) {
+        setNoResultFound('');
+      } else {
+        setNoResultFound('No result found');
+      }
     } else {
       setOptions([]);
       setNoResultFound('');
