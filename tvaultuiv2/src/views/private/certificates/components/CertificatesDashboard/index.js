@@ -550,6 +550,7 @@ const CertificatesDashboard = () => {
     } else {
       setListItemDetails({});
     }
+    // eslint-disable-next-line
   }, [allCertList, history]);
 
   useEffect(() => {
