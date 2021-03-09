@@ -544,7 +544,7 @@ const CertificatesDashboard = () => {
     if (
       allCertList.length > 0 &&
       url[1] === 'certificates' &&
-      searchSelected.lenght === 0
+      searchSelected.length === 0
     ) {
       setListItemDetails(allCertList[0]);
       history.push(`/certificates/${allCertList[0]?.certificateName}`);
@@ -656,6 +656,7 @@ const CertificatesDashboard = () => {
       }
     } else {
       setOptions([]);
+      setSearchSelected([]);
       setNoResultFound('');
     }
     if (inputSearchValue === '' && !dataCleared) {
@@ -678,13 +679,16 @@ const CertificatesDashboard = () => {
         } else {
           setSearchSelected([{ certificateName: certName, certType }]);
         }
+        setResponse({ status: 'success' });
       })
       .catch(() => {
         setSearchSelected([{ certificateName: certName, certType }]);
+        setResponse({ status: 'success' });
       });
   };
 
   const onSearchItemSelected = (v) => {
+    setResponse({ status: 'loading' });
     fetchCertificateDetail(v.type, v.name);
     if (v.type === 'internal') {
       setCertificateType('Internal Certificates');
