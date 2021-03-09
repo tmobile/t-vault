@@ -204,13 +204,14 @@ const SelectionTabs = (props) => {
         if (res && res.data?.data) {
           obj = res.data.data;
           if (
-            res.data.data.users &&
-            (obj?.owner?.toLowerCase() ===
+            obj?.owner?.toLowerCase() ===
               sessionStorage.getItem('owner')?.toLowerCase() ||
-              obj?.ownerid?.toLowerCase() ===
-                sessionStorage.getItem('username')?.toLowerCase())
+            obj?.ownerid?.toLowerCase() ===
+              sessionStorage.getItem('username')?.toLowerCase()
           ) {
             setOwnerOfSafes(true);
+          }
+          if (res.data.data.users) {
             const eachUsersDetails = await getEachUsersDetails(
               res.data.data.users
             );
