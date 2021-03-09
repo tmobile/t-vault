@@ -543,7 +543,7 @@ const CertificatesDashboard = () => {
     if (
       allCertList.length > 0 &&
       url[1] === 'certificates' &&
-      searchSelected.lenght === 0
+      searchSelected.length === 0
     ) {
       setListItemDetails(allCertList[0]);
       history.push(`/certificates/${allCertList[0]?.certificateName}`);
@@ -654,8 +654,27 @@ const CertificatesDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputSearchValue]);
 
+  const fetchCertificateDetail = (certType, certName) => {
+    const url = `/sslcert?certificateName=${certName}&certType=${certType}`;
+    apiService
+      .getCertificateDetail(url)
+      .then((res) => {
+        if (res?.data?.keys[0]) {
+          setSearchSelected([res?.data?.keys[0]]);
+        } else {
+          setSearchSelected([{ certificateName: certName, certType }]);
+        }
+        setResponse({ status: 'success' });
+      })
+      .catch(() => {
+        setSearchSelected([{ certificateName: certName, certType }]);
+        setResponse({ status: 'success' });
+      });
+  };
+
   const onSearchItemSelected = (v) => {
-    setSearchSelected([{ certificateName: v.name, certType: v.type }]);
+    setResponse({ status: 'loading' });
+    fetchCertificateDetail(v.type, v.name);
     if (v.type === 'internal') {
       setCertificateType('Internal Certificates');
     } else if (v.type === 'external') {
