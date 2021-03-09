@@ -272,8 +272,7 @@ const SelectionTabs = (props) => {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            {safePermissionData?.response?.ownerid?.toLowerCase() ===
-              sessionStorage.getItem('username') && (
+            {safeDetail?.manage && (
               <Tab label="Permissions" {...a11yProps(1)} />
             )}
           </Tabs>
