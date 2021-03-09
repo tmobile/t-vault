@@ -2859,6 +2859,19 @@ public class SSLCertificateService {
                         put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                         build()));
                 return ResponseEntity.status(HttpStatus.OK).body(certListStr);
+			}else {
+				JsonObject metadataJsonObj = new JsonObject();
+				JsonArray responseArray = new JsonArray();
+				metadataJsonObj.add("keys", responseArray);
+				metadataJsonObj.addProperty("total", "0");
+				metadataJsonObj.addProperty("next", "-1");
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "Get all SSL Certificates to manage").
+                        put(LogMessage.MESSAGE, "No certificates available for this user").
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+				certListStr = metadataJsonObj.toString();
 			}
 
 		}
