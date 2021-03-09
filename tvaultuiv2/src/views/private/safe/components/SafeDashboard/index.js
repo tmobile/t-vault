@@ -226,11 +226,11 @@ const SafeDashboard = () => {
     setAllSafeList([]);
     setHasMoreData(true);
     setClearedData(true);
-    setOwnerOfSafes(false);
     setSearchSelectClicked(false);
     setNoResultFound('');
     setDataNotAvailableToScroll(false);
     sessionStorage.removeItem('safesList');
+    setSearchSelectClicked(false);
   };
 
   const safesLdapUserPassResponse = () => {
@@ -481,6 +481,7 @@ const SafeDashboard = () => {
   }, [safeList, location, history]);
 
   const callApiBasedOnSafeType = async () => {
+    setInputSearchValue('');
     if (safeType === 'User Safes') {
       await fetchUserSafesData();
     } else if (safeType === 'Shared Safes') {
@@ -505,7 +506,6 @@ const SafeDashboard = () => {
     setSearchLoader(false);
     setSearchMenu([]);
     setNoResultFound('');
-    setSearchSelectClicked(false);
   };
 
   /**
@@ -517,10 +517,7 @@ const SafeDashboard = () => {
     if (e?.target?.value?.length > 2) {
       setSearchMenu([]);
       filterSearchValue(e?.target?.value);
-    } else if (
-      e?.target?.defaultValue !== '' &&
-      e?.target?.value?.length === 0
-    ) {
+    } else if (e?.target?.value?.length === 0) {
       setResponse({ status: 'loading', message: 'Loading...' });
       clearData();
       clearSearchData();
@@ -662,6 +659,7 @@ const SafeDashboard = () => {
   };
 
   const onSearchItemSelected = (value) => {
+    setOwnerOfSafes(false);
     setSearchMenu([]);
     const data = JSON.parse(sessionStorage.getItem('safesData'));
     let dataObj = {};

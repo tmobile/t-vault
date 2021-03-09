@@ -113,7 +113,6 @@ const SelectionTabs = (props) => {
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-  const [showPermission, setShowPermission] = useState(false);
   const addSecretsFolder = () => {
     setEnableAddFolder(true);
   };
@@ -211,7 +210,6 @@ const SelectionTabs = (props) => {
               sessionStorage.getItem('username')?.toLowerCase()
           ) {
             setOwnerOfSafes(true);
-            setShowPermission(true);
           }
           if (res.data.data.users) {
             const eachUsersDetails = await getEachUsersDetails(
@@ -227,7 +225,6 @@ const SelectionTabs = (props) => {
       })
       .catch((err) => {
         setOwnerOfSafes(false);
-        setShowPermission(false);
         setPermissionResponseType(-1);
         if (err.response?.data?.errors && err.response.data.errors[0]) {
           setSafePermissionData({
@@ -249,13 +246,15 @@ const SelectionTabs = (props) => {
           await fetchPermission();
           getSecretDetails();
         }
-        setShowPermission(false);
         fetchData();
       } else {
         setSafePermissionData({});
         setResponse({ status: 'success' });
       }
       setPreviousVal(safeDetail);
+    }
+    if (previousVal?.name === safeDetail?.name && previousVal.manage === true) {
+      setOwnerOfSafes(true);
     }
     // eslint-disable-next-line
   }, [safeDetail, fetchPermission, getSecretDetails]);
@@ -277,7 +276,12 @@ const SelectionTabs = (props) => {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            {(safeDetail?.manage || showPermission) && (
+            {(safeDetail?.manage ||
+              safePermissionData?.response?.owner?.toLowerCase() ===
+                sessionStorage.getItem('owner')?.toLowerCase() ||
+              safePermissionData?.response?.ownerid?.toLowerCase() ===
+                sessionStorage.getItem('username')?.toLowerCase()) && (
+              // eslint-disable-next-line react/jsx-indent
               <Tab label="Permissions" {...a11yProps(1)} />
             )}
           </Tabs>
