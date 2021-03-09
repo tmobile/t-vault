@@ -540,7 +540,11 @@ const CertificatesDashboard = () => {
 
   useEffect(() => {
     const url = history?.location?.pathname?.split('/');
-    if (allCertList.length > 0 && url[1] === 'certificates') {
+    if (
+      allCertList.length > 0 &&
+      url[1] === 'certificates' &&
+      searchSelected.lenght === 0
+    ) {
       setListItemDetails(allCertList[0]);
       history.push(`/certificates/${allCertList[0]?.certificateName}`);
     } else {
