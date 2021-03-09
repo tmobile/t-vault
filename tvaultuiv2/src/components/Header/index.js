@@ -294,7 +294,7 @@ const Header = (props) => {
                   onSelectChange(e, 'customSafesNavItems');
                   handleOnClick(e);
                 }}
-                width="15rem"
+                width="16rem"
               />
               {configData.AUTH_TYPE !== 'userpass' && (
                 <NavLink
@@ -316,7 +316,7 @@ const Header = (props) => {
                   onSelectChange(e, 'svcNavItems');
                   handleOnClick(e);
                 }}
-                width="20rem"
+                width="21rem"
               />
             </HeaderCenter>
           )}
