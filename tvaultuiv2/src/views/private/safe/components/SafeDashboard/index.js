@@ -13,7 +13,6 @@ import {
 } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { debounce } from 'lodash';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
 import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
@@ -193,7 +192,7 @@ const SafeDashboard = () => {
   const [dataNotAvailableToScroll, setDataNotAvailableToScroll] = useState(
     false
   );
-
+  const [searchList, setSearchList] = useState([]);
   const constructSafesArray = (type) => {
     const data = JSON.parse(sessionStorage.getItem('safesData'));
     const array = [];
@@ -340,6 +339,27 @@ const SafeDashboard = () => {
     // eslint-disable-next-line
   }, [safeOffset, safeList]);
 
+  const callSearchApi = () => {
+    apiService
+      .searchSafes()
+      .then((responses) => {
+        const array = [];
+        Object.keys(responses.data).map((item) => {
+          responses.data[item].map((ele) => {
+            array.push({
+              name: ele,
+              type: constructSafeType(item),
+              path: item,
+            });
+            return null;
+          });
+          return null;
+        });
+        setSearchList([...array]);
+      })
+      .catch(() => {});
+  };
+
   /**
    * @description On component load call fetchUserSafesData function.
    */
@@ -352,6 +372,7 @@ const SafeDashboard = () => {
     fetchUserSafesData().catch(() => {
       setResponse({ status: 'failed', message: 'failed' });
     });
+    callSearchApi();
     // eslint-disable-next-line
   }, []);
 
@@ -469,44 +490,16 @@ const SafeDashboard = () => {
     }
   };
 
-  const callSearchApi = useCallback(
-    debounce(
-      (value) => {
-        setSearchLoader(true);
-        apiService
-          .searchSafes(value)
-          .then((responses) => {
-            setSearchLoader(false);
-            const array = [];
-            Object.keys(responses.data).map((item) => {
-              responses.data[item].map((ele) => {
-                array.push({
-                  name: ele,
-                  type: constructSafeType(item),
-                  path: item,
-                });
-                return null;
-              });
-              return null;
-            });
-            if (array.length > 0) {
-              setSearchMenu([...array]);
-              setNoResultFound('');
-            } else {
-              setSearchMenu([]);
-              setNoResultFound('No result found');
-            }
-          })
-          .catch(() => {
-            setToast(-1);
-            setSearchLoader(false);
-          });
-      },
-      1000,
-      true
-    ),
-    []
-  );
+  const filterSearchValue = (value) => {
+    const array = searchList.filter((item) => item.name.includes(value));
+    if (array.length > 0) {
+      setSearchMenu([...array]);
+      setNoResultFound('');
+    } else {
+      setSearchMenu([]);
+      setNoResultFound('No result found');
+    }
+  };
 
   const clearSearchData = () => {
     setSearchLoader(false);
@@ -523,7 +516,7 @@ const SafeDashboard = () => {
   const onSearchChange = (e) => {
     if (e?.target?.value?.length > 2) {
       setSearchMenu([]);
-      callSearchApi(e?.target?.value);
+      filterSearchValue(e?.target?.value);
     } else if (
       e?.target?.defaultValue !== '' &&
       e?.target?.value?.length === 0
@@ -790,7 +783,6 @@ const SafeDashboard = () => {
                       }}
                     >
                       {renderSafes()}
-
                       {isInfiniteScrollLoading && allSafeList.length < 1 && (
                         <ScaledLoaderContainer>
                           <ScaledLoader
