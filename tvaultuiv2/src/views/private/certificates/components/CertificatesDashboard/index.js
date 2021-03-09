@@ -538,15 +538,19 @@ const CertificatesDashboard = () => {
     // eslint-disable-next-line
   },[dataCleared])
 
-
   useEffect(() => {
     const url = history?.location?.pathname?.split('/');
-    if (allCertList.length > 0 && url[1] === 'certificates') {
+    if (
+      allCertList.length > 0 &&
+      url[1] === 'certificates' &&
+      searchSelected.lenght === 0
+    ) {
       setListItemDetails(allCertList[0]);
       history.push(`/certificates/${allCertList[0]?.certificateName}`);
     } else {
       setListItemDetails({});
     }
+    // eslint-disable-next-line
   }, [allCertList, history]);
 
   useEffect(() => {
@@ -661,12 +665,12 @@ const CertificatesDashboard = () => {
   };
 
   useEffect(() => {
-    if (certificateList.length === 1) {
-      history.push(`/certificates/${certificateList[0].certificateName}`);
-      setListItemDetails(certificateList[0]);
+    if (searchSelected.length === 1) {
+      history.push(`/certificates/${searchSelected[0].certificateName}`);
+      setListItemDetails(searchSelected[0]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [certificateList]);
+  }, [searchSelected]);
 
   /**
    * @function onEditListItemClicked
