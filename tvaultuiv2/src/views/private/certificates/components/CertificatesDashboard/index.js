@@ -220,6 +220,7 @@ const CertificatesDashboard = () => {
   const [noResultFound, setNoResultFound] = useState('');
   const [searchLoader, setSearchLoader] = useState(false);
   const [searchSelected, setSearchSelected] = useState([]);
+  const [options, setOptions] = useState([]);
 
   const compareCertificates = (array1, array2, type) => {
     if (array2.length > 0) {
@@ -630,6 +631,14 @@ const CertificatesDashboard = () => {
     []
   );
 
+  useEffect(() => {
+    searchAllcertApi('');
+    // eslint-disable-next-line
+  },[])
+
+
+
+
   /**
    * @function onSearchChange
    * @description function to search certificate.
@@ -637,11 +646,13 @@ const CertificatesDashboard = () => {
    */
   const onSearchChange = (value) => {
     if (value?.length > 2) {
-      setSearchLoader(true);
-      setDataCleared(false);
-      searchAllcertApi(value);
+      // setSearchLoader(true);
+      // setDataCleared(false);
+      // searchAllcertApi(value);
+      const filteredList = searchCertList.filter((i) => i.name.includes(value));
+      setOptions([...filteredList]);
     } else {
-      setSearchCertList([]);
+      setOptions([]);
       setNoResultFound('');
     }
     if (inputSearchValue === '' && !dataCleared) {
@@ -661,7 +672,7 @@ const CertificatesDashboard = () => {
     } else if (v.type === 'external') {
       setCertificateType('External Certificates');
     }
-    setSearchCertList([]);
+    setOptions([]);
   };
 
   useEffect(() => {
@@ -968,7 +979,7 @@ const CertificatesDashboard = () => {
                 <SearchboxWithDropdown
                   onSearchChange={(e) => setInputSearchValue(e?.target?.value)}
                   value={inputSearchValue || ''}
-                  menu={searchCertList}
+                  menu={options}
                   onChange={(value) => onSearchItemSelected(value)}
                   noResultFound={noResultFound}
                 />
