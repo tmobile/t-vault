@@ -113,6 +113,7 @@ const SelectionTabs = (props) => {
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+  const [showPermission, setShowPermission] = useState(false);
   const addSecretsFolder = () => {
     setEnableAddFolder(true);
   };
@@ -210,6 +211,7 @@ const SelectionTabs = (props) => {
               sessionStorage.getItem('username')?.toLowerCase()
           ) {
             setOwnerOfSafes(true);
+            setShowPermission(true);
           }
           if (res.data.data.users) {
             const eachUsersDetails = await getEachUsersDetails(
@@ -225,6 +227,7 @@ const SelectionTabs = (props) => {
       })
       .catch((err) => {
         setOwnerOfSafes(false);
+        setShowPermission(false);
         setPermissionResponseType(-1);
         if (err.response?.data?.errors && err.response.data.errors[0]) {
           setSafePermissionData({
@@ -246,6 +249,7 @@ const SelectionTabs = (props) => {
           await fetchPermission();
           getSecretDetails();
         }
+        setShowPermission(false);
         fetchData();
       } else {
         setSafePermissionData({});
@@ -273,7 +277,7 @@ const SelectionTabs = (props) => {
             textColor="primary"
           >
             <Tab className={classes.tab} label="Secrets" {...a11yProps(0)} />
-            {safeDetail?.manage && (
+            {(safeDetail?.manage || showPermission) && (
               <Tab label="Permissions" {...a11yProps(1)} />
             )}
           </Tabs>

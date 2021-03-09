@@ -170,7 +170,11 @@ const Groups = (props) => {
         )}
         {response.status === 'add' && (
           <AddGroup
-            groups={safeData?.response?.groups}
+            groups={
+              safeData?.response?.groups !== null
+                ? safeData?.response?.groups
+                : {}
+            }
             handleSaveClick={(group, access) => onSubmit(group, access)}
             handleCancelClick={onCancelClicked}
           />
