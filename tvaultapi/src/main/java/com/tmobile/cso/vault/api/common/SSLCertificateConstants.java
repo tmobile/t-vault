@@ -84,6 +84,7 @@ public final class SSLCertificateConstants {
     public static final String INTERNAL_CERT_ENROLL_STRING ="T-Mobile Issuing CA 01 - SHA2";
     public static final String EXTERNAL_CERT_ENROLL_STRING ="Entrust CA";
     public static final String INTERNAL_KEY_USAGE ="serverAuth";
+    public static final String INTERNAL_KEY_USAGE_CLIENT ="clientAuth";
     public static final String EXTERNAL_KEY_USAGE ="serverAuth, clientAuth";
     public static final String INTERNAL="internal";
     public static final String RENEW_PENDING="Renew Pending";
