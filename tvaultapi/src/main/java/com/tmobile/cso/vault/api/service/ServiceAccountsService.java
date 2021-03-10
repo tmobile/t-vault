@@ -32,6 +32,7 @@ import com.tmobile.cso.vault.api.exception.TVaultValidationException;
 import com.tmobile.cso.vault.api.model.*;
 import com.tmobile.cso.vault.api.utils.*;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -146,7 +147,7 @@ public class  ServiceAccountsService {
 		andFilter.and(new EqualsFilter("objectClass", "user"));
 		andFilter.and(new NotFilter(new EqualsFilter("CN", adMasterServiveAccount)));
 		if (excludeOnboarded) {
-			ResponseEntity<String> responseEntity = getOnboardedServiceAccounts(token, userDetails, null, null);
+			ResponseEntity<String> responseEntity = getOnboardedServiceAccountsForValidation(token, userDetails);
 			if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
 				String response = responseEntity.getBody();
 				List<String> onboardedSvcAccs = new ArrayList<String>();
@@ -1995,9 +1996,56 @@ public class  ServiceAccountsService {
 			}
 			offset = (offset == null) ? 0 : offset;
 			limit = (limit == null) ? onboardedlist.size() : limit;
+			Integer totalSvcAccCount = onboardedlist.size();
 
 			onboardedlist = getSubListFromOnboardedSvcAcc(limit, offset, onboardedlist);
+			String nextVal = (totalSvcAccCount - (onboardedlist.size() + offset) > 0 ? String.valueOf((onboardedlist.size() + offset)) : "-1");
+			response = new Response();
+			response.setHttpstatus(HttpStatus.OK);
+			response.setSuccess(true);
+			response.setResponse("{\"keys\":"+JSONUtil.getJSON(onboardedlist)+",\"total\":"+totalSvcAccCount+",\"next\":"+nextVal+"}");
+		}
 
+		if (HttpStatus.OK.equals(response.getHttpstatus())) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+				      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+					  put(LogMessage.ACTION, "listOnboardedServiceAccounts").
+				      put(LogMessage.MESSAGE, "Successfully retrieved the list of AD Service Accounts").
+				      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+				      build()));
+			return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+		}
+		else if (HttpStatus.NOT_FOUND.equals(response.getHttpstatus())) {
+			return ResponseEntity.status(HttpStatus.OK).body("{\"keys\":[],\"total\":0,\"next\":-1}");
+		}
+		return ResponseEntity.status(response.getHttpstatus()).body(response.getResponse());
+	}
+
+	/**
+	 * To get list of service accounts for validation
+	 * @param token
+	 * @param userDetails
+	 * @return
+	 */
+	private ResponseEntity<String> getOnboardedServiceAccountsForValidation(String token,  UserDetails userDetails) {
+		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+			      put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+				  put(LogMessage.ACTION, "listOnboardedServiceAccounts").
+			      put(LogMessage.MESSAGE, "Trying to get list of onboaded service accounts").
+			      put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+			      build()));
+		Response response = null;
+		if (userDetails.isAdmin()) {
+			response = reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token);
+		}
+		else {
+			String[] latestPolicies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails);
+			List<String> onboardedlist = new ArrayList<>();
+			for (String policy: latestPolicies) {
+				if (policy.startsWith("o_svcacct")) {
+					onboardedlist.add(policy.substring(10));
+				}
+			}
 			response = new Response();
 			response.setHttpstatus(HttpStatus.OK);
 			response.setSuccess(true);
@@ -2038,18 +2086,19 @@ public class  ServiceAccountsService {
 
 			offset = (offset == null) ? 0 : offset;
 			limit = (limit == null) ? svcAccList.size() : limit;
-
+			Integer totalSvcAccCount = svcAccList.size();
 			List<String> svcAccListResponse = new ArrayList<>();
 			int maxVal = svcAccList.size() > (limit+offset)?limit+offset : svcAccList.size();
 			for (int i = offset; i < maxVal; i++) {
 				svcAccListResponse.add(svcAccList.get(i));
 			}
+			String nextVal = (totalSvcAccCount - (svcAccListResponse.size() + offset) > 0 ? String.valueOf((svcAccListResponse.size() + offset)) : "-1");
 			String svcAccs = svcAccListResponse.stream().collect(Collectors.joining("\", \""));
 			if (StringUtils.isEmpty(svcAccs)) {
-				response.setResponse("{\"keys\": []}");
+				response.setResponse("{\"keys\": [], \"total\":0, \"next\":-1}");
 			}
 			else {
-				response.setResponse("{\"keys\": [\"" + svcAccs + "\"]}");
+				response.setResponse("{\"keys\": [\"" + svcAccs + "\"],\"total\":"+totalSvcAccCount+",\"next\":"+nextVal+"}");
 			}
 		}
         return response;
@@ -3810,7 +3859,7 @@ public class  ServiceAccountsService {
 	 * @return
 	 */
 	private List<String> getOnboardedServiceAccountList(String token, UserDetails userDetails) {
-		ResponseEntity<String> onboardedResponse = getOnboardedServiceAccounts(token, userDetails, null, null);
+		ResponseEntity<String> onboardedResponse = getOnboardedServiceAccountsForValidation(token, userDetails);
 		log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 				put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 				put(LogMessage.ACTION, "getOnboardedServiceAccountList").
@@ -4200,8 +4249,17 @@ public class  ServiceAccountsService {
 			}
 			limit = (limit == null) ? svcListUsers.size() : limit;
 			offset = (offset == null) ? 0 : offset;
+			Integer totalCount = svcListUsers.size();
 			svcListUsers = getSublistFromSvcAccList(limit, offset, svcListUsers);
 			safeList.put(TVaultConstants.SVC_ACC_PATH_PREFIX, svcListUsers);
+
+			List<Map<String, String>> svcAccCounts = new ArrayList<>();
+			Map<String, String> svcAccCount = new HashedMap();
+
+			svcAccCount.put("total", String.valueOf(totalCount));
+			svcAccCount.put("next", (totalCount - (safeList.get(TVaultConstants.SVC_ACC_PATH_PREFIX).size() + offset)>0?String.valueOf((safeList.get(TVaultConstants.SVC_ACC_PATH_PREFIX).size() + offset)):"-1"));
+			svcAccCounts.add(svcAccCount);
+			safeList.put("svcAccCount", svcAccCounts);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safeList));
 	}

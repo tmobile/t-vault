@@ -2350,7 +2350,7 @@ public class ServiceAccountsServiceTest {
     	UserDetails userDetails = getMockUser(true);
     	String token = userDetails.getClientToken();
 		// Bevavior setup
-		String expectedOutput = "{\"keys\": [\"testacc02\", \"testacc03\", \"testacc04\"]}";
+		String expectedOutput = "{\"keys\": [\"testacc02\", \"testacc03\", \"testacc04\"], \"total\":3, \"next\":-1}";
     	Response onboardedSvsAccsResponse = getMockResponse(HttpStatus.OK, true, expectedOutput);
     	when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(onboardedSvsAccsResponse);
 
@@ -2367,7 +2367,7 @@ public class ServiceAccountsServiceTest {
     	UserDetails userDetails = getMockUser(true);
     	String token = userDetails.getClientToken();
     	// Bevavior setup
-    	String expectedOutput = "{\"keys\":[]}";
+		String expectedOutput = "{\"keys\":[],\"total\":0,\"next\":-1}";
     	Response onboardedSvsAccsResponse = getMockResponse(HttpStatus.NOT_FOUND, true, expectedOutput);
     	when(reqProcessor.process("/ad/serviceaccount/onboardedlist","{}",token)).thenReturn(onboardedSvsAccsResponse);
 
@@ -2382,7 +2382,7 @@ public class ServiceAccountsServiceTest {
     public void test_getOnboardedServiceAccounts_nonadmin_notfound() {
     	UserDetails userDetails = getMockUser(false);
     	String token = userDetails.getClientToken();
-        String expectedOutput = "{\"keys\":[\"acc1\",\"acc2\"]}";
+        String expectedOutput = "{\"keys\":[\"acc1\",\"acc2\"],\"total\":0,\"next\":-1}";
         String[] latestPolicies = {"o_svcacc_acc1", "o_svcacc_acc2"};
         when(JSONUtil.getJSON(Mockito.any(List.class))).thenReturn("[\"acc1\",\"acc2\"]");
         when(policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails)).thenReturn(latestPolicies);
