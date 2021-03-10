@@ -1,10 +1,14 @@
 import api from '../../../services';
 
-const getSafes = () => api.get('/ss/sdb/safes');
+const getSafes = () => api.get(`/ss/sdb/safes`);
 const deleteSafe = (path) => api.delete(`/ss/sdb/delete?path=${path}`);
-const getManageUsersList = () => api.get('/ss/sdb/list?path=users');
-const getManageSharedList = () => api.get('/ss/sdb/list?path=shared');
-const getManageAppsList = () => api.get('/ss/sdb/list?path=apps');
+const getManageUsersList = (limit, offset) =>
+  api.get(`/ss/sdb/list?path=users&limit=${limit}&offset=${offset}`);
+const getManageSharedList = (limit, offset) =>
+  api.get(`/ss/sdb/list?path=shared&limit=${limit}&offset=${offset}`);
+const getManageAppsList = (limit, offset) =>
+  api.get(`/ss/sdb/list?path=apps&limit=${limit}&offset=${offset}`);
+const searchSafes = () => api.get(`/ss/sdb/allsafes`);
 
 const getSafeDetails = (path) => api.get(`/ss/sdb?path=${path}`);
 const editSafe = (payload) => api.put('/ss/sdb', payload);
@@ -78,4 +82,5 @@ export default {
   transferSafeOwner,
   getApplicationName,
   getVersionInfo,
+  searchSafes,
 };

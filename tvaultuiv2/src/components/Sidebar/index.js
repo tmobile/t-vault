@@ -69,6 +69,9 @@ const Sidebar = (props) => {
 
   const handleOnClick = (label) => {
     trackEvent({ category: `${label}-tab`, action: 'click-event' });
+    if (label.path !== 'safes') {
+      sessionStorage.removeItem('safesApiCount');
+    }
   };
 
   return (

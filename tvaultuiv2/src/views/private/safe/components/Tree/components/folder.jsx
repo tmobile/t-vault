@@ -240,7 +240,7 @@ Folder.propTypes = {
   getChildNodes: PropTypes.func,
   setCurrentNode: PropTypes.func,
   id: PropTypes.string,
-  modifiedBy: PropTypes.string.isRequired,
+  modifiedBy: PropTypes.string,
   onDeleteTreeItem: PropTypes.func,
   value: PropTypes.number.isRequired,
   userHavePermission: PropTypes.objectOf(PropTypes.any).isRequired,
@@ -259,6 +259,7 @@ Folder.defaultProps = {
   onDeleteTreeItem: () => {},
   setCurrentNode: () => {},
   id: '',
+  modifiedBy: '',
 };
 
 export default Folder;

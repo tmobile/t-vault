@@ -1,17 +1,25 @@
 import api from '../../../services';
 
 const getNonAdminAppNameList = () => api.get('/sslcert/grouplist');
-const getAllAdminCertInternal = () => api.get('/sslcert/certificates/internal');
-const getAllAdminCertExternal = () => api.get('/sslcert?certType=external');
-const getAllNonAdminCertInternal = () => api.get('/sslcert/list/internal');
+const getAllAdminCertInternal = (limit, offset) =>
+  api.get(`/sslcert/certificates/internal?limit=${limit}&offset=${offset}`);
+const getAllAdminCertExternal = (limit, offset) =>
+  api.get(`/sslcert?certType=external&limit=${limit}&offset=${offset}`);
+const getAllNonAdminCertInternal = () => api.get(`/sslcert/list/internal`);
 const getAllNonAdminCertExternal = () => api.get('/sslcert/list/external');
-const getInternalCertificates = () =>
-  api.get('/sslcert?certificateName=&certType=internal');
-const getExternalCertificates = () =>
-  api.get('/sslcert?certificateName=&certType=external');
+const getInternalCertificates = (limit, offset) =>
+  api.get(
+    `/sslcert?certificateName=&certType=internal&limit=${limit}&offset=${offset}`
+  );
+const searchAllCert = (SearchText) => api.get(
+  `/sslcert/allcertificates?search=${SearchText}`
+);
+const getExternalCertificates = (limit,offset) =>
+  api.get(`/sslcert?certificateName=&certType=external&limit=${limit}&offset=${offset}`);
 const deleteCertificate = (name, certType) =>
   api.delete(`/certificates/${name}/${certType}`);
-const getOnboardCertificates = () => api.get('/sslcert/pendingcertificates');
+const getOnboardCertificates = (limit, offset) =>
+  api.get(`/sslcert/pendingcertificates?limit=${limit}&offset=${offset}`);
 
 const getCertificateDetail = (url) => api.get(url);
 
@@ -105,4 +113,5 @@ export default {
   onOnboardcertificate,
   searchByGroupEmail,
   validateExternalCert,
+  searchAllCert,
 };
