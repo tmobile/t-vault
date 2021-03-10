@@ -31,6 +31,15 @@ const StyleTextField = styled(TextField)`
     height: auto;
     padding: 1.5rem 1.5rem;
   }
+  .MuiFilledInput-input {
+    ::placeholder {
+      color: ${(props) =>
+        props.primary === 'primary' ? '#5E6295' : '#8b8ea6'};
+    }
+  }
+  .MuiFilledInput-colorSecondary {
+    color: #8b8ea6;
+  }
 `;
 
 const setIcon = (props) => {

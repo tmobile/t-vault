@@ -377,6 +377,7 @@ const CreateCertificates = (props) => {
                   container={certificateData.containerName}
                   isEditCertificate
                   applicationTag={certificateData?.applicationTag}
+                  setKeyValue={certificateData?.keyUsageValue}
                 />
                 <InputFieldLabelWrapper postion>
                   <InputLabel>

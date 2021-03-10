@@ -588,7 +588,7 @@ const CreateCertificates = (props) => {
             const msg = err.response.data.errors[0];
             setOpenConfirmationModal(true);
             setResponseTitle('Certificate Creation Failed!');
-            setResponseDesc(msg.charAt(0).toUpperCase() + msg.slice(1));
+            setResponseDesc(msg.charAt(0) + msg.slice(1));
           }
           setResponseType(null);
         });

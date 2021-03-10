@@ -123,11 +123,11 @@ export const convertObjectToArray = (data) => {
 export const constructSafeType = (type) => {
   let safeType = '';
   if (type === 'users') {
-    safeType = 'User Safe';
+    safeType = 'User';
   } else if (type === 'apps') {
-    safeType = 'Application Safe';
+    safeType = 'Application';
   } else if (type === 'shared') {
-    safeType = 'Shared Safe';
+    safeType = 'Shared';
   }
   return safeType;
 };
