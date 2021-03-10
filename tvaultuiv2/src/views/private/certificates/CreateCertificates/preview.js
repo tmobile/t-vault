@@ -53,7 +53,7 @@ const CancelButton = styled.div`
   }
 `;
 
-function getKeyUsageValue(setKeyValue, certificateType) {
+const getKeyUsageValue = (setKeyValue, certificateType) => {
   if (certificateType === 'internal') {
     if (setKeyValue === 'client' || setKeyValue === 'Client auth')
       return 'clientAuth';
@@ -62,7 +62,7 @@ function getKeyUsageValue(setKeyValue, certificateType) {
     return 'clientAuth , serverAuth';
   }
   return 'clientAuth , serverAuth';
-}
+};
 const PreviewCertificate = (props) => {
   const {
     certificateType,
@@ -94,6 +94,7 @@ const PreviewCertificate = (props) => {
       }
     }
   }, [dns]);
+
   return (
     <ComponentError>
       <DetailsWrap>

@@ -99,6 +99,11 @@ const FloatBtnWrapper = styled('div')`
 
 const SearchWrap = styled.div`
   width: 100%;
+  border: 0.5px solid transparent;
+  outline: none;
+  :focus-within {
+    border: 0.5px solid #e20074;
+  }
 `;
 
 const MobileViewForListDetailPage = css`
@@ -159,7 +164,7 @@ const useStyles = makeStyles((theme) => ({
     textTransform: 'uppercase',
     color: '#fff',
     fontWeight: 'bold',
-    maxWidth: '28rem',
+    maxWidth: '15rem',
     marginRight: '2.5rem',
     [theme.breakpoints.down('sm')]: {
       maxWidth: '16rem',
@@ -173,9 +178,7 @@ const useStyles = makeStyles((theme) => ({
 const CertificatesDashboard = () => {
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [certificateList, setCertificateList] = useState([]);
-  const [certificateType, setCertificateType] = useState(
-    'Internal Certificates'
-  );
+  const [certificateType, setCertificateType] = useState('Internal');
   const [menu, setMenu] = useState([]);
   const [response, setResponse] = useState({ status: 'success' });
   const [errorMsg, setErrorMsg] = useState('');
@@ -367,7 +370,7 @@ const CertificatesDashboard = () => {
         setResponse({ status: 'failed' });
       });
     // eslint-disable-next-line
-  }, [offset,allCertList,certificateList]);
+  }, [offset, allCertList, certificateList]);
 
   const fetchNonAdminExternalData = useCallback(async () => {
     let allCertExternal = [];
@@ -468,13 +471,13 @@ const CertificatesDashboard = () => {
 
   const loadTypeSpecificData = (type) => {
     setDataCleared(false);
-    if (type === 'Internal Certificates') {
+    if (type === 'Internal') {
       fetchInternalCertificates();
-    } else if (type === 'External Certificates') {
+    } else if (type === 'External') {
       fetchExternalCertificates();
-    } else if (type === 'Onboard Certificates') {
+    } else if (type === 'Onboard') {
       setCertificateList([...onboardCertificates]);
-      setAllCertificates([...onboardCertificates]);
+      setAllCertList([...onboardCertificates]);
       setResponse({ status: 'success' });
     }
   };
@@ -498,7 +501,7 @@ const CertificatesDashboard = () => {
       setDataCleared(false);
     }
     // eslint-disable-next-line
-  },[dataCleared])
+  }, [dataCleared]);
 
   useEffect(() => {
     const url = history?.location?.pathname?.split('/');
@@ -516,13 +519,10 @@ const CertificatesDashboard = () => {
   }, [allCertList, history]);
 
   useEffect(() => {
-    const array = [
-      { name: 'Internal Certificates' },
-      { name: 'External Certificates' },
-    ];
+    const array = [{ name: 'Internal' }, { name: 'External' }];
     if (admin) {
       array.push({
-        name: 'Onboard Certificates',
+        name: 'Onboard',
       });
     }
     setMenu([...array]);
@@ -603,14 +603,12 @@ const CertificatesDashboard = () => {
   },[])
 
   useEffect(() => {
-    if (
-      onboardCertificates.length > 0 &&
-      certificateType === 'Onboard Certificates'
-    ) {
+    if (onboardCertificates.length > 0 && certificateType === 'Onboard') {
       setCertificateList([...onboardCertificates]);
-      setAllCertificates([...onboardCertificates]);
+      setAllCertList([...onboardCertificates]);
     }
   }, [onboardCertificates, certificateType]);
+
   /**
    * @function onSearchChange
    * @description function to search certificate.
@@ -663,14 +661,14 @@ const CertificatesDashboard = () => {
       setResponse({ status: 'loading' });
       fetchCertificateDetail(v.type, v.name);
       if (v.type === 'internal') {
-        setCertificateType('Internal Certificates');
+        setCertificateType('Internal');
       } else if (v.type === 'external') {
-        setCertificateType('External Certificates');
+        setCertificateType('External');
       }
       setOptions([]);
     } else {
       setSearchSelected([v]);
-      setCertificateType('Onboard Certificates');
+      setCertificateType('Onboard');
     }
   };
 
@@ -899,10 +897,10 @@ const CertificatesDashboard = () => {
 
   const loadMoreData = () => {
     setIsLoading(true);
-    if (certificateType === 'Internal Certificates') {
+    if (certificateType === 'Internal') {
       fetchInternalCertificates();
     }
-    if (certificateType === 'External Certificates') {
+    if (certificateType === 'External') {
       fetchExternalCertificates();
     }
   };
@@ -974,7 +972,7 @@ const CertificatesDashboard = () => {
                 fullWidth={false}
                 onChange={(e) => onSelectChange(e.target.value)}
               />
-              <SearchWrap>
+              <SearchWrap tabIndex="0">
                 <SearchboxWithDropdown
                   onSearchChange={(e) => setInputSearchValue(e?.target?.value)}
                   value={inputSearchValue || ''}
