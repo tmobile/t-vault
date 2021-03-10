@@ -7,7 +7,6 @@ import styled, { css } from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import { Route, Switch, useHistory, Redirect } from 'react-router-dom';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { debounce } from 'lodash';
 import sectionHeaderBg from '../../../../../assets/certificate-banner.svg';
 import sectionMobHeaderBg from '../../../../../assets/mob-certbg.png';
 import sectionTabHeaderBg from '../../../../../assets/tab-certbg.png';
@@ -220,6 +219,7 @@ const CertificatesDashboard = () => {
   const [noResultFound, setNoResultFound] = useState('');
   const [searchLoader, setSearchLoader] = useState(false);
   const [searchSelected, setSearchSelected] = useState([]);
+  const [options, setOptions] = useState([]);
 
   const compareCertificates = (array1, array2, type) => {
     if (array2.length > 0) {
@@ -599,36 +599,39 @@ const CertificatesDashboard = () => {
     clearDataAndLoad();
   };
 
-  const searchAllcertApi = useCallback(
-    debounce((searchText) => {
-      const allSearchCerts = [];
-      apiService.searchAllCert(searchText).then((res) => {
-        if (res && res?.data) {
-          res.data.internal.map((item) =>
-            allSearchCerts.push({
-              name: item,
-              type: 'internal',
-            })
-          );
-          res.data.external.map((item) =>
-            allSearchCerts.push({
-              name: item,
-              type: 'external',
-            })
-          );
-        }
+  const searchAllcertApi = useCallback((searchText) => {
+    const allSearchCerts = [];
+    apiService.searchAllCert(searchText).then((res) => {
+      if (res && res?.data) {
+        res.data.internal.map((item) =>
+          allSearchCerts.push({
+            name: item,
+            type: 'internal',
+          })
+        );
+        res.data.external.map((item) =>
+          allSearchCerts.push({
+            name: item,
+            type: 'external',
+          })
+        );
+      }
 
-        if (allSearchCerts.length === 0) {
-          setNoResultFound('No records found');
-        } else {
-          setNoResultFound('');
-        }
-        setSearchCertList([...allSearchCerts]);
-        setSearchLoader(false);
-      });
-    }, 1000),
-    []
-  );
+      if (allSearchCerts.length === 0) {
+        setNoResultFound('No records found');
+      } else {
+        setNoResultFound('');
+      }
+      setSearchCertList([...allSearchCerts]);
+      setSearchLoader(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    searchAllcertApi('');
+    // eslint-disable-next-line
+  },[])
+
 
   /**
    * @function onSearchChange
@@ -637,11 +640,16 @@ const CertificatesDashboard = () => {
    */
   const onSearchChange = (value) => {
     if (value?.length > 2) {
-      setSearchLoader(true);
-      setDataCleared(false);
-      searchAllcertApi(value);
+      const filteredList = searchCertList.filter((i) => i.name.includes(value));
+      setOptions([...filteredList]);
+      if (filteredList.length > 0) {
+        setNoResultFound('');
+      } else {
+        setNoResultFound('No result found');
+      }
     } else {
-      setSearchCertList([]);
+      setOptions([]);
+      setSearchSelected([]);
       setNoResultFound('');
     }
     if (inputSearchValue === '' && !dataCleared) {
@@ -651,7 +659,7 @@ const CertificatesDashboard = () => {
 
   useEffect(() => {
     onSearchChange(inputSearchValue);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [inputSearchValue]);
 
   const fetchCertificateDetail = (certType, certName) => {
@@ -680,7 +688,7 @@ const CertificatesDashboard = () => {
     } else if (v.type === 'external') {
       setCertificateType('External Certificates');
     }
-    setSearchCertList([]);
+    setOptions([]);
   };
 
   useEffect(() => {
@@ -987,7 +995,7 @@ const CertificatesDashboard = () => {
                 <SearchboxWithDropdown
                   onSearchChange={(e) => setInputSearchValue(e?.target?.value)}
                   value={inputSearchValue || ''}
-                  menu={searchCertList}
+                  menu={options}
                   onChange={(value) => onSearchItemSelected(value)}
                   noResultFound={noResultFound}
                 />

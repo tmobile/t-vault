@@ -13,7 +13,6 @@ import {
 } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { debounce } from 'lodash';
 import ComponentError from '../../../../../errorBoundaries/ComponentError/component-error';
 import NoData from '../../../../../components/NoData';
 import NoSafesIcon from '../../../../../assets/no-data-safes.svg';
@@ -193,7 +192,7 @@ const SafeDashboard = () => {
   const [dataNotAvailableToScroll, setDataNotAvailableToScroll] = useState(
     false
   );
-
+  const [searchList, setSearchList] = useState([]);
   const constructSafesArray = (type) => {
     const data = JSON.parse(sessionStorage.getItem('safesData'));
     const array = [];
@@ -227,11 +226,11 @@ const SafeDashboard = () => {
     setAllSafeList([]);
     setHasMoreData(true);
     setClearedData(true);
-    setOwnerOfSafes(false);
     setSearchSelectClicked(false);
     setNoResultFound('');
     setDataNotAvailableToScroll(false);
     sessionStorage.removeItem('safesList');
+    setSearchSelectClicked(false);
   };
 
   const safesLdapUserPassResponse = () => {
@@ -340,6 +339,27 @@ const SafeDashboard = () => {
     // eslint-disable-next-line
   }, [safeOffset, safeList]);
 
+  const callSearchApi = () => {
+    apiService
+      .searchSafes()
+      .then((responses) => {
+        const array = [];
+        Object.keys(responses.data).map((item) => {
+          responses.data[item].map((ele) => {
+            array.push({
+              name: ele,
+              type: constructSafeType(item),
+              path: item,
+            });
+            return null;
+          });
+          return null;
+        });
+        setSearchList([...array]);
+      })
+      .catch(() => {});
+  };
+
   /**
    * @description On component load call fetchUserSafesData function.
    */
@@ -352,11 +372,12 @@ const SafeDashboard = () => {
     fetchUserSafesData().catch(() => {
       setResponse({ status: 'failed', message: 'failed' });
     });
+    callSearchApi();
     // eslint-disable-next-line
   }, []);
 
   /**
-   * @function fetchData
+   * @function fetchSharedSafesData
    * @description function call all the manage and shared safe api.
    */
   const fetchSharedSafesData = useCallback(async () => {
@@ -460,6 +481,7 @@ const SafeDashboard = () => {
   }, [safeList, location, history]);
 
   const callApiBasedOnSafeType = async () => {
+    setInputSearchValue('');
     if (safeType === 'User Safes') {
       await fetchUserSafesData();
     } else if (safeType === 'Shared Safes') {
@@ -469,50 +491,21 @@ const SafeDashboard = () => {
     }
   };
 
-  const callSearchApi = useCallback(
-    debounce(
-      (value) => {
-        setSearchLoader(true);
-        apiService
-          .searchSafes(value)
-          .then((responses) => {
-            setSearchLoader(false);
-            const array = [];
-            Object.keys(responses.data).map((item) => {
-              responses.data[item].map((ele) => {
-                array.push({
-                  name: ele,
-                  type: constructSafeType(item),
-                  path: item,
-                });
-                return null;
-              });
-              return null;
-            });
-            if (array.length > 0) {
-              setSearchMenu([...array]);
-              setNoResultFound('');
-            } else {
-              setSearchMenu([]);
-              setNoResultFound('No result found');
-            }
-          })
-          .catch(() => {
-            setToast(-1);
-            setSearchLoader(false);
-          });
-      },
-      1000,
-      true
-    ),
-    []
-  );
+  const filterSearchValue = (value) => {
+    const array = searchList.filter((item) => item.name.includes(value));
+    if (array.length > 0) {
+      setSearchMenu([...array]);
+      setNoResultFound('');
+    } else {
+      setSearchMenu([]);
+      setNoResultFound('No result found');
+    }
+  };
 
   const clearSearchData = () => {
     setSearchLoader(false);
     setSearchMenu([]);
     setNoResultFound('');
-    setSearchSelectClicked(false);
   };
 
   /**
@@ -523,11 +516,8 @@ const SafeDashboard = () => {
   const onSearchChange = (e) => {
     if (e?.target?.value?.length > 2) {
       setSearchMenu([]);
-      callSearchApi(e?.target?.value);
-    } else if (
-      e?.target?.defaultValue !== '' &&
-      e?.target?.value?.length === 0
-    ) {
+      filterSearchValue(e?.target?.value);
+    } else if (e?.target?.value?.length === 0) {
       setResponse({ status: 'loading', message: 'Loading...' });
       clearData();
       clearSearchData();
@@ -583,10 +573,11 @@ const SafeDashboard = () => {
     setOpenConfirmationModal(false);
     apiService
       .deleteSafe(deletionPath)
-      .then(() => {
+      .then(async () => {
         setDeletionPath('');
         setToast(1);
         clearData();
+        await callSearchApi();
       })
       .catch(() => {
         setResponse({ status: 'success', message: 'success' });
@@ -665,10 +656,13 @@ const SafeDashboard = () => {
 
   const fetchData = () => {
     setResponse({ status: 'loading', message: 'loading' });
+    sessionStorage.setItem('safesApiCount', 0);
+    callSearchApi();
     clearData();
   };
 
   const onSearchItemSelected = (value) => {
+    setOwnerOfSafes(false);
     setSearchMenu([]);
     const data = JSON.parse(sessionStorage.getItem('safesData'));
     let dataObj = {};
@@ -681,7 +675,7 @@ const SafeDashboard = () => {
               access: Object.values(item)[0],
               path: `${value.path}/${value.name}`,
               safeType: value.type,
-              manage: false,
+              manage: !!isAdmin,
             };
           }
           return null;
@@ -790,7 +784,6 @@ const SafeDashboard = () => {
                       }}
                     >
                       {renderSafes()}
-
                       {isInfiniteScrollLoading && allSafeList.length < 1 && (
                         <ScaledLoaderContainer>
                           <ScaledLoader
