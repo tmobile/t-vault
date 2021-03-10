@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -31,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Component
+@EnableScheduling
 public class SSLExternalCertificateScheduler {
 
     @Autowired
@@ -48,7 +50,7 @@ public class SSLExternalCertificateScheduler {
     @Autowired
     private RequestProcessor reqProcessor;
 
-    private static Logger log = LogManager.getLogger(SSLCertificateService.class);
+    private static Logger log = LogManager.getLogger(SSLExternalCertificateScheduler.class);
 
     private static final String MESSAGES = "{\"messages\":[\"";
     private static final String ERRORS = "{\"errors\":[\"";
@@ -74,7 +76,7 @@ public class SSLExternalCertificateScheduler {
      *
      * @throws Exception
      */
-     @Scheduled(cron = "${SSLExternalCertificate.process.crontime.value}")
+    @Scheduled(cron = "${SSLExternalCertificate.process.crontime.value}")
     public void processApprovedExternalCertificates() throws Exception {
         UserDetails userDetails = getUserDetailsForScheduler();
         if (isSSLExtProcessScheduleEnabled) {

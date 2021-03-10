@@ -316,7 +316,7 @@ public class  SelfSupportService {
 			Map<String, Object> safesMap = new HashMap<String, Object>();
 			safesMap.put("keys", safes);
 			safesMap.put("total", totalCount);
-			safesMap.put("next", (totalCount - (safes.length+ offset)>0?totalCount - (safes.length + offset):-1));
+			safesMap.put("next", (totalCount - (safes.length+ offset)>0?(safes.length + offset):-1));
 			return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(safesMap));
 		}
 	}
@@ -831,21 +831,21 @@ public class  SelfSupportService {
 			Map<String, String> userSafeCount = new HashedMap();
 
 			userSafeCount.put("total", String.valueOf(totalUserSafes));
-			userSafeCount.put("next", (totalUserSafes - (safeList.get(TVaultConstants.USERS).size() + offset)>0?String.valueOf(totalUserSafes - (safeList.get(TVaultConstants.USERS).size() + offset)):"-1"));
+			userSafeCount.put("next", (totalUserSafes - (safeList.get(TVaultConstants.USERS).size() + offset)>0?String.valueOf((safeList.get(TVaultConstants.USERS).size() + offset)):"-1"));
 			userSafeCounts.add(userSafeCount);
 			safeList.put("userSafeCount", userSafeCounts);
 
 			List<Map<String, String>> sharedSafeCounts = new ArrayList<>();
 			Map<String, String> sharedSafeCount = new HashedMap();
 			sharedSafeCount.put("total", String.valueOf(totalSharedSafes));
-			sharedSafeCount.put("next", (totalSharedSafes - (safeList.get(TVaultConstants.SHARED).size() + offset)>0?String.valueOf(totalSharedSafes - (safeList.get(TVaultConstants.SHARED).size() + offset)):"-1"));
+			sharedSafeCount.put("next", (totalSharedSafes - (safeList.get(TVaultConstants.SHARED).size() + offset)>0?String.valueOf((safeList.get(TVaultConstants.SHARED).size() + offset)):"-1"));
 			sharedSafeCounts.add(sharedSafeCount);
 			safeList.put("sharedSafeCount", sharedSafeCounts);
 
 			List<Map<String, String>> appSafeCounts = new ArrayList<>();
 			Map<String, String> appSafeCount = new HashedMap();
 			appSafeCount.put("total", String.valueOf(totalAppSafes));
-			appSafeCount.put("next", (totalAppSafes - (safeList.get(TVaultConstants.APPS).size() + offset)>0?String.valueOf(totalAppSafes - (safeList.get(TVaultConstants.APPS).size() + offset)):"-1"));
+			appSafeCount.put("next", (totalAppSafes - (safeList.get(TVaultConstants.APPS).size() + offset)>0?String.valueOf((safeList.get(TVaultConstants.APPS).size() + offset)):"-1"));
 			appSafeCounts.add(appSafeCount);
 			safeList.put("appSafeCount", appSafeCounts);
 
@@ -1511,9 +1511,9 @@ public class  SelfSupportService {
 
 		// Filter based on searchText if exists
 		if (StringUtils.isNotEmpty(searchText) && searchText.length() >= 3) {
-			userSafeList = userSafeList.stream().filter(s -> s.toLowerCase().startsWith(searchText)).collect(Collectors.toList());
-			sharedSafeList = sharedSafeList.stream().filter(s -> s.toLowerCase().startsWith(searchText)).collect(Collectors.toList());
-			appsSafeList = appsSafeList.stream().filter(s -> s.toLowerCase().startsWith(searchText)).collect(Collectors.toList());
+			userSafeList = userSafeList.stream().filter(s -> s.toLowerCase().contains(searchText)).collect(Collectors.toList());
+			sharedSafeList = sharedSafeList.stream().filter(s -> s.toLowerCase().contains(searchText)).collect(Collectors.toList());
+			appsSafeList = appsSafeList.stream().filter(s -> s.toLowerCase().contains(searchText)).collect(Collectors.toList());
 		}
 		safeList.put(TVaultConstants.USERS, userSafeList);
 		safeList.put(TVaultConstants.SHARED, sharedSafeList);

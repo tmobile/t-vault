@@ -1931,7 +1931,7 @@ public class SSLCertificateService {
         boolean policiesCreated = false;
         Map<String, Object> policyMap = new HashMap<>();
         Map<String, String> accessMap = new HashMap<>();
-        String certificateName = sslCertificateRequest.getCertificateName();
+        String certificateName = certificateUtils.getVaultCompactibleCertifiacteName(sslCertificateRequest.getCertificateName());
         
         String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.INTERNAL))?
                 SSLCertificateConstants.SSL_CERT_PATH :SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
@@ -2080,7 +2080,8 @@ public class SSLCertificateService {
 		SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
 
     	sslCertificateMetadataDetails.setApplicationName(sslCertificateRequest.getAppName());
-    	sslCertificateMetadataDetails.setCertificateName(sslCertificateRequest.getCertificateName());
+		sslCertificateMetadataDetails.setCertificateName(
+				certificateUtils.getVaultCompactibleCertifiacteName(sslCertificateRequest.getCertificateName()));
     	sslCertificateMetadataDetails.setCertType(sslCertificateRequest.getCertType());
     	sslCertificateMetadataDetails.setCertOwnerNtid(sslCertificateRequest.getCertOwnerNtid());
 
@@ -2858,6 +2859,19 @@ public class SSLCertificateService {
                         put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                         build()));
                 return ResponseEntity.status(HttpStatus.OK).body(certListStr);
+			}else {
+				JsonObject metadataJsonObj = new JsonObject();
+				JsonArray responseArray = new JsonArray();
+				metadataJsonObj.add("keys", responseArray);
+				metadataJsonObj.addProperty("total", "0");
+				metadataJsonObj.addProperty("next", "-1");
+				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
+                        put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER)).
+                        put(LogMessage.ACTION, "Get all SSL Certificates to manage").
+                        put(LogMessage.MESSAGE, "No certificates available for this user").
+                        put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
+                        build()));
+				certListStr = metadataJsonObj.toString();
 			}
 
 		}
@@ -2917,10 +2931,20 @@ public class SSLCertificateService {
 			int maxVal = certNames.size()> (limit+offset)?limit+offset : certNames.size();
 			for (int i = offset; i < maxVal; i++) {
 				endPoint = certNames.get(i).replaceAll(CERTNAMEREGEX, "");
-				pathStr = path + "/" + endPoint;
+				pathStr = path + '/' + endPoint;
 				response = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}", token);
 				if (HttpStatus.OK.equals(response.getHttpstatus())) {
-					responseArray.add(((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data"));
+					JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
+					log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+							.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+							.put(LogMessage.ACTION, "getsslmetadatalist")
+							.put(LogMessage.MESSAGE, String.format("CertificatesName [%s] and Status [%s] is ",
+									(object.get("certificateName") != null) ? object.get("certificateName").getAsString()
+											: "",
+									response.getHttpstatus()))
+							.build()));
+					object.addProperty("certificateName", certificateUtils.getActualCertifiacteName(object.get("certificateName").getAsString()));
+					responseArray.add(object);
 				}
 			}
 		}
@@ -2937,7 +2961,7 @@ public class SSLCertificateService {
 		metadataJsonObj.add("keys", responseArray);
 		metadataJsonObj.addProperty("total", String.valueOf(totalCertCount));
 		metadataJsonObj.addProperty("next",
-				(totalCertCount - (responseArray.size() + offset)>0?String.valueOf(totalCertCount - (responseArray.size() + offset)):"-1"));
+				(totalCertCount - (responseArray.size() + offset)>0?String.valueOf((responseArray.size() + offset)):"-1"));
    		}
    		return metadataJsonObj.toString();
    	}
@@ -2954,12 +2978,12 @@ public class SSLCertificateService {
 		    if (!StringUtils.isEmpty(searchText)) {
 				for (int i = 0; i < jsonArray.size(); i++) {
 					if (jsonArray.get(i).toString().contains(searchText)) {
-						list.add(jsonArray.get(i).toString());
+						list.add(jsonArray.get(i).getAsString());
 					}
 				}
 			} else {
 				for (int i = 0; i < jsonArray.size(); i++) {
-					list.add(jsonArray.get(i).toString());
+					list.add(jsonArray.get(i).getAsString());
 				}
 			}
 		}
@@ -2985,7 +3009,7 @@ public class SSLCertificateService {
 		int maxVal = certNames.size() > (limit + offset) ? limit + offset : certNames.size();
 		for (int i = 0; i < certNames.size(); i++) {
 			endPoint = certNames.get(i).replaceAll(CERTNAMEREGEX, "");
-			pathStr = path + "/" + endPoint;
+			pathStr = path + '/' + endPoint;
 			response = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}",
 					userDetails.getSelfSupportToken());
 			if (HttpStatus.OK.equals(response.getHttpstatus()) && !ObjectUtils.isEmpty(response.getResponse())) {
@@ -4853,9 +4877,12 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	 */
 	public ResponseEntity<String> getCertificateDetails(String token, String certificateName, String certificateType) {
 
+		certificateName = certificateUtils.getVaultCompactibleCertifiacteName(certificateName);
+
 		SSLCertificateMetadataDetails sslCertificateMetadataDetails = certificateUtils.getCertificateMetaData(token,
 				certificateName, certificateType);
 		if (sslCertificateMetadataDetails != null) {
+			sslCertificateMetadataDetails.setCertificateName(certificateUtils.getActualCertifiacteName(sslCertificateMetadataDetails.getCertificateName()));
 			return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(sslCertificateMetadataDetails));
 		}
 		return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -6032,7 +6059,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		JsonParser jsonParser = new JsonParser();
 		JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
 		JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
-		List<String> certNames = geMatchCertificates(jsonArray, "");
+		List<String> certNames = getMatchedCertificatesBasedOnPermissions(jsonArray);
 		Integer totalCertCount = certNames.size();
 
 		limit = (limit == null)?totalCertCount:limit;
@@ -6045,7 +6072,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		Map<String, Object> certificateMap = new HashMap<>();
 		certificateMap.put("keys", certArray);
 		certificateMap.put("total", totalCertCount);
-		certificateMap.put("next", (totalCertCount - (certArray.length+ offset)>0?totalCertCount - (certArray.length + offset):-1));
+		certificateMap.put("next", (totalCertCount - (certArray.length+ offset)>0?(certArray.length + offset):-1));
 		return certificateMap;
 	}
 
@@ -6072,7 +6099,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			JsonParser jsonParser = new JsonParser();
 			JsonObject jsonObject = (JsonObject) jsonParser.parse(response.getResponse());
 			JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
-			certNames = geMatchCertificates(jsonArray, "");
+			certNames = getMatchedCertificatesBasedOnPermissions(jsonArray);
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "getListOfCertificates for validation")
@@ -6904,7 +6931,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 	private CertificateData getExternalCertificate(SSLCertificateMetadataDetails certificateMetaData) throws Exception {
 		CertificateData certificateData = null;
 		int containerId = certificateMetaData.getContainerId();
-		String certName = certificateMetaData.getCertificateName();
+		String certName = certificateUtils.getActualCertifiacteName(certificateMetaData.getCertificateName());
 		String nclmAccessToken = getNclmToken();
 		if (StringUtils.isEmpty(nclmAccessToken)) {
 			return null;
@@ -6946,7 +6973,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 		        certificateData.setCreateDate(validateString(jsonElement.get("NotBefore")));
 		        certificateData.setContainerName(validateString(jsonElement.get(SSLCertificateConstants.CONTAINER_NAME)));
 		        certificateData.setCertificateStatus(validateString(jsonElement.get(SSLCertificateConstants.CERTIFICATE_STATUS)));
-		        certificateData.setCertificateName(certName);
+		        certificateData.setCertificateName(certificateUtils.getVaultCompactibleCertifiacteName(certName));
 		        certificateData.setAuthority((!StringUtils.isEmpty(jsonElement.get("enrollServiceInfo")) ?
 		                 validateString(jsonElement.get("enrollServiceInfo").getAsJsonObject().get("name")) :
 		                 null));
@@ -7888,7 +7915,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			Map<String, String> certCount = new HashedMap();
 
 			certCount.put("total", String.valueOf(totalCount));
-			certCount.put("next", (totalCount - (certificateList.get(certificatePrefix).size() + offset)>0?String.valueOf(totalCount - (certificateList.get(certificatePrefix).size() + offset)):"-1"));
+			certCount.put("next", (totalCount - (certificateList.get(certificatePrefix).size() + offset)>0?String.valueOf((certificateList.get(certificatePrefix).size() + offset)):"-1"));
 			certificateCounts.add(certCount);
 			certificateList.put("certCount", certificateCounts);
 		}
@@ -7933,7 +7960,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 			String[] policyName = Arrays.copyOfRange(certificatePolicies, 2, certificatePolicies.length);
 			String certificateName = String.join("_", policyName);
 			String sslCertType = certificatePolicies[1];
-
+			certificateName = certificateUtils.getActualCertifiacteName(certificateName);
 			if (policy.startsWith("r_")) {
 				certificatePolicy.put(certificateName, "read");
 			} else if (policy.startsWith("w_")) {
@@ -8032,7 +8059,7 @@ public ResponseEntity<String> getRevocationReasons(Integer certificateId, String
 				String nclmAccessToken = (isMockingEnabled(certType)) ? TVaultConstants.NCLM_MOCK_VALUE:getNclmToken();
 				if(!StringUtils.isEmpty(nclmAccessToken)) {	
 				try {
-					CertificateData certData = (!isMockingEnabled(certType)) ? getLatestCertificate(certName,
+					CertificateData certData = (!isMockingEnabled(certType)) ? getLatestCertificate(certificateUtils.getActualCertifiacteName(certName),
                             nclmAccessToken, containerId):nclmMockUtil.getMockDataForRevoked();
 					if(!ObjectUtils.isEmpty(certData) && certData.getCertificateId() != 0) {
 						if(!certData.getCertificateStatus().equalsIgnoreCase("Revoked")) {	
@@ -9662,7 +9689,6 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	private boolean isCertificateAlreadyOnboarded(List<String> onboardedInternalCerts,
 			List<String> onboardedExternalCerts, CertificateData certificateData, boolean isOnboarded) {
 		String certificateName = certificateData.getCertificateName();
-		certificateName = certificateUtils.getVaultCompactibleCertifiacteName(certificateName);
 		if (certificateData.getCertType().equals(SSLCertificateConstants.INTERNAL)
 				&& !CollectionUtils.isEmpty(onboardedInternalCerts)) {
 			isOnboarded = onboardedInternalCerts.stream()
@@ -9785,7 +9811,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 
 		ResponseEntity<String> response;
 		JsonObject jsonObject = new JsonObject();
-		jsonObject.addProperty(SSLCertificateConstants.COMMON_NAME, sslCertificateRequest.getCertificateName());
+		jsonObject.addProperty(SSLCertificateConstants.COMMON_NAME, certificateUtils.getVaultCompactibleCertifiacteName(sslCertificateRequest.getCertificateName()));
 		jsonObject.addProperty(SSLCertificateConstants.CERT_TYPE, sslCertificateRequest.getCertType());
 
 		if (isCertAvailableInMetadata(jsonObject, token)) {
@@ -10094,21 +10120,22 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			ResponseEntity<String> permissionResponse) {
 		boolean isDeleted = false;
 		if (permissionResponse != null && !(HttpStatus.OK.equals(permissionResponse.getStatusCode()))) {
+			String certificateName = certificateUtils.getVaultCompactibleCertifiacteName(sslCertificateRequest.getCertificateName());
 			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
 					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 					.put(LogMessage.ACTION, "Onboard SSL certificate")
 					.put(LogMessage.MESSAGE,
 							String.format(" [%s] - ERROR - Sudo Policy Creation Failed  ",
-									sslCertificateRequest.getCertificateName()))
+									certificateName))
 					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 					.build()));
 			SSLCertificateMetadataDetails certificateMetaData = certificateUtils.getCertificateMetaData(
-					tokenUtils.getSelfServiceToken(), sslCertificateRequest.getCertificateName(),
+					tokenUtils.getSelfServiceToken(), certificateName,
 					sslCertificateRequest.getCertType());
 			String metaDataPath = (sslCertificateRequest.getCertType().equalsIgnoreCase(SSLCertificateConstants.INTERNAL))
 					? SSLCertificateConstants.SSL_CERT_PATH
 					: SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
-			String certificatePath = metaDataPath + '/' + sslCertificateRequest.getCertificateName();
+			String certificatePath = metaDataPath + '/' + certificateName;
 			isDeleted = deleteMetaDataAndPermissions(certificateMetaData, certificatePath,
 					tokenUtils.getSelfServiceToken());
 			if (isDeleted) {
@@ -10117,7 +10144,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 						.put(LogMessage.ACTION, SSLCertificateConstants.ONBOARD_SSL_CERTIFICATE)
 						.put(LogMessage.MESSAGE,
 								String.format(" [%s] - ERROR - Metadata and policy deletion Completed  ",
-										sslCertificateRequest.getCertificateName()))
+										certificateName))
 						.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
 						.build()));
 			}
@@ -10140,7 +10167,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 				: SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH;
 		String certOwnerNtId = "";
 		String displayName = "";
-		String certMetadataPath = metaDataPath + '/' + sslCertificateRequest.getCertificateName();
+		String certMetadataPath = metaDataPath + '/' + certificateUtils.getVaultCompactibleCertifiacteName(sslCertificateRequest.getCertificateName());
 
 		SSLCertificateMetadataDetails sslCertificateMetadataDetails = new SSLCertificateMetadataDetails();
 
@@ -10158,7 +10185,7 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 				.build()));
 		if (Objects.nonNull(certDetails) && certDetails.getCertificateId() > 0) {
 			sslCertificateMetadataDetails.setCertificateId(certDetails.getCertificateId());
-			sslCertificateMetadataDetails.setCertificateName(certDetails.getCertificateName());
+			sslCertificateMetadataDetails.setCertificateName(certificateUtils.getVaultCompactibleCertifiacteName(certDetails.getCertificateName()));
 			sslCertificateMetadataDetails.setCreateDate(certDetails.getCreateDate());
 			sslCertificateMetadataDetails.setExpiryDate(certDetails.getExpiryDate());
 			sslCertificateMetadataDetails.setAuthority(certDetails.getAuthority());
@@ -10998,18 +11025,52 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 		String token = userDetails.getSelfSupportToken();
 
 		JsonArray responseArray = new JsonArray();
+		JsonArray responseSubArray = new JsonArray();
+		JsonParser jsonParser = new JsonParser();
+		JsonObject metadataJsonObj = new JsonObject();
+
+		getCertificateMetadataForAllCertNames(path, certificateNames, token, responseArray, jsonParser);
+
+		Integer totCount = responseArray.size();
+		limit = (limit == null) ? totCount : limit;
+		offset = (offset == null) ? 0 : offset;
+		if (ObjectUtils.isEmpty(responseArray)) {
+			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+					.put(LogMessage.ACTION, "getAllCertificateListFromPermissions")
+					.put(LogMessage.MESSAGE, "Certificates metadata is not available")
+					.put(LogMessage.STATUS,"No certificates available")
+					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL))
+					.build()));
+		}else {
+			int maxVal = (totCount > (limit+offset))?limit+offset : totCount;
+			for (int i = offset; i < maxVal; i++) {
+				responseSubArray.add(responseArray.get(i));
+			}
+		}
+		metadataJsonObj.add("keys", responseSubArray);
+		metadataJsonObj.addProperty("total", String.valueOf(totCount));
+		metadataJsonObj.addProperty("next",
+				(totCount - (responseSubArray.size() + offset) > 0
+						? String.valueOf((responseSubArray.size() + offset))
+						: "-1"));
+		return metadataJsonObj.toString();
+	}
+
+	/**
+	 * Method to get certificate metadata for all given certificate names
+	 * @param path
+	 * @param certificateNames
+	 * @param token
+	 * @param responseArray
+	 * @param jsonParser
+	 */
+	private void getCertificateMetadataForAllCertNames(String path, List<String> certificateNames, String token,
+			JsonArray responseArray, JsonParser jsonParser) {
 		Response response = null;
 		String pathStr = "";
 		String endPoint = "";
-		JsonParser jsonParser = new JsonParser();
-		JsonObject metadataJsonObj = new JsonObject();
-		Integer totCount = certificateNames.size();
-		limit = (limit == null) ? certificateNames.size() : limit;
-		offset = (offset == null) ? 0 : offset;
-
-		List<String> certificateSubList = getSublistFromCertificateNames(limit, offset, certificateNames);
-
-		for (String certName : certificateSubList) {
+		for (String certName : certificateNames) {
 			endPoint = certName.replaceAll(CERTNAMEREGEX, "");
 			pathStr = path + '/' + endPoint;
 			response = reqProcessor.process("/sslcert", "{\"path\":\"" + pathStr + "\"}", token);
@@ -11018,36 +11079,17 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 					&& !ObjectUtils.isEmpty(response.getResponse())) {
 				JsonObject object = ((JsonObject) jsonParser.parse(response.getResponse())).getAsJsonObject("data");
 				log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
+						.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
 						.put(LogMessage.ACTION, "getAllCertificateListFromPermissions")
 						.put(LogMessage.MESSAGE, String.format("CertificatesName [%s] and Status [%s] is ",
 								object.get("certificateName") == null ? ""
 										: object.get("certificateName").getAsString(),
 								response.getHttpstatus()))
 						.build()));
+				object.addProperty("certificateName", certificateUtils.getActualCertifiacteName(object.get("certificateName").getAsString()));
 				responseArray.add(object);
 			}
 		}
-
-		if (ObjectUtils.isEmpty(responseArray)) {
-			log.debug(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
-					.put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString())
-					.put(LogMessage.ACTION, "getAllCertificateListFromPermissions")
-					.put(LogMessage.MESSAGE, "Certificates metadata is not available")
-					.put(LogMessage.STATUS,
-							(response != null && response.getHttpstatus() != null) ? response.getHttpstatus().toString()
-									: "")
-					.put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL).toString())
-					.build()));
-		}
-		metadataJsonObj.add("keys", responseArray);
-		metadataJsonObj.addProperty("total", String.valueOf(totCount));
-		metadataJsonObj.addProperty("next",
-				(totCount - (responseArray.size() + offset) > 0
-						? String.valueOf(totCount - (responseArray.size() + offset))
-						: "-1"));
-
-		return metadataJsonObj.toString();
 	}
 
 	/**
@@ -11096,30 +11138,6 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 	}
 
 	/**
-	 * Method to get the sublist from certificates list.
-	 * @param limit
-	 * @param offset
-	 * @param certNames
-	 * @return
-	 */
-	private List<String> getSublistFromCertificateNames(Integer limit, Integer offset,
-			List<String> certNames) {
-		List<String> certNameSubList = new ArrayList<>();
-		if (!certNames.isEmpty()) {
-			Integer totCount = certNames.size();
-			Integer offsetVal = 0;
-			Integer toindex = 0;
-			Integer limitVal = offset + limit;
-
-			offsetVal = (offset <= totCount) ? offset : totCount;
-			toindex = (limitVal <= totCount) ? limitVal : totCount;
-
-			certNameSubList = certNames.subList(offsetVal, toindex);
-		}
-		return certNameSubList;
-	}
-
-	/**
 	 * Get the certificate names matches the search keyword
 	 * @param certNameList
 	 * @param searchText
@@ -11139,5 +11157,175 @@ String policyPrefix = getCertificatePolicyPrefix(access, certType);
 			}
 		}
 		return matchedlist;
+	}
+
+    /**
+     * To get all certificate names which the user has read/deny/owner permission
+     * @param token
+     * @param userDetails
+     * @param searchText
+     * @return
+     */
+    public ResponseEntity<String> getFullCertificateList(String token, UserDetails userDetails, String searchText) {
+        if (!StringUtils.isEmpty(searchText) && searchText.length() < 3) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"errors\":[\"Search text must be of minimum 3 characters.\"]}");
+        }
+        Map<String, List<String>> certificateList = new HashMap<>();
+        // For admin users, take certificate names from metadata list
+        if (userDetails.isAdmin()) {
+            // Get internal certificate list from metadata
+            log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "getFullCertificateList")
+                    .put(LogMessage.MESSAGE, "Trying to get all certificates for admin from metadata list")
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+            Response internalCertListResponse = getMetadata(token, SSLCertificateConstants.SSL_CERT_PATH);
+            List<String> internalCertificateNames = getCertificateListFromResponse(internalCertListResponse);
+            // Get external certificate list from metadata
+            Response externalCertListResponse = getMetadata(token, SSLCertificateConstants.SSL_EXTERNAL_CERT_PATH);
+            List<String> externalCertificateNames = getCertificateListFromResponse(externalCertListResponse);
+
+            certificateList.put(SSLCertificateConstants.INTERNAL, internalCertificateNames);
+            certificateList.put(SSLCertificateConstants.EXTERNAL, externalCertificateNames);
+        }
+        else {
+            // for normal users, take certificate names from policy list
+            log.info(JSONUtil.getJSON(ImmutableMap.<String, String>builder()
+                    .put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER))
+                    .put(LogMessage.ACTION, "getFullCertificateList")
+                    .put(LogMessage.MESSAGE, "Trying to get all certificates for normal user from policies")
+                    .put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).build()));
+            String[] policies = policyUtils.getCurrentPolicies(userDetails.getSelfSupportToken(), userDetails.getUsername(), userDetails);
+            certificateList = extractCertificateNameFromPoilcies(policies);
+        }
+        // Filter based on searchText if exists
+        if (!StringUtils.isEmpty(searchText) && searchText.length() >= 3) {
+            List<String> filterCertNames = certificateList.get(SSLCertificateConstants.INTERNAL).stream().filter(s -> s.toLowerCase().contains(searchText)).collect(Collectors.toList());
+            certificateList.put(SSLCertificateConstants.INTERNAL, filterCertNames);
+            filterCertNames = certificateList.get(SSLCertificateConstants.EXTERNAL).stream().filter(s -> s.toLowerCase().contains(searchText)).collect(Collectors.toList());
+            certificateList.put(SSLCertificateConstants.EXTERNAL, filterCertNames);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(JSONUtil.getJSON(certificateList));
+    }
+
+    /**
+     * To get certificate name from metadata list response.
+     * @param certResponse
+     * @return
+     */
+    private List<String> getCertificateListFromResponse(Response certResponse) {
+        JsonParser jsonParser = new JsonParser();
+        List<String> certNames = new ArrayList<>();
+        if (HttpStatus.OK.equals(certResponse.getHttpstatus())) {
+            JsonObject jsonObject = (JsonObject) jsonParser.parse(certResponse.getResponse());
+            JsonArray jsonArray = jsonObject.getAsJsonObject("data").getAsJsonArray("keys");
+            certNames = geCertificateNamesFromJson(jsonArray);
+        }
+        return certNames;
+    }
+
+    /**
+     * Get the certificate names from JsonArray
+     * @param jsonArray
+     * @return
+     */
+    private List<String> geCertificateNamesFromJson(JsonArray jsonArray) {
+        List<String> list = new ArrayList<>();
+        if (!ObjectUtils.isEmpty(jsonArray)) {
+            for (int i = 0; i < jsonArray.size(); i++) {
+                list.add(certificateUtils.getActualCertifiacteName(jsonArray.get(i).getAsString()));
+            }
+        }
+        return list;
+    }
+
+    /**
+     * To get certificate names from policy list.
+     * @param policies
+     * @return
+     */
+    private Map<String, List<String>> extractCertificateNameFromPoilcies(String[] policies) {
+        List<String> internalCertificateNames = new ArrayList<>();
+        List<String> externalCertificateNames = new ArrayList<>();
+
+        if (policies != null) {
+            for (String policy : policies) {
+                if (isPolicyOfCertType(policy, SSLCertificateConstants.INTERNAL)) {
+                    // check for internal cert policy
+                    String certificateName = certificateUtils.getActualCertifiacteName(extractValidCertificateName(policy));
+                    if (!StringUtils.isEmpty(certificateName) && !internalCertificateNames.contains(certificateName)) {
+                        internalCertificateNames.add(certificateName);
+                    }
+                }
+                else if (isPolicyOfCertType(policy, SSLCertificateConstants.EXTERNAL)) {
+                    // check for external cert policy
+                    String certificateName = certificateUtils.getActualCertifiacteName(extractValidCertificateName(policy));
+                    if (!StringUtils.isEmpty(certificateName) && !externalCertificateNames.contains(certificateName)) {
+                        externalCertificateNames.add(certificateName);
+                    }
+                }
+            }
+        }
+        Map<String, List<String>> certificateList = new HashMap<>();
+        certificateList.put(SSLCertificateConstants.INTERNAL, internalCertificateNames);
+        certificateList.put(SSLCertificateConstants.EXTERNAL, externalCertificateNames);
+        return certificateList;
+    }
+
+    /**
+     * To check of the policy is of internal or external certificate type.
+     * @param policy
+     * @param certType
+     * @return
+     */
+    private boolean isPolicyOfCertType(String policy, String certType) {
+	    String certTypeName = SSLCertificateConstants.INTERNAL_POLICY_NAME;
+	    if (certType.equals(SSLCertificateConstants.EXTERNAL)) {
+            certTypeName = SSLCertificateConstants.EXTERNAL_POLICY_NAME;
+        }
+        String ownerPolicyPrefix = new StringBuilder().append(SSLCertificateConstants.SUDO_CERT_POLICY_PREFIX)
+                .append(certTypeName).append("_").toString();
+        String readPolicyPrefix = new StringBuilder().append(SSLCertificateConstants.READ_CERT_POLICY_PREFIX)
+                .append(certTypeName).append("_").toString();
+        String writePolicyPrefix = new StringBuilder().append(SSLCertificateConstants.WRITE_CERT_POLICY_PREFIX)
+                .append(certTypeName).append("_").toString();
+        String denyPolicyPrefix = new StringBuilder().append(SSLCertificateConstants.DENY_CERT_POLICY_PREFIX)
+                .append(certTypeName).append("_").toString();
+
+        if (policy.startsWith(ownerPolicyPrefix) || policy.startsWith(readPolicyPrefix)
+                || policy.startsWith(writePolicyPrefix) || policy.startsWith(denyPolicyPrefix)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * To extract valid certificate name from policy.
+     * @param policy
+     * @return
+     */
+    private String extractValidCertificateName(String policy) {
+        String[] certificatePolicies = policy.split("_", -1);
+        if (certificatePolicies.length >= 3) {
+            String[] policyName = Arrays.copyOfRange(certificatePolicies, 2, certificatePolicies.length);
+            return String.join("_", policyName);
+        }
+        return null;
+    }
+
+	/**
+	 * Get the certificate names matches from the permissions list
+	 *
+	 * @param jsonArray
+	 * @return
+	 */
+	private List<String> getMatchedCertificatesBasedOnPermissions(JsonArray jsonArray) {
+		List<String> list = new ArrayList<>();
+		if (!ObjectUtils.isEmpty(jsonArray)) {
+			for (int i = 0; i < jsonArray.size(); i++) {
+				list.add(certificateUtils.getActualCertifiacteName(jsonArray.get(i).getAsString()));
+			}
+		}
+		return list;
 	}
 }
