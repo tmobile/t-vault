@@ -2966,20 +2966,23 @@ public final class ControllerUtil {
         if (null != requestMap.get("keys")) {
 			List<String> policyList = new ArrayList<>(Arrays.asList((String[]) requestMap.get("keys")));
 			policyList.removeAll(Arrays.asList(TVaultConstants.MASTER_APPROLES));
-	
+
 			limit = (limit == null)?policyList.size():limit;
 			offset = (offset == null)?0:offset;
+			Integer totalApproleCount = policyList.size();
 			List<String> policyListResponse = new ArrayList<String>();
 			int maxVal = policyList.size() > (limit+offset)?limit+offset : policyList.size();
 			for (int i = offset; i < maxVal; i++) {
 				policyListResponse.add(policyList.get(i));	
 			}
+			String nextVal = (totalApproleCount - (policyListResponse.size() + offset) > 0 ? String.valueOf((policyListResponse.size() + offset)) : "-1");
 			String policies = policyListResponse.stream().collect(Collectors.joining("\", \""));
+
 			if (StringUtils.isEmpty(policies)) {
-				response.setResponse("{\"keys\": []}");
+				response.setResponse("{\"keys\": [],\"total\":0, \"next\":-1}");
 			}
 			else {
-				response.setResponse("{\"keys\": [\"" + policies + "\"]}");
+				response.setResponse("{\"keys\": [\"" + policies + "\"],\"total\":"+totalApproleCount+",\"next\":"+nextVal+"}");
 			}	
 		}
         return response;

@@ -1416,7 +1416,7 @@ public class SSLCertificateService {
                     SSLCertificateConstants.INTERNAL_CERT_ENROLL_STRING :
                     SSLCertificateConstants.EXTERNAL_CERT_ENROLL_STRING);
 
-            String keyUsage = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ? metadataParams.get("keyUsageValue") :
+            String keyUsage = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ? getActualKeyUsageValue(metadataParams.get("keyUsageValue")) :
                     SSLCertificateConstants.EXTERNAL_KEY_USAGE);
 
                  // set template variables
@@ -1464,7 +1464,7 @@ public class SSLCertificateService {
                 certMetaData = certificateUtils.getCertificateMetaData(token, certName, certType);
             }
             String keyUsage = (certType.equalsIgnoreCase(SSLCertificateConstants.INTERNAL) ?
-                    certMetaData.getKeyUsageValue() :
+                    getActualKeyUsageValue(certMetaData.getKeyUsageValue()) :
                     SSLCertificateConstants.EXTERNAL_KEY_USAGE);
             // set template variables
             Map<String, String> mailTemplateVariables = new HashMap<>();
@@ -1519,6 +1519,26 @@ public class SSLCertificateService {
                     put(LogMessage.APIURL, ThreadLocalContext.getCurrentMap().get(LogMessage.APIURL)).
                     build()));
         }
+    }
+
+    /**
+     * To get key usage actual name from key usage label.
+     * @param keyUsageLabel
+     * @return
+     */
+    private String getActualKeyUsageValue(String keyUsageLabel) {
+
+        String keyUsageValue = "";
+        if (!StringUtils.isEmpty(keyUsageLabel)) {
+            if (keyUsageLabel.equalsIgnoreCase(SSLCertificateConstants.KEYUSAGE_VALUE_SERVER_LABEL)) {
+                keyUsageValue = SSLCertificateConstants.INTERNAL_KEY_USAGE;
+            } else if (keyUsageLabel.equalsIgnoreCase(SSLCertificateConstants.KEYUSAGE_VALUE_CLIENT_LABEL)) {
+                keyUsageValue = SSLCertificateConstants.INTERNAL_KEY_USAGE_CLIENT;
+            } else if (keyUsageLabel.equalsIgnoreCase(SSLCertificateConstants.KEYUSAGE_VALUE_BOTH_LABEL)) {
+                keyUsageValue = SSLCertificateConstants.EXTERNAL_KEY_USAGE;
+            }
+        }
+        return keyUsageValue;
     }
 
 

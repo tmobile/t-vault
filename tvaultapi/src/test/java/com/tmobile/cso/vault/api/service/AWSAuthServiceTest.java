@@ -673,7 +673,6 @@ public class AWSAuthServiceTest {
         awsiamLogin.setIam_request_headers("{\"token\":\"4qJC0tWjMDIKjRDDmtcUAZBt\"}");
         awsiamLogin.setIam_request_url("http://testurl.com");
         awsiamLogin.setRole("testawsrole");
-        awsiamLogin.setPkcs7("MIIBjwYJKoZIhvcNAQcDoIIBgDCCAXwCAQAxggE4MIIBNAIBADCBnDCBlDELMAkGA1UEBhMCWkEx");
 
         String responseBody = "{  \"errors\": [ \"failed to base64 decode iam_request_url\" ]}";
         Response response = getMockResponse(HttpStatus.BAD_REQUEST, false, responseBody);
@@ -694,7 +693,7 @@ public class AWSAuthServiceTest {
                 "  \"role\": \"testawsrole\",\n" +
                 "  \"pkcs7\": \"MIIBjwYJKoZIhvcNAQcDoIIBgDCCAXwCAQAxggE4MIIBNAIBADCBnDCBlDELMAkGA1UEBhMCWkEx====\"\n" +
                 "}";
-        AWSAuthLogin awsAuthLogin = new AWSIAMLogin();
+        AWSAuthLogin awsAuthLogin = new AWSAuthLogin();
         awsAuthLogin.setIam_http_request_method("POST");
         awsAuthLogin.setIam_request_body("{}");
         awsAuthLogin.setIam_request_headers("{\"token\":\"4qJC0tWjMDIKjRDDmtcUAZBt\"}");
@@ -727,7 +726,7 @@ public class AWSAuthServiceTest {
                 "  \"role\": \"nonce\",\n" +
                 "  \"pkcs7\": \"MIIBjwYJKoZIhvcNAQcDoIIBgDCCAXwCAQAxggE4MIIBNAIBADCBnDCBlDELMAkGA1UEBhMCWkEx====\"\n" +
                 "}";
-        AWSAuthLogin awsAuthLogin = new AWSIAMLogin();
+        AWSAuthLogin awsAuthLogin = new AWSAuthLogin();
         awsAuthLogin.setIam_http_request_method("POST");
         awsAuthLogin.setIam_request_body("{}");
         awsAuthLogin.setIam_request_headers("{\"token\":\"4qJC0tWjMDIKjRDDmtcUAZBt\"}");
@@ -761,7 +760,7 @@ public class AWSAuthServiceTest {
                 "  \"role\": \"testawsrole\",\n" +
                 "  \"pkcs7\": \"MIIBjwYJKoZIhvcNAQcDoIIBgDCCAXwCAQAxggE4MIIBNAIBADCBnDCBlDELMAkGA1UEBhMCWkEx====\"\n" +
                 "}";
-        AWSAuthLogin awsAuthLogin = new AWSIAMLogin();
+        AWSAuthLogin awsAuthLogin = new AWSAuthLogin();
         awsAuthLogin.setIam_http_request_method("POST");
         awsAuthLogin.setIam_request_body("{}");
         awsAuthLogin.setIam_request_headers("{\"token\":\"4qJC0tWjMDIKjRDDmtcUAZBt\"}");
@@ -804,7 +803,7 @@ public class AWSAuthServiceTest {
                 "  \"role\": \"testawsrole\",\n" +
                 "  \"pkcs7\": \"MIIBjwYJKoZIhvcNAQcDoIIBgDCCAXwCAQAxggE4MIIBNAIBADCBnDCBlDELMAkGA1UEBhMCWkEx====\"\n" +
                 "}";
-        AWSAuthLogin awsAuthLogin = new AWSIAMLogin();
+        AWSAuthLogin awsAuthLogin = new AWSAuthLogin();
         awsAuthLogin.setIam_http_request_method("POST");
         awsAuthLogin.setIam_request_body("{}");
         awsAuthLogin.setIam_request_headers("{\"token\":\"4qJC0tWjMDIKjRDDmtcUAZBt\"}");
