@@ -377,7 +377,7 @@ const SafeDashboard = () => {
   }, []);
 
   /**
-   * @function fetchData
+   * @function fetchSharedSafesData
    * @description function call all the manage and shared safe api.
    */
   const fetchSharedSafesData = useCallback(async () => {
@@ -573,10 +573,11 @@ const SafeDashboard = () => {
     setOpenConfirmationModal(false);
     apiService
       .deleteSafe(deletionPath)
-      .then(() => {
+      .then(async () => {
         setDeletionPath('');
         setToast(1);
         clearData();
+        await callSearchApi();
       })
       .catch(() => {
         setResponse({ status: 'success', message: 'success' });
@@ -655,6 +656,8 @@ const SafeDashboard = () => {
 
   const fetchData = () => {
     setResponse({ status: 'loading', message: 'loading' });
+    sessionStorage.setItem('safesApiCount', 0);
+    callSearchApi();
     clearData();
   };
 
@@ -672,7 +675,7 @@ const SafeDashboard = () => {
               access: Object.values(item)[0],
               path: `${value.path}/${value.name}`,
               safeType: value.type,
-              manage: false,
+              manage: !!isAdmin,
             };
           }
           return null;
