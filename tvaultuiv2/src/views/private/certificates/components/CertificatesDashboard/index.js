@@ -36,7 +36,6 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 import OnboardCertificates from '../OnboardCertificate';
 import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import SuccessAndErrorModal from '../../../../../components/SuccessAndErrorModal';
-import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import SearchboxWithDropdown from '../../../../../components/FormFields/SearchboxWithDropdown';
 
 const ColumnSection = styled('section')`
@@ -152,13 +151,6 @@ const scaledLoaderLastChild = css`
   top: -0.3rem;
 `;
 
-const customLoaderStyle = css`
-  position: absolute;
-  right: 1.2rem;
-  top: 1.6rem;
-  color: red;
-`;
-
 const useStyles = makeStyles((theme) => ({
   contained: { borderRadius: '0.4rem' },
   select: {
@@ -217,7 +209,6 @@ const CertificatesDashboard = () => {
   const [dataCleared, setDataCleared] = useState(true);
   const [searchCertList, setSearchCertList] = useState([]);
   const [noResultFound, setNoResultFound] = useState('');
-  const [searchLoader, setSearchLoader] = useState(false);
   const [searchSelected, setSearchSelected] = useState([]);
   const [options, setOptions] = useState([]);
   const [onboardCertificates, setOnboardCertificates] = useState([]);
@@ -453,25 +444,6 @@ const CertificatesDashboard = () => {
     // eslint-disable-next-line
   }, []);
 
-  const fetchOnboardCertificates = useCallback(async () => {
-    apiService
-      .getOnboardCertificates()
-      .then((result) => {
-        const onboardCertArray = [];
-        if (result?.data?.keys) {
-          result.data.keys.map((ele) => {
-            ele.isOnboardCert = true;
-            return onboardCertArray.push(ele);
-          });
-        }
-        setOnboardCertificates([...onboardCertArray]);
-      })
-      .catch(() => {
-        setOnboardCertificates([]);
-      });
-    // eslint-disable-next-line
-  }, []);
-
   const fetchInternalCertificates = () => {
     if (offset === 0) {
       setResponse({ status: 'loading' });
@@ -591,35 +563,42 @@ const CertificatesDashboard = () => {
 
   const searchAllcertApi = useCallback((searchText) => {
     const allSearchCerts = [];
-    apiService.searchAllCert(searchText).then((res) => {
-      if (res && res?.data) {
-        res.data.internal.map((item) =>
-          allSearchCerts.push({
-            name: item,
-            type: 'internal',
-          })
-        );
-        res.data.external.map((item) =>
-          allSearchCerts.push({
-            name: item,
-            type: 'external',
-          })
-        );
-      }
-
-      if (allSearchCerts.length === 0) {
-        setNoResultFound('No records found');
-      } else {
-        setNoResultFound('');
-      }
-      setSearchCertList([...allSearchCerts]);
-      setSearchLoader(false);
-    });
+    const onboardCerts = [];
+    const allCerts = apiService.searchAllCert(searchText);
+    const pendingCerts = apiService.getOnboardCertificates();
+    Promise.all([allCerts, pendingCerts])
+      .then((res) => {
+        if (res[0] && res[0].data) {
+          res[0].data.internal.map((item) =>
+            allSearchCerts.push({
+              name: item,
+              type: 'internal',
+            })
+          );
+          res[0].data.external.map((item) =>
+            allSearchCerts.push({
+              name: item,
+              type: 'external',
+            })
+          );
+        }
+        if (res[1] && res[1].data?.keys) {
+          res[1].data.keys.map((ele) => {
+            ele.name = ele.certificateName;
+            ele.isOnboardCert = true;
+            ele.type = 'pending';
+            onboardCerts.push(ele);
+            return allSearchCerts.push(ele);
+          });
+        }
+        setSearchCertList([...allSearchCerts]);
+        setOnboardCertificates([...onboardCerts]);
+      })
+      .catch(() => setResponse({ status: 'success' }));
   }, []);
 
   useEffect(() => {
-    searchAllcertApi('');
-    fetchOnboardCertificates();
+    searchAllcertApi();
     // eslint-disable-next-line
   },[])
 
@@ -638,31 +617,8 @@ const CertificatesDashboard = () => {
    * @param {string} value searched input value.
    */
   const onSearchChange = (value) => {
-    if (certificateType !== 'Onboard Certificates') {
-      if (value?.length > 2) {
-        const filteredList = searchCertList.filter((i) =>
-          i.name.includes(value)
-        );
-        setOptions([...filteredList]);
-        if (filteredList.length > 0) {
-          setNoResultFound('');
-        } else {
-          setNoResultFound('No result found');
-        }
-      } else {
-        setOptions([]);
-        setSearchSelected([]);
-        setNoResultFound('');
-      }
-      if (inputSearchValue === '' && !dataCleared) {
-        clearDataAndLoad();
-      }
-    } else if (value?.length > 2) {
-      const filteredList = onboardCertificates
-        .filter((i) => i.certificateName.includes(value))
-        .map((i) => {
-          return { ...i, name: i.certificateName, type: i.certType };
-        });
+    if (value?.length > 2) {
+      const filteredList = searchCertList.filter((i) => i.name.includes(value));
       setOptions([...filteredList]);
       if (filteredList.length > 0) {
         setNoResultFound('');
@@ -673,6 +629,9 @@ const CertificatesDashboard = () => {
       setOptions([]);
       setSearchSelected([]);
       setNoResultFound('');
+    }
+    if (inputSearchValue === '' && !dataCleared) {
+      clearDataAndLoad();
     }
   };
 
@@ -700,7 +659,7 @@ const CertificatesDashboard = () => {
   };
 
   const onSearchItemSelected = (v) => {
-    if (certificateType !== 'Onboard Certificates') {
+    if (!v.isOnboardCert) {
       setResponse({ status: 'loading' });
       fetchCertificateDetail(v.type, v.name);
       if (v.type === 'internal') {
@@ -711,6 +670,7 @@ const CertificatesDashboard = () => {
       setOptions([]);
     } else {
       setSearchSelected([v]);
+      setCertificateType('Onboard Certificates');
     }
   };
 
@@ -1022,9 +982,6 @@ const CertificatesDashboard = () => {
                   onChange={(value) => onSearchItemSelected(value)}
                   noResultFound={noResultFound}
                 />
-                {searchLoader && inputSearchValue?.length > 2 && (
-                  <LoaderSpinner customStyle={customLoaderStyle} />
-                )}
               </SearchWrap>
             </ColumnHeader>
             {response.status === 'loading' && (
