@@ -36,7 +36,6 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 import OnboardCertificates from '../OnboardCertificate';
 import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import SuccessAndErrorModal from '../../../../../components/SuccessAndErrorModal';
-import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import SearchboxWithDropdown from '../../../../../components/FormFields/SearchboxWithDropdown';
 
 const ColumnSection = styled('section')`
@@ -157,13 +156,6 @@ const scaledLoaderLastChild = css`
   top: -0.3rem;
 `;
 
-const customLoaderStyle = css`
-  position: absolute;
-  right: 1.2rem;
-  top: 1.6rem;
-  color: red;
-`;
-
 const useStyles = makeStyles((theme) => ({
   contained: { borderRadius: '0.4rem' },
   select: {
@@ -220,9 +212,9 @@ const CertificatesDashboard = () => {
   const [dataCleared, setDataCleared] = useState(true);
   const [searchCertList, setSearchCertList] = useState([]);
   const [noResultFound, setNoResultFound] = useState('');
-  const [searchLoader, setSearchLoader] = useState(false);
   const [searchSelected, setSearchSelected] = useState([]);
   const [options, setOptions] = useState([]);
+  const [onboardCertificates, setOnboardCertificates] = useState([]);
 
   const compareCertificates = (array1, array2, type) => {
     if (array2.length > 0) {
@@ -455,38 +447,6 @@ const CertificatesDashboard = () => {
     // eslint-disable-next-line
   }, []);
 
-  const fetchOnboardCertificates = useCallback(async () => {
-    const oldCert = [...allCertList];
-    apiService
-      .getOnboardCertificates(limit, offset)
-      .then((result) => {
-        setOffset(offset + limit);
-        const onboardCertArray = [];
-        if (result?.data?.keys) {
-          if (result.data.next === -1) {
-            setHasMore(false);
-          } else {
-            setHasMore(true);
-          }
-          result.data.keys.map((ele) => {
-            ele.isOnboardCert = true;
-            return onboardCertArray.push(ele);
-          });
-        }
-        setCertificateList([...oldCert, ...onboardCertArray]);
-        setAllCertList([...oldCert, ...onboardCertArray]);
-        setResponse({ status: 'success' });
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        if (err?.response?.data?.errors && err.response.data.errors[0]) {
-          setErrorMsg(err.response.data.errors[0]);
-        }
-        setResponse({ status: 'failed' });
-      });
-    // eslint-disable-next-line
-  }, []);
-
   const fetchInternalCertificates = () => {
     if (offset === 0) {
       setResponse({ status: 'loading' });
@@ -516,7 +476,9 @@ const CertificatesDashboard = () => {
     } else if (type === 'External') {
       fetchExternalCertificates();
     } else if (type === 'Onboard') {
-      fetchOnboardCertificates();
+      setCertificateList([...onboardCertificates]);
+      setAllCertList([...onboardCertificates]);
+      setResponse({ status: 'success' });
     }
   };
 
@@ -601,36 +563,51 @@ const CertificatesDashboard = () => {
 
   const searchAllcertApi = useCallback((searchText) => {
     const allSearchCerts = [];
-    apiService.searchAllCert(searchText).then((res) => {
-      if (res && res?.data) {
-        res.data.internal.map((item) =>
-          allSearchCerts.push({
-            name: item,
-            type: 'internal',
-          })
-        );
-        res.data.external.map((item) =>
-          allSearchCerts.push({
-            name: item,
-            type: 'external',
-          })
-        );
-      }
-
-      if (allSearchCerts.length === 0) {
-        setNoResultFound('No records found');
-      } else {
-        setNoResultFound('');
-      }
-      setSearchCertList([...allSearchCerts]);
-      setSearchLoader(false);
-    });
+    const onboardCerts = [];
+    const allCerts = apiService.searchAllCert(searchText);
+    const pendingCerts = apiService.getOnboardCertificates();
+    Promise.all([allCerts, pendingCerts])
+      .then((res) => {
+        if (res[0] && res[0].data) {
+          res[0].data.internal.map((item) =>
+            allSearchCerts.push({
+              name: item,
+              type: 'internal',
+            })
+          );
+          res[0].data.external.map((item) =>
+            allSearchCerts.push({
+              name: item,
+              type: 'external',
+            })
+          );
+        }
+        if (res[1] && res[1].data?.keys) {
+          res[1].data.keys.map((ele) => {
+            ele.name = ele.certificateName;
+            ele.isOnboardCert = true;
+            ele.type = 'pending';
+            onboardCerts.push(ele);
+            return allSearchCerts.push(ele);
+          });
+        }
+        setSearchCertList([...allSearchCerts]);
+        setOnboardCertificates([...onboardCerts]);
+      })
+      .catch(() => setResponse({ status: 'success' }));
   }, []);
 
   useEffect(() => {
-    searchAllcertApi('');
+    searchAllcertApi();
     // eslint-disable-next-line
-  }, []);
+  },[])
+
+  useEffect(() => {
+    if (onboardCertificates.length > 0 && certificateType === 'Onboard') {
+      setCertificateList([...onboardCertificates]);
+      setAllCertList([...onboardCertificates]);
+    }
+  }, [onboardCertificates, certificateType]);
 
   /**
    * @function onSearchChange
@@ -680,14 +657,19 @@ const CertificatesDashboard = () => {
   };
 
   const onSearchItemSelected = (v) => {
-    setResponse({ status: 'loading' });
-    fetchCertificateDetail(v.type, v.name);
-    if (v.type === 'internal') {
-      setCertificateType('Internal');
-    } else if (v.type === 'external') {
-      setCertificateType('External');
+    if (!v.isOnboardCert) {
+      setResponse({ status: 'loading' });
+      fetchCertificateDetail(v.type, v.name);
+      if (v.type === 'internal') {
+        setCertificateType('Internal');
+      } else if (v.type === 'external') {
+        setCertificateType('External');
+      }
+      setOptions([]);
+    } else {
+      setSearchSelected([v]);
+      setCertificateType('Onboard');
     }
-    setOptions([]);
   };
 
   useEffect(() => {
@@ -998,9 +980,6 @@ const CertificatesDashboard = () => {
                   onChange={(value) => onSearchItemSelected(value)}
                   noResultFound={noResultFound}
                 />
-                {searchLoader && inputSearchValue?.length > 2 && (
-                  <LoaderSpinner customStyle={customLoaderStyle} />
-                )}
               </SearchWrap>
             </ColumnHeader>
             {response.status === 'loading' && (
