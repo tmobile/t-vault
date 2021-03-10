@@ -3874,7 +3874,7 @@ public class  ServiceAccountsService {
 			if (requestMap != null && null != requestMap.get("keys")) {
 				onboardedList = new ArrayList<>(Arrays.asList((String[]) requestMap.get("keys")));
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			log.error(JSONUtil.getJSON(ImmutableMap.<String, String>builder().
 					put(LogMessage.USER, ThreadLocalContext.getCurrentMap().get(LogMessage.USER).toString()).
 					put(LogMessage.ACTION, "Update onboarded Service Account").
