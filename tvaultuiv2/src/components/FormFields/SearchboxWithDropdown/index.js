@@ -83,7 +83,7 @@ const SearchboxWithDropdown = (props) => {
             {menu.map((option) => {
               return (
                 <CustomSelectOption
-                  key={option.name}
+                  key={option.name + option.type}
                   selected={value === option.name}
                   onClick={() => {
                     setShowOptions(false);

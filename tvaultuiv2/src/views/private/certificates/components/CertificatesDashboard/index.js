@@ -220,6 +220,7 @@ const CertificatesDashboard = () => {
   const [searchLoader, setSearchLoader] = useState(false);
   const [searchSelected, setSearchSelected] = useState([]);
   const [options, setOptions] = useState([]);
+  const [onboardCertificates, setOnboardCertificates] = useState([]);
 
   const compareCertificates = (array1, array2, type) => {
     if (array2.length > 0) {
@@ -453,33 +454,20 @@ const CertificatesDashboard = () => {
   }, []);
 
   const fetchOnboardCertificates = useCallback(async () => {
-    const oldCert = [...allCertList];
     apiService
-      .getOnboardCertificates(limit, offset)
+      .getOnboardCertificates()
       .then((result) => {
-        setOffset(offset + limit);
         const onboardCertArray = [];
         if (result?.data?.keys) {
-          if (result.data.next === -1) {
-            setHasMore(false);
-          } else {
-            setHasMore(true);
-          }
           result.data.keys.map((ele) => {
             ele.isOnboardCert = true;
             return onboardCertArray.push(ele);
           });
         }
-        setCertificateList([...oldCert, ...onboardCertArray]);
-        setAllCertList([...oldCert, ...onboardCertArray]);
-        setResponse({ status: 'success' });
-        setIsLoading(false);
+        setOnboardCertificates([...onboardCertArray]);
       })
-      .catch((err) => {
-        if (err?.response?.data?.errors && err.response.data.errors[0]) {
-          setErrorMsg(err.response.data.errors[0]);
-        }
-        setResponse({ status: 'failed' });
+      .catch(() => {
+        setOnboardCertificates([]);
       });
     // eslint-disable-next-line
   }, []);
@@ -513,7 +501,9 @@ const CertificatesDashboard = () => {
     } else if (type === 'External Certificates') {
       fetchExternalCertificates();
     } else if (type === 'Onboard Certificates') {
-      fetchOnboardCertificates();
+      setCertificateList([...onboardCertificates]);
+      setAllCertificates([...onboardCertificates]);
+      setResponse({ status: 'success' });
     }
   };
 
@@ -629,18 +619,50 @@ const CertificatesDashboard = () => {
 
   useEffect(() => {
     searchAllcertApi('');
+    fetchOnboardCertificates();
     // eslint-disable-next-line
   },[])
 
-
+  useEffect(() => {
+    if (
+      onboardCertificates.length > 0 &&
+      certificateType === 'Onboard Certificates'
+    ) {
+      setCertificateList([...onboardCertificates]);
+      setAllCertificates([...onboardCertificates]);
+    }
+  }, [onboardCertificates, certificateType]);
   /**
    * @function onSearchChange
    * @description function to search certificate.
    * @param {string} value searched input value.
    */
   const onSearchChange = (value) => {
-    if (value?.length > 2) {
-      const filteredList = searchCertList.filter((i) => i.name.includes(value));
+    if (certificateType !== 'Onboard Certificates') {
+      if (value?.length > 2) {
+        const filteredList = searchCertList.filter((i) =>
+          i.name.includes(value)
+        );
+        setOptions([...filteredList]);
+        if (filteredList.length > 0) {
+          setNoResultFound('');
+        } else {
+          setNoResultFound('No result found');
+        }
+      } else {
+        setOptions([]);
+        setSearchSelected([]);
+        setNoResultFound('');
+      }
+      if (inputSearchValue === '' && !dataCleared) {
+        clearDataAndLoad();
+      }
+    } else if (value?.length > 2) {
+      const filteredList = onboardCertificates
+        .filter((i) => i.certificateName.includes(value))
+        .map((i) => {
+          return { ...i, name: i.certificateName, type: i.certType };
+        });
       setOptions([...filteredList]);
       if (filteredList.length > 0) {
         setNoResultFound('');
@@ -651,9 +673,6 @@ const CertificatesDashboard = () => {
       setOptions([]);
       setSearchSelected([]);
       setNoResultFound('');
-    }
-    if (inputSearchValue === '' && !dataCleared) {
-      clearDataAndLoad();
     }
   };
 
@@ -681,14 +700,18 @@ const CertificatesDashboard = () => {
   };
 
   const onSearchItemSelected = (v) => {
-    setResponse({ status: 'loading' });
-    fetchCertificateDetail(v.type, v.name);
-    if (v.type === 'internal') {
-      setCertificateType('Internal Certificates');
-    } else if (v.type === 'external') {
-      setCertificateType('External Certificates');
+    if (certificateType !== 'Onboard Certificates') {
+      setResponse({ status: 'loading' });
+      fetchCertificateDetail(v.type, v.name);
+      if (v.type === 'internal') {
+        setCertificateType('Internal Certificates');
+      } else if (v.type === 'external') {
+        setCertificateType('External Certificates');
+      }
+      setOptions([]);
+    } else {
+      setSearchSelected([v]);
     }
-    setOptions([]);
   };
 
   useEffect(() => {
