@@ -6,6 +6,7 @@ import ComponentError from '../../../../../errorBoundaries/ComponentError/compon
 import { TitleOne } from '../../../../../styles/GlobalStyles';
 import ListItemIcon from '../../../../../assets/icon_safes.svg';
 import mediaBreakpoints from '../../../../../breakpoints';
+import TooltipComponent from '../../../../../components/Tooltip';
 
 const FolderWrap = styled('div')`
   position: relative;
@@ -28,11 +29,13 @@ const ListItemAvatarWrap = styled.div`
   }
   display: flex;
   align-items: center;
+  opacity: ${(props) => (props.isOnboardCert ? '0.5' : '1')};
 `;
 
 const SubTitleWrap = styled.div`
   display: flex;
   align-items: center;
+  opacity: ${(props) => (props.isOnboardCert ? '0.5' : '1')};
 `;
 const Flag = styled('span')`
   font-size: ${(props) => props.fontSize};
@@ -66,6 +69,7 @@ const extraCss = css`
   text-overflow: ellipsis;
   font-size: 1.6rem;
   width: 25rem;
+  opacity: ${(props) => (props.isOnboardCert ? '0.5' : '1')};
   ${mediaBreakpoints.belowLarge} {
     width: 17rem;
   }
@@ -78,20 +82,34 @@ const extraCss = css`
 `;
 
 const CertificateListItem = (props) => {
-  const { title, createDate, icon, certType } = props;
+  const { title, createDate, icon, certType, isOnboardCert } = props;
 
+  const renderTitle =()=>{
+    return (
+      <TitleOne 
+      isOnboardCert={isOnboardCert}
+      color="#d0d0d0" 
+      extraCss={extraCss}
+      >
+        {title}
+      </TitleOne>
+      )
+  }
   return (
     <ComponentError>
       <FolderWrap>
         <LabelWrap>
-          <ListItemAvatarWrap>
+          <ListItemAvatarWrap isOnboardCert={isOnboardCert}>
             <Avatar alt="ListItem_icon" src={icon} />
           </ListItemAvatarWrap>
           <ListItemDetailBox>
-            <TitleOne color="#d0d0d0" extraCss={extraCss}>
-              {title}
-            </TitleOne>
-            <SubTitleWrap>
+          <TooltipComponent 
+          title={title} 
+          certificate ={'top'} 
+          renderContent={renderTitle()}
+          >
+            </TooltipComponent>
+            <SubTitleWrap isOnboardCert={isOnboardCert}>
               <Flag fontSize="1.3rem">{createDate}</Flag>
               {createDate ? (
                 <>
@@ -113,6 +131,7 @@ CertificateListItem.propTypes = {
   title: PropTypes.string,
   icon: PropTypes.string,
   certType: PropTypes.string,
+  isOnboardCert: PropTypes.bool.isRequired,
 };
 CertificateListItem.defaultProps = {
   createDate: '',

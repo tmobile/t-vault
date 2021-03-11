@@ -21,7 +21,6 @@ const EditDeletePopperWrap = styled.div`
 `;
 
 const CertificateListItemWrap = styled.div`
-  opacity: ${(props) => (props.isOnboardCert ? '0.5' : '1')};
 `;
 
 const CertificateStatus = styled.div`
@@ -171,6 +170,7 @@ const LeftColumn = (props) => {
               <CertificateListItem
                 title={certificate.certificateName}
                 certType={certificate.certType}
+                isOnboardCert={certificate.isOnboardCert}
                 createDate={
                   certificate.createDate
                     ? new Date(certificate.createDate).toLocaleDateString()
