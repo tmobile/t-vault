@@ -97,7 +97,12 @@ const FloatBtnWrapper = styled('div')`
 `;
 
 const SearchWrap = styled.div`
-  width: 30.9rem;
+  width: 100%;
+  border: 0.5px solid transparent;
+  outline: none;
+  :focus-within {
+    border: 0.5px solid #e20074;
+  }
 `;
 
 const EmptySecretBox = styled('div')`
@@ -147,7 +152,7 @@ const useStyles = makeStyles(() => ({
     textTransform: 'uppercase',
     color: '#fff',
     fontWeight: 'bold',
-    maxWidth: '23rem',
+    maxWidth: '15rem',
     marginRight: '2.5rem',
     '& .Mui-selected': {
       color: 'red',
@@ -162,11 +167,11 @@ const SafeDashboard = () => {
   const [response, setResponse] = useState({});
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [menu] = useState([
-    { name: 'User Safes', type: 'users' },
-    { name: 'Shared Safes', type: 'shared' },
-    { name: 'Application Safes', type: 'apps' },
+    { name: 'User', type: 'users' },
+    { name: 'Shared', type: 'shared' },
+    { name: 'Application', type: 'apps' },
   ]);
-  const [safeType, setSafeType] = useState('User Safes');
+  const [safeType, setSafeType] = useState('User');
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const [deletionPath, setDeletionPath] = useState('');
   const [toast, setToast] = useState(null);
@@ -368,7 +373,7 @@ const SafeDashboard = () => {
     sessionStorage.removeItem('safesList');
     setResponse({ status: 'loading', message: 'Loading...' });
     setInputSearchValue('');
-    setSafeType('User Safes');
+    setSafeType('User');
     fetchUserSafesData().catch(() => {
       setResponse({ status: 'failed', message: 'failed' });
     });
@@ -482,11 +487,11 @@ const SafeDashboard = () => {
 
   const callApiBasedOnSafeType = async () => {
     setInputSearchValue('');
-    if (safeType === 'User Safes') {
+    if (safeType === 'User') {
       await fetchUserSafesData();
-    } else if (safeType === 'Shared Safes') {
+    } else if (safeType === 'Shared') {
       await fetchSharedSafesData();
-    } else if (safeType === 'Application Safes') {
+    } else if (safeType === 'Application') {
       await fetchAppSafesData();
     }
   };
@@ -695,7 +700,7 @@ const SafeDashboard = () => {
     setSafeList([dataObj]);
     setAllSafeList([dataObj]);
     setInputSearchValue(value.name);
-    setSafeType(`${value.type}s`);
+    setSafeType(`${value.type}`);
     setSearchSelectClicked(true);
   };
 
@@ -749,7 +754,7 @@ const SafeDashboard = () => {
                 fullWidth={false}
                 onChange={(e) => onSelectChange(e.target.value)}
               />
-              <SearchWrap>
+              <SearchWrap tabIndex="0">
                 <SearchboxWithDropdown
                   onSearchChange={(e) => onSearchChange(e)}
                   value={inputSearchValue || ''}

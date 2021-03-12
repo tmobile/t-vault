@@ -57,7 +57,7 @@ const AccessDeniedIcon = styled.img`
   width: 16rem;
   height: 16rem;
 `;
-function getKeyUsageValue(setKeyValue, certificateType) {
+const getKeyUsageValue = (setKeyValue, certificateType) => {
   if (certificateType === 'internal') {
     if (setKeyValue === 'client' || setKeyValue === 'Client auth')
       return 'clientAuth';
@@ -66,7 +66,7 @@ function getKeyUsageValue(setKeyValue, certificateType) {
     return 'clientAuth , serverAuth';
   }
   return 'clientAuth , serverAuth';
-}
+};
 const NoPermission = styled.div`
   color: ${(props) => props.theme.customColor.label.color};
   text-align: center;

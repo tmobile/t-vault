@@ -36,7 +36,6 @@ import SnackbarComponent from '../../../../../components/Snackbar';
 import OnboardCertificates from '../OnboardCertificate';
 import DeletionConfirmationModal from './components/DeletionConfirmationModal';
 import SuccessAndErrorModal from '../../../../../components/SuccessAndErrorModal';
-import LoaderSpinner from '../../../../../components/Loaders/LoaderSpinner';
 import SearchboxWithDropdown from '../../../../../components/FormFields/SearchboxWithDropdown';
 
 const ColumnSection = styled('section')`
@@ -100,6 +99,11 @@ const FloatBtnWrapper = styled('div')`
 
 const SearchWrap = styled.div`
   width: 100%;
+  border: 0.5px solid transparent;
+  outline: none;
+  :focus-within {
+    border: 0.5px solid #e20074;
+  }
 `;
 
 const MobileViewForListDetailPage = css`
@@ -152,13 +156,6 @@ const scaledLoaderLastChild = css`
   top: -0.3rem;
 `;
 
-const customLoaderStyle = css`
-  position: absolute;
-  right: 1.2rem;
-  top: 1.6rem;
-  color: red;
-`;
-
 const useStyles = makeStyles((theme) => ({
   contained: { borderRadius: '0.4rem' },
   select: {
@@ -167,7 +164,7 @@ const useStyles = makeStyles((theme) => ({
     textTransform: 'uppercase',
     color: '#fff',
     fontWeight: 'bold',
-    maxWidth: '28rem',
+    maxWidth: '15rem',
     marginRight: '2.5rem',
     [theme.breakpoints.down('sm')]: {
       maxWidth: '16rem',
@@ -181,9 +178,7 @@ const useStyles = makeStyles((theme) => ({
 const CertificatesDashboard = () => {
   const [inputSearchValue, setInputSearchValue] = useState('');
   const [certificateList, setCertificateList] = useState([]);
-  const [certificateType, setCertificateType] = useState(
-    'Internal Certificates'
-  );
+  const [certificateType, setCertificateType] = useState('Internal');
   const [menu, setMenu] = useState([]);
   const [response, setResponse] = useState({ status: 'success' });
   const [errorMsg, setErrorMsg] = useState('');
@@ -217,9 +212,9 @@ const CertificatesDashboard = () => {
   const [dataCleared, setDataCleared] = useState(true);
   const [searchCertList, setSearchCertList] = useState([]);
   const [noResultFound, setNoResultFound] = useState('');
-  const [searchLoader, setSearchLoader] = useState(false);
   const [searchSelected, setSearchSelected] = useState([]);
   const [options, setOptions] = useState([]);
+  const [onboardCertificates, setOnboardCertificates] = useState([]);
 
   const compareCertificates = (array1, array2, type) => {
     if (array2.length > 0) {
@@ -375,7 +370,7 @@ const CertificatesDashboard = () => {
         setResponse({ status: 'failed' });
       });
     // eslint-disable-next-line
-  }, [offset,allCertList,certificateList]);
+  }, [offset, allCertList, certificateList]);
 
   const fetchNonAdminExternalData = useCallback(async () => {
     let allCertExternal = [];
@@ -452,38 +447,6 @@ const CertificatesDashboard = () => {
     // eslint-disable-next-line
   }, []);
 
-  const fetchOnboardCertificates = useCallback(async () => {
-    const oldCert = [...allCertList];
-    apiService
-      .getOnboardCertificates(limit, offset)
-      .then((result) => {
-        setOffset(offset + limit);
-        const onboardCertArray = [];
-        if (result?.data?.keys) {
-          if (result.data.next === -1) {
-            setHasMore(false);
-          } else {
-            setHasMore(true);
-          }
-          result.data.keys.map((ele) => {
-            ele.isOnboardCert = true;
-            return onboardCertArray.push(ele);
-          });
-        }
-        setCertificateList([...oldCert, ...onboardCertArray]);
-        setAllCertList([...oldCert, ...onboardCertArray]);
-        setResponse({ status: 'success' });
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        if (err?.response?.data?.errors && err.response.data.errors[0]) {
-          setErrorMsg(err.response.data.errors[0]);
-        }
-        setResponse({ status: 'failed' });
-      });
-    // eslint-disable-next-line
-  }, []);
-
   const fetchInternalCertificates = () => {
     if (offset === 0) {
       setResponse({ status: 'loading' });
@@ -508,12 +471,14 @@ const CertificatesDashboard = () => {
 
   const loadTypeSpecificData = (type) => {
     setDataCleared(false);
-    if (type === 'Internal Certificates') {
+    if (type === 'Internal') {
       fetchInternalCertificates();
-    } else if (type === 'External Certificates') {
+    } else if (type === 'External') {
       fetchExternalCertificates();
-    } else if (type === 'Onboard Certificates') {
-      fetchOnboardCertificates();
+    } else if (type === 'Onboard') {
+      setCertificateList([...onboardCertificates]);
+      setAllCertList([...onboardCertificates]);
+      setResponse({ status: 'success' });
     }
   };
 
@@ -536,7 +501,7 @@ const CertificatesDashboard = () => {
       setDataCleared(false);
     }
     // eslint-disable-next-line
-  },[dataCleared])
+  }, [dataCleared]);
 
   useEffect(() => {
     const url = history?.location?.pathname?.split('/');
@@ -554,13 +519,10 @@ const CertificatesDashboard = () => {
   }, [allCertList, history]);
 
   useEffect(() => {
-    const array = [
-      { name: 'Internal Certificates' },
-      { name: 'External Certificates' },
-    ];
+    const array = [{ name: 'Internal' }, { name: 'External' }];
     if (admin) {
       array.push({
-        name: 'Onboard Certificates',
+        name: 'Onboard',
       });
     }
     setMenu([...array]);
@@ -601,37 +563,51 @@ const CertificatesDashboard = () => {
 
   const searchAllcertApi = useCallback((searchText) => {
     const allSearchCerts = [];
-    apiService.searchAllCert(searchText).then((res) => {
-      if (res && res?.data) {
-        res.data.internal.map((item) =>
-          allSearchCerts.push({
-            name: item,
-            type: 'internal',
-          })
-        );
-        res.data.external.map((item) =>
-          allSearchCerts.push({
-            name: item,
-            type: 'external',
-          })
-        );
-      }
-
-      if (allSearchCerts.length === 0) {
-        setNoResultFound('No records found');
-      } else {
-        setNoResultFound('');
-      }
-      setSearchCertList([...allSearchCerts]);
-      setSearchLoader(false);
-    });
+    const onboardCerts = [];
+    const allCerts = apiService.searchAllCert(searchText);
+    const pendingCerts = apiService.getOnboardCertificates();
+    Promise.all([allCerts, pendingCerts])
+      .then((res) => {
+        if (res[0] && res[0].data) {
+          res[0].data.internal.map((item) =>
+            allSearchCerts.push({
+              name: item,
+              type: 'internal',
+            })
+          );
+          res[0].data.external.map((item) =>
+            allSearchCerts.push({
+              name: item,
+              type: 'external',
+            })
+          );
+        }
+        if (res[1] && res[1].data?.keys) {
+          res[1].data.keys.map((ele) => {
+            ele.name = ele.certificateName;
+            ele.isOnboardCert = true;
+            ele.type = 'pending';
+            onboardCerts.push(ele);
+            return allSearchCerts.push(ele);
+          });
+        }
+        setSearchCertList([...allSearchCerts]);
+        setOnboardCertificates([...onboardCerts]);
+      })
+      .catch(() => setResponse({ status: 'success' }));
   }, []);
 
   useEffect(() => {
-    searchAllcertApi('');
+    searchAllcertApi();
     // eslint-disable-next-line
   },[])
 
+  useEffect(() => {
+    if (onboardCertificates.length > 0 && certificateType === 'Onboard') {
+      setCertificateList([...onboardCertificates]);
+      setAllCertList([...onboardCertificates]);
+    }
+  }, [onboardCertificates, certificateType]);
 
   /**
    * @function onSearchChange
@@ -681,14 +657,19 @@ const CertificatesDashboard = () => {
   };
 
   const onSearchItemSelected = (v) => {
-    setResponse({ status: 'loading' });
-    fetchCertificateDetail(v.type, v.name);
-    if (v.type === 'internal') {
-      setCertificateType('Internal Certificates');
-    } else if (v.type === 'external') {
-      setCertificateType('External Certificates');
+    if (!v.isOnboardCert) {
+      setResponse({ status: 'loading' });
+      fetchCertificateDetail(v.type, v.name);
+      if (v.type === 'internal') {
+        setCertificateType('Internal');
+      } else if (v.type === 'external') {
+        setCertificateType('External');
+      }
+      setOptions([]);
+    } else {
+      setSearchSelected([v]);
+      setCertificateType('Onboard');
     }
-    setOptions([]);
   };
 
   useEffect(() => {
@@ -916,10 +897,10 @@ const CertificatesDashboard = () => {
 
   const loadMoreData = () => {
     setIsLoading(true);
-    if (certificateType === 'Internal Certificates') {
+    if (certificateType === 'Internal') {
       fetchInternalCertificates();
     }
-    if (certificateType === 'External Certificates') {
+    if (certificateType === 'External') {
       fetchExternalCertificates();
     }
   };
@@ -991,7 +972,7 @@ const CertificatesDashboard = () => {
                 fullWidth={false}
                 onChange={(e) => onSelectChange(e.target.value)}
               />
-              <SearchWrap>
+              <SearchWrap tabIndex="0">
                 <SearchboxWithDropdown
                   onSearchChange={(e) => setInputSearchValue(e?.target?.value)}
                   value={inputSearchValue || ''}
@@ -999,9 +980,6 @@ const CertificatesDashboard = () => {
                   onChange={(value) => onSearchItemSelected(value)}
                   noResultFound={noResultFound}
                 />
-                {searchLoader && inputSearchValue?.length > 2 && (
-                  <LoaderSpinner customStyle={customLoaderStyle} />
-                )}
               </SearchWrap>
             </ColumnHeader>
             {response.status === 'loading' && (
